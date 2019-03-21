@@ -5,7 +5,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Linear program &#8212; CVXPY 1.0.21 documentation</title>
+    <title>Quadratic program &#8212; CVXPY 1.0.21 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -39,73 +39,84 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="linear-program">
-<h1>Linear program<a class="headerlink" href="#linear-program" title="Permalink to this headline">¶</a></h1>
-<p>A linear program is an optimization problem with a linear objective and
-affine inequality constraints. A common standard form is the following:</p>
+  <div class="section" id="quadratic-program">
+<h1>Quadratic program<a class="headerlink" href="#quadratic-program" title="Permalink to this headline">¶</a></h1>
+<p>A quadratic program is an optimization problem with a quadratic
+objective and affine equality and inequality constraints. A common
+standard form is the following:</p>
 <div class="math">
 \[\begin{split}\begin{array}{ll}
-\mbox{minimize}   &amp; c^Tx \\
-\mbox{subject to} &amp; Ax \leq b.
+\mbox{minimize}   &amp; (1/2)x^TPx + q^Tx\\
+\mbox{subject to} &amp; Gx \leq h \\
+                  &amp; Ax = b.
 \end{array}\end{split}\]</div>
-<p>Here <span class="math">\(A \in \mathcal{R}^{m \times n}\)</span>,
-<span class="math">\(b \in \mathcal{R}^m\)</span>, and <span class="math">\(c \in \mathcal{R}^n\)</span> are problem
-data and <span class="math">\(x \in \mathcal{R}^{n}\)</span> is the optimization variable. The
-inequality constraint <span class="math">\(Ax \leq b\)</span> is elementwise.</p>
-<p>For example, we might have <span class="math">\(n\)</span> different products, each
-constructed out of <span class="math">\(m\)</span> components. Each entry <span class="math">\(A_{ij}\)</span> is
-the amount of component <span class="math">\(i\)</span> required to build one unit of product
-<span class="math">\(j\)</span>. Each entry <span class="math">\(b_i\)</span> is the total amount of component
-<span class="math">\(i\)</span> available. We lose <span class="math">\(c_j\)</span> for each unit of product
-<span class="math">\(j\)</span> (<span class="math">\(c_j &lt; 0\)</span> indicates profit). Our goal then is to choose
-how many units of each product <span class="math">\(j\)</span> to make, <span class="math">\(x_j\)</span>, in order
-to minimize loss without exceeding our budget for any component.</p>
-<p>In addition to a solution <span class="math">\(x^\star\)</span>, we obtain a dual solution
-<span class="math">\(\lambda^\star\)</span>. A positive entry <span class="math">\(\lambda^\star_i\)</span>
-indicates that the constraint <span class="math">\(a_i^Tx \leq b_i\)</span> holds with
-equality for <span class="math">\(x^\star\)</span> and suggests that changing <span class="math">\(b_i\)</span>
-would change the optimal value.</p>
+<p>Here <span class="math">\(P \in \mathcal{S}^{n}_+\)</span>, <span class="math">\(q \in \mathcal{R}^n\)</span>,
+<span class="math">\(G \in \mathcal{R}^{m \times n}\)</span>, <span class="math">\(h \in \mathcal{R}^m\)</span>,
+<span class="math">\(A \in \mathcal{R}^{p \times n}\)</span>, and <span class="math">\(b \in \mathcal{R}^n\)</span>
+are problem data and <span class="math">\(x \in \mathcal{R}^{n}\)</span> is the optimization
+variable. The inequality constraint <span class="math">\(Gx \leq h\)</span> is elementwise.</p>
+<p>A simple example of a quadratic program arises in finance. Suppose we
+have <span class="math">\(n\)</span> different stocks, an estimate <span class="math">\(r \in \mathcal{R}^n\)</span>
+of the expected return on each stock, and an estimate
+<span class="math">\(\Sigma \in \mathcal{S}^{n}_+\)</span> of the covariance of the returns.
+Then we solve the optimization problem</p>
+<div class="math">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize}   &amp; (1/2)x^T\Sigma x - r^Tx\\
+\mbox{subject to} &amp; x \geq 0 \\
+                  &amp; \mathbf{1}^Tx = 1,
+\end{array}\end{split}\]</div>
+<p>to find a portfolio allocation <span class="math">\(x \in \mathcal{R}^n_+\)</span> that
+optimally balances expected return and variance of return.</p>
+<p>When we solve a quadratic program, in addition to a solution
+<span class="math">\(x^\star\)</span>, we obtain a dual solution <span class="math">\(\lambda^\star\)</span>
+corresponding to the inequality constraints. A positive entry
+<span class="math">\(\lambda^\star_i\)</span> indicates that the constraint
+<span class="math">\(g_i^Tx \leq h_i\)</span> holds with equality for <span class="math">\(x^\star\)</span> and
+suggests that changing <span class="math">\(h_i\)</span> would change the optimal value.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<p>In the following code, we solve a linear program with CVXPY.</p>
+<p>In the following code, we solve a quadratic program with CVXPY.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="c1"># Generate a random non-trivial linear program.</span>
+<span class="c1"># Generate a random non-trivial quadratic program.</span>
 <span class="n">m</span> <span class="o">=</span> <span class="mi">15</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">p</span> <span class="o">=</span> <span class="mi">5</span>
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">s0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-<span class="n">lamb0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="o">-</span><span class="n">s0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">s0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">A</span><span class="nd">@x0</span> <span class="o">+</span> <span class="n">s0</span>
-<span class="n">c</span> <span class="o">=</span> <span class="o">-</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="nd">@lamb0</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">P</span><span class="o">.</span><span class="n">T</span><span class="nd">@P</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">h</span> <span class="o">=</span> <span class="n">G</span><span class="nd">@np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
 
 <span class="c1"># Define and solve the CVXPY problem.</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">T</span><span class="nd">@x</span><span class="p">),</span>
-                 <span class="p">[</span><span class="n">A</span><span class="nd">@x</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">])</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">((</span><span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span> <span class="o">+</span> <span class="n">q</span><span class="o">.</span><span class="n">T</span><span class="nd">@x</span><span class="p">),</span>
+                 <span class="p">[</span><span class="n">G</span><span class="nd">@x</span> <span class="o">&lt;=</span> <span class="n">h</span><span class="p">,</span>
+                  <span class="n">A</span><span class="nd">@x</span> <span class="o">==</span> <span class="n">b</span><span class="p">])</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 
 <span class="c1"># Print result.</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">The optimal value is&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;A solution x is&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;A dual solution is&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;A dual solution corresponding to the inequality constraints is&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="o">-</span><span class="mf">15.220912604467838</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="mf">86.89141585569918</span>
 <span class="n">A</span> <span class="n">solution</span> <span class="n">x</span> <span class="ow">is</span>
-<span class="p">[</span><span class="o">-</span><span class="mf">1.10131657</span> <span class="o">-</span><span class="mf">0.16370661</span> <span class="o">-</span><span class="mf">0.89711643</span>  <span class="mf">0.03228613</span>  <span class="mf">0.60662428</span> <span class="o">-</span><span class="mf">1.12655967</span>
-  <span class="mf">1.12985839</span>  <span class="mf">0.88200333</span>  <span class="mf">0.49089264</span>  <span class="mf">0.89851057</span><span class="p">]</span>
-<span class="n">A</span> <span class="n">dual</span> <span class="n">solution</span> <span class="ow">is</span>
-<span class="p">[</span><span class="mf">0.</span>         <span class="mf">0.61175641</span> <span class="mf">0.52817175</span> <span class="mf">1.07296862</span> <span class="mf">0.</span>         <span class="mf">2.3015387</span>
- <span class="mf">0.</span>         <span class="mf">0.7612069</span>  <span class="mf">0.</span>         <span class="mf">0.24937038</span> <span class="mf">0.</span>         <span class="mf">2.06014071</span>
- <span class="mf">0.3224172</span>  <span class="mf">0.38405435</span> <span class="mf">0.</span>        <span class="p">]</span>
+<span class="p">[</span><span class="o">-</span><span class="mf">1.68244521</span>  <span class="mf">0.29769913</span> <span class="o">-</span><span class="mf">2.38772183</span> <span class="o">-</span><span class="mf">2.79986015</span>  <span class="mf">1.18270433</span> <span class="o">-</span><span class="mf">0.20911897</span>
+ <span class="o">-</span><span class="mf">4.50993526</span>  <span class="mf">3.76683701</span> <span class="o">-</span><span class="mf">0.45770675</span> <span class="o">-</span><span class="mf">3.78589638</span><span class="p">]</span>
+<span class="n">A</span> <span class="n">dual</span> <span class="n">solution</span> <span class="n">corresponding</span> <span class="n">to</span> <span class="n">the</span> <span class="n">inequality</span> <span class="n">constraints</span> <span class="ow">is</span>
+<span class="p">[</span> <span class="mf">0.</span>          <span class="mf">0.</span>          <span class="mf">0.</span>          <span class="mf">0.</span>          <span class="mf">0.</span>         <span class="mf">10.45538054</span>
+  <span class="mf">0.</span>          <span class="mf">0.</span>          <span class="mf">0.</span>         <span class="mf">39.67365045</span>  <span class="mf">0.</span>          <span class="mf">0.</span>
+  <span class="mf">0.</span>         <span class="mf">20.79927156</span>  <span class="mf">6.54115873</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -194,7 +205,7 @@ would change the optimal value.</p>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
-      <a href="../../_sources/examples/basic/linear_program.rst.txt"
+      <a href="../../_sources/examples/basic/quadratic_program.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
