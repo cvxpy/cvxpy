@@ -83,7 +83,9 @@ In the following code, we solve a quadratic program with CVXPY.
     # Define and solve the CVXPY problem.
     x = cp.Variable(n)
     # We use cp.SOC(t, x) to create the SOC constraint ||x||_2 <= t.
-    soc_constraints = [cp.SOC(c[i].T@x + d[i], A[i]@x + b[i]) for i in range(m)]
+    soc_constraints = [
+          cp.SOC(c[i].T@x + d[i], A[i]@x + b[i]) for i in range(m)
+    ]
     prob = cp.Problem(cp.Minimize(f.T@x),
                       soc_constraints + [F@x == g])
     prob.solve()
