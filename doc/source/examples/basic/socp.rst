@@ -45,8 +45,8 @@ rewritten as the SOCP
 When we solve a SOCP, in addition to a solution :math:`x^\star`, we
 obtain a dual solution :math:`\lambda_i^\star` corresponding to each
 second-order cone constraint. A non-zero :math:`\lambda_i^\star`
-indicates that the constraint $ \|A_ix + b_i|_2 :raw-latex:`\leq `c_i^Tx
-+ d_i$ holds with equality for :math:`x^\star` and suggests that
+indicates that the constraint :math:`\|A_ix + b_i|_2 \leq c_i^Tx + d_i`
+holds with equality for :math:`x^\star` and suggests that
 changing :math:`d_i` would change the optimal value.
 
 Example
