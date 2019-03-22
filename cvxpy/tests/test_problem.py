@@ -249,15 +249,7 @@ class TestProblem(BaseTest):
                 # SuperSCS doesn't write to the stdout seen by Python.
                 if solver in [cvx.GLPK, cvx.GLPK_MI, cvx.MOSEK, cvx.SUPER_SCS, cvx.CBC]:
                     continue
-                if solver in [cvx.ELEMENTAL]:
-                    # ELEMENTAL's stdout is separate from python,
-                    # so we have to do this.
-                    # Note: This probably breaks (badly) on Windows.
-                    stdout_save = os.dup(stdout_fd)
-                    tmp_handle = tempfile.TemporaryFile(bufsize=0)
-                    os.dup2(tmp_handle.fileno(), stdout_fd)
-                else:
-                    sys.stdout = StringIO()  # capture output
+                sys.stdout = StringIO()  # capture output
 
                 p = Problem(cvx.Minimize(self.a + self.x[0]),
                             [self.a >= 2, self.x >= 2])
@@ -277,17 +269,9 @@ class TestProblem(BaseTest):
                         p = Problem(cvx.Minimize(self.a), [cvx.lambda_min(a_mat) >= 2])
                         p.solve(verbose=verbose, solver=solver)
 
-                if solver in [cvx.ELEMENTAL]:
-                    # ELEMENTAL's stdout is separate from python,
-                    # so we have to do this.
-                    tmp_handle.seek(0)
-                    out = tmp_handle.read()
-                    tmp_handle.close()
-                    os.dup2(stdout_save, stdout_fd)
-                else:
-                    out = sys.stdout.getvalue()  # release output
-                    sys.stdout.close()  # close the stream
-                    sys.stdout = backup  # restore original stdout
+                out = sys.stdout.getvalue()  # release output
+                sys.stdout.close()  # close the stream
+                sys.stdout = backup  # restore original stdout
 
                 outputs[verbose].append((out, solver))
         # ####

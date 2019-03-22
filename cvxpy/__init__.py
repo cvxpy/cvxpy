@@ -23,8 +23,8 @@ from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 import cvxpy.interface.scipy_wrapper
 from cvxpy.error import DCPError, DGPError, SolverError, disable_warnings, enable_warnings, warnings_enabled
-from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, JULIA_OPT, OSQP,
-                            ECOS, ECOS_BB, SUPER_SCS, SCS, GUROBI, ELEMENTAL, MOSEK, XPRESS,
+from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP,
+                            ECOS, ECOS_BB, SUPER_SCS, SCS, GUROBI, MOSEK, XPRESS,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 from cvxpy.transforms import linearize, partial_optimize
