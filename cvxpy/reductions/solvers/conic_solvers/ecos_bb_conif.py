@@ -47,6 +47,19 @@ class ECOS_BB(ECOS):
     #   that was unbounded.
     # MI_MAXITER_UNBOUNDED (ECOS_DINF + ECOS_INACC_OFFSET)
 
+    # Map of ECOS status to CVXPY status.
+    STATUS_MAP = {0: s.OPTIMAL,
+                  1: s.INFEASIBLE,
+                  2: s.UNBOUNDED,
+                  10: s.SOLVER_ERROR,
+                  11: s.SOLVER_ERROR,
+                  12: s.SOLVER_ERROR,
+                  -1: s.SOLVER_ERROR,
+                  -2: s.SOLVER_ERROR,
+                  -3: s.SOLVER_ERROR,
+                  -4: s.SOLVER_ERROR,
+                  -7: s.SOLVER_ERROR}
+
     def name(self):
         """The name of the solver.
         """

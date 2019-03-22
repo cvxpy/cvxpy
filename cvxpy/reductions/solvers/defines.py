@@ -64,7 +64,7 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
 CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.SUPER_SCS, s.SCS,
-                 s.CPLEx, s.GUROBI, s.GLPK, s.XPRESS,
+                 s.CPLEX, s.GUROBI, s.GLPK, s.XPRESS,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.ECOS_BB]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
