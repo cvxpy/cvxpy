@@ -54,6 +54,7 @@ class CVXOPT(ECOS):
     STATUS_MAP = {"optimal": s.OPTIMAL,
                   "infeasible": s.INFEASIBLE,
                   "primal infeasible": s.INFEASIBLE,
+                  "LP relaxation is primal infeasible": s.INFEASIBLE,
                   "unbounded": s.UNBOUNDED,
                   "dual infeasible": s.UNBOUNDED,
                   "unknown": s.SOLVER_ERROR,
