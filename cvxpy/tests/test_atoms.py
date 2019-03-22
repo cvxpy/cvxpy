@@ -833,7 +833,7 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_special_var(self):
-        x, y = Variable(boolean=True), Variable(boolean=True)
+        x, y = Variable(boolean=True), Variable(integer=True)
 
         # Solve the (simple) two-stage problem by "combining" the two stages (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y >= 3, y >= 4, x >= 5])

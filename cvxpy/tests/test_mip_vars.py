@@ -114,13 +114,11 @@ class TestMIPVariable(BaseTest):
 
         self.assertAlmostEqual(self.y_int.value, 0)
 
-        # ECOS_BB struggles here.
-        if solver != s.ECOS_BB:
-            # Infeasible integer problem
-            obj = cvx.Minimize(0)
-            p = cvx.Problem(obj, [self.y_int == 0.5])
-            result = p.solve(solver=solver)
-            self.assertEqual(p.status in s.INF_OR_UNB, True)
+        # Infeasible integer problem
+        obj = cvx.Minimize(0)
+        p = cvx.Problem(obj, [self.y_int == 0.5])
+        result = p.solve(solver=solver)
+        self.assertEqual(p.status in s.INF_OR_UNB, True)
 
     def int_socp(self, solver):
         # Int in objective.
