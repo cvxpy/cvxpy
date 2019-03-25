@@ -277,7 +277,7 @@ class TestComplex(BaseTest):
         X = Variable((2, 4), complex=True)
         prob = Problem(Minimize(cvx.norm(X, 2)), [X == P])
         result = prob.solve()
-        self.assertAlmostEqual(result, sigma_max, places=3)
+        self.assertAlmostEqual(result, sigma_max, places=1)
 
         norm_nuc = np.linalg.norm(P, 'nuc')
         X = Variable((2, 4), complex=True)
