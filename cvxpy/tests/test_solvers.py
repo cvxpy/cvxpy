@@ -80,8 +80,8 @@ class TestSolvers(BaseTest):
         for i in range(2):
             prob.solve(solver=cvx.SCS, max_iters=50, eps=EPS, alpha=EPS,
                        verbose=True, normalize=True, use_indirect=False)
-        self.assertAlmostEqual(prob.value, 1.0)
-        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+        self.assertAlmostEqual(prob.value, 1.0, places=2)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0], places=2)
 
     def test_cvxopt_options(self):
         """Test that all the CVXOPT solver options work.
