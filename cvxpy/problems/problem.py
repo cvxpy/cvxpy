@@ -779,8 +779,9 @@ class SizeMetrics(object):
             if self.max_data_dimension < big:
                 self.max_data_dimension = big
 
-            if self.max_big_small_squared < big*small**2:
-                self.max_big_small_squared = np.int64(big)*np.int64(small)**2
+            max_big_small_squared = np.int64(big)*np.int64(small)**2
+            if self.max_big_small_squared < max_big_small_squared:
+                self.max_big_small_squared = max_big_small_squared
 
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0
