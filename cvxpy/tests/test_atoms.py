@@ -754,8 +754,9 @@ class TestAtoms(BaseTest):
         self.assertEqual(g.is_convex(), False)
         self.assertEqual(g.is_concave(), False)
 
-    # Test the partial_optimize atom.
     def test_partial_optimize_eval_1norm(self):
+        """Test the partial_optimize atom.
+        """
         # Evaluate the 1-norm in the usual way (i.e., in epigraph form).
         dims = 3
         x, t = Variable(dims), Variable(dims)
@@ -910,7 +911,8 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(p2.constraints[0].dual_value, 42)
 
     def test_partial_optimize_stacked(self):
-        # Minimize the 1-norm in the usual way
+        """Minimize the 1-norm in the usual way
+        """
         dims = 3
         x, t = Variable(dims), Variable(dims)
         p1 = Problem(Minimize(cvxpy.sum(t)), [-t <= x, x <= t])
@@ -924,8 +926,9 @@ class TestAtoms(BaseTest):
         p1.solve()
         self.assertAlmostEqual(p1.value, p2.value)
 
-    # Test the NonNegative Variable class.
     def test_nonnegative_variable(self):
+        """Test the NonNegative Variable class.
+        """
         x = Variable(nonneg=True)
         p = Problem(Minimize(5+x), [x >= 3])
         p.solve()
@@ -943,3 +946,12 @@ class TestAtoms(BaseTest):
     #     c[0] = -1
     #     self.assertAlmostEqual(expr.value, 3)
     #     assert expr.is_dcp()
+
+    def test_mixed_norm(self):
+        """Test mixed norm.
+        """
+        y = Variable((5, 5))
+        obj = Minimize(cvxpy.mixed_norm(y, "inf", 1))
+        prob = Problem(obj, [y == np.ones((5, 5))])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 5)

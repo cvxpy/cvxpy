@@ -14,14 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.promote import promote
+from cvxpy.atoms import promote, reshape
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+import numpy as np
 
 
 def norm_inf_canon(expr, args):
     x = args[0]
+    axis = expr.axis
     shape = expr.shape
     t = Variable(shape)
 
-    promoted_t = promote(t, x.shape)
+    if axis is None:  # shape = (1, 1)
+        promoted_t = promote(t, x.shape)
+    elif axis == 0:  # shape = (1, n)
+        promoted_t = Constant(np.ones((x.shape[0], 1))) * reshape(
+                                                            t, (1, x.shape[1]))
+    else:  # shape = (m, 1)
+        promoted_t = reshape(t, (x.shape[0], 1)) * Constant(
+                                                      np.ones((1, x.shape[1])))
+
     return t, [x <= promoted_t, x + promoted_t >= 0]
