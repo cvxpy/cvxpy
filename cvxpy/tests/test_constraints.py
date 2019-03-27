@@ -21,6 +21,7 @@ import numpy as np
 import sys
 PY2 = sys.version_info < (3, 0)
 
+
 class TestConstraints(BaseTest):
     """ Unit tests for the expression/expression module. """
 
@@ -32,9 +33,9 @@ class TestConstraints(BaseTest):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable((2,2), name='A')
-        self.B = Variable((2,2), name='B')
-        self.C = Variable((3,2), name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
 
     # def test_constr_str(self):
     #     """Test string representations of the constraints.
@@ -75,7 +76,7 @@ class TestConstraints(BaseTest):
         self.assertItemsAlmostEqual(constr.residual, [0, 0])
 
         # Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             (self.x == self.y)
 
         # Test copy with args=None
@@ -119,7 +120,7 @@ class TestConstraints(BaseTest):
         self.assertItemsAlmostEqual(constr.residual, [0, 0])
 
         # Incompatible dimensions
-        with self.assertRaises(Exception) as cm:
+        with self.assertRaises(Exception):
             (self.x <= self.y)
 
         # Test copy with args=None
@@ -200,7 +201,7 @@ class TestConstraints(BaseTest):
         self.assertEqual(constr.shape, (2,))
 
         # Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             (self.y >= self.x)
 
     # Test the SOC class.

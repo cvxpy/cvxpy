@@ -12,17 +12,15 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""
 
-"""
+
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 
+import cvxpy as cp
 import cvxpy.atoms as at
-from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-from cvxpy.problems.objective import *
 from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
 import numpy as np
@@ -64,7 +62,7 @@ class TestProblem(unittest.TestCase):
             A = np.arange(n*n)
             A = np.reshape(A, (n, n))
             x = Variable((n, n))
-            p = Problem(Minimize(at.sum(x)), [x >= A])
+            p = Problem(cp.Minimize(at.sum(x)), [x >= A])
             result = p.solve()
             answer = n*n*(n*n+1)/2 - n*n
             print(result - answer)
@@ -78,7 +76,7 @@ class TestProblem(unittest.TestCase):
             A = np.arange(n*n)
             A = np.reshape(A, (n, n))
             x = Variable((n, n))
-            p = Problem(Minimize(at.square(x[0, 0])),
+            p = Problem(cp.Minimize(at.square(x[0, 0])),
                         [x >= A])
             result = p.solve()
             self.assertAlmostEqual(result, 0)
@@ -91,7 +89,7 @@ class TestProblem(unittest.TestCase):
         a = a.todense()
         X = Variable((100, 100))
         obj = at.norm(X, "nuc") + at.norm(X-a, 'fro')
-        p = Problem(Minimize(obj))
+        p = Problem(cp.Minimize(obj))
         p.solve(solver="SCS")
 
     def test_large_sdp(self):
@@ -103,7 +101,7 @@ class TestProblem(unittest.TestCase):
         cols = SHAPE[1]
         X = Variable(SHAPE)
         Z = Variable((rows+cols, rows+cols))
-        prob = Problem(Minimize(0.5*at.trace(Z)),
+        prob = Problem(cp.Minimize(0.5*at.trace(Z)),
                        [X[0, 0] >= 1, Z[0:rows, rows:rows+cols] == X, Z >> 0, Z == Z.T])
         prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(prob.value, 1.0)

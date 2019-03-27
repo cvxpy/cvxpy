@@ -16,7 +16,6 @@ limitations under the License.
 
 import cvxpy as cvx
 import cvxpy.settings as s
-from nose.tools import *
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -31,7 +30,7 @@ class TestMonotonicity(BaseTest):
         expr = cvx.Parameter()*cvx.Variable(nonneg=True)
         self.assertEqual(expr.curvature, s.AFFINE)
 
-        f = lambda x: x**2 + x**0.5
+        f = lambda x: x**2 + x**0.5  # noqa E731
         expr = f(cvx.Constant(2))
         self.assertEqual(expr.curvature, s.CONSTANT)
 

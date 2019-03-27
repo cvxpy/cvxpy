@@ -219,13 +219,13 @@ class TestInterfaces(BaseTest):
         self.sign_for_intf(interface)
         # Complex
         # define sparse matrix [[0, 1j],[-1j,0]]
-        row=np.array([0,1])
-        col=np.array([1,0])
-        data=np.array([1j,-1j])
-        A=sp.csr_matrix((data, (row, col)), shape=(2, 2))
+        row = np.array([0, 1])
+        col = np.array([1, 0])
+        data = np.array([1j, -1j])
+        A = sp.csr_matrix((data, (row, col)), shape=(2, 2))
         mat = interface.const_to_matrix(A)
-        self.assertEquals(mat[0,1], 1j)
-        self.assertEquals(mat[1,0], -1j)
+        self.assertEquals(mat[0, 1], 1j)
+        self.assertEquals(mat[1, 0], -1j)
 
     def test_conversion_between_intf(self):
         """Test conversion between every pair of interfaces.

@@ -16,7 +16,6 @@ limitations under the License.
 
 from cvxpy import log
 from cvxpy import Constant, Variable, Parameter
-import cvxpy.settings as s
 from nose.tools import assert_equals
 
 
