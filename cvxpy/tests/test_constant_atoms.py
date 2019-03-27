@@ -283,7 +283,7 @@ def check_solver(prob, solver_name):
         return True
     except SolverError:
         return False
-    except:
+    except Exception:
         raise
 
 

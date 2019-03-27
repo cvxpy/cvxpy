@@ -610,10 +610,10 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
         A = Constant(numpy.array([[3, 5], [1, 2]]).T).value
-        I = Constant([[1, 0], [0, 1]])
+        Imat = Constant([[1, 0], [0, 1]])
         p = Problem(cvx.Minimize(c.T*self.x + self.a),
                     [A*self.x >= [-1, 1],
-                     4*I*self.z == self.x,
+                     4*Imat*self.z == self.x,
                      self.z >= [2, 2],
                      self.a >= 2])
         result = p.solve()
