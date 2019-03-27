@@ -72,19 +72,18 @@ class TestNonlinearAtoms(BaseTest):
         """Test a problem with kl_div.
         """
         import numpy as np
-        import cvxpy as cp
 
         kK = 50
         kSeed = 10
 
         prng = np.random.RandomState(kSeed)
-        #Generate a random reference distribution
+        # Generate a random reference distribution
         npSPriors = prng.uniform(0.0, 1.0, (kK, 1))
         npSPriors = npSPriors/np.sum(npSPriors)
 
-        #Reference distribution
+        # Reference distribution
         p_refProb = cvx.Parameter((kK, 1), nonneg=True)
-        #Distribution to be estimated
+        # Distribution to be estimated
         v_prob = cvx.Variable((kK, 1))
         objkl = 0.0
         for k in range(kK):
@@ -93,12 +92,12 @@ class TestNonlinearAtoms(BaseTest):
         constrs = [sum(v_prob[k, 0] for k in range(kK)) == 1]
         klprob = cvx.Problem(cvx.Minimize(objkl), constrs)
         p_refProb.value = npSPriors
-        result = klprob.solve(solver=cvx.SCS, verbose=True)
+        klprob.solve(solver=cvx.SCS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
-        result = klprob.solve(solver=cvx.ECOS, verbose=True)
+        klprob.solve(solver=cvx.ECOS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
-    def test_entr(self):
+    def test_entr_prob(self):
         """Test a problem with entr.
         """
         for n in [5, 10, 25]:

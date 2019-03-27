@@ -16,7 +16,7 @@ limitations under the License.
 
 import cvxpy as cvx
 import cvxpy.settings as s
-from cvxpy.lin_ops.tree_mat import mul, tmul, prune_constants
+from cvxpy.lin_ops.tree_mat import prune_constants
 import cvxpy.problems.iterative as iterative
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
@@ -42,9 +42,8 @@ class TestConvolution(BaseTest):
         assert expr.is_affine()
         self.assertEqual(expr.shape, (5, 1))
         # Matrix stuffing.
-        t = cvx.Variable()
         prob = cvx.Problem(cvx.Minimize(cvx.norm(expr, 1)),
-                       [x == g])
+                           [x == g])
         result = prob.solve()
         self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
@@ -63,7 +62,6 @@ class TestConvolution(BaseTest):
         all_ineq = constr_map[s.EQ] + constr_map[s.LEQ]
         var_offsets, var_sizes, x_length = prob._get_var_offsets(objective,
                                                                  all_ineq)
-        opts = {}
         constraints = constr_map[s.EQ] + constr_map[s.LEQ]
         constraints = prune_constants(constraints)
         Amul, ATmul = iterative.get_mul_funcs(constraints, dims,
@@ -73,7 +71,6 @@ class TestConvolution(BaseTest):
         # A*vec
         result = np.zeros(A.shape[0])
         Amul(vec, result)
-        mul_mat = self.mat_from_func(Amul, A.shape[0], A.shape[1])
         self.assertItemsAlmostEqual(A*vec, result)
         Amul(vec, result)
         self.assertItemsAlmostEqual(2*A*vec, result)

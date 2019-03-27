@@ -18,7 +18,6 @@ import cvxpy as cvx
 from cvxpy.expressions.variable import Variable
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
-import unittest
 
 
 class TestSemidefiniteVariable(BaseTest):
@@ -35,13 +34,13 @@ class TestSemidefiniteVariable(BaseTest):
         M = Variable((3, 3), PSD=True)
         C1 = np.array([[0, 0, 1/2], [0, 0, 0], [1/2, 0, 1]])
         C2 = np.array([[0, 0, 0], [0, 0, 1/2], [0, 1/2, 1]])
-        x1 = Variable((3,3), PSD=True)
-        x2 = Variable((3,3), PSD=True)
+        x1 = Variable((3, 3), PSD=True)
+        x2 = Variable((3, 3), PSD=True)
         constraints = [M + C1 == x1]
         constraints += [M + C2 == x2]
         objective = cvx.Minimize(cvx.trace(M))
         prob = cvx.Problem(objective, constraints)
-        opt_val = prob.solve()
+        prob.solve()
         assert (M.value == M.T.value).all()
 
     def test_sdp_problem(self):
@@ -70,9 +69,9 @@ class TestSemidefiniteVariable(BaseTest):
 
         # Index into semidef.
         obj = cvx.Minimize(cvx.square(self.X[0, 0] - 1) +
-                       cvx.square(self.X[1, 0] - 2) +
-                       #square(self.X[0,1] - 3) +
-                       cvx.square(self.X[1, 1] - 4))
+                           cvx.square(self.X[1, 0] - 2) +
+                           # square(self.X[0,1] - 3) +
+                           cvx.square(self.X[1, 1] - 4))
         p = cvx.Problem(obj, [])
         result = p.solve()
         print(self.X.value)

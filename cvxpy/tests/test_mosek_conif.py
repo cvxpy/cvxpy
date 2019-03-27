@@ -53,7 +53,9 @@ class TestMosek(BaseTest):
                 if isinstance(duals_mosek[i], float):
                     self.assertAlmostEqual(duals_mosek[i], duals_ecos[i], places=4)
                 else:
-                    self.assertItemsAlmostEqual(duals_mosek[i].tolist(), duals_ecos[i].tolist(), places=4)
+                    self.assertItemsAlmostEqual(duals_mosek[i].tolist(),
+                                                duals_ecos[i].tolist(),
+                                                places=4)
         else:
             pass
 
@@ -120,8 +122,8 @@ class TestMosek(BaseTest):
             if hasattr(mosek.conetype, 'pexp'):
                 # Formulate and solve the problem with CVXPY
                 x = cvx.Variable(shape=(3, 1))
-                constraints = [sum(x) <= 1.0, sum(x) >= 0.1, x >= 0.01,
-                            cvx.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
+                constraints = [cvx.sum(x) <= 1.0, cvx.sum(x) >= 0.1, x >= 0.01,
+                               cvx.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
                 obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[0])
                 prob = cvx.Problem(obj, constraints)
                 prob.solve(solver=cvx.MOSEK)
@@ -189,6 +191,3 @@ class TestMosek(BaseTest):
             prob.solve(solver=cvx.MOSEK, bfs=True)
             self.assertAlmostEqual(prob.value, -9, places=10)
             self.assertItemsAlmostEqual(x.value, [1, 1], places=10)
-        else:
-            pass
-

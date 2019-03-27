@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.lin_ops.lin_utils import *
-from cvxpy.lin_ops.lin_op import *
+from cvxpy.lin_ops.lin_utils import (create_var, create_param, sum_expr,
+                                     sum_entries, get_expr_vars, neg_expr,
+                                     create_const, create_eq, create_leq)
+from cvxpy.lin_ops.lin_op import (VARIABLE, PARAM, SCALAR_CONST, NEG,
+                                  DENSE_CONST, SPARSE_CONST, SUM_ENTRIES)
 from cvxpy.expressions.constants import Parameter
-import cvxpy.interface as intf
 import numpy as np
 import scipy.sparse as sp
-import unittest
 from cvxpy.tests.base_test import BaseTest
 import sys
 PY2 = sys.version_info < (3, 0)
@@ -155,4 +156,4 @@ class test_lin_ops(BaseTest):
         expr = sum_entries(x, (1, 1))
         self.assertEqual(expr.shape, (1, 1))
         self.assertEqual(len(expr.args), 1)
-        self.assertEqual(expr.type, lo.SUM_ENTRIES)
+        self.assertEqual(expr.type, SUM_ENTRIES)
