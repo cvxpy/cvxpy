@@ -802,7 +802,10 @@ class TestProblem(BaseTest):
     def test_quad_form(self):
         with self.assertRaises(Exception) as cm:
             Problem(cp.Minimize(cp.quad_form(self.x, self.A))).solve()
-        self.assertEqual(str(cm.exception), "At least one argument to quad_form must be constant.")
+        self.assertEqual(
+            str(cm.exception),
+            "At least one argument to quad_form must be a constant or a parameter."
+        )
 
         with self.assertRaises(Exception) as cm:
             Problem(cp.Minimize(cp.quad_form(1, self.A))).solve()
@@ -1232,6 +1235,7 @@ class TestProblem(BaseTest):
     def test_mult_by_zero(self):
         """Test multiplication by zero.
         """
+        self.a.value = 1
         exp = 0*self.a
         self.assertEqual(exp.value, 0)
         obj = cp.Minimize(exp)

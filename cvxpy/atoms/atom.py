@@ -335,10 +335,6 @@ class Atom(Expression):
         # shapes with 0's dropped in presolve.
         if 0 in self.shape:
             result = np.array([])
-        # Catch the case when the expression is known to be
-        # zero through DCP analysis.
-        elif self.is_zero():
-            result = intf.DEFAULT_INTF.zeros(self.shape)
         else:
             arg_values = []
             for arg in self.args:

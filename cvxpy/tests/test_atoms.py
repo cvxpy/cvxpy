@@ -56,8 +56,9 @@ class TestAtoms(BaseTest):
         self.assertTrue(copy.args[1] is self.B)
         self.assertEqual(copy.get_data(), atom.get_data())
 
-    # Test the norm_inf class.
     def test_norm_inf(self):
+        """Test the norm_inf class.
+        """
         exp = self.x+self.y
         atom = cp.norm_inf(exp)
         # self.assertEqual(atom.name(), "norm_inf(x + y)")
@@ -68,8 +69,9 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.norm_inf(atom).curvature, s.CONVEX)
         self.assertEqual(cp.norm_inf(-atom).curvature, s.CONVEX)
 
-    # Test the norm1 class.
     def test_norm1(self):
+        """Test the norm1 class.
+        """
         exp = self.x+self.y
         atom = cp.norm1(exp)
         # self.assertEqual(atom.name(), "norm1(x + y)")
@@ -85,8 +87,9 @@ class TestAtoms(BaseTest):
         expr = cp.quad_form(self.x, P)
         assert not expr.is_dcp()
 
-    # Test the power class.
     def test_power(self):
+        """Test the power class.
+        """
         from fractions import Fraction
 
         for shape in [(1, 1), (3, 1), (2, 3)]:

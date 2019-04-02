@@ -16,6 +16,7 @@ limitations under the License.
 
 from cvxpy import problems
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.constants import Parameter
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions import InverseData, Reduction, Solution
 
@@ -102,7 +103,8 @@ class Canonicalization(Reduction):
 
     def canonicalize_expr(self, expr, args):
         """Canonicalize an expression, w.r.t. canonicalized arguments."""
-        if isinstance(expr, Expression) and expr.is_constant():
+        if isinstance(expr, Expression) and \
+           (expr.is_constant() or type(expr) == Parameter):
             return expr, []
         elif type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)

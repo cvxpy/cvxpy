@@ -19,7 +19,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.interface as intf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
-from scipy import linalg as LA
+from scipy.sparse.linalg import eigsh
 import numpy as np
 
 
@@ -47,7 +47,8 @@ class Constant(Leaf):
         self._nonneg = self._nonpos = None
         self._symm = None
         self._herm = None
-        self._eigvals = None
+        self._top_eig = None
+        self._bottom_eig = None
         super(Constant, self).__init__(intf.shape(self.value))
 
     def name(self):
@@ -199,10 +200,12 @@ class Constant(Leaf):
         elif not self.is_hermitian():
             return False
 
-        # Compute eigenvalues if absent.
-        if self._eigvals is None:
-            self._compute_eigvals()
-        return all(self._eigvals.real >= -EIGVAL_TOL)
+        # Compute bottom eigenvalue if absent.
+        if self._bottom_eig is None:
+            self._bottom_eig = eigsh(self.value, k=1,
+                                     which='SA',
+                                     return_eigenvectors=False)
+        return self._bottom_eig >= -EIGVAL_TOL
 
     @perf.compute_once
     def is_nsd(self):
@@ -220,16 +223,9 @@ class Constant(Leaf):
         elif not self.is_hermitian():
             return False
 
-        # Compute eigenvalues if absent.
-        if self._eigvals is None:
-            self._compute_eigvals()
-        return all(self._eigvals.real <= EIGVAL_TOL)
-
-    def _compute_eigvals(self):
-        """Compute the eigenvalues of the Hermitian or
-        symmetric matrix represented by this constant.
-        """
-        if self._sparse:
-            self._eigvals = LA.eigvalsh(self.value.todense())
-        else:
-            self._eigvals = LA.eigvalsh(self.value)
+        # Compute top eigenvalue if absent.
+        if self._top_eig is None:
+            self._top_eig = eigsh(self.value, k=1,
+                                  which='LA',
+                                  return_eigenvectors=False)
+        return self._top_eig <= EIGVAL_TOL
