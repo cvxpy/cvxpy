@@ -153,7 +153,7 @@ class Expression(u.Canonical):
         try:
             return self.__is_constant
         except AttributeError:
-            self.__is_constant = (len(self.variables()) == 0 or
+            self.__is_constant = (len(self.variables() + self.parameters()) == 0 or
                                   0 in self.shape)
             return self.__is_constant
 

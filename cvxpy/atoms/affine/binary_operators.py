@@ -21,6 +21,7 @@ import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
+from cvxpy.expressions.constants import Parameter
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -116,7 +117,8 @@ class MulExpression(BinaryOperator):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
-        return self.args[0].is_constant() or self.args[1].is_constant()
+        return (self.args[0].is_constant() or type(self.args[0]) == Parameter) or \
+               (self.args[1].is_constant() or type(self.args[1]) == Parameter)
 
     def is_atom_concave(self):
         """If the multiplication atom is convex, then it is affine.
