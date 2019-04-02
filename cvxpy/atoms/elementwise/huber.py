@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.expressions.constants import Parameter
 import scipy.special
 import numpy as np
 
@@ -92,8 +91,9 @@ class huber(Elementwise):
     def validate_arguments(self):
         """Checks that M >= 0 and is constant.
         """
-        if not (self.M.is_nonneg() and self.M.is_scalar() and \
-               (self.M.is_constant() or type(self.M) == Parameter)):
+        if not (self.M.is_nonneg() and
+                self.M.is_scalar() and
+                self.M.is_param_affine()):
             raise ValueError("M must be a non-negative scalar constant.")
         super(huber, self).validate_arguments()
 

@@ -164,6 +164,11 @@ class Expression(u.Canonical):
                 arg.is_constant() for arg in self.args)
             return self.__is_constant
 
+    def is_param_affine(self):
+        """The expression is an affine function of parameters.
+        """
+        return (not self.variables()) and self.is_affine()
+
     def is_affine(self):
         """Is the expression affine?
         """
