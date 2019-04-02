@@ -21,7 +21,6 @@ import warnings
 import numpy as np
 from scipy import linalg as LA
 from cvxpy.atoms.atom import Atom
-from cvxpy.expressions.constants import Parameter
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
 import scipy.sparse as sp
@@ -216,7 +215,7 @@ def quad_form(x, P):
         raise Exception("Invalid dimensions for arguments.")
     if x.is_constant():
         return x.H * P * x
-    elif (P.is_constant() or type(P) == Parameter):
+    elif P.is_param_affine():
         return QuadForm(x, P)
     else:
         raise Exception(
