@@ -117,8 +117,8 @@ class MulExpression(BinaryOperator):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
-        return (self.args[0].is_constant() or type(self.args[0]) == Parameter) or \
-               (self.args[1].is_constant() or type(self.args[1]) == Parameter)
+        return (not self.args[0].variables() and self.args[0].is_affine()) or \
+               (not self.args[1].variables() and self.args[1].is_affine())
 
     def is_atom_concave(self):
         """If the multiplication atom is convex, then it is affine.
