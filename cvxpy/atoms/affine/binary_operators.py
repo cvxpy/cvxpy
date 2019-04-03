@@ -21,7 +21,6 @@ import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
-from cvxpy.expressions.constants import Parameter
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -117,8 +116,15 @@ class MulExpression(BinaryOperator):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
-        return (not self.args[0].variables() and self.args[0].is_affine()) or \
-               (not self.args[1].variables() and self.args[1].is_affine())
+        return self.args[0].is_param_affine() or self.args[1].is_param_affine()
+
+    def is_param_affine(self, context='CP'):
+        """The expression is an affine function of parameters.
+
+           context: cone program (CP) or quadratic program (QP)
+        """
+        return (self.args[0].is_constant() and self.args[1].is_param_affine()) or \
+               (self.args[0].is_param_affine() and self.args[1].is_constant())
 
     def is_atom_concave(self):
         """If the multiplication atom is convex, then it is affine.
@@ -289,7 +295,7 @@ class multiply(MulExpression):
                            "DCP.")
 
 
-class DivExpression(multiply):
+class DivExpression(BinaryOperator):
     """Division by scalar.
 
     Can be created by using the / operator of expression.
@@ -297,6 +303,15 @@ class DivExpression(multiply):
 
     OP_NAME = "/"
     OP_FUNC = np.divide
+
+    def __init__(self, lh_expr, rh_expr):
+        lh_expr = DivExpression.cast_to_const(lh_expr)
+        rh_expr = DivExpression.cast_to_const(rh_expr)
+        if lh_expr.is_scalar() and not rh_expr.is_scalar():
+            lh_expr = promote(lh_expr, rh_expr.shape)
+        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
+            rh_expr = promote(rh_expr, lh_expr.shape)
+        super(DivExpression, self).__init__(lh_expr, rh_expr)
 
     def numeric(self, values):
         """Divides numerator by denominator.

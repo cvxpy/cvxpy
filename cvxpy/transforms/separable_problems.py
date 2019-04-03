@@ -43,8 +43,8 @@ def get_separable_problems(problem):
         obj_terms = [problem.objective.args[0]]
     # Remove constant terms, which will be appended to the first separable
     # problem.
-    constant_terms = [term for term in obj_terms if term.is_constant()]
-    obj_terms = [term for term in obj_terms if not term.is_constant()]
+    constant_terms = [term for term in obj_terms if not term.variables()]
+    obj_terms = [term for term in obj_terms if term.variables()]
 
     constraints = problem.constraints
     num_obj_terms = len(obj_terms)
