@@ -164,8 +164,10 @@ class Expression(u.Canonical):
                 arg.is_constant() for arg in self.args)
             return self.__is_constant
 
-    def is_param_affine(self):
+    def is_param_affine(self, context='CP'):
         """The expression is an affine function of parameters.
+
+           context: cone program (CP) or quadratic program (QP)
         """
         return (not self.variables()) and self.is_affine()
 

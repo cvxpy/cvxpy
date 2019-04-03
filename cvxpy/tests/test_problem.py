@@ -804,7 +804,7 @@ class TestProblem(BaseTest):
             Problem(cp.Minimize(cp.quad_form(self.x, self.A))).solve()
         self.assertEqual(
             str(cm.exception),
-            "At least one argument to quad_form must be a constant or a parameter."
+            "At least one argument to quad_form must be non-variable."
         )
 
         with self.assertRaises(Exception) as cm:

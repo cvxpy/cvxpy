@@ -54,6 +54,16 @@ class QuadForm(Atom):
         """
         return (self.is_atom_convex(), self.is_atom_concave())
 
+    def is_param_affine(self, context='CP'):
+        """The expression is an affine function of parameters.
+
+           context: cone program (CP) or quadratic program (QP)
+        """
+        if context == 'QP':
+            return self.args[1].is_param_affine()
+        else:
+            return False
+
     def is_atom_convex(self):
         """Is the atom convex?
         """
@@ -219,5 +229,5 @@ def quad_form(x, P):
         return QuadForm(x, P)
     else:
         raise Exception(
-            "At least one argument to quad_form must be a constant or a parameter."
+            "At least one argument to quad_form must be non-variable."
         )
