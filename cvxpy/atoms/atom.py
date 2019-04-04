@@ -19,6 +19,7 @@ from .. import utilities as u
 from .. import interface as intf
 from ..expressions.constants import Constant, CallbackParam
 from ..expressions.expression import Expression
+from cvxpy.utilities.deterministic import unique_list
 import abc
 import numpy as np
 from fastcache import clru_cache
@@ -384,4 +385,4 @@ class Atom(Expression):
         atom_list = []
         for arg in self.args:
             atom_list += arg.atoms()
-        return list(set(atom_list + [type(self)]))
+        return unique_list(atom_list + [type(self)])
