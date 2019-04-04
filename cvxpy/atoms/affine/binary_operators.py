@@ -21,6 +21,7 @@ import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
+from cvxpy.expressions.constants import Parameter
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -112,19 +113,22 @@ class MulExpression(BinaryOperator):
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
+    def is_dpp(self, context='CP'):
+        """The expression is a disciplined parameterized expression.
+
+           context: cone program (CP) or quadratic program (QP)
+        """
+        is_dpp = True
+        for arg in self.args:
+            if arg.parameters():
+                is_dpp &= type(arg) == Parameter
+        return is_dpp
+
     def is_atom_convex(self):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
-        return self.args[0].is_param_affine() or self.args[1].is_param_affine()
-
-    def is_param_affine(self, context='CP'):
-        """The expression is an affine function of parameters.
-
-           context: cone program (CP) or quadratic program (QP)
-        """
-        return (self.args[0].is_constant() and self.args[1].is_param_affine()) or \
-               (self.args[0].is_param_affine() and self.args[1].is_constant())
+        return self.args[0].is_constant() or self.args[1].is_constant()
 
     def is_atom_concave(self):
         """If the multiplication atom is convex, then it is affine.

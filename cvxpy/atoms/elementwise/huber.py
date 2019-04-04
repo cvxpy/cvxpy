@@ -93,7 +93,7 @@ class huber(Elementwise):
         """
         if not (self.M.is_nonneg() and
                 self.M.is_scalar() and
-                self.M.is_param_affine()):
+                self.M.is_constant()):
             raise ValueError("M must be a non-negative scalar constant.")
         super(huber, self).validate_arguments()
 

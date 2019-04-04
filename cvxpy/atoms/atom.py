@@ -196,6 +196,30 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
+    def is_dpp(self, context='CP'):
+        """The expression is a disciplined parameterized expression.
+
+           context: cone program (CP) or quadratic program (QP)
+        """
+        if not all([arg.is_dpp() for arg in self.args]):
+            return False
+        # If all arguments DPP,
+        # same as DCP rule but without exception for constants.
+        for idx, arg in enumerate(self.args):
+            if self.is_incr(idx):
+                if not (self.is_atom_convex() and arg.is_convex() or
+                        self.is_atom_concave() and arg.is_concave()):
+                    return False
+            elif self.is_decr(idx):
+                if not (self.is_atom_convex() and arg.is_concave() or
+                        self.is_atom_concave() and arg.is_convex()):
+                    return False
+            else:  # Non-monotonic.
+                if not arg.is_affine():
+                    return False
+        return True
+
+    @perf.compute_once
     def is_log_log_convex(self):
         """Is the expression log-log convex?
         """
