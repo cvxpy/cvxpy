@@ -153,17 +153,16 @@ class Expression(u.Canonical):
         try:
             return self.__is_constant
         except AttributeError:
-            # Parameters not allowed.
-            self.__is_constant = (len(self.variables() + self.parameters()) == 0 or
-                                  0 in self.shape)
+            self.__is_constant = not self.variables() or 0 in self.shape
             return self.__is_constant
 
-    def is_param_affine(self, context='CP'):
-        """The expression is an affine function of parameters.
+    @abc.abstractmethod
+    def is_dpp(self, context='CP'):
+        """The expression is a disciplined parameterized expression.
 
            context: cone program (CP) or quadratic program (QP)
         """
-        return (not self.variables()) and self.is_affine()
+        return NotImplemented
 
     def is_affine(self):
         """Is the expression affine?

@@ -21,6 +21,7 @@ import warnings
 import numpy as np
 from scipy import linalg as LA
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.constants import Parameter
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
 import scipy.sparse as sp
@@ -54,13 +55,13 @@ class QuadForm(Atom):
         """
         return (self.is_atom_convex(), self.is_atom_concave())
 
-    def is_param_affine(self, context='CP'):
-        """The expression is an affine function of parameters.
+    def is_dpp(self, context='CP'):
+        """The expression is a disciplined parameterized expression.
 
            context: cone program (CP) or quadratic program (QP)
         """
         if context == 'QP':
-            return self.args[1].is_param_affine()
+            return not self.args[1].parameters() or type(self.args[1]) == Parameter
         else:
             return False
 
@@ -225,7 +226,7 @@ def quad_form(x, P):
         raise Exception("Invalid dimensions for arguments.")
     if x.is_constant():
         return x.H * P * x
-    elif P.is_param_affine():
+    elif P.is_constant():
         return QuadForm(x, P)
     else:
         raise Exception(
