@@ -7,4 +7,3 @@ def unique_list(duplicates_list):
               if x not in used and
               (used.add(x) or True)]
     return unique
-
