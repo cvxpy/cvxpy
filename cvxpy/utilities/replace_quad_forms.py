@@ -16,7 +16,6 @@ limitations under the License.
 
 from cvxpy.atoms.quad_form import SymbolicQuadForm, QuadForm
 from cvxpy.expressions.variable import Variable
-import numpy as np
 
 
 def replace_quad_forms(expr, quad_forms):
