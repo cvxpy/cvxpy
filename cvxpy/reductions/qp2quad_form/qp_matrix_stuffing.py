@@ -45,8 +45,8 @@ class QpMatrixStuffing(MatrixStuffing):
 
     def stuffed_objective(self, problem, extractor):
         # extract to x.T * P * x + q.T * x + r
-        # TODO need to copy objective?
-        P, q, r = extractor.quad_form(problem.objective.expr)
+        expr = problem.objective.expr.copy()
+        P, q, r = extractor.quad_form(expr)
 
         # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
