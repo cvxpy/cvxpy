@@ -19,6 +19,7 @@ import cvxpy.settings as s
 from collections import namedtuple
 
 from cvxpy.problems.problem import Problem
+from cvxpy.utilities.deterministic import unique_list
 
 # Used in self._cached_data to check if problem's objective or constraints have
 # changed.
@@ -91,13 +92,13 @@ class XpressProblem (Problem):
         elif not isinstance(other, XpressProblem):
             return NotImplemented
         return XpressProblem(self.objective + other.objective,
-                             list(set(self.constraints + other.constraints)))
+                             unique_list(self.constraints + other.constraints))
 
     def __sub__(self, other):
         if not isinstance(other, XpressProblem):
             return NotImplemented
         return XpressProblem(self.objective - other.objective,
-                             list(set(self.constraints + other.constraints)))
+                             unique_list(self.constraints + other.constraints))
 
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
