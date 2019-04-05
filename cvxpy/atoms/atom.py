@@ -15,10 +15,11 @@ limitations under the License.
 """
 
 
-from .. import utilities as u
-from .. import interface as intf
-from ..expressions.constants import Constant, CallbackParam
-from ..expressions.expression import Expression
+from cvxpy import utilities as u
+from cvxpy import interface as intf
+from cvxpy.expressions.constants import Constant, CallbackParam
+from cvxpy.expressions.expression import Expression
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list
 import abc
 import numpy as np
@@ -32,6 +33,7 @@ class Atom(Expression):
     # args are the expressions passed into the Atom constructor.
 
     def __init__(self, *args):
+        self.id = lu.get_id()
         # Throws error if args is empty.
         if len(args) == 0:
             raise TypeError(
