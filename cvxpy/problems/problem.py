@@ -21,6 +21,7 @@ from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.utilities.deterministic import unique_list
 
 # TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates
@@ -167,6 +168,7 @@ class Problem(u.Canonical):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
+        # NB. This should preserve the variable order
         seen = set()
         # never use list as a variable name
         return [seen.add(obj.id) or obj for obj in vars_ if obj.id not in seen]
@@ -182,7 +184,7 @@ class Problem(u.Canonical):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
-        return list(set(params))
+        return unique_list(params)
 
     def constants(self):
         """Accessor method for parameters.
@@ -213,7 +215,7 @@ class Problem(u.Canonical):
         atoms = self.objective.atoms()
         for constr in self.constraints:
             atoms += constr.atoms()
-        return list(set(atoms))
+        return unique_list(atoms)
 
     @property
     def size_metrics(self):
@@ -668,7 +670,7 @@ class Problem(u.Canonical):
         elif not isinstance(other, Problem):
             return NotImplemented
         return Problem(self.objective + other.objective,
-                       list(set(self.constraints + other.constraints)))
+                       unique_list(self.constraints + other.constraints))
 
     def __radd__(self, other):
         if other == 0:
@@ -680,7 +682,7 @@ class Problem(u.Canonical):
         if not isinstance(other, Problem):
             return NotImplemented
         return Problem(self.objective - other.objective,
-                       list(set(self.constraints + other.constraints)))
+                       unique_list(self.constraints + other.constraints))
 
     def __rsub__(self, other):
         if other == 0:

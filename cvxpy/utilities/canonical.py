@@ -16,6 +16,7 @@ limitations under the License.
 
 import abc
 from cvxpy.utilities import performance_utils as pu
+from cvxpy.utilities.deterministic import unique_list
 
 
 class Canonical(object):
@@ -47,13 +48,12 @@ class Canonical(object):
         """Returns all the variables present in the arguments.
         """
         # Remove duplicates.
-        return list(set(var for arg in self.args for var in arg.variables()))
+        return unique_list(var for arg in self.args for var in arg.variables())
 
     def parameters(self):
         """Returns all the parameters present in the arguments.
         """
-        return list(
-          set(param for arg in self.args for param in arg.parameters()))
+        return unique_list(param for arg in self.args for param in arg.parameters())
 
     def constants(self):
         """Returns all the constants present in the arguments.
@@ -115,4 +115,4 @@ class Canonical(object):
         list
         """
         # Remove duplicates.
-        return list(set(atom for arg in self.args for atom in arg.atoms()))
+        return unique_list(atom for arg in self.args for atom in arg.atoms())
