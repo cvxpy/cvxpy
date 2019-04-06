@@ -138,6 +138,7 @@ def set_slice_data(linC, linPy):
 
 type_map = {
     "VARIABLE": cvxcore.VARIABLE,
+    "PARAM": cvxcore.VARIABLE,
     "PROMOTE": cvxcore.PROMOTE,
     "MUL": cvxcore.MUL,
     "RMUL": cvxcore.RMUL,

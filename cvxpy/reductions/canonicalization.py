@@ -77,7 +77,8 @@ class Canonicalization(Reduction):
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
-        if isinstance(expr, Expression) and expr.is_constant():
+        if isinstance(expr, Expression) and \
+           (expr.is_constant() and not expr.parameters()):
             return expr, []
         elif type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
