@@ -21,7 +21,6 @@ from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
-from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
@@ -73,10 +72,7 @@ class Problem(u.Canonical):
         self._value = None
         self._status = None
         self._solution = None
-        # The intermediate and solving chains to canonicalize and solve the problem
-        self._intermediate_chain = None
         self._solving_chain = None
-        self._cached_chain_key = None
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
@@ -306,10 +302,9 @@ class Problem(u.Canonical):
     def get_problem_data(self, solver, gp=False):
         """Returns the problem data used in the call to the solver.
 
-        When a problem is solved, CVXPY creates a chain of reductions combining
-        an intermediate reduction chain :class:`~cvxpy.reductions.chain.Chain`
-        and a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`.
-        This object compiles it to some low-level representation that is
+        When a problem is solved, CVXPY creates a chain of reductions enclosed
+        in a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,
+        and compiles it to some low-level representation that is
         compatible with the targeted solver. This method returns that low-level
         representation.
 
@@ -385,14 +380,9 @@ class Problem(u.Canonical):
         """
         self._construct_chains(solver=solver, gp=gp)
 
-        data, solving_inverse_data = \
-            self._solving_chain.apply(self._intermediate_problem)
+        data, inverse_data = self._solving_chain.apply(self)
 
-        full_chain = \
-            self._solving_chain.prepend(self._intermediate_chain)
-        inverse_data = self._intermediate_inverse_data + solving_inverse_data
-
-        return data, full_chain, inverse_data
+        return data, self._solving_chain, inverse_data
 
     def _find_candidate_solvers(self,
                                 solver=None,
@@ -476,7 +466,6 @@ class Problem(u.Canonical):
         In particular, this function
 
         #. finds the candidate solvers
-        #. constructs the intermediate chain suitable for numeric reductions.
         #. constructs the solving chain that performs the
            numeric reductions and solves the problem.
 
@@ -489,26 +478,9 @@ class Problem(u.Canonical):
             instead of as a Disciplined Convex Program.
         """
 
-        chain_key = (solver, gp)
-
-        if chain_key != self._cached_chain_key:
-            try:
-                candidate_solvers = self._find_candidate_solvers(solver=solver,
-                                                                 gp=gp)
-
-                self._intermediate_chain = \
-                    construct_intermediate_chain(self, candidate_solvers, gp=gp)
-                self._intermediate_problem, self._intermediate_inverse_data = \
-                    self._intermediate_chain.apply(self)
-
-                self._solving_chain = \
-                    construct_solving_chain(self._intermediate_problem,
-                                            candidate_solvers)
-
-                self._cached_chain_key = chain_key
-
-            except Exception as e:
-                raise e
+        candidate_solvers = self._find_candidate_solvers(solver=solver, gp=gp)
+        self._solving_chain = construct_solving_chain(
+            self, candidate_solvers, gp=gp)
 
     def _solve(self,
                solver=None,
@@ -566,13 +538,16 @@ class Problem(u.Canonical):
                     solver, warm_start, verbose, **kwargs)
 
         self._construct_chains(solver=solver, gp=gp)
-        data, solving_inverse_data = self._solving_chain.apply(
-            self._intermediate_problem)
-        solution = self._solving_chain.solve_via_data(
-            self, data, warm_start, verbose, kwargs)
-        full_chain = self._solving_chain.prepend(self._intermediate_chain)
-        inverse_data = self._intermediate_inverse_data + solving_inverse_data
-        self.unpack_results(solution, full_chain, inverse_data)
+
+        data, inverse_data = self._solving_chain.apply(self)
+
+        solution = self._solving_chain.solve_via_data(self, data,
+                                                      warm_start,
+                                                      verbose, kwargs)
+
+
+        self.unpack_results(solution, self._solving_chain, inverse_data)
+
         return self.value
 
     def _parallel_solve(self,
