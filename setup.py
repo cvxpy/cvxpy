@@ -50,6 +50,7 @@ canon = Extension(
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
                   'cvxpy/cvxcore/include/Eigen'],
+    extra_compile_args=['-O0'],
 )
 
 

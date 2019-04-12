@@ -39,7 +39,7 @@
 
 %include "LinOp.hpp"
 
-/* Typemap for the getV, getI, getJ, and getConstVec C++ routines in 
+/* Typemap for the getV, getI, getJ, and getConstVec C++ routines in
 	 problemData.hpp */
 %apply (double* ARGOUT_ARRAY1, int DIM1) {(double* values, int num_values)}
 %include "ProblemData.hpp"
@@ -55,5 +55,12 @@ namespace std {
 }
 
 /* Wrapper for entry point into CVXCanon Library */
-ProblemData build_matrix(std::vector< LinOp* > constraints, std::map<int, int> id_to_col);
-ProblemData build_matrix(std::vector< LinOp* > constraints, std::map<int, int> id_to_col, std::vector<int> constr_offsets);
+ProblemTensor build_matrix(std::vector< LinOp* > constraints,
+                           int var_length,
+                           std::map<int, int> id_to_col,
+                           std::map<int, int> param_to_size);
+ProblemTensor build_matrix(std::vector< LinOp* > constraints,
+                           int var_length,
+                           std::map<int, int> id_to_col,
+                           std::map<int, int> param_to_size,
+                           std::vector<int> constr_offsets);

@@ -26,8 +26,15 @@ typedef Eigen::Matrix<int, Eigen::Dynamic, 1> Vector;
 typedef Eigen::SparseMatrix<double> Matrix;
 typedef std::map<int, Matrix> CoeffMap;
 typedef Eigen::Triplet<double> Triplet;
+typedef std::map<int, std::map<int, std::vector<Matrix> > > Tensor;
+typedef std::map<int, std::vector<Matrix> > DictMat;
+
+/* ID for all things of CONSTANT_TYPE */
+static const int CONSTANT_ID = -1;
 
 int vecprod(const std::vector<int> &vec);
 int vecprod_before(const std::vector<int> &vec, int end);
+Tensor tensor_mul(Tensor &lh_ten, Tensor &rh_ten);
+void acc_tensor(Tensor lh_ten, Tensor rh_ten);
 
 #endif

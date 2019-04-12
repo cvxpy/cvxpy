@@ -21,14 +21,21 @@ import scipy.sparse
 from collections import deque
 
 
-def get_problem_matrix(linOps, id_to_col=None, constr_offsets=None):
+def get_problem_matrix(linOps,
+                       var_length,
+                       id_to_col,
+                       param_to_size,
+                       constr_offsets=None):
     """
     Builds a sparse representation of the problem data.
 
     Parameters
     ----------
         linOps: A list of python linOp trees
-        id_to_col: A map from variable id to offset within our matrix
+        var_length: The total length of the variables.
+        id_to_col: A map from variable id to column offset.
+        param_to_size: A map from parameter id to parameter size.
+        constr_offsets: A map from constraint id to row offset.
 
     Returns
     ----------
@@ -38,15 +45,20 @@ def get_problem_matrix(linOps, id_to_col=None, constr_offsets=None):
     """
     lin_vec = cvxcore.LinOpVector()
 
-    id_to_col_C = cvxcore.IntIntMap()
-    if id_to_col is None:
-        id_to_col = {}
 
     # Loading the variable offsets from our Python map into a C++ map
+    id_to_col_C = cvxcore.IntIntMap()
     for id, col in id_to_col.items():
         id_to_col_C[int(id)] = int(col)
 
-    # This array keeps variables data in scope after build_lin_op_tree returns
+    # Loading the param_to_size from our
+    # Python map into a C++ map
+    param_to_size_C = cvxcore.IntIntMap()
+    for id, size in param_to_size.items():
+        param_to_size_C[int(id)] = int(size)
+
+    # This array keeps variables data in scope
+    # after build_lin_op_tree returns
     tmp = []
     for lin in linOps:
         tree = build_lin_op_tree(lin, tmp)
@@ -54,22 +66,28 @@ def get_problem_matrix(linOps, id_to_col=None, constr_offsets=None):
         lin_vec.push_back(tree)
 
     if constr_offsets is None:
-        problemData = cvxcore.build_matrix(lin_vec, id_to_col_C)
+        problemData = cvxcore.build_matrix(lin_vec,
+                                           int(var_length),
+                                           id_to_col_C,
+                                           param_to_size_C)
     else:
         # Load constraint offsets into a C++ vector
         constr_offsets_C = cvxcore.IntVector()
         for offset in constr_offsets:
             constr_offsets_C.push_back(int(offset))
-        problemData = cvxcore.build_matrix(lin_vec, id_to_col_C,
-                                            constr_offsets_C)
+        problemData = cvxcore.build_matrix(lin_vec,
+                                           var_length,
+                                           id_to_col_C,
+                                           param_to_size_C,
+                                           constr_offsets_C)
 
+    assert(False)
     # Unpacking
     V = problemData.getV(len(problemData.V))
     I = problemData.getI(len(problemData.I))
     J = problemData.getJ(len(problemData.J))
-    const_vec = problemData.getConstVec(len(problemData.const_vec))
 
-    return V, I, J, const_vec.reshape(-1, 1)
+    return V, I, J
 
 
 def format_matrix(matrix, shape=None, format='dense'):
@@ -136,7 +154,7 @@ def set_slice_data(linC, linPy):
 
 type_map = {
     "VARIABLE": cvxcore.VARIABLE,
-    "PARAM": cvxcore.VARIABLE,
+    "PARAM": cvxcore.PARAM,
     "PROMOTE": cvxcore.PROMOTE,
     "MUL": cvxcore.MUL,
     "RMUL": cvxcore.RMUL,

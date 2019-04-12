@@ -20,8 +20,7 @@
 #include "Utils.hpp"
 #include "LinOp.hpp"
 
-std::map<int, Matrix> get_variable_coeffs(LinOp &lin);
-std::map<int, Matrix> get_const_coeffs(LinOp &lin);
-std::vector<Matrix> get_func_coeffs(LinOp& lin);
+Tensor get_node_coeffs(LinOp& lin, int arg_idx);
+Tensor lin_to_tensor(LinOp& lin, int arg_idx);
 
 #endif

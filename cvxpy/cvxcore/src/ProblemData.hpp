@@ -28,15 +28,6 @@ public:
 	std::vector<int> I;
 	std::vector<int> J;
 
-	/* Dense matrix representation of the constant vector */
-	std::vector<double> const_vec;
-
-	/* Map of variable_id to column in the problemData matrix */
-	std::map<int, int> id_to_col;
-
-	/* Map of constant linOp's to row in the problemData matrix  */
-	std::map<int, int> const_to_row;
-
 	/*******************************************
 	 * The functions below return problemData vectors as contiguous 1d
 	 * numpy arrays.
@@ -80,15 +71,8 @@ public:
 			values[i] = J[i];
 		}
 	}
-
-	/**
-	 * Returns the CONST_VEC as a contiguous 1D numpy array.
-	 */
-	void getConstVec(double* values, int num_values) {
-		for (int i = 0; i < num_values; i++) {
-			values[i] = const_vec[i];
-		}
-	}
 };
+
+typedef std::map<int, std::vector<ProblemData> > ProblemTensor;
 
 #endif

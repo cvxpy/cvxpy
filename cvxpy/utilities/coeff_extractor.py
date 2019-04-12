@@ -38,6 +38,8 @@ class CoeffExtractor(object):
         self.id_map = inverse_data.var_offsets
         self.N = inverse_data.x_length
         self.var_shapes = inverse_data.var_shapes
+        self.param_shapes = inverse_data.param_shapes
+        self.param_to_size = inverse_data.param_to_size
 
     def get_coeffs(self, expr):
         if expr.is_constant():
@@ -75,7 +77,10 @@ class CoeffExtractor(object):
             expr_list = [expr]
         size = sum([e.size for e in expr_list])
         op_list = [e.canonical_form[0] for e in expr_list]
-        V, I, J, b = canonInterface.get_problem_matrix(op_list, self.id_map)
+        V, I, J, b = canonInterface.get_problem_matrix(op_list,
+                                                       self.N,
+                                                       self.id_map,
+                                                       self.param_to_size)
         A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
         return A, b.flatten()
 

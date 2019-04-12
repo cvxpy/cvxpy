@@ -20,12 +20,10 @@
 #include <iostream>
 #include "Utils.hpp"
 
-/* ID for all coefficient matrices associated with linOps of CONSTANT_TYPE */
-static const int CONSTANT_ID = -1;
-
 /* TYPE of each LinOP */
 enum operatortype {
 	VARIABLE,
+  PARAM,
 	PROMOTE,
 	MUL,
 	RMUL,
