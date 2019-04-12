@@ -24,6 +24,11 @@ class InverseData(object):
         varis = problem.variables()
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
                                                 self.get_var_offsets(varis))
+        self.param_shapes = {}
+        self.param_to_size = {}
+        for param in problem.parameters():
+            self.param_shapes[param.id] = param.shape
+            self.param_to_size[param.id] = param.size
         self.id2var = {var.id: var for var in varis}
         self.real2imag = {var.id: lu.get_id() for var in varis
                           if var.is_complex()}

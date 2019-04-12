@@ -9,3 +9,121 @@ int vecprod(const std::vector<int> &vec) {
 int vecprod_before(const std::vector<int> &vec, int end) {
   return std::accumulate(vec.rbegin() + vec.size() - end, vec.rend(), 1.0, std::multiplies<int>());
 }
+
+// multiply two vectors of matrices
+// get a new vector of matrices
+std::vector<Matrix> mat_vec_mul(std::vector<Matrix> &lh_vec,
+                                std::vector<Matrix> &rh_vec) {
+  // Can only have single matrix * many, not many * many.
+  assert(lh_vec.size() == 1 || rh_vec.size() == 1);
+  std::vector<Matrix> result;
+  for (unsigned i=0; i < lh_vec.size(); ++i) {
+    for (unsigned j=0; j < rh_vec.size(); ++j) {
+      result.push_back(lh_vec[i]*rh_vec[j]);
+    }
+  }
+  return result;
+}
+
+// Accumulate right hand vector of matrices
+// into left hand by addition.
+void acc_mat_vec(std::vector<Matrix> lh_mat_vec,
+                 std::vector<Matrix> rh_mat_vec) {
+  // Length of vectors must match.
+  assert(lh_mat_vec.size() == rh_mat_vec.size());
+  for (unsigned i=0; i < rh_mat_vec.size(); ++i) {
+    lh_mat_vec[i] += rh_mat_vec[i];
+  }
+}
+
+// What is multiplication?
+//    for mat in rh_map:
+//         multiply rh_map by mat to get new vector.
+//    stack the vectors.
+//    under key key1*key2 (constant * key = key)
+DictMat dict_mat_mul(DictMat &lh_dm, DictMat &rh_dm) {
+  DictMat result;
+	typedef DictMat::iterator it_type;
+	for (it_type it = lh_dm.begin(); it != lh_dm.end(); ++it){
+    int lh_var_id = it->first;
+    // Left hand is always constant.
+    assert(lh_var_id == CONSTANT_ID);
+    std::vector<Matrix> lh_mat_vec = it->second;
+    for (it_type jit = rh_dm.begin(); it != rh_dm.end(); ++it){
+      int rh_var_id = jit->first;
+      std::vector<Matrix> rh_mat_vec = jit->second;
+      std::vector<Matrix> prod_mat_vec = mat_vec_mul(lh_mat_vec, rh_mat_vec);
+      if (result.count(rh_var_id) == 0) {
+        result[rh_var_id] = prod_mat_vec;
+      } else { // Sum matrices.
+        acc_mat_vec(result[rh_var_id], prod_mat_vec);
+      }
+    }
+  }
+  return result;
+}
+
+// Accumulate right hand DictMat
+// into left hand by addition.
+void acc_dict_mat(DictMat lh_dm, DictMat rh_dm) {
+	typedef DictMat::iterator it_type;
+	for (it_type it = rh_dm.begin(); it != rh_dm.end(); ++it){
+    int rh_var_id = it->first;
+    std::vector<Matrix> rh_mat_vec = it->second;
+    if (lh_dm.count(rh_var_id) == 0) {
+      lh_dm[rh_var_id] = rh_mat_vec;
+    } else { // Accumulate into lh_dm vector<Matrix>.
+      acc_mat_vec(lh_dm[rh_var_id], rh_mat_vec);
+    }
+  }
+}
+
+// What is multiplication?
+// for key1 in map1 by key2 in map2:
+//    product map add map1[key1] * map2[key2]
+//    for mat in map2[key2]:
+//         multiply map1[key1] by mat to get new vector.
+//    stack the vectors.
+//    under key key1*key2 (constant * key = key)
+Tensor tensor_mul(Tensor &lh_ten, Tensor &rh_ten){
+  Tensor result;
+	typedef Tensor::iterator it_type;
+	for (it_type it = lh_ten.begin(); it != lh_ten.end(); ++it){
+    int lh_param_id = it->first;
+    DictMat lh_var_map = it->second;
+    for (it_type jit = rh_ten.begin(); it != rh_ten.end(); ++it){
+      int rh_param_id = jit->first;
+      DictMat rh_var_map = jit->second;
+      // No cross terms allowed.
+      assert(lh_param_id == CONSTANT_ID || rh_param_id == CONSTANT_ID);
+      int cross_id;
+      if (lh_param_id == CONSTANT_ID) {
+        cross_id = rh_param_id;
+      } else {
+        cross_id = lh_param_id;
+      }
+      DictMat prod_var_map = dict_mat_mul(lh_var_map, rh_var_map);
+      if (result.count(cross_id) == 0) {
+        result[cross_id] = prod_var_map;
+      } else { // Accumulate cross_id DictMat.
+        acc_dict_mat(result[cross_id], prod_var_map);
+      }
+    }
+  }
+  return result;
+}
+
+// Accumulate right hand Tensor
+// into left hand by addition.
+void acc_tensor(Tensor lh_ten, Tensor rh_ten) {
+	typedef Tensor::iterator it_type;
+	for (it_type it = rh_ten.begin(); it != rh_ten.end(); ++it){
+    int rh_param_id = it->first;
+    DictMat rh_dm = it->second;
+    if (lh_ten.count(rh_param_id) == 0) {
+      lh_ten[rh_param_id] = rh_dm;
+    } else { // Accumulate into lh_dm vector<Matrix>.
+      acc_dict_mat(lh_ten[rh_param_id], rh_dm);
+    }
+  }
+}

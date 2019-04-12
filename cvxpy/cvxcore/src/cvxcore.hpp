@@ -20,10 +20,16 @@
 #include "Utils.hpp"
 #include "ProblemData.hpp"
 
+typedef std::map<int, std::vector<ProblemData> > ProblemTensor;
+
 // Top Level Entry point
-ProblemData build_matrix(std::vector< LinOp* > constraints,
-                         std::map<int, int> id_to_col);
-ProblemData build_matrix(std::vector< LinOp* > constraints,
-                         std::map<int, int> id_to_col,
-                         std::vector<int> constr_offsets);
+ProblemTensor build_matrix(std::vector< LinOp* > constraints,
+                           int var_length,
+                           std::map<int, int> id_to_col,
+                           std::map<int, int> param_to_size);
+ProblemTensor build_matrix(std::vector< LinOp* > constraints,
+                           int var_length,
+                           std::map<int, int> id_to_col,
+                           std::map<int, int> param_to_size,
+                           std::vector<int> constr_offsets);
 #endif

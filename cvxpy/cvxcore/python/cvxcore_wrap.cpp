@@ -3033,15 +3033,16 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_std__invalid_argument swig_types[21]
 #define SWIGTYPE_p_std__lessT_int_t swig_types[22]
 #define SWIGTYPE_p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t swig_types[23]
-#define SWIGTYPE_p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t swig_types[24]
-#define SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t swig_types[25]
-#define SWIGTYPE_p_std__vectorT_int_std__allocatorT_int_t_t swig_types[26]
-#define SWIGTYPE_p_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t swig_types[27]
-#define SWIGTYPE_p_std__vectorT_std__vectorT_int_std__allocatorT_int_t_t_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t_t swig_types[28]
-#define SWIGTYPE_p_swig__SwigPyIterator swig_types[29]
-#define SWIGTYPE_p_value_type swig_types[30]
-static swig_type_info *swig_types[32];
-static swig_module_info swig_module = {swig_types, 31, 0, 0, 0, 0};
+#define SWIGTYPE_p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t swig_types[24]
+#define SWIGTYPE_p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t swig_types[25]
+#define SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t swig_types[26]
+#define SWIGTYPE_p_std__vectorT_int_std__allocatorT_int_t_t swig_types[27]
+#define SWIGTYPE_p_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t swig_types[28]
+#define SWIGTYPE_p_std__vectorT_std__vectorT_int_std__allocatorT_int_t_t_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t_t swig_types[29]
+#define SWIGTYPE_p_swig__SwigPyIterator swig_types[30]
+#define SWIGTYPE_p_value_type swig_types[31]
+static swig_type_info *swig_types[33];
+static swig_module_info swig_module = {swig_types, 32, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -6902,20 +6903,6 @@ SWIGINTERN PyObject *SwigPyIterator_swigregister(PyObject *SWIGUNUSEDPARM(self),
   return SWIG_Py_Void();
 }
 
-SWIGINTERN int Swig_var_CONSTANT_ID_set(PyObject *) {
-  SWIG_Error(SWIG_AttributeError,"Variable CONSTANT_ID is read-only.");
-  return 1;
-}
-
-
-SWIGINTERN PyObject *Swig_var_CONSTANT_ID_get(void) {
-  PyObject *pyobj = 0;
-  
-  pyobj = SWIG_From_int(static_cast< int >(CONSTANT_ID));
-  return pyobj;
-}
-
-
 SWIGINTERN PyObject *VARIABLE_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *module;
   PyObject *d;
@@ -6923,6 +6910,17 @@ SWIGINTERN PyObject *VARIABLE_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObj
   d = PyModule_GetDict(module);
   if (!d) return NULL;
   SWIG_Python_SetConstant(d, "VARIABLE",SWIG_From_int(static_cast< int >(VARIABLE)));
+  return SWIG_Py_Void();
+}
+
+
+SWIGINTERN PyObject *PARAM_swigconstant(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *module;
+  PyObject *d;
+  if (!PyArg_ParseTuple(args,(char*)"O:swigconstant", &module)) return NULL;
+  d = PyModule_GetDict(module);
+  if (!d) return NULL;
+  SWIG_Python_SetConstant(d, "PARAM",SWIG_From_int(static_cast< int >(PARAM)));
   return SWIG_Py_Void();
 }
 
@@ -7960,162 +7958,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_ProblemData_const_vec_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  ProblemData *arg1 = (ProblemData *) 0 ;
-  std::vector< double,std::allocator< double > > *arg2 = (std::vector< double,std::allocator< double > > *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:ProblemData_const_vec_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ProblemData, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ProblemData_const_vec_set" "', argument " "1"" of type '" "ProblemData *""'"); 
-  }
-  arg1 = reinterpret_cast< ProblemData * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ProblemData_const_vec_set" "', argument " "2"" of type '" "std::vector< double,std::allocator< double > > *""'"); 
-  }
-  arg2 = reinterpret_cast< std::vector< double,std::allocator< double > > * >(argp2);
-  if (arg1) (arg1)->const_vec = *arg2;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_ProblemData_const_vec_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  ProblemData *arg1 = (ProblemData *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  std::vector< double,std::allocator< double > > *result = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:ProblemData_const_vec_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ProblemData, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ProblemData_const_vec_get" "', argument " "1"" of type '" "ProblemData *""'"); 
-  }
-  arg1 = reinterpret_cast< ProblemData * >(argp1);
-  result = (std::vector< double,std::allocator< double > > *)& ((arg1)->const_vec);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t, 0 |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_ProblemData_id_to_col_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  ProblemData *arg1 = (ProblemData *) 0 ;
-  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *arg2 = (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:ProblemData_id_to_col_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ProblemData, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ProblemData_id_to_col_set" "', argument " "1"" of type '" "ProblemData *""'"); 
-  }
-  arg1 = reinterpret_cast< ProblemData * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ProblemData_id_to_col_set" "', argument " "2"" of type '" "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *""'"); 
-  }
-  arg2 = reinterpret_cast< std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > * >(argp2);
-  if (arg1) (arg1)->id_to_col = *arg2;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_ProblemData_id_to_col_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  ProblemData *arg1 = (ProblemData *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *result = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:ProblemData_id_to_col_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ProblemData, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ProblemData_id_to_col_get" "', argument " "1"" of type '" "ProblemData *""'"); 
-  }
-  arg1 = reinterpret_cast< ProblemData * >(argp1);
-  result = (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *)& ((arg1)->id_to_col);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t, 0 |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_ProblemData_const_to_row_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  ProblemData *arg1 = (ProblemData *) 0 ;
-  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *arg2 = (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:ProblemData_const_to_row_set",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ProblemData, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ProblemData_const_to_row_set" "', argument " "1"" of type '" "ProblemData *""'"); 
-  }
-  arg1 = reinterpret_cast< ProblemData * >(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "ProblemData_const_to_row_set" "', argument " "2"" of type '" "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *""'"); 
-  }
-  arg2 = reinterpret_cast< std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > * >(argp2);
-  if (arg1) (arg1)->const_to_row = *arg2;
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_ProblemData_const_to_row_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  ProblemData *arg1 = (ProblemData *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject * obj0 = 0 ;
-  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *result = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"O:ProblemData_const_to_row_get",&obj0)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ProblemData, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ProblemData_const_to_row_get" "', argument " "1"" of type '" "ProblemData *""'"); 
-  }
-  arg1 = reinterpret_cast< ProblemData * >(argp1);
-  result = (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *)& ((arg1)->const_to_row);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t, 0 |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_ProblemData_getV(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   ProblemData *arg1 = (ProblemData *) 0 ;
@@ -8238,50 +8080,6 @@ SWIGINTERN PyObject *_wrap_ProblemData_getJ(PyObject *SWIGUNUSEDPARM(self), PyOb
     arg2 = (double*) array_data(array2);
   }
   (arg1)->getJ(arg2,arg3);
-  resultobj = SWIG_Py_Void();
-  {
-    resultobj = SWIG_Python_AppendOutput(resultobj,array2);
-  }
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_ProblemData_getConstVec(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  ProblemData *arg1 = (ProblemData *) 0 ;
-  double *arg2 = (double *) 0 ;
-  int arg3 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject *array2 = NULL ;
-  PyObject * obj0 = 0 ;
-  PyObject * obj1 = 0 ;
-  
-  if (!PyArg_ParseTuple(args,(char *)"OO:ProblemData_getConstVec",&obj0,&obj1)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_ProblemData, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "ProblemData_getConstVec" "', argument " "1"" of type '" "ProblemData *""'"); 
-  }
-  arg1 = reinterpret_cast< ProblemData * >(argp1);
-  {
-    npy_intp dims[1];
-    if (!PyInt_Check(obj1))
-    {
-      const char* typestring = pytype_string(obj1);
-      PyErr_Format(PyExc_TypeError,
-        "Int dimension expected.  '%s' given.",
-        typestring);
-      SWIG_fail;
-    }
-    arg3 = (int) PyInt_AsLong(obj1);
-    dims[0] = (npy_intp) arg3;
-    array2 = PyArray_SimpleNew(1, dims, NPY_DOUBLE);
-    if (!array2) SWIG_fail;
-    arg2 = (double*) array_data(array2);
-  }
-  (arg1)->getConstVec(arg2,arg3);
   resultobj = SWIG_Py_Void();
   {
     resultobj = SWIG_Python_AppendOutput(resultobj,array2);
@@ -19143,12 +18941,18 @@ SWIGINTERN PyObject *LinOpVector_swigregister(PyObject *SWIGUNUSEDPARM(self), Py
 SWIGINTERN PyObject *_wrap_build_matrix__SWIG_0(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   std::vector< LinOp *,std::allocator< LinOp * > > arg1 ;
-  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > arg2 ;
+  int arg2 ;
+  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > arg3 ;
+  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > arg4 ;
+  int val2 ;
+  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
-  ProblemData result;
+  PyObject * obj2 = 0 ;
+  PyObject * obj3 = 0 ;
+  SwigValueWrapper< std::map< int,std::vector< ProblemData,std::allocator< ProblemData > >,std::less< int >,std::allocator< std::pair< int const,std::vector< ProblemData,std::allocator< ProblemData > > > > > > result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OO:build_matrix",&obj0,&obj1)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOO:build_matrix",&obj0,&obj1,&obj2,&obj3)) SWIG_fail;
   {
     std::vector< LinOp*,std::allocator< LinOp * > > *ptr = (std::vector< LinOp*,std::allocator< LinOp * > > *)0;
     int res = swig::asptr(obj0, &ptr);
@@ -19158,17 +18962,31 @@ SWIGINTERN PyObject *_wrap_build_matrix__SWIG_0(PyObject *SWIGUNUSEDPARM(self), 
     arg1 = *ptr;
     if (SWIG_IsNewObj(res)) delete ptr;
   }
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "build_matrix" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
   {
     std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *ptr = (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *)0;
-    int res = swig::asptr(obj1, &ptr);
+    int res = swig::asptr(obj2, &ptr);
     if (!SWIG_IsOK(res) || !ptr) {
-      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "build_matrix" "', argument " "2"" of type '" "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >""'"); 
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "build_matrix" "', argument " "3"" of type '" "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >""'"); 
     }
-    arg2 = *ptr;
+    arg3 = *ptr;
     if (SWIG_IsNewObj(res)) delete ptr;
   }
-  result = build_matrix(arg1,arg2);
-  resultobj = SWIG_NewPointerObj((new ProblemData(static_cast< const ProblemData& >(result))), SWIGTYPE_p_ProblemData, SWIG_POINTER_OWN |  0 );
+  {
+    std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *ptr = (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *)0;
+    int res = swig::asptr(obj3, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "build_matrix" "', argument " "4"" of type '" "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >""'"); 
+    }
+    arg4 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
+  }
+  result = build_matrix(arg1,arg2,arg3,arg4);
+  resultobj = SWIG_NewPointerObj((new std::map< int,std::vector< ProblemData,std::allocator< ProblemData > >,std::less< int >,std::allocator< std::pair< int const,std::vector< ProblemData,std::allocator< ProblemData > > > > >(static_cast< const std::map< int,std::vector< ProblemData,std::allocator< ProblemData > >,std::less< int >,std::allocator< std::pair< int const,std::vector< ProblemData,std::allocator< ProblemData > > > > >& >(result))), SWIGTYPE_p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -19178,14 +18996,20 @@ fail:
 SWIGINTERN PyObject *_wrap_build_matrix__SWIG_1(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   std::vector< LinOp *,std::allocator< LinOp * > > arg1 ;
-  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > arg2 ;
-  std::vector< int,std::allocator< int > > arg3 ;
+  int arg2 ;
+  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > arg3 ;
+  std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > arg4 ;
+  std::vector< int,std::allocator< int > > arg5 ;
+  int val2 ;
+  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
-  ProblemData result;
+  PyObject * obj3 = 0 ;
+  PyObject * obj4 = 0 ;
+  SwigValueWrapper< std::map< int,std::vector< ProblemData,std::allocator< ProblemData > >,std::less< int >,std::allocator< std::pair< int const,std::vector< ProblemData,std::allocator< ProblemData > > > > > > result;
   
-  if (!PyArg_ParseTuple(args,(char *)"OOO:build_matrix",&obj0,&obj1,&obj2)) SWIG_fail;
+  if (!PyArg_ParseTuple(args,(char *)"OOOOO:build_matrix",&obj0,&obj1,&obj2,&obj3,&obj4)) SWIG_fail;
   {
     std::vector< LinOp*,std::allocator< LinOp * > > *ptr = (std::vector< LinOp*,std::allocator< LinOp * > > *)0;
     int res = swig::asptr(obj0, &ptr);
@@ -19195,26 +19019,40 @@ SWIGINTERN PyObject *_wrap_build_matrix__SWIG_1(PyObject *SWIGUNUSEDPARM(self), 
     arg1 = *ptr;
     if (SWIG_IsNewObj(res)) delete ptr;
   }
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "build_matrix" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = static_cast< int >(val2);
   {
     std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *ptr = (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *)0;
-    int res = swig::asptr(obj1, &ptr);
-    if (!SWIG_IsOK(res) || !ptr) {
-      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "build_matrix" "', argument " "2"" of type '" "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >""'"); 
-    }
-    arg2 = *ptr;
-    if (SWIG_IsNewObj(res)) delete ptr;
-  }
-  {
-    std::vector< int,std::allocator< int > > *ptr = (std::vector< int,std::allocator< int > > *)0;
     int res = swig::asptr(obj2, &ptr);
     if (!SWIG_IsOK(res) || !ptr) {
-      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "build_matrix" "', argument " "3"" of type '" "std::vector< int,std::allocator< int > >""'"); 
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "build_matrix" "', argument " "3"" of type '" "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >""'"); 
     }
     arg3 = *ptr;
     if (SWIG_IsNewObj(res)) delete ptr;
   }
-  result = build_matrix(arg1,arg2,arg3);
-  resultobj = SWIG_NewPointerObj((new ProblemData(static_cast< const ProblemData& >(result))), SWIGTYPE_p_ProblemData, SWIG_POINTER_OWN |  0 );
+  {
+    std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *ptr = (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *)0;
+    int res = swig::asptr(obj3, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "build_matrix" "', argument " "4"" of type '" "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >""'"); 
+    }
+    arg4 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
+  }
+  {
+    std::vector< int,std::allocator< int > > *ptr = (std::vector< int,std::allocator< int > > *)0;
+    int res = swig::asptr(obj4, &ptr);
+    if (!SWIG_IsOK(res) || !ptr) {
+      SWIG_exception_fail(SWIG_ArgError((ptr ? res : SWIG_TypeError)), "in method '" "build_matrix" "', argument " "5"" of type '" "std::vector< int,std::allocator< int > >""'"); 
+    }
+    arg5 = *ptr;
+    if (SWIG_IsNewObj(res)) delete ptr;
+  }
+  result = build_matrix(arg1,arg2,arg3,arg4,arg5);
+  resultobj = SWIG_NewPointerObj((new std::map< int,std::vector< ProblemData,std::allocator< ProblemData > >,std::less< int >,std::allocator< std::pair< int const,std::vector< ProblemData,std::allocator< ProblemData > > > > >(static_cast< const std::map< int,std::vector< ProblemData,std::allocator< ProblemData > >,std::less< int >,std::allocator< std::pair< int const,std::vector< ProblemData,std::allocator< ProblemData > > > > >& >(result))), SWIGTYPE_p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:
   return NULL;
@@ -19223,40 +19061,60 @@ fail:
 
 SWIGINTERN PyObject *_wrap_build_matrix(PyObject *self, PyObject *args) {
   Py_ssize_t argc;
-  PyObject *argv[4] = {
+  PyObject *argv[6] = {
     0
   };
   Py_ssize_t ii;
   
   if (!PyTuple_Check(args)) SWIG_fail;
   argc = args ? PyObject_Length(args) : 0;
-  for (ii = 0; (ii < 3) && (ii < argc); ii++) {
+  for (ii = 0; (ii < 5) && (ii < argc); ii++) {
     argv[ii] = PyTuple_GET_ITEM(args,ii);
   }
-  if (argc == 2) {
+  if (argc == 4) {
     int _v;
     int res = swig::asptr(argv[0], (std::vector< LinOp*,std::allocator< LinOp * > >**)(0));
     _v = SWIG_CheckState(res);
     if (_v) {
-      int res = swig::asptr(argv[1], (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >**)(0));
-      _v = SWIG_CheckState(res);
+      {
+        int res = SWIG_AsVal_int(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
       if (_v) {
-        return _wrap_build_matrix__SWIG_0(self, args);
+        int res = swig::asptr(argv[2], (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >**)(0));
+        _v = SWIG_CheckState(res);
+        if (_v) {
+          int res = swig::asptr(argv[3], (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >**)(0));
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            return _wrap_build_matrix__SWIG_0(self, args);
+          }
+        }
       }
     }
   }
-  if (argc == 3) {
+  if (argc == 5) {
     int _v;
     int res = swig::asptr(argv[0], (std::vector< LinOp*,std::allocator< LinOp * > >**)(0));
     _v = SWIG_CheckState(res);
     if (_v) {
-      int res = swig::asptr(argv[1], (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >**)(0));
-      _v = SWIG_CheckState(res);
+      {
+        int res = SWIG_AsVal_int(argv[1], NULL);
+        _v = SWIG_CheckState(res);
+      }
       if (_v) {
-        int res = swig::asptr(argv[2], (std::vector< int,std::allocator< int > >**)(0));
+        int res = swig::asptr(argv[2], (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >**)(0));
         _v = SWIG_CheckState(res);
         if (_v) {
-          return _wrap_build_matrix__SWIG_1(self, args);
+          int res = swig::asptr(argv[3], (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >**)(0));
+          _v = SWIG_CheckState(res);
+          if (_v) {
+            int res = swig::asptr(argv[4], (std::vector< int,std::allocator< int > >**)(0));
+            _v = SWIG_CheckState(res);
+            if (_v) {
+              return _wrap_build_matrix__SWIG_1(self, args);
+            }
+          }
         }
       }
     }
@@ -19265,8 +19123,8 @@ SWIGINTERN PyObject *_wrap_build_matrix(PyObject *self, PyObject *args) {
 fail:
   SWIG_SetErrorMsg(PyExc_NotImplementedError,"Wrong number or type of arguments for overloaded function 'build_matrix'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    build_matrix(std::vector< LinOp *,std::allocator< LinOp * > >,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >)\n"
-    "    build_matrix(std::vector< LinOp *,std::allocator< LinOp * > >,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,std::vector< int,std::allocator< int > >)\n");
+    "    build_matrix(std::vector< LinOp *,std::allocator< LinOp * > >,int,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >)\n"
+    "    build_matrix(std::vector< LinOp *,std::allocator< LinOp * > >,int,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,std::vector< int,std::allocator< int > >)\n");
   return 0;
 }
 
@@ -19292,6 +19150,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"SwigPyIterator___sub__", _wrap_SwigPyIterator___sub__, METH_VARARGS, NULL},
 	 { (char *)"SwigPyIterator_swigregister", SwigPyIterator_swigregister, METH_VARARGS, NULL},
 	 { (char *)"VARIABLE_swigconstant", VARIABLE_swigconstant, METH_VARARGS, NULL},
+	 { (char *)"PARAM_swigconstant", PARAM_swigconstant, METH_VARARGS, NULL},
 	 { (char *)"PROMOTE_swigconstant", PROMOTE_swigconstant, METH_VARARGS, NULL},
 	 { (char *)"MUL_swigconstant", MUL_swigconstant, METH_VARARGS, NULL},
 	 { (char *)"RMUL_swigconstant", RMUL_swigconstant, METH_VARARGS, NULL},
@@ -19343,16 +19202,9 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"ProblemData_I_get", _wrap_ProblemData_I_get, METH_VARARGS, NULL},
 	 { (char *)"ProblemData_J_set", _wrap_ProblemData_J_set, METH_VARARGS, NULL},
 	 { (char *)"ProblemData_J_get", _wrap_ProblemData_J_get, METH_VARARGS, NULL},
-	 { (char *)"ProblemData_const_vec_set", _wrap_ProblemData_const_vec_set, METH_VARARGS, NULL},
-	 { (char *)"ProblemData_const_vec_get", _wrap_ProblemData_const_vec_get, METH_VARARGS, NULL},
-	 { (char *)"ProblemData_id_to_col_set", _wrap_ProblemData_id_to_col_set, METH_VARARGS, NULL},
-	 { (char *)"ProblemData_id_to_col_get", _wrap_ProblemData_id_to_col_get, METH_VARARGS, NULL},
-	 { (char *)"ProblemData_const_to_row_set", _wrap_ProblemData_const_to_row_set, METH_VARARGS, NULL},
-	 { (char *)"ProblemData_const_to_row_get", _wrap_ProblemData_const_to_row_get, METH_VARARGS, NULL},
 	 { (char *)"ProblemData_getV", _wrap_ProblemData_getV, METH_VARARGS, NULL},
 	 { (char *)"ProblemData_getI", _wrap_ProblemData_getI, METH_VARARGS, NULL},
 	 { (char *)"ProblemData_getJ", _wrap_ProblemData_getJ, METH_VARARGS, NULL},
-	 { (char *)"ProblemData_getConstVec", _wrap_ProblemData_getConstVec, METH_VARARGS, NULL},
 	 { (char *)"new_ProblemData", _wrap_new_ProblemData, METH_VARARGS, NULL},
 	 { (char *)"delete_ProblemData", _wrap_delete_ProblemData, METH_VARARGS, NULL},
 	 { (char *)"ProblemData_swigregister", ProblemData_swigregister, METH_VARARGS, NULL},
@@ -19589,6 +19441,7 @@ static swig_type_info _swigt__p_std__allocatorT_std__vectorT_int_std__allocatorT
 static swig_type_info _swigt__p_std__invalid_argument = {"_p_std__invalid_argument", "std::invalid_argument *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__lessT_int_t = {"_p_std__lessT_int_t", "std::less< int > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t = {"_p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t", "std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > *|std::map< int,int > *", 0, 0, (void*)0, 0};
+static swig_type_info _swigt__p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t = {"_p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t", "ProblemTensor *|std::map< int,std::vector< ProblemData,std::allocator< ProblemData > >,std::less< int >,std::allocator< std::pair< int const,std::vector< ProblemData,std::allocator< ProblemData > > > > > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t = {"_p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t", "std::vector< LinOp *,std::allocator< LinOp * > > *|std::vector< LinOp * > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_double_std__allocatorT_double_t_t = {"_p_std__vectorT_double_std__allocatorT_double_t_t", "std::vector< double,std::allocator< double > > *|std::vector< double > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_std__vectorT_int_std__allocatorT_int_t_t = {"_p_std__vectorT_int_std__allocatorT_int_t_t", "std::vector< int,std::allocator< int > > *|std::vector< int > *", 0, 0, (void*)0, 0};
@@ -19622,6 +19475,7 @@ static swig_type_info *swig_type_initial[] = {
   &_swigt__p_std__invalid_argument,
   &_swigt__p_std__lessT_int_t,
   &_swigt__p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t,
+  &_swigt__p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t,
   &_swigt__p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t,
   &_swigt__p_std__vectorT_double_std__allocatorT_double_t_t,
   &_swigt__p_std__vectorT_int_std__allocatorT_int_t_t,
@@ -19655,6 +19509,7 @@ static swig_cast_info _swigc__p_std__allocatorT_std__vectorT_int_std__allocatorT
 static swig_cast_info _swigc__p_std__invalid_argument[] = {  {&_swigt__p_std__invalid_argument, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__lessT_int_t[] = {  {&_swigt__p_std__lessT_int_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t[] = {  {&_swigt__p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t, 0, 0, 0},{0, 0, 0, 0}};
+static swig_cast_info _swigc__p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t[] = {  {&_swigt__p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t[] = {  {&_swigt__p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_double_std__allocatorT_double_t_t[] = {  {&_swigt__p_std__vectorT_double_std__allocatorT_double_t_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_std__vectorT_int_std__allocatorT_int_t_t[] = {  {&_swigt__p_std__vectorT_int_std__allocatorT_int_t_t, 0, 0, 0},{0, 0, 0, 0}};
@@ -19688,6 +19543,7 @@ static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_std__invalid_argument,
   _swigc__p_std__lessT_int_t,
   _swigc__p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t,
+  _swigc__p_std__mapT_int_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_ProblemData_std__allocatorT_ProblemData_t_t_t_t_t,
   _swigc__p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t,
   _swigc__p_std__vectorT_double_std__allocatorT_double_t_t,
   _swigc__p_std__vectorT_int_std__allocatorT_int_t_t,
@@ -20392,8 +20248,6 @@ SWIG_init(void) {
   
   import_array();
   
-  PyDict_SetItemString(md,(char*)"cvar", SWIG_globals());
-  SWIG_addvarlink(SWIG_globals(),(char*)"CONSTANT_ID",Swig_var_CONSTANT_ID_get, Swig_var_CONSTANT_ID_set);
 #if PY_VERSION_HEX >= 0x03000000
   return m;
 #else

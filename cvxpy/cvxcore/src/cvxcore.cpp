@@ -18,92 +18,8 @@
 #include "LinOp.hpp"
 #include "LinOpOperations.hpp"
 #include "ProblemData.hpp"
+#include "Utils.hpp"
 
-void mul_by_const(Matrix &coeff_mat,
-        std::map<int, Matrix > &rh_coeffs,
-        std::map<int, Matrix > &result){
-
-	typedef std::map<int, Matrix >::iterator it_type;
-	for (it_type it = rh_coeffs.begin(); it != rh_coeffs.end(); ++it){
-		int id = it->first;
-		Matrix rh = it->second;
-		/* Convert scalars (1x1 matrices) to primitive types */
-		if (coeff_mat.rows() == 1 && coeff_mat.cols() == 1){
-			double scalar = coeff_mat.coeffRef(0, 0);
-			if (result.count(id) == 0)
-				result[id] = scalar * rh;
-			else
-				result[id] += scalar * rh;
-		} else if (rh.rows() == 1 && rh.cols() == 1) {
-			double scalar = rh.coeffRef(0, 0);
-			if(result.count(id) == 0)
-				result[id] = coeff_mat * scalar;
-			else
-				result[id] = coeff_mat * scalar;
-		} else{
-			if (result.count(id) == 0) {
-				result[id] = coeff_mat * rh;
-			} else {
-				result[id] += coeff_mat * rh;
-            }
-		}
-	}
-}
-
-std::map<int, Matrix > get_coefficient(LinOp &lin){
-	std::map<int, Matrix > coeffs;
-	if (lin.type == VARIABLE){
-		std::map<int, Matrix> new_coeffs = get_variable_coeffs(lin);
-		typedef std::map<int, Matrix >::iterator it_type;
-		for(it_type it = new_coeffs.begin(); it != new_coeffs.end(); ++it){
-			if(coeffs.count(it->first) == 0) {
-				coeffs[it->first] = it->second;
-			} else {
-				coeffs[it->first] += it->second;
-      }
-		}
-	}
-	else if (lin.has_constant_type()){
-		/* ID will be CONSTANT_TYPE */
-		std::map<int, Matrix> new_coeffs = get_const_coeffs(lin);
-		typedef std::map<int, Matrix >::iterator it_type;
-		for(it_type it = new_coeffs.begin(); it != new_coeffs.end(); ++it){
-			if(coeffs.count(it->first) == 0) {
-				coeffs[it->first] = it->second;
-      } else {
-				coeffs[it->first] += it->second;
-      }
-		}
-	}
-	else {
-		/* Multiply the arguments of the function coefficient in order */
-		std::vector<Matrix> coeff_mat = get_func_coeffs(lin);
-		for (unsigned i = 0; i < lin.args.size(); i++){
-			Matrix coeff = coeff_mat[i];
-			std::map<int, Matrix > rh_coeffs = get_coefficient(*lin.args[i]);
-			std::map<int,  Matrix > new_coeffs;
-			mul_by_const(coeff, rh_coeffs, new_coeffs);
-
-			typedef std::map<int, Matrix>::iterator it_type;
-			for (it_type it = new_coeffs.begin(); it != new_coeffs.end(); ++it){
-				if(coeffs.count(it->first) == 0)
-					coeffs[it->first] = it->second;
-				else
-					coeffs[it->first] += it->second;
-			}
-		}
-	}
-	return coeffs;
-}
-
-int get_horiz_offset(int id, std::map<int, int> &offsets,
-                     int &horiz_offset, LinOp &lin){
-	if ( !offsets.count(id) ){
-		offsets[id] = horiz_offset;
-    horiz_offset += vecprod(lin.size);
-	}
-	return offsets[id];
-}
 
 /* function: add_matrix_to_vectors
 *
@@ -137,24 +53,46 @@ void extend_constant_vec(std::vector<double> &const_vec, int &vert_offset,
 	}
 }
 
-void process_constraint(LinOp & lin, std::vector<double> &V,
-                        std::vector<int> &I, std::vector<int> &J,
-                        std::vector<double> &constant_vec, int &vert_offset,
-                        std::map<int, int> &id_to_col, int & horiz_offset){
-	/* Get the coefficient for the current constraint */
-	std::map<int, Matrix > coeffs = get_coefficient(lin);	
 
-	typedef std::map<int, Matrix >::iterator it_type;
+void process_constraint(LinOp & lin, ProblemTensor & problemData,
+                        int &vert_offset, int var_length,
+                        std::map<int, int> &id_to_col){
+	/* Get the coefficient for the current constraint */
+	Tensor coeffs = lin_to_tensor(lin, 0);
+  std::cout << "Tensor coeffs = lin_to_tensor(lin, 0);\n";
+
+	typedef Tensor::iterator it_type;
 	for(it_type it = coeffs.begin(); it != coeffs.end(); ++it){
-		int id = it->first;									// Horiz offset determined by the id
-		Matrix block = it->second;
-		if (id == CONSTANT_ID) { // Add to CONSTANT_VEC if linop is constant
-			extend_constant_vec(constant_vec, vert_offset, block);	
-		}
-		else {
-			int offset = get_horiz_offset(id, id_to_col, horiz_offset, lin);
-			add_matrix_to_vectors(block, V, I, J, vert_offset, offset);
-		}
+		int param_id = it->first;
+    std::vector<ProblemData> probVec;
+    problemData[param_id] = probVec;
+    DictMat var_map = it->second;
+    typedef DictMat::iterator inner_it_type;
+    for(inner_it_type in_it = var_map.begin(); in_it != var_map.end(); ++in_it) {
+      int var_id = in_it->first;				// Horiz offset determined by the id
+      std::vector<Matrix> blocks = in_it->second;
+      // Constant term is last column.
+      for (unsigned i=0; i < blocks.size(); i++) {
+        int horiz_offset;
+        if (var_id == CONSTANT_ID) { // Add to CONSTANT_VEC if linop is constant
+          horiz_offset = var_length;
+        } else {
+          horiz_offset = id_to_col[var_id];
+        }
+        ProblemData probBlock;
+        probVec.push_back(probBlock);
+        std::cout << param_id << "\n";
+        std::cout << var_id << "\n";
+        std::cout << i << "\n";
+        add_matrix_to_vectors(blocks[i],
+                              probBlock.V,
+                              probBlock.I,
+                              probBlock.J,
+                              vert_offset,
+                              horiz_offset);
+        std::cout << "add_to_matrix" << "\n";
+      }
+    }
 	}
 }
 
@@ -195,6 +133,22 @@ int get_total_constraint_length(std::vector<LinOp*> &constraints,
 	return offset_end;
 }
 
+// Create a tensor with a problem data entry for each parameter,
+// as a vector with entries equal to the parameter size.
+ProblemTensor init_data_tensor(std::map<int, int> param_to_size) {
+  ProblemTensor output;
+	typedef std::map<int, int>::iterator it_type;
+	for (it_type it = param_to_size.begin();
+       it != param_to_size.end();
+       ++it) {
+    int param_id = it->first;
+    int param_size = it->second;
+    std::vector<ProblemData> data_block(param_size);
+    output[param_id] = data_block;
+  }
+  return output;
+}
+
 /* function: build_matrix
 *
 * Description: Given a list of linear operations, this function returns a data
@@ -209,54 +163,50 @@ int get_total_constraint_length(std::vector<LinOp*> &constraints,
 * matrix to their corresponding constraint.
 *
 */
-ProblemData build_matrix(std::vector< LinOp* > constraints,
-                         std::map<int, int> id_to_col) {
-	ProblemData prob_data;
+ProblemTensor build_matrix(std::vector< LinOp* > constraints,
+                           int var_length,
+                           std::map<int, int> id_to_col,
+                           std::map<int, int> param_to_size) {
+  ProblemTensor prob_data = init_data_tensor(param_to_size);
 	int num_rows = get_total_constraint_length(constraints);
-	prob_data.const_vec = std::vector<double> (num_rows, 0);
-	prob_data.id_to_col = id_to_col;
+  std::cout << "tell2\n";
 	int vert_offset = 0;
-	int horiz_offset  = 0;
-
 	/* Build matrix one constraint at a time */
 	for (unsigned i = 0; i < constraints.size(); i++){
 		LinOp constr = *constraints[i];
-		process_constraint(constr, prob_data.V, prob_data.I, prob_data.J,
-		                   prob_data.const_vec, vert_offset,
-		                   prob_data.id_to_col, horiz_offset);
-		prob_data.const_to_row[i] = vert_offset;
+		process_constraint(constr, prob_data,
+		                   vert_offset, var_length,
+		                   id_to_col);
 		vert_offset += vecprod(constr.size);
 	}
 	return prob_data;
 }
 
 /*  See comment above for build_matrix. Requires specification of a vertical
-		offset, VERT_OFFSET, for each constraint in the vector CONSTR_OFFSETS. 
-	
-		Valid CONSTR_OFFSETS assume that a vertical offset is provided for each 
-		constraint and that the offsets are not overlapping. In particular, 
+		offset, VERT_OFFSET, for each constraint in the vector CONSTR_OFFSETS.
+
+		Valid CONSTR_OFFSETS assume that a vertical offset is provided for each
+		constraint and that the offsets are not overlapping. In particular,
 		the vertical offset for constraint i + the size of constraint i must be
 		less than the vertical offset for constraint i+1.
 		*/
-ProblemData build_matrix(std::vector<LinOp*> constraints,
-                         std::map<int, int> id_to_col,
-                         std::vector<int> constr_offsets){
-	ProblemData prob_data;
+ProblemTensor build_matrix(std::vector<LinOp*> constraints,
+                           int var_length,
+                           std::map<int, int> id_to_col,
+                           std::map<int, int> param_to_size,
+                           std::vector<int> constr_offsets){
+  ProblemTensor prob_data = init_data_tensor(param_to_size);
 
 	/* Function also verifies the offsets are valid */
 	int num_rows = get_total_constraint_length(constraints, constr_offsets);
-	prob_data.const_vec = std::vector<double> (num_rows, 0);
-	prob_data.id_to_col = id_to_col;
-	int horiz_offset  = 0;
 
 	/* Build matrix one constraint at a time */
 	for (unsigned i = 0; i < constraints.size(); i++){
 		LinOp constr = *constraints[i];
 		int vert_offset = constr_offsets[i];
-		process_constraint(constr, prob_data.V, prob_data.I, prob_data.J,
-		                   prob_data.const_vec, vert_offset,
-		                   prob_data.id_to_col, horiz_offset);
-		prob_data.const_to_row[i] = vert_offset;
+		process_constraint(constr, prob_data,
+		                   vert_offset, var_length,
+		                   id_to_col);
 	}
 	return prob_data;
 }

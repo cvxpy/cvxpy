@@ -158,6 +158,9 @@ SwigPyIterator_swigregister(SwigPyIterator)
 _cvxcore.VARIABLE_swigconstant(_cvxcore)
 VARIABLE = _cvxcore.VARIABLE
 
+_cvxcore.PARAM_swigconstant(_cvxcore)
+PARAM = _cvxcore.PARAM
+
 _cvxcore.PROMOTE_swigconstant(_cvxcore)
 PROMOTE = _cvxcore.PROMOTE
 
@@ -284,8 +287,6 @@ class LinOp(_object):
     __del__ = lambda self: None
 LinOp_swigregister = _cvxcore.LinOp_swigregister
 LinOp_swigregister(LinOp)
-cvar = _cvxcore.cvar
-CONSTANT_ID = cvar.CONSTANT_ID
 
 class ProblemData(_object):
     __swig_setmethods__ = {}
@@ -305,18 +306,6 @@ class ProblemData(_object):
     __swig_getmethods__["J"] = _cvxcore.ProblemData_J_get
     if _newclass:
         J = _swig_property(_cvxcore.ProblemData_J_get, _cvxcore.ProblemData_J_set)
-    __swig_setmethods__["const_vec"] = _cvxcore.ProblemData_const_vec_set
-    __swig_getmethods__["const_vec"] = _cvxcore.ProblemData_const_vec_get
-    if _newclass:
-        const_vec = _swig_property(_cvxcore.ProblemData_const_vec_get, _cvxcore.ProblemData_const_vec_set)
-    __swig_setmethods__["id_to_col"] = _cvxcore.ProblemData_id_to_col_set
-    __swig_getmethods__["id_to_col"] = _cvxcore.ProblemData_id_to_col_get
-    if _newclass:
-        id_to_col = _swig_property(_cvxcore.ProblemData_id_to_col_get, _cvxcore.ProblemData_id_to_col_set)
-    __swig_setmethods__["const_to_row"] = _cvxcore.ProblemData_const_to_row_set
-    __swig_getmethods__["const_to_row"] = _cvxcore.ProblemData_const_to_row_get
-    if _newclass:
-        const_to_row = _swig_property(_cvxcore.ProblemData_const_to_row_get, _cvxcore.ProblemData_const_to_row_set)
 
     def getV(self, values):
         return _cvxcore.ProblemData_getV(self, values)
@@ -326,9 +315,6 @@ class ProblemData(_object):
 
     def getJ(self, values):
         return _cvxcore.ProblemData_getJ(self, values)
-
-    def getConstVec(self, values):
-        return _cvxcore.ProblemData_getConstVec(self, values)
 
     def __init__(self):
         this = _cvxcore.new_ProblemData()
