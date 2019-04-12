@@ -105,7 +105,7 @@ class QuadForm(Atom):
         x = np.array(values[0])
         P = np.array(values[1])
         D = 2 * np.dot(P, x.T)
-        return [sp.csc_matrix(D.A.ravel(order='F')).T]
+        return [sp.csc_matrix(D.ravel(order='F')).T]
 
     def shape_from_args(self):
         return tuple() if self.args[0].ndim == 0 else (1, 1)
