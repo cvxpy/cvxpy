@@ -23,13 +23,13 @@
 typedef std::map<int, std::vector<ProblemData> > ProblemTensor;
 
 // Top Level Entry point
-ProblemTensor build_matrix(std::vector< LinOp* > constraints,
-                           int var_length,
-                           std::map<int, int> id_to_col,
-                           std::map<int, int> param_to_size);
-ProblemTensor build_matrix(std::vector< LinOp* > constraints,
-                           int var_length,
-                           std::map<int, int> id_to_col,
-                           std::map<int, int> param_to_size,
-                           std::vector<int> constr_offsets);
+ProblemData build_matrix(std::vector< LinOp* > constraints,
+                         int var_length,
+                         std::map<int, int> id_to_col,
+                         std::map<int, int> param_to_size);
+ProblemData build_matrix(std::vector< LinOp* > constraints,
+                         int var_length,
+                         std::map<int, int> id_to_col,
+                         std::map<int, int> param_to_size,
+                         std::vector<int> constr_offsets);
 #endif
