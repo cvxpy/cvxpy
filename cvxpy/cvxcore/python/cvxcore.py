@@ -294,27 +294,30 @@ class ProblemData(_object):
     __swig_getmethods__ = {}
     __getattr__ = lambda self, name: _swig_getattr(self, ProblemData, name)
     __repr__ = _swig_repr
-    __swig_setmethods__["V"] = _cvxcore.ProblemData_V_set
-    __swig_getmethods__["V"] = _cvxcore.ProblemData_V_get
+    __swig_setmethods__["TensorV"] = _cvxcore.ProblemData_TensorV_set
+    __swig_getmethods__["TensorV"] = _cvxcore.ProblemData_TensorV_get
     if _newclass:
-        V = _swig_property(_cvxcore.ProblemData_V_get, _cvxcore.ProblemData_V_set)
-    __swig_setmethods__["I"] = _cvxcore.ProblemData_I_set
-    __swig_getmethods__["I"] = _cvxcore.ProblemData_I_get
+        TensorV = _swig_property(_cvxcore.ProblemData_TensorV_get, _cvxcore.ProblemData_TensorV_set)
+    __swig_setmethods__["TensorI"] = _cvxcore.ProblemData_TensorI_set
+    __swig_getmethods__["TensorI"] = _cvxcore.ProblemData_TensorI_get
     if _newclass:
-        I = _swig_property(_cvxcore.ProblemData_I_get, _cvxcore.ProblemData_I_set)
-    __swig_setmethods__["J"] = _cvxcore.ProblemData_J_set
-    __swig_getmethods__["J"] = _cvxcore.ProblemData_J_get
+        TensorI = _swig_property(_cvxcore.ProblemData_TensorI_get, _cvxcore.ProblemData_TensorI_set)
+    __swig_setmethods__["TensorJ"] = _cvxcore.ProblemData_TensorJ_set
+    __swig_getmethods__["TensorJ"] = _cvxcore.ProblemData_TensorJ_get
     if _newclass:
-        J = _swig_property(_cvxcore.ProblemData_J_get, _cvxcore.ProblemData_J_set)
+        TensorJ = _swig_property(_cvxcore.ProblemData_TensorJ_get, _cvxcore.ProblemData_TensorJ_set)
 
-    def getV(self, values):
-        return _cvxcore.ProblemData_getV(self, values)
+    def init_id(self, param_id, param_size):
+        return _cvxcore.ProblemData_init_id(self, param_id, param_size)
 
-    def getI(self, values):
-        return _cvxcore.ProblemData_getI(self, values)
+    def getV(self, values, param_id, vec_idx, num_values):
+        return _cvxcore.ProblemData_getV(self, values, param_id, vec_idx, num_values)
 
-    def getJ(self, values):
-        return _cvxcore.ProblemData_getJ(self, values)
+    def getI(self, values, param_id, vec_idx, num_values):
+        return _cvxcore.ProblemData_getI(self, values, param_id, vec_idx, num_values)
+
+    def getJ(self, values, param_id, vec_idx, num_values):
+        return _cvxcore.ProblemData_getJ(self, values, param_id, vec_idx, num_values)
 
     def __init__(self):
         this = _cvxcore.new_ProblemData()

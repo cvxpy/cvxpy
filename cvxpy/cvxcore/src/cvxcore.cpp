@@ -54,9 +54,10 @@ void extend_constant_vec(std::vector<double> &const_vec, int &vert_offset,
 }
 
 
-void process_constraint(LinOp & lin, ProblemTensor & problemData,
+void process_constraint(LinOp & lin, ProblemData & problemData,
                         int &vert_offset, int var_length,
-                        std::map<int, int> &id_to_col){
+                        std::map<int, int> &id_to_col,
+                        std::map<int, int> &param_to_size){
 	/* Get the coefficient for the current constraint */
 	Tensor coeffs = lin_to_tensor(lin, 0);
   std::cout << "Tensor coeffs = lin_to_tensor(lin, 0);\n";
@@ -64,8 +65,6 @@ void process_constraint(LinOp & lin, ProblemTensor & problemData,
 	typedef Tensor::iterator it_type;
 	for(it_type it = coeffs.begin(); it != coeffs.end(); ++it){
 		int param_id = it->first;
-    std::vector<ProblemData> probVec;
-    problemData[param_id] = probVec;
     DictMat var_map = it->second;
     typedef DictMat::iterator inner_it_type;
     for(inner_it_type in_it = var_map.begin(); in_it != var_map.end(); ++in_it) {
@@ -80,14 +79,13 @@ void process_constraint(LinOp & lin, ProblemTensor & problemData,
           horiz_offset = id_to_col[var_id];
         }
         ProblemData probBlock;
-        probVec.push_back(probBlock);
         std::cout << param_id << "\n";
         std::cout << var_id << "\n";
         std::cout << i << "\n";
         add_matrix_to_vectors(blocks[i],
-                              probBlock.V,
-                              probBlock.I,
-                              probBlock.J,
+                              probBlock.TensorV[param_id][i],
+                              probBlock.TensorI[param_id][i],
+                              probBlock.TensorJ[param_id][i],
                               vert_offset,
                               horiz_offset);
         std::cout << "add_to_matrix" << "\n";
@@ -135,16 +133,15 @@ int get_total_constraint_length(std::vector<LinOp*> &constraints,
 
 // Create a tensor with a problem data entry for each parameter,
 // as a vector with entries equal to the parameter size.
-ProblemTensor init_data_tensor(std::map<int, int> param_to_size) {
-  ProblemTensor output;
+ProblemData init_data_tensor(std::map<int, int> param_to_size) {
+  ProblemData output;
 	typedef std::map<int, int>::iterator it_type;
 	for (it_type it = param_to_size.begin();
        it != param_to_size.end();
        ++it) {
     int param_id = it->first;
     int param_size = it->second;
-    std::vector<ProblemData> data_block(param_size);
-    output[param_id] = data_block;
+    output.init_id(param_id, param_size);
   }
   return output;
 }
@@ -163,11 +160,11 @@ ProblemTensor init_data_tensor(std::map<int, int> param_to_size) {
 * matrix to their corresponding constraint.
 *
 */
-ProblemTensor build_matrix(std::vector< LinOp* > constraints,
+ProblemData build_matrix(std::vector< LinOp* > constraints,
                            int var_length,
                            std::map<int, int> id_to_col,
                            std::map<int, int> param_to_size) {
-  ProblemTensor prob_data = init_data_tensor(param_to_size);
+  ProblemData prob_data = init_data_tensor(param_to_size);
 	int num_rows = get_total_constraint_length(constraints);
   std::cout << "tell2\n";
 	int vert_offset = 0;
@@ -176,7 +173,8 @@ ProblemTensor build_matrix(std::vector< LinOp* > constraints,
 		LinOp constr = *constraints[i];
 		process_constraint(constr, prob_data,
 		                   vert_offset, var_length,
-		                   id_to_col);
+		                   id_to_col,
+                       param_to_size);
 		vert_offset += vecprod(constr.size);
 	}
 	return prob_data;
@@ -190,12 +188,12 @@ ProblemTensor build_matrix(std::vector< LinOp* > constraints,
 		the vertical offset for constraint i + the size of constraint i must be
 		less than the vertical offset for constraint i+1.
 		*/
-ProblemTensor build_matrix(std::vector<LinOp*> constraints,
+ProblemData build_matrix(std::vector<LinOp*> constraints,
                            int var_length,
                            std::map<int, int> id_to_col,
                            std::map<int, int> param_to_size,
                            std::vector<int> constr_offsets){
-  ProblemTensor prob_data = init_data_tensor(param_to_size);
+  ProblemData prob_data = init_data_tensor(param_to_size);
 
 	/* Function also verifies the offsets are valid */
 	int num_rows = get_total_constraint_length(constraints, constr_offsets);
@@ -206,7 +204,8 @@ ProblemTensor build_matrix(std::vector<LinOp*> constraints,
 		int vert_offset = constr_offsets[i];
 		process_constraint(constr, prob_data,
 		                   vert_offset, var_length,
-		                   id_to_col);
+		                   id_to_col,
+                       param_to_size);
 	}
 	return prob_data;
 }
