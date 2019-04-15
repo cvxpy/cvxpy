@@ -38,10 +38,11 @@
 	(double *col_idxs, int cols_len)};
 
 %include "LinOp.hpp"
+%include "Utils.hpp"
 
 /* Typemap for the getV, getI, getJ, and getConstVec C++ routines in
 	 problemData.hpp */
-%apply (double* ARGOUT_ARRAY1, int DIM1, int DIM2, int DIM3) {(double* values, int param_id, int vec_idx, int num_values)}
+%apply (double* ARGOUT_ARRAY1, int DIM1) {(double* values, int num_values)}
 %include "ProblemData.hpp"
 
 /* Useful wrappers for the LinOp class */

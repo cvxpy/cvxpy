@@ -28,11 +28,23 @@ public:
 	std::map<int, std::vector<std::vector<int> > > TensorI;
   std::map<int, std::vector<std::vector<int> > > TensorJ;
 
+  // Pointers needed to extract V, I, J.
+  int param_id;
+  int vec_idx;
+
   // Initialize TensorV/I/J for the given parameter.
   void init_id(int param_id, int param_size) {
     std::vector<std::vector<double> > vecV(param_size);
     std::vector<std::vector<int> > vecI(param_size);
     std::vector<std::vector<int> > vecJ(param_size);
+    for (int i=0; i < param_size; ++i) {
+      std::vector<double> elemV;
+      std::vector<int> elemI;
+      std::vector<int> elemJ;
+      vecV.push_back(elemV);
+      vecI.push_back(elemI);
+      vecJ.push_back(elemJ);
+    }
     TensorV[param_id] = vecV;
     TensorI[param_id] = vecI;
     TensorJ[param_id] = vecJ;
@@ -54,10 +66,16 @@ public:
 	 * elements. Thus, NUM_VALUES must be exactly the length of the array.
 	 ********************************************/
 
+  // Get length of V, I, J.
+  int getLen() {
+    std::vector<double> V = TensorV[param_id][vec_idx];
+    return V.size();
+  }
+
 	/**
 	 * Returns the data vector V as a contiguous 1D numpy array.
 	 */
-  void getV(double* values, int param_id, int vec_idx, int num_values) {
+  void getV(double* values, int num_values) {
     std::vector<double> V = TensorV[param_id][vec_idx];
 		for (int i = 0; i < num_values; i++) {
 			values[i] = V[i];
@@ -67,7 +85,7 @@ public:
 	/**
 	 * Returns the row index vector I as a contiguous 1D numpy array.
 	 */
-  void getI(double* values, int param_id, int vec_idx, int num_values) {
+  void getI(double* values, int num_values) {
     std::vector<int> I = TensorI[param_id][vec_idx];
 		for (int i = 0; i < num_values; i++) {
 			values[i] = I[i];
@@ -77,7 +95,7 @@ public:
 	/**
 	 * Returns the column index vector J as a contiguous 1D numpy array.
 	 */
-	void getJ(double* values, int param_id, int vec_idx, int num_values) {
+	void getJ(double* values, int num_values) {
     std::vector<int> J = TensorJ[param_id][vec_idx];
 		for (int i = 0; i < num_values; i++) {
 			values[i] = J[i];

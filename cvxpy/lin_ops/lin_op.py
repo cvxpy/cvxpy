@@ -104,4 +104,4 @@ PARAM = "param"
 # Data: None
 NO_OP = "no_op"
 # ID in coefficients for constants.
-CONSTANT_ID = "constant_id"
+CONSTANT_ID = -1

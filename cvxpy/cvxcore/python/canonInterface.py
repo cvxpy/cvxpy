@@ -45,8 +45,8 @@ def get_problem_matrix(linOps,
     """
     lin_vec = cvxcore.LinOpVector()
 
-
-    # Loading the variable offsets from our Python map into a C++ map
+    # Loading the variable offsets from our
+    # Python map into a C++ map
     id_to_col_C = cvxcore.IntIntMap()
     for id, col in id_to_col.items():
         id_to_col_C[int(id)] = int(col)
@@ -81,13 +81,25 @@ def get_problem_matrix(linOps,
                                            param_to_size_C,
                                            constr_offsets_C)
 
-    assert(False)
-    # Unpacking
-    V = problemData.getV(len(problemData.V))
-    I = problemData.getI(len(problemData.I))
-    J = problemData.getJ(len(problemData.J))
+    print(id_to_col)
+    # Populate tensors with info from problemData.
+    tensor_V = {}
+    tensor_I = {}
+    tensor_J = {}
+    for param_id, size in param_to_size.items():
+        tensor_V[param_id] = []
+        tensor_I[param_id] = []
+        tensor_J[param_id] = []
+        problemData.param_id = param_id
+        for i in range(size):
+            problemData.vec_idx = i
+            prob_len = problemData.getLen()
+            print(prob_len)
+            tensor_V[param_id].append(problemData.getV(prob_len))
+            tensor_I[param_id].append(problemData.getI(prob_len))
+            tensor_J[param_id].append(problemData.getJ(prob_len))
 
-    return V, I, J
+    return tensor_V, tensor_I, tensor_J
 
 
 def format_matrix(matrix, shape=None, format='dense'):

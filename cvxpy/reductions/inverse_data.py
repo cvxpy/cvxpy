@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 
 
@@ -25,7 +26,8 @@ class InverseData(object):
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
                                                 self.get_var_offsets(varis))
         self.param_shapes = {}
-        self.param_to_size = {}
+        # Always start with CONSTANT_ID.
+        self.param_to_size = {lo.CONSTANT_ID: 1}
         for param in problem.parameters():
             self.param_shapes[param.id] = param.shape
             self.param_to_size[param.id] = param.size

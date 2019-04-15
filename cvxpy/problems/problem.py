@@ -545,7 +545,6 @@ class Problem(u.Canonical):
                                                       warm_start,
                                                       verbose, kwargs)
 
-
         self.unpack_results(solution, self._solving_chain, inverse_data)
 
         return self.value

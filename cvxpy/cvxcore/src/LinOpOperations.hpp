@@ -21,6 +21,6 @@
 #include "LinOp.hpp"
 
 Tensor get_node_coeffs(LinOp& lin, int arg_idx);
-Tensor lin_to_tensor(LinOp& lin, int arg_idx);
+Tensor lin_to_tensor(LinOp& lin);
 
 #endif
