@@ -74,7 +74,7 @@ def construct_solving_chain(problem, candidates, gp=False):
     if solve_as_qp:
         reductions += [CvxAttr2Constr(),
                        Qp2SymbolicQp()]
-    else: # Canonicalize it to conic problem.
+    else:  # Canonicalize it to conic problem.
         if not candidates['conic_solvers']:
             raise SolverError("Problem could not be reduced to a QP, and no "
                               "conic solvers exist among candidate solvers "

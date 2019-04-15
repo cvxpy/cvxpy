@@ -27,8 +27,8 @@ std::vector<Matrix> mat_vec_mul(std::vector<Matrix> &lh_vec,
 
 // Accumulate right hand vector of matrices
 // into left hand by addition.
-void acc_mat_vec(std::vector<Matrix> lh_mat_vec,
-                 std::vector<Matrix> rh_mat_vec) {
+void acc_mat_vec(std::vector<Matrix> &lh_mat_vec,
+                 std::vector<Matrix> &rh_mat_vec) {
   // Length of vectors must match.
   assert(lh_mat_vec.size() == rh_mat_vec.size());
   for (unsigned i=0; i < rh_mat_vec.size(); ++i) {
@@ -49,7 +49,7 @@ DictMat dict_mat_mul(DictMat &lh_dm, DictMat &rh_dm) {
     // Left hand is always constant.
     assert(lh_var_id == CONSTANT_ID);
     std::vector<Matrix> lh_mat_vec = it->second;
-    for (it_type jit = rh_dm.begin(); it != rh_dm.end(); ++it){
+    for (it_type jit = rh_dm.begin(); jit != rh_dm.end(); ++jit){
       int rh_var_id = jit->first;
       std::vector<Matrix> rh_mat_vec = jit->second;
       std::vector<Matrix> prod_mat_vec = mat_vec_mul(lh_mat_vec, rh_mat_vec);
@@ -65,7 +65,7 @@ DictMat dict_mat_mul(DictMat &lh_dm, DictMat &rh_dm) {
 
 // Accumulate right hand DictMat
 // into left hand by addition.
-void acc_dict_mat(DictMat lh_dm, DictMat rh_dm) {
+void acc_dict_mat(DictMat &lh_dm, DictMat &rh_dm) {
 	typedef DictMat::iterator it_type;
 	for (it_type it = rh_dm.begin(); it != rh_dm.end(); ++it){
     int rh_var_id = it->first;
@@ -91,7 +91,7 @@ Tensor tensor_mul(Tensor &lh_ten, Tensor &rh_ten){
 	for (it_type it = lh_ten.begin(); it != lh_ten.end(); ++it){
     int lh_param_id = it->first;
     DictMat lh_var_map = it->second;
-    for (it_type jit = rh_ten.begin(); it != rh_ten.end(); ++it){
+    for (it_type jit = rh_ten.begin(); jit != rh_ten.end(); ++jit){
       int rh_param_id = jit->first;
       DictMat rh_var_map = jit->second;
       // No cross terms allowed.
@@ -115,7 +115,7 @@ Tensor tensor_mul(Tensor &lh_ten, Tensor &rh_ten){
 
 // Accumulate right hand Tensor
 // into left hand by addition.
-void acc_tensor(Tensor lh_ten, Tensor rh_ten) {
+void acc_tensor(Tensor &lh_ten, Tensor &rh_ten) {
 	typedef Tensor::iterator it_type;
 	for (it_type it = rh_ten.begin(); it != rh_ten.end(); ++it){
     int rh_param_id = it->first;

@@ -17,7 +17,6 @@
 #include "Utils.hpp"
 #include <cassert>
 #include <map>
-#include <iostream>
 
 /***********************
  * FUNCTION PROTOTYPES *
@@ -142,16 +141,15 @@ Tensor get_node_coeffs(LinOp &lin, int arg_idx) {
 	return coeffs;
 }
 
-Tensor lin_to_tensor(LinOp &lin, int arg_idx){
-  Tensor lh_coeff = get_node_coeffs(lin, arg_idx);
+Tensor lin_to_tensor(LinOp &lin){
   if (lin.args.size() == 0) {
-    return lh_coeff;
+    return get_node_coeffs(lin, 0);
   } else {
     Tensor result;
     /* Multiply the arguments of the function coefficient in order */
-    std::vector<Tensor> rh_coeffs;
     for (unsigned i = 0; i < lin.args.size(); ++i){
-      Tensor rh_coeff = lin_to_tensor(*lin.args[i], i);
+      Tensor lh_coeff = get_node_coeffs(lin, i);
+      Tensor rh_coeff = lin_to_tensor(*lin.args[i]);
       Tensor prod = tensor_mul(lh_coeff, rh_coeff);
       acc_tensor(result, prod);
     }
@@ -863,10 +861,10 @@ Tensor get_promote_mat(LinOp &lin, int arg_idx) {
  */
 Tensor get_reshape_mat(LinOp &lin, int arg_idx) {
 	assert(lin.type == RESHAPE);
-	Matrix one(1, 1);
-	one.insert(0, 0) = 1;
-	one.makeCompressed();
-	return build_tensor(one);
+	int n = vecprod(lin.size);
+	Matrix coeffs = sparse_eye(n);
+	coeffs.makeCompressed();
+	return build_tensor(coeffs);
 }
 
 /**
@@ -962,6 +960,7 @@ Tensor get_sum_coefficients(LinOp &lin, int arg_idx) {
 	assert(lin.type == SUM);
 	int n = vecprod(lin.size);
 	Matrix coeffs = sparse_eye(n);
+	coeffs.makeCompressed();
 	return build_tensor(coeffs);
 }
 
@@ -977,6 +976,7 @@ Tensor get_sum_coefficients(LinOp &lin, int arg_idx) {
  */
 Tensor get_variable_coeffs(LinOp &lin, int arg_idx) {
 	assert(lin.type == VARIABLE);
+  Tensor ten;
 	DictMat id_to_coeffs;
 	int id = get_id_data(lin, arg_idx);
 
@@ -987,7 +987,6 @@ Tensor get_variable_coeffs(LinOp &lin, int arg_idx) {
   std::vector<Matrix> mat_vec;
   mat_vec.push_back(coeffs);
 	id_to_coeffs[id] = mat_vec;
-  Tensor ten;
   ten[CONSTANT_ID] = id_to_coeffs;
 	return ten;
 }
@@ -1036,6 +1035,7 @@ Tensor get_param_coeffs(LinOp &lin, int arg_idx) {
  */
 Tensor get_const_coeffs(LinOp &lin, int arg_idx) {
 	assert(lin.has_constant_type());
+  Tensor ten;
 	DictMat id_to_coeffs;
 	int id = CONSTANT_ID;
 
@@ -1045,7 +1045,6 @@ Tensor get_const_coeffs(LinOp &lin, int arg_idx) {
   std::vector<Matrix> mat_vec;
   mat_vec.push_back(coeffs);
 	id_to_coeffs[id] = mat_vec;
-  Tensor ten;
   ten[CONSTANT_ID] = id_to_coeffs;
 	return ten;
 }

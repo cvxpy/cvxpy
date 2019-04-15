@@ -16,6 +16,7 @@ limitations under the License.
 
 import abc
 import cvxpy.utilities as u
+import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.constants import Constant
@@ -121,16 +122,21 @@ class AffAtom(Atom):
                 fake_args += [lu.create_var(arg.shape, idx)]
                 var_offsets[idx] = offset
                 offset += arg.size
+        var_length = offset
         fake_expr, _ = self.graph_implementation(fake_args, self.shape,
                                                  self.get_data())
+        param_to_size = {lo.CONSTANT_ID: 1}
         # Get the matrix representation of the function.
-        V, I, J, _ = canonInterface.get_problem_matrix(
+        V, I, J = canonInterface.get_problem_matrix(
             [fake_expr],
+            var_length,
             var_offsets,
-            None
+            param_to_size,
         )
-        shape = (offset, self.size)
-        stacked_grad = sp.csc_matrix((V, (J, I)), shape=shape)
+        # HACK TODO TODO convert tensors back to vectors.
+        COO = (V[lo.CONSTANT_ID][0], (J[lo.CONSTANT_ID][0], I[lo.CONSTANT_ID][0]))
+        shape = (var_length + 1, self.size)
+        stacked_grad = sp.csc_matrix(COO, shape=shape)[:-1, :]
         # Break up into per argument matrices.
         grad_list = []
         start = 0

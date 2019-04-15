@@ -27,7 +27,7 @@ from cvxpy.cvxcore.python import canonInterface
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import (replace_quad_forms,
                                                 restore_quad_forms)
-from cvxpy.lin_ops.lin_op import LinOp, NO_OP
+from cvxpy.lin_ops.lin_op import LinOp, NO_OP, CONSTANT_ID
 from cvxpy.problems.objective import Minimize
 
 
@@ -77,12 +77,16 @@ class CoeffExtractor(object):
             expr_list = [expr]
         size = sum([e.size for e in expr_list])
         op_list = [e.canonical_form[0] for e in expr_list]
-        V, I, J, b = canonInterface.get_problem_matrix(op_list,
-                                                       self.N,
-                                                       self.id_map,
-                                                       self.param_to_size)
-        A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
-        return A, b.flatten()
+        V, I, J = canonInterface.get_problem_matrix(op_list,
+                                                    self.N,
+                                                    self.id_map,
+                                                    self.param_to_size)
+        # HACK TODO TODO convert tensors back to vectors.
+        COO = (V[CONSTANT_ID][0], (I[CONSTANT_ID][0], J[CONSTANT_ID][0]))
+        A = sp.csr_matrix(COO, shape=(size, self.N + 1))
+        print(A.shape)
+        print(A.A)
+        return A[:, :-1], A[:, -1].A.flatten()
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
         """ Assumes quadratic forms all have variable arguments.

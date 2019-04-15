@@ -42,6 +42,7 @@ void add_matrix_to_vectors(Matrix &block, std::vector<double> &V,
 	}
 }
 
+// TODO delete
 void extend_constant_vec(std::vector<double> &const_vec, int &vert_offset,
                          Matrix &block){
 	int rows = block.rows();
@@ -59,36 +60,37 @@ void process_constraint(LinOp & lin, ProblemData & problemData,
                         std::map<int, int> &id_to_col,
                         std::map<int, int> &param_to_size){
 	/* Get the coefficient for the current constraint */
-	Tensor coeffs = lin_to_tensor(lin, 0);
-  std::cout << "Tensor coeffs = lin_to_tensor(lin, 0);\n";
-
+	Tensor coeffs = lin_to_tensor(lin);
+  // std::cout << "Tensor coeffs = lin_to_tensor(lin);\n";
+  // Convert variable ids into column offsets.
+  // Parameter IDs and vectors of matrices remain.
 	typedef Tensor::iterator it_type;
 	for(it_type it = coeffs.begin(); it != coeffs.end(); ++it){
 		int param_id = it->first;
+    // std::cout << param_id << " OUTER PARAM \n";
     DictMat var_map = it->second;
     typedef DictMat::iterator inner_it_type;
     for(inner_it_type in_it = var_map.begin(); in_it != var_map.end(); ++in_it) {
       int var_id = in_it->first;				// Horiz offset determined by the id
       std::vector<Matrix> blocks = in_it->second;
       // Constant term is last column.
-      for (unsigned i=0; i < blocks.size(); i++) {
+      for (unsigned i=0; i < blocks.size(); ++i) {
         int horiz_offset;
         if (var_id == CONSTANT_ID) { // Add to CONSTANT_VEC if linop is constant
           horiz_offset = var_length;
         } else {
           horiz_offset = id_to_col[var_id];
         }
-        ProblemData probBlock;
-        std::cout << param_id << "\n";
-        std::cout << var_id << "\n";
-        std::cout << i << "\n";
+        // std::cout << param_id << "\n";
+        // std::cout << var_id << "\n";
+        // std::cout << i << "\n";
         add_matrix_to_vectors(blocks[i],
-                              probBlock.TensorV[param_id][i],
-                              probBlock.TensorI[param_id][i],
-                              probBlock.TensorJ[param_id][i],
+                              problemData.TensorV[param_id][i],
+                              problemData.TensorI[param_id][i],
+                              problemData.TensorJ[param_id][i],
                               vert_offset,
                               horiz_offset);
-        std::cout << "add_to_matrix" << "\n";
+        // std::cout << "add_to_matrix" << "\n";
       }
     }
 	}
@@ -135,6 +137,8 @@ int get_total_constraint_length(std::vector<LinOp*> &constraints,
 // as a vector with entries equal to the parameter size.
 ProblemData init_data_tensor(std::map<int, int> param_to_size) {
   ProblemData output;
+  // Get CONSTANT_ID.
+  output.init_id(CONSTANT_ID, 1);
 	typedef std::map<int, int>::iterator it_type;
 	for (it_type it = param_to_size.begin();
        it != param_to_size.end();
@@ -166,7 +170,6 @@ ProblemData build_matrix(std::vector< LinOp* > constraints,
                            std::map<int, int> param_to_size) {
   ProblemData prob_data = init_data_tensor(param_to_size);
 	int num_rows = get_total_constraint_length(constraints);
-  std::cout << "tell2\n";
 	int vert_offset = 0;
 	/* Build matrix one constraint at a time */
 	for (unsigned i = 0; i < constraints.size(); i++){
