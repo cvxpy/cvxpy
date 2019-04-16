@@ -84,8 +84,6 @@ class CoeffExtractor(object):
         # HACK TODO TODO convert tensors back to vectors.
         COO = (V[CONSTANT_ID][0], (I[CONSTANT_ID][0], J[CONSTANT_ID][0]))
         A = sp.csr_matrix(COO, shape=(size, self.N + 1))
-        print(A.shape)
-        print(A.A)
         return A[:, :-1], A[:, -1].A.flatten()
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):

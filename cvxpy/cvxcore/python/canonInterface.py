@@ -81,7 +81,6 @@ def get_problem_matrix(linOps,
                                            param_to_size_C,
                                            constr_offsets_C)
 
-    print(id_to_col)
     # Populate tensors with info from problemData.
     tensor_V = {}
     tensor_I = {}
@@ -94,7 +93,6 @@ def get_problem_matrix(linOps,
         for i in range(size):
             problemData.vec_idx = i
             prob_len = problemData.getLen()
-            print(prob_len)
             tensor_V[param_id].append(problemData.getV(prob_len))
             tensor_I[param_id].append(problemData.getI(prob_len))
             tensor_J[param_id].append(problemData.getJ(prob_len))
