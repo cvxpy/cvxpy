@@ -391,7 +391,7 @@ class CPLEX(SCS):
             val = [x for x in csr[i].data]
             lin_expr.append([ind, val])
             rhs.append(vec[i])
-        # For better performance, we add the contraints in a batch.
+        # For better performance, we add the constraints in a batch.
         if lin_expr:
             assert len(lin_expr) == len(rhs)
             constr.extend(list(

@@ -15,11 +15,10 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import utilities
@@ -60,6 +59,8 @@ class ConicSolver(Solver):
     """
     # The key that maps to ConeDims in the data returned by apply().
     DIMS = "dims"
+    # The key for the parameterized problem.
+    PARAM_PROB = "param_prob"
 
     # Every conic solver must support Zero and NonPos constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonPos]
@@ -77,7 +78,7 @@ class ConicSolver(Solver):
                         problem.constraints))
 
     @staticmethod
-    def get_spacing_matrix(shape, spacing, streak, offset):
+    def get_spacing_matrix(shape, spacing, streak, num_blocks, offset):
         """Returns a sparse matrix that spaces out an expression.
 
         Parameters
@@ -88,6 +89,8 @@ class ConicSolver(Solver):
             The number of rows between the start of each non-zero block.
         streak: int
             The number of elements in each block.
+        num_blocks : int
+            The number of non-zero blocks.
         offset : int
             The number of zero rows at the beginning of the matrix.
 
@@ -100,7 +103,7 @@ class ConicSolver(Solver):
         row_arr = []
         col_arr = []
         # Selects from each column.
-        for var_row in range(shape[1]):
+        for var_row in range(num_blocks):
             for i in range(streak):
                 val_arr.append(np.float64(1.0))
                 row_arr.append(spacing*var_row + i + offset)
@@ -142,7 +145,7 @@ class ConicSolver(Solver):
                 # Both of these constraints have but a single argument.
                 # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
                 # TODO A, -b
-                restruct_mat.append(sp.eye(constr.size, format='csr'))
+                restruct_mat.append(sp.eye(constr.size, format='csc'))
             elif type(constr) == SOC:
                 # Group each t row with appropriate X rows.
                 assert constr.axis == 0, 'SOC must be lowered to axis == 0'
@@ -156,16 +159,17 @@ class ConicSolver(Solver):
                     (total_height, constr.args[0].size),
                     constr.args[1].shape[0],
                     1,
+                    constr.args[0].size,
                     0,
                 )
-                restruct_mat.append(t_spacer)
                 X_spacer = ConicSolver.get_spacing_matrix(
                     (total_height, constr.args[1].size),
                     1,
                     constr.args[1].shape[0],
+                    constr.args[0].size,
                     1,
                 )
-                restruct_mat.append(X_spacer)
+                restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
             elif type(constr) == ExpCone:
                 for i, arg in enumerate(constr.args):
                     space_mat = ConicSolver.get_spacing_matrix(
@@ -177,43 +181,21 @@ class ConicSolver(Solver):
             elif type(constr) == PSD:
                 # Sign flipped relative to NonPos, Zero.
                 # TODO -A, b
-                restruct_mat.append(sp.eye(constr.size, format='csr'))
+                restruct_mat.append(sp.eye(constr.size, format='csc'))
             else:
                 raise ValueError("Unsupported constraint type.")
 
         # Form new ParamConeProg
         restruct_mat = sp.block_diag(restruct_mat)
         restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
-        A = restruct_mat_rep*problem.A
+        restruct_A = restruct_mat_rep*problem.A
         new_param_cone_prog = ParamConeProg(problem.c,
                                             problem.x,
-                                            problem.A,
-                                            problem.constraints)
+                                            restruct_A,
+                                            problem.constraints,
+                                            problem.parameters,
+                                            problem.param_id_to_col)
         return new_param_cone_prog
-
-    def group_coeff_offset(self, problem, constraints, exp_cone_order):
-        """Combine the constraints into a single matrix, offset.
-
-        Parameters
-        ----------
-          problem: Problem
-            The CVXPY problem that is the provenance of the constraints.
-          constraints: list of Constraint
-            The constraints to process.
-        Returns
-        -------
-          (SciPy CSC sparse matrix, NumPy 1D array)
-        """
-        if not constraints:
-            return None, None
-        matrices, offsets = [], []
-        for cons in constraints:
-            coeff, offset = self.format_constr(problem, cons, exp_cone_order)
-            matrices.append(coeff)
-            offsets.append(offset)
-        coeff = sp.vstack(matrices).tocsc()
-        offset = np.hstack(offsets)
-        return coeff, offset
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.

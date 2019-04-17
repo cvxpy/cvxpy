@@ -116,7 +116,7 @@ def get_problem_matrix(linOps,
     V = np.concatenate(V)
     I = np.concatenate(I)
     J = np.concatenate(J)
-    A = scipy.sparse.csr_matrix((V, (I, J)),
+    A = scipy.sparse.csc_matrix((V, (I, J)),
                                 shape=(constr_length*(var_length+1),
                                        total_size))
     return A

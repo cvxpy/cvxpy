@@ -14,17 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import abc
-import numpy as np
-
-from cvxpy.constraints import Equality, ExpCone, Inequality, SOC
 import cvxpy.settings as s
+from cvxpy.constraints import Equality, ExpCone, Inequality, SOC
 from cvxpy.reductions import Reduction, Solution, InverseData
 from cvxpy.reductions.utilities import lower_equality, lower_inequality
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.atoms import reshape
 from cvxpy import problems
 from cvxpy.problems.objective import Minimize
+import abc
+import numpy as np
 
 
 def extract_mip_idx(variables):

@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .conic_solver import ConeDims, ConicSolver
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
 import cvxpy.interface as intf
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConeDims, ConicSolver
+from cvxpy.reductions.utilities import group_constraints
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
