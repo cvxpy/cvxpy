@@ -82,10 +82,6 @@ def construct_solving_chain(problem, candidates, gp=False):
         else:
             reductions += [Dcp2Cone(),
                            CvxAttr2Constr()]
-    # TODO remove this.
-    # Eliminate parameters.
-    if problem.parameters():
-        reductions += [EvalParams()]
 
     # Conclude the chain with one of the following:
     #   (1) QpMatrixStuffing --> [a QpSolver],

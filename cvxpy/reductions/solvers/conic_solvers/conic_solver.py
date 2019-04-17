@@ -14,55 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-import scipy.sparse as sp
-
-from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
+import cvxpy.settings as s
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
-from cvxpy.expressions.constants.constant import Constant
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import utilities
-import cvxpy.settings as s
-
-
-def is_stuffed_cone_constraint(constraint):
-    """Conic solvers require constraints to be stuffed in the following way.
-    """
-    if len(constraint.variables()) != 1:
-        return False
-    for arg in constraint.args:
-        if type(arg) == reshape:
-            arg = arg.args[0]
-        if type(arg) == AddExpression:
-            if type(arg.args[0]) not in [MulExpression, multiply]:
-                return False
-            if type(arg.args[0].args[0]) != Constant:
-                return False
-            if type(arg.args[1]) != Constant:
-                return False
-        elif type(arg) in [MulExpression, multiply]:
-            if type(arg.args[0]) != Constant:
-                return False
-        else:
-            return False
-    return True
-
-
-def is_stuffed_cone_objective(objective):
-    """Conic solvers require objectives to be stuffed in the following way.
-    """
-    expr = objective.expr
-    return (expr.is_affine()
-            and len(expr.variables()) == 1
-            and type(expr) == AddExpression
-            and len(expr.args) == 2
-            and type(expr.args[0]) in [MulExpression, multiply]
-            and type(expr.args[1]) == Constant)
+import numpy as np
+import scipy.sparse as sp
 
 
 class ConeDims(object):
@@ -109,43 +71,13 @@ class ConicSolver(Solver):
     def accepts(self, problem):
         return (type(problem.objective) == Minimize
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
-                and is_stuffed_cone_objective(problem.objective)
-                and not convex_attributes(problem.variables())
+                and not convex_attributes(problem.x)
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
                 and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
-                        problem.constraints)
-                and all(is_stuffed_cone_constraint(c) for c in
                         problem.constraints))
 
     @staticmethod
-    def get_coeff_offset(expr):
-        """Return the coefficient and offset in A*x + b.
-
-        Args:
-          expr: A CVXPY expression.
-
-        Returns:
-          (SciPy COO sparse matrix, NumPy 1D array)
-        """
-        # May be a reshape as root.
-        if type(expr) == reshape:
-            expr = expr.args[0]
-        # Convert data to float64.
-        if len(expr.args[0].args) == 0:
-            # expr is c.T*x
-            offset = 0
-            coeff = expr.args[0].value.astype(np.float64)
-        else:
-            # expr is c.T*x + d
-            offset = expr.args[1].value.ravel().astype(np.float64)
-            coeff = expr.args[0].args[0].value.astype(np.float64)
-        # Convert scalars to sparse matrices.
-        if np.isscalar(coeff):
-            coeff = sp.coo_matrix(([coeff], ([0], [0])), shape=(1, 1))
-        return (coeff, offset)
-
-    @staticmethod
-    def get_spacing_matrix(shape, spacing, offset):
+    def get_spacing_matrix(shape, spacing, streak, offset):
         """Returns a sparse matrix that spaces out an expression.
 
         Parameters
@@ -153,7 +85,9 @@ class ConicSolver(Solver):
         shape : tuple
             (rows in matrix, columns in matrix)
         spacing : int
-            The number of rows between each non-zero.
+            The number of rows between the start of each non-zero block.
+        streak: int
+            The number of elements in each block.
         offset : int
             The number of zero rows at the beginning of the matrix.
 
@@ -167,12 +101,13 @@ class ConicSolver(Solver):
         col_arr = []
         # Selects from each column.
         for var_row in range(shape[1]):
-            val_arr.append(np.float64(1.0))
-            row_arr.append(spacing*var_row + offset)
-            col_arr.append(var_row)
+            for i in range(streak):
+                val_arr.append(np.float64(1.0))
+                row_arr.append(spacing*var_row + i + offset)
+                col_arr.append(var_row*streak + i)
         return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
-    def format_constr(self, problem, constr, exp_cone_order):
+    def format_constraints(self, problem, exp_cone_order):
         """
         Return the coefficient "A" and offset "b" for the constraint in the following formats:
             Linear equations: (A, b) such that A * x == b,
@@ -190,65 +125,71 @@ class ConicSolver(Solver):
         All currently supported solvers use this convention.
 
         Args:
-          problem : Problem
+          problem : ParamConeProg
             The problem that is the provenance of the constraint.
-          constr : Constraint.
-            The constraint to format.
+          exp_cone_order: list
+            A list indicating how the exponential cone arguments are ordered.
 
         Returns:
-          (SciPy CSC sparse matrix, NumPy 1D array)
+          ParamConeProg with structured A.
         """
-        coeffs, offsets = [], []
-        for arg in constr.args:
-            coeff, offset = ConicSolver.get_coeff_offset(arg)
-            coeffs.append(coeff)
-            offsets.append(offset)
-        height = sum(c.shape[0] for c in coeffs)
+        # Create a matrix to reshape constraints,
+        # then replicate for each variable entry.
+        restruct_mat = []  # Form a block diagonal matrix.
+        for constr in problem.constraints:
+            total_height = sum([arg.size for arg in constr.args])
+            if type(constr) in [NonPos, Zero]:
+                # Both of these constraints have but a single argument.
+                # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
+                # TODO A, -b
+                restruct_mat.append(sp.eye(constr.size, format='csr'))
+            elif type(constr) == SOC:
+                # Group each t row with appropriate X rows.
+                assert constr.axis == 0, 'SOC must be lowered to axis == 0'
 
-        if type(constr) in [NonPos, Zero]:
-            # Both of these constraints have but a single argument.
-            # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
-            return coeffs[0].tocsc(), -offsets[0]
-        elif type(constr) == SOC:
-            # Group each t row with appropriate X rows.
-            assert constr.axis == 0, 'SOC must be lowered to axis == 0'
+                # Interleave the rows of coeffs[0] and coeffs[1]:
+                #     coeffs[0][0, :]
+                #     coeffs[1][0:gap-1, :]
+                #     coeffs[0][1, :]
+                #     coeffs[1][gap-1:2*(gap-1), :]
+                t_spacer = ConicSolver.get_spacing_matrix(
+                    (total_height, constr.args[0].size),
+                    constr.args[1].shape[0],
+                    1,
+                    0,
+                )
+                restruct_mat.append(t_spacer)
+                X_spacer = ConicSolver.get_spacing_matrix(
+                    (total_height, constr.args[1].size),
+                    1,
+                    constr.args[1].shape[0],
+                    1,
+                )
+                restruct_mat.append(X_spacer)
+            elif type(constr) == ExpCone:
+                for i, arg in enumerate(constr.args):
+                    space_mat = ConicSolver.get_spacing_matrix(
+                        (total_height, arg.size),
+                        len(exp_cone_order),
+                        1,
+                        exp_cone_order[i])
+                    restruct_mat.append(space_mat)
+            elif type(constr) == PSD:
+                # Sign flipped relative to NonPos, Zero.
+                # TODO -A, b
+                restruct_mat.append(sp.eye(constr.size, format='csr'))
+            else:
+                raise ValueError("Unsupported constraint type.")
 
-            # Interleave the rows of coeffs[0] and coeffs[1]:
-            #     coeffs[0][0, :]
-            #     coeffs[1][0:gap-1, :]
-            #     coeffs[0][1, :]
-            #     coeffs[1][gap-1:2*(gap-1), :]
-            X_coeff = coeffs[1].tocoo()
-            # Because of a bug in scipy versions <= 1.20, `reshape`
-            # occasionally overflows if indices are int32s.
-            X_coeff.row = X_coeff.row.astype(np.int64)
-            X_coeff.col = X_coeff.col.astype(np.int64)
-            reshaped = X_coeff.reshape((coeffs[0].shape[0], -1))
-            stacked = -sp.hstack([coeffs[0], reshaped])
-            stacked.row = stacked.row.astype(np.int64)
-            stacked.col = stacked.col.astype(np.int64)
-            stacked = stacked.reshape(
-              (coeffs[0].shape[0] + X_coeff.shape[0], coeffs[0].shape[1]))
-
-            offset = np.hstack([
-              np.expand_dims(offsets[0], 1),
-              offsets[1].reshape((offsets[0].shape[0], -1))]).ravel()
-            return stacked.tocsc(), offset
-        elif type(constr) == ExpCone:
-            for i, coeff in enumerate(coeffs):
-                mat = ConicSolver.get_spacing_matrix(
-                                                (height, coeff.shape[0]),
-                                                len(exp_cone_order),
-                                                exp_cone_order[i])
-                offsets[i] = mat*offsets[i]
-                coeffs[i] = -mat*coeffs[i]
-            return sum(coeffs).tocsc(), sum(offsets)
-        elif type(constr) == PSD:
-            # Sign flipped relative to NonPos, Zero.
-            return -coeffs[0].tocsc(), offsets[0]
-        else:
-            # subclasses must handle PSD constraints.
-            raise ValueError("Unsupported constraint type.")
+        # Form new ParamConeProg
+        restruct_mat = sp.block_diag(restruct_mat)
+        restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
+        A = restruct_mat_rep*problem.A
+        new_param_cone_prog = ParamConeProg(problem.c,
+                                            problem.x,
+                                            problem.A,
+                                            problem.constraints)
+        return new_param_cone_prog
 
     def group_coeff_offset(self, problem, constraints, exp_cone_order):
         """Combine the constraints into a single matrix, offset.

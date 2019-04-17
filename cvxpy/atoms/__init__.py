@@ -89,6 +89,7 @@ from cvxpy.atoms.elementwise.square import square
 SOC_ATOMS = [
     geo_mean,
     pnorm,
+    Pnorm,
     QuadForm,
     quad_over_lin,
     power,

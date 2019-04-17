@@ -81,7 +81,7 @@ class Parameter(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_param(self, self.shape)
+        obj = lu.create_param(self.shape, self.id)
         return (obj, [])
 
     def __repr__(self):
