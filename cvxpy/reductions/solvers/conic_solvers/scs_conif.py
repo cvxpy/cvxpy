@@ -179,7 +179,7 @@ class SCS(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
+        inv_data = {self.VAR_ID: problem.x.id}
 
         # Parse the coefficient vector from the objective.
         data[s.C], data[s.OFFSET] = self.get_coeff_offset(

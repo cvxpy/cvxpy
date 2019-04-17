@@ -1004,8 +1004,8 @@ Tensor get_param_coeffs(LinOp &lin, int arg_idx) {
 	assert(lin.type == PARAM);
 	int id = get_id_data(lin, arg_idx);
 	// create a giant identity matrix
-	unsigned m = lin.size[0];
-  unsigned n = lin.size[1];
+	unsigned m = (lin.size.size() >= 1) ? lin.size[0] : 1;
+	unsigned n = (lin.size.size() >= 2) ? lin.size[1] : 1;
   Tensor ten;
   DictMat dm;
   std::vector<Matrix> mat_vec;

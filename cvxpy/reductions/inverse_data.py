@@ -25,12 +25,19 @@ class InverseData(object):
         varis = problem.variables()
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
                                                 self.get_var_offsets(varis))
+
         self.param_shapes = {}
         # Always start with CONSTANT_ID.
         self.param_to_size = {lo.CONSTANT_ID: 1}
+        self.param_id_map = {}
+        offset = 0
         for param in problem.parameters():
             self.param_shapes[param.id] = param.shape
             self.param_to_size[param.id] = param.size
+            self.param_id_map[param.id] = offset
+            offset += param.size
+        self.param_id_map[lo.CONSTANT_ID] = offset
+
         self.id2var = {var.id: var for var in varis}
         self.real2imag = {var.id: lu.get_id() for var in varis
                           if var.is_complex()}

@@ -25,6 +25,8 @@ def get_problem_matrix(linOps,
                        var_length,
                        id_to_col,
                        param_to_size,
+                       param_to_col,
+                       constr_length,
                        constr_offsets=None):
     """
     Builds a sparse representation of the problem data.
@@ -35,6 +37,7 @@ def get_problem_matrix(linOps,
         var_length: The total length of the variables.
         id_to_col: A map from variable id to column offset.
         param_to_size: A map from parameter id to parameter size.
+        param_to_col: A map from parameter id to column in tensor.
         constr_offsets: A map from constraint id to row offset.
 
     Returns
@@ -97,7 +100,26 @@ def get_problem_matrix(linOps,
             tensor_I[param_id].append(problemData.getI(prob_len))
             tensor_J[param_id].append(problemData.getJ(prob_len))
 
-    return tensor_V, tensor_I, tensor_J
+    # Reduce tensors to a single sparse CSR matrix.
+    V = []
+    I = []
+    J = []
+    total_size = 0
+    for param_id, col in param_to_col.items():
+        size = param_to_size[param_id]
+        total_size += size
+        for i in range(size):
+            V.append(tensor_V[param_id][i])
+            I.append(tensor_I[param_id][i] +
+                     tensor_J[param_id][i]*constr_length*col)
+            J.append(tensor_J[param_id][i]*0 + col)
+    V = np.concatenate(V)
+    I = np.concatenate(I)
+    J = np.concatenate(J)
+    A = scipy.sparse.csr_matrix((V, (I, J)),
+                                shape=(constr_length*(var_length+1),
+                                       total_size))
+    return A
 
 
 def format_matrix(matrix, shape=None, format='dense'):
@@ -136,7 +158,7 @@ def set_matrix_data(linC, linPy):
             linC.data_ndim = len(linPy.data.shape)
         else:
             raise NotImplementedError()
-    else: # TODO remove this case.
+    else:  # TODO remove this case.
         if linPy.type == 'sparse_const':
             coo = format_matrix(linPy.data, format='sparse')
             linC.set_sparse_data(coo.data, coo.row.astype(float),

@@ -27,7 +27,7 @@ from cvxpy.cvxcore.python import canonInterface
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import (replace_quad_forms,
                                                 restore_quad_forms)
-from cvxpy.lin_ops.lin_op import LinOp, NO_OP, CONSTANT_ID
+from cvxpy.lin_ops.lin_op import LinOp, NO_OP
 from cvxpy.problems.objective import Minimize
 
 
@@ -36,10 +36,11 @@ class CoeffExtractor(object):
 
     def __init__(self, inverse_data):
         self.id_map = inverse_data.var_offsets
-        self.N = inverse_data.x_length
+        self.x_length = inverse_data.x_length
         self.var_shapes = inverse_data.var_shapes
         self.param_shapes = inverse_data.param_shapes
         self.param_to_size = inverse_data.param_to_size
+        self.param_id_map = inverse_data.param_id_map
 
     def get_coeffs(self, expr):
         if expr.is_constant():
@@ -75,16 +76,15 @@ class CoeffExtractor(object):
             expr_list = expr
         else:
             expr_list = [expr]
-        size = sum([e.size for e in expr_list])
+        num_rows = sum([e.size for e in expr_list])
         op_list = [e.canonical_form[0] for e in expr_list]
-        V, I, J = canonInterface.get_problem_matrix(op_list,
-                                                    self.N,
-                                                    self.id_map,
-                                                    self.param_to_size)
-        # HACK TODO TODO convert tensors back to vectors.
-        COO = (V[CONSTANT_ID][0], (I[CONSTANT_ID][0], J[CONSTANT_ID][0]))
-        A = sp.csr_matrix(COO, shape=(size, self.N + 1))
-        return A[:, :-1], A[:, -1].A.flatten()
+        A = canonInterface.get_problem_matrix(op_list,
+                                              self.x_length,
+                                              self.id_map,
+                                              self.param_to_size,
+                                              self.param_id_map,
+                                              num_rows)
+        return A
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
         """ Assumes quadratic forms all have variable arguments.

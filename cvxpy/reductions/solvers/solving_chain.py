@@ -76,16 +76,16 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
     if candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem):
         reductions += [CvxAttr2Constr(),
                        Qp2SymbolicQp()]
-        return reductions
-
-    # Canonicalize it to conic problem.
-    if not candidates['conic_solvers']:
-        raise SolverError("Problem could not be reduced to a QP, and no "
-                          "conic solvers exist among candidate solvers "
-                          "(%s)." % candidates)
-    reductions += [Dcp2Cone(),
-                   CvxAttr2Constr()]
-    return reductions
+     else:
+        # Canonicalize it to conic problem.
+        if not candidates['conic_solvers']:
+            raise SolverError("Problem could not be reduced to a QP, and no "
+                              "conic solvers exist among candidate solvers "
+                              "(%s)." % candidates)
+        else:
+            reductions += [Dcp2Cone(),
+                           CvxAttr2Constr()]
+            return reductions
 
 
 def construct_solving_chain(problem, candidates, gp=False):
