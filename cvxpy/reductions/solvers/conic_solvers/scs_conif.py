@@ -15,21 +15,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-import scipy.sparse as sp
-
+import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
+from cvxpy.constraints import PSD, SOC, ExpCone
 from cvxpy.expressions.constants.constant import Constant
-import cvxpy.interface as intf
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
                                                                  ConicSolver)
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.utilities import group_constraints
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
+import numpy as np
+import scipy.sparse as sp
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
@@ -181,36 +180,31 @@ class SCS(ConicSolver):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
-        # Parse the coefficient vector from the objective.
-        data[s.C], data[s.OFFSET] = self.get_coeff_offset(
-            problem.objective.args[0])
-        data[s.C] = data[s.C].ravel()
-        inv_data[s.OFFSET] = data[s.OFFSET][0]
-
-        # Order and group nonlinear constraints.
-        constr_map = group_constraints(problem.constraints)
-        data[ConicSolver.DIMS] = ConeDims(constr_map)
-        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
-
         # SCS requires constraints to be specified in the following order:
         # 1. zero cone
         # 2. non-negative orthant
         # 3. soc
         # 4. psd
         # 5. exponential
-        zero_constr = constr_map[Zero]
-        neq_constr = (constr_map[NonPos] + constr_map[SOC]
-                      + constr_map[PSD] + constr_map[ExpCone])
-        inv_data[SCS.EQ_CONSTR] = zero_constr
-        inv_data[SCS.NEQ_CONSTR] = neq_constr
+        constr_map = group_constraints(problem.constraints)
+        data[ConicSolver.DIMS] = ConeDims(constr_map)
+        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
 
+        # Format the constraints.
+        formatted = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        data[ConicSolver.PARAM_PROB] = formatted
+
+        # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
         #
         # Note that scs mandates that the cones MUST be ordered with
         # zero cones first, then non-nonnegative orthant, then SOC,
         # then PSD, then exponential.
-        data[s.A], data[s.B] = self.group_coeff_offset(
-            problem, zero_constr + neq_constr, self.EXP_CONE_ORDER)
+        prob = formatted.apply_parameters()
+        data[s.C] = prob.c[:-1]
+        inv_data[s.OFFSET] = prob.c[-1]
+        data[s.A] = -prob.A[:, :-1]
+        data[s.B] = prob.A[:, -1].A.flatten()
         return data, inv_data
 
     def extract_dual_value(self, result_vec, offset, constraint):
@@ -246,19 +240,10 @@ class SCS(ConicSolver):
                 inverse_data[SCS.VAR_ID]:
                 intf.DEFAULT_INTF.const_to_matrix(solution["x"])
             }
-            eq_dual_vars = utilities.get_dual_values(
-                intf.DEFAULT_INTF.const_to_matrix(
-                    solution["y"][:inverse_data[ConicSolver.DIMS].zero]),
-                self.extract_dual_value,
-                inverse_data[SCS.EQ_CONSTR])
-            ineq_dual_vars = utilities.get_dual_values(
-                intf.DEFAULT_INTF.const_to_matrix(
-                    solution["y"][inverse_data[ConicSolver.DIMS].zero:]),
-                self.extract_dual_value,
-                inverse_data[SCS.NEQ_CONSTR])
-            dual_vars = {}
-            dual_vars.update(eq_dual_vars)
-            dual_vars.update(ineq_dual_vars)
+            dual_vars = {
+                SCS.DUAL_VAR_ID:
+                intf.DEFAULT_INTF.const_to_matrix(solution["y"])
+            }
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)

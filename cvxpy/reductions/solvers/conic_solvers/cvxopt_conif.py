@@ -19,12 +19,12 @@ import cvxpy.settings as s
 from cvxpy.constraints import Zero, NonPos, SOC, PSD
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConicSolver,
                                                                  ConeDims)
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.kktsolver import get_kktsolver
+from cvxpy.reductions.utilities import group_constraints
 import scipy.sparse as sp
 import scipy
 import numpy as np

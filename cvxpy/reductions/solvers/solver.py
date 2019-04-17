@@ -29,6 +29,7 @@ class Solver(Reduction):
 
     # Keys for inverse data.
     VAR_ID = 'var_id'
+    DUAL_VAR_ID = 'dual_var_id'
     EQ_CONSTR = 'eq_constr'
     NEQ_CONSTR = 'other_constr'
 
