@@ -141,7 +141,7 @@ class ConicSolver(Solver):
         restruct_mat = []  # Form a block diagonal matrix.
         for constr in problem.constraints:
             total_height = sum([arg.size for arg in constr.args])
-            if type(constr) in [NonPos, Zero]:
+            if type(constr) in [Zero, NonPos]:
                 # Both of these constraints have but a single argument.
                 # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
                 # TODO A, -b
