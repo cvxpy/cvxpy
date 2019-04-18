@@ -404,8 +404,12 @@ positive entries.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric constant</em>) – The value to take the norm of.</li>
-<li><strong>p</strong> (<em>int</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – The type of norm.</li>
+<li><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric constant</em>) – The value to take the norm of.  If <cite>x</cite> is 2D and <cite>axis</cite> is None,
+this function constructs a matrix norm.</li>
+<li><strong>p</strong> (<em>int</em><em> or </em><em>str</em><em>, </em><em>optional</em>) – The type of norm. Valid options include any positive integer,
+‘fro’ (for frobenius), ‘nuc’ (sum of singular values), np.inf or
+‘inf’ (infinity norm).</li>
+<li><strong>axis</strong> (<em>The axis along which to apply the norm</em><em>, </em><em>if any.</em>) – </li>
 </ul>
 </td>
 </tr>

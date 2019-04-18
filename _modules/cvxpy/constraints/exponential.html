@@ -57,18 +57,11 @@
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
-<span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="k">import</span> <span class="n">SolverError</span>
-<span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
-<span class="kn">from</span> <span class="nn">cvxpy.lin_ops.lin_op</span> <span class="k">import</span> <span class="n">VARIABLE</span>
-<span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">pu</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints.nonlinear</span> <span class="k">import</span> <span class="n">NonlinearConstraint</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints.utilities</span> <span class="k">import</span> <span class="n">format_elemwise</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="k">import</span> <span class="n">Constraint</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">math</span>
 
 
-<div class="viewcode-block" id="ExpCone"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.ExpCone">[docs]</a><span class="k">class</span> <span class="nc">ExpCone</span><span class="p">(</span><span class="n">NonlinearConstraint</span><span class="p">):</span>
+<div class="viewcode-block" id="ExpCone"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.exponential.ExpCone">[docs]</a><span class="k">class</span> <span class="nc">ExpCone</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A reformulated exponential cone constraint.</span>
 
 <span class="sd">    Operates elementwise on :math:`x, y, z`.</span>
@@ -101,8 +94,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">z</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ExpCone</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solver_hook</span><span class="p">,</span>
-                                      <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">],</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ExpCone</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">],</span>
                                       <span class="n">constr_id</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -125,31 +117,6 @@
                              <span class="n">hstack</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">])))</span>
         <span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eq_constr</span><span class="p">,</span> <span class="n">leq_constr</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Formats EXP constraints for the solver.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        eq_constr : list</span>
-<span class="sd">            A list of the equality constraints in the canonical problem.</span>
-<span class="sd">        leq_constr : list</span>
-<span class="sd">            A list of the inequality constraints in the canonical problem.</span>
-<span class="sd">        dims : dict</span>
-<span class="sd">            A dict with the dimensions of the conic constraints.</span>
-<span class="sd">        solver : str</span>
-<span class="sd">            The solver being called.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">:</span>
-            <span class="n">eq_constr</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__CVXOPT_format</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">s</span><span class="o">.</span><span class="n">JULIA_OPT</span><span class="p">]:</span>
-            <span class="n">leq_constr</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__SCS_format</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="o">==</span> <span class="n">s</span><span class="o">.</span><span class="n">ECOS</span><span class="p">:</span>
-            <span class="n">leq_constr</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__ECOS_format</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Solver does not support exponential cone.&quot;</span><span class="p">)</span>
-        <span class="c1"># Update dims.</span>
-        <span class="n">dims</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EXP_DIM</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -195,81 +162,7 @@
         <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
             <span class="n">arg_objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">canonical_form</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
             <span class="n">arg_constr</span> <span class="o">+</span> <span class="n">arg</span><span class="o">.</span><span class="n">canonical_form</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">ExpCone</span><span class="p">(</span><span class="o">*</span><span class="n">arg_objs</span><span class="p">)]</span> <span class="o">+</span> <span class="n">arg_constr</span>
-
-    <span class="nd">@pu</span><span class="o">.</span><span class="n">lazyprop</span>
-    <span class="k">def</span> <span class="nf">__ECOS_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">([],</span> <span class="n">format_elemwise</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">]))</span>
-
-    <span class="nd">@pu</span><span class="o">.</span><span class="n">lazyprop</span>
-    <span class="k">def</span> <span class="nf">__SCS_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">([],</span> <span class="n">format_elemwise</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">]))</span>
-
-    <span class="nd">@pu</span><span class="o">.</span><span class="n">lazyprop</span>
-    <span class="k">def</span> <span class="nf">__CVXOPT_format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vars_</span><span class="p">):</span>
-            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">type</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">VARIABLE</span><span class="p">:</span>
-                <span class="n">lone_var</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">var</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-                <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">create_eq</span><span class="p">(</span><span class="n">lone_var</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">vars_</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lone_var</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">constraints</span><span class="p">,</span> <span class="p">[])</span>
-
-    <span class="k">def</span> <span class="nf">_solver_hook</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vars_</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scaling</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A function used by CVXOPT&#39;s nonlinear solver.</span>
-
-<span class="sd">        Based on f(x,y,z) = y * log(y) + x - y * log(z).</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">            vars_: A cvxopt dense matrix with values for (x,y,z).</span>
-<span class="sd">            scaling: A scaling for the Hessian.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">            _solver_hook() returns the constraint shape and a feasible point.</span>
-<span class="sd">            _solver_hook(x) returns the function value and gradient at x.</span>
-<span class="sd">            _solver_hook(x, z) returns the function value, gradient,</span>
-<span class="sd">            and (z scaled) Hessian at x.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">cvxopt</span>  <span class="c1"># Not necessary unless using cvxopt solver.</span>
-        <span class="n">entries</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">vars_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">x_init</span> <span class="o">=</span> <span class="n">entries</span><span class="o">*</span><span class="p">[</span><span class="mf">0.0</span><span class="p">]</span>
-            <span class="n">y_init</span> <span class="o">=</span> <span class="n">entries</span><span class="o">*</span><span class="p">[</span><span class="mf">0.5</span><span class="p">]</span>
-            <span class="n">z_init</span> <span class="o">=</span> <span class="n">entries</span><span class="o">*</span><span class="p">[</span><span class="mf">1.0</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">entries</span><span class="p">,</span> <span class="n">cvxopt</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">x_init</span> <span class="o">+</span> <span class="n">y_init</span> <span class="o">+</span> <span class="n">z_init</span><span class="p">)</span>
-        <span class="c1"># Unpack vars_</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">vars_</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">entries</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">vars_</span><span class="p">[</span><span class="n">entries</span><span class="p">:</span><span class="mi">2</span><span class="o">*</span><span class="n">entries</span><span class="p">]</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">vars_</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">entries</span><span class="p">:]</span>
-        <span class="c1"># Out of domain.</span>
-        <span class="c1"># TODO what if y == 0.0?</span>
-        <span class="k">if</span> <span class="nb">min</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span> <span class="ow">or</span> <span class="nb">min</span><span class="p">(</span><span class="n">z</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="c1"># Evaluate the function.</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="n">cvxopt</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">entries</span><span class="p">):</span>
-            <span class="n">f</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-        <span class="c1"># Compute the gradient.</span>
-        <span class="n">Df</span> <span class="o">=</span> <span class="n">cvxopt</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">entries</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">entries</span><span class="p">):</span>
-            <span class="n">Df</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
-            <span class="n">Df</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">entries</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">-</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1.0</span>
-            <span class="n">Df</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">entries</span><span class="o">+</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-
-        <span class="k">if</span> <span class="n">scaling</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">f</span><span class="p">,</span> <span class="n">Df</span>
-        <span class="c1"># Compute the Hessian.</span>
-        <span class="n">big_H</span> <span class="o">=</span> <span class="n">cvxopt</span><span class="o">.</span><span class="n">spmatrix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="p">[],</span> <span class="p">[],</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="o">*</span><span class="n">entries</span><span class="p">,</span> <span class="mi">3</span><span class="o">*</span><span class="n">entries</span><span class="p">))</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">entries</span><span class="p">):</span>
-            <span class="n">H</span> <span class="o">=</span> <span class="n">cvxopt</span><span class="o">.</span><span class="n">matrix</span><span class="p">([</span>
-                    <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">],</span>
-                    <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="o">-</span><span class="mf">1.0</span><span class="o">/</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]],</span>
-                    <span class="p">[</span><span class="mf">0.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="o">/</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">/</span><span class="p">(</span><span class="n">z</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="p">)],</span>
-                <span class="p">])</span>
-            <span class="n">big_H</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">entries</span><span class="p">:</span><span class="n">entries</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span><span class="mi">3</span><span class="o">*</span><span class="n">entries</span><span class="p">:</span><span class="n">entries</span><span class="p">]</span> <span class="o">=</span> <span class="n">scaling</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">H</span>
-        <span class="k">return</span> <span class="n">f</span><span class="p">,</span> <span class="n">Df</span><span class="p">,</span> <span class="n">big_H</span></div>
+        <span class="k">return</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">ExpCone</span><span class="p">(</span><span class="o">*</span><span class="n">arg_objs</span><span class="p">)]</span> <span class="o">+</span> <span class="n">arg_constr</span></div>
 </pre></div>
 
           </div>

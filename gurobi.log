@@ -1,0 +1,639 @@
+
+Gurobi 7.5.2 (mac64, Python) logging started Fri Apr 12 14:29:25 2019
+
+Academic license - for non-commercial use only
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 3 rows, 3 columns and 3 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 2e+00]
+Presolve removed 3 rows and 3 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    4.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective  4.000000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 3 rows, 3 columns and 3 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 2e+00]
+Presolve removed 3 rows and 3 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    4.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective  4.000000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 3 rows, 3 columns and 3 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 2e+00]
+Presolve removed 3 rows and 3 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    4.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective  4.000000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 3 rows, 3 columns and 3 nonzeros
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 2e+00]
+Presolve removed 3 rows and 3 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    4.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective  4.000000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 6 rows, 4 columns and 10 nonzeros
+Model has 2 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 6 rows and 4 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+
+Barrier solved model in 0 iterations and 0.00 seconds
+Optimal objective 4.00000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 0 rows, 2 columns and 0 nonzeros
+Model has 2 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [0e+00, 0e+00]
+Presolve removed 0 rows and 2 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+
+Barrier solved model in 0 iterations and 0.00 seconds
+Optimal objective 0.00000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 4 rows, 8 columns and 8 nonzeros
+Model has 4 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [3e+00, 3e+00]
+Presolve removed 4 rows and 8 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+
+Barrier solved model in 0 iterations and 0.00 seconds
+Optimal objective 0.00000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 10 rows, 12 columns and 30 nonzeros
+Model has 10 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [7e-02, 2e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [3e-02, 2e+00]
+Presolve time: 0.00s
+Presolved: 10 rows, 12 columns, 30 nonzeros
+Presolved model has 10 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 12
+ AA' NZ     : 4.500e+01
+ Factor NZ  : 5.500e+01
+ Factor Ops : 3.850e+02 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   3.15471010e+00 -3.15471010e+00  2.44e-15 1.14e+00  0.00e+00     0s
+   1   3.14769512e+00  3.14768886e+00  1.77e-09 1.14e-06  0.00e+00     0s
+   2   3.14769512e+00  3.14769512e+00  2.66e-15 1.14e-12  0.00e+00     0s
+
+Barrier solved model in 2 iterations and 0.00 seconds
+Optimal objective 3.14769512e+00
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 0 rows, 5 columns and 0 nonzeros
+Model has 15 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [6e+00, 4e+01]
+  QObjective range [1e+00, 2e+01]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [0e+00, 0e+00]
+Presolve time: 0.00s
+Presolved: 0 rows, 5 columns, 0 nonzeros
+Presolved model has 15 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 9
+ AA' NZ     : 6.000e+00
+ Factor NZ  : 1.000e+01
+ Factor Ops : 3.000e+01 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   0.00000000e+00  0.00000000e+00  0.00e+00 4.32e+01  0.00e+00     0s
+   1  -5.06775365e+01 -5.06774281e+01  1.41e-08 4.46e-05  0.00e+00     0s
+   2  -5.06775361e+01 -5.06775361e+01  3.11e-14 4.57e-11  0.00e+00     0s
+
+Barrier solved model in 2 iterations and 0.00 seconds
+Optimal objective -5.06775361e+01
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 7 rows, 2 columns and 7 nonzeros
+Coefficient statistics:
+  Matrix range     [2e-01, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [2e+00, 2e+00]
+Presolve removed 7 rows and 2 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    0.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective  0.000000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 7 rows, 2 columns and 4 nonzeros
+Coefficient statistics:
+  Matrix range     [4e-01, 1e+00]
+  Objective range  [1e+00, 1e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [7e-02, 4e-01]
+Presolve removed 7 rows and 2 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+Iteration    Objective       Primal Inf.    Dual Inf.      Time
+       0    0.0000000e+00   0.000000e+00   0.000000e+00      0s
+
+Solved in 0 iterations and 0.00 seconds
+Optimal objective  0.000000000e+00
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 0 rows, 5 columns and 0 nonzeros
+Model has 15 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [0e+00, 0e+00]
+  Objective range  [6e+00, 4e+01]
+  QObjective range [1e+00, 2e+01]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [0e+00, 0e+00]
+Presolve time: 0.00s
+Presolved: 0 rows, 5 columns, 0 nonzeros
+Presolved model has 15 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 9
+ AA' NZ     : 6.000e+00
+ Factor NZ  : 1.000e+01
+ Factor Ops : 3.000e+01 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   0.00000000e+00  0.00000000e+00  0.00e+00 4.32e+01  0.00e+00     0s
+   1  -5.06775365e+01 -5.06774281e+01  1.41e-08 4.46e-05  0.00e+00     0s
+   2  -5.06775361e+01 -5.06775361e+01  3.11e-14 4.57e-11  0.00e+00     0s
+
+Barrier solved model in 2 iterations and 0.00 seconds
+Optimal objective -5.06775361e+01
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 6 rows, 3 columns and 6 nonzeros
+Model has 6 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [1e+01, 2e+01]
+  QObjective range [4e+00, 2e+01]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve removed 6 rows and 0 columns
+Presolve time: 0.00s
+Presolved: 0 rows, 3 columns, 0 nonzeros
+Presolved model has 6 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 2
+ AA' NZ     : 1.000e+00
+ Factor NZ  : 3.000e+00
+ Factor Ops : 5.000e+00 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   3.05447368e+05 -3.35590763e+05  1.77e+03 6.43e+02  1.00e+06     0s
+   1  -1.71546946e+01 -5.99050720e+03  1.01e+00 3.67e-01  1.57e+03     0s
+   2  -3.50115090e+00 -8.66060546e+02  1.01e-06 3.67e-07  1.44e+02     0s
+   3  -8.47311413e+00 -4.17973220e+01  1.06e-08 3.84e-09  5.55e+00     0s
+   4  -2.04624485e+01 -2.62149485e+01  1.09e-14 4.22e-15  9.59e-01     0s
+   5  -2.22763456e+01 -2.27542726e+01  0.00e+00 1.78e-15  7.97e-02     0s
+   6  -2.25802735e+01 -2.26352012e+01  4.44e-16 1.78e-15  9.15e-03     0s
+   7  -2.26239122e+01 -2.26250472e+01  2.22e-16 2.33e-15  1.89e-04     0s
+   8  -2.26249989e+01 -2.26250000e+01  2.22e-16 1.78e-15  1.95e-07     0s
+   9  -2.26250000e+01 -2.26250000e+01  2.22e-16 5.55e-16  1.95e-10     0s
+
+Barrier solved model in 9 iterations and 0.00 seconds
+Optimal objective -2.26250000e+01
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 100 rows, 102 columns and 300 nonzeros
+Model has 100 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [6e-04, 5e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [9e-02, 2e+01]
+Presolve time: 0.00s
+Presolved: 100 rows, 102 columns, 300 nonzeros
+Presolved model has 100 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Dense cols : 2
+ Free vars  : 102
+ AA' NZ     : 2.000e+02
+ Factor NZ  : 3.030e+02
+ Factor Ops : 9.050e+02 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.17164452e+03 -1.17164452e+03  1.22e-15 9.93e+00  0.00e+00     0s
+   1   1.17160038e+03  1.17159803e+03  8.88e-16 9.93e-06  0.00e+00     0s
+   2   1.17160038e+03  1.17160038e+03  8.88e-16 9.93e-12  0.00e+00     0s
+
+Barrier solved model in 2 iterations and 0.00 seconds
+Optimal objective 1.17160038e+03
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 100 rows, 103 columns and 400 nonzeros
+Model has 100 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [3e-07, 2e+01]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [9e-02, 2e+01]
+Presolve time: 0.00s
+Presolved: 100 rows, 103 columns, 400 nonzeros
+Presolved model has 100 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Dense cols : 3
+ Free vars  : 103
+ AA' NZ     : 3.000e+02
+ Factor NZ  : 4.060e+02
+ Factor Ops : 1.614e+03 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.39927146e+02 -1.39927146e+02  1.55e-15 3.10e+00  0.00e+00     0s
+   1   1.39225661e+02  1.39225382e+02  2.33e-15 3.10e-06  0.00e+00     0s
+   2   1.39225661e+02  1.39225661e+02  1.11e-15 3.10e-12  0.00e+00     0s
+
+Barrier solved model in 2 iterations and 0.00 seconds
+Optimal objective 1.39225661e+02
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 404 rows, 598 columns and 1196 nonzeros
+Model has 198 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e-01, 1e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e-02, 2e-02]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+02]
+Presolve removed 400 rows and 400 columns
+Presolve time: 0.00s
+Presolved: 4 rows, 198 columns, 394 nonzeros
+Presolved model has 198 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 198
+ AA' NZ     : 2.000e+00
+ Factor NZ  : 6.000e+00
+ Factor Ops : 1.000e+01 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.78500214e+02 -1.78500214e+02  1.21e-13 1.87e+00  0.00e+00     0s
+   1   1.78500214e+02  1.78499857e+02  9.95e-14 1.87e-06  0.00e+00     0s
+   2   1.78500214e+02  1.78500214e+02  2.84e-14 1.87e-12  0.00e+00     0s
+
+Barrier solved model in 2 iterations and 0.00 seconds
+Optimal objective 1.78500214e+02
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 180 rows, 180 columns and 3380 nonzeros
+Model has 100 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [2e-04, 1e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [4e-03, 3e+00]
+Presolve removed 180 rows and 180 columns
+Presolve time: 0.00s
+Presolve: All rows and columns removed
+
+Barrier solved model in 0 iterations and 0.00 seconds
+Optimal objective 1.20008163e+02
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 249 rows, 449 columns and 10647 nonzeros
+Model has 249 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [1e+00, 1e+00]
+Presolve time: 0.00s
+Presolved: 249 rows, 449 columns, 10647 nonzeros
+Presolved model has 249 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 449
+ AA' NZ     : 1.137e+04
+ Factor NZ  : 1.668e+04
+ Factor Ops : 1.286e+06 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   3.12484376e-08 -3.12484376e-08  2.00e-15 2.50e-05  0.00e+00     0s
+   1   3.12515625e-20  1.24996719e-13  6.66e-16 2.50e-11  0.00e+00     0s
+
+Barrier solved model in 1 iterations and 0.01 seconds
+Optimal objective 3.12515625e-20
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 10 rows, 12 columns and 22 nonzeros
+Model has 3 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [1e+00, 1e+00]
+  Objective range  [2e+00, 2e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [3e+00, 3e+00]
+Presolve removed 9 rows and 10 columns
+Presolve time: 0.00s
+Presolved: 1 rows, 2 columns, 2 nonzeros
+Presolved model has 1 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 1
+ AA' NZ     : 0.000e+00
+ Factor NZ  : 1.000e+00
+ Factor Ops : 1.000e+00 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   1.00300000e+03 -2.24999775e-12  0.00e+00 1.50e-06  9.99e+05     0s
+   1   1.00176338e+03  2.11666916e+00  0.00e+00 9.35e-10  1.12e+03     0s
+   2   3.24787284e+02  2.49273637e+00  0.00e+00 9.44e-16  1.61e+02     0s
+   3   5.61188643e+00  2.54462652e+00  0.00e+00 0.00e+00  1.53e+00     0s
+   4   5.56132814e+00  4.95028027e+00  0.00e+00 0.00e+00  3.06e-01     0s
+   5   5.00057593e+00  4.99922821e+00  0.00e+00 0.00e+00  6.74e-04     0s
+   6   5.00000058e+00  4.99999923e+00  0.00e+00 1.11e-16  6.74e-07     0s
+   7   5.00000000e+00  5.00000000e+00  0.00e+00 0.00e+00  6.75e-10     0s
+
+Barrier solved model in 7 iterations and 0.00 seconds
+Optimal objective 5.00000000e+00
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 15 rows, 18 columns and 42 nonzeros
+Model has 5 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [7e-02, 1e+00]
+  Objective range  [2e+00, 2e+00]
+  QObjective range [2e+00, 2e+00]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [4e-02, 2e+00]
+Presolve removed 13 rows and 9 columns
+Presolve time: 0.00s
+Presolved: 2 rows, 9 columns, 14 nonzeros
+Presolved model has 5 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 5
+ AA' NZ     : 1.000e+00
+ Factor NZ  : 3.000e+00
+ Factor Ops : 5.000e+00 (less than 1 second per iteration)
+ Threads    : 1
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   6.00000000e+03  1.89177108e+00  0.00e+00 1.22e+00  1.00e+06     0s
+   1   5.98801300e+03  4.01355837e-03  0.00e+00 1.74e-06  9.99e+02     0s
+   2   1.22865795e+01  1.33581390e-02  0.00e+00 1.81e-09  2.05e+00     0s
+   3   2.01209917e+00  1.10658059e+00  0.00e+00 2.55e-12  1.51e-01     0s
+   4   1.40270140e+00  1.31068951e+00  0.00e+00 5.55e-17  1.53e-02     0s
+   5   1.33447004e+00  1.32678429e+00  0.00e+00 5.55e-17  1.28e-03     0s
+   6   1.32769942e+00  1.32742821e+00  0.00e+00 2.22e-16  4.52e-05     0s
+   7   1.32742973e+00  1.32742946e+00  0.00e+00 2.22e-16  4.48e-08     0s
+   8   1.32742946e+00  1.32742946e+00  0.00e+00 5.55e-17  4.48e-11     0s
+
+Barrier solved model in 8 iterations and 0.00 seconds
+Optimal objective 1.32742946e+00
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 170 rows, 180 columns and 13700 nonzeros
+Model has 100 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [8e-06, 4e+00]
+  Objective range  [0e+00, 0e+00]
+  QObjective range [2e-01, 2e-01]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [9e-04, 3e+00]
+Presolve time: 0.00s
+Presolved: 170 rows, 180 columns, 13700 nonzeros
+Presolved model has 100 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 180
+ AA' NZ     : 1.436e+04
+ Factor NZ  : 1.454e+04
+ Factor Ops : 1.652e+06 (less than 1 second per iteration)
+ Threads    : 4
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   6.81200012e+01 -6.81200012e+01  1.28e-13 2.50e+00  0.00e+00     0s
+   1   6.81142204e+01 -4.35449936e+00  4.59e-08 1.33e+00  0.00e+00     0s
+   2   6.81119396e+01  6.81118696e+01  5.89e-08 1.33e-06  0.00e+00     0s
+   3   6.81119420e+01  6.81119420e+01  1.43e-13 1.33e-12  0.00e+00     0s
+
+Barrier solved model in 3 iterations and 0.01 seconds
+Optimal objective 6.81119420e+01
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 70 rows, 80 columns and 5600 nonzeros
+Model has 3240 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [5e-05, 4e+00]
+  Objective range  [6e-04, 5e+00]
+  QObjective range [7e-04, 3e+01]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [5e-02, 3e+00]
+Presolve time: 0.00s
+Presolved: 70 rows, 80 columns, 5600 nonzeros
+Presolved model has 3240 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 159
+ AA' NZ     : 1.103e+04
+ Factor NZ  : 1.118e+04
+ Factor Ops : 1.114e+06 (less than 1 second per iteration)
+ Threads    : 4
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   5.94677057e+01 -5.73256812e+01  1.41e-13 4.76e+00  0.00e+00     0s
+   1   5.78714198e+01 -6.58144167e-01  5.44e-08 2.43e+00  0.00e+00     0s
+   2   5.73091560e+01  5.73090991e+01  6.20e-08 2.43e-06  0.00e+00     0s
+   3   5.73091564e+01  5.73091564e+01  1.26e-13 2.45e-12  0.00e+00     0s
+
+Barrier solved model in 3 iterations and 0.01 seconds
+Optimal objective 5.73091564e+01
+
+Parameter OutputFlag unchanged
+   Value: 1  Min: 0  Max: 1  Default: 1
+Changed value of parameter QCPDual to 1
+   Prev: 0  Min: 0  Max: 1  Default: 0
+Optimize a model with 70 rows, 80 columns and 5600 nonzeros
+Model has 3240 quadratic objective terms
+Coefficient statistics:
+  Matrix range     [5e-05, 4e+00]
+  Objective range  [6e-04, 5e+00]
+  QObjective range [7e-04, 3e+01]
+  Bounds range     [0e+00, 0e+00]
+  RHS range        [5e-02, 3e+00]
+Presolve time: 0.00s
+Presolved: 70 rows, 80 columns, 5600 nonzeros
+Presolved model has 3240 quadratic objective terms
+Ordering time: 0.00s
+
+Barrier statistics:
+ Free vars  : 159
+ AA' NZ     : 1.103e+04
+ Factor NZ  : 1.118e+04
+ Factor Ops : 1.114e+06 (less than 1 second per iteration)
+ Threads    : 4
+
+                  Objective                Residual
+Iter       Primal          Dual         Primal    Dual     Compl     Time
+   0   5.94677057e+01 -5.73256812e+01  1.79e-13 4.76e+00  0.00e+00     0s
+   1   5.79775011e+01 -5.94553135e+00  5.67e-08 2.65e+00  0.00e+00     0s
+   2   5.73091588e+01  5.73090939e+01  5.30e-08 2.65e-06  0.00e+00     0s
+   3   5.73091564e+01  5.73091564e+01  8.98e-14 2.66e-12  0.00e+00     0s
+
+Barrier solved model in 3 iterations and 0.01 seconds
+Optimal objective 5.73091564e+01
+

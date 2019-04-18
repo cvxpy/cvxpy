@@ -73,9 +73,13 @@
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    x : Expression or numeric constant</span>
-<span class="sd">        The value to take the norm of.</span>
+<span class="sd">        The value to take the norm of.  If `x` is 2D and `axis` is None,</span>
+<span class="sd">        this function constructs a matrix norm.</span>
 <span class="sd">    p : int or str, optional</span>
-<span class="sd">        The type of norm.</span>
+<span class="sd">        The type of norm. Valid options include any positive integer,</span>
+<span class="sd">        &#39;fro&#39; (for frobenius), &#39;nuc&#39; (sum of singular values), np.inf or</span>
+<span class="sd">        &#39;inf&#39; (infinity norm).</span>
+<span class="sd">    axis : The axis along which to apply the norm, if any.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -106,6 +110,23 @@
             <span class="k">return</span> <span class="n">norm_inf</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">pnorm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">norm2</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The 2-norm of x.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Expression or numeric constant</span>
+<span class="sd">        The value to take the norm of.  If `x` is 2D and `axis` is None,</span>
+<span class="sd">        this function constructs a matrix norm.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Expression</span>
+<span class="sd">        An Expression representing the norm.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
 </pre></div>
 
           </div>

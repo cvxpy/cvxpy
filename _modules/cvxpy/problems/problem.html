@@ -61,6 +61,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="k">import</span> <span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solving_chain</span> <span class="k">import</span> <span class="n">construct_solving_chain</span>
 <span class="kn">from</span> <span class="nn">cvxpy.interface.matrix_utilities</span> <span class="k">import</span> <span class="n">scalar_value</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers</span> <span class="k">import</span> <span class="n">defines</span> <span class="k">as</span> <span class="n">slv_def</span>
 
 <span class="c1"># TODO(akshayka): This is a hack. Fix this if possible.</span>
 <span class="c1"># Only need to import cvxpy.transform.get_separable_problems, but this creates</span>
@@ -71,6 +72,7 @@
 <span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">multiprocess</span> <span class="k">as</span> <span class="nn">multiprocessing</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <span class="n">SolveResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
@@ -109,9 +111,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solution</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="c1"># The solving chain with which to solve the problem</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_chain_key</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># List of separable (sub)problems</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_separable_problems</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># Information about the shape of the problem and its constituent parts</span>
@@ -323,11 +323,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">REGISTERED_SOLVE_METHODS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span></div>
 
-<div class="viewcode-block" id="Problem.get_problem_data"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.get_problem_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_problem_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.get_problem_data"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.get_problem_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_problem_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the problem data used in the call to the solver.</span>
 
-<span class="sd">        When a problem is solved, a chain of reductions, called a</span>
-<span class="sd">        :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,</span>
+<span class="sd">        When a problem is solved, a chain of reductions enclosed in</span>
+<span class="sd">        a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,</span>
 <span class="sd">        compiles it to some low-level representation that is compatible with</span>
 <span class="sd">        the targeted solver. This method returns that low-level representation.</span>
 
@@ -347,6 +347,9 @@
 <span class="sd">        ----------</span>
 <span class="sd">        solver : str</span>
 <span class="sd">            The solver the problem data is for.</span>
+<span class="sd">        gp : bool, optional</span>
+<span class="sd">            If True, then parses the problem as a disciplined geometric program</span>
+<span class="sd">            instead of a disciplined convex program.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -357,16 +360,115 @@
 <span class="sd">        list</span>
 <span class="sd">            The inverse data generated by the chain.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">solving_chain</span> <span class="o">=</span> <span class="n">construct_solving_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">e</span>
-        <span class="n">data</span><span class="p">,</span> <span class="n">inv_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="n">solving_chain</span><span class="p">,</span> <span class="n">inv_data</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_construct_chains</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
+
+        <span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="p">,</span> <span class="n">inverse_data</span></div>
+
+    <span class="k">def</span> <span class="nf">_find_candidate_solvers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">gp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find candiate solvers for the current problem. If solver</span>
+<span class="sd">        is not None, it checks if the specified solver is compatible</span>
+<span class="sd">        with the problem passed.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver : string</span>
+<span class="sd">            The name of the solver with which to solve the problem. If no</span>
+<span class="sd">            solver is supplied (i.e., if solver is None), then the targeted</span>
+<span class="sd">            solver may be any of those that are installed. If the problem</span>
+<span class="sd">            is variable-free, then this parameter is ignored.</span>
+<span class="sd">        gp : bool</span>
+<span class="sd">            If True, the problem is parsed as a Disciplined Geometric Program</span>
+<span class="sd">            instead of as a Disciplined Convex Program.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary of compatible solvers divided in `qp_solvers`</span>
+<span class="sd">            and `conic_solvers`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        SolverError</span>
+<span class="sd">            Raised if the problem is not DCP and `gp` is False.</span>
+<span class="sd">        DGPError</span>
+<span class="sd">            Raised if the problem is not DGP and `gp` is True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">:</span> <span class="p">[],</span>
+                      <span class="s1">&#39;conic_solvers&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+
+        <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">solver</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;The solver </span><span class="si">%s</span><span class="s2"> is not installed.&quot;</span> <span class="o">%</span> <span class="n">solver</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">solver</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">CONIC_SOLVERS</span><span class="p">:</span>
+                <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">solver</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">solver</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">QP_SOLVERS</span><span class="p">:</span>
+                <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">solver</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span>
+                                        <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">QP_SOLVERS</span><span class="p">]</span>
+            <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span>
+                                           <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">CONIC_SOLVERS</span><span class="p">]</span>
+
+        <span class="c1"># If gp we must have only conic solvers</span>
+        <span class="k">if</span> <span class="n">gp</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">solver</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">CONIC_SOLVERS</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span>
+                  <span class="s2">&quot;When `gp=True`, `solver` must be a conic solver &quot;</span>
+                  <span class="s2">&quot;(received &#39;</span><span class="si">%s</span><span class="s2">&#39;); try calling &quot;</span> <span class="o">%</span> <span class="n">solver</span> <span class="o">+</span>
+                  <span class="s2">&quot; `solve()` with `solver=cvxpy.ECOS`.&quot;</span>
+                  <span class="p">)</span>
+            <span class="k">elif</span> <span class="n">solver</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># No QP solvers allowed</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
+            <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">MIP_CAPABLE</span><span class="p">]</span>
+            <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_CONIC</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">MIP_CAPABLE</span><span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="ow">and</span> \
+                    <span class="ow">not</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Problem is mixed-integer, but candidate &quot;</span>
+                                  <span class="s2">&quot;QP/Conic solvers (</span><span class="si">%s</span><span class="s2">) are not MIP-capable.&quot;</span>
+                                  <span class="o">%</span> <span class="p">[</span><span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">],</span>
+                                     <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]])</span>
+
+        <span class="k">return</span> <span class="n">candidates</span>
+
+    <span class="k">def</span> <span class="nf">_construct_chains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct the chains required to reformulate and solve the problem.</span>
+
+<span class="sd">        In particular, this function</span>
+
+<span class="sd">        #. finds the candidate solvers</span>
+<span class="sd">        #. constructs the solving chain that performs the</span>
+<span class="sd">           numeric reductions and solves the problem.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver : str, optional</span>
+<span class="sd">            The solver to use. Defaults to ECOS.</span>
+<span class="sd">        gp : bool, optional</span>
+<span class="sd">            If True, the problem is parsed as a Disciplined Geometric Program</span>
+<span class="sd">            instead of as a Disciplined Convex Program.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">candidate_solvers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_candidate_solvers</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
+                                                         <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span> <span class="o">=</span> \
+            <span class="n">construct_solving_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                    <span class="n">candidate_solvers</span><span class="p">,</span>
+                                    <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">ignore_dcp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                <span class="n">warm_start</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -379,10 +481,6 @@
 <span class="sd">        ----------</span>
 <span class="sd">        solver : str, optional</span>
 <span class="sd">            The solver to use. Defaults to ECOS.</span>
-<span class="sd">        ignore_dcp : bool, optional</span>
-<span class="sd">            TODO(akshayka): This option will probably be eliminated.</span>
-<span class="sd">            Overrides the default of raising an exception if the problem is not</span>
-<span class="sd">            DCP.</span>
 <span class="sd">        warm_start : bool, optional</span>
 <span class="sd">            Should the previous solver result be used to warm start?</span>
 <span class="sd">        verbose : bool, optional</span>
@@ -407,28 +505,24 @@
             <span class="kn">from</span> <span class="nn">cvxpy.transforms.separable_problems</span> <span class="k">import</span> <span class="n">get_separable_problems</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_separable_problems</span> <span class="o">=</span> <span class="p">(</span><span class="n">get_separable_problems</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_separable_problems</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parallel_solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">ignore_dcp</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parallel_solve</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span>
                                             <span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-        <span class="n">chain_key</span> <span class="o">=</span> <span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">chain_key</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_chain_key</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span> <span class="o">=</span> <span class="n">construct_solving_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                                              <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
-                                                              <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="n">e</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_cached_chain_key</span> <span class="o">=</span> <span class="n">chain_key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_construct_chains</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
 
         <span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="n">solver_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span>
-          <span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">warm_start</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">solver_output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
+
+        <span class="n">solution</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span>
+                                                      <span class="n">warm_start</span><span class="p">,</span>
+                                                      <span class="n">verbose</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
 
     <span class="k">def</span> <span class="nf">_parallel_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                         <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">ignore_dcp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">warm_start</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solves a DCP compliant optimization problem in parallel.</span>
@@ -440,9 +534,6 @@
 <span class="sd">        ----------</span>
 <span class="sd">        solver : str, optional</span>
 <span class="sd">            The solver to use. Defaults to ECOS.</span>
-<span class="sd">        ignore_dcp : bool, optional</span>
-<span class="sd">            Overrides the default of raising an exception if the problem is not</span>
-<span class="sd">            DCP.</span>
 <span class="sd">        warm_start : bool, optional</span>
 <span class="sd">            Should the previous solver result be used to warm start?</span>
 <span class="sd">        verbose : bool, optional</span>
@@ -463,7 +554,6 @@
 <span class="sd">            primal values, and dual values.</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">opt_value</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span>
-                                      <span class="n">ignore_dcp</span><span class="o">=</span><span class="n">ignore_dcp</span><span class="p">,</span>
                                       <span class="n">warm_start</span><span class="o">=</span><span class="n">warm_start</span><span class="p">,</span>
                                       <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span>
                                       <span class="n">parallel</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -552,7 +642,9 @@
 <span class="sd">        inverse_data : list</span>
 <span class="sd">            The inverse data returned by applying the chain to the problem.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">solution</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="n">solution</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
@@ -700,8 +792,9 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_data_dimension</span> <span class="o">&lt;</span> <span class="n">big</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">max_data_dimension</span> <span class="o">=</span> <span class="n">big</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_big_small_squared</span> <span class="o">&lt;</span> <span class="n">big</span><span class="o">*</span><span class="n">small</span><span class="o">**</span><span class="mi">2</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">max_big_small_squared</span> <span class="o">=</span> <span class="n">big</span><span class="o">*</span><span class="n">small</span><span class="o">**</span><span class="mi">2</span>
+            <span class="n">max_big_small_squared</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">big</span><span class="p">)</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="n">small</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_big_small_squared</span> <span class="o">&lt;</span> <span class="n">max_big_small_squared</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">max_big_small_squared</span> <span class="o">=</span> <span class="n">max_big_small_squared</span>
 
         <span class="c1"># num_scalar_eq_constr</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_eq_constr</span> <span class="o">=</span> <span class="mi">0</span>

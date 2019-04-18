@@ -58,8 +58,6 @@
 
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="n">problems</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="k">import</span> <span class="n">cvxtypes</span>
-<span class="kn">from</span> <span class="nn">cvxpy.expressions.constants</span> <span class="k">import</span> <span class="n">Constant</span>
-<span class="kn">from</span> <span class="nn">cvxpy.expressions.expression</span> <span class="k">import</span> <span class="n">Expression</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.reduction</span> <span class="k">import</span> <span class="n">Reduction</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions</span> <span class="k">import</span> <span class="n">InverseData</span><span class="p">,</span> <span class="n">Solution</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="k">import</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">PSD</span>
@@ -160,16 +158,7 @@
         <span class="k">return</span> <span class="n">real_out</span><span class="p">,</span> <span class="n">imag_out</span>
 
     <span class="k">def</span> <span class="nf">canonicalize_expr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">real_args</span><span class="p">,</span> <span class="n">imag_args</span><span class="p">,</span> <span class="n">real2imag</span><span class="p">,</span> <span class="n">leaf_map</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Expression</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">expr</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
-            <span class="c1"># Parameterized expressions are evaluated in a subsequent</span>
-            <span class="c1"># reduction.</span>
-            <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-                <span class="k">return</span> <span class="bp">NotImplemented</span>
-            <span class="c1"># Non-parameterized expressions are evaluated immediately.</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">elim_cplx_methods</span><span class="p">[</span><span class="n">Constant</span><span class="p">](</span><span class="n">Constant</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
-                                                   <span class="n">real_args</span><span class="p">,</span> <span class="n">imag_args</span><span class="p">,</span> <span class="n">real2imag</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">in</span> <span class="n">elim_cplx_methods</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">in</span> <span class="n">elim_cplx_methods</span><span class="p">:</span>
             <span class="c1"># Only canonicalize a variable/constant/parameter once.</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">leaf_map</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">leaf_map</span><span class="p">[</span><span class="n">expr</span><span class="p">]</span>

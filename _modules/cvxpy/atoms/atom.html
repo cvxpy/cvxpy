@@ -224,6 +224,30 @@
             <span class="k">return</span> <span class="kc">False</span>
 
     <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">&#39;CP&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The expression is a disciplined parameterized expression.</span>
+
+<span class="sd">           context: cone program (CP) or quadratic program (QP)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">]):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="c1"># If all arguments DPP,</span>
+        <span class="c1"># same as DCP rule but without exception for constants.</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_incr</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_atom_convex</span><span class="p">()</span> <span class="ow">and</span> <span class="n">arg</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span> <span class="ow">or</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_concave</span><span class="p">()</span> <span class="ow">and</span> <span class="n">arg</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()):</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_decr</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_atom_convex</span><span class="p">()</span> <span class="ow">and</span> <span class="n">arg</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span> <span class="ow">or</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_concave</span><span class="p">()</span> <span class="ow">and</span> <span class="n">arg</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()):</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># Non-monotonic.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">arg</span><span class="o">.</span><span class="n">is_affine</span><span class="p">():</span>
+                    <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
     <span class="k">def</span> <span class="nf">is_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the expression log-log convex?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -312,10 +336,6 @@
         <span class="c1"># shapes with 0&#39;s dropped in presolve.</span>
         <span class="k">if</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
-        <span class="c1"># Catch the case when the expression is known to be</span>
-        <span class="c1"># zero through DCP analysis.</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_zero</span><span class="p">():</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">intf</span><span class="o">.</span><span class="n">DEFAULT_INTF</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">arg_values</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>

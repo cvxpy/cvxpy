@@ -57,7 +57,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="k">import</span> <span class="n">QuadForm</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="k">import</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Zero</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="k">import</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="k">import</span> <span class="n">Variable</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="k">import</span> <span class="n">Minimize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.cvx_attr2constr</span> <span class="k">import</span> <span class="n">convex_attributes</span>
@@ -75,12 +75,13 @@
 <span class="sd">       affine arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="QpMatrixStuffing.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+<div class="viewcode-block" id="QpMatrixStuffing.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span>
                 <span class="ow">and</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">is_quadratic</span><span class="p">()</span>
                 <span class="ow">and</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
                 <span class="ow">and</span> <span class="ow">not</span> <span class="n">convex_attributes</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
-                <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="n">Zero</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="n">NonPos</span>
+                <span class="ow">and</span> <span class="nb">all</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Zero</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">]</span>
                         <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="n">are_args_affine</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">))</span></div>
 

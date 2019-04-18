@@ -56,10 +56,7 @@
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
-<span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">pu</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="k">import</span> <span class="n">Constraint</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints.utilities</span> <span class="k">import</span> <span class="n">format_axis</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
@@ -114,35 +111,6 @@
 <span class="sd">        list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">]</span>
-
-    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">eq_constr</span><span class="p">,</span> <span class="n">leq_constr</span><span class="p">,</span> <span class="n">dims</span><span class="p">,</span> <span class="n">solver</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Formats SOC constraints as inequalities for the solver.</span>
-
-<span class="sd">        Parameters</span>
-<span class="sd">        ----------</span>
-<span class="sd">        eq_constr : list</span>
-<span class="sd">            A list of the equality constraints in the canonical problem.</span>
-<span class="sd">        leq_constr : list</span>
-<span class="sd">            A list of the inequality constraints in the canonical problem.</span>
-<span class="sd">        dims : dict</span>
-<span class="sd">            A dict with the dimensions of the conic constraints.</span>
-<span class="sd">        solver : str</span>
-<span class="sd">            The solver being called.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">leq_constr</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__format</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-        <span class="c1"># Update dims.</span>
-        <span class="n">dims</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">SOC_DIM</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cone_sizes</span><span class="p">()</span>
-
-    <span class="nd">@pu</span><span class="o">.</span><span class="n">lazyprop</span>
-    <span class="k">def</span> <span class="nf">__format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Internal version of format with cached results.</span>
-
-<span class="sd">        Returns</span>
-<span class="sd">        -------</span>
-<span class="sd">        tuple</span>
-<span class="sd">            (equality constraints, inequality constraints)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">([],</span> <span class="n">format_axis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">num_cones</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The number of elementwise cones.</span>
