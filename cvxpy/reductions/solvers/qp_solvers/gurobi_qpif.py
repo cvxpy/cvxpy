@@ -109,17 +109,18 @@ class GUROBI(QpSolver):
         model = grb.Model()
 
         # Add variables
+        vtypes = {}
+        for ind in data[s.BOOL_IDX]:
+            vtypes[ind] = grb.GRB.BINARY
+        for ind in data[s.INT_IDX]:
+            vtypes[ind] = grb.GRB.INTEGER
         for i in range(n):
-            # Set variable type.
-            if i in data[s.BOOL_IDX]:
-                vtype = grb.GRB.BINARY
-            elif i in data[s.INT_IDX]:
-                vtype = grb.GRB.INTEGER
-            else:
-                vtype = grb.GRB.CONTINUOUS
-            model.addVar(ub=grb.GRB.INFINITY,
-                         lb=-grb.GRB.INFINITY,
-                         vtype=vtype)
+            if i not in vtypes:
+                vtypes[i] = grb.GRB.CONTINUOUS
+        model.addVars(int(n),
+            ub={i: grb.GRB.INFINITY for i in range(n)},
+            lb={i: -grb.GRB.INFINITY for i in range(n)},
+            vtype=vtypes)
         model.update()
         x = np.array(model.getVars(), copy=False)
 
