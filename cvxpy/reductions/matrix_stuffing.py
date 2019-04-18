@@ -18,6 +18,7 @@ import abc
 import numpy as np
 
 from cvxpy.constraints import Equality, ExpCone, Inequality, SOC
+from cvxpy.expressions import cvxtypes
 import cvxpy.settings as s
 from cvxpy.reductions import Reduction, Solution, InverseData
 from cvxpy.reductions.utilities import lower_equality, lower_inequality
@@ -78,6 +79,9 @@ class MatrixStuffing(Reduction):
         # Batch expressions together, then split apart.
         expr_list = [arg for c in cons for arg in c.args]
         Afull, bfull = extractor.affine(expr_list)
+        Afull = cvxtypes.constant()(Afull)
+        bfull = cvxtypes.constant()(bfull)
+
         new_cons = []
         offset = 0
         for con in cons:
