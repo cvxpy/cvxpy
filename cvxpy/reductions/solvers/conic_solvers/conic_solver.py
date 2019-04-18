@@ -221,6 +221,9 @@ class ConicSolver(Solver):
             X_coeff = coeffs[1].tocoo()
             # Because of a bug in scipy versions <= 1.20, `reshape`
             # occasionally overflows if indices are int32s.
+            #
+            # This might cause issues on windows, due to an overflow bug in
+            # `reshape`
             X_coeff.row = X_coeff.row.astype(np.int64)
             X_coeff.col = X_coeff.col.astype(np.int64)
             reshaped = X_coeff.reshape((coeffs[0].shape[0], -1))

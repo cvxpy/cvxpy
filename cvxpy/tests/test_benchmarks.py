@@ -1,6 +1,8 @@
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
+
+import os
 import time
 
 
@@ -41,6 +43,8 @@ class TestBenchmarks(BaseTest):
         benchmark(diffcp_sdp, iters=1)
 
     def test_tv_inpainting(self):
+        if os.name == "nt":
+            self.skipTest("Skipping test due to SciPy overflow issues.")
         Uorig = np.random.randn(512, 512, 3)
         rows, cols, colors = Uorig.shape
         known = np.zeros((rows, cols, colors))
