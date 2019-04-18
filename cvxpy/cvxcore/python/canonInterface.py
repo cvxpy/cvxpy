@@ -111,7 +111,7 @@ def get_problem_matrix(linOps,
         for i in range(size):
             V.append(tensor_V[param_id][i])
             I.append(tensor_I[param_id][i] +
-                     tensor_J[param_id][i]*constr_length*col)
+                     tensor_J[param_id][i]*constr_length)
             J.append(tensor_J[param_id][i]*0 + col)
     V = np.concatenate(V)
     I = np.concatenate(I)
