@@ -111,13 +111,3 @@ class ExpCone(Constraint):
 
     def is_dgp(self):
         return False
-
-    def canonicalize(self):
-        """Canonicalizes by converting expressions to LinOps.
-        """
-        arg_objs = []
-        arg_constr = []
-        for arg in self.args:
-            arg_objs.append(arg.canonical_form[0])
-            arg_constr + arg.canonical_form[1]
-        return 0, [ExpCone(*arg_objs)] + arg_constr

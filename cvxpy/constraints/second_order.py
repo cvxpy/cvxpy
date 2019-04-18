@@ -103,10 +103,3 @@ class SOC(Constraint):
 
     def is_dgp(self):
         return False
-
-    # TODO hack
-    def canonicalize(self):
-        t, t_cons = self.args[0].canonical_form
-        X, X_cons = self.args[1].canonical_form
-        new_soc = SOC(t, X, self.axis)
-        return (None, [new_soc] + t_cons + X_cons)

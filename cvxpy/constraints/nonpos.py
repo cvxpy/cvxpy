@@ -53,21 +53,6 @@ class NonPos(Constraint):
     def is_dgp(self):
         return False
 
-    def canonicalize(self):
-        """Returns the graph implementation of the object.
-
-        Marks the top level constraint as the dual_holder,
-        so the dual value will be saved to the LeqConstraint.
-
-        Returns
-        -------
-        tuple
-            A tuple of (affine expression, [constraints]).
-        """
-        obj, constraints = self.args[0].canonical_form
-        dual_holder = lu.create_leq(obj, constr_id=self.id)
-        return (None, constraints + [dual_holder])
-
     @property
     def residual(self):
         """The residual of the constraint.

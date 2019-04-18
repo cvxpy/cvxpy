@@ -73,19 +73,6 @@ class Zero(Constraint):
             return None
         return np.abs(self.expr.value)
 
-    def canonicalize(self):
-        """Returns the graph implementation of the object.
-
-        Marks the top level constraint as the dual_holder,
-        so the dual value will be saved to the EqConstraint.
-
-        Returns:
-            A tuple of (affine expression, [constraints]).
-        """
-        obj, constraints = self.args[0].canonical_form
-        dual_holder = lu.create_eq(obj, constr_id=self.id)
-        return (None, constraints + [dual_holder])
-
     # The value of the dual variable.
     @property
     def dual_value(self):
