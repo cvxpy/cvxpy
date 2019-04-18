@@ -79,16 +79,3 @@ class PSD(Constraint):
             return None
         min_eig = cvxtypes.lambda_min()(self.args[0] + self.args[0].T)/2
         return cvxtypes.neg()(min_eig).value
-
-    def canonicalize(self):
-        """Returns the graph implementation of the object.
-
-        Marks the top level constraint as the dual_holder,
-        so the dual value will be saved to the Zero.
-
-        Returns:
-            A tuple of (affine expression, [constraints]).
-        """
-        obj, constraints = self.args[0].canonical_form
-        dual_holder = PSD(obj, constr_id=self.id)
-        return (None, constraints + [dual_holder])

@@ -110,7 +110,7 @@ class ConicSolver(Solver):
         for var_row in range(num_blocks):
             for i in range(streak):
                 val_arr.append(np.float64(1.0))
-                row_arr.append(spacing*var_row + i + offset)
+                row_arr.append((streak + spacing)*var_row + i + offset)
                 col_arr.append(var_row*streak + i)
         return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
@@ -175,6 +175,7 @@ class ConicSolver(Solver):
                     constr.args[0].size,
                     1,
                 )
+                print(X_spacer.A)
                 restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
             elif type(constr) == ExpCone:
                 for i, arg in enumerate(constr.args):
