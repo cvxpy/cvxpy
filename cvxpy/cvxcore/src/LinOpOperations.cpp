@@ -717,6 +717,7 @@ Tensor get_index_mat(LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_mul_elemwise_mat(LinOp &lin, int arg_idx) {
+  // TODO diagonalize data Tensor
 	assert(lin.type == MUL_ELEM);
 	Matrix constant = get_constant_data(lin, true); // TODO handle parameters.
 	int n = constant.rows();
