@@ -20,7 +20,6 @@
 #include "ProblemData.hpp"
 #include "Utils.hpp"
 
-
 /* function: add_matrix_to_vectors
 *
 * This function adds a matrix to our sparse matrix triplet
@@ -41,19 +40,6 @@ void add_matrix_to_vectors(Matrix &block, std::vector<double> &V,
 		}
 	}
 }
-
-// TODO delete
-void extend_constant_vec(std::vector<double> &const_vec, int &vert_offset,
-                         Matrix &block){
-	int rows = block.rows();
-	for ( int k = 0; k < block.outerSize(); ++k ){
-		for ( Matrix::InnerIterator it(block, k); it; ++it ){
-			int idx = vert_offset + (it.col() * rows) + it.row();
-			const_vec[idx] += it.value();
-		}
-	}
-}
-
 
 void process_constraint(LinOp & lin, ProblemData & problemData,
                         int &vert_offset, int var_length,
@@ -199,8 +185,7 @@ ProblemData build_matrix(std::vector<LinOp*> constraints,
 		int vert_offset = constr_offsets[i];
 		process_constraint(constr, prob_data,
 		                   vert_offset, var_length,
-		                   id_to_col,
-                       param_to_size);
+		                   id_to_col);
 	}
 	return prob_data;
 }
