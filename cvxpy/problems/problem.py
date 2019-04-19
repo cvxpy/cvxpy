@@ -64,8 +64,9 @@ class Problem(u.Canonical):
         # Constraints and objective are immutable.
         self._objective = objective
         self._constraints = [c for c in constraints]
-        # Cache the variables as a list.
         self._vars = self._variables()
+        self._params = self._parameters()
+        self._consts = self._constants()
         self._value = None
         self._status = None
         self._solution = None
@@ -163,9 +164,7 @@ class Problem(u.Canonical):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
-        seen = set()
-        # never use list as a variable name
-        return [seen.add(obj.id) or obj for obj in vars_ if obj.id not in seen]
+        return unique_list(vars_)
 
     def parameters(self):
         """Accessor method for parameters.
@@ -175,6 +174,9 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.parameter.Parameter`
             A list of the parameters in the problem.
         """
+        return self._params
+
+    def _parameters(self):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
@@ -188,6 +190,9 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.constant.Constant`
             A list of the constants in the problem.
         """
+        return self._consts
+
+    def _constants(self):
         const_dict = {}
         constants_ = self.objective.constants()
         for constr in self.constraints:

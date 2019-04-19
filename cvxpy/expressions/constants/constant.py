@@ -61,6 +61,9 @@ class Constant(Leaf):
         """
         return [self]
 
+    def is_constant(self):
+        return True
+
     @property
     def value(self):
         """NumPy.ndarray or None: The numeric value of the constant.

@@ -110,6 +110,9 @@ class PartialProblem(Expression):
         """
         return [self.opt_vars, self.dont_opt_vars]
 
+    def is_constant(self):
+        return len(self.args[0].variables()) == 0
+
     def is_convex(self):
         """Is the expression convex?
         """

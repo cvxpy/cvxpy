@@ -153,7 +153,8 @@ class Expression(u.Canonical):
         try:
             return self.__is_constant
         except AttributeError:
-            self.__is_constant = not self.variables() or 0 in self.shape
+            self.__is_constant = 0 in self.shape or all(
+                arg.is_constant() for arg in self.args)
             return self.__is_constant
 
     @abc.abstractmethod

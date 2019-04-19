@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 # Taken from
 # http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
-
-
 def lazyprop(func):
     """Wraps a property so it is lazily evaluated.
 

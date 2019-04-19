@@ -51,6 +51,9 @@ class Parameter(Leaf):
     def name(self):
         return self._name
 
+    def is_constant(self):
+        return True
+
     # Getter and setter for parameter value.
     @property
     def value(self):
