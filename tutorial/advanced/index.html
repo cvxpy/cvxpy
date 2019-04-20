@@ -773,34 +773,56 @@ It is slower, but more robust.</dd>
 </div>
 <div class="section" id="getting-the-standard-form">
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
-<p>If you are interested in getting the standard form that CVXPY produces for a problem, you can use the <code class="docutils literal"><span class="pre">get_problem_data</span></code> method. Calling <code class="docutils literal"><span class="pre">get_problem_data(solver)</span></code> on a problem object returns a dict of the arguments that CVXPY would pass to that solver. If the solver you choose cannot solve the problem, CVXPY will raise an exception.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Get OSQP arguments.</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">OSQP</span><span class="p">)</span>
-
-<span class="c1"># Get ECOS arguments.</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">ECOS</span><span class="p">)</span>
-
-<span class="c1"># Get ECOS_BB arguments.</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">ECOS_BB</span><span class="p">)</span>
-
-<span class="c1"># Get CVXOPT arguments.</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">)</span>
-
-<span class="c1"># Get SCS arguments.</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
+<p>If you are interested in getting the standard form that CVXPY produces for a
+problem, you can use the <code class="docutils literal"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
+a <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal"><span class="pre">SolvingChain</span></code></a> passes a
+low-level representation that is compatible with the targeted solver to a
+solver, which solves the problem. This method returns that low-level
+representation, along with a <code class="docutils literal"><span class="pre">SolvingChain</span></code> and metadata for unpacking
+a solution into the problem. This low-level representation closely resembles,
+but is not identitical to, the
+arguments supplied to the solver.</p>
+<p>A solution to the equivalent low-level problem can be obtained via the
+data by invoking the <code class="docutils literal"><span class="pre">solve_via_data</span></code> method of the returned solving
+chain, a thin wrapper around the code external to CVXPY that further
+processes and solves the problem. Invoke the <code class="docutils literal"><span class="pre">unpack_results</span></code> method
+to recover a solution to the original problem.</p>
+<p>For example:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
+<span class="c1"># calls SCS using `data`</span>
+<span class="n">soln</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="c1"># unpacks the solution returned by SCS into `problem`</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">soln</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>After you solve the standard conic form problem returned by <code class="docutils literal"><span class="pre">get_problem_data</span></code>, you can unpack the raw solver output using the <code class="docutils literal"><span class="pre">unpack_results</span></code> method. Calling <code class="docutils literal"><span class="pre">unpack_results(solver,</span> <span class="pre">solver_output)</span></code> on a problem will update the values of all primal and dual variables as well as the problem value and status.</p>
-<p>For example, the following code is equivalent to solving the problem directly with CVXPY:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Get ECOS arguments.</span>
-<span class="n">data</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">ECOS</span><span class="p">)</span>
-<span class="c1"># Call ECOS solver.</span>
-<span class="n">solver_output</span> <span class="o">=</span> <span class="n">ecos</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s2">&quot;c&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;G&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;h&quot;</span><span class="p">],</span>
-                           <span class="n">data</span><span class="p">[</span><span class="s2">&quot;dims&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;A&quot;</span><span class="p">],</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;b&quot;</span><span class="p">])</span>
-<span class="c1"># Unpack raw solver output.</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">ECOS</span><span class="p">,</span> <span class="n">solver_output</span><span class="p">)</span>
+<p>Alternatively, the <code class="docutils literal"><span class="pre">data</span></code> dictionary returned by this method
+contains enough information to bypass CVXPY and call the solver
+directly.</p>
+<p>For example:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">data</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
+
+<span class="kn">import</span> <span class="nn">scs</span>
+<span class="n">probdata</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
+  <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">],</span>
+  <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">],</span>
+<span class="p">}</span>
+<span class="n">cone_dims</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dims&#39;</span><span class="p">]</span>
+<span class="n">cones</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span>
+    <span class="s2">&quot;l&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">nonpos</span><span class="p">,</span>
+    <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span>
+    <span class="s2">&quot;ep&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span>
+    <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">psd</span><span class="p">,</span>
+<span class="p">}</span>
+<span class="n">soln</span> <span class="o">=</span> <span class="n">scs</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cones</span><span class="p">)</span>
 </pre></div>
 </div>
+<p>The structure of the data dict that CVXPY returns depends on the solver. For
+details, print the dictionary, or consult the solver interfaces in
+<code class="docutils literal"><span class="pre">cvxpy/reductions/solvers</span></code>.</p>
 </div>
 <div class="section" id="reductions">
 <h2>Reductions<a class="headerlink" href="#reductions" title="Permalink to this headline">¶</a></h2>

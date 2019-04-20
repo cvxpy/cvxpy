@@ -95,7 +95,7 @@ constraints, create a new problem.</p>
 <span class="c1"># Replace the constraint (x + y == 1).</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">]</span> <span class="o">+</span> <span class="n">prob2</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
 <span class="n">prob3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">prob2</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value&quot;</span><span class="p">,</span> <span class="n">prob3</span><span class="o">.</span><span class="n">solve</span><span class="p">())</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">optimal</span> <span class="n">value</span> <span class="mf">1.0</span>
