@@ -154,7 +154,8 @@ class SolvingChain(Chain):
                                               verbose, solver_opts)
         return self.invert(solution, inverse_data)
 
-    def solve_via_data(self, problem, data, warm_start, verbose, solver_opts):
+    def solve_via_data(self, problem, data, warm_start=False, verbose=False,
+                       solver_opts={}):
         """Solves the problem using the data output by the an apply invocation.
 
         The semantics are:

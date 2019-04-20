@@ -294,23 +294,65 @@ class Problem(u.Canonical):
     def get_problem_data(self, solver, gp=False):
         """Returns the problem data used in the call to the solver.
 
-        When a problem is solved, a chain of reductions combining an
-        intermediate reduction chain :class:`~cvxpy.reductions.chain.Chain`
-        and a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,
-        compiles it to some low-level representation that is compatible with
-        the targeted solver. This method returns that low-level representation.
+        When a problem is solved, CVXPY creates a chain of reductions combining
+        an intermediate reduction chain :class:`~cvxpy.reductions.chain.Chain`
+        and a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`.
+        This object compiles it to some low-level representation that is
+        compatible with the targeted solver. This method returns that low-level
+        representation.
 
         For some solving chains, this low-level representation is a dictionary
         that contains exactly those arguments that were supplied to the solver;
         however, for other solving chains, the data is an intermediate
-        representation that is compiled even further by libraries other than
-        CVXPY.
+        representation that is compiled even further by the solver interfaces.
 
         A solution to the equivalent low-level problem can be obtained via the
-        data by invoking the solve_via_data method of the returned solving
+        data by invoking the `solve_via_data` method of the returned solving
         chain, a thin wrapper around the code external to CVXPY that further
         processes and solves the problem. Invoke the unpack_results method
         to recover a solution to the original problem.
+
+        For example:
+        ```python
+        objective = ...
+        constraints = ...
+        problem = cp.Problem(objective, constraints)
+        data, chain, inverse_data = problem.get_problem_data(cp.SCS)
+        # calls SCS using `data`
+        soln = chain.solve_via_data(problem, data)
+        # unpacks the solution returned by SCS into `problem`
+        problem.unpack_results(soln, chain, inverse_data)
+        ```
+
+        Alternatively, the `data` dictionary returned by this method
+        contains enough information to bypass CVXPY and call the solver
+        directly.
+
+        For example:
+        ```
+        problem = cp.Problem(objective, constraints)
+        data, _, _ = problem.get_problem_data(cp.SCS)
+
+        import scs
+        probdata = {
+          'A': data['A'],
+          'b': data['b'],
+          'c': data['c'],
+        }
+        cone_dims = data['dims']
+        cones = {
+            "f": cone_dims.zero,
+            "l": cone_dims.nonpos,
+            "q": cone_dims.soc,
+            "ep": cone_dims.exp,
+            "s": cone_dims.psd,
+        }
+        soln = scs.solve(data, cones)
+        ```
+
+        The structure of the data dict that CVXPY returns depends on the
+        solver. For details, consult the solver interfaces in
+        `cvxpy/reductions/solvers`.
 
         Parameters
         ----------
