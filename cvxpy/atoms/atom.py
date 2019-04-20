@@ -21,9 +21,9 @@ from cvxpy.expressions.constants import Constant, CallbackParam
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list
+from cvxpy.utilities import performance_utils as perf
 import abc
 import numpy as np
-from fastcache import clru_cache
 
 
 class Atom(Expression):
@@ -80,26 +80,26 @@ class Atom(Expression):
         """
         return NotImplemented
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_nonneg(self):
         """Is the expression nonnegative?
         """
         return self.sign_from_args()[0]
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_nonpos(self):
         """Is the expression nonpositive?
         """
         return self.sign_from_args()[1]
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_imag(self):
         """Is the expression imaginary?
         """
         # Default is false.
         return False
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_complex(self):
         """Is the expression complex valued?
         """
@@ -150,7 +150,7 @@ class Atom(Expression):
         """
         return NotImplemented
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_convex(self):
         """Is the expression convex?
         """
@@ -167,7 +167,7 @@ class Atom(Expression):
         else:
             return False
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_concave(self):
         """Is the expression concave?
         """
@@ -184,7 +184,7 @@ class Atom(Expression):
         else:
             return False
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_log_log_convex(self):
         """Is the expression log-log convex?
         """
@@ -201,7 +201,7 @@ class Atom(Expression):
         else:
             return False
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_log_log_concave(self):
         """Is the expression log-log concave?
         """

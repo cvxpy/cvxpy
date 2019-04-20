@@ -67,7 +67,6 @@ CVXPY has the following dependencies:
 
 * Python 2.7, 3.4, 3.5, 3.6, or 3.7.
 * `six <https://pythonhosted.org/six/>`_
-* `fastcache <https://github.com/pbrady/fastcache>`_
 * `multiprocess`_
 * `OSQP`_
 * `ECOS`_ >= 2
@@ -77,7 +76,7 @@ CVXPY has the following dependencies:
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
-CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_, six, fastcache, and
+CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_, six, and
 `multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually,
 as will `Swig`_ . Once you’ve installed these dependencies:
 

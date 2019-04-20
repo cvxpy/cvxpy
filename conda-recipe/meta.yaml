@@ -13,7 +13,6 @@ requirements:
   build:
     - setuptools
     - six
-    - fastcache
     - python
     - osqp
     - ecos >=2
@@ -31,7 +30,6 @@ requirements:
     - ecos >=2
     - scs >=1.1.3
     - multiprocess
-    - fastcache
     - six
     - numpy >=1.9
     - scipy >=0.15
