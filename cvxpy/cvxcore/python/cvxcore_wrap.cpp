@@ -7245,6 +7245,58 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_LinOp_linOp_data_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  LinOp *arg1 = (LinOp *) 0 ;
+  LinOp *arg2 = (LinOp *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:LinOp_linOp_data_set",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_linOp_data_set" "', argument " "1"" of type '" "LinOp *""'"); 
+  }
+  arg1 = reinterpret_cast< LinOp * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_LinOp, SWIG_POINTER_DISOWN |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "LinOp_linOp_data_set" "', argument " "2"" of type '" "LinOp *""'"); 
+  }
+  arg2 = reinterpret_cast< LinOp * >(argp2);
+  if (arg1) (arg1)->linOp_data = arg2;
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_LinOp_linOp_data_get(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  LinOp *arg1 = (LinOp *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  LinOp *result = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:LinOp_linOp_data_get",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_linOp_data_get" "', argument " "1"" of type '" "LinOp *""'"); 
+  }
+  arg1 = reinterpret_cast< LinOp * >(argp1);
+  result = (LinOp *) ((arg1)->linOp_data);
+  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_LinOp, 0 |  0 );
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_LinOp_data_ndim_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   LinOp *arg1 = (LinOp *) 0 ;
@@ -7556,6 +7608,36 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_LinOp_set_linOp_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  LinOp *arg1 = (LinOp *) 0 ;
+  LinOp *arg2 = (LinOp *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  void *argp2 = 0 ;
+  int res2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:LinOp_set_linOp_data",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_set_linOp_data" "', argument " "1"" of type '" "LinOp *""'"); 
+  }
+  arg1 = reinterpret_cast< LinOp * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_LinOp, 0 |  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "LinOp_set_linOp_data" "', argument " "2"" of type '" "LinOp *""'"); 
+  }
+  arg2 = reinterpret_cast< LinOp * >(argp2);
+  (arg1)->set_linOp_data(arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_LinOp_set_dense_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   LinOp *arg1 = (LinOp *) 0 ;
@@ -7825,43 +7907,33 @@ fail:
 
 SWIGINTERN PyObject *_wrap_acc_tensor(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
-  SwigValueWrapper< std::map< int,std::map< int,std::vector< Eigen::SparseMatrix< double >,std::allocator< Eigen::SparseMatrix< double > > >,std::less< int >,std::allocator< std::pair< int const,std::vector< Eigen::SparseMatrix< double >,std::allocator< Eigen::SparseMatrix< double > > > > > >,std::less< int >,std::allocator< std::pair< int const,std::map< int,std::vector< Eigen::SparseMatrix< double >,std::allocator< Eigen::SparseMatrix< double > > >,std::less< int >,std::allocator< std::pair< int const,std::vector< Eigen::SparseMatrix< double >,std::allocator< Eigen::SparseMatrix< double > > > > > > > > > > arg1 ;
-  SwigValueWrapper< std::map< int,std::map< int,std::vector< Eigen::SparseMatrix< double >,std::allocator< Eigen::SparseMatrix< double > > >,std::less< int >,std::allocator< std::pair< int const,std::vector< Eigen::SparseMatrix< double >,std::allocator< Eigen::SparseMatrix< double > > > > > >,std::less< int >,std::allocator< std::pair< int const,std::map< int,std::vector< Eigen::SparseMatrix< double >,std::allocator< Eigen::SparseMatrix< double > > >,std::less< int >,std::allocator< std::pair< int const,std::vector< Eigen::SparseMatrix< double >,std::allocator< Eigen::SparseMatrix< double > > > > > > > > > > arg2 ;
-  void *argp1 ;
+  Tensor *arg1 = 0 ;
+  Tensor *arg2 = 0 ;
+  void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
+  void *argp2 = 0 ;
   int res2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
   if (!PyArg_ParseTuple(args,(char *)"OO:acc_tensor",&obj0,&obj1)) SWIG_fail;
-  {
-    res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_std__mapT_int_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_t_t_t,  0  | 0);
-    if (!SWIG_IsOK(res1)) {
-      SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "acc_tensor" "', argument " "1"" of type '" "Tensor""'"); 
-    }  
-    if (!argp1) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "acc_tensor" "', argument " "1"" of type '" "Tensor""'");
-    } else {
-      Tensor * temp = reinterpret_cast< Tensor * >(argp1);
-      arg1 = *temp;
-      if (SWIG_IsNewObj(res1)) delete temp;
-    }
+  res1 = SWIG_ConvertPtr(obj0, &argp1, SWIGTYPE_p_std__mapT_int_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_t_t_t,  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "acc_tensor" "', argument " "1"" of type '" "Tensor &""'"); 
   }
-  {
-    res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_std__mapT_int_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_t_t_t,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "acc_tensor" "', argument " "2"" of type '" "Tensor""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "acc_tensor" "', argument " "2"" of type '" "Tensor""'");
-    } else {
-      Tensor * temp = reinterpret_cast< Tensor * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+  if (!argp1) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "acc_tensor" "', argument " "1"" of type '" "Tensor &""'"); 
   }
-  acc_tensor(arg1,arg2);
+  arg1 = reinterpret_cast< Tensor * >(argp1);
+  res2 = SWIG_ConvertPtr(obj1, &argp2, SWIGTYPE_p_std__mapT_int_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_t_t_t,  0 );
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "acc_tensor" "', argument " "2"" of type '" "Tensor &""'"); 
+  }
+  if (!argp2) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "acc_tensor" "', argument " "2"" of type '" "Tensor &""'"); 
+  }
+  arg2 = reinterpret_cast< Tensor * >(argp2);
+  acc_tensor(*arg1,*arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -19387,6 +19459,8 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"LinOp_size_get", _wrap_LinOp_size_get, METH_VARARGS, NULL},
 	 { (char *)"LinOp_args_set", _wrap_LinOp_args_set, METH_VARARGS, NULL},
 	 { (char *)"LinOp_args_get", _wrap_LinOp_args_get, METH_VARARGS, NULL},
+	 { (char *)"LinOp_linOp_data_set", _wrap_LinOp_linOp_data_set, METH_VARARGS, NULL},
+	 { (char *)"LinOp_linOp_data_get", _wrap_LinOp_linOp_data_get, METH_VARARGS, NULL},
 	 { (char *)"LinOp_data_ndim_set", _wrap_LinOp_data_ndim_set, METH_VARARGS, NULL},
 	 { (char *)"LinOp_data_ndim_get", _wrap_LinOp_data_ndim_get, METH_VARARGS, NULL},
 	 { (char *)"LinOp_sparse_set", _wrap_LinOp_sparse_set, METH_VARARGS, NULL},
@@ -19399,6 +19473,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"LinOp_slice_get", _wrap_LinOp_slice_get, METH_VARARGS, NULL},
 	 { (char *)"new_LinOp", _wrap_new_LinOp, METH_VARARGS, NULL},
 	 { (char *)"LinOp_has_constant_type", _wrap_LinOp_has_constant_type, METH_VARARGS, NULL},
+	 { (char *)"LinOp_set_linOp_data", _wrap_LinOp_set_linOp_data, METH_VARARGS, NULL},
 	 { (char *)"LinOp_set_dense_data", _wrap_LinOp_set_dense_data, METH_VARARGS, NULL},
 	 { (char *)"LinOp_set_sparse_data", _wrap_LinOp_set_sparse_data, METH_VARARGS, NULL},
 	 { (char *)"delete_LinOp", _wrap_delete_LinOp, METH_VARARGS, NULL},

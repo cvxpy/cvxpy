@@ -202,6 +202,10 @@ class LinOp(_object):
     __swig_getmethods__["args"] = _cvxcore.LinOp_args_get
     if _newclass:
         args = _swig_property(_cvxcore.LinOp_args_get, _cvxcore.LinOp_args_set)
+    __swig_setmethods__["linOp_data"] = _cvxcore.LinOp_linOp_data_set
+    __swig_getmethods__["linOp_data"] = _cvxcore.LinOp_linOp_data_get
+    if _newclass:
+        linOp_data = _swig_property(_cvxcore.LinOp_linOp_data_get, _cvxcore.LinOp_linOp_data_set)
     __swig_setmethods__["data_ndim"] = _cvxcore.LinOp_data_ndim_set
     __swig_getmethods__["data_ndim"] = _cvxcore.LinOp_data_ndim_get
     if _newclass:
@@ -232,6 +236,9 @@ class LinOp(_object):
 
     def has_constant_type(self):
         return _cvxcore.LinOp_has_constant_type(self)
+
+    def set_linOp_data(self, tree):
+        return _cvxcore.LinOp_set_linOp_data(self, tree)
 
     def set_dense_data(self, matrix):
         return _cvxcore.LinOp_set_dense_data(self, matrix)
