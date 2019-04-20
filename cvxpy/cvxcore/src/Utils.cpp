@@ -127,3 +127,20 @@ void acc_tensor(Tensor &lh_ten, Tensor &rh_ten) {
     }
   }
 }
+
+// Create a giant diagonal matrix
+// with entries given by the entries of mat.
+Matrix diagonalize(Matrix &mat) {
+  Matrix diag(mat.rows()*mat.cols(), mat.rows()*mat.cols());
+	std::vector<Triplet> tripletList;
+	tripletList.reserve(mat.nonZeros());
+  for (int k=0; k<mat.outerSize(); ++k) {
+    for (Matrix::InnerIterator it(mat,k); it; ++it) {
+      unsigned loc = it.row() + k*mat.rows();
+      tripletList.push_back(Triplet(loc, loc, it.value()));
+    }
+  }
+	diag.setFromTriplets(tripletList.begin(), tripletList.end());
+	diag.makeCompressed();
+  return diag;
+}

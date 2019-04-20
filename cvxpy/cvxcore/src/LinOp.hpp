@@ -62,6 +62,8 @@ public:
 	/* Children LinOps in the tree */
 	std::vector<LinOp*> args;
 
+  /* Store linOp tree. */
+  LinOp* linOp_data;
   /* Dimensions of data */
   int data_ndim;
 	/* Sparse Data Fields */
@@ -85,6 +87,11 @@ public:
 		return  type == SCALAR_CONST || type == DENSE_CONST
 		        || type == SPARSE_CONST;
 	}
+
+  /* Store linOp tree as data. */
+  void set_linOp_data(LinOp* tree) {
+    linOp_data = tree;
+  }
 
 	/* Initializes DENSE_DATA. MATRIX is a pointer to the data of a 2D
 	 * numpy array, ROWS and COLS are the size of the ARRAY.

@@ -717,23 +717,25 @@ Tensor get_index_mat(LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_mul_elemwise_mat(LinOp &lin, int arg_idx) {
-  // TODO diagonalize data Tensor
 	assert(lin.type == MUL_ELEM);
-	Matrix constant = get_constant_data(lin, true); // TODO handle parameters.
-	int n = constant.rows();
-
-	// build a giant diagonal matrix
-	std::vector<Triplet> tripletList;
-	tripletList.reserve(n);
-	for ( int k = 0; k < constant.outerSize(); ++k ) {
-		for ( Matrix::InnerIterator it(constant, k); it; ++it ) {
-			tripletList.push_back(Triplet(it.row(), it.row(), it.value()));
-		}
-	}
-	Matrix coeffs(n, n);
-	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
-	coeffs.makeCompressed();
-	return build_tensor(coeffs);
+  Tensor mul_ten = get_node_coeffs(*lin.linOp_data, 0);
+  // Convert all the Tensor matrices into diagonal matrices.
+  // Replace them in-place.
+	typedef Tensor::iterator it_type;
+	for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it){
+    int param_id = it->first;
+    DictMat var_map = it->second;
+    typedef DictMat::iterator jit_type;
+    for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit){
+      int var_id = jit->first;
+      std::vector<Matrix> mat_vec = jit->second;
+      for (unsigned i=0; i < mat_vec.size(); ++i) {
+        // Diagonalize matrix.
+        mat_vec[i] = diagonalize(mat_vec[i]);
+      }
+    }
+  }
+	return mul_ten;
 }
 
 /**

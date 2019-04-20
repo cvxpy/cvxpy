@@ -150,7 +150,10 @@ def is_const(operator):
     -------
         True if the LinOp is a constant, False otherwise.
     """
-    return operator.type in [lo.SCALAR_CONST, lo.SPARSE_CONST, lo.DENSE_CONST]
+    return operator.type in [lo.SCALAR_CONST,
+                             lo.SPARSE_CONST,
+                             lo.DENSE_CONST,
+                             lo.PARAM]
 
 
 def sum_expr(operators):
