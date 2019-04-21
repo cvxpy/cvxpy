@@ -82,6 +82,7 @@ Here are some simple ways to start contributing immediately:
 * Enhance the [website documentation](https://github.com/cvxgrp/cvxpy/tree/master/doc)
 * Browse the [issue tracker](https://github.com/cvxgrp/cvxpy/issues), and work on unassigned issues
 * Polish the [example library](https://github.com/cvxgrp/cvxpy/tree/master/examples)
+* Add a [benchmark](https://github.com/cvxgrp/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first to make sure that your priorities align with

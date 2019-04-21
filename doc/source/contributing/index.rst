@@ -4,7 +4,9 @@ Contributing
 ===============
 
 We welcome all contributors to CVXPY. You don't need to be an expert in convex
-optimization to help out.
+optimization to help out. For detailed instructions, please read our
+`contributing guide
+<https://github.com/cvxgrp/cvxpy/blob/master/CONTRIBUTING.md>`_.
 
 Your should first install CVXPY from :doc:`source </install/index>`. Here are
 simple ways to start contributing immediately:
