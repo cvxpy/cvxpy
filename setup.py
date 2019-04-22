@@ -71,7 +71,7 @@ setup(
                       "multiprocess",
                       "six",
                       "numpy >= 1.15",
-                      "scipy >= 1.2.0"],
+                      "scipy >= 1.1.0"],
     setup_requires=["numpy >= 1.15"],
     extras_require={
         'glpk': [
