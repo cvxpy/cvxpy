@@ -21,13 +21,37 @@ from cvxpy.reductions import InverseData, Reduction, Solution
 
 
 class Canonicalization(Reduction):
-    """TODO(akshayka): Document this class."""
+    """Recursively canonicalize each expression in a problem.
 
-    def __init__(self, problem=None, canon_methods=None):
+    This reduction recursively canonicalizes every expression tree in a
+    problem, visiting each node. At every node, this reduction first
+    canonicalizes its arguments; it then canonicalizes the node, using the
+    canonicalized arguments.
+
+    The attribute `canon_methods` is a dictionary
+    mapping node types to functions that canonicalize them; the signature
+    of these canonicalizing functions must be
+
+        def canon_func(expr, canon_args) --> (new_expr, constraints)
+
+    where `expr` is the `Expression` (node) to canonicalize, canon_args
+    is a list of the canonicalized arguments of this expression,
+    `new_expr` is a canonicalized expression, and `constraints` is a list
+    of constraints introduced while canonicalizing `expr`.
+
+    Attributes:
+    ----------
+        canon_methods : dict
+            A dictionary mapping node types to canonicalization functions.
+        problem : Problem
+            A problem owned by this reduction.
+    """
+    def __init__(self, canon_methods, problem=None):
         super(Canonicalization, self).__init__(problem=problem)
         self.canon_methods = canon_methods
 
     def apply(self, problem):
+        """Recursively canonicalize the objective and every constraint."""
         inverse_data = InverseData(problem)
 
         canon_objective, canon_constraints = self.canonicalize_tree(
@@ -58,6 +82,7 @@ class Canonicalization(Reduction):
                         solution.attr)
 
     def canonicalize_tree(self, expr):
+        """Recursively canonicalize an Expression."""
         # TODO don't copy affine expressions?
         if type(expr) == cvxtypes.partial_problem():
             canon_expr, constrs = self.canonicalize_tree(
@@ -77,6 +102,7 @@ class Canonicalization(Reduction):
         return canon_expr, constrs
 
     def canonicalize_expr(self, expr, args):
+        """Canonicalize an expression, w.r.t. canonicalized arguments."""
         if isinstance(expr, Expression) and expr.is_constant():
             return expr, []
         elif type(expr) in self.canon_methods:

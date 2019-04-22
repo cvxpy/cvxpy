@@ -54,7 +54,9 @@ class Dgp2Dcp(Canonicalization):
     >>> print(dgp_problem.variables())
     """
     def __init__(self, problem=None):
-        super(Dgp2Dcp, self).__init__(problem=problem)
+        # Canonicalization of DGP is stateful; canon_methods created
+        # in `apply`.
+        super(Dgp2Dcp, self).__init__(canon_methods=None, problem=problem)
 
     def accepts(self, problem):
         """A problem is accepted if it is DGP.

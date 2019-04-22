@@ -18,7 +18,7 @@ import cvxpy.lin_ops.lin_utils as lu
 
 
 class InverseData(object):
-    """ TODO(akshayka): Document this class."""
+    """Data useful for retrieving a solution from a problem."""
 
     def __init__(self, problem):
         varis = problem.variables()

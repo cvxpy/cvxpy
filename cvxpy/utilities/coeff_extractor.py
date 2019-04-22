@@ -75,8 +75,7 @@ class CoeffExtractor(object):
             expr_list = [expr]
         size = sum([e.size for e in expr_list])
         op_list = [e.canonical_form[0] for e in expr_list]
-        V, I, J, b = canonInterface.get_problem_matrix(op_list,
-                                                       self.id_map)
+        V, I, J, b = canonInterface.get_problem_matrix(op_list, self.id_map)
         A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
         return A, b.flatten()
 
