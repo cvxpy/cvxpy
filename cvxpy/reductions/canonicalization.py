@@ -106,7 +106,6 @@ class Canonicalization(Reduction):
         if isinstance(expr, Expression) and \
            (expr.is_constant() and not expr.parameters()):
             return expr, []
-        # TODO canonicalize some expression trees with parameters.
         elif type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)
         else:
