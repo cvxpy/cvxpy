@@ -27,7 +27,8 @@ This implies that
    \mathrm{Pr} (Y=0 \mid X = x) = \frac{1}{1 + \exp(\beta^T x)}.
 
 We fit :math:`\beta` by maximizing the log-likelihood of the data, plus
-a regularization term :math:`\lambda \|{\beta}\|_1`:
+a regularization term :math:`\lambda \|{\beta}\|_1` with
+:math:`\lambda > 0`:
 
 .. math::
 
