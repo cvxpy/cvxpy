@@ -96,7 +96,7 @@ a new test file.
 
 We use the standard Python [`unittest`](https://docs.python.org/3/library/unittest.html)
 framework for our tests. Tests are organized into classes, which inherit from
-`BaseTest` (see `cvxpy/tests/base_test.py`) each method on the class is a unit
+`BaseTest` (see `cvxpy/tests/base_test.py`). Every method beginning with `test_` is a unit
 test.
 
 ## Running unit tests
@@ -113,7 +113,7 @@ To run tests in a specific file (e.g., `test_dgp.py`), use
 nosetests test_dgp.py
 ```
 
-To run a specific test method (`TestDgp.test_product`), use
+To run a specific test method (e.g., `TestDgp.test_product`), use
 
 ```
 nosetests test_dgp.py:TestDgp.test_product
