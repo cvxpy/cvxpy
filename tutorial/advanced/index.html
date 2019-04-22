@@ -316,7 +316,8 @@ objectives and problems and follow the same rules as above.</p>
 </div>
 <div class="section" id="solve-method-options">
 <h2>Solve method options<a class="headerlink" href="#solve-method-options" title="Permalink to this headline">¶</a></h2>
-<p>The <code class="docutils literal"><span class="pre">solve</span></code> method takes optional arguments that let you change how CVXPY solves the problem. Here is the signature for the <code class="docutils literal"><span class="pre">solve</span></code> method:</p>
+<p>The <code class="docutils literal"><span class="pre">solve</span></code> method takes optional arguments that let you change how CVXPY
+solves the problem.</p>
 <dl class="function">
 <dt id="solve">
 <code class="descname">solve</code><span class="sig-paren">(</span><em>solver=None</em>, <em>verbose=False</em>, <em>gp=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Permalink to this definition">¶</a></dt>
@@ -575,7 +576,9 @@ The table below shows the types of problems the supported solvers can handle.</p
 </div>
 <div class="section" id="solving-disciplined-geometric-programs">
 <h3>Solving disciplined geometric programs<a class="headerlink" href="#solving-disciplined-geometric-programs" title="Permalink to this headline">¶</a></h3>
-<p>TODO see XXX</p>
+<p>When the <code class="docutils literal"><span class="pre">solve</span></code> method is called with <cite>gp=True</cite>, the problem is parsed
+as a disciplined geometric program instead of a disciplined convex program.
+For more information, see the <cite>DGP tutorial &lt;/tutorial/dgp/index&gt;</cite>.</p>
 </div>
 </div>
 <div class="section" id="solver-stats">
@@ -933,7 +936,7 @@ The full set of reductions available is discussed in <a class="reference interna
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2018, Steven Diamond, Eric Chu, Akshay Agrawal, Stephen Boyd.
+      &copy;2019, The CVXPY authors.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>

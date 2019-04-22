@@ -340,7 +340,8 @@ objectives and problems and follow the same rules as above.
 Solve method options
 --------------------
 
-The ``solve`` method takes optional arguments that let you change how CVXPY solves the problem. Here is the signature for the ``solve`` method:
+The ``solve`` method takes optional arguments that let you change how CVXPY
+solves the problem.
 
 .. function:: solve(solver=None, verbose=False, gp=False, **kwargs)
 
@@ -516,7 +517,9 @@ All the solvers can print out information about their progress while solving the
 Solving disciplined geometric programs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-TODO see XXX
+When the ``solve`` method is called with `gp=True`, the problem is parsed
+as a disciplined geometric program instead of a disciplined convex program.
+For more information, see the `DGP tutorial </tutorial/dgp/index>`.
 
 Solver stats
 ------------
