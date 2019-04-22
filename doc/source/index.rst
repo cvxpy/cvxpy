@@ -55,29 +55,44 @@ more.
 
 **News.**
 
+* CVXPY v1.1.0 is under development. It will introduce many new features,
+  including more efficient use of parameters, code generation,
+  and differentiation through problems.
+
 * CVXPY v1.0.11 supports
   `disciplined geometric programming <https://web.stanford.edu/~boyd/papers/dgp.html>`_,
   which lets you formulate geometric programs and log-log convex programs.
   See the :doc:`tutorial </tutorial/dgp/index>` for more information.
 
-* Version 1.0 of CVXPY brings the API closer to NumPy
+* CVXPY 1.0 brings the API closer to NumPy
   and the architecture closer to software compilers, making it easy for
   developers to write custom problem transformations and target custom solvers.
   CVXPY 1.0 is not backwards compatible with previous versions
-  of CVXPY. For more details, see :ref:`updates`, which includes instructions
-  for migrating from previous versions of CVXPY.
+  of CVXPY. For more details, see :ref:`updates`.
+
+**Solvers.**
 
 CVXPY relies on the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Additional solvers are supported, but must be installed separately. For
 background on convex optimization, see the book `Convex Optimization
 <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
-CVXPY was designed and implemented by Steven Diamond, with input and
-contributions from Stephen Boyd, Eric Chu, Akshay Agrawal, Robin Verschueren,
-and many others; it was inspired by the MATLAB package `CVX
-<http://cvxr.com/cvx/>`_. 
+**Development.**
 
+CVXPY began as a Stanford University :doc:`research project </citing/index>`.
+Today, CVXPY is a community project, built from the contributions of many
+researchers and engineers.
 
+CVXPY is developed and maintained by
+`Steven Diamond <http://web.stanford.edu/~stevend2/>`_ and
+`Akshay Agrawal <https://akshayagrwawal.com>`_, with many others contributing
+significantly. A non-exhaustive list of people who have shaped CVXPY over the
+years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
+Riley Murray, Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
+Dembia.
+
+We appreciate all contributions. To get involved, see our :doc:`contributing
+guide </contributing/index>`.
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
