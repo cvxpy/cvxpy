@@ -65,7 +65,6 @@ def get_problem_matrix(linOps,
     tmp = []
     for lin in linOps:
         tree = build_lin_op_tree(lin, tmp)
-        tmp.append(tree)
         lin_vec.push_back(tree)
 
     if constr_offsets is None:
@@ -260,19 +259,14 @@ def build_lin_op_tree(root_linPy, tmp):
         elif isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
             set_slice_data(linC, linPy)
         elif isinstance(linPy.data, float) or isinstance(linPy.data, numbers.Integral):
-            print('ff')
-            print(linPy.type)
-            print(linPy.data)
             linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
             linC.data_ndim = 0
         elif isinstance(linPy.data, lo.LinOp):
-            print('aa')
-            print(linPy.type)
-            print(linPy.data.type)
             # Recurse on LinOp.
             linC_data = build_lin_op_tree(linPy.data, tmp)
             linC.set_linOp_data(linC_data)
         else:
             set_matrix_data(linC, linPy)
 
+    tmp.append(root_linC)
     return root_linC

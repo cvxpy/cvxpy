@@ -17,6 +17,7 @@
 #include "Utils.hpp"
 #include <cassert>
 #include <map>
+#include <iostream>
 
 /***********************
  * FUNCTION PROTOTYPES *
