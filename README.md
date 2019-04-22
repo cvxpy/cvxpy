@@ -20,7 +20,7 @@ CVXPY is a Python-embedded modeling language for convex optimization problems. I
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
 ```python
-from cvxpy import *
+import cvxpy as cp
 import numpy
 
 # Problem data.
@@ -31,10 +31,10 @@ A = numpy.random.randn(m, n)
 b = numpy.random.randn(m)
 
 # Construct the problem.
-x = Variable(n)
-objective = Minimize(sum_squares(A*x - b))
+x = cp.Variable(n)
+objective = cp.Minimize(cp.sum_squares(A*x - b))
 constraints = [0 <= x, x <= 1]
-prob = Problem(objective, constraints)
+prob = cp.Problem(objective, constraints)
 
 # The optimal objective is returned by prob.solve().
 result = prob.solve()
@@ -44,6 +44,12 @@ print(x.value)
 # is stored in constraint.dual_value.
 print(constraints[0].dual_value)
 ```
+
+CVXPY is not a solver. It relies upon the open source solvers
+[ECOS](http://github.com/ifa-ethz/ecos), [SCS](https://github.com/bodono/scs-python),
+and [OSQP](https://github.com/oxfordcontrol/osqp). Additional solvers are
+[available](https://www.cvxpy.org/tutorial/advanced/index.html#choosing-a-solver),
+but must be installed separately.
 
 CVXPY began as a Stanford University research project. It is now developed by
 many people, across many institutions and countries.
@@ -55,7 +61,19 @@ CVXPY is available on pip, and can be installed with
 pip install cvxpy
 ```
 
-For detailed installation instructions, see the [install guide](http://www.cvxpy.org/en/latest/install/index.html) at [cvxpy.org](http://www.cvxpy.org/).
+CVXPY has the following dependencies:
+
+- Python 2.7, 3.4, 3.5, 3.6, or 3.7.
+- six
+- multiprocess
+- OSQP
+- ECOS >= 2
+- SCS >= 1.1.3
+- NumPy >= 1.15
+- SciPy >= 1.1.0
+
+For detailed instructions, see the [installation
+guide](http://www.cvxpy.org/en/latest/install/index.html).
 
 ## Getting started
 To get started with CVXPY, check out the following:
