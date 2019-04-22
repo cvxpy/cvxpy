@@ -134,7 +134,7 @@ that minimizes the test error.
 
 We also plot the regularization path, or the :math:`\beta_i` versus
 :math:`\lambda`. Notice that a few features remain non-zero longer for
-larger :math:`\lambda` then the rest, which suggests that these features
+larger :math:`\lambda` than the rest, which suggests that these features
 are the most important.
 
 .. code:: python

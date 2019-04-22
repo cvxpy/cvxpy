@@ -108,7 +108,7 @@ that minimizes the test error.
 We also plot the regularization path, or the :math:`\beta_i` versus
 :math:`\lambda`. Notice that the :math:`\beta_i` do not necessarily
 decrease monotonically as :math:`\lambda` increases. 4 features remain
-non-zero longer for larger :math:`\lambda` then the rest, which suggests
+non-zero longer for larger :math:`\lambda` than the rest, which suggests
 that these features are the most important. In fact
 :math:`\beta_{\mathrm{true}}` had 4 non-zero values.
 
