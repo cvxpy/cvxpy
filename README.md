@@ -13,7 +13,7 @@ CVXPY
 - [Communication](#communication)
 - [Contributing](#contributing)
 - [Citing](#citing)
-- [Team](#the-team)
+- [Team](#team)
 
 CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
 
@@ -87,7 +87,7 @@ We encourage you to report issues using the [Github tracker](https://github.com/
 For basic usage questions (e.g., "Why isn't my problem DCP?"), please use [StackOverflow](https://stackoverflow.com/questions/tagged/cvxpy) instead.
 
 ## Communication
-To communicate with the CVXPY developer community, create a [Github issue](https://github.com/cvxgrp/cvxpy/issues) or use the [CVXPY mailing list](https://groups.google.com/forum/#!forum/cvxpy).
+To communicate with the CVXPY developer community, create a [Github issue](https://github.com/cvxgrp/cvxpy/issues) or use the [CVXPY mailing list](https://groups.google.com/forum/#!forum/cvxpy). Please be respectful in your communications with the CVXPY community, and make sure to abide by our [code of conduct](https://github.com/cvxgrp/cvxpy/blob/master/CODE_OF_CONDUCT.md).
 
 ## Contributing
 We appreciate all contributions. You don't need to be an expert in convex
@@ -98,17 +98,19 @@ install [CVXPY from source](https://www.cvxpy.org/install/index.html#install-fro
 Here are some simple ways to start contributing immediately:
 * Read the CVXPY source code and improve the documentation, or address TODOs
 * Enhance the [website documentation](https://github.com/cvxgrp/cvxpy/tree/master/doc)
-* Browse the [issue tracker](https://github.com/cvxgrp/cvxpy/issues), and work on unassigned issues
+* Browse the [issue tracker](https://github.com/cvxgrp/cvxpy/issues), and look for issues tagged as "help wanted"
 * Polish the [example library](https://github.com/cvxgrp/cvxpy/tree/master/examples)
 * Add a [benchmark](https://github.com/cvxgrp/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first to make sure that your priorities align with
-ours.
+ours. 
 
 Contributions should be submitted as [pull requests](https://github.com/cvxgrp/cvxpy/pulls).
 A member of the CVXPY development team will review the pull request and guide
 you through the contributing process.
+
+Before starting work on your contribution, please read the [contributing guide](https://github.com/cvxgrp/cvxpy/blob/master/CONTRIBUTING.md).
 
 ## Citing
 If you use CVXPY for academic work, we encourage you to [cite our papers](https://www.cvxpy.org/citing/index.html). If you use CVXPY in industry, we'd love to hear from you as well; feel free to reach out to the developers directly.
