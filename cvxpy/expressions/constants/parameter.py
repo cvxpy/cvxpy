@@ -30,8 +30,11 @@ class Parameter(Leaf):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, shape=(), name=None, value=None, **kwargs):
-        self.id = lu.get_id()
+    def __init__(self, shape=(), name=None, value=None, id=None, **kwargs):
+        if id is None:
+            self.id = lu.get_id()
+        else:
+            self.id = id
         if name is None:
             self._name = "%s%d" % (s.PARAM_PREFIX, self.id)
         else:
@@ -43,7 +46,7 @@ class Parameter(Leaf):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self.shape, self._name, self.value, self.attributes]
+        return [self.shape, self._name, self.value, self.id, self.attributes]
 
     def name(self):
         return self._name

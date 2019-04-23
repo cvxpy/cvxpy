@@ -33,7 +33,8 @@ public:
   int vec_idx;
 
   // Initialize TensorV/I/J for the given parameter.
-  void init_id(int param_id, int param_size) {
+  void init_id(int new_param_id, int param_size) {
+    assert(TensorV.count(new_param_id) == 0);
     std::vector<std::vector<double> > vecV(param_size);
     std::vector<std::vector<int> > vecI(param_size);
     std::vector<std::vector<int> > vecJ(param_size);
@@ -45,10 +46,11 @@ public:
       vecI.push_back(elemI);
       vecJ.push_back(elemJ);
     }
-    TensorV[param_id] = vecV;
-    TensorI[param_id] = vecI;
-    TensorJ[param_id] = vecJ;
+    TensorV[new_param_id] = vecV;
+    TensorI[new_param_id] = vecI;
+    TensorJ[new_param_id] = vecJ;
   }
+
 	/*******************************************
 	 * The functions below return problemData vectors as contiguous 1d
 	 * numpy arrays.

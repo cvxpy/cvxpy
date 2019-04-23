@@ -41,7 +41,7 @@ void add_matrix_to_vectors(Matrix &block, std::vector<double> &V,
 	}
 }
 
-void process_constraint(LinOp & lin, ProblemData & problemData,
+void process_constraint(LinOp &lin, ProblemData &problemData,
                         int &vert_offset, int var_length,
                         std::map<int, int> &id_to_col) {
 	/* Get the coefficient for the current constraint */
@@ -53,7 +53,9 @@ void process_constraint(LinOp & lin, ProblemData & problemData,
 		int param_id = it->first;
     DictMat var_map = it->second;
     typedef DictMat::iterator inner_it_type;
-    for(inner_it_type in_it = var_map.begin(); in_it != var_map.end(); ++in_it) {
+    for(inner_it_type in_it = var_map.begin();
+        in_it != var_map.end();
+        ++in_it) {
       int var_id = in_it->first;				// Horiz offset determined by the id
       std::vector<Matrix> blocks = in_it->second;
       // Constant term is last column.

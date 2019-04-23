@@ -354,7 +354,7 @@ Matrix get_constant_data(LinOp &lin, bool column) {
  * Returns: integer variable ID
  */
 int get_id_data(LinOp &lin, int arg_idx) {
-	assert(lin.type == VARIABLE);
+	assert(lin.type == VARIABLE || lin.type == PARAM);
 	return int(lin.dense_data(0, 0));
 }
 
@@ -732,7 +732,7 @@ Tensor get_mul_elemwise_mat(LinOp &lin, int arg_idx) {
       std::vector<Matrix> mat_vec = jit->second;
       for (unsigned i=0; i < mat_vec.size(); ++i) {
         // Diagonalize matrix.
-        mat_vec[i] = diagonalize(mat_vec[i]);
+        mul_ten[param_id][var_id][i] = diagonalize(mat_vec[i]);
       }
     }
   }
@@ -807,32 +807,68 @@ Tensor get_mul_mat(LinOp &lin, int arg_idx) {
 	assert(lin.type == MUL);
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.args[0]->size.size() > 0);
-	Matrix block = get_constant_data(lin, false); // TODO handle parameters.
+  Tensor mul_ten = get_node_coeffs(*lin.linOp_data, 0);
   // Interpret as row or column vector as needed.
-  if (lin.data_ndim == 1 && lin.args[0]->size[0] != block.cols()) {
-    block = block.transpose();
+  if (lin.data_ndim == 1 && lin.args[0]->size[0] != lin.linOp_data->size[1]) {
+    // Transpose matrices.
+    typedef Tensor::iterator it_type;
+    for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it){
+      int param_id = it->first;
+      DictMat var_map = it->second;
+      typedef DictMat::iterator jit_type;
+      for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit){
+        int var_id = jit->first;
+        std::vector<Matrix> mat_vec = jit->second;
+        for (unsigned i=0; i < mat_vec.size(); ++i) {
+          // Transpose matrix.
+          mul_ten[param_id][var_id][i] = mat_vec[i].transpose();
+        }
+      }
+    }
   }
-	int block_rows = block.rows();
-	int block_cols = block.cols();
+	int block_rows = (lin.linOp_data->size.size() >= 1) ? lin.linOp_data->size[0] : 1;
+	int block_cols = (lin.linOp_data->size.size() >= 2) ? lin.linOp_data->size[1] : 1;
 
   int num_blocks = (lin.args[0]->size.size() <= 1) ? 1 : lin.args[0]->size[1];
-	Matrix coeffs (num_blocks * block_rows, num_blocks * block_cols);
 
-	std::vector<Triplet> tripletList;
-	tripletList.reserve(num_blocks * block.nonZeros());
-	for (int curr_block = 0; curr_block < num_blocks; curr_block++) {
-		int start_i = curr_block * block_rows;
-		int start_j = curr_block * block_cols;
-		for ( int k = 0; k < block.outerSize(); ++k ) {
-			for ( Matrix::InnerIterator it(block, k); it; ++it ) {
-				tripletList.push_back(Triplet(start_i + it.row(), start_j + it.col(),
-				                              it.value()));
-			}
-		}
-	}
-	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
-	coeffs.makeCompressed();
-	return build_tensor(coeffs);
+  // TODO may need to speed up. Copying data.
+  // Replace every matrix with a block diagonal matrix.
+  typedef Tensor::iterator it_type;
+  for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it) {
+    int param_id = it->first;
+    DictMat var_map = it->second;
+    typedef DictMat::iterator jit_type;
+    for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
+      int var_id = jit->first;
+      std::vector<Matrix> mat_vec = jit->second;
+      for (unsigned i=0; i < mat_vec.size(); ++i) {
+        // Form block matrix matrix.
+        Matrix block_diag (num_blocks * block_rows, num_blocks * block_cols);
+
+        std::vector<Triplet> tripletList;
+        tripletList.reserve(num_blocks * mat_vec[i].nonZeros());
+        for (int curr_block = 0; curr_block < num_blocks; curr_block++) {
+          int start_i = curr_block * block_rows;
+          int start_j = curr_block * block_cols;
+          int count = 0;
+          for ( int k = 0; k < mat_vec[i].outerSize(); ++k ) {
+            for ( Matrix::InnerIterator it(mat_vec[i], k); it; ++it ) {
+              int row = count % block_rows;
+              int col = count/block_rows;
+              tripletList.push_back(Triplet(start_i + row, start_j + col,
+                                            it.value()));
+              count++;
+            }
+          }
+        }
+        block_diag.setFromTriplets(tripletList.begin(), tripletList.end());
+        block_diag.makeCompressed();
+        // Set block diagonal matrix.
+        mul_ten[param_id][var_id][i] = block_diag;
+      }
+    }
+  }
+	return mul_ten;
 }
 
 /**
