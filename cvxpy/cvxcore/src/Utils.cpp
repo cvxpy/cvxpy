@@ -1,6 +1,7 @@
 #include "Utils.hpp"
 #include <functional>
 #include <numeric>
+#include <iostream>
 
 int vecprod(const std::vector<int> &vec) {
   return std::accumulate(vec.begin(), vec.end(), 1.0, std::multiplies<int>());

@@ -1,3 +1,4 @@
+import cvxpy.settings as s
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC
 from cvxpy.error import DCPError, DGPError, SolverError
@@ -168,6 +169,9 @@ def construct_solving_chain(problem, candidates, gp=False):
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
+            # TODO remove eventually.
+            if solver != s.SCS:
+                reductions += [EvalParams()]
             reductions += [ConeMatrixStuffing(),
                            solver_instance]
             return SolvingChain(reductions=reductions)

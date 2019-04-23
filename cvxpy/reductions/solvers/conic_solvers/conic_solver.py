@@ -150,8 +150,8 @@ class ConicSolver(Solver):
             if type(constr) in [Zero, NonPos]:
                 # Both of these constraints have but a single argument.
                 # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
-                # TODO A, -b
-                restruct_mat.append(sp.eye(constr.size, format='csc'))
+                # Need to negate to switch from NonPos to NonNeg.
+                restruct_mat.append(-sp.eye(constr.size, format='csc'))
             elif type(constr) == SOC:
                 # Group each t row with appropriate X rows.
                 assert constr.axis == 0, 'SOC must be lowered to axis == 0'
@@ -175,7 +175,6 @@ class ConicSolver(Solver):
                     constr.args[0].size,
                     1,
                 )
-                print(X_spacer.A)
                 restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
             elif type(constr) == ExpCone:
                 for i, arg in enumerate(constr.args):

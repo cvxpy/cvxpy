@@ -308,14 +308,9 @@ class Atom(Expression):
         """Represent the atom as an affine objective and conic constraints.
         """
         # Constant atoms are treated as a leaf.
-        if self.is_constant():
-            # Parameterized expressions are evaluated later.
-            if self.parameters():
-                param = CallbackParam(lambda: self.value, self.shape)
-                return param.canonical_form
+        if self.is_constant() and not self.parameters():
             # Non-parameterized expressions are evaluated immediately.
-            else:
-                return Constant(self.value).canonical_form
+            return Constant(self.value).canonical_form
         else:
             arg_objs = []
             constraints = []

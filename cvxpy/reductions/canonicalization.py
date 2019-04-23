@@ -104,7 +104,7 @@ class Canonicalization(Reduction):
         """Canonicalize an expression, w.r.t. canonicalized arguments."""
         # Constant trees are collapsed, but parameter trees are preserved.
         if isinstance(expr, Expression) and \
-           (expr.is_constant() and not expr.parameters()):
+          (expr.is_constant() and not expr.parameters()):
             return expr, []
         elif type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)

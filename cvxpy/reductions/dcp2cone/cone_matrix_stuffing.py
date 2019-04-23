@@ -65,19 +65,19 @@ class ParamConeProg(object):
         """Returns A, b after applying parameters (and reshaping).
         """
         # Flatten parameters.
-        param_vec = np.zeros((self.total_param_size + 1, 1))
+        param_vec = np.zeros(self.total_param_size + 1)
         # TODO handle parameters with structure.
         for param_id, col in self.param_id_to_col.items():
             if param_id == lo.CONSTANT_ID:
-                value = 1
+                param_vec[col] = 1
             else:
                 param = self.id_to_param[param_id]
                 value = np.array(param.value).flatten()
-            param_vec[col:param.size+col] = value
+                param_vec[col:param.size+col] = value
         # New problem without parameters.
         c = (self.c*param_vec).flatten()
         # Need to cast to sparse matrix.
-        param_vec = sp.csc_matrix(param_vec)
+        param_vec = sp.csc_matrix(param_vec[:, None])
         A = (self.A*param_vec).reshape((self.constr_size, self.x.size + 1), order='F')
         A = A.tocsc()
         new_prob = ParamConeProg(c, self.x, A,
