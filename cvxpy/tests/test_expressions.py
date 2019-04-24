@@ -14,18 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import *
+import cvxpy as cp
 from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.expressions.expression import *
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.constants import Parameter
 from cvxpy import Problem, Minimize
-import cvxpy.utilities as u
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
-from collections import deque
-import unittest
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
 import scipy.sparse as sp
@@ -44,9 +40,9 @@ class TestExpressions(BaseTest):
         self.y = Variable(3, name='y')
         self.z = Variable(2, name='z')
 
-        self.A = Variable((2,2), name='A')
-        self.B = Variable((2,2), name='B')
-        self.C = Variable((3,2), name='C')
+        self.A = Variable((2, 2), name='A')
+        self.B = Variable((2, 2), name='B')
+        self.C = Variable((3, 2), name='C')
         self.intf = intf.DEFAULT_INTF
 
     # Test the Variable class.
@@ -87,20 +83,22 @@ class TestExpressions(BaseTest):
         # self.assertEqual(mat[0,2], 1)
 
         with self.assertRaises(Exception) as cm:
-            p = Variable((2, 2), diag=True, symmetric=True)
-        self.assertEqual(str(cm.exception), "Cannot set more than one special attribute in Variable.")
+            Variable((2, 2), diag=True, symmetric=True)
+        self.assertEqual(str(cm.exception),
+                         "Cannot set more than one special attribute in Variable.")
 
         with self.assertRaises(Exception) as cm:
-            p = Variable((2, 0))
+            Variable((2, 0))
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0).")
 
         with self.assertRaises(Exception) as cm:
-            p = Variable((2, .5))
+            Variable((2, .5))
         self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0.5).")
 
         with self.assertRaises(Exception) as cm:
-            p = Variable(2, 1)
-        self.assertEqual(str(cm.exception), "Variable name 1 must be a string.")
+            Variable(2, 1)
+        self.assertEqual(str(cm.exception),
+                         "Variable name 1 must be a string.")
 
     def test_assign_var_value(self):
         """Test assigning a value to a variable.
@@ -200,8 +198,8 @@ class TestExpressions(BaseTest):
         c = Constant([[2], [-2]])
         self.assertEqual(c.sign, s.UNKNOWN)
 
-        c = Constant(np.zeros((2,1)))
-        self.assertEqual(c.shape, (2,1))
+        c = Constant(np.zeros((2, 1)))
+        self.assertEqual(c.shape, (2, 1))
 
         # Test sign of a complex expression.
         c = Constant([1, 2])
@@ -250,7 +248,7 @@ class TestExpressions(BaseTest):
         # Test parameter representation.
         p = Parameter((4, 3), nonpos=True)
         self.assertEqual(repr(p), 'Parameter((4, 3), nonpos=True)')
-        
+
         # Test valid diagonal parameter.
         p = Parameter((2, 2), diag=True)
         p.value = sp.csc_matrix(np.eye(2))
@@ -270,7 +268,7 @@ class TestExpressions(BaseTest):
         A = np.random.randn(m, n) + 1j * np.random.randn(m, n)  # a random complex matrix
         A = np.dot(A.T.conj(), A)  # a random Hermitian positive definite matrix
         A = np.vstack([np.hstack([np.real(A), -np.imag(A)]),
-                     np.hstack([np.imag(A), np.real(A)])])
+                       np.hstack([np.imag(A), np.real(A)])])
 
         p = Parameter(shape=(2*n, 2*n), PSD=True)
         p.value = A
@@ -327,7 +325,8 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             p = Parameter((2, 2), diag=True, symmetric=True)
-        self.assertEqual(str(cm.exception), "Cannot set more than one special attribute in Parameter.")
+        self.assertEqual(str(cm.exception),
+                         "Cannot set more than one special attribute in Parameter.")
 
         # Boolean
         with self.assertRaises(Exception) as cm:
@@ -356,13 +355,13 @@ class TestExpressions(BaseTest):
             v = Variable((4, 3), symmetric=True)
         self.assertEqual(str(cm.exception), "Invalid dimensions (4, 3). Must be a square matrix.")
 
-        v = Variable((2,2), symmetric=True)
+        v = Variable((2, 2), symmetric=True)
         assert v.is_symmetric()
-        v = Variable((2,2), PSD=True)
+        v = Variable((2, 2), PSD=True)
         assert v.is_symmetric()
-        v = Variable((2,2), NSD=True)
+        v = Variable((2, 2), NSD=True)
         assert v.is_symmetric()
-        v = Variable((2,2), diag=True)
+        v = Variable((2, 2), diag=True)
         assert v.is_symmetric()
         assert self.a.is_symmetric()
         assert not self.A.is_symmetric()
@@ -374,13 +373,13 @@ class TestExpressions(BaseTest):
         assert expr.is_symmetric()
         expr = v.T
         assert expr.is_symmetric()
-        expr = real(v)
+        expr = cp.real(v)
         assert expr.is_symmetric()
-        expr = imag(v)
+        expr = cp.imag(v)
         assert expr.is_symmetric()
-        expr = conj(v)
+        expr = cp.conj(v)
         assert expr.is_symmetric()
-        expr = promote(Variable(), (2, 2))
+        expr = cp.promote(Variable(), (2, 2))
         assert expr.is_symmetric()
 
     def test_hermitian(self):
@@ -390,13 +389,13 @@ class TestExpressions(BaseTest):
             v = Variable((4, 3), hermitian=True)
         self.assertEqual(str(cm.exception), "Invalid dimensions (4, 3). Must be a square matrix.")
 
-        v = Variable((2,2), hermitian=True)
+        v = Variable((2, 2), hermitian=True)
         assert v.is_hermitian()
         # v = Variable((2,2), PSD=True)
         # assert v.is_symmetric()
         # v = Variable((2,2), NSD=True)
         # assert v.is_symmetric()
-        v = Variable((2,2), diag=True)
+        v = Variable((2, 2), diag=True)
         assert v.is_hermitian()
 
         v = Variable((2, 2), hermitian=True)
@@ -406,13 +405,13 @@ class TestExpressions(BaseTest):
         assert expr.is_hermitian()
         expr = v.T
         assert expr.is_hermitian()
-        expr = real(v)
+        expr = cp.real(v)
         assert expr.is_hermitian()
-        expr = imag(v)
+        expr = cp.imag(v)
         assert expr.is_hermitian()
-        expr = conj(v)
+        expr = cp.conj(v)
         assert expr.is_hermitian()
-        expr = promote(Variable(), (2, 2))
+        expr = cp.promote(Variable(), (2, 2))
         assert expr.is_hermitian()
 
     def test_round_attr(self):
@@ -422,41 +421,48 @@ class TestExpressions(BaseTest):
         v = Variable(1, nonpos=True)
         self.assertAlmostEqual(v.project(1), 0)
         v = Variable(2, nonpos=True)
-        self.assertItemsAlmostEqual(v.project(np.array([1,-1])), [0,-1])
+        self.assertItemsAlmostEqual(v.project(np.array([1, -1])), [0, -1])
 
         # Nonneg
         v = Variable(1, nonneg=True)
         self.assertAlmostEqual(v.project(-1), 0)
         v = Variable(2, nonneg=True)
-        self.assertItemsAlmostEqual(v.project(np.array([1,-1])), [1,0])
+        self.assertItemsAlmostEqual(v.project(np.array([1, -1])), [1, 0])
 
         # Boolean
         v = Variable((2, 2), boolean=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,0]]).T), [1,0,1,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]]).T),
+                                    [1, 0, 1, 0])
 
         # Integer
         v = Variable((2, 2), integer=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1,-1.6], [1,0]]).T), [1,-2,1,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1.6], [1, 0]]).T),
+                                    [1, -2, 1, 0])
 
         # Symmetric
         v = Variable((2, 2), symmetric=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,0]])), [1,0,0,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]])),
+                                    [1, 0, 0, 0])
 
         # PSD
         v = Variable((2, 2), PSD=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,-1]])), [1,0,0,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, -1]])),
+                                    [1, 0, 0, 0])
 
         # NSD
         v = Variable((2, 2), NSD=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,-1]])), [0,0,0,-1])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, -1]])),
+                                    [0, 0, 0, -1])
 
         # diag
         v = Variable((2, 2), diag=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1,-1], [1,0]])).todense(), [1,0,0,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1], [1, 0]])).todense(),
+                                    [1, 0, 0, 0])
 
         # Hermitian
         v = Variable((2, 2), hermitian=True)
-        self.assertItemsAlmostEqual(v.project(np.array([[1,-1j], [1,0]])), [1,0.5+0.5j,0.5-0.5j,0])
+        self.assertItemsAlmostEqual(v.project(np.array([[1, -1j], [1, 0]])),
+                                    [1, 0.5+0.5j, 0.5-0.5j, 0])
 
         A = Constant(np.array([[1.0]]))
         self.assertEqual(A.is_psd(), True)
@@ -484,7 +490,7 @@ class TestExpressions(BaseTest):
         exp = exp + z + self.x
 
         # Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             (self.x + self.y)
 
         # Matrices
@@ -493,11 +499,11 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.shape, (2, 2))
 
         # Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             (self.A + self.C)
 
         # Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             AddExpression([self.A, self.C])
 
         # Test that sum is flattened.
@@ -523,7 +529,7 @@ class TestExpressions(BaseTest):
         exp = exp - z - self.x
 
         # Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             (self.x - self.y)
 
         # Matrices
@@ -532,7 +538,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.shape, (2, 2))
 
         # Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             (self.A - self.C)
 
         # Test repr.
@@ -551,11 +557,11 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.shape, (1,))
 
         # Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             ([2, 2, 3]*self.x)
 
         # Matrices: Incompatible dimensions
-        with self.assertRaises(ValueError) as cm:
+        with self.assertRaises(ValueError):
             Constant([[2, 1], [2, 2]]) * self.C
 
         # Affine times affine is okay
@@ -589,7 +595,7 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             self.x.__matmul__(2)
         self.assertEqual(str(cm.exception),
-                            "Scalar operands are not allowed, use '*' instead")
+                         "Scalar operands are not allowed, use '*' instead")
 
         # Incompatible dimensions
         with self.assertRaises(ValueError) as cm:
@@ -640,8 +646,8 @@ class TestExpressions(BaseTest):
         expr = A.__matmul__(z)
         self.assertEqual(expr.shape, (4, 1))
 
-        v = Variable((1,1))
-        col_scalar = Parameter((1,1))
+        v = Variable((1, 1))
+        col_scalar = Parameter((1, 1))
         assert v.shape == col_scalar.shape == col_scalar.T.shape
 
     # Test the DivExpresion class.
@@ -659,7 +665,7 @@ class TestExpressions(BaseTest):
             (self.x/[2, 2, 3])
         print(cm.exception)
         self.assertRegexpMatches(str(cm.exception),
-                         "Incompatible shapes for division.*")
+                                 "Incompatible shapes for division.*")
 
         c = Constant([3.0, 4.0, 12.0])
         self.assertItemsAlmostEqual(
@@ -845,7 +851,7 @@ class TestExpressions(BaseTest):
         expr = self.x[None, :]
         self.assertEqual(expr.shape, (1, 2))
 
-        expr = Constant([1,2])[None, :]
+        expr = Constant([1, 2])[None, :]
         self.assertEqual(expr.shape, (1, 2))
         self.assertItemsAlmostEqual(expr.value, [1, 2])
 
@@ -1029,20 +1035,20 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.curvature, s.CONVEX)
 
     def test_sum(self):
-        """Test built-in sum. Not good usage.
+        """Test cvxpy sum function.
         """
         self.a.value = 1
-        expr = sum(self.a)
+        expr = cp.sum(self.a)
         self.assertEqual(expr.value, 1)
 
         self.x.value = [1, 2]
-        expr = sum(self.x)
+        expr = cp.sum(self.x)
         self.assertEqual(expr.value, 3)
 
     def test_var_copy(self):
         """Test the copy function for variable types.
         """
-        x = Variable((3,4), name="x")
+        x = Variable((3, 4), name="x")
         y = x.copy()
         self.assertEqual(y.shape, (3, 4))
         self.assertEqual(y.name(), "x")
@@ -1077,14 +1083,14 @@ class TestExpressions(BaseTest):
         expr = A * self.y - b
         self.assertEqual(expr.is_pwl(), True)
 
-        expr = maximum(1, 3 * self.y)
+        expr = cp.maximum(1, 3 * self.y)
         self.assertEqual(expr.is_pwl(), True)
 
-        expr = abs(self.y)
+        expr = cp.abs(self.y)
         self.assertEqual(expr.is_pwl(), True)
 
-        expr = pnorm(3 * self.y, 1)
+        expr = cp.pnorm(3 * self.y, 1)
         self.assertEqual(expr.is_pwl(), True)
 
-        expr = pnorm(3 * self.y ** 2, 1)
+        expr = cp.pnorm(3 * self.y ** 2, 1)
         self.assertEqual(expr.is_pwl(), False)

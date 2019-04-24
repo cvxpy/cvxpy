@@ -16,6 +16,7 @@ limitations under the License.
 
 import abc
 from cvxpy.utilities import performance_utils as pu
+from cvxpy.utilities.deterministic import unique_list
 
 
 class Canonical(object):
@@ -40,28 +41,20 @@ class Canonical(object):
         """
         return self.canonicalize()
 
-    # TODO(akshayka): Reocomputing .variables, etc. is expensive.
-    # We need a mutability contract that lets us cache/invalidate these
-    # fields (separable_problems.py mutates expressions).
     def variables(self):
         """Returns all the variables present in the arguments.
         """
-        # Remove duplicates.
-        return list(set(var for arg in self.args for var in arg.variables()))
+        return [var for arg in self.args for var in arg.variables()]
 
     def parameters(self):
         """Returns all the parameters present in the arguments.
         """
-        return list(
-          set(param for arg in self.args for param in arg.parameters()))
+        return [param for arg in self.args for param in arg.parameters()]
 
     def constants(self):
         """Returns all the constants present in the arguments.
         """
-        const_list = (const for arg in self.args for const in arg.constants())
-        # Remove duplicates:
-        const_dict = {id(constant): constant for constant in const_list}
-        return list(const_dict.values())
+        return [const for arg in self.args for const in arg.constants()]
 
     def tree_copy(self, id_objects={}):
         new_args = []
@@ -115,4 +108,4 @@ class Canonical(object):
         list
         """
         # Remove duplicates.
-        return list(set(atom for arg in self.args for atom in arg.atoms()))
+        return unique_list(atom for arg in self.args for atom in arg.atoms())

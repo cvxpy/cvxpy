@@ -340,7 +340,8 @@ objectives and problems and follow the same rules as above.
 Solve method options
 --------------------
 
-The ``solve`` method takes optional arguments that let you change how CVXPY solves the problem. Here is the signature for the ``solve`` method:
+The ``solve`` method takes optional arguments that let you change how CVXPY
+solves the problem.
 
 .. function:: solve(solver=None, verbose=False, gp=False, **kwargs)
 
@@ -516,7 +517,9 @@ All the solvers can print out information about their progress while solving the
 Solving disciplined geometric programs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-TODO see XXX
+When the ``solve`` method is called with `gp=True`, the problem is parsed
+as a disciplined geometric program instead of a disciplined convex program.
+For more information, see the `DGP tutorial </tutorial/dgp/index>`.
 
 Solver stats
 ------------
@@ -747,38 +750,63 @@ The following cut-generators are available:
 Getting the standard form
 -------------------------
 
-If you are interested in getting the standard form that CVXPY produces for a problem, you can use the ``get_problem_data`` method. Calling ``get_problem_data(solver)`` on a problem object returns a dict of the arguments that CVXPY would pass to that solver. If the solver you choose cannot solve the problem, CVXPY will raise an exception.
+If you are interested in getting the standard form that CVXPY produces for a
+problem, you can use the ``get_problem_data`` method. When a problem is solved, 
+a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain` passes a
+low-level representation that is compatible with the targeted solver to a
+solver, which solves the problem. This method returns that low-level
+representation, along with a ``SolvingChain`` and metadata for unpacking
+a solution into the problem. This low-level representation closely resembles,
+but is not identitical to, the
+arguments supplied to the solver.
+
+A solution to the equivalent low-level problem can be obtained via the
+data by invoking the ``solve_via_data`` method of the returned solving
+chain, a thin wrapper around the code external to CVXPY that further
+processes and solves the problem. Invoke the ``unpack_results`` method
+to recover a solution to the original problem.
+
+For example:
 
 .. code:: python
 
-    # Get OSQP arguments.
-    data = prob.get_problem_data(cvx.OSQP)
+  problem = cp.Problem(objective, constraints)
+  data, chain, inverse_data = problem.get_problem_data(cp.SCS)
+  # calls SCS using `data`
+  soln = chain.solve_via_data(problem, data)
+  # unpacks the solution returned by SCS into `problem`
+  problem.unpack_results(soln, chain, inverse_data)
 
-    # Get ECOS arguments.
-    data = prob.get_problem_data(cvx.ECOS)
+Alternatively, the ``data`` dictionary returned by this method
+contains enough information to bypass CVXPY and call the solver
+directly.
 
-    # Get ECOS_BB arguments.
-    data = prob.get_problem_data(cvx.ECOS_BB)
-
-    # Get CVXOPT arguments.
-    data = prob.get_problem_data(cvx.CVXOPT)
-
-    # Get SCS arguments.
-    data = prob.get_problem_data(cvx.SCS)
-
-After you solve the standard conic form problem returned by ``get_problem_data``, you can unpack the raw solver output using the ``unpack_results`` method. Calling ``unpack_results(solver, solver_output)`` on a problem will update the values of all primal and dual variables as well as the problem value and status.
-
-For example, the following code is equivalent to solving the problem directly with CVXPY:
+For example:
 
 .. code:: python
 
-    # Get ECOS arguments.
-    data = prob.get_problem_data(cvx.ECOS)
-    # Call ECOS solver.
-    solver_output = ecos.solve(data["c"], data["G"], data["h"],
-                               data["dims"], data["A"], data["b"])
-    # Unpack raw solver output.
-    prob.unpack_results(cvx.ECOS, solver_output)
+  problem = cp.Problem(objective, constraints)
+  data, _, _ = problem.get_problem_data(cp.SCS)
+
+  import scs
+  probdata = {
+    'A': data['A'],
+    'b': data['b'],
+    'c': data['c'],
+  }
+  cone_dims = data['dims']
+  cones = {
+      "f": cone_dims.zero,
+      "l": cone_dims.nonpos,
+      "q": cone_dims.soc,
+      "ep": cone_dims.exp,
+      "s": cone_dims.psd,
+  }
+  soln = scs.solve(data, cones)
+
+The structure of the data dict that CVXPY returns depends on the solver. For
+details, print the dictionary, or consult the solver interfaces in
+``cvxpy/reductions/solvers``.
 
 Reductions
 ----------

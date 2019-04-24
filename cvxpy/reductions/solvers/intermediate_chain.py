@@ -47,10 +47,10 @@ def construct_intermediate_chain(problem, candidates, gp=False):
 
     if not gp and not problem.is_dcp():
         append = ""
-        append = (" However, the problem does follow DGP rules. "
-                  "Consider calling this function with `gp=True`.")
+        if problem.is_dgp():
+            append = (" However, the problem does follow DGP rules. "
+                      "Consider calling this function with `gp=True`.")
         raise DCPError("Problem does not follow DCP rules." + append)
-
     elif gp and not problem.is_dgp():
         append = ""
         if problem.is_dcp():

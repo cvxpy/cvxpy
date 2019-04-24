@@ -19,9 +19,6 @@ from cvxpy.tests.base_test import BaseTest
 import math
 import numpy as np
 import scipy.linalg as la
-import sys
-if sys.version_info >= (3, 0):
-    from functools import reduce
 
 
 class TestSCS(BaseTest):
@@ -59,9 +56,6 @@ class TestSCS(BaseTest):
             result = p.solve(solver='SUPER_SCS')
             self.assertAlmostEqual(result, 2)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
-        else:
-            pass
-
 
     def test_sigma_max(self):
         """Test sigma_max.
@@ -73,8 +67,6 @@ class TestSCS(BaseTest):
             result = prob.solve(solver='SUPER_SCS')
             self.assertAlmostEqual(result, cvx.norm(const, 2).value)
             self.assertItemsAlmostEqual(self.C.value, const.value)
-        else:
-            pass
 
     def test_sdp_var(self):
         """Test sdp var.
@@ -85,20 +77,17 @@ class TestSCS(BaseTest):
             prob = cvx.Problem(cvx.Minimize(0), [X == const])
             prob.solve(verbose=True, solver='SUPER_SCS')
             self.assertEqual(prob.status, cvx.INFEASIBLE)
-        else:
-            pass
 
     def test_cplx_mats(self):
         """Test complex matrices.
         """
         if cvx.SUPER_SCS in cvx.installed_solvers():
             # Complex-valued matrix
-            K = np.array(np.random.rand(2,2) + 1j * np.random.rand(2,2) ) #  example matrix
+            K = np.array(np.random.rand(2, 2) + 1j * np.random.rand(2, 2))
             n1 = la.svdvals(K).sum()  # trace norm of K
             # Dual Problem
-            X = cvx.Variable((2,2), complex=True)
-            Y = cvx.Variable((2,2), complex=True)
-            Z = cvx.Variable((2,2))
+            X = cvx.Variable((2, 2), complex=True)
+            Y = cvx.Variable((2, 2), complex=True)
             # X, Y >= 0 so trace is real
             objective = cvx.Minimize(
                 cvx.real(0.5 * cvx.trace(X) + 0.5 * cvx.trace(Y))
@@ -114,8 +103,6 @@ class TestSCS(BaseTest):
             self.assertEqual(constraints[1].dual_value.shape, (2, 2))
             self.assertEqual(constraints[2].dual_value.shape, (2, 2))
             self.assertAlmostEqual(sol_scs, n1)
-        else:
-            pass
 
     def test_entr(self):
         """Test a problem with entr.
@@ -128,8 +115,6 @@ class TestSCS(BaseTest):
                 p = cvx.Problem(obj, [cvx.sum(x) == 1])
                 p.solve(solver='SUPER_SCS', verbose=True)
                 self.assertItemsAlmostEqual(x.value, n*[1./n])
-        else:
-            pass
 
     def test_exp(self):
         """Test a problem with exp.
@@ -142,8 +127,6 @@ class TestSCS(BaseTest):
                 p = cvx.Problem(obj, [cvx.sum(x) == 1])
                 p.solve(solver='SUPER_SCS', verbose=True)
                 self.assertItemsAlmostEqual(x.value, n*[1./n])
-        else:
-            pass
 
     def test_log(self):
         """Test a problem with log.
@@ -156,8 +139,6 @@ class TestSCS(BaseTest):
                 p = cvx.Problem(obj, [cvx.sum(x) == 1])
                 p.solve(solver='SUPER_SCS', verbose=True)
                 self.assertItemsAlmostEqual(x.value, n*[1./n])
-        else:
-            pass
 
     def test_warm_start(self):
         """Test warm starting.
@@ -167,10 +148,5 @@ class TestSCS(BaseTest):
             obj = cvx.Minimize(cvx.sum(cvx.exp(x)))
             prob = cvx.Problem(obj, [cvx.sum(x) == 1])
             result = prob.solve(solver='SUPER_SCS', eps=1e-4)
-            time = prob.solver_stats.solve_time
             result2 = prob.solve(solver='SUPER_SCS', warm_start=True, eps=1e-4)
-            time2 = prob.solver_stats.solve_time
             self.assertAlmostEqual(result2, result, places=2)
-        else:
-            pass
-

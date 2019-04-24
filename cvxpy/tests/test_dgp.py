@@ -6,7 +6,7 @@ class TestDgp(BaseTest):
     def test_product(self):
         x = cvxpy.Variable((), pos=True)
         y = cvxpy.Variable((), pos=True)
-        prod = x * y 
+        prod = x * y
         self.assertTrue(prod.is_dgp())
         self.assertTrue(prod.is_log_log_convex())
         self.assertTrue(prod.is_log_log_concave())
@@ -29,13 +29,13 @@ class TestDgp(BaseTest):
     def test_product_with_unconstrained_variables_is_not_dgp(self):
         x = cvxpy.Variable()
         y = cvxpy.Variable()
-        prod = x * y 
+        prod = x * y
         self.assertTrue(not prod.is_dgp())
         self.assertTrue(not prod.is_log_log_convex())
         self.assertTrue(not prod.is_log_log_concave())
 
         z = cvxpy.Variable((), pos=True)
-        prod = x * z 
+        prod = x * z
         self.assertTrue(not prod.is_dgp())
         self.assertTrue(not prod.is_log_log_convex())
         self.assertTrue(not prod.is_log_log_concave())
@@ -64,7 +64,7 @@ class TestDgp(BaseTest):
     def test_add(self):
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
-        expr = x + y 
+        expr = x + y
         self.assertTrue(expr.is_dgp())
         self.assertTrue(expr.is_log_log_convex())
         self.assertTrue(not expr.is_log_log_concave())
@@ -76,7 +76,7 @@ class TestDgp(BaseTest):
     def test_add_with_unconstrained_variables_is_not_dgp(self):
         x = cvxpy.Variable()
         y = cvxpy.Variable(pos=True)
-        expr = x + y 
+        expr = x + y
         self.assertTrue(not expr.is_dgp())
         self.assertTrue(not expr.is_log_log_convex())
         self.assertTrue(not expr.is_log_log_concave())

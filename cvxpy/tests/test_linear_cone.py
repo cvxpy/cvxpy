@@ -45,10 +45,7 @@ class TestLinearCone(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
-        # TODO(akshayka): Why are these solvers commented out? If it is
-        # because their interfaces are not yet implemented, then a comment
-        # along those lines should exist.
-        self.solvers = [ECOS()]#, GUROBI(), MOSEK(), SCS(), CVXOPT(), GLPK()]
+        self.solvers = [ECOS()]
 
     def test_scalar_lp(self):
         """Test scalar LP problems.
@@ -157,10 +154,10 @@ class TestLinearCone(BaseTest):
                                         self.x.value)
 
             A = Constant(numpy.array([[3, 5], [1, 2]]).T).value
-            I = Constant([[1, 0], [0, 1]])
+            Imat = Constant([[1, 0], [0, 1]])
             p = Problem(Minimize(c.T*self.x + self.a),
                         [A*self.x >= [-1, 1],
-                         4*I*self.z == self.x,
+                         4*Imat*self.z == self.x,
                          self.z >= [2, 2],
                          self.a >= 2])
             self.assertTrue(ConeMatrixStuffing().accepts(p))
@@ -247,7 +244,7 @@ class TestLinearCone(BaseTest):
         """Test exponential cone problems.
         """
         for solver in self.solvers:
-        # Basic.
+            # Basic.
             p = Problem(Minimize(self.b), [exp(self.a) <= self.b, self.a >= 1])
             pmod = Problem(Minimize(self.b), [ExpCone(self.a, Constant(1), self.b), self.a >= 1])
             self.assertTrue(ConeMatrixStuffing().accepts(pmod))

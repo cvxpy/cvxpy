@@ -21,6 +21,7 @@ from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.utilities.deterministic import unique_list
 
 # TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates
@@ -31,6 +32,7 @@ from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
 from collections import namedtuple
 import multiprocess as multiprocessing
+import numpy as np
 
 
 SolveResult = namedtuple(
@@ -64,8 +66,9 @@ class Problem(u.Canonical):
         # Constraints and objective are immutable.
         self._objective = objective
         self._constraints = [c for c in constraints]
-        # Cache the variables as a list.
         self._vars = self._variables()
+        self._params = self._parameters()
+        self._consts = self._constants()
         self._value = None
         self._status = None
         self._solution = None
@@ -166,9 +169,7 @@ class Problem(u.Canonical):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
-        seen = set()
-        # never use list as a variable name
-        return [seen.add(obj.id) or obj for obj in vars_ if obj.id not in seen]
+        return unique_list(vars_)
 
     def parameters(self):
         """Accessor method for parameters.
@@ -178,10 +179,13 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.parameter.Parameter`
             A list of the parameters in the problem.
         """
+        return self._params
+
+    def _parameters(self):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
-        return list(set(params))
+        return unique_list(params)
 
     def constants(self):
         """Accessor method for parameters.
@@ -191,6 +195,9 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.constant.Constant`
             A list of the constants in the problem.
         """
+        return self._consts
+
+    def _constants(self):
         const_dict = {}
         constants_ = self.objective.constants()
         for constr in self.constraints:
@@ -212,7 +219,7 @@ class Problem(u.Canonical):
         atoms = self.objective.atoms()
         for constr in self.constraints:
             atoms += constr.atoms()
-        return list(set(atoms))
+        return unique_list(atoms)
 
     @property
     def size_metrics(self):
@@ -287,23 +294,65 @@ class Problem(u.Canonical):
     def get_problem_data(self, solver, gp=False):
         """Returns the problem data used in the call to the solver.
 
-        When a problem is solved, a chain of reductions combining an
-        intermediate reduction chain :class:`~cvxpy.reductions.chain.Chain`
-        and a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,
-        compiles it to some low-level representation that is compatible with
-        the targeted solver. This method returns that low-level representation.
+        When a problem is solved, CVXPY creates a chain of reductions combining
+        an intermediate reduction chain :class:`~cvxpy.reductions.chain.Chain`
+        and a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`.
+        This object compiles it to some low-level representation that is
+        compatible with the targeted solver. This method returns that low-level
+        representation.
 
         For some solving chains, this low-level representation is a dictionary
         that contains exactly those arguments that were supplied to the solver;
         however, for other solving chains, the data is an intermediate
-        representation that is compiled even further by libraries other than
-        CVXPY.
+        representation that is compiled even further by the solver interfaces.
 
         A solution to the equivalent low-level problem can be obtained via the
-        data by invoking the solve_via_data method of the returned solving
+        data by invoking the `solve_via_data` method of the returned solving
         chain, a thin wrapper around the code external to CVXPY that further
         processes and solves the problem. Invoke the unpack_results method
         to recover a solution to the original problem.
+
+        For example:
+        ```python
+        objective = ...
+        constraints = ...
+        problem = cp.Problem(objective, constraints)
+        data, chain, inverse_data = problem.get_problem_data(cp.SCS)
+        # calls SCS using `data`
+        soln = chain.solve_via_data(problem, data)
+        # unpacks the solution returned by SCS into `problem`
+        problem.unpack_results(soln, chain, inverse_data)
+        ```
+
+        Alternatively, the `data` dictionary returned by this method
+        contains enough information to bypass CVXPY and call the solver
+        directly.
+
+        For example:
+        ```
+        problem = cp.Problem(objective, constraints)
+        data, _, _ = problem.get_problem_data(cp.SCS)
+
+        import scs
+        probdata = {
+          'A': data['A'],
+          'b': data['b'],
+          'c': data['c'],
+        }
+        cone_dims = data['dims']
+        cones = {
+            "f": cone_dims.zero,
+            "l": cone_dims.nonpos,
+            "q": cone_dims.soc,
+            "ep": cone_dims.exp,
+            "s": cone_dims.psd,
+        }
+        soln = scs.solve(data, cones)
+        ```
+
+        The structure of the data dict that CVXPY returns depends on the
+        solver. For details, consult the solver interfaces in
+        `cvxpy/reductions/solvers`.
 
         Parameters
         ----------
@@ -667,7 +716,7 @@ class Problem(u.Canonical):
         elif not isinstance(other, Problem):
             return NotImplemented
         return Problem(self.objective + other.objective,
-                       list(set(self.constraints + other.constraints)))
+                       unique_list(self.constraints + other.constraints))
 
     def __radd__(self, other):
         if other == 0:
@@ -679,7 +728,7 @@ class Problem(u.Canonical):
         if not isinstance(other, Problem):
             return NotImplemented
         return Problem(self.objective - other.objective,
-                       list(set(self.constraints + other.constraints)))
+                       unique_list(self.constraints + other.constraints))
 
     def __rsub__(self, other):
         if other == 0:
@@ -778,8 +827,9 @@ class SizeMetrics(object):
             if self.max_data_dimension < big:
                 self.max_data_dimension = big
 
-            if self.max_big_small_squared < big*small**2:
-                self.max_big_small_squared = big*small**2
+            max_big_small_squared = np.int64(big)*np.int64(small)**2
+            if self.max_big_small_squared < max_big_small_squared:
+                self.max_big_small_squared = max_big_small_squared
 
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0

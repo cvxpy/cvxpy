@@ -18,9 +18,9 @@ import abc
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
-from cvxpy.expressions.constants import Constant
 from cvxpy.cvxcore.python import canonInterface
-from fastcache import clru_cache
+from cvxpy.expressions.constants import Constant
+from cvxpy.utilities import performance_utils as perf
 import scipy.sparse as sp
 
 
@@ -78,7 +78,7 @@ class AffAtom(Atom):
         return all(arg.is_pwl() for arg in self.args)
 
     # TODO is this right?
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_psd(self):
         """Is the expression a positive semidefinite matrix?
         """
@@ -88,7 +88,7 @@ class AffAtom(Atom):
                 return False
         return True
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_nsd(self):
         """Is the expression a positive semidefinite matrix?
         """

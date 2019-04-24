@@ -23,18 +23,18 @@ from collections import deque
 
 def get_problem_matrix(linOps, id_to_col=None, constr_offsets=None):
     """
-    Builds a sparse representation of the problem data by calling CVXCanon's
-    C++ build_matrix function.
+    Builds a sparse representation of the problem data.
 
     Parameters
     ----------
         linOps: A list of python linOp trees
-        id_to_col: A map from variable id to offset withoun our matrix
+        id_to_col: A map from variable id to offset within our matrix
 
     Returns
     ----------
         V, I, J: numpy arrays encoding a sparse representation of our problem
-        const_vec: a numpy column vector representing the constant_data in our problem
+        const_vec: a numpy column vector representing the constant_data in our
+                   problem
     """
     lin_vec = cvxcore.LinOpVector()
 
@@ -42,13 +42,11 @@ def get_problem_matrix(linOps, id_to_col=None, constr_offsets=None):
     if id_to_col is None:
         id_to_col = {}
 
-    # Loading the variable offsets from our
-    # Python map into a C++ map
+    # Loading the variable offsets from our Python map into a C++ map
     for id, col in id_to_col.items():
         id_to_col_C[int(id)] = int(col)
 
-    # This array keeps variables data in scope
-    # after build_lin_op_tree returns
+    # This array keeps variables data in scope after build_lin_op_tree returns
     tmp = []
     for lin in linOps:
         tree = build_lin_op_tree(lin, tmp)
@@ -94,7 +92,7 @@ def format_matrix(matrix, shape=None, format='dense'):
 
 
 def set_matrix_data(linC, linPy):
-    """Calls the appropriate CVXCanon function to set the matrix data field of
+    """Calls the appropriate cvxcore function to set the matrix data field of
        our C++ linOp.
     """
     # data is supposed to be a LinOp
@@ -174,6 +172,7 @@ def get_type(ty):
 def build_lin_op_tree(root_linPy, tmp):
     """
     Breadth-first, pre-order traversal on the Python linOp tree
+
     Parameters
     -------------
     root_linPy: a Python LinOp tree

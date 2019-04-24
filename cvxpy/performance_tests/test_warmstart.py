@@ -12,17 +12,17 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
+
+
+THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
+DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 
 from __future__ import print_function
 import unittest
 import time
-from cvxpy import *
+import cvxpy as cp
 
-"""
-THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
-DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
-"""
 
 class TestWarmstart(unittest.TestCase):
 
@@ -38,13 +38,13 @@ class TestWarmstart(unittest.TestCase):
         A = numpy.random.randn(n, m)
         b = numpy.random.randn(n)
         # gamma must be positive due to DCP rules.
-        gamma = Parameter(nonneg=True)
+        gamma = cp.Parameter(nonneg=True)
 
         # Construct the problem.
-        x = Variable(m)
-        error = sum_squares(A*x - b)
-        obj = Minimize(error + gamma*norm(x, 1))
-        prob = Problem(obj)
+        x = cp.Variable(m)
+        error = cp.sum_squares(A*x - b)
+        obj = cp.Minimize(error + gamma*cp.norm(x, 1))
+        prob = cp.Problem(obj)
 
         # Construct a trade-off curve of ||Ax-b||^2 vs. ||x||_1
         sq_penalty = []
@@ -55,11 +55,11 @@ class TestWarmstart(unittest.TestCase):
         start = time.time()
         for val in gamma_vals:
             gamma.value = val
-            prob.solve(solver=SCS, warm_start=True, use_indirect=True)
+            prob.solve(solver=cp.SCS, warm_start=True, use_indirect=True)
             # Use expr.value to get the numerical value of
             # an expression in the problem.
             sq_penalty.append(error.value)
-            l1_penalty.append(norm(x, 1).value)
+            l1_penalty.append(cp.norm(x, 1).value)
             x_values.append(x.value)
         end = time.time()
         print("time elapsed=", end - start)

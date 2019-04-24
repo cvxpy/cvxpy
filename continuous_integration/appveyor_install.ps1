@@ -27,8 +27,9 @@ activate $env:ENV_NAME
 $base_env_dir = "${env:PYTHON}\envs\$env:ENV_NAME"
 $env:PATH = "$base_env_dir;$base_env_dir\Scripts;$base_env_dir\Library\bin;" + $env:PATH
 conda install -c conda-forge --yes lapack
-conda install -c conda-forge --yes ecos scs multiprocess
+conda install -c conda-forge --yes ecos multiprocess
 conda install -c anaconda --yes flake8
+pip install scs<=2.0
 
 # Install cvxpy
 
