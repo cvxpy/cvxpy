@@ -9,7 +9,6 @@ import time
 
 def benchmark(func, *func_args, **bench_kwargs):
     iters = bench_kwargs['iters']
-    avg = 0.0
     vals = []
     for _ in range(iters):
         start = time.time()
@@ -112,10 +111,11 @@ class TestBenchmarks(BaseTest):
         cost = cp.sum(A*x)
 
         constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
-        constraints.extend([C[i] * x[m //2 + i] == b[m // 2 + i] for i in range(m // 2)])
+        constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])
 
         p = cp.Problem(cp.Minimize(cost), constraints)
 
-        stuff = lambda x : ConeMatrixStuffing().apply(x)
+        def stuff(mat):
+            ConeMatrixStuffing().apply(mat)
 
         benchmark(stuff, p, iters=1)

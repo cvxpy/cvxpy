@@ -118,9 +118,9 @@ class GUROBI(QpSolver):
             if i not in vtypes:
                 vtypes[i] = grb.GRB.CONTINUOUS
         model.addVars(int(n),
-            ub={i: grb.GRB.INFINITY for i in range(n)},
-            lb={i: -grb.GRB.INFINITY for i in range(n)},
-            vtype=vtypes)
+                      ub={i: grb.GRB.INFINITY for i in range(n)},
+                      lb={i: -grb.GRB.INFINITY for i in range(n)},
+                      vtype=vtypes)
         model.update()
         x = np.array(model.getVars(), copy=False)
 
