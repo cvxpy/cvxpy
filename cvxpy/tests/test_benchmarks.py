@@ -117,4 +117,4 @@ class TestBenchmarks(BaseTest):
 
         stuff = lambda x : ConeMatrixStuffing().apply(x)
 
-        benchmark(stuff, p, iters=10)
+        benchmark(stuff, p, iters=1)
