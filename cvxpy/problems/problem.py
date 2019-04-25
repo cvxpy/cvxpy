@@ -843,6 +843,3 @@ class SizeMetrics(object):
         for constraint in problem.constraints:
             if isinstance(constraint, (Inequality, NonPos)):
                 self.num_scalar_leq_constr += constraint.expr.size
-
-    def __str__(self):
-        return ', '.join('%s=%s' % (k, v) for k, v in vars(self).items())
