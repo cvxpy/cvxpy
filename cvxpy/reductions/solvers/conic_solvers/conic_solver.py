@@ -41,12 +41,12 @@ def is_stuffed_cone_constraint(constraint):
         if type(arg) == AddExpression:
             if type(arg.args[0]) not in [MulExpression, multiply]:
                 return False
-            if type(arg.args[0].args[0]) != Constant:
+            if not arg.args[0].args[0].is_constant():
                 return False
-            if type(arg.args[1]) != Constant:
+            if not arg.args[1].is_constant():
                 return False
         elif type(arg) in [MulExpression, multiply]:
-            if type(arg.args[0]) != Constant:
+            if not arg.args[0].is_constant():
                 return False
         else:
             return False

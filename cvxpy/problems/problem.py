@@ -32,7 +32,6 @@ from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
 from collections import namedtuple
 import multiprocess as multiprocessing
-import numpy as np
 
 
 SolveResult = namedtuple(
@@ -79,7 +78,7 @@ class Problem(u.Canonical):
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
-        self._size_metrics = SizeMetrics(self)
+        self._size_metrics = None
         # Benchmarks reported by the solver:
         self._solver_stats = None
         self.args = [self._objective, self._constraints]
@@ -225,6 +224,8 @@ class Problem(u.Canonical):
     def size_metrics(self):
         """:class:`~cvxpy.problems.problem.SizeMetrics` : Information about the problem's size.
         """
+        if self._size_metrics is None:
+            self._size_metrics = SizeMetrics(self)
         return self._size_metrics
 
     @property
@@ -827,7 +828,7 @@ class SizeMetrics(object):
             if self.max_data_dimension < big:
                 self.max_data_dimension = big
 
-            max_big_small_squared = np.int64(big)*np.int64(small)**2
+            max_big_small_squared = big*(small**2)
             if self.max_big_small_squared < max_big_small_squared:
                 self.max_big_small_squared = max_big_small_squared
 
