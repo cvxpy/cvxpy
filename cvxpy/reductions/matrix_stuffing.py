@@ -100,8 +100,9 @@ class MatrixStuffing(Reduction):
         # Batch expressions together, then split apart.
         expr_list = [arg for c in cons for arg in c.args]
         Afull, bfull = extractor.affine(expr_list)
-        Afull = cvxtypes.constant()(Afull)
-        bfull = cvxtypes.constant()(bfull)
+        if 0 not in Afull.shape and 0 not in bfull.shape:
+            Afull = cvxtypes.constant()(Afull)
+            bfull = cvxtypes.constant()(bfull)
 
         new_cons = []
         offset = 0
