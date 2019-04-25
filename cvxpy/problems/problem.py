@@ -32,7 +32,6 @@ from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
 from collections import namedtuple
 import multiprocess as multiprocessing
-import numpy as np
 
 
 SolveResult = namedtuple(
@@ -827,7 +826,7 @@ class SizeMetrics(object):
             if self.max_data_dimension < big:
                 self.max_data_dimension = big
 
-            max_big_small_squared = np.int64(big)*np.int64(small)**2
+            max_big_small_squared = big*(small**2)
             if self.max_big_small_squared < max_big_small_squared:
                 self.max_big_small_squared = max_big_small_squared
 
@@ -842,3 +841,6 @@ class SizeMetrics(object):
         for constraint in problem.constraints:
             if isinstance(constraint, (Inequality, NonPos)):
                 self.num_scalar_leq_constr += constraint.expr.size
+
+    def __str__(self):
+        return ', '.join('%s=%s' % (k, v) for k, v in vars(self).items())
