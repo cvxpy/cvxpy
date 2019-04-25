@@ -7,12 +7,13 @@ import os
 import time
 
 
-def benchmark(func, *args, iters=10):
+def benchmark(func, *func_args, **bench_kwargs):
+    iters = bench_kwargs['iters']
     avg = 0.0
     vals = []
     for _ in range(iters):
         start = time.time()
-        func(*args)
+        func(*func_args)
         vals.append(time.time() - start)
     print("{:s}: avg={:.3e} s , std={:.3e} s ({:d} iterations)".format(
         func.__name__, np.mean(vals), np.std(vals), iters))
