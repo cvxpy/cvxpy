@@ -1325,7 +1325,7 @@ class TestProblem(BaseTest):
         """Tests that a SolverError is raised when a solver fails.
         """
         A = numpy.random.randn(40, 40)
-        b = A @ numpy.random.randn(40)
+        b = cp.matmul(A, numpy.random.randn(40))
 
         with self.assertRaises(SolverError):
             Problem(cp.Minimize(
