@@ -200,8 +200,8 @@ Matrix sparse_ones(int rows, int cols)
 
 // Returns a sparse rows x cols matrix with matrix[row_sel, col_sel] = 1.
 Matrix sparse_selector(int rows, int cols, int row_sel, int col_sel) {
-  Matrix selector(rows, cols);
-  selector.insert(row_sel, col_sel) = 1.0;
+  Matrix selector(rows*cols, 1);
+  selector.insert(row_sel + rows*col_sel, 0) = 1.0;
   return selector;
 }
 
@@ -850,20 +850,21 @@ Tensor get_mul_mat(LinOp &lin, int arg_idx) {
         for (int curr_block = 0; curr_block < num_blocks; curr_block++) {
           int start_i = curr_block * block_rows;
           int start_j = curr_block * block_cols;
-          int count = 0;
           for ( int k = 0; k < mat_vec[i].outerSize(); ++k ) {
             for ( Matrix::InnerIterator it(mat_vec[i], k); it; ++it ) {
-              int row = count % block_rows;
-              int col = count/block_rows;
+              int row = it.row() % block_rows;
+              int col = it.row()/block_rows;
               tripletList.push_back(Triplet(start_i + row, start_j + col,
                                             it.value()));
-              count++;
             }
           }
         }
         block_diag.setFromTriplets(tripletList.begin(), tripletList.end());
         block_diag.makeCompressed();
         // Set block diagonal matrix.
+        std::cout << block_rows << "," << block_cols << "\n";
+        std::cout << param_id << " : " << var_id << "\n";
+        std::cout << block_diag << "\n";
         mul_ten[param_id][var_id][i] = block_diag;
       }
     }
