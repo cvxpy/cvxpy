@@ -263,11 +263,11 @@ class Problem(u.Canonical):
 
         Raises
         ------
-        DCPError
+        cvxpy.error.DCPError
             Raised if the problem is not DCP and `gp` is False.
-        DGPError
+        cvxpy.error.DGPError
             Raised if the problem is not DGP and `gp` is True.
-        SolverError
+        cvxpy.error.SolverError
             Raised if no suitable solver exists among the installed solvers,
             or if an unanticipated error is encountered.
         """
@@ -410,9 +410,9 @@ class Problem(u.Canonical):
 
         Raises
         ------
-        SolverError
+        cvxpy.error.SolverError
             Raised if the problem is not DCP and `gp` is False.
-        DGPError
+        cvxpy.error.DGPError
             Raised if the problem is not DGP and `gp` is True.
         """
         candidates = {'qp_solvers': [],
@@ -638,12 +638,18 @@ class Problem(u.Canonical):
         """Updates the problem state given a Solution.
 
         Updates problem.status, problem.value and value of primal and dual
-        variables.
+        variables. If solution.status is in cvxpy.settins.ERROR, this method
+        is a no-op.
 
         Parameters
         __________
         solution : cvxpy.Solution
             A Solution object.
+
+        Raises
+        ------
+        ValueError
+            If the solution object has an invalid status
         """
         if solution.status in s.SOLUTION_PRESENT:
             for v in self.variables():
@@ -656,8 +662,11 @@ class Problem(u.Canonical):
                 v.save_value(None)
             for constr in self.constraints:
                 constr.save_value(None)
+        elif solution.status in s.ERROR:
+            return
         else:
-            raise ValueError("Cannot unpack invalid solution.")
+            raise ValueError("Cannot unpack invalid solution: %s" % solution)
+
         self._value = solution.opt_val
         self._status = solution.status
         self._solution = solution
@@ -677,19 +686,20 @@ class Problem(u.Canonical):
             A solving chain that was used to solve the problem.
         inverse_data : list
             The inverse data returned by applying the chain to the problem.
+
+        Raises
+        ------
+        cvxpy.error.SolverError
+            If the solver failed
         """
 
         solution = chain.invert(solution, inverse_data)
-
-        try:
-            self.unpack(solution)
-        except ValueError:
+        if solution.status in s.ERROR:
             raise SolverError(
-                "Solver '%s' failed. " % chain.solver.name() +
-                "Try another solver or solve with verbose=True for more "
-                "information. Try recentering the problem data around 0 and "
-                "rescaling to reduce the dynamic range."
-            )
+                    "Solver '%s' failed. " % chain.solver.name() +
+                    "Try another solver, or solve with verbose=True for more "
+                    "information.")
+        self.unpack(solution)
         self._solver_stats = SolverStats(self._solution.attr,
                                          chain.solver.name())
 
