@@ -1,3 +1,4 @@
+from cvxpy.atoms.atom import Atom
 from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, Dcp2Cone,
@@ -45,12 +46,42 @@ def construct_intermediate_chain(problem, candidates, gp=False):
     if gp:
         reductions += [Dgp2Dcp()]
 
+    def build_dcp_error_msg():
+        def find_non_dcp_leaves(expr, res=[]):
+            def is_dcp(e):
+                if isinstance(e, Atom):
+                    return e.is_convex()
+                return e.is_dcp()
+
+            if (len(expr.args) == 0 and expr.is_dcp()):
+                return res
+            if (not is_dcp(expr)) and all(is_dcp(child) for child in expr.args):
+                res.append(expr)
+            for child in expr.args:
+                res = find_non_dcp_leaves(child, res)
+            return res
+
+        if not problem.objective.is_dcp():
+            non_dcp_leaves = find_non_dcp_leaves(problem.objective.expr)
+            msg = "The objective is not DCP. Its following subexpressions are not:"
+            for expr in non_dcp_leaves:
+                msg += '\n%s' % (str(expr,))
+            return msg
+        not_dcp_constraints = [expr for expr in problem.constraints if not expr.is_dcp()]
+        msg = "The following constraints are not DCP:"
+        for expr in not_dcp_constraints:
+            msg += '\n%s , because the following subexpressions are not:' % (expr,)
+            non_dcp_leaves = find_non_dcp_leaves(expr)
+            for subexpr in non_dcp_leaves:
+                msg += '\n|--  %s' % (str(subexpr,))
+        return msg
+
     if not gp and not problem.is_dcp():
-        append = ""
+        append = build_dcp_error_msg()
         if problem.is_dgp():
-            append = (" However, the problem does follow DGP rules. "
+            append = ("\nHowever, the problem does follow DGP rules. "
                       "Consider calling this function with `gp=True`.")
-        raise DCPError("Problem does not follow DCP rules." + append)
+        raise DCPError("Problem does not follow DCP rules. Specifically:\n" + append)
     elif gp and not problem.is_dgp():
         append = ""
         if problem.is_dcp():
