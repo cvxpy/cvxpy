@@ -22,6 +22,7 @@ from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_c
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.deterministic import unique_list
+import cvxpy.utilities.performance_utils as perf
 
 # TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates
@@ -127,18 +128,28 @@ class Problem(u.Canonical):
         """
         return self._constraints[:]
 
+    @perf.compute_once
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
         return all(
           expr.is_dcp() for expr in self.constraints + [self.objective])
 
+    @perf.compute_once
     def is_dgp(self):
         """Does the problem satisfy DGP rules?
         """
         return all(
           expr.is_dgp() for expr in self.constraints + [self.objective])
 
+    @perf.compute_once
+    def is_dqcp(self):
+        """Does the problem satisfy the DQCP rules?
+        """
+        return all(
+          expr.is_dqcp() for expr in self.constraints + [self.objective])
+
+    @perf.compute_once
     def is_qp(self):
         """Is problem a quadratic program?
         """
@@ -150,6 +161,7 @@ class Problem(u.Canonical):
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
+    @perf.compute_once
     def is_mixed_integer(self):
         return any(v.attributes['boolean'] or v.attributes['integer']
                    for v in self.variables())

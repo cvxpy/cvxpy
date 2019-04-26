@@ -17,6 +17,7 @@ limitations under the License.
 
 from cvxpy import utilities as u
 from cvxpy import interface as intf
+from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant, CallbackParam
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
@@ -133,6 +134,16 @@ class Atom(Expression):
         """
         return False
 
+    def is_atom_quasiconvex(self):
+        """Is the atom quasiconvex?
+        """
+        return self.is_atom_convex()
+
+    def is_atom_quasiconcave(self):
+        """Is the atom quasiconcave?
+        """
+        return self.is_atom_concave()
+
     def is_atom_log_log_affine(self):
         """Is the atom log-log affine?
         """
@@ -215,6 +226,46 @@ class Atom(Expression):
                         (arg.is_log_log_convex() and self.is_decr(idx))):
                     return False
             return True
+        else:
+            return False
+
+    @perf.compute_once
+    def is_quasiconvex(self):
+        """Is the expression quaisconvex?
+        """
+        # Verifies the DQCP composition rule.
+        if self.is_convex():
+            return True
+        elif type(self) == cvxtypes.maximum():
+            return all(arg.is_quasiconvex() for arg in self.args)
+        elif self.is_scalar() and len(self.args) == 1 and self.is_incr(0):
+            return self.args[0].is_quasiconvex()
+        elif self.is_atom_quasiconvex():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_affine() or
+                        (arg.is_convex() and self.is_incr(idx)) or
+                        (arg.is_concave() and self.is_decr(idx))):
+                    return False
+        else:
+            return False
+
+    @perf.compute_once
+    def is_quasiconcave(self):
+        """Is the expression quasiconcave?
+        """
+        # Verifies the DQCP composition rule.
+        if self.is_concave():
+            return True
+        elif type(self) == cvxtypes.minimum():
+            return all(arg.is_quasiconcave() for arg in self.args)
+        elif self.is_scalar() and len(self.args) == 1 and self.is_decr(0):
+            return self.args[0].is_quasiconcave()
+        elif self.is_atom_quasiconcave():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_affine() or
+                        (arg.is_concave() and self.is_incr(idx)) or
+                        (arg.is_convex() and self.is_decr(idx))):
+                    return False
         else:
             return False
 

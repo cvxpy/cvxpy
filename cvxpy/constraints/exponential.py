@@ -83,12 +83,6 @@ class ExpCone(Constraint):
         # TODO use size of dual variable(s) instead.
         return sum(self.cone_sizes())
 
-    # @property
-    # def shape(self):
-    #     """Represented as vectorized.
-    #     """
-    #     return (self.size,)
-
     def num_cones(self):
         """The number of elementwise cones.
         """
@@ -111,6 +105,9 @@ class ExpCone(Constraint):
 
     def is_dgp(self):
         return False
+
+    def is_dqcp(self):
+        return self.is_dcp()
 
     def canonicalize(self):
         """Canonicalizes by converting expressions to LinOps.

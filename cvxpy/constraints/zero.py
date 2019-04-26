@@ -61,6 +61,9 @@ class Zero(Constraint):
     def is_dgp(self):
         return False
 
+    def is_dqcp(self):
+        return self.is_dcp()
+
     @property
     def residual(self):
         """The residual of the constraint.
@@ -149,6 +152,9 @@ class Equality(Constraint):
     def is_dgp(self):
         return (self.args[0].is_log_log_affine() and
                 self.args[1].is_log_log_affine())
+
+    def is_dqcp(self):
+        return self.is_dcp()
 
     @property
     def residual(self):

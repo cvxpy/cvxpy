@@ -233,6 +233,24 @@ class Expression(u.Canonical):
         """
         return self.is_log_log_convex() or self.is_log_log_concave()
 
+    @abc.abstractmethod
+    def is_quasiconvex(self):
+        return NotImplemented
+
+    @abc.abstractmethod
+    def is_quasiconcave(self):
+        return NotImplemented
+
+    def is_dqcp(self):
+        """Checks whether the Expression is DQCP.
+
+        Returns
+        -------
+        bool
+            True if the Expression is DQCP, False otherwise.
+        """
+        return self.is_quasiconvex() or self.is_quasiconcave()
+
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?
         """
