@@ -65,8 +65,7 @@ class Canonicalization(Reduction):
             canon_constr, aux_constr = self.canonicalize_tree(
                 constraint)
             canon_constraints += aux_constr + [canon_constr]
-            inverse_data.cons_id_map.update({constraint.id:
-                                             canon_constr.id})
+            inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)

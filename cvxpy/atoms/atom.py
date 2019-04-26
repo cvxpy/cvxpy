@@ -246,6 +246,7 @@ class Atom(Expression):
                         (arg.is_convex() and self.is_incr(idx)) or
                         (arg.is_concave() and self.is_decr(idx))):
                     return False
+            return True
         else:
             return False
 
@@ -266,6 +267,7 @@ class Atom(Expression):
                         (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
                     return False
+            return True
         else:
             return False
 

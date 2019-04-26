@@ -67,6 +67,7 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.vstack import vstack
 
 from cvxpy.atoms.elementwise.abs import abs
+from cvxpy.atoms.elementwise.ceil import ceil, floor
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.huber import huber
