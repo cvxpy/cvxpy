@@ -72,14 +72,19 @@ class ParamConeProg(object):
                 param_vec[col] = 1
             else:
                 param = self.id_to_param[param_id]
-                value = np.array(param.value).flatten()
+                value = np.array(param.value).flatten(order='F')
                 param_vec[col:param.size+col] = value
         # New problem without parameters.
+        print(self.A.A)
         c = (self.c*param_vec).flatten()
         # Need to cast to sparse matrix.
         param_vec = sp.csc_matrix(param_vec[:, None])
+        print((self.A*param_vec).A)
         A = (self.A*param_vec).reshape((self.constr_size, self.x.size + 1), order='F')
         A = A.tocsc()
+        print("FFFF")
+        print(param_vec.A)
+        print(A.A)
         new_prob = ParamConeProg(c, self.x, A,
                                  self.constraints, [], {})
         return new_prob
