@@ -2,8 +2,8 @@
 Copyright, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+you may not use this file except in compliance with the License. You may obtain
+a copy of the License at
 
     http://www.apache.org/licenses/LICENSE-2.0
 
@@ -22,8 +22,11 @@ from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dqcp2dcp.atom_canonicalizers import CANON_METHODS
 from cvxpy.reductions.dqcp2dcp import inverse
+from cvxpy.reductions.dqcp2dcp import tighten
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution
+
+from collections import namedtuple
 
 
 def wrap_in_list(c):
@@ -31,6 +34,11 @@ def wrap_in_list(c):
         return [c]
     else:
         return c
+
+
+BisectionData = namedtuple(
+    "BisectionData",
+    ['problem', 'param', 'tighten_lower', 'tighten_upper'])
 
 
 class Dqcp2Dcp(Canonicalization):
@@ -77,6 +85,8 @@ class Dqcp2Dcp(Canonicalization):
 
     def invert(self, solution, inverse_data):
         # Convex duality doesn't apply to quasiconvex problems.
+        # TODO might not make sense, just need to take x.value, put it into
+        # new prob
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
         return Solution(solution.status, solution.opt_val, pvars, {},
@@ -84,15 +94,18 @@ class Dqcp2Dcp(Canonicalization):
 
     def apply(self, problem):
         """Recursively canonicalize the objective and every constraint."""
-        inverse_data = InverseData(problem)
-
         t = Parameter()
         constraints = []
-        for constr in [problem.objective.expr <= t] + problem.constraints:
+        objective = problem.objective.expr
+        for constr in [objective <= t] + problem.constraints:
             canon_constr, aux_constr = self.canonicalize_constraint(constr)
             constraints += wrap_in_list(canon_constr) + aux_constr
-        return problems.problem.Problem(
-            Minimize(t), constraints), inverse_data
+        param_problem = problems.problem.Problem(Minimize(0), constraints)
+        self._bisection_data = BisectionData(
+            param_problem, t, *tighten.tighten_fns(objective))
+        # TODO(akshayka): figure out variable
+        # sharing (new problem should probably have different variables ...?)
+        return param_problem, InverseData(problem)
 
     def canonicalize_constraint(self, constr):
         """Recursively canonicalize an Inequality constraint."""
@@ -111,7 +124,8 @@ class Dqcp2Dcp(Canonicalization):
                 return self.canonicalize_constraint(lhs.args[0] >= rhs)
             elif isinstance(lhs, maximum):
                 return [], [
-                    self.canonicalize_constraint(arg <= rhs) for arg in lhs.args]
+                    self.canonicalize_constraint(arg <= rhs)
+                    for arg in lhs.args]
             else:
                 canon_args, aux_args_constr = self.canonicalize_tree(lhs)
                 canon_constr, aux_constr = self.canon_methods[type(lhs)](
