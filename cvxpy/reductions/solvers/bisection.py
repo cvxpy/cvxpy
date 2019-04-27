@@ -53,8 +53,8 @@ def _find_bisection_interval(problem, t, low=None, high=None):
     raise error.SolverError("Unable to find suitable interval for bisection.")
 
 
-def _bisect(problem, t, low, high, tighten_lower, tighten_higher, eps=1e-4,
-            verbose=False, max_iters=100):
+def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
+            eps=1e-6, verbose=False, max_iters=100):
     """Bisect `problem` on the parameter `p`."""
 
     soln = None
@@ -67,7 +67,7 @@ def _bisect(problem, t, low, high, tighten_lower, tighten_higher, eps=1e-4,
             print("(iteration %d) upper bound: %0.6f" % (i, high))
             print("(iteration %d) query point: %0.6f\n " % (i, query_pt))
         t.value = query_pt
-        problem.solve()
+        problem.solve(solver=solver)
 
         if problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
             low = tighten_lower(query_pt)
@@ -82,9 +82,9 @@ def _bisect(problem, t, low, high, tighten_lower, tighten_higher, eps=1e-4,
     raise error.SolverError("Max iters hit during bisection.")
 
 
-def bisect(bisection_data, low=None, high=None, eps=1e-6, verbose=False,
+def bisect(data, solver=None, low=None, high=None, eps=1e-6, verbose=False,
            max_iters=100):
-    problem, t, tighten_lower, tighten_higher = bisection_data
+    problem, t, tighten_lower, tighten_higher = data
     if verbose:
         print("\n******************************************************"
               "**************************\n"
@@ -99,8 +99,9 @@ def bisect(bisection_data, low=None, high=None, eps=1e-6, verbose=False,
         print("initial upper bound: %0.6f\n" % high)
 
     soln, low, high = _bisect(
-        problem, t, low, high, tighten_lower, tighten_higher,
+        problem, solver, t, low, high, tighten_lower, tighten_higher,
         eps, verbose, max_iters)
+    soln.opt_val = (low + high) / 2.0
     if verbose:
         print("Bisection completed, with lower bound %0.6f and upper bound "
               "%0.7f\n******************************************"

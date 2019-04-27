@@ -15,11 +15,13 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.error import DCPError, SolverError
+from cvxpy import error
 from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
+from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.deterministic import unique_list
 import cvxpy.utilities.performance_utils as perf
@@ -62,7 +64,7 @@ class Problem(u.Canonical):
             constraints = []
         # Check that objective is Minimize or Maximize.
         if not isinstance(objective, (Minimize, Maximize)):
-            raise DCPError("Problem objective must be Minimize or Maximize.")
+            raise error.DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
         self._constraints = [c for c in constraints]
@@ -432,7 +434,7 @@ class Problem(u.Canonical):
 
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
-                raise SolverError("The solver %s is not installed." % solver)
+                raise error.SolverError("The solver %s is not installed." % solver)
             if solver in slv_def.CONIC_SOLVERS:
                 candidates['conic_solvers'] += [solver]
             if solver in slv_def.QP_SOLVERS:
@@ -446,7 +448,7 @@ class Problem(u.Canonical):
         # If gp we must have only conic solvers
         if gp:
             if solver is not None and solver not in slv_def.CONIC_SOLVERS:
-                raise SolverError(
+                raise error.SolverError(
                   "When `gp=True`, `solver` must be a conic solver "
                   "(received '%s'); try calling " % solver +
                   " `solve()` with `solver=cvxpy.ECOS`."
@@ -463,10 +465,10 @@ class Problem(u.Canonical):
                 if slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
             if not candidates['conic_solvers'] and \
                     not candidates['qp_solvers']:
-                raise SolverError("Problem is mixed-integer, but candidate "
-                                  "QP/Conic solvers (%s) are not MIP-capable."
-                                  % [candidates['qp_solvers'],
-                                     candidates['conic_solvers']])
+                raise error.SolverError(
+                    "Problem is mixed-integer, but candidate "
+                    "QP/Conic solvers (%s) are not MIP-capable." %
+                    [candidates['qp_solvers'], candidates['conic_solvers']])
 
         return candidates
 
@@ -515,7 +517,7 @@ class Problem(u.Canonical):
                solver=None,
                warm_start=True,
                verbose=False,
-               parallel=False, gp=False, **kwargs):
+               parallel=False, gp=False, qcp=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -532,8 +534,9 @@ class Problem(u.Canonical):
         parallel : bool, optional
             If problem is separable, solve in parallel.
         gp : bool, optional
-            If True, then parses the problem as a disciplined geometric program
-            instead of a disciplined convex program.
+            If True, parses the problem as a disciplined geometric program.
+        qcp : bool, optional
+            If True, parses the problem as a disciplined quasiconvex program.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -545,28 +548,34 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
+        if gp and qcp:
+            raise ValueError("At most one of `gp` and `qcp` can be True.")
         if parallel:
             from cvxpy.transforms.separable_problems import get_separable_problems
             self._separable_problems = (get_separable_problems(self))
             if len(self._separable_problems) > 1:
-                return self._parallel_solve(solver, warm_start,
-                                            verbose, **kwargs)
+                return self._parallel_solve(
+                    solver, warm_start, verbose, **kwargs)
+        if qcp:
+            if not self.is_dqcp():
+                # TODO(akshayka): Better error-reporting.
+                raise error.DQCPError("The problem is not DQCP.")
+            reduction = dqcp2dcp.Dqcp2Dcp(self)
+            reduction.reduce()
+            soln = bisection.bisect(
+                reduction.bisection_data, solver=solver, low=False, verbose=verbose,
+                **kwargs)
+            self.unpack(soln)
+            return self.value
 
         self._construct_chains(solver=solver, gp=gp)
-
-        data, solving_inverse_data = \
-            self._solving_chain.apply(self._intermediate_problem)
-
-        solution = self._solving_chain.solve_via_data(self, data,
-                                                      warm_start,
-                                                      verbose, kwargs)
-
-        full_chain = \
-            self._solving_chain.prepend(self._intermediate_chain)
+        data, solving_inverse_data = self._solving_chain.apply(
+            self._intermediate_problem)
+        solution = self._solving_chain.solve_via_data(
+            self, data, warm_start, verbose, kwargs)
+        full_chain = self._solving_chain.prepend(self._intermediate_chain)
         inverse_data = self._intermediate_inverse_data + solving_inverse_data
-
         self.unpack_results(solution, full_chain, inverse_data)
-
         return self.value
 
     def _parallel_solve(self,
@@ -707,7 +716,7 @@ class Problem(u.Canonical):
 
         solution = chain.invert(solution, inverse_data)
         if solution.status in s.ERROR:
-            raise SolverError(
+            raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +
                     "Try another solver, or solve with verbose=True for more "
                     "information.")

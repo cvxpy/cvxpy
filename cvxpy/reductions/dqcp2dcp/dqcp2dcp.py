@@ -77,6 +77,7 @@ class Dqcp2Dcp(Canonicalization):
     def __init__(self, problem=None):
         super(Dqcp2Dcp, self).__init__(
             canon_methods=CANON_METHODS, problem=problem)
+        self._bisection_data = None
 
     def accepts(self, problem):
         """A problem is accepted if it is DQCP.
@@ -92,19 +93,26 @@ class Dqcp2Dcp(Canonicalization):
         return Solution(solution.status, solution.opt_val, pvars, {},
                         solution.attr)
 
+    @property
+    def bisection_data(self):
+        return self._bisection_data
+
     def apply(self, problem):
         """Recursively canonicalize the objective and every constraint."""
+        # TODO(akshayka): Problems probably shouldn't share variables.
         t = Parameter()
         constraints = []
         objective = problem.objective.expr
-        for constr in [objective <= t] + problem.constraints:
+        if isinstance(problem.objective, Minimize):
+            objective_constr = [objective <= t]
+        else:
+            objective_constr = [objective >= t]
+        for constr in objective_constr + problem.constraints:
             canon_constr, aux_constr = self.canonicalize_constraint(constr)
             constraints += wrap_in_list(canon_constr) + aux_constr
         param_problem = problems.problem.Problem(Minimize(0), constraints)
         self._bisection_data = BisectionData(
             param_problem, t, *tighten.tighten_fns(objective))
-        # TODO(akshayka): figure out variable
-        # sharing (new problem should probably have different variables ...?)
         return param_problem, InverseData(problem)
 
     def canonicalize_constraint(self, constr):
