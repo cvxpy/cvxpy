@@ -563,7 +563,7 @@ class Problem(u.Canonical):
             reduction = dqcp2dcp.Dqcp2Dcp(self)
             reduction.reduce()
             soln = bisection.bisect(
-                reduction.bisection_data, solver=solver, low=False, verbose=verbose,
+                reduction.bisection_data, solver=solver, verbose=verbose,
                 **kwargs)
             self.unpack(soln)
             return self.value
