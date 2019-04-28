@@ -367,3 +367,15 @@ class TestDqcp2Dcp(base_test.BaseTest):
         problem.solve(qcp=True)
         self.assertAlmostEqual(problem.objective.value, 0.428, places=1)
         self.assertAlmostEqual(x.value, 0.5, places=1)
+
+    def test_length(self):
+        x = cp.Variable(5)
+        expr = cp.length(x)
+        self.assertTrue(expr.is_dqcp())
+        self.assertTrue(expr.is_quasiconvex())
+        self.assertFalse(expr.is_quasiconcave())
+
+        problem = cp.Problem(cp.Minimize(expr), [x[0] == 2.0, x[1] == 1.0])
+        problem.solve(qcp=True, high=2.1)
+        self.assertEqual(problem.objective.value, 2)
+        np.testing.assert_almost_equal(x.value, np.array([2, 1, 0, 0, 0]))

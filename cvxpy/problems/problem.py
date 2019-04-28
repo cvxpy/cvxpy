@@ -70,9 +70,6 @@ class Problem(u.Canonical):
         # Constraints and objective are immutable.
         self._objective = objective
         self._constraints = [c for c in constraints]
-        self._vars = self._variables()
-        self._params = self._parameters()
-        self._consts = self._constants()
         self._value = None
         self._status = None
         self._solution = None
@@ -170,6 +167,7 @@ class Problem(u.Canonical):
         return any(v.attributes['boolean'] or v.attributes['integer']
                    for v in self.variables())
 
+    @perf.compute_once
     def variables(self):
         """Accessor method for variables.
 
@@ -178,14 +176,12 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.variable.Variable`
             A list of the variables in the problem.
         """
-        return self._vars
-
-    def _variables(self):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
         return unique_list(vars_)
 
+    @perf.compute_once
     def parameters(self):
         """Accessor method for parameters.
 
@@ -194,14 +190,12 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.parameter.Parameter`
             A list of the parameters in the problem.
         """
-        return self._params
-
-    def _parameters(self):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
         return unique_list(params)
 
+    @perf.compute_once
     def constants(self):
         """Accessor method for parameters.
 
@@ -210,9 +204,6 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.constant.Constant`
             A list of the constants in the problem.
         """
-        return self._consts
-
-    def _constants(self):
         const_dict = {}
         constants_ = self.objective.constants()
         for constr in self.constraints:

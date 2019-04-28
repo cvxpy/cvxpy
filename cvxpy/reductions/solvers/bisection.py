@@ -15,9 +15,18 @@ limitations under the License.
 """
 import cvxpy.settings as s
 import cvxpy.error as error
+import cvxpy.problems as problems
+from cvxpy.problems.objective import Minimize
 
 
-def _find_bisection_interval(problem, t, low=None, high=None):
+def _lower_problem(problem):
+    if any(callable(c) for c in problem.constraints):
+        constrs = [c() if callable(c) else c for c in problem.constraints]
+        return problems.problem.Problem(Minimize(0), constrs)
+    return problem
+
+
+def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
     if low is None:
         low = 0 if t.is_nonneg() else -1
     if high is None:
@@ -28,25 +37,27 @@ def _find_bisection_interval(problem, t, low=None, high=None):
     for _ in range(100):
         if not feasible_high:
             t.value = high
-            problem.solve()
-            if problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
+            lowered = _lower_problem(problem)
+            lowered.solve(solver=solver)
+            if lowered.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
                 low = high
                 high *= 2
                 continue
-            elif problem.status in s.SOLUTION_PRESENT:
+            elif lowered.status in s.SOLUTION_PRESENT:
                 feasible_high = True
             else:
                 raise error.SolverError(
-                    "Solver failed with status %s" % problem.status)
+                    "Solver failed with status %s" % lowered.status)
 
         if not infeasible_low:
             t.value = low
-            problem.solve()
-            if problem.status in s.SOLUTION_PRESENT:
+            lowered = _lower_problem(problem)
+            lowered.solve(solver=solver)
+            if lowered.status in s.SOLUTION_PRESENT:
                 high = low
                 low *= 2
                 continue
-            elif problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
+            elif lowered.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
                 infeasible_low = True
 
         if infeasible_low and feasible_high:
@@ -57,7 +68,7 @@ def _find_bisection_interval(problem, t, low=None, high=None):
 
 def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             eps=1e-6, verbose=False, max_iters=100):
-    """Bisect `problem` on the parameter `p`."""
+    """Bisect `problem` on the parameter `t`."""
 
     soln = None
     for i in range(max_iters):
@@ -69,23 +80,24 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             print("(iteration %d) upper bound: %0.6f" % (i, high))
             print("(iteration %d) query point: %0.6f " % (i, query_pt))
         t.value = query_pt
-        problem.solve(solver=solver)
+        lowered = _lower_problem(problem)
+        lowered.solve(solver=solver)
 
-        if problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
+        if lowered.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
             if verbose and i % 5 == 0:
                 print("(iteration %d) query was infeasible.\n" % i)
             low = tighten_lower(query_pt)
-        elif problem.status in s.SOLUTION_PRESENT:
+        elif lowered.status in s.SOLUTION_PRESENT:
             if verbose and i % 5 == 0:
                 print("(iteration %d) query was feasible. %s)\n" %
-                      (i, problem.solution))
-            soln = problem.solution
+                      (i, lowered.solution))
+            soln = lowered.solution
             high = tighten_higher(query_pt)
         else:
             if verbose:
                 print("Aborting; the solver failed ...\n")
             raise error.SolverError(
-                "Solver failed with status %s" % problem.status)
+                "Solver failed with status %s" % lowered.status)
     raise error.SolverError("Max iters hit during bisection.")
 
 
@@ -100,7 +112,7 @@ def bisect(data, solver=None, low=None, high=None, eps=1e-6, verbose=False,
     if low is None or high is None:
         if verbose:
             print("Finding interval for bisection ...")
-        low, high = _find_bisection_interval(problem, t, low, high)
+        low, high = _find_bisection_interval(problem, t, solver, low, high)
     if verbose:
         print("initial lower bound: %0.6f" % low)
         print("initial upper bound: %0.6f\n" % high)

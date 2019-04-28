@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.atoms import inv_pos, multiply
+from cvxpy.atoms import inv_pos, floor, length, multiply
 from cvxpy.atoms.affine.binary_operators import DivExpression
 
 
@@ -57,10 +57,15 @@ def ratio_sub(expr, t):
         raise ValueError("The denominator's sign must be known.")
 
 
-# TODO(akshayka): ratio
+def length_sub(expr, t):
+    arg = expr.args[0]
+    return [lambda: arg[int(floor(t).value):] == 0]
+
+
 SUBLEVEL_SETS = {
     multiply: mul_sub,
     DivExpression: ratio_sub,
+    length: length_sub,
 }
 
 

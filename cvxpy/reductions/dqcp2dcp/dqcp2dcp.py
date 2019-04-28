@@ -40,7 +40,9 @@ class Dqcp2Dcp(Canonicalization):
     """Reduce DQCP problems to a parameterized DCP problem.
 
     This reduction takes as input a DQCP problem and returns a parameterized DCP
-    problem that can be solved by bisection.
+    problem that can be solved by bisection. Some of the constraints might
+    be lazy, i.e., callables whose expressions depend upon the value taken
+    by a parameter.
 
     Example
     -------
