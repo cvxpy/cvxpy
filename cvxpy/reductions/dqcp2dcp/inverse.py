@@ -13,29 +13,35 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.atoms import ceil, floor
+from cvxpy.atoms import ceil, exp, floor, inv_pos, log, log1p, logistic, power
+from cvxpy.atoms.affine.unary_operators import NegExpression
+
+INVERTIBLE = set(
+    [ceil, floor, NegExpression, exp, log, log1p, logistic, power, inv_pos])
 
 
-def ceil_inv(t):
-    return floor(t)
-
-
-def floor_inv(t):
-    return ceil(t)
-
-
-INVERSES = {
-    ceil: ceil_inv,
-    floor: floor_inv,
-}
-
-
-INVERTIBLE = set(INVERSES.keys())
+def inverse(expr):
+    if type(expr) == ceil:
+        return lambda t: floor(t)
+    elif type(expr) == floor:
+        return lambda t: ceil(t)
+    elif type(expr) == NegExpression:
+        return lambda t: -t
+    elif type(expr) == exp:
+        return lambda t: log(t)
+    elif type(expr) == log:
+        return lambda t: exp(t)
+    elif type(expr) == log1p:
+        return lambda t: exp(t) - 1
+    elif type(expr) == logistic:
+        return lambda t: log(exp(t) - 1)
+    elif type(expr) == power:
+        return lambda t: power(t, 1/expr.p),
+    elif type(expr) == inv_pos:
+        return lambda t: inv_pos(t)
+    else:
+        raise ValueError
 
 
 def invertible(expr):
     return type(expr) in INVERTIBLE
-
-
-def inverse(expr):
-    return INVERSES[type(expr)]

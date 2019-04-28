@@ -17,7 +17,9 @@ limitations under the License.
 import cvxpy.settings as s
 from cvxpy import error
 from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
+from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
@@ -558,14 +560,17 @@ class Problem(u.Canonical):
                     solver, warm_start, verbose, **kwargs)
         if qcp:
             if not self.is_dqcp():
-                # TODO(akshayka): Better error-reporting.
+                # TODO(akshayka): Better error message.
                 raise error.DQCPError("The problem is not DQCP.")
-            reduction = dqcp2dcp.Dqcp2Dcp(self)
-            reduction.reduce()
+            reductions = [dqcp2dcp.Dqcp2Dcp()]
+            if type(self.objective) == Maximize:
+                reductions = [FlipObjective()] + reductions
+            chain = Chain(problem=self, reductions=reductions)
+            chain.reduce()
             soln = bisection.bisect(
-                reduction.bisection_data, solver=solver, verbose=verbose,
+                reductions[-1].bisection_data, solver=solver, verbose=verbose,
                 **kwargs)
-            self.unpack(soln)
+            self.unpack(chain.retrieve(soln))
             return self.value
 
         self._construct_chains(solver=solver, gp=gp)

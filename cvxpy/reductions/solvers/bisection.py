@@ -19,9 +19,9 @@ import cvxpy.error as error
 
 def _find_bisection_interval(problem, t, low=None, high=None):
     if low is None:
-        low = -1.0
+        low = 0 if t.is_nonneg() else -1
     if high is None:
-        high = 1.0
+        high = 0 if t.is_nonpos() else 1
 
     for _ in range(100):
         t.value = high
@@ -65,13 +65,18 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
         if verbose and i % 5 == 0:
             print("(iteration %d) lower bound: %0.6f" % (i, low))
             print("(iteration %d) upper bound: %0.6f" % (i, high))
-            print("(iteration %d) query point: %0.6f\n " % (i, query_pt))
+            print("(iteration %d) query point: %0.6f " % (i, query_pt))
         t.value = query_pt
         problem.solve(solver=solver)
 
         if problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
+            if verbose and i % 5 == 0:
+                print("(iteration %d) is infeasible.\n" % i)
             low = tighten_lower(query_pt)
         elif problem.status in s.SOLUTION_PRESENT:
+            if verbose and i % 5 == 0:
+                print("(iteration %d) is feasible. %s)\n" %
+                      (i, problem.solution))
             soln = problem.solution
             high = tighten_higher(query_pt)
         else:

@@ -239,7 +239,10 @@ class Atom(Expression):
         elif type(self) == cvxtypes.maximum():
             return all(arg.is_quasiconvex() for arg in self.args)
         elif self.is_scalar() and len(self.args) == 1 and self.is_incr(0):
+            # TODO(akshayka): Accommodate vector atoms if people want it.
             return self.args[0].is_quasiconvex()
+        elif self.is_scalar() and len(self.args) == 1 and self.is_decr(0):
+            return self.args[0].is_quasiconcave()
         elif self.is_atom_quasiconvex():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_affine() or
@@ -259,8 +262,10 @@ class Atom(Expression):
             return True
         elif type(self) == cvxtypes.minimum():
             return all(arg.is_quasiconcave() for arg in self.args)
-        elif self.is_scalar() and len(self.args) == 1 and self.is_decr(0):
+        elif self.is_scalar() and len(self.args) == 1 and self.is_incr(0):
             return self.args[0].is_quasiconcave()
+        elif self.is_scalar() and len(self.args) == 1 and self.is_decr(0):
+            return self.args[0].is_quasiconvex()
         elif self.is_atom_quasiconcave():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_affine() or

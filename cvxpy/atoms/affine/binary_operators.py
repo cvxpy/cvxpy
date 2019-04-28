@@ -230,6 +230,14 @@ class multiply(MulExpression):
         """
         return True
 
+    def is_atom_quasiconvex(self):
+        return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or (
+                self.args[0].is_nonpos() and self.args[1].is_nonneg())
+
+    def is_atom_quasiconcave(self):
+        return all(arg.is_nonneg() for arg in self.args) or all(
+                   arg.is_nonpos() for arg in self.args)
+
     def numeric(self, values):
         """Multiplies the values elementwise.
         """
