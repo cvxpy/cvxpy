@@ -240,7 +240,6 @@ class TestDqcp2Dcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, -12, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
 
-    # TODO(akshayka): ratio tests
     def test_basic_multiply_qcvx(self):
         x = cp.Variable(nonneg=True)
         y = cp.Variable(nonpos=True)
@@ -278,4 +277,61 @@ class TestDqcp2Dcp(base_test.BaseTest):
         problem.solve(qcp=True, solver=cp.SCS)
         self.assertAlmostEqual(problem.objective.value, -42, places=1)
         self.assertAlmostEqual(x.value, 7, places=1)
+        self.assertAlmostEqual(y.value, -6, places=1)
+
+    def test_concave_multiply(self):
+        x, y = cp.Variable(2, nonneg=True)
+        expr = cp.sqrt(x) * cp.sqrt(y)
+        self.assertTrue(expr.is_dqcp())
+        self.assertTrue(expr.is_quasiconcave())
+        self.assertFalse(expr.is_quasiconvex())
+
+        problem = cp.Problem(cp.Maximize(expr), [x <= 4, y <= 9])
+        problem.solve(qcp=True, solver=cp.SCS)
+        self.assertAlmostEqual(problem.objective.value, 6, places=1)
+        self.assertAlmostEqual(x.value, 4, places=1)
+        self.assertAlmostEqual(y.value, 9, places=1)
+
+        x, y = cp.Variable(2, nonneg=True)
+        expr = (cp.sqrt(x) + 2.0) * (cp.sqrt(y) + 4.0)
+        self.assertTrue(expr.is_dqcp())
+        self.assertTrue(expr.is_quasiconcave())
+        self.assertFalse(expr.is_quasiconvex())
+
+        problem = cp.Problem(cp.Maximize(expr), [x <= 4, y <= 9])
+        problem.solve(qcp=True, solver=cp.SCS)
+        # (2 + 2) * (3 + 4) = 28
+        self.assertAlmostEqual(problem.objective.value, 28, places=1)
+        self.assertAlmostEqual(x.value, 4, places=1)
+        self.assertAlmostEqual(y.value, 9, places=1)
+
+    def test_basic_ratio(self):
+        x = cp.Variable()
+        y = cp.Variable(nonneg=True)
+        expr = x / y
+        self.assertTrue(expr.is_dqcp())
+        self.assertTrue(expr.is_quasiconcave())
+        self.assertTrue(expr.is_quasiconvex())
+
+        problem = cp.Problem(cp.Minimize(expr), [x == 12, y <= 6])
+        self.assertTrue(problem.is_dqcp())
+
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(problem.objective.value, 2.0, places=1)
+        self.assertAlmostEqual(x.value, 12, places=1)
+        self.assertAlmostEqual(y.value, 6, places=1)
+
+        x = cp.Variable()
+        y = cp.Variable(nonpos=True)
+        expr = x / y
+        self.assertTrue(expr.is_dqcp())
+        self.assertTrue(expr.is_quasiconcave())
+        self.assertTrue(expr.is_quasiconvex())
+
+        problem = cp.Problem(cp.Maximize(expr), [x == 12, y >= -6])
+        self.assertTrue(problem.is_dqcp())
+
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(problem.objective.value, -2.0, places=1)
+        self.assertAlmostEqual(x.value, 12, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)

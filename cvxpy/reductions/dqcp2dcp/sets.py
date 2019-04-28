@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy.atoms import inv_pos, multiply
+from cvxpy.atoms.affine.binary_operators import DivExpression
 
 
 def mul_sup(expr, t):
@@ -36,13 +37,36 @@ def mul_sub(expr, t):
         raise ValueError("Incorrect signs.")
 
 
+def ratio_sup(expr, t):
+    x, y = expr.args
+    if y.is_nonneg():
+        return [x >= t * y]
+    elif y.is_nonpos():
+        return [x <= t * y]
+    else:
+        raise ValueError("The denominator's sign must be known.")
+
+
+def ratio_sub(expr, t):
+    x, y = expr.args
+    if y.is_nonneg():
+        return [x <= t * y]
+    elif y.is_nonpos():
+        return [x >= t * y]
+    else:
+        raise ValueError("The denominator's sign must be known.")
+
+
+# TODO(akshayka): ratio
 SUBLEVEL_SETS = {
     multiply: mul_sub,
+    DivExpression: ratio_sub,
 }
 
 
 SUPERLEVEL_SETS = {
     multiply: mul_sup,
+    DivExpression: ratio_sup,
 }
 
 

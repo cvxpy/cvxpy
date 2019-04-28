@@ -342,6 +342,12 @@ class DivExpression(multiply):
         """
         return True
 
+    def is_atom_quasiconvex(self):
+        return self.args[1].is_nonneg() or self.args[1].is_nonpos()
+
+    def is_atom_quasiconcave(self):
+        return self.is_atom_quasiconvex()
+
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """

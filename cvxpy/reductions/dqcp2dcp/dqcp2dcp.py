@@ -16,8 +16,9 @@ limitations under the License.
 from cvxpy import problems
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
-from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.constraints import Inequality
+from cvxpy.expressions.constants.parameter import Parameter
+from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
@@ -109,11 +110,26 @@ class Dqcp2Dcp(Canonicalization):
             param_problem, t, *tighten.tighten_fns(objective))
         return param_problem, InverseData(problem)
 
+    def _canonicalize_tree(self, expr):
+        canon_args, constrs = self._canon_args(expr)
+        canon_expr, c = self.canonicalize_expr(expr, canon_args)
+        constrs += c
+        return canon_expr, constrs
+
     def _canon_args(self, expr):
+        """Canonicalize arguments of an expression.
+
+        Like Canonicalization.canonicalize_tree, but preserves signs.
+        """
         canon_args = []
         constrs = []
         for arg in expr.args:
-            canon_arg, c = self.canonicalize_tree(arg)
+            canon_arg, c = self._canonicalize_tree(arg)
+            if isinstance(canon_arg, Variable):
+                if arg.is_nonneg():
+                    canon_arg.attributes["nonneg"] = True
+                elif arg.is_nonpos():
+                    canon_arg.attributes["nonpos"] = True
             canon_args += [canon_arg]
             constrs += c
         return canon_args, constrs
