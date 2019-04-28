@@ -17,6 +17,8 @@ import cvxpy as cp
 from cvxpy.reductions.solvers import bisection
 from cvxpy.tests import base_test
 
+import numpy as np
+
 
 class TestDqcp2Dcp(base_test.BaseTest):
     def test_basic_with_interval(self):
@@ -335,3 +337,33 @@ class TestDqcp2Dcp(base_test.BaseTest):
         self.assertAlmostEqual(problem.objective.value, -2.0, places=1)
         self.assertAlmostEqual(x.value, 12, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
+
+    def test_lin_frac(self):
+        x = cp.Variable((2,), nonneg=True)
+        A = np.array([[1.0, 2.0], [3.0, 4.0]])
+        b = np.arange(2)
+        C = 2 * A
+        d = np.arange(2)
+        lin_frac = (A @ x + b) / (C @ x + d)
+        self.assertTrue(lin_frac.is_dqcp())
+        self.assertTrue(lin_frac.is_quasiconvex())
+        self.assertTrue(lin_frac.is_quasiconcave())
+
+        problem = cp.Problem(cp.Minimize(cp.sum(x)), [x >= 0, lin_frac <= 1])
+        self.assertTrue(problem.is_dqcp())
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(problem.objective.value, 0, places=1)
+        np.testing.assert_almost_equal(x.value, 0)
+
+    def test_concave_frac(self):
+        x = cp.Variable(nonneg=True)
+        concave_frac = cp.sqrt(x) / cp.exp(x)
+        self.assertTrue(concave_frac.is_dqcp())
+        self.assertTrue(concave_frac.is_quasiconcave())
+        self.assertFalse(concave_frac.is_quasiconvex())
+
+        problem = cp.Problem(cp.Maximize(concave_frac))
+        self.assertTrue(problem.is_dqcp())
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(problem.objective.value, 0.428, places=1)
+        self.assertAlmostEqual(x.value, 0.5, places=1)

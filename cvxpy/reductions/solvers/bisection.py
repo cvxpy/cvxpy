@@ -23,29 +23,31 @@ def _find_bisection_interval(problem, t, low=None, high=None):
     if high is None:
         high = 0 if t.is_nonpos() else 1
 
+    infeasible_low = t.is_nonneg()
+    feasible_high = t.is_nonpos()
     for _ in range(100):
-        t.value = high
-        problem.solve()
-        infeasible_low = False
-        feasible_high = False
-        if problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
-            low = high
-            high *= 2
-            continue
-        elif problem.status in s.SOLUTION_PRESENT:
-            feasible_high = True
-        else:
-            raise error.SolverError(
-                "Solver failed with status %s" % problem.status)
+        if not feasible_high:
+            t.value = high
+            problem.solve()
+            if problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
+                low = high
+                high *= 2
+                continue
+            elif problem.status in s.SOLUTION_PRESENT:
+                feasible_high = True
+            else:
+                raise error.SolverError(
+                    "Solver failed with status %s" % problem.status)
 
-        t.value = low
-        problem.solve()
-        if problem.status in s.SOLUTION_PRESENT:
-            high = low
-            low *= 2
-            continue
-        elif problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
-            infeasible_low = True
+        if not infeasible_low:
+            t.value = low
+            problem.solve()
+            if problem.status in s.SOLUTION_PRESENT:
+                high = low
+                low *= 2
+                continue
+            elif problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
+                infeasible_low = True
 
         if infeasible_low and feasible_high:
             return low, high
@@ -71,11 +73,11 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
 
         if problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
             if verbose and i % 5 == 0:
-                print("(iteration %d) is infeasible.\n" % i)
+                print("(iteration %d) query was infeasible.\n" % i)
             low = tighten_lower(query_pt)
         elif problem.status in s.SOLUTION_PRESENT:
             if verbose and i % 5 == 0:
-                print("(iteration %d) is feasible. %s)\n" %
+                print("(iteration %d) query was feasible. %s)\n" %
                       (i, problem.solution))
             soln = problem.solution
             high = tighten_higher(query_pt)
