@@ -31,9 +31,21 @@ from cvxpy.reductions.solution import Solution
 from collections import namedtuple
 
 
+# A tuple (problem, feas_problem, param, tighten_lower, tighten_upper), where
+#
+#   `feas_problem` is a problem that can be used to check if the original
+#       problem was feasible
+#   `param` is the Parameter on which to bisect,
+#   `tighten_lower` is a callable that takes a value of param for which
+#       the problem is infeasible, and returns a larger value
+#       for which the problem is still infeasible (or the smallest value for
+#       which it is feasible)
+#   `tighten_upper` is a callable that takes a value of param for which
+#       the problem is feasible, and returns a smaller value for which the
+#       problem is still feasible
 BisectionData = namedtuple(
     "BisectionData",
-    ['problem', 'param', 'tighten_lower', 'tighten_upper'])
+    ['feas_problem', 'param', 'tighten_lower', 'tighten_upper'])
 
 
 class Dqcp2Dcp(Canonicalization):
@@ -41,8 +53,12 @@ class Dqcp2Dcp(Canonicalization):
 
     This reduction takes as input a DQCP problem and returns a parameterized DCP
     problem that can be solved by bisection. Some of the constraints might
-    be lazy, i.e., callables whose expressions depend upon the value taken
-    by a parameter.
+    be lazy, i.e., callables that return a constraint when called. The problem
+    will only be DCP once the lazy constraints are replaced with actual
+    constraints.
+
+    Problems emitted by this reduction can be solved with the `cp.bisect`
+    function.
 
     Example
     -------
@@ -82,20 +98,19 @@ class Dqcp2Dcp(Canonicalization):
         return type(problem.objective) == Minimize and problem.is_dqcp()
 
     def invert(self, solution, inverse_data):
-        # Convex duality doesn't apply to quasiconvex problems.
-        # TODO might not make sense, just need to take x.value, put it into
-        # new prob
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
         return Solution(solution.status, solution.opt_val, pvars, {},
                         solution.attr)
 
-    @property
-    def bisection_data(self):
-        return self._bisection_data
-
     def apply(self, problem):
-        """Recursively canonicalize the objective and every constraint."""
+        """Recursively canonicalize the objective and every constraint.
+        """
+        constraints = []
+        for constr in problem.constraints:
+            constraints += self._canonicalize_constraint(constr)
+        feas_problem = problems.problem.Problem(Minimize(0), constraints)
+
         objective = problem.objective.expr
         if objective.is_nonneg():
             t = Parameter(nonneg=True)
@@ -103,13 +118,10 @@ class Dqcp2Dcp(Canonicalization):
             t = Parameter(nonpos=True)
         else:
             t = Parameter()
-
-        constraints = []
-        for constr in [objective <= t] + problem.constraints:
-            constraints += self._canonicalize_constraint(constr)
+        constraints += self._canonicalize_constraint(objective <= t)
         param_problem = problems.problem.Problem(Minimize(0), constraints)
-        self._bisection_data = BisectionData(
-            param_problem, t, *tighten.tighten_fns(objective))
+        param_problem._bisection_data = BisectionData(
+            feas_problem, t, *tighten.tighten_fns(objective))
         return param_problem, InverseData(problem)
 
     def _canonicalize_tree(self, expr):

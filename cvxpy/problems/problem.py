@@ -557,10 +557,8 @@ class Problem(u.Canonical):
             if type(self.objective) == Maximize:
                 reductions = [FlipObjective()] + reductions
             chain = Chain(problem=self, reductions=reductions)
-            chain.reduce()
             soln = bisection.bisect(
-                reductions[-1].bisection_data, solver=solver, verbose=verbose,
-                **kwargs)
+                chain.reduce(), solver=solver, verbose=verbose, **kwargs)
             self.unpack(chain.retrieve(soln))
             return self.value
 

@@ -15,6 +15,7 @@ limitations under the License.
 """
 import cvxpy as cp
 from cvxpy.reductions.solvers import bisection
+import cvxpy.settings as s
 from cvxpy.tests import base_test
 
 import numpy as np
@@ -42,7 +43,7 @@ class TestDqcp2Dcp(base_test.BaseTest):
         reduced = red.reduce()
         self.assertTrue(reduced.is_dcp())
         self.assertEqual(len(reduced.parameters()), 1)
-        soln = bisection.bisect(red.bisection_data, low=12, high=17)
+        soln = bisection.bisect(reduced, low=12, high=17)
         self.assertAlmostEqual(soln.opt_val, 12.0, places=3)
 
         problem.unpack(soln)
@@ -70,7 +71,7 @@ class TestDqcp2Dcp(base_test.BaseTest):
         reduced = red.reduce()
         self.assertTrue(reduced.is_dcp())
         self.assertEqual(len(reduced.parameters()), 1)
-        soln = bisection.bisect(red.bisection_data)
+        soln = bisection.bisect(reduced)
         self.assertAlmostEqual(soln.opt_val, 12.0, places=3)
 
         problem.unpack(soln)
@@ -289,7 +290,7 @@ class TestDqcp2Dcp(base_test.BaseTest):
         self.assertFalse(expr.is_quasiconvex())
 
         problem = cp.Problem(cp.Maximize(expr), [x <= 4, y <= 9])
-        problem.solve(qcp=True, solver=cp.SCS)
+        problem.solve(qcp=True, solver=cp.ECOS)
         self.assertAlmostEqual(problem.objective.value, 6, places=1)
         self.assertAlmostEqual(x.value, 4, places=1)
         self.assertAlmostEqual(y.value, 9, places=1)
@@ -301,7 +302,7 @@ class TestDqcp2Dcp(base_test.BaseTest):
         self.assertFalse(expr.is_quasiconvex())
 
         problem = cp.Problem(cp.Maximize(expr), [x <= 4, y <= 9])
-        problem.solve(qcp=True, solver=cp.SCS)
+        problem.solve(qcp=True, solver=cp.ECOS)
         # (2 + 2) * (3 + 4) = 28
         self.assertAlmostEqual(problem.objective.value, 28, places=1)
         self.assertAlmostEqual(x.value, 4, places=1)
@@ -376,6 +377,13 @@ class TestDqcp2Dcp(base_test.BaseTest):
         self.assertFalse(expr.is_quasiconcave())
 
         problem = cp.Problem(cp.Minimize(expr), [x[0] == 2.0, x[1] == 1.0])
-        problem.solve(qcp=True, high=2.1)
+        problem.solve(qcp=True)
         self.assertEqual(problem.objective.value, 2)
         np.testing.assert_almost_equal(x.value, np.array([2, 1, 0, 0, 0]))
+
+    def test_infeasible(self):
+        x = cp.Variable(2)
+        problem = cp.Problem(
+            cp.Minimize(cp.length(x)), [x == -1, cp.ceil(x) >= 1])
+        problem.solve(qcp=True)
+        self.assertIn(problem.status, (s.INFEASIBLE, s.INFEASIBLE_INACCURATE))

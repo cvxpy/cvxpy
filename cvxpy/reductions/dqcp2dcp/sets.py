@@ -15,6 +15,7 @@ limitations under the License.
 """
 from cvxpy.atoms import inv_pos, floor, length, multiply
 from cvxpy.atoms.affine.binary_operators import DivExpression
+from cvxpy.expressions.constants.parameter import Parameter
 
 
 def mul_sup(expr, t):
@@ -59,7 +60,14 @@ def ratio_sub(expr, t):
 
 def length_sub(expr, t):
     arg = expr.args[0]
-    return [lambda: arg[int(floor(t).value):] == 0]
+    if isinstance(t, Parameter):
+        def sublevel_set():
+            if t.value < 0:
+                raise ValueError("Length cannot be negative.")
+            return arg[int(floor(t).value):] == 0
+        return [sublevel_set]
+    else:
+        return [arg[int(floor(t).value):] == 0]
 
 
 SUBLEVEL_SETS = {

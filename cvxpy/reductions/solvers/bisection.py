@@ -17,6 +17,7 @@ import cvxpy.settings as s
 import cvxpy.error as error
 import cvxpy.problems as problems
 from cvxpy.problems.objective import Minimize
+from cvxpy.reductions import solution as solution_module
 
 
 def _lower_problem(problem):
@@ -24,6 +25,10 @@ def _lower_problem(problem):
         constrs = [c() if callable(c) else c for c in problem.constraints]
         return problems.problem.Problem(Minimize(0), constrs)
     return problem
+
+
+def infeasible(problem):
+    return problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE)
 
 
 def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
@@ -39,7 +44,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
             t.value = high
             lowered = _lower_problem(problem)
             lowered.solve(solver=solver)
-            if lowered.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
+            if infeasible(lowered):
                 low = high
                 high *= 2
                 continue
@@ -57,7 +62,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
                 high = low
                 low *= 2
                 continue
-            elif lowered.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
+            elif infeasible(lowered):
                 infeasible_low = True
 
         if infeasible_low and feasible_high:
@@ -70,12 +75,18 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             eps=1e-6, verbose=False, max_iters=100):
     """Bisect `problem` on the parameter `t`."""
 
+    verbose_freq = 5
     soln = None
     for i in range(max_iters):
-        if low > high or (high - low) <= eps:
+        assert low <= high
+        if soln is not None and (high - low) <= eps:
+            # the previous iteration might have been infeasible, but
+            # the tigthen* functions might have narrowed the interval
+            # to the optimal value in the previous iteration (hence the
+            # soln is not None check)
             return soln, low, high
         query_pt = (low + high) / 2.0
-        if verbose and i % 5 == 0:
+        if verbose and i % verbose_freq == 0:
             print("(iteration %d) lower bound: %0.6f" % (i, low))
             print("(iteration %d) upper bound: %0.6f" % (i, high))
             print("(iteration %d) query point: %0.6f " % (i, query_pt))
@@ -83,12 +94,12 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
         lowered = _lower_problem(problem)
         lowered.solve(solver=solver)
 
-        if lowered.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE):
-            if verbose and i % 5 == 0:
+        if infeasible(lowered):
+            if verbose and i % verbose_freq == 0:
                 print("(iteration %d) query was infeasible.\n" % i)
             low = tighten_lower(query_pt)
         elif lowered.status in s.SOLUTION_PRESENT:
-            if verbose and i % 5 == 0:
+            if verbose and i % verbose_freq == 0:
                 print("(iteration %d) query was feasible. %s)\n" %
                       (i, lowered.solution))
             soln = lowered.solution
@@ -101,13 +112,20 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
     raise error.SolverError("Max iters hit during bisection.")
 
 
-def bisect(data, solver=None, low=None, high=None, eps=1e-6, verbose=False,
+def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
            max_iters=100):
-    problem, t, tighten_lower, tighten_higher = data
+    if not hasattr(problem, '_bisection_data'):
+        raise ValueError("`bisect` only accepts problems emitted by Dqcp2Dcp.")
+
+    feas_problem, t, tighten_lower, tighten_higher = problem._bisection_data
     if verbose:
         print("\n******************************************************"
               "**************************\n"
               "Preparing to bisect problem\n\n%s\n" % problem)
+
+    feas_problem.solve(solver=solver)
+    if infeasible(feas_problem):
+        return solution_module.failure_solution(s.INFEASIBLE)
 
     if low is None or high is None:
         if verbose:
@@ -120,6 +138,7 @@ def bisect(data, solver=None, low=None, high=None, eps=1e-6, verbose=False,
     soln, low, high = _bisect(
         problem, solver, t, low, high, tighten_lower, tighten_higher,
         eps, verbose, max_iters)
+
     soln.opt_val = (low + high) / 2.0
     if verbose:
         print("Bisection completed, with lower bound %0.6f and upper bound "
