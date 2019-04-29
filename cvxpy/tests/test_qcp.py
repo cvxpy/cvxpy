@@ -387,3 +387,15 @@ class TestDqcp2Dcp(base_test.BaseTest):
             cp.Minimize(cp.length(x)), [x == -1, cp.ceil(x) >= 1])
         problem.solve(qcp=True)
         self.assertIn(problem.status, (s.INFEASIBLE, s.INFEASIBLE_INACCURATE))
+
+    def test_sign(self):
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.sign(x)), [-2 <= x, x <= -0.5])
+        problem.solve(qcp=True)
+        self.assertEqual(problem.objective.value, -1)
+        self.assertLessEqual(x.value, 0)
+
+        problem = cp.Problem(cp.Maximize(cp.sign(x)), [1 <= x, x <= 2])
+        problem.solve(qcp=True)
+        self.assertEqual(problem.objective.value, 1.0)
+        self.assertGreater(x.value, 0)

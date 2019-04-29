@@ -14,23 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy.atoms.atom import Atom
-import numpy as np
 
 
-class length(Atom):
-    """Length of a vector (index of last nonzero, ones-based).
+class sign(Atom):
+    """Sign of an expression (-1 for x <= 0, +1 for x > 0).
     """
     def __init__(self, x):
-        super(length, self).__init__(x)
-        if not self.args[0].is_vector():
-            raise ValueError(
-                "`length` can only be applied to vectors.")
+        super(sign, self).__init__(x)
 
     @Atom.numpy_numeric
     def numeric(self, values):
-        """Returns the length of x.
+        """Returns the sign of x.
         """
-        return np.max(np.nonzero(values[0])) + 1
+        x = values[0]
+        x[x > 0] = 1.0
+        x[x <= 0] = -1.0
+        return x
 
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
@@ -40,8 +39,7 @@ class length(Atom):
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
-        # Always nonnegative.
-        return (True, False)
+        return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
     def is_atom_convex(self):
         """Is the atom convex?
@@ -61,7 +59,7 @@ class length(Atom):
     def is_atom_quasiconcave(self):
         """Is the atom quasiconvex?
         """
-        return False
+        return True
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?

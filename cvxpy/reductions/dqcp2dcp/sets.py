@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.atoms import inv_pos, floor, length, multiply
+from cvxpy.atoms import inv_pos, floor, length, multiply, sign
 from cvxpy.atoms.affine.binary_operators import DivExpression
 from cvxpy.expressions.constants.parameter import Parameter
 
@@ -63,23 +63,56 @@ def length_sub(expr, t):
     if isinstance(t, Parameter):
         def sublevel_set():
             if t.value < 0:
-                raise ValueError("Length cannot be negative.")
+                # hack for infeasible
+                return arg[0] == arg[0] + 1
             return arg[int(floor(t).value):] == 0
         return [sublevel_set]
     else:
         return [arg[int(floor(t).value):] == 0]
 
 
+def sign_sup(expr, t):
+    x = expr.args[0]
+
+    def sup_set():
+        if t.value <= -1:
+            # hack for unconstrainted
+            return x == x
+        elif t.value <= 1:
+            return x >= 0
+        else:
+            # hack for infeasible
+            return x == x + 1
+    return [sup_set]
+
+
+def sign_sub(expr, t):
+    x = expr.args[0]
+
+    def sub_set():
+        if t.value >= 1:
+            # hack for unconstrainted
+            return x == x
+        elif t.value >= -1:
+            return x <= 0
+        else:
+            # hack for infeasible
+            return x == x + 1
+    return [sub_set]
+
+
 SUBLEVEL_SETS = {
     multiply: mul_sub,
     DivExpression: ratio_sub,
     length: length_sub,
+    sign: sign_sub,
 }
 
 
 SUPERLEVEL_SETS = {
     multiply: mul_sup,
     DivExpression: ratio_sup,
+    sign: sign_sup,
 }
 
 
