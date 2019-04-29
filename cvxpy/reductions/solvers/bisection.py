@@ -23,12 +23,22 @@ from cvxpy.reductions import solution as solution_module
 def _lower_problem(problem):
     if any(callable(c) for c in problem.constraints):
         constrs = [c() if callable(c) else c for c in problem.constraints]
+        constrs = [c for c in constrs if c is not None]
+        if s.INFEASIBLE in constrs:
+            return None
         return problems.problem.Problem(Minimize(0), constrs)
     return problem
 
 
+def _solve(problem, solver):
+    if problem is None:
+        return
+    problem.solve(solver=solver)
+
+
 def infeasible(problem):
-    return problem.status in (s.INFEASIBLE, s.INFEASIBLE_INACCURATE)
+    return problem is None or problem.status in (s.INFEASIBLE,
+                                                 s.INFEASIBLE_INACCURATE)
 
 
 def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
@@ -43,7 +53,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
         if not feasible_high:
             t.value = high
             lowered = _lower_problem(problem)
-            lowered.solve(solver=solver)
+            _solve(lowered, solver)
             if infeasible(lowered):
                 low = high
                 high *= 2
@@ -57,13 +67,16 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
         if not infeasible_low:
             t.value = low
             lowered = _lower_problem(problem)
-            lowered.solve(solver=solver)
-            if lowered.status in s.SOLUTION_PRESENT:
+            _solve(lowered, solver=solver)
+            if infeasible(lowered):
+                infeasible_low = True
+            elif lowered.status in s.SOLUTION_PRESENT:
                 high = low
                 low *= 2
                 continue
-            elif infeasible(lowered):
-                infeasible_low = True
+            else:
+                raise error.SolverError(
+                    "Solver failed with status %s" % lowered.status)
 
         if infeasible_low and feasible_high:
             return low, high
@@ -92,7 +105,7 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             print("(iteration %d) query point: %0.6f " % (i, query_pt))
         t.value = query_pt
         lowered = _lower_problem(problem)
-        lowered.solve(solver=solver)
+        _solve(lowered, solver=solver)
 
         if infeasible(lowered):
             if verbose and i % verbose_freq == 0:

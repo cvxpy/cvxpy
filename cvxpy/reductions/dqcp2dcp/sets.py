@@ -13,17 +13,36 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.atoms import inv_pos, floor, length, multiply, sign
-from cvxpy.atoms.affine.binary_operators import DivExpression
+from cvxpy import atoms
+from cvxpy.atoms.affine import binary_operators as bin_op
 from cvxpy.expressions.constants.parameter import Parameter
+import cvxpy.settings as s
+
+
+# In the below functions, s.INFEASIBLE is a placeholder for an infeasible
+# constraint (one that cannot be represented in a DCP way), and None
+# is a placeholder for the absence of a constraint
+def dist_ratio_sub(expr, t):
+    x = expr.args[0]
+    a = expr.a
+    b = expr.b
+
+    def sublevel_set():
+        if t.value > 1:
+            return s.INFEASIBLE
+        tsq = t.value**2
+        return ((1-tsq**2)*atoms.sum_squares(x) -
+                atoms.matmul(2*(a-tsq*b), x) + atoms.sum_squares(a) -
+                tsq*atoms.sum_squares(b)) <= 0
+    return [sublevel_set]
 
 
 def mul_sup(expr, t):
     x, y = expr.args
     if x.is_nonneg() and y.is_nonneg():
-        return [x >= t * inv_pos(y)]
+        return [x >= t * atoms.inv_pos(y)]
     elif x.is_nonpos() and y.is_nonpos():
-        return [-x >= t * inv_pos(-y)]
+        return [-x >= t * atoms.inv_pos(-y)]
     else:
         raise ValueError("Incorrect signs.")
 
@@ -31,9 +50,9 @@ def mul_sup(expr, t):
 def mul_sub(expr, t):
     x, y = expr.args
     if x.is_nonneg() and y.is_nonpos():
-        return [y <= t * inv_pos(x)]
+        return [y <= t * atoms.inv_pos(x)]
     elif x.is_nonpos() and y.is_nonneg():
-        return [x <= t * inv_pos(y)]
+        return [x <= t * atoms.inv_pos(y)]
     else:
         raise ValueError("Incorrect signs.")
 
@@ -63,12 +82,11 @@ def length_sub(expr, t):
     if isinstance(t, Parameter):
         def sublevel_set():
             if t.value < 0:
-                # hack for infeasible
-                return arg[0] == arg[0] + 1
-            return arg[int(floor(t).value):] == 0
+                return s.INFEASIBLE
+            return arg[int(atoms.floor(t).value):] == 0
         return [sublevel_set]
     else:
-        return [arg[int(floor(t).value):] == 0]
+        return [arg[int(atoms.floor(t).value):] == 0]
 
 
 def sign_sup(expr, t):
@@ -76,13 +94,11 @@ def sign_sup(expr, t):
 
     def sup_set():
         if t.value <= -1:
-            # hack for unconstrainted
-            return x == x
+            return None
         elif t.value <= 1:
             return x >= 0
         else:
-            # hack for infeasible
-            return x == x + 1
+            return s.INFEASIBLE
     return [sup_set]
 
 
@@ -91,28 +107,27 @@ def sign_sub(expr, t):
 
     def sub_set():
         if t.value >= 1:
-            # hack for unconstrainted
-            return x == x
+            return None
         elif t.value >= -1:
             return x <= 0
         else:
-            # hack for infeasible
-            return x == x + 1
+            return s.INFEASIBLE
     return [sub_set]
 
 
 SUBLEVEL_SETS = {
-    multiply: mul_sub,
-    DivExpression: ratio_sub,
-    length: length_sub,
-    sign: sign_sub,
+    atoms.multiply: mul_sub,
+    bin_op.DivExpression: ratio_sub,
+    atoms.length: length_sub,
+    atoms.sign: sign_sub,
+    atoms.dist_ratio: dist_ratio_sub
 }
 
 
 SUPERLEVEL_SETS = {
-    multiply: mul_sup,
-    DivExpression: ratio_sup,
-    sign: sign_sup,
+    atoms.multiply: mul_sup,
+    bin_op.DivExpression: ratio_sup,
+    atoms.sign: sign_sup,
 }
 
 

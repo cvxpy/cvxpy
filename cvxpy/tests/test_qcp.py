@@ -399,3 +399,12 @@ class TestDqcp2Dcp(base_test.BaseTest):
         problem.solve(qcp=True)
         self.assertEqual(problem.objective.value, 1.0)
         self.assertGreater(x.value, 0)
+
+    def test_dist_ratio(self):
+        x = cp.Variable(2)
+        a = np.ones(2)
+        b = np.zeros(2)
+        problem = cp.Problem(cp.Minimize(cp.dist_ratio(x, a, b)), [x <= 0.8])
+        problem.solve(qcp=True, solver=cp.ECOS, verbose=True)
+        np.testing.assert_almost_equal(problem.objective.value, 0.25)
+        np.testing.assert_almost_equal(x.value, np.array([0.8, 0.8]))
