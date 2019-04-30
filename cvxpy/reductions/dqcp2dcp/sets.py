@@ -92,27 +92,33 @@ def length_sub(expr, t):
 def sign_sup(expr, t):
     x = expr.args[0]
 
-    def sup_set():
+    def superlevel_set():
         if t.value <= -1:
             return None
         elif t.value <= 1:
             return x >= 0
         else:
             return s.INFEASIBLE
-    return [sup_set]
+    return [superlevel_set]
 
 
 def sign_sub(expr, t):
     x = expr.args[0]
 
-    def sub_set():
+    def sublevel_set():
         if t.value >= 1:
             return None
         elif t.value >= -1:
             return x <= 0
         else:
             return s.INFEASIBLE
-    return [sub_set]
+    return [sublevel_set]
+
+
+def gen_lambda_max_sub(expr, t):
+    return [expr.args[0] == expr.args[0].T,
+            expr.args[1] >> 0,
+            (t * expr.args[1] - expr.args[0] >> 0)]
 
 
 SUBLEVEL_SETS = {
@@ -120,7 +126,8 @@ SUBLEVEL_SETS = {
     bin_op.DivExpression: ratio_sub,
     atoms.length: length_sub,
     atoms.sign: sign_sub,
-    atoms.dist_ratio: dist_ratio_sub
+    atoms.dist_ratio: dist_ratio_sub,
+    atoms.gen_lambda_max: gen_lambda_max_sub,
 }
 
 

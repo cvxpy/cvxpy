@@ -405,6 +405,62 @@ class TestDqcp2Dcp(base_test.BaseTest):
         a = np.ones(2)
         b = np.zeros(2)
         problem = cp.Problem(cp.Minimize(cp.dist_ratio(x, a, b)), [x <= 0.8])
-        problem.solve(qcp=True, solver=cp.ECOS, verbose=True)
+        problem.solve(qcp=True, solver=cp.ECOS)
         np.testing.assert_almost_equal(problem.objective.value, 0.25)
         np.testing.assert_almost_equal(x.value, np.array([0.8, 0.8]))
+
+    def test_infeasible_exp_constr(self):
+        x = cp.Variable()
+        constr = [cp.exp(cp.ceil(x)) <= -5]
+        problem = cp.Problem(cp.Minimize(0), constr)
+        problem.solve(qcp=True)
+        self.assertEqual(problem.status, s.INFEASIBLE)
+
+    def test_infeasible_inv_pos_constr(self):
+        x = cp.Variable(nonneg=True)
+        constr = [cp.inv_pos(cp.ceil(x)) <= -5]
+        problem = cp.Problem(cp.Minimize(0), constr)
+        problem.solve(qcp=True)
+        self.assertEqual(problem.status, s.INFEASIBLE)
+
+    def test_infeasible_logistic_constr(self):
+        x = cp.Variable(nonneg=True)
+        constr = [cp.logistic(cp.ceil(x)) <= -5]
+        problem = cp.Problem(cp.Minimize(0), constr)
+        problem.solve(qcp=True)
+        self.assertEqual(problem.status, s.INFEASIBLE)
+
+    def test_noop_exp_constr(self):
+        x = cp.Variable()
+        constr = [cp.exp(cp.ceil(x)) >= -5]
+        problem = cp.Problem(cp.Minimize(0), constr)
+        problem.solve(qcp=True)
+        self.assertEqual(problem.status, s.OPTIMAL)
+
+    def test_noop_inv_pos_constr(self):
+        x = cp.Variable()
+        constr = [cp.inv_pos(cp.ceil(x)) >= -5]
+        problem = cp.Problem(cp.Minimize(0), constr)
+        problem.solve(qcp=True)
+        self.assertEqual(problem.status, s.OPTIMAL)
+
+    def test_noop_logistic_constr(self):
+        x = cp.Variable(nonneg=True)
+        constr = [cp.logistic(cp.ceil(x)) >= -5]
+        problem = cp.Problem(cp.Minimize(0), constr)
+        problem.solve(qcp=True)
+        self.assertEqual(problem.status, s.OPTIMAL)
+
+    def test_gen_lambda_max_matrix_completion(self):
+        A = cp.Variable((3, 3))
+        B = cp.Variable((3, 3), PSD=True)
+        gen_lambda_max = cp.gen_lambda_max(A, B)
+        known_indices = tuple(zip(*[[0, 0], [0, 2], [1, 1]]))
+        constr = [
+          A[known_indices] == [1.0, 1.9, 0.8],
+          B[known_indices] == [3.0, 1.4, 0.2],
+        ]
+        problem = cp.Problem(cp.Minimize(gen_lambda_max), constr)
+        self.assertTrue(problem.is_dqcp())
+        # smoke test
+        problem.solve(qcp=True, solver=cp.SCS)

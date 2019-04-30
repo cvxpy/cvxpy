@@ -17,6 +17,7 @@ limitations under the License.
 from cvxpy.atoms.dist_ratio import dist_ratio
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv, resolvent
 from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms.gen_lambda_max import gen_lambda_max
 from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min

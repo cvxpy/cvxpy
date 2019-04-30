@@ -21,13 +21,11 @@ from cvxpy.reductions import solution as solution_module
 
 
 def _lower_problem(problem):
-    if any(callable(c) for c in problem.constraints):
-        constrs = [c() if callable(c) else c for c in problem.constraints]
-        constrs = [c for c in constrs if c is not None]
-        if s.INFEASIBLE in constrs:
-            return None
-        return problems.problem.Problem(Minimize(0), constrs)
-    return problem
+    constrs = [c() if callable(c) else c for c in problem.constraints]
+    constrs = [c for c in constrs if c is not None]
+    if s.INFEASIBLE in constrs:
+        return None
+    return problems.problem.Problem(Minimize(0), constrs)
 
 
 def _solve(problem, solver):
@@ -134,10 +132,13 @@ def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
     if verbose:
         print("\n******************************************************"
               "**************************\n"
-              "Preparing to bisect problem\n\n%s\n" % problem)
+              "Preparing to bisect problem\n\n%s\n" % _lower_problem(problem))
 
-    feas_problem.solve(solver=solver)
-    if infeasible(feas_problem):
+    lowered_feas = _lower_problem(feas_problem)
+    _solve(lowered_feas, solver)
+    if infeasible(lowered_feas):
+        if verbose:
+            print("Problem is infeasible.")
         return solution_module.failure_solution(s.INFEASIBLE)
 
     if low is None or high is None:
@@ -151,7 +152,6 @@ def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
     soln, low, high = _bisect(
         problem, solver, t, low, high, tighten_lower, tighten_higher,
         eps, verbose, max_iters)
-
     soln.opt_val = (low + high) / 2.0
     if verbose:
         print("Bisection completed, with lower bound %0.6f and upper bound "

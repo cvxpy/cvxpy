@@ -27,8 +27,11 @@ from cvxpy.reductions.dqcp2dcp import tighten
 from cvxpy.reductions.dqcp2dcp import sets
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution
+import cvxpy.settings as s
 
 from collections import namedtuple
+
+import numpy as np
 
 
 # A tuple (problem, feas_problem, param, tighten_lower, tighten_upper), where
@@ -100,6 +103,10 @@ class Dqcp2Dcp(Canonicalization):
     def invert(self, solution, inverse_data):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
+        for vid in inverse_data.id_map:
+            if vid not in pvars:
+                # Variable was optimized out because it was unconstrainted.
+                pvars[vid] = 0.0
         return Solution(solution.status, solution.opt_val, pvars, {},
                         solution.attr)
 
@@ -160,8 +167,13 @@ class Dqcp2Dcp(Canonicalization):
         lhs = constr.args[0]
         rhs = constr.args[1]
         if lhs.is_quasiconvex() and not lhs.is_convex():
-            # canonicalize quasiconvex <= constant
             assert rhs.is_constant()
+            # quasiconvex <= constant
+            if rhs.value == -np.inf:
+                return [s.INFEASIBLE]
+            elif rhs.value == np.inf:
+                return [None]
+
             if inverse.invertible(lhs):
                 rhs = inverse.inverse(lhs)(rhs)
                 if lhs.is_incr(0):
@@ -175,14 +187,19 @@ class Dqcp2Dcp(Canonicalization):
                 sublevel_set = sets.sublevel(lhs.copy(canon_args), t=rhs)
                 return sublevel_set + aux_args_constr
 
-        # canonicalize constant <= quasiconcave
+        # constant <= quasiconcave
         assert rhs.is_quasiconcave()
         assert lhs.is_constant()
+        if lhs.value == -np.inf:
+            return [None]
+        elif lhs.value == np.inf:
+            return [s.INFEASIBLE]
+
         if inverse.invertible(rhs):
             lhs = inverse.inverse(rhs)(lhs)
             if rhs.is_incr(0):
                 return self._canonicalize_constraint(lhs <= rhs.args[0])
-            return self._canonicalize_constraint(lhs >= inverse(lhs)(rhs))
+            return self._canonicalize_constraint(lhs >= rhs.args[0])
         elif isinstance(rhs, minimum):
             return [c for arg in rhs.args
                     for c in self._canonicalize_constraint(lhs <= arg)]
