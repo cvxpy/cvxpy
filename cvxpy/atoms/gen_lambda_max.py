@@ -53,14 +53,15 @@ class gen_lambda_max(Atom):
         return NotImplemented
 
     def validate_arguments(self):
-        """Verify that the argument A is square, B is positive semidefinite.
+        """Verify that the argument A, B are square and of the same dimension.
         """
         if (not self.args[0].ndim == 2 or
                 self.args[0].shape[0] != self.args[0].shape[1] or
-                not self.args[1].is_psd()):
+                self.args[1].shape[0] != self.args[1].shape[1] or
+                self.args[0].shape != self.args[1].shape):
             raise ValueError(
                 "The arguments '%s' and '%s' to gen_lambda_max must "
-                "be symmetric and positive semidefinite, respectively." % (
+                "be square and have the same dimensions." % (
                  self.args[0].name(), self.args[1].name()))
 
     def shape_from_args(self):
