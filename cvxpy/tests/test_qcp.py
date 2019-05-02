@@ -464,3 +464,18 @@ class TestDqcp2Dcp(base_test.BaseTest):
         self.assertTrue(problem.is_dqcp())
         # smoke test
         problem.solve(qcp=True, solver=cp.SCS)
+
+    def test_card_ls(self):
+        n = 10
+        np.random.seed(0)
+        A = np.random.randn(n, n)
+        x_star = np.random.randn(n)
+        b = A @ x_star
+        epsilon = 1e-3
+
+        x = cp.Variable(n)
+        objective_fn = cp.length(x)
+        mse = cp.sum_squares(A @ x - b)/n
+        problem = cp.Problem(cp.Minimize(objective_fn), [mse <= epsilon])
+        # smoke test
+        problem.solve(qcp=True)

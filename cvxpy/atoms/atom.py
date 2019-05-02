@@ -230,28 +230,32 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
+    def _non_const_idx(self):
+        return [i for i, arg in enumerate(self.args) if not arg.is_constant()]
+
+    @perf.compute_once
     def is_quasiconvex(self):
         """Is the expression quaisconvex?
         """
         # Verifies the DQCP composition rule.
         if self.is_convex():
             return True
-        elif type(self) == cvxtypes.maximum():
+        if type(self) == cvxtypes.maximum():
             return all(arg.is_quasiconvex() for arg in self.args)
-        elif self.is_scalar() and len(self.args) == 1 and self.is_incr(0):
+        non_const = self._non_const_idx()
+        if self.is_scalar() and len(non_const) == 1 and self.is_incr(non_const[0]):
             # TODO(akshayka): Accommodate vector atoms if people want it.
-            return self.args[0].is_quasiconvex()
-        elif self.is_scalar() and len(self.args) == 1 and self.is_decr(0):
-            return self.args[0].is_quasiconcave()
-        elif self.is_atom_quasiconvex():
+            return self.args[non_const[0]].is_quasiconvex()
+        if self.is_scalar() and len(non_const) == 1 and self.is_decr(non_const[0]):
+            return self.args[non_const[0]].is_quasiconcave()
+        if self.is_atom_quasiconvex():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_affine() or
                         (arg.is_convex() and self.is_incr(idx)) or
                         (arg.is_concave() and self.is_decr(idx))):
                     return False
             return True
-        else:
-            return False
+        return False
 
     @perf.compute_once
     def is_quasiconcave(self):
@@ -260,21 +264,21 @@ class Atom(Expression):
         # Verifies the DQCP composition rule.
         if self.is_concave():
             return True
-        elif type(self) == cvxtypes.minimum():
+        if type(self) == cvxtypes.minimum():
             return all(arg.is_quasiconcave() for arg in self.args)
-        elif self.is_scalar() and len(self.args) == 1 and self.is_incr(0):
-            return self.args[0].is_quasiconcave()
-        elif self.is_scalar() and len(self.args) == 1 and self.is_decr(0):
-            return self.args[0].is_quasiconvex()
-        elif self.is_atom_quasiconcave():
+        non_const = self._non_const_idx()
+        if self.is_scalar() and len(non_const) == 1 and self.is_incr(non_const[0]):
+            return self.args[non_const[0]].is_quasiconcave()
+        if self.is_scalar() and len(non_const) == 1 and self.is_decr(non_const[0]):
+            return self.args[non_const[0]].is_quasiconvex()
+        if self.is_atom_quasiconcave():
             for idx, arg in enumerate(self.args):
                 if not (arg.is_affine() or
                         (arg.is_concave() and self.is_incr(idx)) or
                         (arg.is_convex() and self.is_decr(idx))):
                     return False
             return True
-        else:
-            return False
+        return False
 
     def canonicalize(self):
         """Represent the atom as an affine objective and conic constraints.

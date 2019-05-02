@@ -166,8 +166,15 @@ class Dqcp2Dcp(Canonicalization):
         assert isinstance(constr, Inequality)
         lhs = constr.args[0]
         rhs = constr.args[1]
+
+        # short-circuit zero-valued expressions to simplify inverse logic
+        if lhs.is_zero():
+            return self._canonicalize_constraint(0 <= rhs)
+        if rhs.is_zero():
+            return self._canonicalize_constraint(lhs <= 0)
+
         if lhs.is_quasiconvex() and not lhs.is_convex():
-            assert rhs.is_constant()
+            assert rhs.is_constant(), rhs
             # quasiconvex <= constant
             if rhs.value == -np.inf:
                 return [s.INFEASIBLE]

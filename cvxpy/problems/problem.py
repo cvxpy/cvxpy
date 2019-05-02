@@ -549,9 +549,8 @@ class Problem(u.Canonical):
             if len(self._separable_problems) > 1:
                 return self._parallel_solve(
                     solver, warm_start, verbose, **kwargs)
-        if qcp:
+        if qcp and not self.is_dcp():
             if not self.is_dqcp():
-                # TODO(akshayka): Better error message.
                 raise error.DQCPError("The problem is not DQCP.")
             reductions = [dqcp2dcp.Dqcp2Dcp()]
             if type(self.objective) == Maximize:

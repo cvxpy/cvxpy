@@ -83,6 +83,8 @@ def length_sub(expr, t):
         def sublevel_set():
             if t.value < 0:
                 return s.INFEASIBLE
+            if t.value >= arg.size:
+                return None
             return arg[int(atoms.floor(t).value):] == 0
         return [sublevel_set]
     else:
