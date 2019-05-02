@@ -63,8 +63,7 @@ class upper_tri(AffAtom):
         """
         return True
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Vectorized strictly upper triagonal entries.
 
         Parameters

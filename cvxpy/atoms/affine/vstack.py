@@ -63,8 +63,7 @@ class Vstack(AffAtom):
                 raise ValueError(("All the input dimensions except"
                                   " for axis 0 must match exactly."))
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Stack the expressions vertically.
 
         Parameters

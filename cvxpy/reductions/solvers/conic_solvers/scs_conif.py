@@ -45,7 +45,7 @@ def dims_to_solver_dict(cone_dims):
 
 
 # Utility methods for special handling of semidefinite constraints.
-def scaled_lower_tri(matrix):
+def scaled_lower_tri(size):
     """Returns an expression representing the lower triangular entries
 
     Scales the strictly lower triangular entries by sqrt(2), as required
@@ -53,8 +53,7 @@ def scaled_lower_tri(matrix):
 
     Parameters
     ----------
-    matrix : Expression
-        A 2-dimensional CVXPY expression.
+    size : The dimension of the PSD constraint.
 
     Returns
     -------
@@ -62,7 +61,7 @@ def scaled_lower_tri(matrix):
         An expression representing the (scaled) lower triangular part of
         the supplied matrix expression.
     """
-    rows = cols = matrix.shape[0]
+    rows = cols = size
     entries = rows * (cols + 1)//2
 
     row_arr = np.arange(0, entries)
@@ -71,15 +70,13 @@ def scaled_lower_tri(matrix):
     col_arr = np.sort(np.ravel_multi_index(lower_diag_indices, (rows, cols), order='F'))
 
     val_arr = np.zeros((rows, cols))
-    val_arr[lower_diag_indices] = np.sqrt(2)
-    np.fill_diagonal(val_arr, 1)
+    val_arr[lower_diag_indices] = 1/np.sqrt(2)
+    np.fill_diagonal(val_arr, 0.5)
     val_arr = np.ravel(val_arr, order='F')
     val_arr = val_arr[np.nonzero(val_arr)]
 
     shape = (entries, rows*cols)
-    coeff = Constant(sp.csc_matrix((val_arr, (row_arr, col_arr)), shape))
-    vectorized_matrix = reshape(matrix, (rows*cols, 1))
-    return coeff * vectorized_matrix
+    return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
 
 def tri_to_full(lower_tri, n):
@@ -147,27 +144,35 @@ class SCS(ConicSolver):
         import scs
         scs  # For flake8
 
-    def format_constr(self, problem, constr, exp_cone_order):
-        """Extract coefficient and offset vector from constraint.
+    def psd_format_mat(self, constr):
+        """Return a matrix to multiply by PSD constraint coefficients.
 
         Special cases PSD constraints, as SCS expects constraints to be
         imposed on solely the lower triangular part of the variable matrix.
         Moreover, it requires the off-diagonal coefficients to be scaled by
         sqrt(2).
         """
-        if isinstance(constr, PSD):
-            expr = constr.expr
-            triangularized_expr = scaled_lower_tri(expr + expr.T)/2
-            extractor = CoeffExtractor(InverseData(problem))
-            A_prime, b_prime = extractor.affine(triangularized_expr)
-            # SCS requests constraints to be formatted as
-            # Ax + s = b, where s is constrained to reside in some
-            # cone. Here, however, we are formatting the constraint
-            # as A"x + b" = s = -Ax + b; hence, A = -A", b = b"
-            return -1 * A_prime, b_prime
-        else:
-            return super(SCS, self).format_constr(problem, constr,
-                                                  exp_cone_order)
+        rows = cols = constr.expr.shape[0]
+        entries = rows * (cols + 1)//2
+
+        row_arr = np.arange(0, entries)
+
+        lower_diag_indices = np.tril_indices(rows)
+        col_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
+                                               (rows, cols),
+                                               order='F')
+        )
+
+        val_arr = np.zeros((rows, cols))
+        val_arr[lower_diag_indices] = 1/np.sqrt(2)
+        np.fill_diagonal(val_arr, 0.5)
+        val_arr = np.ravel(val_arr, order='F')
+        val_arr = val_arr[np.nonzero(val_arr)]
+
+        shape = (entries, rows*cols)
+        return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+        # TODO work in expr + expr.T
+        # return scaled_lower_tri(expr + expr.T)/2
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.

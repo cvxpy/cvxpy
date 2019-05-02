@@ -53,6 +53,16 @@ class ConeDims(object):
         self.soc = [dim for c in constr_map[SOC] for dim in c.cone_sizes()]
         self.psd = [c.shape[0] for c in constr_map[PSD]]
 
+    def __str__(self):
+        """String representation.
+        """
+        return ("%i equalities, %i inequalities, %i exponential cones, \n"
+                "SOC constraints: %s, PSD constraints: %s.") % (self.zero,
+                                                                self.nonpos,
+                                                                self.exp,
+                                                                self.soc,
+                                                                self.psd)
+
 
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
@@ -109,6 +119,12 @@ class ConicSolver(Solver):
                 row_arr.append((streak + spacing)*var_row + i + offset)
                 col_arr.append(var_row*streak + i)
         return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+
+    def psd_format_mat(self):
+        """Return a matrix to multiply by PSD constraint coefficients.
+        """
+        # Default is identity.
+        return sp.eye(constr.size, format='csc')
 
     def format_constraints(self, problem, exp_cone_order):
         """
@@ -171,17 +187,20 @@ class ConicSolver(Solver):
                 )
                 restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
             elif type(constr) == ExpCone:
+                arg_mats = []
                 for i, arg in enumerate(constr.args):
                     space_mat = ConicSolver.get_spacing_matrix(
                         (total_height, arg.size),
-                        len(exp_cone_order),
+                        len(exp_cone_order) - 1,
                         1,
-                        exp_cone_order[i])
-                    restruct_mat.append(space_mat)
+                        arg.size,
+                        exp_cone_order[i],
+                    )
+                    arg_mats.append(space_mat)
+                restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PSD:
                 # Sign flipped relative to NonPos, Zero.
-                # TODO -A, b
-                restruct_mat.append(sp.eye(constr.size, format='csc'))
+                restruct_mat.append(self.psd_format_mat(constr))
             else:
                 raise ValueError("Unsupported constraint type.")
 

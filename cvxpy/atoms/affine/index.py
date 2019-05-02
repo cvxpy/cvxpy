@@ -79,8 +79,7 @@ class index(AffAtom):
         """
         return [self.key, self._orig_key]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Index/slice into the expression.
 
         Parameters

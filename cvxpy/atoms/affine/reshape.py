@@ -74,8 +74,7 @@ class reshape(AffAtom):
         """
         return [self._shape]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Convolve two vectors.
 
         Parameters

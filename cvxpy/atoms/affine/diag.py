@@ -80,8 +80,7 @@ class diag_vec(AffAtom):
         """
         return True
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Convolve two vectors.
 
         Parameters
@@ -131,8 +130,7 @@ class diag_mat(AffAtom):
         rows, _ = self.args[0].shape
         return (rows,)
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Extracts the diagonal of a matrix.
 
         Parameters

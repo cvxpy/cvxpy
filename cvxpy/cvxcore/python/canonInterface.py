@@ -265,6 +265,7 @@ def build_lin_op_tree(root_linPy, tmp):
             # Recurse on LinOp.
             linC_data = build_lin_op_tree(linPy.data, tmp)
             linC.set_linOp_data(linC_data)
+            linC.data_ndim = len(linPy.data.shape)
         else:
             set_matrix_data(linC, linPy)
 
