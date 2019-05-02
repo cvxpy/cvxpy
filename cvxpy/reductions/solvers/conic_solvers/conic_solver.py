@@ -69,8 +69,6 @@ class ConicSolver(Solver):
     """
     # The key that maps to ConeDims in the data returned by apply().
     DIMS = "dims"
-    # The key for the parameterized problem.
-    PARAM_PROB = "param_prob"
 
     # Every conic solver must support Zero and NonPos constraints.
     SUPPORTED_CONSTRAINTS = [Zero, NonPos]
@@ -120,7 +118,7 @@ class ConicSolver(Solver):
                 col_arr.append(var_row*streak + i)
         return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
-    def psd_format_mat(self):
+    def psd_format_mat(self, constr):
         """Return a matrix to multiply by PSD constraint coefficients.
         """
         # Default is identity.

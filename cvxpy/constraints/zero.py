@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.constraints.constraint import Constraint
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 

@@ -17,7 +17,7 @@ limitations under the License.
 
 from .. import utilities as u
 from .. import interface as intf
-from ..expressions.constants import Constant, CallbackParam
+from ..expressions.constants import Constant
 from ..expressions.expression import Expression
 import abc
 import numpy as np
