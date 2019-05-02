@@ -18,7 +18,7 @@ limitations under the License.
 from cvxpy import utilities as u
 from cvxpy import interface as intf
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants import Constant, CallbackParam
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list

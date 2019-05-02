@@ -17,16 +17,12 @@ limitations under the License.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.constraints import PSD, SOC, ExpCone
-from cvxpy.expressions.constants.constant import Constant
-from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
                                                                  ConicSolver)
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.utilities import group_constraints
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 import scipy.sparse as sp
 
@@ -160,8 +156,7 @@ class SCS(ConicSolver):
         lower_diag_indices = np.tril_indices(rows)
         col_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
                                                (rows, cols),
-                                               order='F')
-        )
+                                               order='F'))
 
         val_arr = np.zeros((rows, cols))
         val_arr[lower_diag_indices] = 1/np.sqrt(2)
@@ -197,7 +192,7 @@ class SCS(ConicSolver):
 
         # Format the constraints.
         formatted = self.format_constraints(problem, self.EXP_CONE_ORDER)
-        data[ConicSolver.PARAM_PROB] = formatted
+        data[s.PARAM_PROB] = formatted
 
         # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
