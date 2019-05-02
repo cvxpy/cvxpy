@@ -189,8 +189,7 @@ class MulExpression(BinaryOperator):
 
         return [DX, DY]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Multiply the linear expressions.
 
         Parameters
@@ -210,9 +209,9 @@ class MulExpression(BinaryOperator):
         # Promote shapes for compatibility with CVXCanon
         lhs = arg_objs[0]
         rhs = arg_objs[1]
-        if lu.is_const(lhs):
+        if self.args[0].is_constant():
             return (lu.mul_expr(lhs, rhs, shape), [])
-        elif lu.is_const(rhs):
+        elif self.args[1].is_constant():
             return (lu.rmul_expr(lhs, rhs, shape), [])
         else:
             raise DCPError("Product of two non-constant expressions is not "
@@ -281,8 +280,7 @@ class multiply(MulExpression):
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Multiply the expressions elementwise.
 
         Parameters
@@ -302,9 +300,9 @@ class multiply(MulExpression):
         # promote if necessary.
         lhs = arg_objs[0]
         rhs = arg_objs[1]
-        if lu.is_const(lhs):
+        if self.args[0].is_constant():
             return (lu.multiply(lhs, rhs), [])
-        elif lu.is_const(rhs):
+        elif self.args[1].is_constant():
             return (lu.multiply(rhs, lhs), [])
         else:
             raise DCPError("Product of two non-constant expressions is not "
@@ -389,8 +387,7 @@ class DivExpression(BinaryOperator):
         else:
             return self.args[0].is_nonneg()
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Multiply the linear expressions.
 
         Parameters

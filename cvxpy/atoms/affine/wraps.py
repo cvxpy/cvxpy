@@ -39,8 +39,7 @@ class Wrap(AffAtom):
         """
         return self.args[0].shape
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Stack the expressions horizontally.
 
         Parameters

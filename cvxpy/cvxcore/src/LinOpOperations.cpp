@@ -617,7 +617,7 @@ Tensor get_diag_vec_mat(LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_transpose_mat(LinOp &lin, int arg_idx) {
-	assert(lin.type == TRANSPOSE);
+ 	assert(lin.type == TRANSPOSE);
 	int rows = lin.size[0];
 	int cols = lin.size[1];
 
@@ -719,7 +719,7 @@ Tensor get_index_mat(LinOp &lin, int arg_idx) {
  */
 Tensor get_mul_elemwise_mat(LinOp &lin, int arg_idx) {
 	assert(lin.type == MUL_ELEM);
-  Tensor mul_ten = get_node_coeffs(*lin.linOp_data, 0);
+  Tensor mul_ten = lin_to_tensor(*lin.linOp_data);
   // Convert all the Tensor matrices into diagonal matrices.
   // Replace them in-place.
 	typedef Tensor::iterator it_type;
@@ -807,16 +807,16 @@ Tensor get_mul_mat(LinOp &lin, int arg_idx) {
 	assert(lin.type == MUL);
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.args[0]->size.size() > 0);
-  Tensor mul_ten = get_node_coeffs(*lin.linOp_data, 0);
+  Tensor mul_ten = lin_to_tensor(*lin.linOp_data);
   // Interpret as row or column vector as needed.
-  if (lin.data_ndim == 1 && lin.args[0]->size[0] != lin.linOp_data->size[1]) {
+  if (lin.data_ndim == 1 && lin.args[0]->size[0] != 1) {
     // Transpose matrices.
     typedef Tensor::iterator it_type;
-    for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it){
+    for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it) {
       int param_id = it->first;
       DictMat var_map = it->second;
       typedef DictMat::iterator jit_type;
-      for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit){
+      for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
         int var_id = jit->first;
         std::vector<Matrix> mat_vec = jit->second;
         for (unsigned i=0; i < mat_vec.size(); ++i) {
@@ -862,9 +862,6 @@ Tensor get_mul_mat(LinOp &lin, int arg_idx) {
         block_diag.setFromTriplets(tripletList.begin(), tripletList.end());
         block_diag.makeCompressed();
         // Set block diagonal matrix.
-        std::cout << block_rows << "," << block_cols << "\n";
-        std::cout << param_id << " : " << var_id << "\n";
-        std::cout << block_diag << "\n";
         mul_ten[param_id][var_id][i] = block_diag;
       }
     }

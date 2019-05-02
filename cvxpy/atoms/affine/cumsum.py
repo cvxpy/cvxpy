@@ -112,8 +112,7 @@ class cumsum(AffAtom, AxisAtom):
         """
         return [self.axis]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Cumulative sum via difference matrix.
 
         Parameters
