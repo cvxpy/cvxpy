@@ -85,9 +85,7 @@ def installed_solvers():
             installed.append(name)
 
     # Remove duplicate names (for solvers that handle both conic and QP)
-    np.unique(installed).tolist()
-
-    return installed
+    return np.unique(installed).tolist()
 
 
 INSTALLED_SOLVERS = installed_solvers()
