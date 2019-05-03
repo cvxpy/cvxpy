@@ -150,8 +150,10 @@ class Dqcp2Dcp(Canonicalization):
             # quasiconvex <= constant
             assert rhs.is_constant(), rhs
             if rhs.value == -np.inf:
+                # Indicates that the problem is infeasible.
                 return [s.INFEASIBLE]
             elif rhs.value == np.inf:
+                # Constraint is redundant.
                 return [None]
 
             if inverse.invertible(lhs):

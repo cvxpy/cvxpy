@@ -255,6 +255,9 @@ class Problem(u.Canonical):
         gp : bool, optional
             If True, parses the problem as a disciplined geometric program
             instead of a disciplined convex program.
+        qcp : bool, optional
+            If True, parses the problem as a disciplined quasiconvex program
+            instead of a disciplined convex program.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -543,12 +546,6 @@ class Problem(u.Canonical):
         """
         if gp and qcp:
             raise ValueError("At most one of `gp` and `qcp` can be True.")
-        if parallel:
-            from cvxpy.transforms.separable_problems import get_separable_problems
-            self._separable_problems = (get_separable_problems(self))
-            if len(self._separable_problems) > 1:
-                return self._parallel_solve(
-                    solver, warm_start, verbose, **kwargs)
         if qcp and not self.is_dcp():
             if not self.is_dqcp():
                 raise error.DQCPError("The problem is not DQCP.")
@@ -560,6 +557,12 @@ class Problem(u.Canonical):
                 chain.reduce(), solver=solver, verbose=verbose, **kwargs)
             self.unpack(chain.retrieve(soln))
             return self.value
+        if parallel:
+            from cvxpy.transforms.separable_problems import get_separable_problems
+            self._separable_problems = (get_separable_problems(self))
+            if len(self._separable_problems) > 1:
+                return self._parallel_solve(
+                    solver, warm_start, verbose, **kwargs)
 
         self._construct_chains(solver=solver, gp=gp)
         data, solving_inverse_data = self._solving_chain.apply(

@@ -19,6 +19,8 @@ from cvxpy.expressions.constants.parameter import Parameter
 import cvxpy.settings as s
 
 
+# Sublevel sets for quasiconvex atoms.
+#
 # In the below functions, s.INFEASIBLE is a placeholder for an infeasible
 # constraint (one that cannot be represented in a DCP way), and None
 # is a placeholder for the absence of a constraint

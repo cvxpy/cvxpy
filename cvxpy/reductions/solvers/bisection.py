@@ -21,9 +21,11 @@ from cvxpy.reductions import solution as solution_module
 
 
 def _lower_problem(problem):
+    """Evaluates lazy constraints."""
     constrs = [c() if callable(c) else c for c in problem.constraints]
     constrs = [c for c in constrs if c is not None]
     if s.INFEASIBLE in constrs:
+        # Indicates that the problem is infeasible.
         return None
     return problems.problem.Problem(Minimize(0), constrs)
 
@@ -34,12 +36,13 @@ def _solve(problem, solver):
     problem.solve(solver=solver)
 
 
-def infeasible(problem):
+def _infeasible(problem):
     return problem is None or problem.status in (s.INFEASIBLE,
                                                  s.INFEASIBLE_INACCURATE)
 
 
 def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
+    """Finds an interval for bisection."""
     if low is None:
         low = 0 if t.is_nonneg() else -1
     if high is None:
@@ -52,7 +55,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
             t.value = high
             lowered = _lower_problem(problem)
             _solve(lowered, solver)
-            if infeasible(lowered):
+            if _infeasible(lowered):
                 low = high
                 high *= 2
                 continue
@@ -66,7 +69,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
             t.value = low
             lowered = _lower_problem(problem)
             _solve(lowered, solver=solver)
-            if infeasible(lowered):
+            if _infeasible(lowered):
                 infeasible_low = True
             elif lowered.status in s.SOLUTION_PRESENT:
                 high = low
@@ -105,7 +108,7 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
         lowered = _lower_problem(problem)
         _solve(lowered, solver=solver)
 
-        if infeasible(lowered):
+        if _infeasible(lowered):
             if verbose and i % verbose_freq == 0:
                 print("(iteration %d) query was infeasible.\n" % i)
             low = tighten_lower(query_pt)
@@ -125,6 +128,31 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
 
 def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
            max_iters=100):
+    """Bisection on a one-parameter family of DCP problems.
+
+    Bisects on a one-parameter family of DCP problems emitted by `Dqcp2Dcp`.
+
+    Parameters
+    ------
+    problem : Problem
+        problem emitted by Dqcp2Dcp
+    solver : Solver
+        solver to use for bisection
+    low : float
+        lower bound for bisection (optional)
+    high : float
+        upper bound for bisection (optional)
+    eps : float
+        terminate bisection when width of interval is < eps
+    verbose : bool
+        whether to print verbose output related to the bisection
+    max_iters : int
+        the maximum number of iterations to run bisection
+
+    Returns
+    -------
+    A Solution object.
+    """
     if not hasattr(problem, '_bisection_data'):
         raise ValueError("`bisect` only accepts problems emitted by Dqcp2Dcp.")
 
@@ -136,7 +164,7 @@ def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
 
     lowered_feas = _lower_problem(feas_problem)
     _solve(lowered_feas, solver)
-    if infeasible(lowered_feas):
+    if _infeasible(lowered_feas):
         if verbose:
             print("Problem is infeasible.")
         return solution_module.failure_solution(s.INFEASIBLE)
