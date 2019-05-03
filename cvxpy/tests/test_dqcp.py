@@ -21,7 +21,7 @@ from cvxpy.tests import base_test
 import numpy as np
 
 
-class TestDqcp2Dcp(base_test.BaseTest):
+class TestDqcp(base_test.BaseTest):
     def test_basic_with_interval(self):
         x = cp.Variable()
         expr = cp.ceil(x)
@@ -479,3 +479,47 @@ class TestDqcp2Dcp(base_test.BaseTest):
         problem = cp.Problem(cp.Minimize(objective_fn), [mse <= epsilon])
         # smoke test
         problem.solve(qcp=True)
+
+    def test_multiply_const(self):
+        x = cp.Variable()
+        obj = cp.Minimize(0.5 * cp.ceil(x))
+        problem = cp.Problem(obj, [x >= 10])
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(x.value, 10, places=1)
+        self.assertAlmostEqual(problem.value, 5, places=1)
+
+        x = cp.Variable()
+        obj = cp.Minimize(cp.ceil(x) * 0.5)
+        problem = cp.Problem(obj, [x >= 10])
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(x.value, 10, places=1)
+        self.assertAlmostEqual(problem.value, 5, places=1)
+
+        x = cp.Variable()
+        obj = cp.Maximize(-0.5 * cp.ceil(x))
+        problem = cp.Problem(obj, [x >= 10])
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(x.value, 10, places=1)
+        self.assertAlmostEqual(problem.value, -5, places=1)
+
+        x = cp.Variable()
+        obj = cp.Maximize(cp.ceil(x) * -0.5)
+        problem = cp.Problem(obj, [x >= 10])
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(x.value, 10, places=1)
+        self.assertAlmostEqual(problem.value, -5, places=1)
+
+    def test_div_const(self):
+        x = cp.Variable()
+        obj = cp.Minimize(cp.ceil(x) / 0.5)
+        problem = cp.Problem(obj, [x >= 10])
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(x.value, 10, places=1)
+        self.assertAlmostEqual(problem.value, 20, places=1)
+
+        x = cp.Variable()
+        obj = cp.Maximize(cp.ceil(x) / -0.5)
+        problem = cp.Problem(obj, [x >= 10])
+        problem.solve(qcp=True)
+        self.assertAlmostEqual(x.value, 10, places=1)
+        self.assertAlmostEqual(problem.value, -20, places=1)

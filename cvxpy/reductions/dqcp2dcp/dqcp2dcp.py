@@ -34,7 +34,7 @@ from collections import namedtuple
 import numpy as np
 
 
-# A tuple (problem, feas_problem, param, tighten_lower, tighten_upper), where
+# A tuple (feas_problem, param, tighten_lower, tighten_upper), where
 #
 #   `feas_problem` is a problem that can be used to check if the original
 #       problem was feasible
@@ -54,42 +54,15 @@ BisectionData = namedtuple(
 class Dqcp2Dcp(Canonicalization):
     """Reduce DQCP problems to a parameterized DCP problem.
 
-    This reduction takes as input a DQCP problem and returns a parameterized DCP
-    problem that can be solved by bisection. Some of the constraints might
+    This reduction takes as input a DQCP problem and returns a parameterized
+    DCP problem that can be solved by bisection. Some of the constraints might
     be lazy, i.e., callables that return a constraint when called. The problem
     will only be DCP once the lazy constraints are replaced with actual
-    constraints.
+    constraints. 
 
     Problems emitted by this reduction can be solved with the `cp.bisect`
     function.
-
-    Example
-    -------
-
-    # TODO(akshayka): Convert this to a DQCP example.
-    >>> import cvxpy as cp
-    >>>
-    >>> x1 = cp.Variable(pos=True)
-    >>> x2 = cp.Variable(pos=True)
-    >>> x3 = cp.Variable(pos=True)
-    >>>
-    >>> monomial = 3.0 * x_1**0.4 * x_2 ** 0.2 * x_3 ** -1.4
-    >>> posynomial = monomial + 2.0 * x_1 * x_2
-    >>> dgp_problem = cp.Problem(cp.Minimize(posynomial), [monomial == 4.0])
-    >>>
-    >>> dcp2cone = cvxpy.reductions.Dcp2Cone()
-    >>> assert not dcp2cone.accepts(dgp_problem)
-    >>>
-    >>> gp2dcp = cvxpy.reductions.Dgp2Dcp(dgp_problem)
-    >>> dcp_problem = gp2dcp.reduce()
-    >>>
-    >>> assert dcp2cone.accepts(dcp_problem)
-    >>> dcp_probem.solve()
-    >>>
-    >>> dgp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
-    >>> print(dgp_problem.value)
-    >>> print(dgp_problem.variables())
-    """
+   """
     def __init__(self, problem=None):
         super(Dqcp2Dcp, self).__init__(
             canon_methods=CANON_METHODS, problem=problem)
@@ -174,22 +147,27 @@ class Dqcp2Dcp(Canonicalization):
             return self._canonicalize_constraint(lhs <= 0)
 
         if lhs.is_quasiconvex() and not lhs.is_convex():
-            assert rhs.is_constant(), rhs
             # quasiconvex <= constant
+            assert rhs.is_constant(), rhs
             if rhs.value == -np.inf:
                 return [s.INFEASIBLE]
             elif rhs.value == np.inf:
                 return [None]
 
             if inverse.invertible(lhs):
+                # Apply inverse to both sides of constraint.
                 rhs = inverse.inverse(lhs)(rhs)
-                if lhs.is_incr(0):
-                    return self._canonicalize_constraint(lhs.args[0] <= rhs)
-                return self._canonicalize_constraint(lhs.args[0] >= rhs)
+                idx = lhs._non_const_idx()[0]
+                expr = lhs.args[idx]
+                if lhs.is_incr(idx):
+                    return self._canonicalize_constraint(expr <= rhs)
+                return self._canonicalize_constraint(expr >= rhs)
             elif isinstance(lhs, maximum):
+                # Lower maximum.
                 return [c for arg in lhs.args
                         for c in self._canonicalize_constraint(arg <= rhs)]
             else:
+                # Replace quasiconvex atom with a sublevel set.
                 canon_args, aux_args_constr = self._canon_args(lhs)
                 sublevel_set = sets.sublevel(lhs.copy(canon_args), t=rhs)
                 return sublevel_set + aux_args_constr
@@ -203,14 +181,19 @@ class Dqcp2Dcp(Canonicalization):
             return [s.INFEASIBLE]
 
         if inverse.invertible(rhs):
+            # Apply inverse to both sides of constraint.
             lhs = inverse.inverse(rhs)(lhs)
-            if rhs.is_incr(0):
-                return self._canonicalize_constraint(lhs <= rhs.args[0])
-            return self._canonicalize_constraint(lhs >= rhs.args[0])
+            idx = rhs._non_const_idx()[0]
+            expr = rhs.args[idx]
+            if rhs.is_incr(idx):
+                return self._canonicalize_constraint(lhs <= expr)
+            return self._canonicalize_constraint(lhs >= expr)
         elif isinstance(rhs, minimum):
+            # Lower minimum.
             return [c for arg in rhs.args
                     for c in self._canonicalize_constraint(lhs <= arg)]
         else:
+            # Replace quasiconcave atom with a superlevel set.
             canon_args, aux_args_constr = self._canon_args(rhs)
             superlevel_set = sets.superlevel(rhs.copy(canon_args), t=lhs)
             return superlevel_set + aux_args_constr
