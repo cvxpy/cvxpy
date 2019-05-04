@@ -938,18 +938,6 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(p.value, 8)
         self.assertAlmostEqual(x.value, 3)
 
-    # def test_change_const(self):
-    #     """Test whether changing an array constant breaks DCP.
-    #     """
-    #     c = np.array([1, 2])
-    #     expr = c.T*square(self.x)
-    #     self.x.value = [1, 1]
-    #     self.assertAlmostEqual(expr.value, 3)
-    #     assert expr.is_dcp()
-    #     c[0] = -1
-    #     self.assertAlmostEqual(expr.value, 3)
-    #     assert expr.is_dcp()
-
     def test_mixed_norm(self):
         """Test mixed norm.
         """
@@ -958,3 +946,12 @@ class TestAtoms(BaseTest):
         prob = Problem(obj, [y == np.ones((5, 5))])
         result = prob.solve()
         self.assertAlmostEqual(result, 5)
+
+    def test_indicator(self):
+        x = cp.Variable()
+        constraints = [0 <= x, x <= 1]
+        expr = cp.transforms.indicator(constraints)
+        x.value = .5
+        self.assertEqual(expr.value, 0.0)
+        x.value = 2
+        self.assertEqual(expr.value, np.inf)
