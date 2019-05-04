@@ -58,7 +58,7 @@ class Dqcp2Dcp(Canonicalization):
     DCP problem that can be solved by bisection. Some of the constraints might
     be lazy, i.e., callables that return a constraint when called. The problem
     will only be DCP once the lazy constraints are replaced with actual
-    constraints. 
+    constraints.
 
     Problems emitted by this reduction can be solved with the `cp.bisect`
     function.

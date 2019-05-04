@@ -41,7 +41,8 @@ def _infeasible(problem):
                                                  s.INFEASIBLE_INACCURATE)
 
 
-def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
+def _find_bisection_interval(problem, t, solver=None, low=None, high=None,
+                             max_iters=100):
     """Finds an interval for bisection."""
     if low is None:
         low = 0 if t.is_nonneg() else -1
@@ -50,7 +51,7 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None):
 
     infeasible_low = t.is_nonneg()
     feasible_high = t.is_nonpos()
-    for _ in range(100):
+    for _ in range(max_iters):
         if not feasible_high:
             t.value = high
             lowered = _lower_problem(problem)
@@ -127,7 +128,7 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
 
 
 def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
-           max_iters=100):
+           max_iters=100, max_iters_interval_search=100):
     """Bisection on a one-parameter family of DCP problems.
 
     Bisects on a one-parameter family of DCP problems emitted by `Dqcp2Dcp`.
@@ -172,7 +173,8 @@ def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
     if low is None or high is None:
         if verbose:
             print("Finding interval for bisection ...")
-        low, high = _find_bisection_interval(problem, t, solver, low, high)
+        low, high = _find_bisection_interval(problem, t, solver, low, high,
+                                             max_iters_interval_search)
     if verbose:
         print("initial lower bound: %0.6f" % low)
         print("initial upper bound: %0.6f\n" % high)

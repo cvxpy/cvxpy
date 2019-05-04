@@ -59,7 +59,7 @@ def construct_intermediate_chain(problem, candidates, gp=False):
         if problem.is_dcp():
             append = (" However, the problem does follow DCP rules. "
                       "Consider calling solve() with `gp=False`.")
-        if problem.is_dqcp():
+        elif problem.is_dqcp():
             append = (" However, the problem does follow DQCP rules. "
                       "Consider calling solve() with `qcp=True`.")
         raise DGPError("Problem does not follow DGP rules." + append)

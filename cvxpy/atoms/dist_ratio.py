@@ -31,7 +31,6 @@ class dist_ratio(Atom):
         self.a = self.args[1].value
         self.b = self.args[2].value
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the distance ratio.
         """
