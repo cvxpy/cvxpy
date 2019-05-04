@@ -78,7 +78,9 @@ class ParamConeProg(object):
         c = (self.c*param_vec).flatten()
         # Need to cast to sparse matrix.
         param_vec = sp.csc_matrix(param_vec[:, None])
-        A = (self.A*param_vec).reshape((self.constr_size, self.x.size + 1), order='F')
+        var_size = self.x.size + 1
+        A = (self.A*param_vec).reshape((self.A.shape[0]//var_size, var_size),
+                                       order='F')
         A = A.tocsc()
         new_prob = ParamConeProg(c, self.x, A,
                                  self.constraints, [], {})

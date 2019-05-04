@@ -159,15 +159,31 @@ class SCS(ConicSolver):
                                                order='F'))
 
         val_arr = np.zeros((rows, cols))
-        val_arr[lower_diag_indices] = 1/np.sqrt(2)
-        np.fill_diagonal(val_arr, 0.5)
+        val_arr[lower_diag_indices] = np.sqrt(2)
+        np.fill_diagonal(val_arr, 1.0)
         val_arr = np.ravel(val_arr, order='F')
         val_arr = val_arr[np.nonzero(val_arr)]
 
         shape = (entries, rows*cols)
-        return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
-        # TODO work in expr + expr.T
-        # return scaled_lower_tri(expr + expr.T)/2
+        scaled_lower_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+
+        # (expr + expr.T)/2 for lower triangle.
+        entries = rows*(cols+1)
+        lower_diag_indices = np.tril_indices(rows)
+        tril_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
+                                                (rows, cols),
+                                                order='F'))
+        row_arr = np.concatenate([tril_arr]*2)
+        upper_diag_indices = np.triu_indices(rows)
+        triu_arr = np.sort(np.ravel_multi_index(upper_diag_indices,
+                                                (rows, cols),
+                                                order='F'))
+        col_arr = np.concatenate([tril_arr, triu_arr])
+        val_arr = np.full(entries, 0.5)
+        shape = (rows*cols, rows*cols)
+        symm_mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+
+        return scaled_lower_tri*symm_mat
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -236,6 +252,9 @@ class SCS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution["info"]["pobj"]
             opt_val = primal_val + inverse_data[s.OFFSET]
+            # TODO expand primal and dual variables from lower triangular
+            # to full.
+            # TODO but this makes map from solution to variables not a slice.
             primal_vars = {
                 inverse_data[SCS.VAR_ID]:
                 intf.DEFAULT_INTF.const_to_matrix(solution["x"])
