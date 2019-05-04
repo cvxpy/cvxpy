@@ -277,7 +277,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(problem.is_dcp())
         self.assertFalse(problem.is_dgp())
 
-        problem.solve(qcp=True, solver=cp.SCS)
+        problem.solve(qcp=True, solver=cp.ECOS)
         self.assertAlmostEqual(problem.objective.value, -42, places=1)
         self.assertAlmostEqual(x.value, 7, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
