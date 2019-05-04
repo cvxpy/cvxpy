@@ -345,7 +345,7 @@ class TestDqcp(base_test.BaseTest):
         b = np.arange(2)
         C = 2 * A
         d = np.arange(2)
-        lin_frac = (A @ x + b) / (C @ x + d)
+        lin_frac = (cp.matmul(A, x) + b) / (cp.matmul(C, x) + d)
         self.assertTrue(lin_frac.is_dqcp())
         self.assertTrue(lin_frac.is_quasiconvex())
         self.assertTrue(lin_frac.is_quasiconcave())
@@ -470,12 +470,12 @@ class TestDqcp(base_test.BaseTest):
         np.random.seed(0)
         A = np.random.randn(n, n)
         x_star = np.random.randn(n)
-        b = A @ x_star
+        b = cp.matmul(A, x_star)
         epsilon = 1e-3
 
         x = cp.Variable(n)
         objective_fn = cp.length(x)
-        mse = cp.sum_squares(A @ x - b)/n
+        mse = cp.sum_squares(cp.matmul(A, x) - b)/n
         problem = cp.Problem(cp.Minimize(objective_fn), [mse <= epsilon])
         # smoke test
         problem.solve(qcp=True)
