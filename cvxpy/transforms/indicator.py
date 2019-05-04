@@ -46,6 +46,12 @@ class indicator(Expression):
         """
         return False
 
+    def is_log_log_convex(self):
+        return False
+
+    def is_log_log_concave(self):
+        return False
+
     def is_nonneg(self):
         """Is the expression positive?
         """
