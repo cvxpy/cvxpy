@@ -104,6 +104,9 @@ class SOC(Constraint):
     def is_dgp(self):
         return False
 
+    def is_dqcp(self):
+        return self.is_dcp()
+
     # TODO hack
     def canonicalize(self):
         t, t_cons = self.args[0].canonical_form

@@ -313,9 +313,8 @@ class TestDgp2Dcp(BaseTest):
 
     def test_solving_non_dgp_problem_raises_error(self):
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegexp(error.DGPError, "Problem does not follow "
-                                     "DGP rules. However, the problem does follow DCP rules. "
-                                     "Consider calling this function with `gp=False`."):
+        with self.assertRaisesRegexp(error.DGPError, r"Problem does not follow "
+                                     "DGP rules. However, the problem does follow DCP rules.*"):
             problem.solve(gp=True)
         problem.solve()
         self.assertEqual(problem.status, "unbounded")
@@ -326,8 +325,7 @@ class TestDgp2Dcp(BaseTest):
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
         )
         with self.assertRaisesRegexp(error.DCPError, "Problem does not follow "
-                                     "DCP rules. However, the problem does follow DGP rules. "
-                                     "Consider calling this function with `gp=True`."):
+                                     "DCP rules. However, the problem does follow DGP rules.*"):
             problem.solve()
         problem.solve(gp=True)
         self.assertEqual(problem.status, "unbounded")
