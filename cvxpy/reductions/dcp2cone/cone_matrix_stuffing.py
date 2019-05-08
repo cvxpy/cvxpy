@@ -44,6 +44,8 @@ class ParamConeProg(object):
     The constant offsets d and b are the last column of c and A.
     """
     def __init__(self, c, x, A,
+                 variables,
+                 var_id_to_col,
                  constraints,
                  parameters,
                  param_id_to_col):
@@ -56,6 +58,10 @@ class ParamConeProg(object):
         self.param_id_to_col = param_id_to_col
         self.id_to_param = {p.id: p for p in self.parameters}
         self.total_param_size = sum([p.size for p in self.parameters])
+        # TODO technically part of inverse data.
+        self.variables = variables
+        self.var_id_to_col = var_id_to_col
+        self.id_to_var = {v.id: v for v in self.variables}
 
     def is_mixed_integer(self):
         return self.x.attributes['boolean'] or \
@@ -75,16 +81,59 @@ class ParamConeProg(object):
                 value = np.array(param.value).flatten(order='F')
                 param_vec[col:param.size+col] = value
         # New problem without parameters.
-        c = (self.c*param_vec).flatten()
+        c = (self.c@param_vec).flatten()
         # Need to cast to sparse matrix.
         param_vec = sp.csc_matrix(param_vec[:, None])
         var_size = self.x.size + 1
-        A = (self.A*param_vec).reshape((self.A.shape[0]//var_size, var_size),
+        A = (self.A@param_vec).reshape((self.A.shape[0]//var_size, var_size),
                                        order='F')
         A = A.tocsc()
-        new_prob = ParamConeProg(c, self.x, A,
-                                 self.constraints, [], {})
-        return new_prob
+        return c, A
+
+    def apply_param_jac(self, delc, delA, delb, active_params=None):
+        """Multiplies by Jacobian of parameter mapping.
+        """
+        if active_params is None:
+            active_params = {p.id for p in self.parameters}
+
+        del_param_vec = delc@self.c
+        delAb = np.concatenate([delA.flatten(order='F'), delb])
+        del_param_vec += (delAb @ self.A)
+        # Make dictionary of param id to delta.
+        del_param_dict = {}
+        for param_id, col in self.param_id_to_col.items():
+            if param_id in active_params:
+                param = self.id_to_param[param_id]
+                delta = del_param_vec[col:param.size+col]
+                del_param_dict[param_id] = np.reshape(delta, param.shape,
+                                                      order='F')
+
+        return del_param_dict
+
+    def split_solution(self, sltn, active_vars=None):
+        """Splits the solution into individual variables.
+        """
+        # var id to solution.
+        sltn_dict = {}
+        for var_id, col in self.var_id_to_col.items():
+            if var_id in active_vars:
+                var = self.id_to_var[var_id]
+                value = sltn[col:var.size+col]
+                sltn_dict[var_id] = np.reshape(value, var.shape,
+                                               order='F')
+
+        return sltn_dict
+
+    def split_adjoint(self, del_vars):
+        """Adjoint of split_solution.
+        """
+        var_vec = np.zeros(self.x.size + 1)
+        for var_id, delta in del_vars.items():
+            var = self.id_to_var[var_id]
+            col = self.var_id_to_col[var_id]
+            var_vec[col:var.size+col] = delta.flatten(order='F')
+
+        return var_vec
 
 
 class ConeMatrixStuffing(MatrixStuffing):
@@ -139,7 +188,10 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         # Map of old constraint id to new constraint id.
         inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = ParamConeProg(c, x, A, ordered_cons,
+        new_prob = ParamConeProg(c, x, A,
+                                 problem.variables(),
+                                 inverse_data.var_offsets,
+                                 ordered_cons,
                                  problem.parameters(),
                                  inverse_data.param_id_map)
         return new_prob, inverse_data

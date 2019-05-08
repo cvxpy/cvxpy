@@ -216,11 +216,11 @@ class SCS(ConicSolver):
         # Note that scs mandates that the cones MUST be ordered with
         # zero cones first, then non-nonnegative orthant, then SOC,
         # then PSD, then exponential.
-        prob = formatted.apply_parameters()
-        data[s.C] = prob.c[:-1]
-        inv_data[s.OFFSET] = prob.c[-1]
-        data[s.A] = -prob.A[:, :-1]
-        data[s.B] = prob.A[:, -1].A.flatten()
+        c, A = formatted.apply_parameters()
+        data[s.C] = c[:-1]
+        inv_data[s.OFFSET] = c[-1]
+        data[s.A] = -A[:, :-1]
+        data[s.B] = A[:, -1].A.flatten()
         return data, inv_data
 
     def extract_dual_value(self, result_vec, offset, constraint):
@@ -252,16 +252,13 @@ class SCS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution["info"]["pobj"]
             opt_val = primal_val + inverse_data[s.OFFSET]
-            # TODO expand primal and dual variables from lower triangular
-            # to full.
+            # TODO expand primal and dual variables from lower triangular to full.
             # TODO but this makes map from solution to variables not a slice.
             primal_vars = {
-                inverse_data[SCS.VAR_ID]:
-                intf.DEFAULT_INTF.const_to_matrix(solution["x"])
+                inverse_data[SCS.VAR_ID]: solution["x"]
             }
             dual_vars = {
-                SCS.DUAL_VAR_ID:
-                intf.DEFAULT_INTF.const_to_matrix(solution["y"])
+                SCS.DUAL_VAR_ID: solution["y"]
             }
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
