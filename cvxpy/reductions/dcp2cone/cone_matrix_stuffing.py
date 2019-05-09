@@ -113,6 +113,8 @@ class ParamConeProg(object):
     def split_solution(self, sltn, active_vars=None):
         """Splits the solution into individual variables.
         """
+        if active_vars is None:
+            active_vars = {v.id for v in self.variables}
         # var id to solution.
         sltn_dict = {}
         for var_id, col in self.var_id_to_col.items():
