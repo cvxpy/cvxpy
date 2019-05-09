@@ -27,18 +27,18 @@ This implies that
    \mathrm{Pr} (Y=0 \mid X = x) = \frac{1}{1 + \exp(\beta^T x)}.
 
 We fit :math:`\beta` by maximizing the log-likelihood of the data, plus
-a regularization term :math:`\lambda \|{\beta}\|_1` with
+a regularization term :math:`\lambda \|{\beta_{1:}}\|_1` with
 :math:`\lambda > 0`:
 
 .. math::
 
 
-   \ell(\beta) = \sum_{i=1}^{m} y_i \beta^T x_i - \log(1 + \exp (\beta^T x_i) - \lambda \|{\beta}\|_1.
+   \ell(\beta) = \sum_{i=1}^{m} y_i \beta^T x_i - \log(1 + \exp (\beta^T x_i)) - \lambda \|{\beta_{1:}}\|_1.
 
 Because :math:`\ell` is a concave function of :math:`\beta`, this is a
 convex optimization problem.
 
-.. code:: python
+.. code:: ipython3
 
     from __future__ import division
     import cvxpy as cp
@@ -52,9 +52,9 @@ randomly choosing :math:`x_i` and a sparse
 the :math:`z_i` are i.i.d. normal random variables. We divide the data
 into training and test sets with :math:`m=1000` examples each.
 
-.. code:: python
+.. code:: ipython3
 
-    np.random.seed(0)
+    np.random.seed(1)
     n = 20
     m = 1000
     density = 0.2
@@ -78,14 +78,14 @@ into training and test sets with :math:`m=1000` examples each.
 
 We next formulate the optimization problem using CVXPY.
 
-.. code:: python
+.. code:: ipython3
 
     beta = cp.Variable((n,1))
     lambd = cp.Parameter(nonneg=True)
     log_likelihood = cp.sum(
         cp.reshape(cp.multiply(Y, X @ beta), (m,)) -
         cp.log_sum_exp(cp.hstack([np.zeros((m,1)), X @ beta]), axis=1) - 
-        lambd * cp.norm(beta, 1)
+        lambd * cp.norm(beta[1:], 1)
     )
     problem = cp.Problem(cp.Maximize(log_likelihood))
 
@@ -94,14 +94,14 @@ compute a trade-off curve. We then plot the train and test error over
 the trade-off curve. A reasonable choice of :math:`\lambda` is the value
 that minimizes the test error.
 
-.. code:: python
+.. code:: ipython3
 
     def error(scores, labels):
       scores[scores > 0] = 1
       scores[scores <= 0] = 0
       return np.sum(np.abs(scores - labels)) / float(np.size(labels))
 
-.. code:: python
+.. code:: ipython3
 
     trials = 100
     train_error = np.zeros(trials)
@@ -115,7 +115,7 @@ that minimizes the test error.
         test_error[i] = error(X_test @ beta.value, Y_test)
         beta_vals.append(beta.value)
 
-.. code:: python
+.. code:: ipython3
 
     %matplotlib inline
     %config InlineBackend.figure_format = 'svg'
@@ -137,7 +137,7 @@ We also plot the regularization path, or the :math:`\beta_i` versus
 larger :math:`\lambda` than the rest, which suggests that these features
 are the most important.
 
-.. code:: python
+.. code:: ipython3
 
     for i in range(n):
         plt.plot(lambda_vals, [wi[i,0] for wi in beta_vals])
