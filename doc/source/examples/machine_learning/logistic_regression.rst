@@ -38,7 +38,7 @@ a regularization term :math:`\lambda \|{\beta_{1:}}\|_1` with
 Because :math:`\ell` is a concave function of :math:`\beta`, this is a
 convex optimization problem.
 
-.. code:: ipython3
+.. code:: python
 
     from __future__ import division
     import cvxpy as cp
@@ -52,7 +52,7 @@ randomly choosing :math:`x_i` and a sparse
 the :math:`z_i` are i.i.d. normal random variables. We divide the data
 into training and test sets with :math:`m=1000` examples each.
 
-.. code:: ipython3
+.. code:: python
 
     np.random.seed(1)
     n = 20
@@ -78,7 +78,7 @@ into training and test sets with :math:`m=1000` examples each.
 
 We next formulate the optimization problem using CVXPY.
 
-.. code:: ipython3
+.. code:: python
 
     beta = cp.Variable((n,1))
     lambd = cp.Parameter(nonneg=True)
@@ -94,14 +94,14 @@ compute a trade-off curve. We then plot the train and test error over
 the trade-off curve. A reasonable choice of :math:`\lambda` is the value
 that minimizes the test error.
 
-.. code:: ipython3
+.. code:: python
 
     def error(scores, labels):
       scores[scores > 0] = 1
       scores[scores <= 0] = 0
       return np.sum(np.abs(scores - labels)) / float(np.size(labels))
 
-.. code:: ipython3
+.. code:: python
 
     trials = 100
     train_error = np.zeros(trials)
@@ -115,7 +115,7 @@ that minimizes the test error.
         test_error[i] = error(X_test @ beta.value, Y_test)
         beta_vals.append(beta.value)
 
-.. code:: ipython3
+.. code:: python
 
     %matplotlib inline
     %config InlineBackend.figure_format = 'svg'
@@ -137,7 +137,7 @@ We also plot the regularization path, or the :math:`\beta_i` versus
 larger :math:`\lambda` than the rest, which suggests that these features
 are the most important.
 
-.. code:: ipython3
+.. code:: python
 
     for i in range(n):
         plt.plot(lambda_vals, [wi[i,0] for wi in beta_vals])
