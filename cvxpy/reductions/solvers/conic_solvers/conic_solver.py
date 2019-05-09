@@ -215,6 +215,8 @@ class ConicSolver(Solver):
         new_param_cone_prog = ParamConeProg(problem.c,
                                             problem.x,
                                             restruct_A,
+                                            problem.variables,
+                                            problem.var_id_to_col,
                                             problem.constraints,
                                             problem.parameters,
                                             problem.param_id_to_col)
