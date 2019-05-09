@@ -96,8 +96,9 @@ class ParamConeProg(object):
         if active_params is None:
             active_params = {p.id for p in self.parameters}
 
-        del_param_vec = delc@self.c
-        delAb = np.concatenate([delA.flatten(order='F'), delb])
+        del_param_vec = delc@self.c[:-1]
+        # TODO(akshayka): delA.A densifies the matrix, use sparse vector instead
+        delAb = np.concatenate([delA.A.flatten(order='F'), delb])
         del_param_vec += (delAb @ self.A)
         # Make dictionary of param id to delta.
         del_param_dict = {}
@@ -129,7 +130,7 @@ class ParamConeProg(object):
     def split_adjoint(self, del_vars):
         """Adjoint of split_solution.
         """
-        var_vec = np.zeros(self.x.size + 1)
+        var_vec = np.zeros(self.x.size)
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
