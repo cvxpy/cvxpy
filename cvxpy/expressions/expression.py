@@ -20,6 +20,7 @@ import warnings
 from cvxpy import error
 from cvxpy.constraints import Equality, Inequality, PSD
 from cvxpy.expressions import cvxtypes
+import cvxpy.utilities.performance_utils as perf
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
@@ -179,6 +180,7 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    @perf.compute_once
     def is_dcp(self):
         """Checks whether the Expression is DCP.
 
@@ -200,6 +202,7 @@ class Expression(u.Canonical):
         else:
             return self.value is not None and np.all(self.value > 0)
 
+    @perf.compute_once
     def is_log_log_affine(self):
         """Is the expression affine?
         """
@@ -232,6 +235,23 @@ class Expression(u.Canonical):
             True if the Expression is log-log DCP, False otherwise.
         """
         return self.is_log_log_convex() or self.is_log_log_concave()
+
+    def is_quasiconvex(self):
+        return self.is_convex()
+
+    def is_quasiconcave(self):
+        return self.is_concave()
+
+    @perf.compute_once
+    def is_dqcp(self):
+        """Checks whether the Expression is DQCP.
+
+        Returns
+        -------
+        bool
+            True if the Expression is DQCP, False otherwise.
+        """
+        return self.is_quasiconvex() or self.is_quasiconcave()
 
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?

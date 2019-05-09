@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -52,6 +52,9 @@ class NonPos(Constraint):
 
     def is_dgp(self):
         return False
+
+    def is_dqcp(self):
+        return self.args[0].is_quasiconvex()
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -124,6 +127,12 @@ class Inequality(Constraint):
     def is_dgp(self):
         return (self.args[0].is_log_log_convex() and
                 self.args[1].is_log_log_concave())
+
+    def is_dqcp(self):
+        return (
+            self.is_dcp() or
+            (self.args[0].is_quasiconvex() and self.args[1].is_constant()) or
+            (self.args[0].is_constant() and self.args[1].is_quasiconcave()))
 
     @property
     def residual(self):

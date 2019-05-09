@@ -64,6 +64,9 @@ class PSD(Constraint):
     def is_dgp(self):
         return False
 
+    def is_dqcp(self):
+        return self.is_dcp()
+
     @property
     def residual(self):
         """The residual of the constraint.

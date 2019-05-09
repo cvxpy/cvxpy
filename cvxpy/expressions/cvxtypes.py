@@ -102,6 +102,16 @@ def pos():
     return pos.pos
 
 
+def maximum():
+    from cvxpy.atoms.elementwise import maximum
+    return maximum.maximum
+
+
+def minimum():
+    from cvxpy.atoms.elementwise import minimum
+    return minimum.minimum
+
+
 def neg():
     from cvxpy.atoms.elementwise import neg
     return neg.neg

@@ -14,13 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.atoms.dist_ratio import dist_ratio
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv, resolvent
 from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms.gen_lambda_max import gen_lambda_max
 from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
 from cvxpy.atoms.lambda_sum_largest import lambda_sum_largest
 from cvxpy.atoms.lambda_sum_smallest import lambda_sum_smallest
+from cvxpy.atoms.length import length
 from cvxpy.atoms.log_det import log_det
 from cvxpy.atoms.log_sum_exp import log_sum_exp
 from cvxpy.atoms.matrix_frac import matrix_frac
@@ -42,6 +45,7 @@ from cvxpy.atoms.prod import prod, Prod
 from cvxpy.atoms.quad_form import quad_form, QuadForm
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.atoms.sigma_max import sigma_max
+from cvxpy.atoms.sign import sign
 from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.sum_smallest import sum_smallest
 from cvxpy.atoms.sum_squares import sum_squares
@@ -67,6 +71,7 @@ from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.vstack import vstack
 
 from cvxpy.atoms.elementwise.abs import abs
+from cvxpy.atoms.elementwise.ceil import ceil, floor
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.huber import huber
