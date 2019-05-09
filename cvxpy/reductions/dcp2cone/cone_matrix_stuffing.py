@@ -92,14 +92,17 @@ class ParamConeProg(object):
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
+
+        Assumes delA is sparse.
         """
         if active_params is None:
             active_params = {p.id for p in self.parameters}
 
         del_param_vec = delc@self.c[:-1]
-        # TODO(akshayka): delA.A densifies the matrix, use sparse vector instead
-        delAb = np.concatenate([delA.A.flatten(order='F'), delb])
-        del_param_vec += (delAb @ self.A)
+        flatdelA = delA.reshape((np.prod(delA.shape),1), order='F')
+        delAb = sp.vstack([flatdelA, sp.csc_matrix(delb[:, None])])
+        del_param_vec += np.squeeze((delAb.T @ self.A).A)
+        del_param_vec = np.squeeze(del_param_vec)
         # Make dictionary of param id to delta.
         del_param_dict = {}
         for param_id, col in self.param_id_to_col.items():
