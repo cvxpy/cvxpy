@@ -51,7 +51,7 @@ Anaconda
 
       conda config --add channels oxfordcontrol
       conda install -c conda-forge lapack
-      conda install -c cvxgrp cvxpy=1.0.21
+      conda install -c cvxgrp cvxpy=1.0.22
 
 4. Test the installation with ``nose``.
 
