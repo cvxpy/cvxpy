@@ -602,6 +602,7 @@ class Problem(u.Canonical):
 
         solution = chain.invert(solution, inverse_data)
 
+        # TODO list the available solvers in the error message.
         try:
             self.unpack(solution)
         except ValueError:
@@ -610,6 +611,7 @@ class Problem(u.Canonical):
                 "Try another solver or solve with verbose=True for more "
                 "information. Try recentering the problem data around 0 and "
                 "rescaling to reduce the dynamic range."
+                # "The following solvers are available:" + other_solvers
             )
         self._solver_stats = SolverStats(self._solution.attr,
                                          chain.solver.name())
