@@ -92,13 +92,17 @@ class ParamConeProg(object):
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
+
+        Assumes delA is sparse.
         """
         if active_params is None:
             active_params = {p.id for p in self.parameters}
 
-        del_param_vec = delc@self.c
-        delAb = np.concatenate([delA.flatten(order='F'), delb])
-        del_param_vec += (delAb @ self.A)
+        del_param_vec = delc@self.c[:-1]
+        flatdelA = delA.reshape((np.prod(delA.shape),1), order='F')
+        delAb = sp.vstack([flatdelA, sp.csc_matrix(delb[:, None])])
+        del_param_vec += np.squeeze((delAb.T @ self.A).A)
+        del_param_vec = np.squeeze(del_param_vec)
         # Make dictionary of param id to delta.
         del_param_dict = {}
         for param_id, col in self.param_id_to_col.items():
@@ -129,7 +133,7 @@ class ParamConeProg(object):
     def split_adjoint(self, del_vars):
         """Adjoint of split_solution.
         """
-        var_vec = np.zeros(self.x.size + 1)
+        var_vec = np.zeros(self.x.size)
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
