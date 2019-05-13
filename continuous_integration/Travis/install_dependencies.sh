@@ -26,7 +26,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         touch $PIN_FILE
         echo "python=$PYTHON_VERSION" >> $PIN_FILE
         conda install -c conda-forge --yes lapack
-        conda install -c conda-forge --yes ecos scs multiprocess
+        conda install -c conda-forge --yes ecos scs
         conda install -c oxfordcontrol --yes osqp
         conda install -c default --yes flake8
 
@@ -49,7 +49,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
         touch $PIN_FILE
         echo "python=$PYTHON_VERSION.*" >> $PIN_FILE
-        conda install -c conda-forge --yes ecos scs multiprocess
+        conda install -c conda-forge --yes ecos scs
         conda install -c oxfordcontrol --yes osqp
         conda install -c default --yes flake8=3.5.0
     fi
