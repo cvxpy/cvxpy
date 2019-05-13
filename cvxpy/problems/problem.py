@@ -20,16 +20,9 @@ from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import defines as slv_def
-
-# TODO(akshayka): This is a hack. Fix this if possible.
-# Only need to import cvxpy.transform.get_separable_problems, but this creates
-# a circular import (cvxpy.transforms imports Problem). Hence we need to import
-# cvxpy here.
-import cvxpy  # noqa
 from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
 from collections import namedtuple
-import multiprocess as multiprocessing
 import numpy as np
 
 
@@ -70,8 +63,6 @@ class Problem(u.Canonical):
         self._status = None
         self._solution = None
         self._solving_chain = None
-        # List of separable (sub)problems
-        self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
         self._size_metrics = SizeMetrics(self)
         # Benchmarks reported by the solver:
@@ -429,7 +420,7 @@ class Problem(u.Canonical):
                solver=None,
                warm_start=True,
                verbose=False,
-               parallel=False, gp=False, **kwargs):
+               gp=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -443,8 +434,6 @@ class Problem(u.Canonical):
             Should the previous solver result be used to warm start?
         verbose : bool, optional
             Overrides the default of hiding solver output.
-        parallel : bool, optional
-            If problem is separable, solve in parallel.
         gp : bool, optional
             If True, then parses the problem as a disciplined geometric program
             instead of a disciplined convex program.
@@ -459,13 +448,6 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
-        if parallel:
-            from cvxpy.transforms.separable_problems import get_separable_problems
-            self._separable_problems = (get_separable_problems(self))
-            if len(self._separable_problems) > 1:
-                return self._parallel_solve(solver, warm_start,
-                                            verbose, **kwargs)
-
         self._construct_chains(solver=solver, gp=gp)
 
         data, inverse_data = self._solving_chain.apply(self)
@@ -477,74 +459,6 @@ class Problem(u.Canonical):
         self.unpack_results(solution, self._solving_chain, inverse_data)
 
         return self.value
-
-    def _parallel_solve(self,
-                        solver=None,
-                        warm_start=False,
-                        verbose=False, **kwargs):
-        """Solves a DCP compliant optimization problem in parallel.
-
-        Saves the values of primal and dual variables in the variable
-        and constraint objects, respectively.
-
-        Parameters
-        ----------
-        solver : str, optional
-            The solver to use. Defaults to ECOS.
-        warm_start : bool, optional
-            Should the previous solver result be used to warm start?
-        verbose : bool, optional
-            Overrides the default of hiding solver output.
-        kwargs : dict, optional
-            A dict of options that will be passed to the specific solver.
-            In general, these options will override any default settings
-            imposed by cvxpy.
-
-        Returns
-        -------
-        float
-            The optimal value for the problem, or a string indicating
-            why the problem could not be solved.
-        """
-        def _solve_problem(problem):
-            """Solve a problem and then return the optimal value, status,
-            primal values, and dual values.
-            """
-            opt_value = problem.solve(solver=solver,
-                                      warm_start=warm_start,
-                                      verbose=verbose,
-                                      parallel=False, **kwargs)
-            status = problem.status
-            primal_values = [var.value for var in problem.variables()]
-            dual_values = [constr.dual_value for constr in problem.constraints]
-            return SolveResult(opt_value, status, primal_values, dual_values)
-
-        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-        solve_results = pool.map(_solve_problem, self._separable_problems)
-        pool.close()
-        pool.join()
-        statuses = {solve_result.status for solve_result in solve_results}
-        # Check if at least one subproblem is infeasible or inaccurate
-        for status in s.INF_OR_UNB:
-            if status in statuses:
-                self._handle_no_solution(status)
-                break
-        else:
-            for subproblem, solve_result in zip(self._separable_problems,
-                                                solve_results):
-                for var, primal_value in zip(subproblem.variables(),
-                                             solve_result.primal_values):
-                    var.save_value(primal_value)
-                for constr, dual_value in zip(subproblem.constraints,
-                                              solve_results):
-                    constr.save_value(dual_value)
-            self._value = sum(solve_result.opt_value
-                              for solve_result in solve_results)
-            if s.OPTIMAL_INACCURATE in statuses:
-                self._status = s.OPTIMAL_INACCURATE
-            else:
-                self._status = s.OPTIMAL
-        return self._value
 
     def _clear_solution(self):
         for v in self.variables():

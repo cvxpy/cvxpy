@@ -24,7 +24,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
                 numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
         conda install -c conda-forge --yes lapack
-        conda install -c conda-forge --yes ecos scs multiprocess
+        conda install -c conda-forge --yes ecos scs
         conda install -c default --yes flake8
 
         # Install GLPK.
@@ -57,7 +57,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
-        conda install -c conda-forge --yes ecos scs multiprocess
+        conda install -c conda-forge --yes ecos scs
         conda install -c default --yes flake8=3.5.0
     fi
 

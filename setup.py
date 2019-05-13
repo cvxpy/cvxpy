@@ -69,7 +69,6 @@ setup(
     install_requires=["osqp >= 0.4.1",
                       "ecos >= 2",
                       "scs >= 1.1.3",
-                      "multiprocess",
                       "fastcache",
                       "six",
                       "numpy >= 1.15",
