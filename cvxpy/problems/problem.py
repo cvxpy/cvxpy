@@ -20,6 +20,7 @@ from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.utilities.deterministic import unique_list
 
 # TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates

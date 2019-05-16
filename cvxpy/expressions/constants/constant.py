@@ -61,7 +61,7 @@ class Constant(Leaf):
         """
         return [self]
 
-    def is_constant(self):
+    def _check_is_constant(self, recompute=True):
         return True
 
     @property

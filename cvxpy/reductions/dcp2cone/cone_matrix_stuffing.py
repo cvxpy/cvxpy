@@ -99,7 +99,7 @@ class ParamConeProg(object):
             active_params = {p.id for p in self.parameters}
 
         del_param_vec = delc@self.c[:-1]
-        flatdelA = delA.reshape((np.prod(delA.shape),1), order='F')
+        flatdelA = delA.reshape((np.prod(delA.shape), 1), order='F')
         delAb = sp.vstack([flatdelA, sp.csc_matrix(delb[:, None])])
         del_param_vec += np.squeeze((delAb.T @ self.A).A)
         del_param_vec = np.squeeze(del_param_vec)
