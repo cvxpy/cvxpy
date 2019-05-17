@@ -67,9 +67,16 @@ class ParamConeProg(object):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
-    def apply_parameters(self):
+    def apply_parameters(self, id_to_param_value=None):
         """Returns A, b after applying parameters (and reshaping).
+
+        Args:
+          id_to_param_value: (optional) dict mapping parameter ids to values
         """
+        def param_value(idx):
+            return (np.array(self.id_to_param[idx].value) if id_to_param_value
+                    is None else id_to_param_value[idx])
+
         # Flatten parameters.
         param_vec = np.zeros(self.total_param_size + 1)
         # TODO handle parameters with structure.
@@ -77,8 +84,8 @@ class ParamConeProg(object):
             if param_id == lo.CONSTANT_ID:
                 param_vec[col] = 1
             else:
+                value = param_value(param_id).flatten(order='F')
                 param = self.id_to_param[param_id]
-                value = np.array(param.value).flatten(order='F')
                 param_vec[col:param.size+col] = value
         # New problem without parameters.
         c = (self.c@param_vec).flatten()
