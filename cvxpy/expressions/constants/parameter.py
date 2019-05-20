@@ -42,6 +42,7 @@ class Parameter(Leaf):
         # Initialize with value if provided.
         self._value = None
         super(Parameter, self).__init__(shape, value, **kwargs)
+        self._is_constant = True
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
@@ -50,6 +51,9 @@ class Parameter(Leaf):
 
     def name(self):
         return self._name
+
+    def _check_is_constant(self, recompute=False):
+        return self._is_constant
 
     # Getter and setter for parameter value.
     @property

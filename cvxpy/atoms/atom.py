@@ -191,6 +191,7 @@ class Atom(Expression):
             return False
         # If all arguments DPP,
         # same as DCP rule but without exception for constants.
+        # TODO: exception for constants, but not for parameterized expressions?
         for idx, arg in enumerate(self.args):
             if self.is_incr(idx):
                 if not (self.is_atom_convex() and arg.is_convex() or

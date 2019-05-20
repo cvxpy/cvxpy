@@ -81,6 +81,9 @@ class Variable(Leaf):
         """str : The name of the variable."""
         return self._name
 
+    def _check_is_constant(self, recompute=False):
+        return False
+
     @property
     def grad(self):
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.

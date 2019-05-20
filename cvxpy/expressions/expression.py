@@ -150,11 +150,17 @@ class Expression(u.Canonical):
     def is_constant(self):
         """Is the expression constant?
         """
-        try:
-            return self.__is_constant
-        except AttributeError:
-            self.__is_constant = not self.variables() or 0 in self.shape
-            return self.__is_constant
+        return self._check_is_constant()
+
+    def _check_is_constant(self, recompute=False):
+        """Is the expression constant?
+        """
+        if recompute and hasattr(self, "__is_constant"):
+            del self.__is_constant
+        if not hasattr(self, "__is_constant"):
+            self.__is_constant = 0 in self.shape or all(
+                arg._check_is_constant(recompute) for arg in self.args)
+        return self.__is_constant
 
     @abc.abstractmethod
     def is_dpp(self, context='CP'):
