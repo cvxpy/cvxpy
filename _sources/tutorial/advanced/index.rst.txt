@@ -624,7 +624,7 @@ Here is the complete list of solver options.
 
 `OSQP`_ options:
 
-``'max_iters'``
+``'max_iter'``
     maximum number of iterations (default: 10,000).
 
 ``'eps_abs'``

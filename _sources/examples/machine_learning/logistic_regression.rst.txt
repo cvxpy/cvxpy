@@ -27,13 +27,13 @@ This implies that
    \mathrm{Pr} (Y=0 \mid X = x) = \frac{1}{1 + \exp(\beta^T x)}.
 
 We fit :math:`\beta` by maximizing the log-likelihood of the data, plus
-a regularization term :math:`\lambda \|{\beta}\|_1` with
+a regularization term :math:`\lambda \|{\beta_{1:}}\|_1` with
 :math:`\lambda > 0`:
 
 .. math::
 
 
-   \ell(\beta) = \sum_{i=1}^{m} y_i \beta^T x_i - \log(1 + \exp (\beta^T x_i) - \lambda \|{\beta}\|_1.
+   \ell(\beta) = \sum_{i=1}^{m} y_i \beta^T x_i - \log(1 + \exp (\beta^T x_i)) - \lambda \|{\beta_{1:}}\|_1.
 
 Because :math:`\ell` is a concave function of :math:`\beta`, this is a
 convex optimization problem.
@@ -54,7 +54,7 @@ into training and test sets with :math:`m=1000` examples each.
 
 .. code:: python
 
-    np.random.seed(0)
+    np.random.seed(1)
     n = 20
     m = 1000
     density = 0.2
@@ -85,7 +85,7 @@ We next formulate the optimization problem using CVXPY.
     log_likelihood = cp.sum(
         cp.reshape(cp.multiply(Y, X @ beta), (m,)) -
         cp.log_sum_exp(cp.hstack([np.zeros((m,1)), X @ beta]), axis=1) - 
-        lambd * cp.norm(beta, 1)
+        lambd * cp.norm(beta[1:], 1)
     )
     problem = cp.Problem(cp.Maximize(log_likelihood))
 
@@ -134,7 +134,7 @@ that minimizes the test error.
 
 We also plot the regularization path, or the :math:`\beta_i` versus
 :math:`\lambda`. Notice that a few features remain non-zero longer for
-larger :math:`\lambda` then the rest, which suggests that these features
+larger :math:`\lambda` than the rest, which suggests that these features
 are the most important.
 
 .. code:: python

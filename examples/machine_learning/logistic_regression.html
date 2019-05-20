@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Logistic regression with \(\ell_1\) regularization &#8212; CVXPY 1.0.21 documentation</title>
+    <title>Logistic regression with \(\ell_1\) regularization &#8212; CVXPY 1.0.23 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.21',
+        VERSION:     '1.0.23',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -57,10 +57,10 @@ posterior probabilities of the classes given the data linearly, with</p>
 \[\mathrm{Pr} (Y=1 \mid X = x) = \frac{\exp(\beta^T x)}{1 + \exp(\beta^T x)}, \quad
 \mathrm{Pr} (Y=0 \mid X = x) = \frac{1}{1 + \exp(\beta^T x)}.\]</div>
 <p>We fit <span class="math">\(\beta\)</span> by maximizing the log-likelihood of the data, plus
-a regularization term <span class="math">\(\lambda \|{\beta}\|_1\)</span> with
+a regularization term <span class="math">\(\lambda \|{\beta_{1:}}\|_1\)</span> with
 <span class="math">\(\lambda &gt; 0\)</span>:</p>
 <div class="math">
-\[\ell(\beta) = \sum_{i=1}^{m} y_i \beta^T x_i - \log(1 + \exp (\beta^T x_i) - \lambda \|{\beta}\|_1.\]</div>
+\[\ell(\beta) = \sum_{i=1}^{m} y_i \beta^T x_i - \log(1 + \exp (\beta^T x_i)) - \lambda \|{\beta_{1:}}\|_1.\]</div>
 <p>Because <span class="math">\(\ell\)</span> is a concave function of <span class="math">\(\beta\)</span>, this is a
 convex optimization problem.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
@@ -75,7 +75,7 @@ randomly choosing <span class="math">\(x_i\)</span> and a sparse
 <span class="math">\(y_i = \mathbb{1}[\beta_{\mathrm{true}}^T x_i  - z_i &gt; 0]\)</span>, where
 the <span class="math">\(z_i\)</span> are i.i.d. normal random variables. We divide the data
 into training and test sets with <span class="math">\(m=1000\)</span> examples each.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
 <span class="n">m</span> <span class="o">=</span> <span class="mi">1000</span>
 <span class="n">density</span> <span class="o">=</span> <span class="mf">0.2</span>
@@ -104,7 +104,7 @@ into training and test sets with <span class="math">\(m=1000\)</span> examples e
 <span class="n">log_likelihood</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span>
     <span class="n">cp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">X</span> <span class="o">@</span> <span class="n">beta</span><span class="p">),</span> <span class="p">(</span><span class="n">m</span><span class="p">,))</span> <span class="o">-</span>
     <span class="n">cp</span><span class="o">.</span><span class="n">log_sum_exp</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span> <span class="n">X</span> <span class="o">@</span> <span class="n">beta</span><span class="p">]),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">-</span>
-    <span class="n">lambd</span> <span class="o">*</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">lambd</span> <span class="o">*</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">beta</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="mi">1</span><span class="p">)</span>
 <span class="p">)</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">log_likelihood</span><span class="p">))</span>
 </pre></div>
@@ -145,7 +145,7 @@ that minimizes the test error.</p>
 </div>
 <img alt="../../_images/logistic_regression_9_0.svg" src="../../_images/logistic_regression_9_0.svg" /><p>We also plot the regularization path, or the <span class="math">\(\beta_i\)</span> versus
 <span class="math">\(\lambda\)</span>. Notice that a few features remain non-zero longer for
-larger <span class="math">\(\lambda\)</span> then the rest, which suggests that these features
+larger <span class="math">\(\lambda\)</span> than the rest, which suggests that these features
 are the most important.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
     <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lambda_vals</span><span class="p">,</span> <span class="p">[</span><span class="n">wi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">wi</span> <span class="ow">in</span> <span class="n">beta_vals</span><span class="p">])</span>

@@ -47,13 +47,13 @@ Basic Examples
 Machine Learning
 ----------------
 
-- :doc:`Ridge regression <machine_learning/ridge_regression>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/1.0/examples/machine_learning/ridge_regression.ipynb>`_
+- :doc:`Ridge regression <machine_learning/ridge_regression>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/machine_learning/ridge_regression.ipynb>`_
 
-- :doc:`Lasso regression <machine_learning/lasso_regression>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/1.0/examples/machine_learning/lasso_regression.ipynb>`_
+- :doc:`Lasso regression <machine_learning/lasso_regression>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/machine_learning/lasso_regression.ipynb>`_
 
-- :doc:`Logistic regression <machine_learning/logistic_regression>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/1.0/examples/machine_learning/logistic_regression.ipynb>`_
+- :doc:`Logistic regression <machine_learning/logistic_regression>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/machine_learning/logistic_regression.ipynb>`_
 
-- :doc:`SVM classifier <machine_learning/svm>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/1.0/examples/machine_learning/svm.ipynb>`_
+- :doc:`SVM classifier <machine_learning/svm>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/machine_learning/svm.ipynb>`_
 
 - `Huber regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/huber_regression.ipynb>`_
 
