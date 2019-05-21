@@ -826,10 +826,18 @@ Tensor get_mul_mat(LinOp &lin, int arg_idx) {
       }
     }
   }
-	int block_rows = (lin.linOp_data->size.size() >= 1) ? lin.linOp_data->size[0] : 1;
-	int block_cols = (lin.linOp_data->size.size() >= 2) ? lin.linOp_data->size[1] : 1;
+  // Get rows and cols of data (1 if not present).
+	int data_rows = (lin.linOp_data->size.size() >= 1) ? lin.linOp_data->size[0] : 1;
+	int data_cols = (lin.linOp_data->size.size() >= 2) ? lin.linOp_data->size[1] : 1;
 
   int num_blocks = (lin.args[0]->size.size() <= 1) ? 1 : lin.args[0]->size[1];
+  // Swap rows and cols if necessary.
+  int block_rows = data_rows;
+  int block_cols = data_cols;
+  if (lin.args[0]->size[0] != data_cols) {
+    block_rows = data_cols;
+    block_cols = data_rows;
+  }
 
   // TODO may need to speed up. Copying data.
   // Replace every matrix with a block diagonal matrix.
