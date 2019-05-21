@@ -125,6 +125,13 @@ class Problem(u.Canonical):
           expr.is_dcp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
+    def is_dpp(self):
+        """Does the problem satisfy DPP rules?
+        """
+        return all(
+          expr.is_dcp() for expr in self.constraints + [self.objective])
+
+    @perf.compute_once
     def is_dgp(self):
         """Does the problem satisfy DGP rules?
         """
