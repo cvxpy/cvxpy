@@ -20,6 +20,7 @@ from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.utilities.deterministic import unique_list
 from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
 from collections import namedtuple
