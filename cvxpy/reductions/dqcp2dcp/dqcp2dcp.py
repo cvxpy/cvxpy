@@ -130,6 +130,18 @@ class Dqcp2Dcp(Canonicalization):
 
     def _canonicalize_constraint(self, constr):
         """Recursively canonicalize a constraint."""
+        lhs = constr.args[0]
+        rhs = constr.args[1]
+
+        if isinstance(constr, Inequality):
+            lhs_val = np.array(lhs.value)
+            rhs_val = np.array(rhs.value)
+            if (lhs_val == -np.inf).all() or (rhs_val == np.inf).all():
+                # constraint is redundant
+                return [None]
+            elif (lhs_val == np.inf).any() or (rhs_val == -np.inf).any():
+                return [s.INFEASIBLE]
+
         if constr.is_dcp():
             canon_constr, aux_constr = self.canonicalize_tree(constr)
             return [canon_constr] + aux_constr
@@ -137,8 +149,6 @@ class Dqcp2Dcp(Canonicalization):
         # canonicalize lhs <= rhs
         # either lhs or rhs is quasiconvex (and not convex)
         assert isinstance(constr, Inequality)
-        lhs = constr.args[0]
-        rhs = constr.args[1]
 
         # short-circuit zero-valued expressions to simplify inverse logic
         if lhs.is_zero():
@@ -149,13 +159,6 @@ class Dqcp2Dcp(Canonicalization):
         if lhs.is_quasiconvex() and not lhs.is_convex():
             # quasiconvex <= constant
             assert rhs.is_constant(), rhs
-            if rhs.value == -np.inf:
-                # Indicates that the problem is infeasible.
-                return [s.INFEASIBLE]
-            elif rhs.value == np.inf:
-                # Constraint is redundant.
-                return [None]
-
             if inverse.invertible(lhs):
                 # Apply inverse to both sides of constraint.
                 rhs = inverse.inverse(lhs)(rhs)
@@ -177,11 +180,6 @@ class Dqcp2Dcp(Canonicalization):
         # constant <= quasiconcave
         assert rhs.is_quasiconcave()
         assert lhs.is_constant()
-        if lhs.value == -np.inf:
-            return [None]
-        elif lhs.value == np.inf:
-            return [s.INFEASIBLE]
-
         if inverse.invertible(rhs):
             # Apply inverse to both sides of constraint.
             lhs = inverse.inverse(rhs)(lhs)

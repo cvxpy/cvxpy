@@ -32,18 +32,18 @@ def inverse(expr):
     elif type(expr) == NegExpression:
         return lambda t: -t
     elif type(expr) == atoms.exp:
-        return lambda t: atoms.log(t) if t.value > 0 else -np.inf
+        return lambda t: atoms.log(t) if t.is_nonneg() else -np.inf
     elif type(expr) == atoms.log:
         return lambda t: atoms.exp(t)
     elif type(expr) == atoms.log1p:
         return lambda t: atoms.exp(t) - 1
     elif type(expr) == atoms.logistic:
-        return lambda t: atoms.log(atoms.exp(t) - 1) if t.value > 0 else -np.inf
+        return lambda t: atoms.log(atoms.exp(t) - 1) if t.is_nonneg() else -np.inf
     elif type(expr) == atoms.power:
         def power_inv(t):
             if expr.p == 1:
                 return t
-            return atoms.power(t, 1/expr.p) if t.value > 0 else np.inf
+            return atoms.power(t, 1/expr.p) if t.is_nonneg() else np.inf
         return power_inv
     elif type(expr) == atoms.multiply:
         if expr.args[0].is_constant():
