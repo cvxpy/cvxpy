@@ -2,6 +2,7 @@
 Copyright 2013 Steven Diamond, 2017 Robin Verschueren, 2017 Akshay Agrawal
 
 Licensed under the Apache License, Version 2.0 (the "License");
+
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
@@ -25,21 +26,21 @@ import cvxpy.interface as intf
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.solver import group_constraints
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
+                                                                 ConicSolver)
 from cvxpy.reductions.solvers import utilities
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
-
-from .conic_solver import ConeDims, ConicSolver
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
 # that can be supplied to scs.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        "f": int(cone_dims.zero),
-        "l": int(cone_dims.nonpos),
-        "q": [int(v) for v in cone_dims.soc],
-        "ep": int(cone_dims.exp),
-        "s": [int(v) for v in cone_dims.psd]
+        "f": cone_dims.zero,
+        "l": cone_dims.nonpos,
+        "q": cone_dims.soc,
+        "ep": cone_dims.exp,
+        "s": cone_dims.psd,
     }
     return cones
 

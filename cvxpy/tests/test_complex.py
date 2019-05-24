@@ -277,7 +277,7 @@ class TestComplex(BaseTest):
         X = Variable((2, 4), complex=True)
         prob = Problem(Minimize(cvx.norm(X, 2)), [X == P])
         result = prob.solve()
-        self.assertAlmostEqual(result, sigma_max, places=3)
+        self.assertAlmostEqual(result, sigma_max, places=1)
 
         norm_nuc = np.linalg.norm(P, 'nuc')
         X = Variable((2, 4), complex=True)
@@ -389,12 +389,32 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cvx.SCS, eps=1e-5, max_iters=7500)
         self.assertAlmostEqual(result, value, places=3)
 
+    def test_quad_over_lin(self):
+        """Test quad_over_lin atom.
+        """
+        P = np.array([[10, 1j], [-1j, 10]])
+        X = Variable((2, 2), complex=True)
+        b = 1
+        y = Variable(complex=False)
+
+        value = cvx.quad_over_lin(P, b).value
+        expr = cvx.quad_over_lin(X, y)
+        prob = Problem(cvx.Minimize(expr), [X == P, y == b])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6, max_iters=7500, verbose=True)
+        self.assertAlmostEqual(result, value, places=3)
+
+        expr = cvx.quad_over_lin(X - P, y)
+        prob = Problem(cvx.Minimize(expr), [y == b])
+        result = prob.solve(solver=cvx.SCS, eps=1e-6, max_iters=7500, verbose=True)
+        self.assertAlmostEqual(result, 0, places=3)
+        self.assertItemsAlmostEqual(X.value, P, places=3)
+
     def test_hermitian(self):
         """Test Hermitian variables.
         """
         X = Variable((2, 2), hermitian=True)
-        prob = Problem(cvx.Minimize(cvx.imag(X[1,0])),
-                       [X[0, 0] == 2, X[1, 1] == 3, X[0,1] == 1 +1j])
+        prob = Problem(cvx.Minimize(cvx.imag(X[1, 0])),
+                       [X[0, 0] == 2, X[1, 1] == 3, X[0, 1] == 1+1j])
         prob.solve()
         self.assertItemsAlmostEqual(X.value, [2, 1-1j, 1+1j, 3])
 
@@ -402,8 +422,8 @@ class TestComplex(BaseTest):
         """Test Hermitian variables.
         """
         X = Variable((2, 2), hermitian=True)
-        prob = Problem(cvx.Minimize(cvx.imag(X[1,0])),
-                       [X >> 0, X[0,0] == -1])
+        prob = Problem(cvx.Minimize(cvx.imag(X[1, 0])),
+                       [X >> 0, X[0, 0] == -1])
         prob.solve()
         assert prob.status is cvx.INFEASIBLE
 
@@ -421,27 +441,27 @@ class TestComplex(BaseTest):
         """Test problem with complex sparse matrix.
         """
         # define sparse matrix [[0, 1j],[-1j,0]]
-        row=np.array([0,1])
-        col=np.array([1,0])
-        data=np.array([1j,-1j])
-        A=sp.csr_matrix((data, (row, col)), shape=(2, 2))
+        row = np.array([0, 1])
+        col = np.array([1, 0])
+        data = np.array([1j, -1j])
+        A = sp.csr_matrix((data, (row, col)), shape=(2, 2))
 
         # Feasibility with sparse matrix
-        rho=cvx.Variable((2,2),complex=True)
-        Id=np.identity(2)
-        obj=cvx.Maximize(0)
-        cons=[A*rho==Id]
-        prob=cvx.Problem(obj,cons)
+        rho = cvx.Variable((2, 2), complex=True)
+        Id = np.identity(2)
+        obj = cvx.Maximize(0)
+        cons = [A*rho == Id]
+        prob = cvx.Problem(obj, cons)
         prob.solve()
         rho_sparse = rho.value
         # infeasible here, which is wrong!
 
         # Feasibility with numpy array: just replace A with A.toarray()
-        rho=cvx.Variable((2,2),complex=True)
-        Id=np.identity(2)
-        obj=cvx.Maximize(0)
-        cons=[A.toarray()*rho==Id]
-        prob=cvx.Problem(obj,cons)
+        rho = cvx.Variable((2, 2), complex=True)
+        Id = np.identity(2)
+        obj = cvx.Maximize(0)
+        cons = [A.toarray()*rho == Id]
+        prob = cvx.Problem(obj, cons)
         prob.solve()
         self.assertItemsAlmostEqual(rho.value, rho_sparse)
 
@@ -461,7 +481,7 @@ class TestComplex(BaseTest):
         obj = cvx.Maximize(c[0] - cvx.real(cvx.trace(f)))
         # Form and solve problem.
         prob = cvx.Problem(obj, constraints)
-        sol = prob.solve()
+        prob.solve()
 
     def test_validation(self):
         """Test that complex arguments are rejected.
@@ -473,7 +493,8 @@ class TestComplex(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             cvx.quad_over_lin(x, x)
-        self.assertEqual(str(cm.exception), "Arguments to quad_over_lin cannot be complex.")
+        self.assertEqual(str(cm.exception),
+                         "The second argument to quad_over_lin cannot be complex.")
 
         with self.assertRaises(Exception) as cm:
             cvx.sum_largest(x, 2)

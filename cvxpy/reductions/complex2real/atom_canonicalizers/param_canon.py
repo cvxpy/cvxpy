@@ -14,17 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.constants import CallbackParam
-import numpy as np
+from cvxpy.atoms.affine.imag import imag
+from cvxpy.atoms.affine.real import real
 
 
 def param_canon(expr, real_args, imag_args, real2imag):
     if expr.is_real():
         return expr, None
     elif expr.is_imag():
-        imag = CallbackParam(lambda: np.imag(expr.value), expr.shape)
-        return None, imag
+        return None, imag(expr)
     else:
-        real = CallbackParam(lambda: np.real(expr.value), expr.shape)
-        imag = CallbackParam(lambda: np.imag(expr.value), expr.shape)
-        return (real, imag)
+        return (real(expr), imag(expr))

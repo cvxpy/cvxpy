@@ -27,7 +27,7 @@ In this notebook, we show how to fit a ridge regression model using
 CVXPY, how to evaluate the model, and how to tune the hyper-parameter
 :math:`\lambda`.
 
-.. code:: ipython2
+.. code:: python
 
     import cvxpy as cp
     import numpy as np
@@ -39,7 +39,7 @@ Writing the objective function
 We can decompose the **objective function** as the sum of a **least
 squares loss function** and an :math:`\ell_2` **regularizer**.
 
-.. code:: ipython2
+.. code:: python
 
     def loss_fn(X, Y, beta):
         return cp.pnorm(cp.matmul(X, beta) - Y, p=2)**2
@@ -61,7 +61,7 @@ and as such tends to lead to models with **less variance** than those
 fit with vanilla linear regression. We generate a small dataset that
 will illustrate this.
 
-.. code:: ipython2
+.. code:: python
 
     def generate_data(m=100, n=20, sigma=5):
         "Generates data matrix X and observations Y."
@@ -91,7 +91,7 @@ objective is to minimize the the objective function defined above. We
 make :math:`\lambda` a CVXPY parameter, so that we can use a single
 CVXPY problem to obtain estimates for many values of :math:`\lambda`.
 
-.. code:: ipython2
+.. code:: python
 
     beta = cp.Variable(n)
     lambd = cp.Parameter(nonneg=True)
@@ -117,7 +117,7 @@ off higher bias for lower variance; in other words, this indicates that,
 for our example, a properly tuned ridge regression **generalizes
 better** than a least squares linear regression.
 
-.. code:: ipython2
+.. code:: python
 
     %matplotlib inline
     %config InlineBackend.figure_format = 'svg'
@@ -147,7 +147,7 @@ slower than others might correspond to the more **informative**
 features. It is in this sense that ridge regression can be considered
 **model selection.**
 
-.. code:: ipython2
+.. code:: python
 
     def plot_regularization_path(lambd_values, beta_values):
         num_coeffs = len(beta_values[0])

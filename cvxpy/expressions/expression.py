@@ -20,6 +20,7 @@ import warnings
 from cvxpy import error
 from cvxpy.constraints import Equality, Inequality, PSD
 from cvxpy.expressions import cvxtypes
+import cvxpy.utilities.performance_utils as perf
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
@@ -153,8 +154,8 @@ class Expression(u.Canonical):
         try:
             return self.__is_constant
         except AttributeError:
-            self.__is_constant = (len(self.variables()) == 0 or
-                                  0 in self.shape)
+            self.__is_constant = 0 in self.shape or all(
+                arg.is_constant() for arg in self.args)
             return self.__is_constant
 
     def is_affine(self):
@@ -179,6 +180,7 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    @perf.compute_once
     def is_dcp(self):
         """Checks whether the Expression is DCP.
 
@@ -200,6 +202,7 @@ class Expression(u.Canonical):
         else:
             return self.value is not None and np.all(self.value > 0)
 
+    @perf.compute_once
     def is_log_log_affine(self):
         """Is the expression affine?
         """
@@ -233,6 +236,23 @@ class Expression(u.Canonical):
         """
         return self.is_log_log_convex() or self.is_log_log_concave()
 
+    def is_quasiconvex(self):
+        return self.is_convex()
+
+    def is_quasiconcave(self):
+        return self.is_concave()
+
+    @perf.compute_once
+    def is_dqcp(self):
+        """Checks whether the Expression is DQCP.
+
+        Returns
+        -------
+        bool
+            True if the Expression is DQCP, False otherwise.
+        """
+        return self.is_quasiconvex() or self.is_quasiconcave()
+
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?
         """
@@ -253,8 +273,8 @@ class Expression(u.Canonical):
     def is_quadratic(self):
         """Is the expression quadratic?
         """
-        # Defaults to false
-        return False
+        # Defaults to is constant.
+        return self.is_constant()
 
     def is_symmetric(self):
         """Is the expression symmetric?
@@ -265,8 +285,8 @@ class Expression(u.Canonical):
     def is_pwl(self):
         """Is the expression piecewise linear?
         """
-        # Defaults to false
-        return False
+        # Defaults to constant.
+        return self.is_constant()
 
     def is_qpwa(self):
         """Is the expression quadratic of piecewise affine?
@@ -475,7 +495,7 @@ class Expression(u.Canonical):
     def __div__(self, other):
         """Expression : One expression divided by another.
         """
-        if other.is_scalar() or other.shape == self.shape:
+        if (self.is_scalar() or other.is_scalar()) or other.shape == self.shape:
             if error.warnings_enabled():
                 warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.div_expr()(self, other)

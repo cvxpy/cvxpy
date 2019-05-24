@@ -18,7 +18,7 @@ continuous **feature selection** method.
 In this notebook, we show how to fit a lasso model using CVXPY, how to
 evaluate the model, and how to tune the hyperparameter :math:`\lambda`.
 
-.. code:: ipython2
+.. code:: python
 
     import cvxpy as cp
     import numpy as np
@@ -30,13 +30,13 @@ Writing the objective function
 We can decompose the **objective function** as the sum of a **least
 squares loss function** and an :math:`\ell_1` **regularizer**.
 
-.. code:: ipython2
+.. code:: python
 
     def loss_fn(X, Y, beta):
-        return cp.norm(cp.matmul(X, beta) - Y, p=2)**2
+        return cp.norm2(cp.matmul(X, beta) - Y)**2
     
     def regularizer(beta):
-        return cp.norm(beta, p=1)
+        return cp.norm1(beta)
     
     def objective_fn(X, Y, beta, lambd):
         return loss_fn(X, Y, beta) + lambd * regularizer(beta)
@@ -51,7 +51,7 @@ We generate training examples and observations that are linearly
 related; we make the relationship *sparse*, and we'll see how lasso will
 approximately recover it.
 
-.. code:: ipython2
+.. code:: python
 
     def generate_data(m=100, n=20, sigma=5, density=0.2):
         "Generates data matrix X and observations Y."
@@ -83,7 +83,7 @@ objective is to minimize the the objective function defined above. We
 make :math:`\lambda` a CVXPY parameter, so that we can use a single
 CVXPY problem to obtain estimates for many values of :math:`\lambda`.
 
-.. code:: ipython2
+.. code:: python
 
     beta = cp.Variable(n)
     lambd = cp.Parameter(nonneg=True)
@@ -106,7 +106,7 @@ Evaluating the model
 Just as we saw for ridge regression, regularization improves
 generalizability.
 
-.. code:: ipython2
+.. code:: python
 
     %matplotlib inline
     %config InlineBackend.figure_format = 'svg'
@@ -142,7 +142,7 @@ drives parameters to exactly zero, whereas the latter shrinks parameters
 but does not usually zero them out. That is, lasso results in sparse
 models; ridge (usually) does not.**
 
-.. code:: ipython2
+.. code:: python
 
     def plot_regularization_path(lambd_values, beta_values):
         num_coeffs = len(beta_values[0])

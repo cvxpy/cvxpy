@@ -38,8 +38,6 @@ from cvxpy.reductions.solvers.conic_solvers.gurobi_conif \
     import GUROBI as GUROBI_con
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif \
     import XPRESS as XPRESS
-from cvxpy.reductions.solvers.conic_solvers.elemental_conif \
-    import Elemental as Elemental_con
 from cvxpy.reductions.solvers.conic_solvers.mosek_conif \
     import MOSEK as MOSEK_con
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif \
@@ -52,8 +50,8 @@ from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 
 solver_conic_intf = [ECOS_con(), ECOS_BB_con(),
                      CVXOPT_con(), GLPK_con(), XPRESS(),
-                     GLPK_MI_con(), CBC_con(), SCS_con(), SuperSCS_con(), GUROBI_con(),
-                     Elemental_con(), MOSEK_con(), CPLEX_con()]
+                     GLPK_MI_con(), CBC_con(), SCS_con(), SuperSCS_con(),
+                     GUROBI_con(), MOSEK_con(), CPLEX_con()]
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
                   CPLEX_qp()
@@ -65,10 +63,9 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
-CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.ECOS_BB, s.SUPER_SCS, s.SCS,
-                 s.GUROBI, s.GLPK, s.XPRESS,
-                 s.GLPK_MI, s.CBC, s.ELEMENTAL, s.JULIA_OPT, s.CVXOPT,
-                 s.CPLEX]
+CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.SUPER_SCS, s.SCS,
+                 s.CPLEX, s.GUROBI, s.GLPK, s.XPRESS,
+                 s.GLPK_MI, s.CBC, s.CVXOPT, s.ECOS_BB]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX]
@@ -88,9 +85,7 @@ def installed_solvers():
             installed.append(name)
 
     # Remove duplicate names (for solvers that handle both conic and QP)
-    np.unique(installed).tolist()
-
-    return installed
+    return np.unique(installed).tolist()
 
 
 INSTALLED_SOLVERS = installed_solvers()

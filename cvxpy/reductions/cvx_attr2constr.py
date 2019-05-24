@@ -27,6 +27,8 @@ import scipy.sparse as sp
 CONVEX_ATTRIBUTES = [
     'nonneg',
     'nonpos',
+    'pos',
+    'neg',
     'symmetric',
     'diag',
     'PSD',

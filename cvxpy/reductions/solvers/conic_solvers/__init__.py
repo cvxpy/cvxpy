@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from .cbc_conif import CBC
+from .cplex_conif import CPLEX
+from .cvxopt_conif import CVXOPT
 from .ecos_conif import ECOS
+from .glpk_conif import GLPK
+from .glpk_mi_conif import GLPK_MI
 from .gurobi_conif import GUROBI
 from .mosek_conif import MOSEK
 from .scs_conif import SCS
-from .cvxopt_conif import CVXOPT
-from .glpk_conif import GLPK
-from .cbc_conif import CBC
-from .elemental_conif import Elemental
+from .super_scs_conif import SuperSCS
+from .xpress_conif import XPRESS

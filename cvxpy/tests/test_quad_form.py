@@ -82,13 +82,13 @@ class TestNonOptimal(BaseTest):
 
         # Here are our QP factors
         A = cvxpy.Constant(sp.eye(4))
-        c = np.matrix(np.ones(4)).reshape((1,4))
+        c = np.ones(4).reshape((1, 4))
 
         # Here is our optimization variable
         x = cvxpy.Variable(4)
 
         # And the QP problem setup
-        function = cvxpy.quad_form(x, A) - c * x
+        function = cvxpy.quad_form(x, A) - cvxpy.matmul(c, x)
         objective = cvxpy.Minimize(function)
         problem = cvxpy.Problem(objective)
 
@@ -158,6 +158,6 @@ class TestNonOptimal(BaseTest):
             cvxpy.sum_squares(design_matrix * c - data_norm) +
             lopt * cvxpy.quad_form(c, laplacian_matrix)
         )
-        constraints = [(M[0] * c) == 1] # (K * c) >= -0.1]
+        constraints = [(M[0] * c) == 1]  # (K * c) >= -0.1]
         prob = cvxpy.Problem(objective, constraints)
         prob.solve()

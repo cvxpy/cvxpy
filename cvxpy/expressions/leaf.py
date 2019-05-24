@@ -261,10 +261,10 @@ class Leaf(expression.Expression):
         """
         # Default is full domain.
         domain = []
-        if self.attributes['nonneg']:
+        if self.attributes['nonneg'] or self.attributes['pos']:
             domain.append(self >= 0)
-        elif self.attributes['nonpos']:
-            domain.append(self >= 0)
+        elif self.attributes['nonpos'] or self.attributes['neg']:
+            domain.append(self <= 0)
         elif self.attributes['PSD']:
             domain.append(self >> 0)
         elif self.attributes['NSD']:

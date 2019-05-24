@@ -296,19 +296,6 @@ Matrix get_constant_data(LinOp &lin, bool column) {
 }
 
 /**
- * Interface for the DIV linOp to retrieve the constant divisor.
- *
- * Parameters: linOp LIN of type DIV with a scalar divisor stored in the
- * 							0,0 component of the DENSE_DATA matrix.
- *
- * Returns: scalar divisor
- */
-double get_divisor_data(LinOp &lin) {
-	assert(lin.type == DIV);
-	return lin.dense_data(0, 0);
-}
-
-/**
  * Interface for the VARIABLE linOp to retrieve its variable ID.
  *
  * Parameters: linOp LIN of type VARIABLE with a variable ID in the
@@ -789,11 +776,19 @@ std::vector<Matrix> get_reshape_mat(LinOp &lin) {
  */
 std::vector<Matrix> get_div_mat(LinOp &lin) {
 	assert(lin.type == DIV);
-	// assumes scalar divisor
-	double divisor = get_divisor_data(lin);
-	int n = vecprod(lin.size);
-	Matrix coeffs = sparse_eye(n);
-	coeffs /= divisor;
+	Matrix constant = get_constant_data(lin, true);
+	int n = constant.rows();
+
+	// build a giant diagonal matrix
+	std::vector<Triplet> tripletList;
+	tripletList.reserve(n);
+	for ( int k = 0; k < constant.outerSize(); ++k ) {
+		for ( Matrix::InnerIterator it(constant, k); it; ++it ) {
+			tripletList.push_back(Triplet(it.row(), it.row(), 1.0/it.value()));
+		}
+	}
+	Matrix coeffs(n, n);
+	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
 	return build_vector(coeffs);
 }

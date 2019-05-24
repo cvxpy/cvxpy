@@ -1,4 +1,5 @@
 """
+
 Copyright 2013 Steven Diamond, 2017 Robin Verschueren
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,11 +25,8 @@ from cvxpy.atoms import (QuadForm, abs, power,
                          norm,
                          huber,
                          matrix_frac)
-from cvxpy.reductions.solvers.defines \
-    import SOLVER_MAP_QP, QP_SOLVERS, INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.defines import QP_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
-from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -129,7 +127,7 @@ class TestQp(BaseTest):
 
     def power_matrix(self, solver):
         p = Problem(Minimize(sum(power(self.A - 3., 2))), [])
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([3., 3., 3., 3.],
                                         var.value, places=4)
@@ -138,7 +136,7 @@ class TestQp(BaseTest):
         A = np.random.randn(10, 2)
         b = np.random.randn(10)
         p = Problem(Minimize(sum_squares(A*self.x - b)))
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(),
                                         var.value,
@@ -171,7 +169,7 @@ class TestQp(BaseTest):
         b = np.random.randn(5)
         b = np.maximum(b, 0)
         p = Problem(Maximize(-sum(self.x)), [self.x >= 0, A*self.x <= b])
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
 
@@ -179,7 +177,7 @@ class TestQp(BaseTest):
         A = np.random.randn(10, 5)
         b = np.random.randn(10)
         p = Problem(Minimize(norm(A*self.w - b, 2)))
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(), var.value,
                                         places=1)
@@ -288,7 +286,7 @@ class TestQp(BaseTest):
         constraints += [self.velocity[:, -1] == 0]
         # Solve the problem
         p = Problem(Minimize(.01 * sum_squares(self.force)), constraints)
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         self.assertAlmostEqual(178.500, p.value, places=1)
 
     def sparse_system(self, solver):
@@ -300,7 +298,7 @@ class TestQp(BaseTest):
         b = np.random.randn(m)
 
         p = Problem(Minimize(sum_squares(A*self.xs - b)), [self.xs == 0])
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         self.assertAlmostEqual(b.T.dot(b), p.value, places=4)
 
     def smooth_ridge(self, solver):
@@ -314,7 +312,7 @@ class TestQp(BaseTest):
         obj = sum_squares(A*self.xsr - b) + \
             eta*sum_squares(self.xsr[:-1]-self.xsr[1:])
         p = Problem(Minimize(obj), [])
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         self.assertAlmostEqual(0, p.value, places=4)
 
     def huber_small(self, solver):
@@ -324,7 +322,7 @@ class TestQp(BaseTest):
 
         # Solve problem with QP
         p = Problem(Minimize(objective), [x[2] >= 3])
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         self.assertAlmostEqual(3, x.value[2], places=4)
         self.assertAlmostEqual(5, objective.value, places=4)
 
@@ -345,7 +343,7 @@ class TestQp(BaseTest):
 
         # Solve problem with QP
         p = Problem(Minimize(objective))
-        s = self.solve_QP(p, solver)
+        self.solve_QP(p, solver)
         self.assertAlmostEqual(1.327429461061672, objective.value, places=3)
         self.assertItemsAlmostEqual(x.value,
                                     [-1.03751745, 0.86657204, -0.9649172],
@@ -474,3 +472,14 @@ class TestQp(BaseTest):
             for i in range(len(b_vec)):
                 self.assertItemsAlmostEqual(x_full[i], x_param[i], places=3)
                 self.assertAlmostEqual(obj_full[i], obj_param[i])
+
+    def test_square_param(self):
+        """Test issue arising with square plus parameter.
+        """
+        a = Parameter(value=1)
+        b = Variable()
+
+        obj = Minimize(b ** 2 + abs(a))
+        prob = Problem(obj)
+        prob.solve()
+        self.assertAlmostEqual(obj.value, 1.0)

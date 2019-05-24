@@ -207,82 +207,6 @@ class MulExpression(BinaryOperator):
                            "DCP.")
 
 
-class DivExpression(BinaryOperator):
-    """Division by scalar.
-
-    Can be created by using the / operator of expression.
-    """
-
-    OP_NAME = "/"
-    OP_FUNC = np.divide
-
-    def is_quadratic(self):
-        return self.args[0].is_quadratic() and self.args[1].is_constant()
-
-    def is_qpwa(self):
-        return self.args[0].is_qpwa() and self.args[1].is_constant()
-
-    def shape_from_args(self):
-        """Returns the (row, col) shape of the expression.
-        """
-        return self.args[0].shape
-
-    def is_atom_convex(self):
-        """Division is convex (affine) in its arguments only if
-           the denominator is constant.
-        """
-        return self.args[1].is_constant() and self.args[1].is_scalar()
-
-    def is_atom_concave(self):
-        return self.is_atom_convex()
-
-    def is_atom_log_log_convex(self):
-        """Is the atom log-log convex?
-        """
-        return True
-
-    def is_atom_log_log_concave(self):
-        """Is the atom log-log concave?
-        """
-        return True
-
-    def is_incr(self, idx):
-        """Is the composition non-decreasing in argument idx?
-        """
-        if idx == 0:
-            return self.args[1].is_nonneg()
-        else:
-            return self.args[0].is_nonpos()
-
-    def is_decr(self, idx):
-        """Is the composition non-increasing in argument idx?
-        """
-        if idx == 0:
-            return self.args[1].is_nonpos()
-        else:
-            return self.args[0].is_nonneg()
-
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
-        """Multiply the linear expressions.
-
-        Parameters
-        ----------
-        arg_objs : list
-            LinExpr for each argument.
-        shape : tuple
-            The shape of the resulting expression.
-        data :
-            Additional data required by the atom.
-
-        Returns
-        -------
-        tuple
-            (LinOp for objective, list of constraints)
-        """
-        return (lu.div_expr(arg_objs[0], arg_objs[1]), [])
-
-
 class multiply(MulExpression):
     """ Multiplies two expressions elementwise.
     """
@@ -305,6 +229,18 @@ class multiply(MulExpression):
         """Is the atom log-log concave?
         """
         return True
+
+    def is_atom_quasiconvex(self):
+        return (
+            self.args[0].is_constant() or self.args[1].is_constant()) or (
+            self.args[0].is_nonneg() and self.args[1].is_nonpos()) or (
+            self.args[0].is_nonpos() and self.args[1].is_nonneg())
+
+    def is_atom_quasiconcave(self):
+        return (
+            self.args[0].is_constant() or self.args[1].is_constant()) or all(
+            arg.is_nonneg() for arg in self.args) or all(
+            arg.is_nonpos() for arg in self.args)
 
     def numeric(self, values):
         """Multiplies the values elementwise.
@@ -361,3 +297,93 @@ class multiply(MulExpression):
         else:
             raise DCPError("Product of two non-constant expressions is not "
                            "DCP.")
+
+
+class DivExpression(multiply):
+    """Division by scalar.
+
+    Can be created by using the / operator of expression.
+    """
+
+    OP_NAME = "/"
+    OP_FUNC = np.divide
+
+    def numeric(self, values):
+        """Divides numerator by denominator.
+        """
+        for i in range(2):
+            if sp.issparse(values[i]):
+                values[i] = values[i].todense().A
+        return np.divide(values[0], values[1])
+
+    def is_quadratic(self):
+        return self.args[0].is_quadratic() and self.args[1].is_constant()
+
+    def is_qpwa(self):
+        return self.args[0].is_qpwa() and self.args[1].is_constant()
+
+    def shape_from_args(self):
+        """Returns the (row, col) shape of the expression.
+        """
+        return self.args[0].shape
+
+    def is_atom_convex(self):
+        """Division is convex (affine) in its arguments only if
+           the denominator is constant.
+        """
+        return self.args[1].is_constant()
+
+    def is_atom_concave(self):
+        return self.is_atom_convex()
+
+    def is_atom_log_log_convex(self):
+        """Is the atom log-log convex?
+        """
+        return True
+
+    def is_atom_log_log_concave(self):
+        """Is the atom log-log concave?
+        """
+        return True
+
+    def is_atom_quasiconvex(self):
+        return self.args[1].is_nonneg() or self.args[1].is_nonpos()
+
+    def is_atom_quasiconcave(self):
+        return self.is_atom_quasiconvex()
+
+    def is_incr(self, idx):
+        """Is the composition non-decreasing in argument idx?
+        """
+        if idx == 0:
+            return self.args[1].is_nonneg()
+        else:
+            return self.args[0].is_nonpos()
+
+    def is_decr(self, idx):
+        """Is the composition non-increasing in argument idx?
+        """
+        if idx == 0:
+            return self.args[1].is_nonpos()
+        else:
+            return self.args[0].is_nonneg()
+
+    @staticmethod
+    def graph_implementation(arg_objs, shape, data=None):
+        """Multiply the linear expressions.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        shape : tuple
+            The shape of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        return (lu.div_expr(arg_objs[0], arg_objs[1]), [])

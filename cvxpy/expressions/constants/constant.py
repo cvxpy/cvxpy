@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from fastcache import clru_cache
-import cvxpy.interface as intf
 from cvxpy.expressions.leaf import Leaf
-from cvxpy.settings import EIGVAL_TOL
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.interface as intf
+from cvxpy.settings import EIGVAL_TOL
+from cvxpy.utilities import performance_utils as perf
 from scipy import linalg as LA
 import numpy as np
 
@@ -59,6 +59,9 @@ class Constant(Leaf):
         """Returns self as a constant.
         """
         return [self]
+
+    def is_constant(self):
+        return True
 
     @property
     def value(self):
@@ -127,13 +130,13 @@ class Constant(Leaf):
             self._compute_attr()
         return self._imag
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_complex(self):
         """Is the Leaf complex valued?
         """
         return np.iscomplexobj(self.value)
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_symmetric(self):
         """Is the expression symmetric?
         """
@@ -146,7 +149,7 @@ class Constant(Leaf):
         else:
             return False
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?
         """
@@ -180,7 +183,7 @@ class Constant(Leaf):
         self._symm = is_symm
         self._herm = is_herm
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_psd(self):
         """Is the expression a positive semidefinite matrix?
         """
@@ -201,7 +204,7 @@ class Constant(Leaf):
             self._compute_eigvals()
         return all(self._eigvals.real >= -EIGVAL_TOL)
 
-    @clru_cache(maxsize=100)
+    @perf.compute_once
     def is_nsd(self):
         """Is the expression a negative semidefinite matrix?
         """

@@ -147,9 +147,14 @@ class Minimize(Objective):
         return self.args[0].is_convex()
 
     def is_dgp(self):
-        """The objective must be log_log_convex.
+        """The objective must be log-log convex.
         """
         return self.args[0].is_log_log_convex()
+
+    def is_dqcp(self):
+        """The objective must be quasiconvex.
+        """
+        return self.args[0].is_quasiconvex()
 
     @staticmethod
     def primal_to_result(result):
@@ -201,6 +206,11 @@ class Maximize(Objective):
         """The objective must be log-log concave.
         """
         return self.args[0].is_log_log_concave()
+
+    def is_dqcp(self):
+        """The objective must be quasiconcave.
+        """
+        return self.args[0].is_quasiconcave()
 
     @staticmethod
     def primal_to_result(result):

@@ -23,7 +23,7 @@ Please use the following BibTeX citations:
 ::
 
     @article{cvxpy_rewriting,
-      author  = {Akshay Agrawal, Robin Verschueren, Steven Diamond and Stephen Boyd},
+      author  = {Akshay Agrawal and Robin Verschueren and Steven Diamond and Stephen Boyd},
       title   = {A Rewriting System for Convex Optimization Problems},
       journal = {Journal of Control and Decision},
       year    = {2018},
@@ -34,12 +34,12 @@ Please use the following BibTeX citations:
 
 If you use CVXPY's support for disciplined geometric programming, please
 cite the `accompanying paper <https://web.stanford.edu/~boyd/papers/dgp.html>`_
-and use following BibTeX citation:
+and use the following BibTeX citation:
 
 ::
 
     @article{dgp,
-      author  = {Akshay Agrawal, Steven Diamond and Stephen Boyd},
+      author  = {Akshay Agrawal and Steven Diamond and Stephen Boyd},
       title   = {Disciplined Geometric Programming},
       journal = {arXiv},
       archivePrefix = {arXiv},

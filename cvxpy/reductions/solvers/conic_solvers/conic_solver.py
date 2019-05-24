@@ -25,7 +25,7 @@ from cvxpy.expressions.constants.constant import Constant
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 import cvxpy.settings as s
 
@@ -41,12 +41,12 @@ def is_stuffed_cone_constraint(constraint):
         if type(arg) == AddExpression:
             if type(arg.args[0]) not in [MulExpression, multiply]:
                 return False
-            if type(arg.args[0].args[0]) != Constant:
+            if not arg.args[0].args[0].is_constant():
                 return False
-            if type(arg.args[1]) != Constant:
+            if not arg.args[1].is_constant():
                 return False
         elif type(arg) in [MulExpression, multiply]:
-            if type(arg.args[0]) != Constant:
+            if not arg.args[0].is_constant():
                 return False
         else:
             return False
@@ -86,11 +86,15 @@ class ConeDims(object):
         dimension of the PSD cone of k by k matrices is k.
     """
     def __init__(self, constr_map):
-        self.zero = sum(c.size for c in constr_map[Zero])
-        self.nonpos = sum(c.size for c in constr_map[NonPos])
-        self.exp = sum(c.num_cones() for c in constr_map[ExpCone])
-        self.soc = [dim for c in constr_map[SOC] for dim in c.cone_sizes()]
-        self.psd = [c.shape[0] for c in constr_map[PSD]]
+        self.zero = int(sum(c.size for c in constr_map[Zero]))
+        self.nonpos = int(sum(c.size for c in constr_map[NonPos]))
+        self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
+        self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
+        self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
+
+    def __repr__(self):
+        return "(zero: {0}, nonpos: {1}, exp: {2}, soc: {3}, psd: {4})".format(
+            self.zero, self.nonpos, self.exp, self.soc, self.psd)
 
 
 class ConicSolver(Solver):
@@ -119,7 +123,7 @@ class ConicSolver(Solver):
 
     @staticmethod
     def get_coeff_offset(expr):
-        """Return the coefficient and offset in A*x + b.
+        """Return the coefficient A and offset b in A*x + b.
 
         Args:
           expr: A CVXPY expression.
@@ -174,16 +178,18 @@ class ConicSolver(Solver):
 
     def format_constr(self, problem, constr, exp_cone_order):
         """
-        Return the coefficient "A" and offset "b" for the constraint in the following formats:
+        Return the coefficient "A" and offset "b" for the constraint in the
+        following formats:
             Linear equations: (A, b) such that A * x == b,
             Linear inequalities: (A, b) such that A * x <= b,
             Second order cone: (A, b) such that A * x <=_{SOC} b,
             Exponential cone: (A, b) such that A * x <=_{EXP} b,
-            Semidefinite cone: NOT IMPLEMENTED.
+            Semidefinite cone: (A, b) such that A * x <=_{SDP} b,
 
         The CVXPY standard for the exponential cone is:
             K_e = closure{(x,y,z) |  y >= z * exp(x/z), z>0}.
-        Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
+        Whenever a solver uses this convention, EXP_CONE_ORDER should be
+        [0, 1, 2].
 
         The CVXPY standard for the second order cone is:
             SOC(n) = { x : x[0] >= norm(x[1:n], 2)  }.
@@ -206,21 +212,30 @@ class ConicSolver(Solver):
         height = sum(c.shape[0] for c in coeffs)
 
         if type(constr) in [NonPos, Zero]:
-            # Both of these constraints have but a single argument.
+            # Both of these constraints have a single argument.
             # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
             return coeffs[0].tocsc(), -offsets[0]
         elif type(constr) == SOC:
             # Group each t row with appropriate X rows.
-            assert constr.axis == 0, 'SOC must be lowered to axis == 0'
+            assert constr.axis == 0, "SOC must be lowered to axis == 0"
 
+            # coeffs[0] corresponds to the scalar part `t`, coeffs[1] to `X`
+            #
             # Interleave the rows of coeffs[0] and coeffs[1]:
             #     coeffs[0][0, :]
             #     coeffs[1][0:gap-1, :]
             #     coeffs[0][1, :]
             #     coeffs[1][gap-1:2*(gap-1), :]
+            #     <etc.>
+            # where `gap` == constr.args[1].shape[0], i.e., the number of
+            # rows in `X` The vectorized code below implements this
+            # interleaving.
             X_coeff = coeffs[1].tocoo()
             # Because of a bug in scipy versions <= 1.20, `reshape`
             # occasionally overflows if indices are int32s.
+            #
+            # This might cause issues on windows, due to an overflow bug in
+            # `reshape`
             X_coeff.row = X_coeff.row.astype(np.int64)
             X_coeff.col = X_coeff.col.astype(np.int64)
             reshaped = X_coeff.reshape((coeffs[0].shape[0], -1))
@@ -243,12 +258,15 @@ class ConicSolver(Solver):
                 offsets[i] = mat*offsets[i]
                 coeffs[i] = -mat*coeffs[i]
             return sum(coeffs).tocsc(), sum(offsets)
+        elif type(constr) == PSD:
+            # Sign flipped relative to NonPos, Zero.
+            return -coeffs[0].tocsc(), offsets[0]
         else:
             # subclasses must handle PSD constraints.
             raise ValueError("Unsupported constraint type.")
 
     def group_coeff_offset(self, problem, constraints, exp_cone_order):
-        """Combine the constraints into a single matrix, offset.
+        """Combine the constraints into a single matrix A, offset b.
 
         Parameters
         ----------
@@ -289,14 +307,6 @@ class ConicSolver(Solver):
                 inverse_data[Solver.NEQ_CONSTR])
             eq_dual.update(leq_dual)
             dual_vars = eq_dual
+            return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-            dual_vars = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, {})
+            return failure_solution(status)

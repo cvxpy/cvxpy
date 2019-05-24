@@ -14,13 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import *
+from cvxpy.expressions.expression import Expression
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.expression import *
-from cvxpy.expressions.constants import *
 from cvxpy.expressions.variable import Variable
-from cvxpy.problems.objective import *
-from cvxpy.problems.problem import Problem
 import cvxpy.interface.matrix_utilities as intf
 import numpy
 import scipy.sparse as sp

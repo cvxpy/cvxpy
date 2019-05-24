@@ -23,6 +23,7 @@ from cvxpy.reductions.solvers.defines \
 
 MIP_SOLVERS = [cvx.ECOS_BB, cvx.GUROBI, cvx.MOSEK]
 
+
 class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
 
@@ -38,12 +39,10 @@ class TestMIPVariable(BaseTest):
         """Test that MIP problems are deterministic.
         """
         data_recs = []
-        result_recs = []
         for i in range(5):
             obj = cvx.Minimize(cvx.square(self.y_int - 0.2))
             p = cvx.Problem(obj, [self.A_bool == 0, self.x_bool == self.B_int])
             data_recs.append(p.get_problem_data(cvx.ECOS_BB))
-            # result_recs.append( p.solve() )
 
         # Check that problem data and result is always the same.
         for i in range(1, 5):
@@ -62,6 +61,7 @@ class TestMIPVariable(BaseTest):
     #     """
     #     self.assertEqual(repr(self.x_bool), "Bool(1, 1)")
     #     self.assertEqual(repr(self.B_int), "Int(2, 3)")
+
     def test_all_solvers(self):
         for solver in self.solvers:
             self.bool_prob(solver)
@@ -72,7 +72,7 @@ class TestMIPVariable(BaseTest):
     def bool_prob(self, solver):
         # Bool in objective.
         obj = cvx.Minimize(cvx.square(self.x_bool - 0.2))
-        p = cvx.Problem(obj,[])
+        p = cvx.Problem(obj, [])
         result = p.solve(solver=solver)
         self.assertAlmostEqual(result, 0.04)
 
@@ -81,7 +81,7 @@ class TestMIPVariable(BaseTest):
         # Bool in constraint.
         t = cvx.Variable()
         obj = cvx.Minimize(t)
-        p = cvx.Problem(obj,[cvx.square(self.x_bool) <= t])
+        p = cvx.Problem(obj, [cvx.square(self.x_bool) <= t])
         result = p.solve(solver=solver)
         self.assertAlmostEqual(result, 0)
 
@@ -90,7 +90,7 @@ class TestMIPVariable(BaseTest):
         # Matrix Bool in objective.
         C = np.array([[0, 1, 0], [1, 1, 1]]).T
         obj = cvx.Minimize(cvx.sum_squares(self.A_bool - C))
-        p = cvx.Problem(obj,[])
+        p = cvx.Problem(obj, [])
         result = p.solve(solver=solver)
         self.assertAlmostEqual(result, 0)
 
@@ -108,7 +108,7 @@ class TestMIPVariable(BaseTest):
     def int_prob(self, solver):
         # Int in objective.
         obj = cvx.Minimize(cvx.square(self.y_int - 0.2))
-        p = cvx.Problem(obj,[])
+        p = cvx.Problem(obj, [])
         result = p.solve(solver=solver)
         self.assertAlmostEqual(result, 0.04)
 

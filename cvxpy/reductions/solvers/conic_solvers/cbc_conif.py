@@ -15,20 +15,20 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import NonPos, Zero
-from cvxpy.problems.problem_data.problem_data import ProblemData
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
+                                                              dims_to_solver_dict)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solution import Solution, failure_solution
 import numpy as np
 
-from .conic_solver import ConicSolver
 
-
-class CBC(ConicSolver):
+class CBC(SCS):
     """ An interface to the CBC solver
     """
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     # Map of GLPK MIP status to CVXPY status.
     STATUS_MAP_MIP = {'solution': s.OPTIMAL,
@@ -74,21 +74,11 @@ class CBC(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
-        data = {}
-        objective, _ = problem.objective.canonical_form
-        constraints = [con for c in problem.constraints for con in c.canonical_form[1]]
-        data["objective"] = objective
-        data["constraints"] = constraints
+        data, inv_data = super(CBC, self).apply(problem)
         variables = problem.variables()[0]
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
 
-        # Order and group constraints.
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
-        eq_constr = [c for c in problem.constraints if type(c) == Zero]
-        inv_data[self.EQ_CONSTR] = eq_constr
-        leq_constr = [c for c in problem.constraints if type(c) == NonPos]
-        inv_data[self.NEQ_CONSTR] = leq_constr
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -97,29 +87,99 @@ class CBC(ConicSolver):
         status = solution['status']
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value']
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            return Solution(status, opt_val, primal_vars, None, {})
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-        dual_vars = None
-
-        return Solution(status, opt_val, primal_vars, dual_vars, {})
+            return failure_solution(status)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        from cvxpy.problems.solvers.cbc_intf import CBC as CBC_OLD
-        solver = CBC_OLD()
-        solver_opts[s.BOOL_IDX] = data[s.BOOL_IDX]
-        solver_opts[s.INT_IDX] = data[s.INT_IDX]
-        return solver.solve(
-            data["objective"],
-            data["constraints"],
-            {self.name(): ProblemData()},
-            warm_start,
-            verbose,
-            solver_opts)
+        # Import basic modelling tools of cylp
+        from cylp.cy import CyClpSimplex
+        from cylp.py.modeling.CyLPModel import CyLPModel, CyLPArray
+
+        c = data[s.C]
+        b = data[s.B]
+        A = data[s.A]
+        dims = dims_to_solver_dict(data[s.DIMS])
+
+        n = c.shape[0]
+
+        # Problem
+        model = CyLPModel()
+
+        # Variables
+        x = model.addVariable('x', n)
+
+        # Constraints
+        # eq
+        model += A[0:dims[s.EQ_DIM], :] * x == CyLPArray(b[0:dims[s.EQ_DIM]])
+
+        # leq
+        leq_start = dims[s.EQ_DIM]
+        leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
+        model += A[leq_start:leq_end, :] * x <= CyLPArray(b[leq_start:leq_end])
+
+        # Objective
+        model.objective = c
+
+        # Convert model
+        model = CyClpSimplex(model)
+
+        # No boolean vars available in Cbc -> model as int + restrict to [0,1]
+        if data[s.BOOL_IDX] or data[s.INT_IDX]:
+            # Mark integer- and binary-vars as "integer"
+            model.setInteger(x[data[s.BOOL_IDX]])
+            model.setInteger(x[data[s.INT_IDX]])
+
+            # Restrict binary vars only
+            idxs = data[s.BOOL_IDX]
+            n_idxs = len(idxs)
+
+            model.setColumnLowerSubset(np.arange(n_idxs, dtype=np.int32),
+                                       np.array(idxs, np.int32),
+                                       np.zeros(n_idxs))
+
+            model.setColumnUpperSubset(np.arange(n_idxs, dtype=np.int32),
+                                       np.array(idxs, np.int32),
+                                       np.ones(n_idxs))
+
+        # Verbosity Clp
+        if not verbose:
+            model.logLevel = 0
+
+        # Build model & solve
+        status = None
+        if data[s.BOOL_IDX] or data[s.INT_IDX]:
+            # Convert model
+            cbcModel = model.getCbcModel()
+            for key, value in solver_opts.items():
+                setattr(cbcModel, key, value)
+
+            # Verbosity Cbc
+            if not verbose:
+                cbcModel.logLevel = 0
+
+            # cylp: /cylp/cy/CyCbcModel.pyx#L134
+            # Call CbcMain. Solve the problem using the same parameters used by
+            # CbcSolver. Equivalent to solving the model from the command line
+            # using cbc's binary.
+            cbcModel.solve()
+            status = cbcModel.status
+        else:
+            # cylp: /cylp/cy/CyClpSimplex.pyx
+            # Run CLP's initialSolve. It does a presolve and uses primal or dual
+            # Simplex to solve a problem.
+            status = model.initialSolve()
+
+        solution = {}
+        if data[s.BOOL_IDX] or data[s.INT_IDX]:
+            solution["status"] = self.STATUS_MAP_MIP[status]
+            solution["primal"] = cbcModel.primalVariableSolution['x']
+            solution["value"] = cbcModel.objectiveValue
+        else:
+            solution["status"] = self.STATUS_MAP_LP[status]
+            solution["primal"] = model.primalVariableSolution['x']
+            solution["value"] = model.objectiveValue
+
+        return solution

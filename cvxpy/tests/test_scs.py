@@ -19,9 +19,6 @@ from cvxpy.tests.base_test import BaseTest
 import math
 import numpy as np
 import scipy.linalg as la
-import sys
-if sys.version_info >= (3, 0):
-    from functools import reduce
 
 
 class TestSCS(BaseTest):
@@ -94,7 +91,6 @@ class TestSCS(BaseTest):
         # Dual Problem
         X = cvx.Variable((2, 2), complex=True)
         Y = cvx.Variable((2, 2), complex=True)
-        Z = cvx.Variable((2, 2))
         # X, Y >= 0 so trace is real
         objective = cvx.Minimize(
             cvx.real(0.5 * cvx.trace(X) + 0.5 * cvx.trace(Y))
@@ -116,19 +112,18 @@ class TestSCS(BaseTest):
         """Test a problem with kl_div.
         """
         import numpy as np
-        import cvxpy as cp
 
         kK = 50
         kSeed = 10
 
         prng = np.random.RandomState(kSeed)
-        #Generate a random reference distribution
+        # Generate a random reference distribution
         npSPriors = prng.uniform(0.0, 1.0, (kK, 1))
         npSPriors = npSPriors/sum(npSPriors)
 
-        #Reference distribution
+        # Reference distribution
         p_refProb = cvx.Parameter((kK, 1), nonneg=True)
-        #Distribution to be estimated
+        # Distribution to be estimated
         v_prob = cvx.Variable((kK, 1))
         objkl = 0.0
         for k in range(kK):
@@ -137,7 +132,7 @@ class TestSCS(BaseTest):
         constrs = [sum(v_prob[k, 0] for k in range(kK)) == 1]
         klprob = cvx.Problem(cvx.Minimize(objkl), constrs)
         p_refProb.value = npSPriors
-        result = klprob.solve(solver=cvx.SCS, verbose=True)
+        klprob.solve(solver=cvx.SCS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     def test_entr(self):
@@ -184,29 +179,20 @@ class TestSCS(BaseTest):
         result2 = prob.solve(solver=cvx.SCS, warm_start=True, eps=1e-4)
         time2 = prob.solver_stats.solve_time
         self.assertAlmostEqual(result2, result, places=2)
-        # assert time > time2
+        print(time > time2)
 
     def test_psd_constraint(self):
         """Test PSD constraint.
         """
         s = cvx.Variable((2, 2))
-        obj= cvx.Maximize(cvx.minimum(s[0,1], 10))
-        const = [s>>0, cvx.diag(s)==np.ones(2)]
+        obj = cvx.Maximize(cvx.minimum(s[0, 1], 10))
+        const = [s >> 0, cvx.diag(s) == np.ones(2)]
         prob = cvx.Problem(obj, const)
         r = prob.solve(solver=cvx.SCS)
         s = s.value
         print(const[0].residual)
         print("value", r)
         print("s", s)
-        print("eigs",np.linalg.eig(s + s.T)[0])
+        print("eigs", np.linalg.eig(s + s.T)[0])
         eigs = np.linalg.eig(s + s.T)[0]
         self.assertEqual(np.all(eigs >= 0), True)
-
-
-    # def test_kl_div(self):
-    #     """Test the kl_div atom.
-    #     """
-    #     self.assertEqual(kl_div(0, 0).value, 0)
-    #     self.assertEqual(kl_div(1, 0).value, np.inf)
-    #     self.assertEqual(kl_div(0, 1).value, np.inf)
-    #     self.assertEqual(kl_div(-1, -1).value, np.inf)

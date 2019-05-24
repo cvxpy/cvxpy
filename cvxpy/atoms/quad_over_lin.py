@@ -24,6 +24,7 @@ class quad_over_lin(Atom):
     """ :math:`(sum_{ij}X^2_{ij})/y`
 
     """
+    _allow_complex = True
 
     def __init__(self, x, y):
         super(quad_over_lin, self).__init__(x, y)
@@ -32,6 +33,8 @@ class quad_over_lin(Atom):
     def numeric(self, values):
         """Returns the sum of the entries of x squared over y.
         """
+        if self.args[0].is_complex():
+            return (np.square(values[0].imag) + np.square(values[0].real)).sum()/values[1]
         return np.square(values[0]).sum()/values[1]
 
     def _domain(self):
@@ -57,7 +60,11 @@ class quad_over_lin(Atom):
             return [None, None]
         else:
             # DX = 2X/y, Dy = -||X||^2_2/y^2
-            Dy = -np.square(X).sum()/np.square(y)
+            if self.args[0].is_complex():
+                Dy = -(np.square(X.real) + np.square(X.imag)).sum()/np.square(y)
+            else:
+                Dy = -np.square(X).sum()/np.square(y)
+
             Dy = sp.csc_matrix(Dy)
             DX = 2.0*X/y
             DX = np.reshape(DX, (self.args[0].size, 1))
@@ -110,6 +117,8 @@ class quad_over_lin(Atom):
         """
         if not self.args[1].is_scalar():
             raise ValueError("The second argument to quad_over_lin must be a scalar.")
+        if self.args[1].is_complex():
+            raise ValueError("The second argument to quad_over_lin cannot be complex.")
         super(quad_over_lin, self).validate_arguments()
 
     def is_quadratic(self):
@@ -118,6 +127,6 @@ class quad_over_lin(Atom):
         return self.args[0].is_affine() and self.args[1].is_constant()
 
     def is_qpwa(self):
-            """Quadratic of piecewise affine if x is PWL and y is constant.
-            """
-            return self.args[0].is_pwl() and self.args[1].is_constant()
+        """Quadratic of piecewise affine if x is PWL and y is constant.
+        """
+        return self.args[0].is_pwl() and self.args[1].is_constant()

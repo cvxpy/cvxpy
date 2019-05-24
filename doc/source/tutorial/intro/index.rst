@@ -66,7 +66,7 @@ constraints, create a new problem.
     # Replace the constraint (x + y == 1).
     constraints = [x + y <= 3] + prob2.constraints[1:]
     prob3 = cp.Problem(prob2.objective, constraints)
-    print("optimal value", prob2.solve())
+    print("optimal value", prob3.solve())
 
 ::
 

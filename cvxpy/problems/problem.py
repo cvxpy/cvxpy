@@ -15,12 +15,18 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.error import DCPError, SolverError
+from cvxpy import error
 from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.reductions.chain import Chain
+from cvxpy.reductions.dqcp2dcp import dqcp2dcp
+from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
+from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.utilities.deterministic import unique_list
+import cvxpy.utilities.performance_utils as perf
 
 # TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates
@@ -60,12 +66,10 @@ class Problem(u.Canonical):
             constraints = []
         # Check that objective is Minimize or Maximize.
         if not isinstance(objective, (Minimize, Maximize)):
-            raise DCPError("Problem objective must be Minimize or Maximize.")
+            raise error.DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
         self._constraints = [c for c in constraints]
-        # Cache the variables as a list.
-        self._vars = self._variables()
         self._value = None
         self._status = None
         self._solution = None
@@ -76,7 +80,7 @@ class Problem(u.Canonical):
         # List of separable (sub)problems
         self._separable_problems = None
         # Information about the shape of the problem and its constituent parts
-        self._size_metrics = SizeMetrics(self)
+        self._size_metrics = None
         # Benchmarks reported by the solver:
         self._solver_stats = None
         self.args = [self._objective, self._constraints]
@@ -125,18 +129,28 @@ class Problem(u.Canonical):
         """
         return self._constraints[:]
 
+    @perf.compute_once
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
         return all(
           expr.is_dcp() for expr in self.constraints + [self.objective])
 
+    @perf.compute_once
     def is_dgp(self):
         """Does the problem satisfy DGP rules?
         """
         return all(
           expr.is_dgp() for expr in self.constraints + [self.objective])
 
+    @perf.compute_once
+    def is_dqcp(self):
+        """Does the problem satisfy the DQCP rules?
+        """
+        return all(
+          expr.is_dqcp() for expr in self.constraints + [self.objective])
+
+    @perf.compute_once
     def is_qp(self):
         """Is problem a quadratic program?
         """
@@ -148,10 +162,12 @@ class Problem(u.Canonical):
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
+    @perf.compute_once
     def is_mixed_integer(self):
         return any(v.attributes['boolean'] or v.attributes['integer']
                    for v in self.variables())
 
+    @perf.compute_once
     def variables(self):
         """Accessor method for variables.
 
@@ -160,16 +176,12 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.variable.Variable`
             A list of the variables in the problem.
         """
-        return self._vars
-
-    def _variables(self):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
-        seen = set()
-        # never use list as a variable name
-        return [seen.add(obj.id) or obj for obj in vars_ if obj.id not in seen]
+        return unique_list(vars_)
 
+    @perf.compute_once
     def parameters(self):
         """Accessor method for parameters.
 
@@ -181,8 +193,9 @@ class Problem(u.Canonical):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
-        return list(set(params))
+        return unique_list(params)
 
+    @perf.compute_once
     def constants(self):
         """Accessor method for parameters.
 
@@ -212,12 +225,14 @@ class Problem(u.Canonical):
         atoms = self.objective.atoms()
         for constr in self.constraints:
             atoms += constr.atoms()
-        return list(set(atoms))
+        return unique_list(atoms)
 
     @property
     def size_metrics(self):
         """:class:`~cvxpy.problems.problem.SizeMetrics` : Information about the problem's size.
         """
+        if self._size_metrics is None:
+            self._size_metrics = SizeMetrics(self)
         return self._size_metrics
 
     @property
@@ -240,6 +255,9 @@ class Problem(u.Canonical):
         gp : bool, optional
             If True, parses the problem as a disciplined geometric program
             instead of a disciplined convex program.
+        qcp : bool, optional
+            If True, parses the problem as a disciplined quasiconvex program
+            instead of a disciplined convex program.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -255,11 +273,11 @@ class Problem(u.Canonical):
 
         Raises
         ------
-        DCPError
+        cvxpy.error.DCPError
             Raised if the problem is not DCP and `gp` is False.
-        DGPError
+        cvxpy.error.DGPError
             Raised if the problem is not DGP and `gp` is True.
-        SolverError
+        cvxpy.error.SolverError
             Raised if no suitable solver exists among the installed solvers,
             or if an unanticipated error is encountered.
         """
@@ -287,23 +305,65 @@ class Problem(u.Canonical):
     def get_problem_data(self, solver, gp=False):
         """Returns the problem data used in the call to the solver.
 
-        When a problem is solved, a chain of reductions combining an
-        intermediate reduction chain :class:`~cvxpy.reductions.chain.Chain`
-        and a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,
-        compiles it to some low-level representation that is compatible with
-        the targeted solver. This method returns that low-level representation.
+        When a problem is solved, CVXPY creates a chain of reductions combining
+        an intermediate reduction chain :class:`~cvxpy.reductions.chain.Chain`
+        and a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`.
+        This object compiles it to some low-level representation that is
+        compatible with the targeted solver. This method returns that low-level
+        representation.
 
         For some solving chains, this low-level representation is a dictionary
         that contains exactly those arguments that were supplied to the solver;
         however, for other solving chains, the data is an intermediate
-        representation that is compiled even further by libraries other than
-        CVXPY.
+        representation that is compiled even further by the solver interfaces.
 
         A solution to the equivalent low-level problem can be obtained via the
-        data by invoking the solve_via_data method of the returned solving
+        data by invoking the `solve_via_data` method of the returned solving
         chain, a thin wrapper around the code external to CVXPY that further
         processes and solves the problem. Invoke the unpack_results method
         to recover a solution to the original problem.
+
+        For example:
+        ```python
+        objective = ...
+        constraints = ...
+        problem = cp.Problem(objective, constraints)
+        data, chain, inverse_data = problem.get_problem_data(cp.SCS)
+        # calls SCS using `data`
+        soln = chain.solve_via_data(problem, data)
+        # unpacks the solution returned by SCS into `problem`
+        problem.unpack_results(soln, chain, inverse_data)
+        ```
+
+        Alternatively, the `data` dictionary returned by this method
+        contains enough information to bypass CVXPY and call the solver
+        directly.
+
+        For example:
+        ```
+        problem = cp.Problem(objective, constraints)
+        data, _, _ = problem.get_problem_data(cp.SCS)
+
+        import scs
+        probdata = {
+          'A': data['A'],
+          'b': data['b'],
+          'c': data['c'],
+        }
+        cone_dims = data['dims']
+        cones = {
+            "f": cone_dims.zero,
+            "l": cone_dims.nonpos,
+            "q": cone_dims.soc,
+            "ep": cone_dims.exp,
+            "s": cone_dims.psd,
+        }
+        soln = scs.solve(data, cones)
+        ```
+
+        The structure of the data dict that CVXPY returns depends on the
+        solver. For details, consult the solver interfaces in
+        `cvxpy/reductions/solvers`.
 
         Parameters
         ----------
@@ -360,9 +420,9 @@ class Problem(u.Canonical):
 
         Raises
         ------
-        SolverError
+        cvxpy.error.SolverError
             Raised if the problem is not DCP and `gp` is False.
-        DGPError
+        cvxpy.error.DGPError
             Raised if the problem is not DGP and `gp` is True.
         """
         candidates = {'qp_solvers': [],
@@ -370,7 +430,7 @@ class Problem(u.Canonical):
 
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
-                raise SolverError("The solver %s is not installed." % solver)
+                raise error.SolverError("The solver %s is not installed." % solver)
             if solver in slv_def.CONIC_SOLVERS:
                 candidates['conic_solvers'] += [solver]
             if solver in slv_def.QP_SOLVERS:
@@ -384,7 +444,7 @@ class Problem(u.Canonical):
         # If gp we must have only conic solvers
         if gp:
             if solver is not None and solver not in slv_def.CONIC_SOLVERS:
-                raise SolverError(
+                raise error.SolverError(
                   "When `gp=True`, `solver` must be a conic solver "
                   "(received '%s'); try calling " % solver +
                   " `solve()` with `solver=cvxpy.ECOS`."
@@ -401,10 +461,10 @@ class Problem(u.Canonical):
                 if slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
             if not candidates['conic_solvers'] and \
                     not candidates['qp_solvers']:
-                raise SolverError("Problem is mixed-integer, but candidate "
-                                  "QP/Conic solvers (%s) are not MIP-capable."
-                                  % [candidates['qp_solvers'],
-                                     candidates['conic_solvers']])
+                raise error.SolverError(
+                    "Problem is mixed-integer, but candidate "
+                    "QP/Conic solvers (%s) are not MIP-capable." %
+                    [candidates['qp_solvers'], candidates['conic_solvers']])
 
         return candidates
 
@@ -453,7 +513,7 @@ class Problem(u.Canonical):
                solver=None,
                warm_start=True,
                verbose=False,
-               parallel=False, gp=False, **kwargs):
+               parallel=False, gp=False, qcp=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -470,8 +530,9 @@ class Problem(u.Canonical):
         parallel : bool, optional
             If problem is separable, solve in parallel.
         gp : bool, optional
-            If True, then parses the problem as a disciplined geometric program
-            instead of a disciplined convex program.
+            If True, parses the problem as a disciplined geometric program.
+        qcp : bool, optional
+            If True, parses the problem as a disciplined quasiconvex program.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -483,28 +544,34 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
+        if gp and qcp:
+            raise ValueError("At most one of `gp` and `qcp` can be True.")
+        if qcp and not self.is_dcp():
+            if not self.is_dqcp():
+                raise error.DQCPError("The problem is not DQCP.")
+            reductions = [dqcp2dcp.Dqcp2Dcp()]
+            if type(self.objective) == Maximize:
+                reductions = [FlipObjective()] + reductions
+            chain = Chain(problem=self, reductions=reductions)
+            soln = bisection.bisect(
+                chain.reduce(), solver=solver, verbose=verbose, **kwargs)
+            self.unpack(chain.retrieve(soln))
+            return self.value
         if parallel:
             from cvxpy.transforms.separable_problems import get_separable_problems
             self._separable_problems = (get_separable_problems(self))
             if len(self._separable_problems) > 1:
-                return self._parallel_solve(solver, warm_start,
-                                            verbose, **kwargs)
+                return self._parallel_solve(
+                    solver, warm_start, verbose, **kwargs)
 
         self._construct_chains(solver=solver, gp=gp)
-
-        data, solving_inverse_data = \
-            self._solving_chain.apply(self._intermediate_problem)
-
-        solution = self._solving_chain.solve_via_data(self, data,
-                                                      warm_start,
-                                                      verbose, kwargs)
-
-        full_chain = \
-            self._solving_chain.prepend(self._intermediate_chain)
+        data, solving_inverse_data = self._solving_chain.apply(
+            self._intermediate_problem)
+        solution = self._solving_chain.solve_via_data(
+            self, data, warm_start, verbose, kwargs)
+        full_chain = self._solving_chain.prepend(self._intermediate_chain)
         inverse_data = self._intermediate_inverse_data + solving_inverse_data
-
         self.unpack_results(solution, full_chain, inverse_data)
-
         return self.value
 
     def _parallel_solve(self,
@@ -588,12 +655,18 @@ class Problem(u.Canonical):
         """Updates the problem state given a Solution.
 
         Updates problem.status, problem.value and value of primal and dual
-        variables.
+        variables. If solution.status is in cvxpy.settins.ERROR, this method
+        is a no-op.
 
         Parameters
         __________
         solution : cvxpy.Solution
             A Solution object.
+
+        Raises
+        ------
+        ValueError
+            If the solution object has an invalid status
         """
         if solution.status in s.SOLUTION_PRESENT:
             for v in self.variables():
@@ -606,8 +679,11 @@ class Problem(u.Canonical):
                 v.save_value(None)
             for constr in self.constraints:
                 constr.save_value(None)
+        elif solution.status in s.ERROR:
+            return
         else:
-            raise ValueError("Cannot unpack invalid solution.")
+            raise ValueError("Cannot unpack invalid solution: %s" % solution)
+
         self._value = solution.opt_val
         self._status = solution.status
         self._solution = solution
@@ -627,19 +703,20 @@ class Problem(u.Canonical):
             A solving chain that was used to solve the problem.
         inverse_data : list
             The inverse data returned by applying the chain to the problem.
+
+        Raises
+        ------
+        cvxpy.error.SolverError
+            If the solver failed
         """
 
         solution = chain.invert(solution, inverse_data)
-
-        try:
-            self.unpack(solution)
-        except ValueError:
-            raise SolverError(
-                "Solver '%s' failed. " % chain.solver.name() +
-                "Try another solver or solve with verbose=True for more "
-                "information. Try recentering the problem data around 0 and "
-                "rescaling to reduce the dynamic range."
-            )
+        if solution.status in s.ERROR:
+            raise error.SolverError(
+                    "Solver '%s' failed. " % chain.solver.name() +
+                    "Try another solver, or solve with verbose=True for more "
+                    "information.")
+        self.unpack(solution)
         self._solver_stats = SolverStats(self._solution.attr,
                                          chain.solver.name())
 
@@ -667,7 +744,7 @@ class Problem(u.Canonical):
         elif not isinstance(other, Problem):
             return NotImplemented
         return Problem(self.objective + other.objective,
-                       list(set(self.constraints + other.constraints)))
+                       unique_list(self.constraints + other.constraints))
 
     def __radd__(self, other):
         if other == 0:
@@ -679,7 +756,7 @@ class Problem(u.Canonical):
         if not isinstance(other, Problem):
             return NotImplemented
         return Problem(self.objective - other.objective,
-                       list(set(self.constraints + other.constraints)))
+                       unique_list(self.constraints + other.constraints))
 
     def __rsub__(self, other):
         if other == 0:
@@ -778,8 +855,9 @@ class SizeMetrics(object):
             if self.max_data_dimension < big:
                 self.max_data_dimension = big
 
-            if self.max_big_small_squared < big*small**2:
-                self.max_big_small_squared = big*small**2
+            max_big_small_squared = big*(small**2)
+            if self.max_big_small_squared < max_big_small_squared:
+                self.max_big_small_squared = max_big_small_squared
 
         # num_scalar_eq_constr
         self.num_scalar_eq_constr = 0

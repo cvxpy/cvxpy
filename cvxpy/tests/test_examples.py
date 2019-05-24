@@ -96,9 +96,10 @@ class TestExamples(BaseTest):
         # We now find the primal result and compare it to the dual result
         # to check if strong duality holds i.e. the duality gap is effectively zero
         p = cvx.Problem(objective, constraints)
-        primal_result = p.solve()
+        p.solve()
 
-        # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
+        # Note that since our data is random,
+        # we may need to run this program multiple times to get a feasible primal
         # When feasible, we can print out the following values
         print(x.value)  # solution
         lam1 = constraints[0].dual_value
@@ -130,7 +131,7 @@ class TestExamples(BaseTest):
         p = cvx.Problem(objective, constraints)
 
         # The optimal objective is returned by p.solve().
-        result = p.solve()
+        p.solve()
         # The optimal value for x is stored in x.value.
         print(x.value)
         # The optimal Lagrange multiplier for a constraint
@@ -154,7 +155,7 @@ class TestExamples(BaseTest):
         m = cvx.Parameter(nonneg=True)
 
         # Column vector parameter with unknown sign (by default).
-        c = cvx.Parameter(5)
+        cvx.Parameter(5)
 
         # Matrix parameter with negative entries.
         G = cvx.Parameter((4, 7), nonpos=True)
@@ -179,7 +180,6 @@ class TestExamples(BaseTest):
         ####################################################
 
         import numpy as np
-        from multiprocessing import Pool
 
         # cvx.Problem data.
         n = 10
@@ -196,12 +196,12 @@ class TestExamples(BaseTest):
         # Assign a value to gamma and find the optimal x.
         def get_x(gamma_value):
             gamma.value = gamma_value
-            result = p.solve()
+            p.solve()
             return x.value
 
         gammas = np.logspace(-1, 2, num=2)
         # Serial computation.
-        x_values = [get_x(value) for value in gammas]
+        [get_x(value) for value in gammas]
 
         ####################################################
         n = 10
@@ -226,7 +226,7 @@ class TestExamples(BaseTest):
 
         objective = cvx.Maximize(expected_return - gamma*risk)
         p = cvx.Problem(objective, [cvx.sum(x) == 1])
-        result = p.solve()
+        p.solve()
 
         # The optimal expected return.
         print(expected_return.value)
@@ -256,7 +256,7 @@ class TestExamples(BaseTest):
         objective = cvx.Minimize(cvx.norm(a, 2) + gamma*sum(slack))
         p = cvx.Problem(objective)
         # Extensions can attach new solve methods to the CVXPY cvx.Problem class.
-        #p.solve(method="admm")
+        # p.solve(method="admm")
         p.solve()
 
         # Count misclassifications.
@@ -353,8 +353,6 @@ class TestExamples(BaseTest):
         np.random.seed(5)
         n = 100  # 10000
         m = 10  # 100
-        pbar = (np.ones((n, 1)) * .03 +
-                np.array(np.append(np.random.rand(n - 1, 1), 0)).T * .12)
 
         F = sp.rand(m, n, density=0.01)
         F.data = np.ones(len(F.data))
@@ -365,12 +363,10 @@ class TestExamples(BaseTest):
 
         x = cvx.Variable(n)
         y = x.__rmul__(F)
-        mu = 1
-        ret = pbar.T * x
         # DCP attr causes error because not all the curvature
         # matrices are reduced to constants when an atom
         # is scalar.
-        risk = cvx.square(cvx.norm(D*x)) + cvx.square(Z*y)
+        cvx.square(cvx.norm(D*x)) + cvx.square(Z*y)
 
     def test_intro(self):
         """Test examples from cvxpy.org introduction.
@@ -391,7 +387,7 @@ class TestExamples(BaseTest):
         prob = cvx.Problem(objective, constraints)
 
         # The optimal objective is returned by p.solve().
-        result = prob.solve()
+        prob.solve()
         # The optimal value for x is stored in x.value.
         print(x.value)
         # The optimal Lagrange multiplier for a constraint
@@ -484,7 +480,7 @@ class TestExamples(BaseTest):
         ########################################
 
         # A scalar variable.
-        a = cvx.Variable()
+        cvx.Variable()
 
         # Column vector variable of length 5.
         x = cvx.Variable(5)
@@ -519,7 +515,7 @@ class TestExamples(BaseTest):
         m = cvx.Parameter(nonneg=True)
 
         # Column vector parameter with unknown sign (by default).
-        c = cvx.Parameter(5)
+        cvx.Parameter(5)
 
         # Matrix parameter with negative entries.
         G = cvx.Parameter((4, 7), nonpos=True)
@@ -690,6 +686,7 @@ class TestExamples(BaseTest):
     #     risks = [ sqrt(dot(x, S*x)) for x in xs ]
 
     #     # QP solver
+
 
 if __name__ == '__main__':
     unittest.main()

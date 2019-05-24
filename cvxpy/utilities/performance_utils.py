@@ -13,27 +13,33 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-# Taken from
-# http://stackoverflow.com/questions/3012421/python-lazy-property-decorator
+import functools
 
 
 def lazyprop(func):
-    """Wraps a property so it is lazily evaluated.
-
-    Args:
-        func: The property to wrap.
-
-    Returns:
-        A property that only does computation the first time it is called.
-    """
+    """Wraps a property so it is lazily evaluated."""
     attr_name = '_lazy_' + func.__name__
 
     @property
+    @functools.wraps(func)
     def _lazyprop(self):
-        """A lazily evaluated propery.
-        """
-        if not hasattr(self, attr_name):
+        try:
+            return getattr(self, attr_name)
+        except AttributeError:
             setattr(self, attr_name, func(self))
         return getattr(self, attr_name)
     return _lazyprop
+
+
+def compute_once(func):
+    """Computes a method exactly once and caches the result."""
+    attr_name = '_compute_once_' + func.__name__
+
+    @functools.wraps(func)
+    def _compute_once(self):
+        try:
+            return getattr(self, attr_name)
+        except AttributeError:
+            setattr(self, attr_name, func(self))
+        return getattr(self, attr_name)
+    return _compute_once

@@ -15,8 +15,6 @@ limitations under the License.
 """
 
 from cvxpy import Constant, Variable
-import cvxpy.settings as s
-from nose.tools import *
 from cvxpy.tests.base_test import BaseTest
 
 
