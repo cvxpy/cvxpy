@@ -16,7 +16,6 @@ env:
       NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
       DEPLOY_PYPI="true"
-      PYPI_SERVER="https://upload.pypi.org/legacy/"
     - DISTRIB="conda" PYTHON_VERSION="3.7" CVXOPT="false"
       NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
