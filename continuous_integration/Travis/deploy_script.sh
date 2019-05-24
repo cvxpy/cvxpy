@@ -29,7 +29,7 @@ UPDATE_CONDA=`python -c "import versiongetter as vg; print(vg.update_conda('$PYT
 cd ..
 if [ $UPDATE_CONDA == True ]; then
     # Deploy for conda
-    conda install --yes conda-build
+    conda install --yes conda-build --config-file conda-recipe/meta.yaml
     conda install --yes anaconda-client
     conda config --set anaconda_upload yes
     conda build --token=$CONDA_UPLOAD_TOKEN --user=$CONDA_USER --python=$PYTHON_VERSION .
