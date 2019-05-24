@@ -9,6 +9,8 @@ environment:
             PYTHON_VERSION: "3.5"
           - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
             PYTHON_VERSION: "3.6"
+          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+            PYTHON_VERSION: "3.7"
           - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
             PYTHON_VERSION: "3.7"
 
