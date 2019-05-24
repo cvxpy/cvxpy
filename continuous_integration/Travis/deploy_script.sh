@@ -32,5 +32,5 @@ if [ $UPDATE_CONDA == True ]; then
     conda install --yes conda-build
     conda install --yes anaconda-client
     conda config --set anaconda_upload yes
-    conda build RECIPE_PATH conda-recipe --token=$CONDA_UPLOAD_TOKEN --user=$CONDA_USER --python=$PYTHON_VERSION .
+    conda build conda-recipe --token=$CONDA_UPLOAD_TOKEN --user=$CONDA_USER --python=$PYTHON_VERSION .
 fi
