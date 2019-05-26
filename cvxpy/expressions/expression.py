@@ -128,6 +128,12 @@ class Expression(u.Canonical):
             curvature_str = s.CONVEX
         elif self.is_concave():
             curvature_str = s.CONCAVE
+        elif self.is_quasilinear():
+            curvature_str = s.QUASILINEAR
+        elif self.is_quasiconvex():
+            curvature_str = s.QUASICONVEX
+        elif self.is_quasiconcave():
+            curvature_str = s.QUASICONCAVE
         else:
             curvature_str = s.UNKNOWN
         return curvature_str
@@ -241,6 +247,9 @@ class Expression(u.Canonical):
 
     def is_quasiconcave(self):
         return self.is_concave()
+
+    def is_quasilinear(self):
+        return self.is_quasiconvex() and self.is_quasiconcave()
 
     @perf.compute_once
     def is_dqcp(self):

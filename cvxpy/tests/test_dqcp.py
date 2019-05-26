@@ -523,3 +523,37 @@ class TestDqcp(base_test.BaseTest):
         problem.solve(qcp=True)
         self.assertAlmostEqual(x.value, 10, places=1)
         self.assertAlmostEqual(problem.value, -20, places=1)
+
+    def test_tutorial_example(self):
+        x = cp.Variable()
+        y = cp.Variable(pos=True)
+        objective_fn = -cp.sqrt(x) / y
+        problem = cp.Problem(cp.Minimize(objective_fn), [cp.exp(x) <= y])
+        # smoke test
+        problem.solve(qcp=True)
+
+    def test_curvature(self):
+        x = cp.Variable(3)
+        expr = cp.length(x)
+        self.assertEqual(expr.curvature, s.QUASICONVEX)
+        expr = -cp.length(x)
+        self.assertEqual(expr.curvature, s.QUASICONCAVE)
+        expr = cp.ceil(x)
+        self.assertEqual(expr.curvature, s.QUASILINEAR)
+        self.assertTrue(expr.is_quasilinear())
+
+    def test_tutorial_dqcp(self):
+        # The sign of variables affects curvature analysis.
+        x = cp.Variable(nonneg=True)
+        concave_frac = x * cp.sqrt(x)
+        constraint = [cp.ceil(x) <= 10]
+        problem = cp.Problem(cp.Maximize(concave_frac), constraint)
+        self.assertTrue(concave_frac.is_quasiconcave())
+        self.assertTrue(constraint[0].is_dqcp())
+        self.assertTrue(problem.is_dqcp())
+
+        w = cp.Variable()
+        fn = w * cp.sqrt(w)
+        problem = cp.Problem(cp.Maximize(fn))
+        self.assertFalse(fn.is_dqcp())
+        self.assertFalse(problem.is_dqcp())

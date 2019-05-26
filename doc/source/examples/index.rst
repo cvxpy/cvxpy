@@ -103,3 +103,11 @@ Disciplined Geometric Programming
 - :doc:`Power control <dgp/power_control>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb>`_
 - :doc:`Perron-Frobenius matrix completion <dgp/pf_matrix_completion>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb>`_
 - :doc:`Rank-one nonnegative matrix factorization <dgp/rank_one_nmf>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb>`_
+
+
+.. _dqcp-examples:
+
+Disciplined Quasiconvex Programming
+-----------------------------------
+- :doc:`Concave fractional function <dqcp/concave_fractional_function>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/concave_fractional_function.ipynb>`_
+- :doc:`Minimum-length least squares <dqcp/minimum_length_least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/minimum_length_least_squares.ipynb>`_
