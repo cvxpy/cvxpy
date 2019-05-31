@@ -16,20 +16,19 @@ env:
       NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
       DEPLOY_PYPI="true"
-      PYPI_SERVER="https://upload.pypi.org/legacy/"
     - DISTRIB="conda" PYTHON_VERSION="3.7" CVXOPT="false"
       NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
       DEPLOY_PYPI="false"
 sudo: required
-install: source continuous_integration/install.sh
+install: source continuous_integration/Travis/install_dependencies.sh
 script:
-  - bash continuous_integration/test_script.sh
+  - bash continuous_integration/Travis/test_script.sh
   - flake8 .
 after_success:
   - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
 deploy:
   provider: script
-  script: bash continuous_integration/deploy_script.sh
+  script: bash continuous_integration/Travis/deploy_script.sh
   on:
     branch: master
