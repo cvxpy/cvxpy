@@ -19,7 +19,7 @@ These examples show many different ways to use CVXPY.
 Basic Examples
 --------------
 
-- :doc:`Least-squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
+- :doc:`Least squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
 
 - :doc:`Linear program <basic/linear_program>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/linear_program.ipynb>`_
 
@@ -28,6 +28,8 @@ Basic Examples
 - :doc:`Second-order cone program <basic/socp>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/socp.ipynb>`_
 
 - :doc:`Semidefinite program <basic/sdp>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sdp.ipynb>`_
+
+- :doc:`Mixed-integer quadratic program <basic/mixed_integer_quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/mixed_integer_quadratic_program.ipynb>`_
 
 - `Control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
