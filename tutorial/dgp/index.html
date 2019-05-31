@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Disciplined Geometric Programming &#8212; CVXPY 1.0.23 documentation</title>
+    <title>Disciplined Geometric Programming &#8212; CVXPY 1.0.24 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.23',
+        VERSION:     '1.0.24',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="Advanced Features" href="../advanced/index.html" />
+    <link rel="next" title="Disciplined Quasiconvex Programming" href="../dqcp/index.html" />
     <link rel="prev" title="Atomic Functions" href="../functions/index.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
@@ -39,6 +39,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="disciplined-geometric-programming">
@@ -240,7 +242,7 @@ at least one of the methods <code class="code docutils literal"><span class="pre
 </div>
 <div class="section" id="dgp-problems">
 <h2>DGP problems<a class="headerlink" href="#dgp-problems" title="Permalink to this headline">¶</a></h2>
-<p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal"><span class="pre">Problem</span></code></a> is constructed from an objective and
+<p>A <code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> is constructed from an objective and
 a list of constraints. If a problem follows the DGP rules, it is guaranteed to
 be an LLCP and solvable by CVXPY. The DGP rules require that the problem
 objective have one of two forms:</p>
@@ -658,6 +660,7 @@ and returns a vector or matrix.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -694,6 +697,7 @@ and returns a vector or matrix.</p>
 <li class="toctree-l3"><a class="reference internal" href="#dgp-atoms">DGP atoms</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="../dqcp/index.html">Disciplined Quasiconvex Programming</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../advanced/index.html">Advanced Features</a></li>
 </ul>
 </li>
@@ -748,8 +752,8 @@ and returns a vector or matrix.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../../_sources/tutorial/dgp/index.rst.txt"

@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Advanced Features &#8212; CVXPY 1.0.23 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.0.24 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.23',
+        VERSION:     '1.0.24',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -25,7 +25,7 @@
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Examples" href="../../examples/index.html" />
-    <link rel="prev" title="Disciplined Geometric Programming" href="../dgp/index.html" />
+    <link rel="prev" title="Disciplined Quasiconvex Programming" href="../dqcp/index.html" />
    
   <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
   
@@ -39,6 +39,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="advanced-features">
@@ -83,9 +85,9 @@
 <p>Variables and parameters can be created with attributes specifying additional properties.
 For example, <code class="docutils literal"><span class="pre">Variable(nonneg=True)</span></code> is a scalar variable constrained to be nonnegative.
 Similarly, <code class="docutils literal"><span class="pre">Parameter(nonpos=True)</span></code> is a scalar parameter constrained to be nonpositive.
-The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal"><span class="pre">Leaf</span></code></a> (the parent class
-of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal"><span class="pre">Variable</span></code></a> and
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code></a>) is given below.</p>
+The full constructor for <code class="xref py py-class docutils literal"><span class="pre">Leaf</span></code> (the parent class
+of <code class="xref py py-class docutils literal"><span class="pre">Variable</span></code> and
+<code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code>) is given below.</p>
 <dl class="function">
 <dt id="Leaf">
 <code class="descname">Leaf</code><span class="sig-paren">(</span><em>shape=None</em>, <em>name=None</em>, <em>value=None</em>, <em>nonneg=False</em>, <em>nonpos=False</em>, <em>symmetric=False</em>, <em>diag=False</em>, <em>PSD=False</em>, <em>NSD=False</em>, <em>boolean=False</em>, <em>integer=False</em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
@@ -124,7 +126,7 @@ length of shape.</li>
 <p>The <code class="docutils literal"><span class="pre">value</span></code> field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
 A Euclidean projection onto the set defined by the attributes is given by the
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project" title="cvxpy.expressions.leaf.Leaf.project"><code class="xref py py-meth docutils literal"><span class="pre">project</span></code></a> method.</p>
+<code class="xref py py-meth docutils literal"><span class="pre">project</span></code> method.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -139,10 +141,10 @@ A Euclidean projection onto the set defined by the attributes is given by the
 </pre></div>
 </div>
 <p>A sensible idiom for assigning values to leaves is
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project" title="cvxpy.expressions.leaf.Leaf.project"><code class="xref py py-meth docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code></a>,
+<code class="xref py py-meth docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>,
 ensuring that the assigned value satisfies the leaf’s properties.
 A slightly more efficient variant is
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project_and_assign" title="cvxpy.expressions.leaf.Leaf.project_and_assign"><code class="xref py py-meth docutils literal"><span class="pre">leaf.project_and_assign(val)</span></code></a>,
+<code class="xref py py-meth docutils literal"><span class="pre">leaf.project_and_assign(val)</span></code>,
 which projects and assigns the value directly, without additionally checking
 that the value satisfies the leaf’s properties.  In most cases <code class="docutils literal"><span class="pre">project</span></code> and
 checking that a value satisfies a leaf’s properties are cheap operations (i.e.,
@@ -249,7 +251,7 @@ Lastly, equality and postive semidefinite constraints are defined for complex ex
 <div class="section" id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
 <p>Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
+beyond the atomic functions.  For example, the <code class="xref py py-class docutils literal"><span class="pre">indicator</span></code> transform converts a list of constraints into an
 expression representing the convex function that takes value 0 when the
 constraints hold and <span class="math">\(\infty\)</span> when they are violated.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -588,7 +590,7 @@ the problem object records the optimal value, the values of the primal and dual 
 and several solver statistics.
 We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the <code class="docutils literal"><span class="pre">problem.solver_stats</span></code> attribute,
-which returns a <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats"><code class="xref py py-class docutils literal"><span class="pre">SolverStats</span></code></a> object.
+which returns a <code class="xref py py-class docutils literal"><span class="pre">SolverStats</span></code> object.
 For example, <code class="docutils literal"><span class="pre">problem.solver_stats.solve_time</span></code> gives the time it took the solver to solve the problem.</p>
 </div>
 <div class="section" id="warm-start">
@@ -778,7 +780,7 @@ It is slower, but more robust.</dd>
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
 <p>If you are interested in getting the standard form that CVXPY produces for a
 problem, you can use the <code class="docutils literal"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
-a <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal"><span class="pre">SolvingChain</span></code></a> passes a
+a <code class="xref py py-class docutils literal"><span class="pre">SolvingChain</span></code> passes a
 low-level representation that is compatible with the targeted solver to a
 solver, which solves the problem. This method returns that low-level
 representation, along with a <code class="docutils literal"><span class="pre">SolvingChain</span></code> and metadata for unpacking
@@ -841,6 +843,7 @@ The full set of reductions available is discussed in <a class="reference interna
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -871,6 +874,7 @@ The full set of reductions available is discussed in <a class="reference interna
 <li class="toctree-l2"><a class="reference internal" href="../dcp/index.html">Disciplined Convex Programming</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../functions/index.html">Atomic Functions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../dgp/index.html">Disciplined Geometric Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dqcp/index.html">Disciplined Quasiconvex Programming</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Advanced Features</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dual-variables">Dual variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#attributes">Attributes</a></li>
@@ -939,8 +943,8 @@ The full set of reductions available is discussed in <a class="reference interna
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../../_sources/tutorial/advanced/index.rst.txt"

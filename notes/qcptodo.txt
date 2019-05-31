@@ -1,0 +1,26 @@
+Atoms
+
+quasilinear
+log [R_++]
+ceil
+floor
+linear_fractional (denom > 0)
+
+quasiconvex
+length
+distance_ratio
+convex / concave (^{-1} ...?) (nonneg ...)
+generalized eigenvalue ...
+- x1 * x2 [R^2_++]
+
+quasiconcave
+prod [R^2_++]
+irr
+card
+rank (...)
+concave / convex
+
+calculus
+nonnegative scaling
+composition (h nondecreasing, g quasiconvex, h of g qcvx, includes pointwise max) ...
+            (h quasiconvex, increasing, g cvx, h of g is qcvx)

@@ -4,7 +4,7 @@
  *
  * Sphinx stylesheet -- basic theme.
  *
- * :copyright: Copyright 2007-2017 by the Sphinx team, see AUTHORS.
+ * :copyright: Copyright 2007-2018 by the Sphinx team, see AUTHORS.
  * :license: BSD, see LICENSE for details.
  *
  */
@@ -332,6 +332,11 @@ table.docutils {
     border-collapse: collapse;
 }
 
+table.align-center {
+    margin-left: auto;
+    margin-right: auto;
+}
+
 table caption span.caption-number {
     font-style: italic;
 }
@@ -445,8 +450,12 @@ dd {
     margin-left: 30px;
 }
 
-dt:target, .highlighted {
+dt:target, span.highlighted {
     background-color: #fbe54e;
+}
+
+rect.highlighted {
+    fill: #fbe54e;
 }
 
 dl.glossary dt {
