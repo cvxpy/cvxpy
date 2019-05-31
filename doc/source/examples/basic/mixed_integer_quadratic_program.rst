@@ -42,12 +42,12 @@ Example
 In the following code, we solve a mixed-integer least-squares problem
 with CVXPY.
 
-.. code:: ipython3
+.. code:: python
 
     import cvxpy as cp
     import numpy as np
 
-.. code:: ipython3
+.. code:: python
 
     # Generate a random problem
     np.random.seed(0)
@@ -56,7 +56,7 @@ with CVXPY.
     A = np.random.rand(m, n)
     b = np.random.randn(m)
 
-.. code:: ipython3
+.. code:: python
 
     # Construct a CVXPY problem
     x = cp.Variable(n, integer=True)
@@ -73,7 +73,7 @@ with CVXPY.
 
 
 
-.. code:: ipython3
+.. code:: python
 
     print("Status: ", prob.status)
     print("The optimal value is", prob.value)
