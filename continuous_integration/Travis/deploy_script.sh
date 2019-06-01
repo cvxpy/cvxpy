@@ -12,7 +12,7 @@ conda install --yes requests
 if [ $DEPLOY_PYPI = true ] && [ $TRAVIS_OS_NAME = osx ]; then
     # consider deploying to PyPI
     cd continuous_integration
-    REMOTE_PYPI_VERSION=`python -c "import versiongetter as vg; print(vg.pypi_version('$PYPI_SERVER'))"`
+    REMOTE_PYPI_VERSION=`python -c "import versiongetter as vg; print(vg.pypi_version())"`
     cd ..
     LOCAL_VERSION=`python -c "import cvxpy; print(cvxpy.__version__)"`
     if [ $REMOTE_PYPI_VERSION != $LOCAL_VERSION ]; then
