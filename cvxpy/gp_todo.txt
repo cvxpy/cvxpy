@@ -1,2 +1,0 @@
-* Add more atoms
-* Add documentation (atoms, expressions, website)

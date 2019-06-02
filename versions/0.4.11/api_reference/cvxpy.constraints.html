@@ -4,16 +4,24 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Constraints &#8212; CVXPY 1.0.23 documentation</title>
+    <title>Constraints &#8212; CVXPY 1.0.24 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.24',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Expressions" href="cvxpy.expressions.html" />
@@ -24,7 +32,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+  </head>
+  <body>
   
 
     <div class="document">
@@ -59,7 +68,7 @@ APIs allow you to inspect dual variable values and residuals.</p>
 <dl class="class">
 <dt id="cvxpy.constraints.constraint.Constraint">
 <em class="property">class </em><code class="descclassname">cvxpy.constraints.constraint.</code><code class="descname">Constraint</code><span class="sig-paren">(</span><em>args</em>, <em>constr_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/constraint.html#Constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.constraint.Constraint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.utilities.canonical.Canonical</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.utilities.canonical.Canonical</span></code></p>
 <p>The base class for constraints.</p>
 <p>A constraint is an equality, inequality, or more generally a generalized
 inequality that is imposed upon a mathematical expression or a list of
@@ -102,12 +111,12 @@ thereof.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tolerance</strong> (<em>float</em>) – The absolute tolerance to impose on the violation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>, False
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal"><span class="pre">tolerance</span></code>, False
 otherwise.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -121,10 +130,10 @@ with it.</td>
 <p>The violation is defined as the distance between the constrained
 expression’s value and its projection onto the domain of the
 constraint:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[||\Pi(v) - v||_2^2\]</div>
-<p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
-<span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
+<p>where <span class="math">\(v\)</span> is the value of the constrained expression and
+<span class="math">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -133,7 +142,7 @@ constraint:</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">NumPy.ndarray</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -148,13 +157,13 @@ with it.</td>
 <dl class="class">
 <dt id="cvxpy.constraints.nonpos.NonPos">
 <em class="property">class </em><code class="descclassname">cvxpy.constraints.nonpos.</code><code class="descname">NonPos</code><span class="sig-paren">(</span><em>expr</em>, <em>constr_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/nonpos.html#NonPos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
-<p>A constraint of the form <span class="math notranslate nohighlight">\(x \leq 0\)</span>.</p>
-<p>The preferred way of creating a <code class="docutils literal notranslate"><span class="pre">NonPos</span></code> constraint is through
-operator overloading. To constrain an expression <code class="docutils literal notranslate"><span class="pre">x</span></code> to be non-positive,
-simply write <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code>; to constrain <code class="docutils literal notranslate"><span class="pre">x</span></code> to be non-negative, write
-<code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>. The former creates a <code class="docutils literal notranslate"><span class="pre">NonPos</span></code> constraint with <code class="docutils literal notranslate"><span class="pre">x</span></code>
-as its argument, while the latter creates one with <code class="docutils literal notranslate"><span class="pre">-x</span></code> as its argument.
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
+<p>A constraint of the form <span class="math">\(x \leq 0\)</span>.</p>
+<p>The preferred way of creating a <code class="docutils literal"><span class="pre">NonPos</span></code> constraint is through
+operator overloading. To constrain an expression <code class="docutils literal"><span class="pre">x</span></code> to be non-positive,
+simply write <code class="docutils literal"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code>; to constrain <code class="docutils literal"><span class="pre">x</span></code> to be non-negative, write
+<code class="docutils literal"><span class="pre">x</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code>. The former creates a <code class="docutils literal"><span class="pre">NonPos</span></code> constraint with <code class="docutils literal"><span class="pre">x</span></code>
+as its argument, while the latter creates one with <code class="docutils literal"><span class="pre">-x</span></code> as its argument.
 Strict inequalities are not supported, as they do not make sense in a
 numerical setting.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -172,15 +181,7 @@ numerical setting.</p>
 <dl class="attribute">
 <dt id="cvxpy.constraints.nonpos.NonPos.dual_value">
 <code class="descname">dual_value</code><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.dual_value" title="Permalink to this definition">¶</a></dt>
-<dd><p>The value of the dual variable.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">NumPy.ndarray</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>NumPy.ndarray</em> – The value of the dual variable.</p>
 </dd></dl>
 
 <dl class="method">
@@ -192,29 +193,13 @@ numerical setting.</p>
 <dl class="attribute">
 <dt id="cvxpy.constraints.nonpos.NonPos.shape">
 <code class="descname">shape</code><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.shape" title="Permalink to this definition">¶</a></dt>
-<dd><p>The shape of the constrained expression.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>int</em> – The shape of the constrained expression.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.constraints.nonpos.NonPos.size">
 <code class="descname">size</code><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.size" title="Permalink to this definition">¶</a></dt>
-<dd><p>The size of the constrained expression.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>int</em> – The size of the constrained expression.</p>
 </dd></dl>
 
 <dl class="method">
@@ -227,12 +212,12 @@ numerical setting.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tolerance</strong> (<em>float</em>) – The absolute tolerance to impose on the violation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>, False
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal"><span class="pre">tolerance</span></code>, False
 otherwise.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -246,10 +231,10 @@ with it.</td>
 <p>The violation is defined as the distance between the constrained
 expression’s value and its projection onto the domain of the
 constraint:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[||\Pi(v) - v||_2^2\]</div>
-<p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
-<span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
+<p>where <span class="math">\(v\)</span> is the value of the constrained expression and
+<span class="math">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -258,7 +243,7 @@ constraint:</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">NumPy.ndarray</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -273,12 +258,12 @@ with it.</td>
 <dl class="class">
 <dt id="cvxpy.constraints.zero.Zero">
 <em class="property">class </em><code class="descclassname">cvxpy.constraints.zero.</code><code class="descname">Zero</code><span class="sig-paren">(</span><em>expr</em>, <em>constr_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/zero.html#Zero"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.zero.Zero" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
-<p>A constraint of the form <span class="math notranslate nohighlight">\(x = 0\)</span>.</p>
-<p>The preferred way of creating a <code class="docutils literal notranslate"><span class="pre">Zero</span></code> constraint is through
-operator overloading. To constrain an expression <code class="docutils literal notranslate"><span class="pre">x</span></code> to be zero,
-simply write <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">==</span> <span class="pre">0</span></code>. The former creates a <code class="docutils literal notranslate"><span class="pre">Zero</span></code> constraint with
-<code class="docutils literal notranslate"><span class="pre">x</span></code> as its argument.</p>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
+<p>A constraint of the form <span class="math">\(x = 0\)</span>.</p>
+<p>The preferred way of creating a <code class="docutils literal"><span class="pre">Zero</span></code> constraint is through
+operator overloading. To constrain an expression <code class="docutils literal"><span class="pre">x</span></code> to be zero,
+simply write <code class="docutils literal"><span class="pre">x</span> <span class="pre">==</span> <span class="pre">0</span></code>. The former creates a <code class="docutils literal"><span class="pre">Zero</span></code> constraint with
+<code class="docutils literal"><span class="pre">x</span></code> as its argument.</p>
 <dl class="method">
 <dt id="cvxpy.constraints.zero.Zero.is_dcp">
 <code class="descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/zero.html#Zero.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.zero.Zero.is_dcp" title="Permalink to this definition">¶</a></dt>
@@ -295,12 +280,12 @@ simply write <code class="docutils literal notranslate"><span class="pre">x</spa
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tolerance</strong> (<em>float</em>) – The absolute tolerance to impose on the violation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>, False
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal"><span class="pre">tolerance</span></code>, False
 otherwise.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -314,10 +299,10 @@ with it.</td>
 <p>The violation is defined as the distance between the constrained
 expression’s value and its projection onto the domain of the
 constraint:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[||\Pi(v) - v||_2^2\]</div>
-<p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
-<span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
+<p>where <span class="math">\(v\)</span> is the value of the constrained expression and
+<span class="math">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -326,7 +311,7 @@ constraint:</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">NumPy.ndarray</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -341,18 +326,18 @@ with it.</td>
 <dl class="class">
 <dt id="cvxpy.constraints.psd.PSD">
 <em class="property">class </em><code class="descclassname">cvxpy.constraints.psd.</code><code class="descname">PSD</code><span class="sig-paren">(</span><em>expr</em>, <em>constr_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/psd.html#PSD"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.psd.PSD" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
-<p>A constraint of the form <span class="math notranslate nohighlight">\(\frac{1}{2}(X + X^T) \succcurlyeq_{S_n^+} 0\)</span></p>
-<p>Applying a <code class="docutils literal notranslate"><span class="pre">PSD</span></code> constraint to a two-dimensional expression <code class="docutils literal notranslate"><span class="pre">X</span></code>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
+<p>A constraint of the form <span class="math">\(\frac{1}{2}(X + X^T) \succcurlyeq_{S_n^+} 0\)</span></p>
+<p>Applying a <code class="docutils literal"><span class="pre">PSD</span></code> constraint to a two-dimensional expression <code class="docutils literal"><span class="pre">X</span></code>
 constrains its symmetric part to be positive semidefinite: i.e.,
-it constrains <code class="docutils literal notranslate"><span class="pre">X</span></code> to be such that</p>
-<div class="math notranslate nohighlight">
+it constrains <code class="docutils literal"><span class="pre">X</span></code> to be such that</p>
+<div class="math">
 \[z^T(X + X^T)z \geq 0,\]</div>
-<p>for all <span class="math notranslate nohighlight">\(z\)</span>.</p>
-<p>The preferred way of creating a <code class="docutils literal notranslate"><span class="pre">PSD</span></code> constraint is through operator
-overloading. To constrain an expression <code class="docutils literal notranslate"><span class="pre">X</span></code> to be PSD, write
-<code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">&gt;&gt;</span> <span class="pre">0</span></code>; to constrain it to be negative semidefinite, write
-<code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">&lt;&lt;</span> <span class="pre">0</span></code>. Strict definiteness constraints are not provided,
+<p>for all <span class="math">\(z\)</span>.</p>
+<p>The preferred way of creating a <code class="docutils literal"><span class="pre">PSD</span></code> constraint is through operator
+overloading. To constrain an expression <code class="docutils literal"><span class="pre">X</span></code> to be PSD, write
+<code class="docutils literal"><span class="pre">X</span> <span class="pre">&gt;&gt;</span> <span class="pre">0</span></code>; to constrain it to be negative semidefinite, write
+<code class="docutils literal"><span class="pre">X</span> <span class="pre">&lt;&lt;</span> <span class="pre">0</span></code>. Strict definiteness constraints are not provided,
 as they do not make sense in a numerical setting.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -382,12 +367,12 @@ as they do not make sense in a numerical setting.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tolerance</strong> (<em>float</em>) – The absolute tolerance to impose on the violation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>, False
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal"><span class="pre">tolerance</span></code>, False
 otherwise.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -401,10 +386,10 @@ with it.</td>
 <p>The violation is defined as the distance between the constrained
 expression’s value and its projection onto the domain of the
 constraint:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[||\Pi(v) - v||_2^2\]</div>
-<p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
-<span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
+<p>where <span class="math">\(v\)</span> is the value of the constrained expression and
+<span class="math">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -413,7 +398,7 @@ constraint:</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">NumPy.ndarray</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -428,10 +413,10 @@ with it.</td>
 <dl class="class">
 <dt id="cvxpy.constraints.second_order.SOC">
 <em class="property">class </em><code class="descclassname">cvxpy.constraints.second_order.</code><code class="descname">SOC</code><span class="sig-paren">(</span><em>t</em>, <em>X</em>, <em>axis=0</em>, <em>constr_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/second_order.html#SOC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.second_order.SOC" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
 <p>A second-order cone constraint for each row/column.</p>
-<p>Assumes <code class="docutils literal notranslate"><span class="pre">t</span></code> is a vector the same length as <code class="docutils literal notranslate"><span class="pre">X</span></code>’s columns (rows) for
-<code class="docutils literal notranslate"><span class="pre">axis</span> <span class="pre">==</span> <span class="pre">0</span></code> (<code class="docutils literal notranslate"><span class="pre">1</span></code>).</p>
+<p>Assumes <code class="docutils literal"><span class="pre">t</span></code> is a vector the same length as <code class="docutils literal"><span class="pre">X</span></code>’s columns (rows) for
+<code class="docutils literal"><span class="pre">axis</span> <span class="pre">==</span> <span class="pre">0</span></code> (<code class="docutils literal"><span class="pre">1</span></code>).</p>
 <dl class="attribute">
 <dt id="cvxpy.constraints.second_order.SOC.t">
 <code class="descname">t</code><a class="headerlink" href="#cvxpy.constraints.second_order.SOC.t" title="Permalink to this definition">¶</a></dt>
@@ -466,12 +451,12 @@ with it.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tolerance</strong> (<em>float</em>) – The absolute tolerance to impose on the violation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>, False
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal"><span class="pre">tolerance</span></code>, False
 otherwise.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -485,10 +470,10 @@ with it.</td>
 <p>The violation is defined as the distance between the constrained
 expression’s value and its projection onto the domain of the
 constraint:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[||\Pi(v) - v||_2^2\]</div>
-<p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
-<span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
+<p>where <span class="math">\(v\)</span> is the value of the constrained expression and
+<span class="math">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -497,7 +482,7 @@ constraint:</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">NumPy.ndarray</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -512,15 +497,15 @@ with it.</td>
 <dl class="class">
 <dt id="cvxpy.constraints.exponential.ExpCone">
 <em class="property">class </em><code class="descclassname">cvxpy.constraints.exponential.</code><code class="descname">ExpCone</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>z</em>, <em>constr_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#ExpCone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.exponential.ExpCone" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
 <p>A reformulated exponential cone constraint.</p>
-<p>Operates elementwise on <span class="math notranslate nohighlight">\(x, y, z\)</span>.</p>
+<p>Operates elementwise on <span class="math">\(x, y, z\)</span>.</p>
 <p>Original cone:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[K = \{(x,y,z) \mid y &gt; 0, ye^{x/y} &lt;= z\}
     \cup \{(x,y,z) \mid x \leq 0, y = 0, z \geq 0\}\]</div>
 <p>Reformulated cone:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[K = \{(x,y,z) \mid y, z &gt; 0, y\log(y) + x \leq y\log(z)\}
      \cup \{(x,y,z) \mid x \leq 0, y = 0, z \geq 0\}\]</div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -552,12 +537,12 @@ with it.</td>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tolerance</strong> (<em>float</em>) – The absolute tolerance to impose on the violation.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal notranslate"><span class="pre">tolerance</span></code>, False
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">True if the violation is less than <code class="docutils literal"><span class="pre">tolerance</span></code>, False
 otherwise.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">bool</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -571,10 +556,10 @@ with it.</td>
 <p>The violation is defined as the distance between the constrained
 expression’s value and its projection onto the domain of the
 constraint:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[||\Pi(v) - v||_2^2\]</div>
-<p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
-<span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
+<p>where <span class="math">\(v\)</span> is the value of the constrained expression and
+<span class="math">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -583,7 +568,7 @@ constraint:</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">NumPy.ndarray</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If the constrained expression does not have a value associated
 with it.</td>
 </tr>
 </tbody>
@@ -675,14 +660,12 @@ with it.</td>
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
-    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -693,7 +676,7 @@ with it.</td>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

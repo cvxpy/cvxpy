@@ -4,16 +4,24 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Back-End Reductions &#8212; CVXPY 1.0.23 documentation</title>
+    <title>Back-End Reductions &#8212; CVXPY 1.0.24 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.24',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Transforms" href="cvxpy.transforms.html" />
@@ -24,7 +32,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+  </head>
+  <body>
   
 
     <div class="document">
@@ -39,11 +48,11 @@
 <p>The reductions listed here are specific to the choice of back end, i.e.,
 solver. Currently, we support two types of back ends: conic solvers and
 quadratic program solvers.  When a problem is solved through the
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code> method, CVXPY attempts to find
+<code class="xref py py-meth docutils literal"><span class="pre">solve()</span></code> method, CVXPY attempts to find
 the best back end for your problem. The
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Dcp2Cone</span></code> reduction converts DCP-compliant
+<code class="xref py py-class docutils literal"><span class="pre">Dcp2Cone</span></code> reduction converts DCP-compliant
 problems into conic form, while the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Qp2SymbolicQp</span></code> converts problems with
+<code class="xref py py-class docutils literal"><span class="pre">Qp2SymbolicQp</span></code> converts problems with
 quadratic, piecewise affine objectives, affine equality constraints, and
 piecewise-linear inequality constraints into a form that is closer to what is
 accepted by solvers. The problems output by both reductions must be passed
@@ -60,7 +69,7 @@ ready for to be solved.</p>
 <dl class="class">
 <dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
 <em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.dcp2cone.</code><code class="descname">Dcp2Cone</code><span class="sig-paren">(</span><em>problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
 <p>Reduce DCP problems to a conic form.</p>
 <p>This reduction takes as input (minimization) DCP problems and converts
 them into problems with affine objectives and conic constraints whose
@@ -85,7 +94,7 @@ arguments are affine.</p>
 <dl class="class">
 <dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
 <em class="property">class </em><code class="descclassname">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</code><code class="descname">Qp2SymbolicQp</code><span class="sig-paren">(</span><em>problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
 <p>Reduces a quadratic problem to a problem that consists of affine
 expressions and symbolic quadratic forms.</p>
 <dl class="method">
@@ -191,14 +200,12 @@ affine equality constraints are accepted.</p>
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
-    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -209,7 +216,7 @@ affine equality constraints are accepted.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

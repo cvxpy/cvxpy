@@ -4,16 +4,24 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Reductions &#8212; CVXPY 1.0.23 documentation</title>
+    <title>Reductions &#8212; CVXPY 1.0.24 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.24',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Middle-End Reductions" href="cvxpy.reductions.middle_end.html" />
@@ -24,7 +32,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+  </head>
+  <body>
   
 
     <div class="document">
@@ -36,7 +45,7 @@
             
   <div class="section" id="reductions">
 <span id="reductions-api"></span><h1>Reductions<a class="headerlink" href="#reductions" title="Permalink to this headline">¶</a></h1>
-<p>A <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reduction</span></code></a> is a transformation
+<p>A <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal"><span class="pre">Reduction</span></code></a> is a transformation
 from one problem to an equivalent problem. Two problems are equivalent
 if a solution of one can be converted to a solution of the other with no
 more than a moderate amount of effort. CVXPY uses reductions to rewrite
@@ -86,76 +95,36 @@ as might those who are simply curious to learn how CVXPY works.</p>
 <dl class="class">
 <dt id="cvxpy.reductions.solution.Solution">
 <em class="property">class </em><code class="descclassname">cvxpy.reductions.solution.</code><code class="descname">Solution</code><span class="sig-paren">(</span><em>status</em>, <em>opt_val</em>, <em>primal_vars</em>, <em>dual_vars</em>, <em>attr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solution.html#Solution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.solution.Solution" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>A solution to an optimization problem.</p>
 <dl class="attribute">
 <dt id="cvxpy.reductions.solution.Solution.status">
 <code class="descname">status</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.status" title="Permalink to this definition">¶</a></dt>
-<dd><p>The status code.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">str</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>str</em> – The status code.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.reductions.solution.Solution.opt_val">
 <code class="descname">opt_val</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.opt_val" title="Permalink to this definition">¶</a></dt>
-<dd><p>The optimal value.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">float</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>float</em> – The optimal value.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.reductions.solution.Solution.primal_vars">
 <code class="descname">primal_vars</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.primal_vars" title="Permalink to this definition">¶</a></dt>
-<dd><p>A map from variable ids to optimal values.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">dict of id to NumPy ndarray</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>dict of id to NumPy ndarray</em> – A map from variable ids to optimal values.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.reductions.solution.Solution.dual_vars">
 <code class="descname">dual_vars</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.dual_vars" title="Permalink to this definition">¶</a></dt>
-<dd><p>A map from constraint ids to dual values.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">dict of id to NumPy ndarray</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>dict of id to NumPy ndarray</em> – A map from constraint ids to dual values.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.reductions.solution.Solution.attr">
 <code class="descname">attr</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.attr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Miscelleneous information propagated up from a solver.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>dict</em> – Miscelleneous information propagated up from a solver.</p>
 </dd></dl>
 
 </dd></dl>
@@ -166,13 +135,13 @@ as might those who are simply curious to learn how CVXPY works.</p>
 <dl class="class">
 <dt id="cvxpy.reductions.reduction.Reduction">
 <em class="property">class </em><code class="descclassname">cvxpy.reductions.reduction.</code><code class="descname">Reduction</code><span class="sig-paren">(</span><em>problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Abstract base class for reductions.</p>
 <p>A reduction is an actor that transforms a problem into an
 equivalent problem. By equivalent we mean that there exists
 a mapping between solutions of either problem: if we reduce a problem
-<span class="math notranslate nohighlight">\(A\)</span> to another problem <span class="math notranslate nohighlight">\(B\)</span> and then proceed to find a solution
-to <span class="math notranslate nohighlight">\(B\)</span>, we can convert it to a solution of <span class="math notranslate nohighlight">\(A\)</span> with at most a
+<span class="math">\(A\)</span> to another problem <span class="math">\(B\)</span> and then proceed to find a solution
+to <span class="math">\(B\)</span>, we can convert it to a solution of <span class="math">\(A\)</span> with at most a
 moderate amount of effort.</p>
 <p>A reduction that is instantiated with a non-None problem offers
 two key methods: <cite>reduce</cite> and <cite>retrieve</cite>. The <cite>reduce()</cite> method converts
@@ -272,7 +241,7 @@ application.</li>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem">Problem</a> or dict</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If this Reduction was constructed without a Problem.</td>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If this Reduction was constructed without a Problem.</td>
 </tr>
 </tbody>
 </table>
@@ -292,7 +261,7 @@ application.</li>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution">Solution</a></td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If <cite>self.problem</cite> is None, or if <cite>reduce()</cite> was not previously
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If <cite>self.problem</cite> is None, or if <cite>reduce()</cite> was not previously
 called.</td>
 </tr>
 </tbody>
@@ -307,20 +276,12 @@ called.</td>
 <dl class="class">
 <dt id="cvxpy.reductions.chain.Chain">
 <em class="property">class </em><code class="descclassname">cvxpy.reductions.chain.</code><code class="descname">Chain</code><span class="sig-paren">(</span><em>problem=None</em>, <em>reductions=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.reduction.Reduction</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.reduction.Reduction</span></code></a></p>
 <p>A logical grouping of multiple reductions into a single reduction.</p>
 <dl class="attribute">
 <dt id="cvxpy.reductions.chain.Chain.reductions">
 <code class="descname">reductions</code><a class="headerlink" href="#cvxpy.reductions.chain.Chain.reductions" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of reductions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction">Reduction</a>]</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>list[Reduction]</em> – A list of reductions.</p>
 </dd></dl>
 
 <dl class="method">
@@ -379,7 +340,7 @@ starting at self.reductions[0].</li>
 <dl class="class">
 <dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain">
 <em class="property">class </em><code class="descclassname">cvxpy.reductions.solvers.solving_chain.</code><code class="descname">SolvingChain</code><span class="sig-paren">(</span><em>problem=None</em>, <em>reductions=[]</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.chain.Chain" title="cvxpy.reductions.chain.Chain"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.chain.Chain</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.chain.Chain" title="cvxpy.reductions.chain.Chain"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.chain.Chain</span></code></a></p>
 <p>A reduction chain that ends with a solver.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -393,29 +354,13 @@ instance.</td>
 <dl class="attribute">
 <dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions">
 <code class="descname">reductions</code><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of reductions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction">Reduction</a>]</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>list[Reduction]</em> – A list of reductions.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solver">
 <code class="descname">solver</code><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver" title="Permalink to this definition">¶</a></dt>
-<dd><p>The solver, i.e., reductions[-1].</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">Solver</td>
-</tr>
-</tbody>
-</table>
+<dd><p><em>Solver</em> – The solver, i.e., reductions[-1].</p>
 </dd></dl>
 
 <dl class="method">
@@ -459,12 +404,12 @@ problem.</p>
 <code class="descname">solve_via_data</code><span class="sig-paren">(</span><em>problem</em>, <em>data</em>, <em>warm_start=False</em>, <em>verbose=False</em>, <em>solver_opts={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.solve_via_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the problem using the data output by the an apply invocation.</p>
 <p>The semantics are:</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 <span class="n">solution</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">invert</span><span class="p">(</span><span class="n">solver_chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">...</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>which is equivalent to writing</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">solution</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">solution</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="o">...</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -576,14 +521,12 @@ a Solution object.</p>
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
-    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -594,7 +537,7 @@ a Solution object.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

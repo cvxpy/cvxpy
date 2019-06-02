@@ -4,16 +4,24 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Power control &#8212; CVXPY 1.0.23 documentation</title>
+    <title>Power control &#8212; CVXPY 1.0.24 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.0.24',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -22,7 +30,8 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
+  </head>
+  <body>
   
 
     <div class="document">
@@ -42,29 +51,29 @@ example library (Almir Mutapcic).</em></p>
 <p>This example formulates and solves a power control problem for
 communication systems, in which the goal is to minimize the total
 transmitter power across n trasmitters, each trasmitting positive power
-levels <span class="math notranslate nohighlight">\(P_1\)</span>, <span class="math notranslate nohighlight">\(P_2\)</span>, <span class="math notranslate nohighlight">\(\ldots\)</span>, <span class="math notranslate nohighlight">\(P_n\)</span> to
-<span class="math notranslate nohighlight">\(n\)</span> receivers, labeled <span class="math notranslate nohighlight">\(1, \ldots, n\)</span>, with receiver
-<span class="math notranslate nohighlight">\(i\)</span> receiving signal from transmitter <span class="math notranslate nohighlight">\(i\)</span>.</p>
-<p>The power received from transmitter <span class="math notranslate nohighlight">\(j\)</span> at receiver <span class="math notranslate nohighlight">\(i\)</span> is
-<span class="math notranslate nohighlight">\(G_{ij} P_{j}\)</span>, where <span class="math notranslate nohighlight">\(G_{ij} &gt; 0\)</span> represents the path gain
-from transmitter <span class="math notranslate nohighlight">\(j\)</span> to receiver <span class="math notranslate nohighlight">\(i\)</span>. The signal power at
-receiver <span class="math notranslate nohighlight">\(i\)</span> is <span class="math notranslate nohighlight">\(G_{ii} P_i\)</span>, and the interference power at
-receiver <span class="math notranslate nohighlight">\(i\)</span> is <span class="math notranslate nohighlight">\(\sum_{k \neq i} G_{ik}P_k\)</span>. The noise power
-at receiver <span class="math notranslate nohighlight">\(i\)</span> is <span class="math notranslate nohighlight">\(\sigma_i\)</span>, and the signal to noise ratio
-(SINR) of the <span class="math notranslate nohighlight">\(i\)</span>th receiver-transmitter pair is</p>
-<div class="math notranslate nohighlight">
+levels <span class="math">\(P_1\)</span>, <span class="math">\(P_2\)</span>, <span class="math">\(\ldots\)</span>, <span class="math">\(P_n\)</span> to
+<span class="math">\(n\)</span> receivers, labeled <span class="math">\(1, \ldots, n\)</span>, with receiver
+<span class="math">\(i\)</span> receiving signal from transmitter <span class="math">\(i\)</span>.</p>
+<p>The power received from transmitter <span class="math">\(j\)</span> at receiver <span class="math">\(i\)</span> is
+<span class="math">\(G_{ij} P_{j}\)</span>, where <span class="math">\(G_{ij} &gt; 0\)</span> represents the path gain
+from transmitter <span class="math">\(j\)</span> to receiver <span class="math">\(i\)</span>. The signal power at
+receiver <span class="math">\(i\)</span> is <span class="math">\(G_{ii} P_i\)</span>, and the interference power at
+receiver <span class="math">\(i\)</span> is <span class="math">\(\sum_{k \neq i} G_{ik}P_k\)</span>. The noise power
+at receiver <span class="math">\(i\)</span> is <span class="math">\(\sigma_i\)</span>, and the signal to noise ratio
+(SINR) of the <span class="math">\(i\)</span>th receiver-transmitter pair is</p>
+<div class="math">
 \[S_i = \frac{G_{ii}P_i}{\sigma_i + \sum_{k \neq i} G_{ik}P_k}.\]</div>
 <p>The transmitters and receivers are constrained to have a minimum SINR
-<span class="math notranslate nohighlight">\(S^{\text min}\)</span>, and the <span class="math notranslate nohighlight">\(P_i\)</span> are bounded between
-<span class="math notranslate nohighlight">\(P_i^{\text min}\)</span> and <span class="math notranslate nohighlight">\(P_i^{\text max}\)</span>. This gives the
+<span class="math">\(S^{\text min}\)</span>, and the <span class="math">\(P_i\)</span> are bounded between
+<span class="math">\(P_i^{\text min}\)</span> and <span class="math">\(P_i^{\text max}\)</span>. This gives the
 problem</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize} &amp; P_1 + \cdots + P_n \\
 \mbox{subject to} &amp; P_i^{\text min} \leq P_i \leq P_i^{\text max}, \\
 &amp; 1/S^{\text min} \geq \frac{\sigma_i + \sum_{k \neq i} G_{ik}P_k}{G_{ii}P_i}
 \end{array}.\end{split}\]</div>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Problem data</span>
@@ -99,23 +108,23 @@ problem</p>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kc">True</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kc">True</span>
 </pre></div>
 </div>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.9868421072460272</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">1.9868421072460272</span>
 </pre></div>
 </div>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">value</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">array</span><span class="p">([</span><span class="mf">0.1944079</span> <span class="p">,</span> <span class="mf">0.18453947</span><span class="p">,</span> <span class="mf">0.21907895</span><span class="p">,</span> <span class="mf">0.19934211</span><span class="p">,</span> <span class="mf">0.18947368</span><span class="p">])</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">array</span><span class="p">([</span><span class="mf">0.1944079</span> <span class="p">,</span> <span class="mf">0.18453947</span><span class="p">,</span> <span class="mf">0.21907895</span><span class="p">,</span> <span class="mf">0.19934211</span><span class="p">,</span> <span class="mf">0.18947368</span><span class="p">])</span>
 </pre></div>
 </div>
 </div>
@@ -184,14 +193,12 @@ problem</p>
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
-    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -202,7 +209,7 @@ problem</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
