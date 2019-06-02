@@ -2,11 +2,11 @@ import requests
 from distutils.version import StrictVersion
 
 
-def pypi_version():
+def pypi_version(server):
     # Gets the latest version on PyPi accompanied by a source distribution
-    server = 'https://pypi.python.org/pypi'
     url = server + '/cvxpy/json'
-    data = requests.get(url).json()
+    r = requests.get(url)
+    data = r.json()
     releases = data["releases"]
     versions = [
         v for v in releases.keys() if 'sdist' in [rel['packagetype'] for rel in
