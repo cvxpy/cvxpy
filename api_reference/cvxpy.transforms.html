@@ -54,10 +54,177 @@ transforms may also take Problem, Objective, or Constraint objects as input.</p>
 <p>The <em>scalarize</em> transforms convert a list of objectives into a single objective,
 for example a weighted sum. All scalarizations are monotone in each objective, which means that optimizing over the scalarized objective always returns a Pareto-optimal point with respect to the original list of objectives.
 Moreover, all points on the Pareto curve except for boundary points can be attained given some weighting of the objectives.</p>
+<dl class="method">
+<dt id="cvxpy.transforms.scalarize.weighted_sum">
+<code class="descclassname">scalarize.</code><code class="descname">weighted_sum</code><span class="sig-paren">(</span><em>objectives</em>, <em>weights</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.weighted_sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines objectives as a weighted sum.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>objectives</strong> – A list of Minimize/Maximize objectives.</li>
+<li><strong>weights</strong> – A vector of weights.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A Minimize/Maximize objective.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.transforms.scalarize.max">
+<code class="descclassname">scalarize.</code><code class="descname">max</code><span class="sig-paren">(</span><em>objectives</em>, <em>weights</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines objectives as max of weighted terms.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>objectives</strong> – A list of Minimize/Maximize objectives.</li>
+<li><strong>weights</strong> – A vector of weights.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A Minimize objective.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.transforms.scalarize.log_sum_exp">
+<code class="descclassname">scalarize.</code><code class="descname">log_sum_exp</code><span class="sig-paren">(</span><em>objectives</em>, <em>weights</em>, <em>gamma=1</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.log_sum_exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines objectives as log_sum_exp of weighted terms.</p>
+<dl class="docutils">
+<dt>The objective takes the form</dt>
+<dd>log(sum_{i=1}^n exp(gamma*weights[i]*objectives[i]))/gamma</dd>
+</dl>
+<p>As gamma goes to 0, log_sum_exp approaches weighted_sum. As gamma goes to infinity,
+log_sum_exp approaches max.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>objectives</strong> – A list of Minimize/Maximize objectives.</li>
+<li><strong>weights</strong> – A vector of weights.</li>
+<li><strong>gamma</strong> – Parameter interpolating between weighted_sum and max.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A Minimize objective.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.transforms.scalarize.targets_and_priorities">
+<code class="descclassname">scalarize.</code><code class="descname">targets_and_priorities</code><span class="sig-paren">(</span><em>objectives</em>, <em>priorities</em>, <em>targets</em>, <em>limits=None</em>, <em>off_target=1e-05</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.targets_and_priorities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines objectives with penalties within a range between target and limit.</p>
+<p>Each Minimize objective i has value</p>
+<blockquote>
+<div><p>priorities[i]*objectives[i] when objectives[i] &gt;= targets[i]</p>
+<p>+infinity when objectives[i] &gt; limits[i]</p>
+</div></blockquote>
+<p>Each Maximize objective i has value</p>
+<blockquote>
+<div><p>priorities[i]*objectives[i] when objectives[i] &lt;= targets[i]</p>
+<p>+infinity when objectives[i] &lt; limits[i]</p>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>objectives</strong> – A list of Minimize/Maximize objectives.</li>
+<li><strong>priorities</strong> – The weight within the trange.</li>
+<li><strong>targets</strong> – The start (end) of penalty for Minimize (Maximize)</li>
+<li><strong>limits</strong> – The hard end (start) of penalty for Minimize (Maximize)</li>
+<li><strong>off_target</strong> – Penalty outside of target.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A Minimize/Maximize objective.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </div>
 <div class="section" id="other">
 <h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
 <p>Here we list other available transforms.</p>
+<dl class="class">
+<dt id="cvxpy.transforms.indicator">
+<em class="property">class </em><code class="descclassname">cvxpy.transforms.</code><code class="descname">indicator</code><span class="sig-paren">(</span><em>constraints</em>, <em>err_tol=0.001</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/transforms/indicator.html#indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.transforms.indicator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>An expression representing the convex function I(constraints) = 0</dt>
+<dd>if constraints hold, +infty otherwise.</dd>
+</dl>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>constraints</strong> (<em>list</em>) – A list of constraint objects.</li>
+<li><strong>err_tol</strong> – A numeric tolerance for determining whether the constraints hold.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.transforms.linearize">
+<code class="descclassname">transforms.</code><code class="descname">linearize</code><span class="sig-paren">(</span><em>expr</em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.linearize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an affine approximation to the expression computed at the variable/parameter values.</p>
+<p>Gives an elementwise lower (upper) bound for convex (concave)
+expressions that is tight at the current variable/parameter values.
+No guarantees for non-DCP expressions.</p>
+<p>If f and g are convex, the objective f - g can be (heuristically) minimized using
+the implementation below of the convex-concave method:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">iters</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">f</span> <span class="o">-</span> <span class="n">linearize</span><span class="p">(</span><span class="n">g</span><span class="p">)))</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Returns None if cannot be linearized.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>expr</strong> – An expression.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">An affine expression or None.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.transforms.partial_optimize">
+<code class="descclassname">transforms.</code><code class="descname">partial_optimize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.partial_optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copyright 2013 Steven Diamond</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+</dd></dl>
+
 </div>
 </div>
 
