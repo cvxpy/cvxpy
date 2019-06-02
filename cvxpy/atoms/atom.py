@@ -17,6 +17,7 @@ limitations under the License.
 
 from cvxpy import utilities as u
 from cvxpy import interface as intf
+from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant, CallbackParam
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
@@ -133,6 +134,16 @@ class Atom(Expression):
         """
         return False
 
+    def is_atom_quasiconvex(self):
+        """Is the atom quasiconvex?
+        """
+        return self.is_atom_convex()
+
+    def is_atom_quasiconcave(self):
+        """Is the atom quasiconcave?
+        """
+        return self.is_atom_concave()
+
     def is_atom_log_log_affine(self):
         """Is the atom log-log affine?
         """
@@ -217,6 +228,57 @@ class Atom(Expression):
             return True
         else:
             return False
+
+    @perf.compute_once
+    def _non_const_idx(self):
+        return [i for i, arg in enumerate(self.args) if not arg.is_constant()]
+
+    @perf.compute_once
+    def is_quasiconvex(self):
+        """Is the expression quaisconvex?
+        """
+        # Verifies the DQCP composition rule.
+        if self.is_convex():
+            return True
+        if type(self) == cvxtypes.maximum():
+            return all(arg.is_quasiconvex() for arg in self.args)
+        non_const = self._non_const_idx()
+        if self.is_scalar() and len(non_const) == 1 and self.is_incr(non_const[0]):
+            # TODO(akshayka): Accommodate vector atoms if people want it.
+            return self.args[non_const[0]].is_quasiconvex()
+        if self.is_scalar() and len(non_const) == 1 and self.is_decr(non_const[0]):
+            return self.args[non_const[0]].is_quasiconcave()
+        if self.is_atom_quasiconvex():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_affine() or
+                        (arg.is_convex() and self.is_incr(idx)) or
+                        (arg.is_concave() and self.is_decr(idx))):
+                    return False
+            return True
+        return False
+
+    @perf.compute_once
+    def is_quasiconcave(self):
+        """Is the expression quasiconcave?
+        """
+        # Verifies the DQCP composition rule.
+        if self.is_concave():
+            return True
+        if type(self) == cvxtypes.minimum():
+            return all(arg.is_quasiconcave() for arg in self.args)
+        non_const = self._non_const_idx()
+        if self.is_scalar() and len(non_const) == 1 and self.is_incr(non_const[0]):
+            return self.args[non_const[0]].is_quasiconcave()
+        if self.is_scalar() and len(non_const) == 1 and self.is_decr(non_const[0]):
+            return self.args[non_const[0]].is_quasiconvex()
+        if self.is_atom_quasiconcave():
+            for idx, arg in enumerate(self.args):
+                if not (arg.is_affine() or
+                        (arg.is_concave() and self.is_incr(idx)) or
+                        (arg.is_convex() and self.is_decr(idx))):
+                    return False
+            return True
+        return False
 
     def canonicalize(self):
         """Represent the atom as an affine objective and conic constraints.

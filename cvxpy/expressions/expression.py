@@ -20,6 +20,7 @@ import warnings
 from cvxpy import error
 from cvxpy.constraints import Equality, Inequality, PSD
 from cvxpy.expressions import cvxtypes
+import cvxpy.utilities.performance_utils as perf
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
 import cvxpy.settings as s
@@ -127,6 +128,12 @@ class Expression(u.Canonical):
             curvature_str = s.CONVEX
         elif self.is_concave():
             curvature_str = s.CONCAVE
+        elif self.is_quasilinear():
+            curvature_str = s.QUASILINEAR
+        elif self.is_quasiconvex():
+            curvature_str = s.QUASICONVEX
+        elif self.is_quasiconcave():
+            curvature_str = s.QUASICONCAVE
         else:
             curvature_str = s.UNKNOWN
         return curvature_str
@@ -179,6 +186,7 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
+    @perf.compute_once
     def is_dcp(self):
         """Checks whether the Expression is DCP.
 
@@ -200,6 +208,7 @@ class Expression(u.Canonical):
         else:
             return self.value is not None and np.all(self.value > 0)
 
+    @perf.compute_once
     def is_log_log_affine(self):
         """Is the expression affine?
         """
@@ -232,6 +241,26 @@ class Expression(u.Canonical):
             True if the Expression is log-log DCP, False otherwise.
         """
         return self.is_log_log_convex() or self.is_log_log_concave()
+
+    def is_quasiconvex(self):
+        return self.is_convex()
+
+    def is_quasiconcave(self):
+        return self.is_concave()
+
+    def is_quasilinear(self):
+        return self.is_quasiconvex() and self.is_quasiconcave()
+
+    @perf.compute_once
+    def is_dqcp(self):
+        """Checks whether the Expression is DQCP.
+
+        Returns
+        -------
+        bool
+            True if the Expression is DQCP, False otherwise.
+        """
+        return self.is_quasiconvex() or self.is_quasiconcave()
 
     def is_hermitian(self):
         """Is the expression a Hermitian matrix?

@@ -55,7 +55,7 @@ canon = Extension(
 
 setup(
     name='cvxpy',
-    version='1.0.21',
+    version='1.0.24',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
@@ -73,14 +73,5 @@ setup(
                       "numpy >= 1.15",
                       "scipy >= 1.1.0"],
     setup_requires=["numpy >= 1.15"],
-    extras_require={
-        'glpk': [
-            (
-                'cvxopt >= 1.2.0; sys_platform == "darwin" or '
-                'sys_platform == "linux" or os_name == "nt" and '
-                'python_version >= "3.5"'
-            ),
-        ],
-    },
     use_2to3=True,
 )

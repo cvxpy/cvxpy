@@ -79,14 +79,21 @@ def construct_intermediate_chain(problem, candidates, gp=False):
     if not gp and not problem.is_dcp():
         append = build_dcp_error_msg()
         if problem.is_dgp():
-            append = ("\nHowever, the problem does follow DGP rules. "
-                      "Consider calling this function with `gp=True`.")
+            append += ("\nHowever, the problem does follow DGP rules. "
+                      "Consider calling solve() with `gp=True`.")
+        elif problem.is_dqcp():
+            append += ("\nHowever, the problem does follow DQCP rules. "
+                      "Consider calling solve() with `qcp=True`."
         raise DCPError("Problem does not follow DCP rules. Specifically:\n" + append)
+
     elif gp and not problem.is_dgp():
         append = ""
         if problem.is_dcp():
             append = (" However, the problem does follow DCP rules. "
-                      "Consider calling this function with `gp=False`.")
+                      "Consider calling solve() with `gp=False`.")
+        elif problem.is_dqcp():
+            append = (" However, the problem does follow DQCP rules. "
+                      "Consider calling solve() with `qcp=True`.")
         raise DGPError("Problem does not follow DGP rules." + append)
 
     # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.

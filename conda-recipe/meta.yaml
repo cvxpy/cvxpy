@@ -1,6 +1,6 @@
 package:
   name: cvxpy
-  version: "1.0.21"
+  version: "1.0.24"
 
 source:
   path: ..
@@ -20,7 +20,7 @@ requirements:
     - multiprocess
     - numpy >=1.14
     - scipy >=0.15
-    - libgcc
+    - libgcc # [not win]
     - lapack
     - mkl
 
@@ -33,7 +33,7 @@ requirements:
     - six
     - numpy >=1.9
     - scipy >=0.15
-    - libgcc
+    - libgcc # [not win]
     - lapack
     - mkl
 
@@ -53,8 +53,6 @@ test:
     - cvxpy.interface.numpy_interface
     - cvxpy.lin_ops
     - cvxpy.problems
-    - cvxpy.problems.problem_data
-    - cvxpy.problems.solvers
     - cvxpy.reductions
     - cvxpy.reductions.complex2real
     - cvxpy.reductions.complex2real.atom_canonicalizers

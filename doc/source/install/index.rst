@@ -51,7 +51,7 @@ Anaconda
 
       conda config --add channels oxfordcontrol
       conda install -c conda-forge lapack
-      conda install -c cvxgrp cvxpy=1.0.21
+      conda install -c cvxgrp cvxpy=1.0.24
 
 4. Test the installation with ``nose``.
 
@@ -93,11 +93,11 @@ Install with CVXOPT and GLPK support
 CVXPY supports the `CVXOPT`_ solver.
 Additionally, through CVXOPT, CVXPY supports the `GLPK`_ solver. On `most
 platforms <http://cvxopt.org/install/index.html#installing-a-pre-built-package>`_,
-`CVXOPT`_ comes with GLPK bundled. On such platforms, installing CVXPY with
+`CVXOPT`_ comes with GLPK bundled. On such platforms, installing CVXOPT with
 
   ::
 
-      pip install cvxpy[glpk]
+      pip install cvxopt
 
 should suffice to get support for both CVXOPT and GLPK.
 

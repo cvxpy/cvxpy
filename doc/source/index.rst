@@ -59,6 +59,11 @@ more.
   including more efficient use of parameters, code generation,
   and differentiation through problems.
 
+* CVXPY v1.0.24 supports
+  `disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_,
+  which lets you formulate and solve quasiconvex programs.
+  See the :doc:`tutorial </tutorial/dqcp/index>` for more information.
+
 * CVXPY v1.0.11 supports
   `disciplined geometric programming <https://web.stanford.edu/~boyd/papers/dgp.html>`_,
   which lets you formulate geometric programs and log-log convex programs.

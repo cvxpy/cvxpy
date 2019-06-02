@@ -50,6 +50,12 @@ class DGPError(Exception):
     pass
 
 
+class DQCPError(Exception):
+    """Error thrown for DQCP violations.
+    """
+    pass
+
+
 class ParameterError(Exception):
     """Error thrown for accessing the value of an unspecified parameter.
     """

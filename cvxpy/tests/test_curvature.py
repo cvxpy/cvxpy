@@ -16,6 +16,7 @@ limitations under the License.
 
 from cvxpy import log
 from cvxpy import Constant, Variable, Parameter
+from cvxpy.settings import UNKNOWN, QUASILINEAR
 from nose.tools import assert_equals
 
 
@@ -36,27 +37,27 @@ class TestCurvature(object):
 
     def test_add(self):
         assert_equals((self.const + self.cvx).curvature, self.cvx.curvature)
-        assert_equals((self.unknown_curv + self.ccv).curvature, self.unknown_curv.curvature)
-        assert_equals((self.cvx + self.ccv).curvature, self.unknown_curv.curvature)
+        assert_equals((self.unknown_curv + self.ccv).curvature, UNKNOWN)
+        assert_equals((self.cvx + self.ccv).curvature, UNKNOWN)
         assert_equals((self.cvx + self.cvx).curvature, self.cvx.curvature)
         assert_equals((self.aff + self.ccv).curvature, self.ccv.curvature)
 
     def test_sub(self):
         assert_equals((self.const - self.cvx).curvature, self.ccv.curvature)
-        assert_equals((self.unknown_curv - self.ccv).curvature, self.unknown_curv.curvature)
+        assert_equals((self.unknown_curv - self.ccv).curvature, UNKNOWN)
         assert_equals((self.cvx - self.ccv).curvature, self.cvx.curvature)
-        assert_equals((self.cvx - self.cvx).curvature, self.unknown_curv.curvature)
+        assert_equals((self.cvx - self.cvx).curvature, UNKNOWN)
         assert_equals((self.aff - self.ccv).curvature, self.cvx.curvature)
 
     def test_sign_mult(self):
         assert_equals((self.zero * self.cvx).curvature, self.aff.curvature)
         assert_equals((self.neg*self.cvx).curvature, self.ccv.curvature)
         assert_equals((self.neg*self.ccv).curvature, self.cvx.curvature)
-        assert_equals((self.neg*self.unknown_curv).curvature, self.unknown_curv.curvature)
+        assert_equals((self.neg*self.unknown_curv).curvature, QUASILINEAR)
         assert_equals((self.pos*self.aff).curvature, self.aff.curvature)
         assert_equals((self.pos*self.ccv).curvature, self.ccv.curvature)
         assert_equals((self.unknown_sign*self.const).curvature, self.const.curvature)
-        assert_equals((self.unknown_sign*self.ccv).curvature, self.unknown_curv.curvature)
+        assert_equals((self.unknown_sign*self.ccv).curvature, UNKNOWN)
 
     def test_neg(self):
         assert_equals((-self.cvx).curvature, self.ccv.curvature)

@@ -15,13 +15,18 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.error import DCPError, SolverError
+from cvxpy import error
 from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.reductions.chain import Chain
+from cvxpy.reductions.dqcp2dcp import dqcp2dcp
+from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
+from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.deterministic import unique_list
+import cvxpy.utilities.performance_utils as perf
 
 # TODO(akshayka): This is a hack. Fix this if possible.
 # Only need to import cvxpy.transform.get_separable_problems, but this creates
@@ -61,13 +66,10 @@ class Problem(u.Canonical):
             constraints = []
         # Check that objective is Minimize or Maximize.
         if not isinstance(objective, (Minimize, Maximize)):
-            raise DCPError("Problem objective must be Minimize or Maximize.")
+            raise error.DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
         self._constraints = [c for c in constraints]
-        self._vars = self._variables()
-        self._params = self._parameters()
-        self._consts = self._constants()
         self._value = None
         self._status = None
         self._solution = None
@@ -127,18 +129,28 @@ class Problem(u.Canonical):
         """
         return self._constraints[:]
 
+    @perf.compute_once
     def is_dcp(self):
         """Does the problem satisfy DCP rules?
         """
         return all(
           expr.is_dcp() for expr in self.constraints + [self.objective])
 
+    @perf.compute_once
     def is_dgp(self):
         """Does the problem satisfy DGP rules?
         """
         return all(
           expr.is_dgp() for expr in self.constraints + [self.objective])
 
+    @perf.compute_once
+    def is_dqcp(self):
+        """Does the problem satisfy the DQCP rules?
+        """
+        return all(
+          expr.is_dqcp() for expr in self.constraints + [self.objective])
+
+    @perf.compute_once
     def is_qp(self):
         """Is problem a quadratic program?
         """
@@ -150,10 +162,12 @@ class Problem(u.Canonical):
                 return False
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
+    @perf.compute_once
     def is_mixed_integer(self):
         return any(v.attributes['boolean'] or v.attributes['integer']
                    for v in self.variables())
 
+    @perf.compute_once
     def variables(self):
         """Accessor method for variables.
 
@@ -162,14 +176,12 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.variable.Variable`
             A list of the variables in the problem.
         """
-        return self._vars
-
-    def _variables(self):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
         return unique_list(vars_)
 
+    @perf.compute_once
     def parameters(self):
         """Accessor method for parameters.
 
@@ -178,14 +190,12 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.parameter.Parameter`
             A list of the parameters in the problem.
         """
-        return self._params
-
-    def _parameters(self):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
         return unique_list(params)
 
+    @perf.compute_once
     def constants(self):
         """Accessor method for parameters.
 
@@ -194,9 +204,6 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.constant.Constant`
             A list of the constants in the problem.
         """
-        return self._consts
-
-    def _constants(self):
         const_dict = {}
         constants_ = self.objective.constants()
         for constr in self.constraints:
@@ -247,6 +254,9 @@ class Problem(u.Canonical):
             Overrides the default of hiding solver output.
         gp : bool, optional
             If True, parses the problem as a disciplined geometric program
+            instead of a disciplined convex program.
+        qcp : bool, optional
+            If True, parses the problem as a disciplined quasiconvex program
             instead of a disciplined convex program.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
@@ -420,7 +430,7 @@ class Problem(u.Canonical):
 
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
-                raise SolverError("The solver %s is not installed." % solver)
+                raise error.SolverError("The solver %s is not installed." % solver)
             if solver in slv_def.CONIC_SOLVERS:
                 candidates['conic_solvers'] += [solver]
             if solver in slv_def.QP_SOLVERS:
@@ -434,7 +444,7 @@ class Problem(u.Canonical):
         # If gp we must have only conic solvers
         if gp:
             if solver is not None and solver not in slv_def.CONIC_SOLVERS:
-                raise SolverError(
+                raise error.SolverError(
                   "When `gp=True`, `solver` must be a conic solver "
                   "(received '%s'); try calling " % solver +
                   " `solve()` with `solver=cvxpy.ECOS`."
@@ -451,10 +461,10 @@ class Problem(u.Canonical):
                 if slv_def.SOLVER_MAP_CONIC[s].MIP_CAPABLE]
             if not candidates['conic_solvers'] and \
                     not candidates['qp_solvers']:
-                raise SolverError("Problem is mixed-integer, but candidate "
-                                  "QP/Conic solvers (%s) are not MIP-capable."
-                                  % [candidates['qp_solvers'],
-                                     candidates['conic_solvers']])
+                raise error.SolverError(
+                    "Problem is mixed-integer, but candidate "
+                    "QP/Conic solvers (%s) are not MIP-capable." %
+                    [candidates['qp_solvers'], candidates['conic_solvers']])
 
         return candidates
 
@@ -503,7 +513,7 @@ class Problem(u.Canonical):
                solver=None,
                warm_start=True,
                verbose=False,
-               parallel=False, gp=False, **kwargs):
+               parallel=False, gp=False, qcp=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -520,8 +530,9 @@ class Problem(u.Canonical):
         parallel : bool, optional
             If problem is separable, solve in parallel.
         gp : bool, optional
-            If True, then parses the problem as a disciplined geometric program
-            instead of a disciplined convex program.
+            If True, parses the problem as a disciplined geometric program.
+        qcp : bool, optional
+            If True, parses the problem as a disciplined quasiconvex program.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -533,28 +544,34 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
+        if gp and qcp:
+            raise ValueError("At most one of `gp` and `qcp` can be True.")
+        if qcp and not self.is_dcp():
+            if not self.is_dqcp():
+                raise error.DQCPError("The problem is not DQCP.")
+            reductions = [dqcp2dcp.Dqcp2Dcp()]
+            if type(self.objective) == Maximize:
+                reductions = [FlipObjective()] + reductions
+            chain = Chain(problem=self, reductions=reductions)
+            soln = bisection.bisect(
+                chain.reduce(), solver=solver, verbose=verbose, **kwargs)
+            self.unpack(chain.retrieve(soln))
+            return self.value
         if parallel:
             from cvxpy.transforms.separable_problems import get_separable_problems
             self._separable_problems = (get_separable_problems(self))
             if len(self._separable_problems) > 1:
-                return self._parallel_solve(solver, warm_start,
-                                            verbose, **kwargs)
+                return self._parallel_solve(
+                    solver, warm_start, verbose, **kwargs)
 
         self._construct_chains(solver=solver, gp=gp)
-
-        data, solving_inverse_data = \
-            self._solving_chain.apply(self._intermediate_problem)
-
-        solution = self._solving_chain.solve_via_data(self, data,
-                                                      warm_start,
-                                                      verbose, kwargs)
-
-        full_chain = \
-            self._solving_chain.prepend(self._intermediate_chain)
+        data, solving_inverse_data = self._solving_chain.apply(
+            self._intermediate_problem)
+        solution = self._solving_chain.solve_via_data(
+            self, data, warm_start, verbose, kwargs)
+        full_chain = self._solving_chain.prepend(self._intermediate_chain)
         inverse_data = self._intermediate_inverse_data + solving_inverse_data
-
         self.unpack_results(solution, full_chain, inverse_data)
-
         return self.value
 
     def _parallel_solve(self,
@@ -695,7 +712,7 @@ class Problem(u.Canonical):
 
         solution = chain.invert(solution, inverse_data)
         if solution.status in s.ERROR:
-            raise SolverError(
+            raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +
                     "Try another solver, or solve with verbose=True for more "
                     "information.")
