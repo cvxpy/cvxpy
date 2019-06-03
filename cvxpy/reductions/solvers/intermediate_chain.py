@@ -1,4 +1,16 @@
-from cvxpy.atoms.atom import Atom
+"""
+Copyright, the CVXPY authors
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, Dcp2Cone,
@@ -6,6 +18,7 @@ from cvxpy.reductions import (Chain, Dcp2Cone,
                               CvxAttr2Constr, Complex2Real)
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
+from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 
 def construct_intermediate_chain(problem, candidates, gp=False):
@@ -46,54 +59,24 @@ def construct_intermediate_chain(problem, candidates, gp=False):
     if gp:
         reductions += [Dgp2Dcp()]
 
-    def build_dcp_error_msg():
-        def find_non_dcp_leaves(expr, res=[]):
-            def is_dcp(e):
-                if isinstance(e, Atom):
-                    return e.is_convex()
-                return e.is_dcp()
-
-            if (len(expr.args) == 0 and expr.is_dcp()):
-                return res
-            if (not is_dcp(expr)) and all(is_dcp(child) for child in expr.args):
-                res.append(expr)
-            for child in expr.args:
-                res = find_non_dcp_leaves(child, res)
-            return res
-
-        if not problem.objective.is_dcp():
-            non_dcp_leaves = find_non_dcp_leaves(problem.objective.expr)
-            msg = "The objective is not DCP. Its following subexpressions are not:"
-            for expr in non_dcp_leaves:
-                msg += '\n%s' % (str(expr,))
-            return msg
-        not_dcp_constraints = [expr for expr in problem.constraints if not expr.is_dcp()]
-        msg = "The following constraints are not DCP:"
-        for expr in not_dcp_constraints:
-            msg += '\n%s , because the following subexpressions are not:' % (expr,)
-            non_dcp_leaves = find_non_dcp_leaves(expr)
-            for subexpr in non_dcp_leaves:
-                msg += '\n|--  %s' % (str(subexpr,))
-        return msg
-
     if not gp and not problem.is_dcp():
-        append = build_dcp_error_msg()
+        append = build_non_disciplined_error_msg(problem, 'DCP')
         if problem.is_dgp():
             append += ("\nHowever, the problem does follow DGP rules. "
-                      "Consider calling solve() with `gp=True`.")
+                       "Consider calling solve() with `gp=True`.")
         elif problem.is_dqcp():
             append += ("\nHowever, the problem does follow DQCP rules. "
-                      "Consider calling solve() with `qcp=True`."
+                       "Consider calling solve() with `qcp=True`.")
         raise DCPError("Problem does not follow DCP rules. Specifically:\n" + append)
 
     elif gp and not problem.is_dgp():
-        append = ""
+        append = build_non_disciplined_error_msg(problem, 'DGP')
         if problem.is_dcp():
-            append = (" However, the problem does follow DCP rules. "
-                      "Consider calling solve() with `gp=False`.")
+            append += ("\nHowever, the problem does follow DCP rules. "
+                       "Consider calling solve() with `gp=False`.")
         elif problem.is_dqcp():
-            append = (" However, the problem does follow DQCP rules. "
-                      "Consider calling solve() with `qcp=True`.")
+            append += ("\nHowever, the problem does follow DQCP rules. "
+                       "Consider calling solve() with `qcp=True`.")
         raise DGPError("Problem does not follow DGP rules." + append)
 
     # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.
