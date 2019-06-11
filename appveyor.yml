@@ -3,17 +3,12 @@
 environment:
     global:
           PYTHON: "C:\\conda"
-          ENV_NAME: "testenv"
           MINICONDA_FILENAME: "Miniconda2-latest-Windows-x86_64.exe"
     matrix:
-          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2013
-            PYTHON_VERSION: "2.7"
-          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
-            PYTHON_VERSION: "2.7"
           - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
             PYTHON_VERSION: "3.5"
-          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
-            PYTHON_VERSION: "3.5"
+          - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+            PYTHON_VERSION: "3.6"
           - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
             PYTHON_VERSION: "3.7"
           - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
@@ -25,17 +20,19 @@ environment:
 platform:
     - x64
 
-# The install phase is contained in a PowerShell script.
+# The install phase is contained in two PowerShell scripts.
 install:
-    - "powershell continuous_integration\\appveyor_install.ps1"
+    - "powershell continuous_integration\\AppVeyor\\download_and_install_miniconda.ps1"
+    - "powershell continuous_integration\\AppVeyor\\configure_conda_and_install_cvxpy.ps1"
 
 # Not a .NET project, we build CVXPY in the install step instead.
 build: false
 
 # The test phase uses Windows CMD commands (not PowerShell).
 test_script:
-    - "PATH %PYTHON%;%PYTHON%\\Scripts;%PATH%"
-    - "echo %PATH%"
-    - "activate %ENV_NAME%"
+    - "conda activate testenv"
     - "conda env list"
     - "nosetests cvxpy"
+
+deploy_script:
+    - "powershell continuous_integration\\AppVeyor\\deploy_windows.ps1"
