@@ -37,8 +37,6 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <h1>Source code for cvxpy.reductions.qp2quad_form.qp_matrix_stuffing</h1><div class="highlight"><pre>
@@ -89,8 +87,8 @@
 
 <div class="viewcode-block" id="QpMatrixStuffing.stuffed_objective"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.stuffed_objective">[docs]</a>    <span class="k">def</span> <span class="nf">stuffed_objective</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">extractor</span><span class="p">):</span>
         <span class="c1"># extract to x.T * P * x + q.T * x + r</span>
-        <span class="n">expr</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-        <span class="n">P</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="c1"># TODO need to copy objective?</span>
+        <span class="n">P</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">quad_form</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
 
         <span class="c1"># concatenate all variables in one vector</span>
         <span class="n">boolean</span><span class="p">,</span> <span class="n">integer</span> <span class="o">=</span> <span class="n">extract_mip_idx</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
@@ -101,7 +99,6 @@
 </pre></div>
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -179,8 +176,8 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
 

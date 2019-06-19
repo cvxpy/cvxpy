@@ -37,8 +37,6 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <h1>Source code for cvxpy.atoms.elementwise.huber</h1><div class="highlight"><pre>
@@ -135,7 +133,9 @@
     <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Checks that M &gt;= 0 and is constant.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;M must be a non-negative scalar constant.&quot;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">huber</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
 
@@ -158,7 +158,6 @@
 </pre></div>
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -236,8 +235,8 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
 

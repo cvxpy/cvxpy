@@ -37,8 +37,6 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <h1>Source code for cvxpy.constraints.exponential</h1><div class="highlight"><pre>
@@ -127,6 +125,12 @@
         <span class="c1"># TODO use size of dual variable(s) instead.</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cone_sizes</span><span class="p">())</span>
 
+    <span class="c1"># @property</span>
+    <span class="c1"># def shape(self):</span>
+    <span class="c1">#     &quot;&quot;&quot;Represented as vectorized.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     return (self.size,)</span>
+
     <span class="k">def</span> <span class="nf">num_cones</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The number of elementwise cones.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -150,9 +154,6 @@
     <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
-
     <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Canonicalizes by converting expressions to LinOps.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -165,7 +166,6 @@
 </pre></div>
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -243,8 +243,8 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
     </div>
 

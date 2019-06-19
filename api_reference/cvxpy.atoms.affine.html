@@ -39,8 +39,6 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="affine-atoms">
@@ -113,7 +111,7 @@ the Expression class.</p>
 <dl class="class">
 <dt id="cvxpy.atoms.affine.binary_operators.DivExpression">
 <em class="property">class </em><code class="descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="descname">DivExpression</code><span class="sig-paren">(</span><em>lh_expr</em>, <em>rh_expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#DivExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.DivExpression" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.atoms.affine.binary_operators.multiply" title="cvxpy.atoms.affine.binary_operators.multiply"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.binary_operators.multiply</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.binary_operators.BinaryOperator</span></code></p>
 <p>Division by scalar.</p>
 <p>Can be created by using the / operator of expression.</p>
 </dd></dl>
@@ -177,14 +175,14 @@ vector where</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code>, <code class="xref py py-class docutils literal"><span class="pre">cvxpy.atoms.axis_atom.AxisAtom</span></code></p>
 <p>Cumulative sum.</p>
 <dl class="attribute">
-<dt id="cvxpy.atoms.affine.cumsum.cumsum.expr">
-<code class="descname">expr</code><a class="headerlink" href="#cvxpy.atoms.affine.cumsum.cumsum.expr" title="Permalink to this definition">¶</a></dt>
+<dt id="cumsum.expr">
+<code class="descname">expr</code><a class="headerlink" href="#cumsum.expr" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>CVXPY expression</em> – The expression being summed.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.atoms.affine.cumsum.cumsum.axis">
-<code class="descname">axis</code><a class="headerlink" href="#cvxpy.atoms.affine.cumsum.cumsum.axis" title="Permalink to this definition">¶</a></dt>
+<dt id="cumsum.axis">
+<code class="descname">axis</code><a class="headerlink" href="#cumsum.axis" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>int</em> – The axis to sum across if 2D.</p>
 </dd></dl>
 
@@ -453,7 +451,6 @@ as Fortran order.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -569,8 +566,8 @@ as Fortran order.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
       <a href="../_sources/api_reference/cvxpy.atoms.affine.rst.txt"
