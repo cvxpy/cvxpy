@@ -98,8 +98,8 @@ class Complex2Real(Reduction):
                     dvars[cid] = solution.dual_vars[cid] + \
                         1j*solution.dual_vars[imag_id]
                 elif isinstance(cons, SOC) and cons.is_complex():
-                    # TODO add proper dual variables for SOC.
-                    dvars[cid] = solution.dual_vars[cid]
+                    # TODO add dual variables for complex SOC.
+                    pass
                 # For PSD constraints.
                 elif isinstance(cons, PSD) and cons.is_complex():
                     n = cons.args[0].shape[0]
