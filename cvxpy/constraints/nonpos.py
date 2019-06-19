@@ -39,8 +39,6 @@ class NonPos(Constraint):
         A unique id for the constraint.
     """
     def __init__(self, expr, constr_id=None):
-        if not (expr.is_real() or expr.is_imag()):
-            raise ValueError("Inequality constraints cannot be complex.")
         super(NonPos, self).__init__([expr], constr_id)
 
     def name(self):

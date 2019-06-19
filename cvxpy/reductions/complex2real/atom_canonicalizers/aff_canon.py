@@ -37,11 +37,19 @@ def separable_canon(expr, real_args, imag_args, real2imag):
 
 
 def real_canon(expr, real_args, imag_args, real2imag):
-    return real_args[0], None
+    # If no real arguments, return zero.
+    if real_args[0] is None:
+        return 0*imag_args[0], None
+    else:
+        return real_args[0], None
 
 
 def imag_canon(expr, real_args, imag_args, real2imag):
-    return imag_args[0], None
+    # If no real arguments, return zero.
+    if imag_args[0] is None:
+        return 0*real_args[0], None
+    else:
+        return imag_args[0], None
 
 
 def conj_canon(expr, real_args, imag_args, real2imag):

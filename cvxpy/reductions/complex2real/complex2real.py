@@ -48,7 +48,7 @@ class Complex2Real(Reduction):
         for constraint in problem.constraints:
             if type(constraint) == Equality:
                 constraint = utilities.lower_equality(constraint)
-            if type(constraint) == Inequality:
+            elif type(constraint) == Inequality:
                 constraint = utilities.lower_inequality(constraint)
             # real2imag maps variable id to a potential new variable
             # created for the imaginary part.
@@ -75,9 +75,13 @@ class Complex2Real(Reduction):
                     pvars[vid] = 1j*solution.primal_vars[imag_id]
                 elif var.is_complex() and var.is_hermitian():
                     imag_id = inverse_data.real2imag[vid]
-                    imag_val = solution.primal_vars[imag_id]
-                    pvars[vid] = solution.primal_vars[vid] + \
-                        1j*(imag_val - imag_val.T)/2
+                    # Imaginary part may have been lost.
+                    if imag_id in solution.primal_vars:
+                        imag_val = solution.primal_vars[imag_id]
+                        pvars[vid] = solution.primal_vars[vid] + \
+                            1j*(imag_val - imag_val.T)/2
+                    else:
+                        pvars[vid] = solution.primal_vars[vid]
                 elif var.is_complex():
                     imag_id = inverse_data.real2imag[vid]
                     pvars[vid] = solution.primal_vars[vid] + \
