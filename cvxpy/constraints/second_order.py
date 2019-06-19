@@ -31,8 +31,8 @@ class SOC(Constraint):
     """
 
     def __init__(self, t, X, axis=0, constr_id=None):
-        # TODO allow imaginary X.
-        assert not t.shape or len(t.shape) == 1
+        if len(t.shape) >= 2 or not t.is_real():
+            raise ValueError("Invalid first argument.")
         self.axis = axis
         super(SOC, self).__init__([t, X], constr_id)
 

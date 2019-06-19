@@ -14,8 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints.zero import Equality, Zero
-from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.nonpos import Inequality, NonPos
-from cvxpy.constraints.psd import PSD
-from cvxpy.constraints.second_order import SOC
+from cvxpy.atoms import bmat, reshape, vstack
+from cvxpy.atoms.affine.wraps import psd_wrap
+import numpy as np
+
+
+def psd_canon(expr, real_args, imag_args, real2imag):
+    """Canonicalize functions that take a Hermitian matrix.
+    """
+    if imag_args[0] is None:
+        matrix = real_args[0]
+    else:
+        if real_args[0] is None:
+            real_args[0] = np.zeros(imag_args[0].shape)
+        matrix = bmat([[real_args[0], -imag_args[0]],
+                       [imag_args[0], real_args[0]]])
+    return [expr.copy([matrix])], None

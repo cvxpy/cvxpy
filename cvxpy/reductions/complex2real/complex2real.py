@@ -18,7 +18,7 @@ from cvxpy import problems
 from cvxpy.expressions import cvxtypes
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions import InverseData, Solution
-from cvxpy.constraints import Equality, Zero, NonPos, PSD
+from cvxpy.constraints import Equality, Inequality, Zero, NonPos, PSD, SOC
 from cvxpy.reductions.complex2real.atom_canonicalizers import (
     CANON_METHODS as elim_cplx_methods)
 from cvxpy.reductions import utilities
@@ -48,12 +48,16 @@ class Complex2Real(Reduction):
         for constraint in problem.constraints:
             if type(constraint) == Equality:
                 constraint = utilities.lower_equality(constraint)
-            real_constr, imag_constr = self.canonicalize_tree(
+            if type(constraint) == Inequality:
+                constraint = utilities.lower_inequality(constraint)
+            # real2imag maps variable id to a potential new variable
+            # created for the imaginary part.
+            real_constrs, imag_constrs = self.canonicalize_tree(
                 constraint, inverse_data.real2imag, leaf_map)
-            if real_constr is not None:
-                constrs.append(real_constr)
-            if imag_constr is not None:
-                constrs.append(imag_constr)
+            if real_constrs is not None:
+                constrs.extend(real_constrs)
+            if imag_constrs is not None:
+                constrs.extend(imag_constrs)
 
         new_problem = problems.problem.Problem(real_obj,
                                                constrs)
@@ -89,6 +93,9 @@ class Complex2Real(Reduction):
                     imag_id = inverse_data.real2imag[cid]
                     dvars[cid] = solution.dual_vars[cid] + \
                         1j*solution.dual_vars[imag_id]
+                elif isinstance(cons, SOC) and cons.is_complex():
+                    # TODO add proper dual variables for SOC.
+                    dvars[cid] = solution.dual_vars[cid]
                 # For PSD constraints.
                 elif isinstance(cons, PSD) and cons.is_complex():
                     n = cons.args[0].shape[0]

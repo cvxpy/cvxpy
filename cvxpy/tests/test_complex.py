@@ -250,6 +250,16 @@ class TestComplex(BaseTest):
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
+    def test_soc(self):
+        """Test with SOC.
+        """
+        x = Variable(2, complex=True)
+        t = Variable()
+        prob = Problem(cvx.Minimize(t), [cvx.SOC(t, x), x == 2j])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 2*np.sqrt(2))
+        self.assertItemsAlmostEqual(x.value, [2j, 2j])
+
     def test_pnorm(self):
         """Test complex with pnorm.
         """
