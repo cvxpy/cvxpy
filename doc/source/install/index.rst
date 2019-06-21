@@ -116,13 +116,6 @@ On other platforms, to install CVXPY and its dependencies with GLPK support, fol
 
 3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
-Install with Elemental support
-------------------------------
-
-CVXPY supports the Elemental solver.
-Simply install Elemental such that you can ``import El`` in Python.
-See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
-
 Install with GUROBI support
 ---------------------------
 
@@ -174,7 +167,6 @@ The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows yo
 .. _SciPy: http://www.scipy.org/
 .. _Nose: http://nose.readthedocs.org
 .. _CVXPY git repository: https://github.com/cvxgrp/cvxpy
-.. _cvxcore: https://github.com/jacklzhu/cvxcore
 .. _Swig: http://www.swig.org/
 .. _pip: https://pip.pypa.io/
 .. _GLPK: https://www.gnu.org/software/glpk/
