@@ -90,7 +90,7 @@ researchers and engineers.
 
 CVXPY is developed and maintained by
 `Steven Diamond <http://web.stanford.edu/~stevend2/>`_ and
-`Akshay Agrawal <https://akshayagrwawal.com>`_, with many others contributing
+`Akshay Agrawal <https://akshayagrawal.com>`_, with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
 Riley Murray, Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
