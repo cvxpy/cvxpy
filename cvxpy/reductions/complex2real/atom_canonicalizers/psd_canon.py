@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import bmat, reshape, vstack
-from cvxpy.atoms.affine.wraps import psd_wrap
+from cvxpy.atoms import bmat
 import numpy as np
 
 

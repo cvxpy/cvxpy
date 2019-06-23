@@ -243,13 +243,13 @@ class TestComplex(BaseTest):
     def test_missing_imag(self):
         """Test problems where imaginary is missing.
         """
-        Z = Variable((2,2),hermitian=True)
-        constraints=[cvx.trace(cvx.real(Z))==1]
+        Z = Variable((2, 2), hermitian=True)
+        constraints = [cvx.trace(cvx.real(Z)) == 1]
         obj = cvx.Minimize(0)
         prob = cvx.Problem(obj, constraints)
         prob.solve()
 
-        Z = Variable((2,2),imag=True)
+        Z = Variable((2, 2), imag=True)
         obj = cvx.Minimize(cvx.trace(cvx.real(Z)))
         prob = cvx.Problem(obj, constraints)
         result = prob.solve()

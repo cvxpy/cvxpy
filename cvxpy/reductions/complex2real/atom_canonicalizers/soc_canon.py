@@ -18,6 +18,7 @@ from cvxpy.atoms import reshape, vstack
 from cvxpy.constraints import SOC
 from cvxpy.expressions.variable import Variable
 
+
 def soc_canon(expr, real_args, imag_args, real2imag):
     # Imaginary.
     if real_args[1] is None:
