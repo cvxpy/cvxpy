@@ -753,7 +753,29 @@ Tensor get_rmul_mat(LinOp &lin, int arg_idx) {
 	assert(lin.type == RMUL);
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.args[0]->size.size() > 0);
-	Matrix constant = get_constant_data(lin, false); // TODO handle parameters.
+  Tensor rmul_ten = lin_to_tensor(*lin.linOp_data);
+  // Interpret as row or column vector as needed.
+  if (lin.data_ndim == 1 && lin.args[0]->size[0] != 1) {
+    // Transpose matrices.
+    typedef Tensor::iterator it_type;
+    for (it_type it = rmul_ten.begin(); it != rmul_ten.end(); ++it) {
+      int param_id = it->first;
+      DictMat var_map = it->second;
+      typedef DictMat::iterator jit_type;
+      for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
+        int var_id = jit->first;
+        std::vector<Matrix> mat_vec = jit->second;
+        for (unsigned i=0; i < mat_vec.size(); ++i) {
+          // Transpose matrix.
+          rmul_ten[param_id][var_id][i] = mat_vec[i].transpose();
+        }
+      }
+    }
+  }
+  // Get rows and cols of data (1 if not present).
+	int data_rows = (lin.linOp_data->size.size() >= 1) ? lin.linOp_data->size[0] : 1;
+	int data_cols = (lin.linOp_data->size.size() >= 2) ? lin.linOp_data->size[1] : 1;
+
   // Interpret as row or column vector as needed.
   int arg_cols;
   int result_rows;
@@ -764,33 +786,52 @@ Tensor get_rmul_mat(LinOp &lin, int arg_idx) {
     arg_cols = lin.args[0]->size[1];
     result_rows = lin.args[0]->size[0];
   }
-  if (lin.data_ndim == 1 && arg_cols != constant.rows()) {
-    constant = constant.transpose();
-  }
-	int rows = constant.rows();
-	int cols = constant.cols();
 	int n = (lin.size.size() > 0) ? result_rows : 1;
 
-	Matrix coeffs(cols * n, rows * n);
-	std::vector<Triplet> tripletList;
-	tripletList.reserve(n * constant.nonZeros());
-	for ( int k = 0; k < constant.outerSize(); ++k ) {
-		for ( Matrix::InnerIterator it(constant, k); it; ++it ) {
-			double val = it.value();
+  typedef Tensor::iterator it_type;
+  for (it_type it = rmul_ten.begin(); it != rmul_ten.end(); ++it) {
+    int param_id = it->first;
+    DictMat var_map = it->second;
+    typedef DictMat::iterator jit_type;
+    for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
+      int var_id = jit->first;
+      std::vector<Matrix> mat_vec = jit->second;
+      for (unsigned i=0; i < mat_vec.size(); ++i) {
+        // Form coefficient matrix.
+        Matrix coeffs(data_cols * n, data_rows * n);
 
-			// each element of CONSTANT occupies an N x N block in the matrix
-			int row_start = it.col() * n;
-			int col_start = it.row() * n;
-			for (int i = 0; i < n; ++i) {
-				int row_idx = row_start + i;
-				int col_idx = col_start + i;
-				tripletList.push_back(Triplet(row_idx, col_idx, val));
-			}
-		}
-	}
-	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
-	coeffs.makeCompressed();
-	return build_tensor(coeffs);
+        std::vector<Triplet> tripletList;
+        tripletList.reserve(n * mat_vec[i].nonZeros());
+        for ( int k = 0; k < mat_vec[i].outerSize(); ++k ) {
+          for ( Matrix::InnerIterator it(mat_vec[i], k); it; ++it ) {
+            double val = it.value();
+
+            // Data is flattened.
+            int col = it.row() / data_rows;
+            int row = it.row() % data_rows;
+            // Each element of CONSTANT occupies an N x N block in the matrix
+            // if X,A in R^{2x2}, then XA yields
+            // A_11 0 A_21 0
+            // 0 A_11 0 A_21
+            // A_12 0 A_22 0
+            // 0 A_12 0 A_22
+            int row_start = col * n;
+            int col_start = row * n;
+            for (int i = 0; i < n; ++i) {
+              int row_idx = row_start + i;
+              int col_idx = col_start + i;
+              tripletList.push_back(Triplet(row_idx, col_idx, val));
+            }
+          }
+        }
+        coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
+        coeffs.makeCompressed();
+        // Set block diagonal matrix.
+        rmul_ten[param_id][var_id][i] = coeffs;
+      }
+    }
+  }
+	return rmul_ten;
 }
 
 /**
