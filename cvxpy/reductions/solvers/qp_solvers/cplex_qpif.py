@@ -53,7 +53,9 @@ class CPLEX(QpSolver):
         if "cputime" in results:
             attr[s.SOLVE_TIME] = results["cputime"]
         attr[s.NUM_ITERS] = \
-            int(model.solution.progress.get_num_barrier_iterations())
+            int(model.solution.progress.get_num_barrier_iterations()) \
+            if not inverse_data.is_mip \
+            else 0
 
         status = self.STATUS_MAP.get(model.solution.get_status(),
                                      s.SOLVER_ERROR)

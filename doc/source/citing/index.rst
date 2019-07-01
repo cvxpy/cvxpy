@@ -47,3 +47,20 @@ and use the following BibTeX citation:
       primaryClass = {math.OC},
       year    = {2018},
     }
+
+
+If you use CVXPY's support for disciplined quasiconvex programming, please
+cite the `accompanying paper <https://web.stanford.edu/~boyd/papers/dqcp.html>`_
+and use the following BibTeX citation:
+
+::
+
+    @article{dqcp,
+        author       = {Akshay Agrawal and Stephen Boyd},
+        title        = {Disciplined Quasiconvex Programming},
+        journal      = {arXiv},
+        archivePrefix = {arXiv},
+        eprint = {1905.00562},
+        primaryClass = {math.OC},
+        year    = {2019},
+    }

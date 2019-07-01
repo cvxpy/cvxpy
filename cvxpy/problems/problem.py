@@ -855,7 +855,7 @@ class SizeMetrics(object):
             if self.max_data_dimension < big:
                 self.max_data_dimension = big
 
-            max_big_small_squared = big*(small**2)
+            max_big_small_squared = float(big)*(float(small)**2)
             if self.max_big_small_squared < max_big_small_squared:
                 self.max_big_small_squared = max_big_small_squared
 

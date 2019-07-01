@@ -19,7 +19,7 @@ These examples show many different ways to use CVXPY.
 Basic Examples
 --------------
 
-- :doc:`Least-squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
+- :doc:`Least squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
 
 - :doc:`Linear program <basic/linear_program>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/linear_program.ipynb>`_
 
@@ -28,6 +28,8 @@ Basic Examples
 - :doc:`Second-order cone program <basic/socp>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/socp.ipynb>`_
 
 - :doc:`Semidefinite program <basic/sdp>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sdp.ipynb>`_
+
+- :doc:`Mixed-integer quadratic program <basic/mixed_integer_quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/mixed_integer_quadratic_program.ipynb>`_
 
 - `Control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
@@ -103,3 +105,11 @@ Disciplined Geometric Programming
 - :doc:`Power control <dgp/power_control>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb>`_
 - :doc:`Perron-Frobenius matrix completion <dgp/pf_matrix_completion>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb>`_
 - :doc:`Rank-one nonnegative matrix factorization <dgp/rank_one_nmf>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb>`_
+
+
+.. _dqcp-examples:
+
+Disciplined Quasiconvex Programming
+-----------------------------------
+- :doc:`Concave fractional function <dqcp/concave_fractional_function>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/concave_fractional_function.ipynb>`_
+- :doc:`Minimum-length least squares <dqcp/minimum_length_least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/minimum_length_least_squares.ipynb>`_

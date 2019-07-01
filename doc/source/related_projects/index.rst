@@ -11,6 +11,8 @@ Modeling frameworks
 
 - `DCCP <https://github.com/cvxgrp/dccp>`_ is a CVXPY extension for modeling and solving difference of convex problems.
 
+- `DMCP <https://github.com/cvxgrp/dmcp>`_ is a CVXPY extension for modeling and solving multi-convex problems.
+
 - `NCVX <https://github.com/cvxgrp/ncvx>`_ is a CVXPY extension for modeling and solving problems with convex objectives and decision variables from a nonconvex set.
 
 - `cvxstoc <http://alnurali.github.io/cvxstoc/>`_ is a CVXPY extension that makes it easy to code and solve stochastic optimization problems, i.e., convex optimization problems that involve random variables.
@@ -21,7 +23,7 @@ Modeling frameworks
 
 - `Convex.jl <http://convexjl.readthedocs.org/en/latest/>`_ is a Julia-embedded modeling language for convex optimization problems. Convex.jl is based on CVXPY and CVX.
 
-- `cvxcore <https://github.com/cvxgrp/cvxcore>`_ is a C++ package that factors out the common operations that modeling languages like CVXPY, CVX, and Convex.jl perform.
+- `CVXR <https://cvxr.rbind.io/>`_ is a R-embedded modeling language for convex optimization problems. CVXR is based on CVXPY and CVX.
 
 - `GPkit <https://gpkit.readthedocs.org/en/latest/>`_ is a Python package for defining and manipulating geometric programming (GP) models.
 
@@ -37,8 +39,6 @@ Solvers
 - `CVXOPT <http://cvxopt.org/>`_ is an open-source Python package for convex optimization.
 
 - `SCS <https://github.com/cvxgrp/scs>`_ is an open-source C library for solving large-scale convex cone problems.
-
-- `Elemental <http://libelemental.org/>`_ is an open-source C++ library for distributed-memory dense and sparse-direct linear algebra and optimization.
 
 - `GLPK <https://www.gnu.org/software/glpk/>`_ is an open-source C library for solving linear programs and mixed integer linear programs.
 

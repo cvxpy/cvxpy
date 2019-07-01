@@ -31,8 +31,15 @@ class SOC(Constraint):
     """
 
     def __init__(self, t, X, axis=0, constr_id=None):
-        # TODO allow imaginary X.
-        assert not t.shape or len(t.shape) == 1
+        if len(t.shape) >= 2 or not t.is_real():
+            raise ValueError("Invalid first argument.")
+        # Check t has one entry per cone.
+        if (len(X.shape) <= 1 and t.size > 1) or \
+           (len(X.shape) == 2 and t.size != X.shape[1-axis]):
+            raise ValueError(
+                "Argument dimensions %s and %s, with axis=%i, are incompatible."
+                % (t.shape, X.shape, axis)
+            )
         self.axis = axis
         super(SOC, self).__init__([t, X], constr_id)
 
@@ -106,10 +113,3 @@ class SOC(Constraint):
 
     def is_dqcp(self):
         return self.is_dcp()
-
-    # TODO hack
-    def canonicalize(self):
-        t, t_cons = self.args[0].canonical_form
-        X, X_cons = self.args[1].canonical_form
-        new_soc = SOC(t, X, self.axis)
-        return (None, [new_soc] + t_cons + X_cons)

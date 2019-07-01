@@ -211,6 +211,13 @@ class TestConstraints(BaseTest):
         constr = SOC(scalar_exp, exp)
         self.assertEqual(constr.size, 3)
 
+        # Test invalid dimensions.
+        error_str = ("Argument dimensions (1,) and (1, 4), with axis=0, "
+                     "are incompatible.")
+        with self.assertRaises(Exception) as cm:
+            SOC(Variable(1), Variable((1, 4)))
+        self.assertEqual(str(cm.exception), error_str)
+
     def test_chained_constraints(self):
         """Tests that chaining constraints raises an error.
         """

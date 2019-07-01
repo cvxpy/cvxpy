@@ -240,6 +240,21 @@ class TestComplex(BaseTest):
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
+    def test_missing_imag(self):
+        """Test problems where imaginary is missing.
+        """
+        Z = Variable((2, 2), hermitian=True)
+        constraints = [cvx.trace(cvx.real(Z)) == 1]
+        obj = cvx.Minimize(0)
+        prob = cvx.Problem(obj, constraints)
+        prob.solve()
+
+        Z = Variable((2, 2), imag=True)
+        obj = cvx.Minimize(cvx.trace(cvx.real(Z)))
+        prob = cvx.Problem(obj, constraints)
+        result = prob.solve()
+        self.assertAlmostEqual(result, 0)
+
     def test_abs(self):
         """Test with absolute value.
         """
@@ -249,6 +264,16 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, 4*np.sqrt(2))
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
+
+    def test_soc(self):
+        """Test with SOC.
+        """
+        x = Variable(2, complex=True)
+        t = Variable()
+        prob = Problem(cvx.Minimize(t), [cvx.SOC(t, x), x == 2j])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 2*np.sqrt(2))
+        self.assertItemsAlmostEqual(x.value, [2j, 2j])
 
     def test_pnorm(self):
         """Test complex with pnorm.

@@ -56,6 +56,7 @@ class CVXOPT(ECOS):
                   "infeasible": s.INFEASIBLE,
                   "primal infeasible": s.INFEASIBLE,
                   "LP relaxation is primal infeasible": s.INFEASIBLE,
+                  "LP relaxation is dual infeasible": s.UNBOUNDED,
                   "unbounded": s.UNBOUNDED,
                   "dual infeasible": s.UNBOUNDED,
                   "unknown": s.SOLVER_ERROR,

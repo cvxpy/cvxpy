@@ -3,10 +3,14 @@ from distutils.version import StrictVersion
 
 
 def pypi_version(server):
+    # Gets the latest version on PyPi accompanied by a source distribution
     url = server + '/cvxpy/json'
     r = requests.get(url)
     data = r.json()
-    versions = list(data["releases"].keys())
+    releases = data["releases"]
+    versions = [
+        v for v in releases.keys() if 'sdist' in [rel['packagetype'] for rel in
+                                                  releases[v]]]
     versions.sort(key=StrictVersion)
     return versions[-1]
 

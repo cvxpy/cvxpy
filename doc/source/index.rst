@@ -59,9 +59,10 @@ more.
   including more efficient use of parameters, code generation,
   and differentiation through problems.
 
-* CVXPY will soon support
+* CVXPY v1.0.24 supports
   `disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_,
   which lets you formulate and solve quasiconvex programs.
+  See the :doc:`tutorial </tutorial/dqcp/index>` for more information.
 
 * CVXPY v1.0.11 supports
   `disciplined geometric programming <https://web.stanford.edu/~boyd/papers/dgp.html>`_,
@@ -89,7 +90,7 @@ researchers and engineers.
 
 CVXPY is developed and maintained by
 `Steven Diamond <http://web.stanford.edu/~stevend2/>`_ and
-`Akshay Agrawal <https://akshayagrwawal.com>`_, with many others contributing
+`Akshay Agrawal <https://akshayagrawal.com>`_, with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
 Riley Murray, Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
