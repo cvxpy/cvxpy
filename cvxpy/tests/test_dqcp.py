@@ -319,7 +319,7 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Minimize(expr), [x == 12, y <= 6])
         self.assertTrue(problem.is_dqcp())
 
-        problem.solve(qcp=True)
+        problem.solve(solver=cp.ECOS, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 2.0, places=1)
         self.assertAlmostEqual(x.value, 12, places=1)
         self.assertAlmostEqual(y.value, 6, places=1)
