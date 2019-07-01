@@ -628,10 +628,10 @@ Here is the complete list of solver options.
     maximum number of iterations (default: 10,000).
 
 ``'eps_abs'``
-    absolute accuracy (default: 1e-4).
+    absolute accuracy (default: 1e-5).
 
 ``'eps_rel'``
-    relative accuracy (default: 1e-4).
+    relative accuracy (default: 1e-5).
 
 For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_settings.html>`_.
 
