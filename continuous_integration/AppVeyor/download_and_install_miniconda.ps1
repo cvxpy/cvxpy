@@ -17,5 +17,5 @@ Start-Process -Filepath $filepath -ArgumentList $install_args -Wait -Passthru
 $env:PATH = "${env:PYTHON};${env:PYTHON}\Scripts;" + $env:PATH
 echo "The PATH environment variable is"
 echo $env:PATH
-conda update conda -y
+# conda update conda -y
 conda init
