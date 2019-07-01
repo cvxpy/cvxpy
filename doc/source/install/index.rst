@@ -120,7 +120,7 @@ Install with GUROBI support
 ---------------------------
 
 CVXPY supports the GUROBI solver.
-Simply install GUROBI such that you can ``import gurobipy`` in Python.
+Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
 See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
 
 Install with MOSEK support
