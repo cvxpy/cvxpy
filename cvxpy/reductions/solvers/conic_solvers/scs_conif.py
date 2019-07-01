@@ -177,12 +177,15 @@ class SCS(ConicSolver):
         upper_diag_indices = np.triu_indices(rows)
         triu_arr = np.sort(np.ravel_multi_index(upper_diag_indices,
                                                 (rows, cols),
-                                                order='F'))
+                                                order='C'))
+        # Align lower triangular (col major) with upper triangular (row major).
         col_arr = np.concatenate([tril_arr, triu_arr])
         val_arr = np.full(entries, 0.5)
         shape = (rows*cols, rows*cols)
         symm_mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
+        print(symm_mat.A)
+        print(scaled_lower_tri.A)
         return scaled_lower_tri*symm_mat
 
     def apply(self, problem):
