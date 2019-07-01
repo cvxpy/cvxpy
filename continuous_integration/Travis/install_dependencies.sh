@@ -29,21 +29,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
         # Install GLPK.
         if [[ "$CVXOPT" == "true" ]]; then
-            wget http://ftp.gnu.org/gnu/glpk/glpk-4.60.tar.gz
-            tar -zxvf glpk-4.60.tar.gz
-            cd glpk-4.60
-            sudo ./configure
-            sudo make
-            sudo make check
-            sudo make install
-            sudo ldconfig
-            cd ..
-
-            # Install CVXOPT with GLPK bindings.
-            CVXOPT_BUILD_GLPK=1
-            CVXOPT_GLPK_LIB_DIR=/usr/local/lib
-            CVXOPT_GLPK_INC_DIR=/usr/local/include
-            conda install -c conda-forge --yes cvxopt
+            pip install cvxopt
         fi
 
     elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
