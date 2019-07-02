@@ -4,7 +4,7 @@ source activate testenv
 conda config --add channels cvxgrp
 conda config --add channels conda-forge
 conda config --add channels oxfordcontrol
-conda install --yes requests twine readme_renderer --no-update-dependencies
+conda install --yes requests twine readme_renderer --no-update-deps
 
 # We chose a somewhat arbitrary build configuration (a specially marked OSX configuration)
 # to be the designated uploader of source distributions.
@@ -33,8 +33,8 @@ cd continuous_integration
 UPDATE_CONDA=`python -c "import versiongetter as vg; print(vg.update_conda('$PYTHON_VERSION','$TRAVIS_OS_NAME'))"`
 cd ..
 if [ $UPDATE_CONDA == "True" ]; then
-    conda install --yes conda-build
-    conda install --yes anaconda-client
+    conda install --yes conda-build --no-update-deps
+    conda install --yes anaconda-client --no-update-deps
     conda config --set anaconda_upload yes
     conda build conda-recipe --token=$CONDA_UPLOAD_TOKEN --user=$CONDA_USER --python=$PYTHON_VERSION
 fi
