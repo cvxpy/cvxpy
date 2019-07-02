@@ -4,7 +4,7 @@ source activate testenv
 conda config --add channels cvxgrp
 conda config --add channels conda-forge
 conda config --add channels oxfordcontrol
-conda install --yes requests
+conda install --yes requests twine readme_renderer
 
 # We chose a somewhat arbitrary build configuration (a specially marked OSX configuration)
 # to be the designated uploader of source distributions.
@@ -15,7 +15,6 @@ if [ $DEPLOY_PYPI_SOURCE == True ] && [ $TRAVIS_OS_NAME = osx ]; then
     cd ..
     if [ $UPDATE_PYPI_SOURCE == True ]; then
         # assume that local version is ahead of remote version, and update sdist
-        conda install --yes twine
         python setup.py sdist
         twine upload --repository-url $PYPI_SERVER dist/* -u $PYPI_USER -p $PYPI_PASSWORD
         rm -rf dist
