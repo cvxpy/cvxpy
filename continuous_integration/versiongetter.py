@@ -1,5 +1,5 @@
 import requests
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 
 
 def update_pypi_source(server):
@@ -12,11 +12,11 @@ def update_pypi_source(server):
         versions = [
             v for v in releases.keys() if 'sdist' in [rel['packagetype'] for rel in
                                                       releases[v]]]
-        versions.sort(key=StrictVersion)
+        versions.sort(key=LooseVersion)
         remote_version = versions[-1]
         import cvxpy
         local_version = cvxpy.__version__
-        return StrictVersion(local_version) > StrictVersion(remote_version)
+        return LooseVersion(local_version) > LooseVersion(remote_version)
     else:
         msg = 'The request to pypi returned status code' + str(r.status_code)
         raise RuntimeError(msg)
@@ -40,7 +40,7 @@ def conda_version(python_version, operating_system):
         # fs = ['cvxgrp', 'cvxpy', '<x.y.z>', '<os>', '<filename>' ]
         if operating_system in fs[3] and pyvers in fs[4]:
             versions.append(fs[2])
-    versions.sort(key=StrictVersion)
+    versions.sort(key=LooseVersion)
     if len(versions) == 0:
         versions = ['0.0.0']
     return versions[-1]
@@ -50,7 +50,7 @@ def update_conda(python_version, operating_system):
     import cvxpy
     most_recent_remote = conda_version(python_version, operating_system)
     local_version = cvxpy.__version__
-    return StrictVersion(local_version) > StrictVersion(most_recent_remote)
+    return LooseVersion(local_version) > LooseVersion(most_recent_remote)
 
 
 def update_pypi_wheel(python_version, operating_system, server):
@@ -82,7 +82,7 @@ def update_pypi_wheel(python_version, operating_system, server):
     r = requests.get(url)
     major_minor = python_version.split('.')
     py_ver = 'cp' + major_minor[0] + major_minor[1]
-    if operating_system == 'linux':
+    if 'linux' in operating_system:
         operating_system = 'manylinux'
     if r.ok:
         data = r.json()
@@ -98,11 +98,11 @@ def update_pypi_wheel(python_version, operating_system, server):
             for fn in filenames:
                 if py_ver in fn and operating_system in fn:
                     relevant_versions.append(version)
-        relevant_versions.sort(key=StrictVersion)
+        relevant_versions.sort(key=LooseVersion)
         most_recent_remote = relevant_versions[-1]
         import cvxpy
         local_version = cvxpy.__version__
-        return StrictVersion(local_version) > StrictVersion(most_recent_remote)
+        return LooseVersion(local_version) > LooseVersion(most_recent_remote)
     else:
         msg = 'The request to pypi returned status code' + str(r.status_code)
         raise RuntimeError(msg)
