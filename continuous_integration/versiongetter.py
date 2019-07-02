@@ -2,17 +2,24 @@ import requests
 from distutils.version import StrictVersion
 
 
-def pypi_version(server):
+def update_pypi_source(server):
     # Gets the latest version on PyPi accompanied by a source distribution
     url = server + '/cvxpy/json'
     r = requests.get(url)
-    data = r.json()
-    releases = data["releases"]
-    versions = [
-        v for v in releases.keys() if 'sdist' in [rel['packagetype'] for rel in
-                                                  releases[v]]]
-    versions.sort(key=StrictVersion)
-    return versions[-1]
+    if r.ok:
+        data = r.json()
+        releases = data["releases"]
+        versions = [
+            v for v in releases.keys() if 'sdist' in [rel['packagetype'] for rel in
+                                                      releases[v]]]
+        versions.sort(key=StrictVersion)
+        remote_version = versions[-1]
+        import cvxpy
+        local_version = cvxpy.__version__
+        return StrictVersion(local_version) > StrictVersion(remote_version)
+    else:
+        msg = 'The request to pypi returned status code' + str(r.status_code)
+        raise RuntimeError(msg)
 
 
 def conda_version(python_version, operating_system):
@@ -21,8 +28,8 @@ def conda_version(python_version, operating_system):
     #
     #   operating system must be one of {linux, osx, win}
     #
-    pyvers_dict = {'2.7': 'py27', '3.5': 'py35', '3.6': 'py36', '3.7': 'py37'}
-    pyvers = pyvers_dict[python_version]
+    major_minor = python_version.split('.')
+    pyvers = 'py' + major_minor[0] + major_minor[1]
     url = "https://api.anaconda.org/package/cvxgrp/cvxpy"
     r = requests.get(url)
     data = r.json()
@@ -47,20 +54,55 @@ def update_conda(python_version, operating_system):
 
 
 def update_pypi_wheel(python_version, operating_system, server):
+    # python_version is expected to be
+    #
+    #   '2.7', '3.5', '3.6', '3.7', ... etc..
+    #
+    # operating system is expected to be
+    #
+    #   'win' or 'osx' or 'linux'
+    #
+    # server is expected to be
+    #
+    #   'https://pypi.org/pypi' or 'https://test.pypi.org/pypi'
+    #
+    # our wheels are associated with an operating system and a python version.
+    # We need to check the file names of existing wheels on pypi to see how the
+    # current version of cvxpy compares to versions with the desired OS and
+    # desired python version.
+    #
+    # Here is an example filename in the official pypi format:
+    #
+    #   cvxpy-1.0.24-cp36-cp36m-win_amd64.whl
+    #
+    # So we can check that the wheel contains the string given by "operating_system".
+    # Checking that the file has a desired pythonversion can be done with a string
+    # 'cp[MAJOR_VERSION][minor_version]' -- without the brackets.
     url = server + '/cvxpy/json'
     r = requests.get(url)
+    major_minor = python_version.split('.')
+    py_ver = 'cp' + major_minor[0] + major_minor[1]
+    if operating_system == 'linux':
+        operating_system = 'manylinux'
     if r.ok:
         data = r.json()
         relevant_versions = ['0.0.0']
-        for version in data['releases']:
-            if operating_system in data['releases'][version][0]['filename']:
-                relevant_versions.append(version)
+        for version, version_data in data['releases'].items():
+            # version is something like '1.0.24'
+            #
+            # version_data is a list of dicts, with one dict
+            # for each file (of this cvxpy version) hosted on pypi.
+            #
+            # pypi hosts source distributions, wheels, and eggs.
+            filenames = [file_data['filename'] for file_data in version_data]
+            for fn in filenames:
+                if py_ver in fn and operating_system in fn:
+                    relevant_versions.append(version)
         relevant_versions.sort(key=StrictVersion)
         most_recent_remote = relevant_versions[-1]
         import cvxpy
         local_version = cvxpy.__version__
         return StrictVersion(local_version) > StrictVersion(most_recent_remote)
     else:
-        # There is a good chance that the input URL is malformed, but there is no
-        # harm in trying to upload anyway.
-        return True
+        msg = 'The request to pypi returned status code' + str(r.status_code)
+        raise RuntimeError(msg)

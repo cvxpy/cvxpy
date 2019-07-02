@@ -20,7 +20,7 @@ If ($UPDATE_CONDA -eq "True") {
 # Update the Windows wheel hosted in PyPI.
 
 cd continuous_integration
-$UPDATE_PYPI = python -c "import versiongetter as vg; print(vg.update_pypi_wheel('$env:PYTHON_VERSION','win','$env:PYPI_SERVER'))"
+$UPDATE_PYPI = python -c "import versiongetter as vg; print(vg.update_pypi_wheel('$env:PYTHON_VERSION','win','$env:PYPI_API_ENDPOINT'))"
 cd ..
 If ($UPDATE_PYPI -eq "True") {
     conda install --yes twine
