@@ -7,6 +7,3 @@ conda install --yes lapack ecos multiprocess
 pip install scs<=2.0
 conda install -c anaconda --yes flake8
 python setup.py install
-
-
-"Some Text on first line" | Out-File C:\filename1.txt -encoding ascii
