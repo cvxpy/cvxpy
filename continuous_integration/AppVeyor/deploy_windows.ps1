@@ -1,5 +1,5 @@
 ﻿conda activate testenv
-conda install --yes requests --no-update-deps
+conda install --yes requests
 
 # Update the Windows binary hosted on Anaconda
 
