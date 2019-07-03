@@ -24,8 +24,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
         source activate testenv
         PIN_FILE=/home/travis/miniconda3/envs/testenv/conda-meta/pinned
         touch $PIN_FILE
-        echo "numpy=$NUMPY_VERSION.*" >> $PIN_FILE
-        echo "scipy=$SCIPY_VERSION.*" >> $PIN_FILE
         echo "python=$PYTHON_VERSION" >> $PIN_FILE
         conda install -c conda-forge --yes lapack
         conda install -c conda-forge --yes ecos scs multiprocess
@@ -49,8 +47,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
         source activate testenv
         PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
         touch $PIN_FILE
-        echo "numpy=$NUMPY_VERSION.*" >> $PIN_FILE
-        echo "scipy=$SCIPY_VERSION.*" >> $PIN_FILE
         echo "python=$PYTHON_VERSION.*" >> $PIN_FILE
         conda install -c conda-forge --yes ecos scs multiprocess
         conda install -c default --yes flake8=3.5.0
