@@ -17,12 +17,16 @@ if [[ "$DISTRIB" == "conda" ]]; then
         chmod +x miniconda.sh && ./miniconda.sh -b
         export PATH=/home/travis/miniconda3/bin:$PATH
         conda update --yes conda
-
         # Configure the conda environment and put it in the path using the
         # provided versions
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
                 numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
+        PIN_FILE=/home/travis/miniconda3/envs/testenv/conda-meta/pinned
+        touch $PIN_FILE
+        echo "numpy=$NUMPY_VERSION.*" >> $PIN_FILE
+        echo "scipy=$SCIPY_VERSION.*" >> $PIN_FILE
+        echo "python=$PYTHON_VERSION" >> $PIN_FILE
         conda install -c conda-forge --yes lapack
         conda install -c conda-forge --yes ecos scs multiprocess
         conda install -c default --yes flake8
@@ -43,6 +47,11 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
+        PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
+        touch $PIN_FILE
+        echo "numpy=$NUMPY_VERSION.*" >> $PIN_FILE
+        echo "scipy=$SCIPY_VERSION.*" >> $PIN_FILE
+        echo "python=$PYTHON_VERSION.*" >> $PIN_FILE
         conda install -c conda-forge --yes ecos scs multiprocess
         conda install -c default --yes flake8=3.5.0
     fi
