@@ -15,8 +15,7 @@ Start-Process -Filepath $filepath -ArgumentList $install_args -Wait -Passthru
 # Update conda and call "conda init" to handle path management issues on Windows
 
 $env:PATH = "${env:PYTHON};${env:PYTHON}\Scripts;" + $env:PATH
-echo "\n\n\nThe PATH environment variable is\n"
+echo "The PATH environment variable is"
 echo $env:PATH
-echo "\n\n\n"
 # conda update conda -y
 conda init
