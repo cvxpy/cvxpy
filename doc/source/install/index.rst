@@ -39,21 +39,28 @@ The CVXPY installation process on other platforms is less automated and less wel
 Anaconda
 ----------------
 
-`Anaconda`_ is an alternative to `pip`_ that combines package and environment management.
+`Anaconda`_ is a system for package and environment management.
 
 1. Install `Anaconda`_.
 
-2. (Windows only) Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
-
-3. Install ``cvxpy`` with ``conda``.
+2. Install `pip`_ and ``setuptools`` with ``conda``.
 
    ::
 
-      conda config --add channels oxfordcontrol
-      conda install -c conda-forge lapack
-      conda install -c cvxgrp cvxpy=1.0.24
+      conda install pip
+      pip install --upgrade setuptools
 
-4. Test the installation with ``nose``.
+3. (Windows only) Download the `Visual Studio C++ compiler for Python 2.7 <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_
+or the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
+   
+
+4. Install ``cvxpy`` with `pip`_ inside `Anaconda`_.
+
+   ::
+
+      pip install cvxpy
+
+5. Test the installation with ``nose``.
 
   ::
 
