@@ -16,7 +16,8 @@ your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
 If you prefer `Anaconda`_ to `pip`_, see the 
 :ref:`Anaconda installation guide <anaconda-installation>`.
 
-1. (Windows only) Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
+1. (Windows only) Download the `Visual Studio C++ compiler for Python 2.7 <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_
+or the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
 
 2. Install ``cvxpy``.
   ::
