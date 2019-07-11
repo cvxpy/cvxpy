@@ -4,31 +4,35 @@ source activate testenv
 conda config --add channels cvxgrp
 conda config --add channels conda-forge
 conda config --add channels oxfordcontrol
-conda install --yes requests
+conda install --yes requests twine readme_renderer
 
-# Right now, we only update the source distribution.
-#   We chose a somewhat arbitrary build configuration (a specially marked OSX configuration)
-#   to be the designated uploader of source distributions.
-if [ $DEPLOY_PYPI = true ] && [ $TRAVIS_OS_NAME = osx ]; then
+# We chose a somewhat arbitrary build configuration (a specially marked OSX configuration)
+# to be the designated uploader of source distributions.
+if [ $DEPLOY_PYPI_SOURCE == "True" ] && [ $TRAVIS_OS_NAME == "osx" ]; then
     # consider deploying to PyPI
     cd continuous_integration
-    REMOTE_PYPI_VERSION=`python -c "import versiongetter as vg; print(vg.pypi_version('$PYPI_SERVER'))"`
+    UPDATE_PYPI_SOURCE=`python -c "import versiongetter as vg; print(vg.update_pypi_source('$PYPI_API_ENDPOINT'))"`
     cd ..
-    LOCAL_VERSION=`python -c "import cvxpy; print(cvxpy.__version__)"`
-    if [ $REMOTE_PYPI_VERSION != $LOCAL_VERSION ]; then
+    if [ $UPDATE_PYPI_SOURCE == True ]; then
         # assume that local version is ahead of remote version, and update sdist
-        conda install --yes twine
         python setup.py sdist
         twine upload --repository-url $PYPI_SERVER dist/* -u $PYPI_USER -p $PYPI_PASSWORD
+        rm -rf dist
     fi
 fi
 
-# We always update the conda builds.
+cd continuous_integration
+UPDATE_PYPI_WHEEL=`python -c "import versiongetter as vg; print(vg.update_pypi_wheel('$PYTHON_VERSION','$TRAVIS_OS_NAME','$PYPI_API_ENDPOINT'))"`
+cd ..
+if [ $UPDATE_PYPI_WHEEL == "True" ]; then
+    python setup.py bdist_wheel
+    twine upload --repository-url $PYPI_SERVER dist/* -u $PYPI_USER -p $PYPI_PASSWORD
+fi
+
 cd continuous_integration
 UPDATE_CONDA=`python -c "import versiongetter as vg; print(vg.update_conda('$PYTHON_VERSION','$TRAVIS_OS_NAME'))"`
 cd ..
-if [ $UPDATE_CONDA == True ]; then
-    # Deploy for conda
+if [ $UPDATE_CONDA == "True" ]; then
     conda install --yes conda-build
     conda install --yes anaconda-client
     conda config --set anaconda_upload yes
