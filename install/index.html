@@ -78,16 +78,22 @@ If you prefer <a class="reference external" href="https://store.continuum.io/csh
 </div>
 <div class="section" id="anaconda">
 <span id="anaconda-installation"></span><h2>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h2>
-<p><a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a> is an alternative to <a class="reference external" href="https://pip.pypa.io/">pip</a> that combines package and environment management.</p>
+<p><a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a> is a system for package and environment management.</p>
 <ol class="arabic">
 <li><p class="first">Install <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a>.</p>
 </li>
-<li><p class="first">(Windows only) Download the <a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=44266">Visual Studio C++ compiler for Python</a>.</p>
+<li><p class="first">Install <a class="reference external" href="https://pip.pypa.io/">pip</a> and <code class="docutils literal"><span class="pre">setuptools</span></code> with <code class="docutils literal"><span class="pre">conda</span></code>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pip</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">setuptools</span>
+</pre></div>
+</div>
 </li>
-<li><p class="first">Install <code class="docutils literal"><span class="pre">cvxpy</span></code> with <code class="docutils literal"><span class="pre">conda</span></code>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">config</span> <span class="o">--</span><span class="n">add</span> <span class="n">channels</span> <span class="n">oxfordcontrol</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">lapack</span>
-<span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">cvxgrp</span> <span class="n">cvxpy</span><span class="o">=</span><span class="mf">1.0</span><span class="o">.</span><span class="mi">24</span>
+</ol>
+<p>3. (Windows only) Download the <a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=44266">Visual Studio C++ compiler for Python 2.7</a>
+or the <a class="reference external" href="https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&amp;rel=16">Visual Studio build tools for Python 3</a>.</p>
+<ol class="arabic" start="4">
+<li><p class="first">Install <code class="docutils literal"><span class="pre">cvxpy</span></code> with <a class="reference external" href="https://pip.pypa.io/">pip</a> inside <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
 </li>
