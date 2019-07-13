@@ -40,7 +40,6 @@ convex optimization problem.
 
 .. code:: python
 
-    from __future__ import division
     import cvxpy as cp
     import numpy as np
     import matplotlib.pyplot as plt
