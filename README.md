@@ -75,7 +75,7 @@ CVXPY has the following dependencies:
 For detailed instructions, see the [installation
 guide](http://www.cvxpy.org/en/latest/install/index.html).
 
-**Plans for dropping Python 2.7**: The CVXPY development team plans to stop supporting Python 2 later this year, starting with the release of CVXPY 1.1.
+**Python 2.7 end of life**: The CVXPY development team plans to stop supporting Python 2 later this year, starting with the release of CVXPY 1.1.
 
 ## Getting started
 To get started with CVXPY, check out the following:
