@@ -127,6 +127,11 @@ that minimizes the test error.
     plt.xlabel(r"$\lambda$", fontsize=16)
     plt.show()
 
+
+
+.. image:: logistic_regression_files/logistic_regression_9_0.svg
+
+
 We also plot the regularization path, or the :math:`\beta_i` versus
 :math:`\lambda`. Notice that a few features remain non-zero longer for
 larger :math:`\lambda` than the rest, which suggests that these features
@@ -138,3 +143,8 @@ are the most important.
         plt.plot(lambda_vals, [wi for wi in beta_vals])
     plt.xlabel(r"$\lambda$", fontsize=16)
     plt.xscale("log")
+
+
+
+.. image:: logistic_regression_files/logistic_regression_11_0.svg
+
