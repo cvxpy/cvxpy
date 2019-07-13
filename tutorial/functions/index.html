@@ -221,6 +221,24 @@ and returns a scalar.</p>
 <p class="last"><a class="reference internal" href="../../_images/decreasing1.svg"><img alt="decr" height="15px" src="../../_images/decreasing1.svg" width="15px" /></a> for <span class="math">\(x_{i} \leq 0\)</span></p>
 </td>
 </tr>
+<tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x, 1)</span></a></td>
+<td><span class="math">\(\sum_{i}\lvert x_{i} \rvert\)</span></td>
+<td><span class="math">\(x \in\mathbf{R}^{n}\)</span></td>
+<td><a class="reference internal" href="../../_images/positive1.svg"><img alt="positive" height="15px" src="../../_images/positive1.svg" width="15px" /></a> positive</td>
+<td><a class="reference internal" href="../../_images/convex1.svg"><img alt="convex" height="15px" src="../../_images/convex1.svg" width="15px" /></a> convex</td>
+<td><p class="first"><a class="reference internal" href="../../_images/increasing1.svg"><img alt="incr" height="15px" src="../../_images/increasing1.svg" width="15px" /></a> for <span class="math">\(x_{i} \geq 0\)</span></p>
+<p class="last"><a class="reference internal" href="../../_images/decreasing1.svg"><img alt="decr" height="15px" src="../../_images/decreasing1.svg" width="15px" /></a> for <span class="math">\(x_{i} \leq 0\)</span></p>
+</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x, “inf”)</span></a></td>
+<td><span class="math">\(\max_{i} \{\lvert x_{i} \rvert\}\)</span></td>
+<td><span class="math">\(x \in\mathbf{R}^{n}\)</span></td>
+<td><a class="reference internal" href="../../_images/positive1.svg"><img alt="positive" height="15px" src="../../_images/positive1.svg" width="15px" /></a> positive</td>
+<td><a class="reference internal" href="../../_images/convex1.svg"><img alt="convex" height="15px" src="../../_images/convex1.svg" width="15px" /></a> convex</td>
+<td><p class="first"><a class="reference internal" href="../../_images/increasing1.svg"><img alt="incr" height="15px" src="../../_images/increasing1.svg" width="15px" /></a> for <span class="math">\(x_{i} \geq 0\)</span></p>
+<p class="last"><a class="reference internal" href="../../_images/decreasing1.svg"><img alt="decr" height="15px" src="../../_images/decreasing1.svg" width="15px" /></a> for <span class="math">\(x_{i} \leq 0\)</span></p>
+</td>
+</tr>
 <tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “fro”)</span></a></td>
 <td><span class="math">\(\sqrt{\sum_{ij}X_{ij}^2 }\)</span></td>
 <td><span class="math">\(X \in\mathbf{R}^{m \times n}\)</span></td>
@@ -231,7 +249,7 @@ and returns a scalar.</p>
 </td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, 1)</span></a></td>
-<td><span class="math">\(\sum_{ij}\lvert X_{ij} \rvert\)</span></td>
+<td><span class="math">\(\max_{j} \|X_{:,j}\|_1\)</span></td>
 <td><span class="math">\(X \in\mathbf{R}^{m \times n}\)</span></td>
 <td><a class="reference internal" href="../../_images/positive1.svg"><img alt="positive" height="15px" src="../../_images/positive1.svg" width="15px" /></a> positive</td>
 <td><a class="reference internal" href="../../_images/convex1.svg"><img alt="convex" height="15px" src="../../_images/convex1.svg" width="15px" /></a> convex</td>
@@ -240,7 +258,7 @@ and returns a scalar.</p>
 </td>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “inf”)</span></a></td>
-<td><span class="math">\(\max_{ij} \{\lvert X_{ij} \rvert\}\)</span></td>
+<td><span class="math">\(\max_{i} \|X_{i,:}\|_1\)</span></td>
 <td><span class="math">\(X \in\mathbf{R}^{m \times n}\)</span></td>
 <td><a class="reference internal" href="../../_images/positive1.svg"><img alt="positive" height="15px" src="../../_images/positive1.svg" width="15px" /></a> positive</td>
 <td><a class="reference internal" href="../../_images/convex1.svg"><img alt="convex" height="15px" src="../../_images/convex1.svg" width="15px" /></a> convex</td>
