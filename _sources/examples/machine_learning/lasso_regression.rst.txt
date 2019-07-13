@@ -48,7 +48,7 @@ Generating data
 ~~~~~~~~~~~~~~~
 
 We generate training examples and observations that are linearly
-related; we make the relationship *sparse*, and we'll see how lasso will
+related; we make the relationship *sparse*, and we’ll see how lasso will
 approximately recover it.
 
 .. code:: python

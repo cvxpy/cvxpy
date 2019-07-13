@@ -48,7 +48,7 @@ convex optimization problem.
 In the following code we generate data with :math:`n=20` features by
 randomly choosing :math:`x_i` and a sparse
 :math:`\beta_{\mathrm{true}} \in {\bf R}^n`. We then set
-:math:`y_i = \mathbb{1}[\beta_{\mathrm{true}}^T x_i  - z_i > 0]`, where
+:math:`y_i = \mathbb{1}[\beta_{\mathrm{true}}^T x_i - z_i > 0]`, where
 the :math:`z_i` are i.i.d. normal random variables. We divide the data
 into training and test sets with :math:`m=1000` examples each.
 
@@ -58,15 +58,15 @@ into training and test sets with :math:`m=1000` examples each.
     n = 20
     m = 1000
     density = 0.2
-    beta_true = np.random.randn(n,1)
+    beta_true = np.random.randn(n)
     idxs = np.random.choice(range(n), int((1-density)*n), replace=False)
     for idx in idxs:
         beta_true[idx] = 0
     
-    sigma = 45
+    sigma = 3
     X = np.random.normal(0, 5, size=(m,n))
     X[:, 0] = 1.0
-    Y = X @ beta_true + np.random.normal(0, sigma, size=(m,1))
+    Y = X @ beta_true + np.random.normal(0, sigma, size=m)
     Y[Y > 0] = 1
     Y[Y <= 0] = 0
     
@@ -80,11 +80,11 @@ We next formulate the optimization problem using CVXPY.
 
 .. code:: python
 
-    beta = cp.Variable((n,1))
+    beta = cp.Variable(n)
     lambd = cp.Parameter(nonneg=True)
     log_likelihood = cp.sum(
-        cp.reshape(cp.multiply(Y, X @ beta), (m,)) -
-        cp.log_sum_exp(cp.hstack([np.zeros((m,1)), X @ beta]), axis=1) - 
+        cp.multiply(Y, X @ beta) -
+        cp.log_sum_exp(cp.vstack([np.zeros(m), X @ beta]), axis=0) - 
         lambd * cp.norm(beta[1:], 1)
     )
     problem = cp.Problem(cp.Maximize(log_likelihood))
@@ -127,11 +127,6 @@ that minimizes the test error.
     plt.xlabel(r"$\lambda$", fontsize=16)
     plt.show()
 
-
-
-.. image:: logistic_regression_files/logistic_regression_9_0.svg
-
-
 We also plot the regularization path, or the :math:`\beta_i` versus
 :math:`\lambda`. Notice that a few features remain non-zero longer for
 larger :math:`\lambda` than the rest, which suggests that these features
@@ -140,11 +135,6 @@ are the most important.
 .. code:: python
 
     for i in range(n):
-        plt.plot(lambda_vals, [wi[i,0] for wi in beta_vals])
+        plt.plot(lambda_vals, [wi for wi in beta_vals])
     plt.xlabel(r"$\lambda$", fontsize=16)
     plt.xscale("log")
-
-
-
-.. image:: logistic_regression_files/logistic_regression_11_0.svg
-
