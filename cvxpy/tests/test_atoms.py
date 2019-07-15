@@ -964,7 +964,6 @@ class TestAtoms(BaseTest):
         result = prob.solve()
         print(result)
         self.assertAlmostEqual(result, cp.norm(A, np.inf).value, places=3)
-        assert False
 
     def test_indicator(self):
         x = cp.Variable()
