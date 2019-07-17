@@ -17,7 +17,7 @@ If you prefer `Anaconda`_ to `pip`_, see the
 :ref:`Anaconda installation guide <anaconda-installation>`.
 
 1. (Windows only) Download the `Visual Studio C++ compiler for Python 2.7 <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_
-or the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
+or the Visual Studio build tools for Python 3 (`download <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_, `install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
 
 2. Install ``cvxpy``.
   ::
