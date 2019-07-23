@@ -224,13 +224,14 @@ positive arguments and decreasing for negative arguments.</p>
 </div>
 <div class="section" id="infix-operators">
 <h2>Infix operators<a class="headerlink" href="#infix-operators" title="Permalink to this headline">¶</a></h2>
-<p>The infix operators <code class="docutils literal"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code> are treated exactly like functions.
+<p>The infix operators <code class="docutils literal"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code> and matrix multiplication <code class="docutils literal"><span class="pre">&#64;</span></code>
+are treated exactly like functions.
 The infix operators <code class="docutils literal"><span class="pre">+</span></code> and <code class="docutils literal"><span class="pre">-</span></code> are affine, so the rules above are
 used to flag the curvature. For example, <code class="docutils literal"><span class="pre">expr1</span> <span class="pre">+</span> <span class="pre">expr2</span></code> is flagged as
 convex if <code class="docutils literal"><span class="pre">expr1</span></code> and <code class="docutils literal"><span class="pre">expr2</span></code> are convex.</p>
-<p><code class="docutils literal"><span class="pre">expr1*expr2</span></code> is DCP only when one of the expressions is constant.
-<code class="docutils literal"><span class="pre">expr1/expr2</span></code> is DCP only when <code class="docutils literal"><span class="pre">expr2</span></code> is a scalar constant. The
-curvature rules above apply. For example, <code class="docutils literal"><span class="pre">expr1/expr2</span></code> is convex when
+<p><code class="docutils literal"><span class="pre">expr1*expr2</span></code>, <code class="docutils literal"><span class="pre">expr1/expr2</span></code>, and <code class="docutils literal"><span class="pre">expr1&#64;expr2</span></code>
+can only be DCP when one of the expressions is constant.
+The curvature rules above apply. For example, <code class="docutils literal"><span class="pre">expr1/expr2</span></code> is convex when
 <code class="docutils literal"><span class="pre">expr1</span></code> is concave and <code class="docutils literal"><span class="pre">expr2</span></code> is negative and constant.</p>
 </div>
 <div class="section" id="example-1">
