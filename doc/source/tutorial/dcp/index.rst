@@ -195,14 +195,15 @@ The curvature of an expression is stored as ``expr.curvature``:
 Infix operators
 ---------------
 
-The infix operators ``+, -, *, /`` are treated exactly like functions.
+The infix operators ``+, -, *, /`` and matrix multiplication ``@``
+are treated exactly like functions.
 The infix operators ``+`` and ``-`` are affine, so the rules above are
 used to flag the curvature. For example, ``expr1 + expr2`` is flagged as
 convex if ``expr1`` and ``expr2`` are convex.
 
-``expr1*expr2`` is DCP only when one of the expressions is constant.
-``expr1/expr2`` is DCP only when ``expr2`` is a scalar constant. The
-curvature rules above apply. For example, ``expr1/expr2`` is convex when
+``expr1*expr2``, ``expr1/expr2``, and ``expr1@expr2``
+can only be DCP when one of the expressions is constant.
+The curvature rules above apply. For example, ``expr1/expr2`` is convex when
 ``expr1`` is concave and ``expr2`` is negative and constant.
 
 Example 1
