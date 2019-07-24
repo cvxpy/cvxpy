@@ -36,7 +36,7 @@ class quad_over_lin(Atom):
         if self.args[0].is_complex():
             return (np.square(values[0].imag) + np.square(values[0].real)).sum()/values[1]
         return np.square(values[0]).sum()/values[1]
-
+    
     def _domain(self):
         """Returns constraints describing the domain of the node.
         """
@@ -71,10 +71,41 @@ class quad_over_lin(Atom):
             DX = scipy.sparse.csc_matrix(DX)
             return [DX, Dy]
 
+    def validate_arguments(self):
+        """Check dimensions of arguments.
+        """
+        x = self.args[0]
+        y = self.args[1]
+
+        #if y.is_scalar():
+        #    raise ValueError(
+        #        "The second argument to quad_over_lin must be a scalar or vector."
+        #    )
+
+        if y.is_vector() and not y.is_scalar():
+            if x.is_vector():
+                if x.size != y.size:
+                    raise ValueError(
+                        "If both arguments to quad_over_lin are vectors, their sizes must match."
+                    )
+            elif x.is_matrix():
+                if x.shape[0] != y.size:
+                    raise ValueError(
+                        "If both arguments to quad_over_lin are vectors, their sizes must match."
+                    )
+            else:
+                raise ValueError(
+                    "If the second argument to quad_over_lin is a vector,"
+                    "the first argument must be a vector or matrix."
+                )
+        if self.args[1].is_complex():
+            raise ValueError("The second argument to quad_over_lin cannot be complex.")
+        super(quad_over_lin, self).validate_arguments()
+
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
         """
-        return tuple()
+        return self.args[1].shape
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -111,15 +142,6 @@ class quad_over_lin(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return ((idx == 0) and self.args[idx].is_nonpos()) or (idx == 1)
-
-    def validate_arguments(self):
-        """Check dimensions of arguments.
-        """
-        if not self.args[1].is_scalar():
-            raise ValueError("The second argument to quad_over_lin must be a scalar.")
-        if self.args[1].is_complex():
-            raise ValueError("The second argument to quad_over_lin cannot be complex.")
-        super(quad_over_lin, self).validate_arguments()
 
     def is_quadratic(self):
         """Quadratic if x is affine and y is constant.
