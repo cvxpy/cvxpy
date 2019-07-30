@@ -198,12 +198,13 @@ class NAG(ConicSolver):
         # define the cones
         idx = len(c)
         size_cdvars = 0
-        for size_cone in dims[s.SOC_DIM]:
-            opt.handle_set_group(handle, gtype='Q',
-                                 group=np.arange(idx+1, idx+size_cone+1),
-                                 idgroup=0)
-            idx += size_cone
-            size_cdvars += size_cone
+        if soc_dim > 0:
+            for size_cone in dims[s.SOC_DIM]:
+                opt.handle_set_group(handle, gtype='Q',
+                                     group=np.arange(idx+1, idx+size_cone+1),
+                                     idgroup=0)
+                idx += size_cone
+                size_cdvars += size_cone
 
         # deactivate printing by default
         opt.handle_opt_set(handle, "Print File = -1")
@@ -225,7 +226,10 @@ class NAG(ConicSolver):
         u = np.zeros(2*m)
         uc = np.zeros(size_cdvars)
         try:
-            sln = opt.handle_solve_socp_ipm(handle, x=x, u=u, uc=uc, io_manager=iom)
+            if soc_dim > 0:
+                sln = opt.handle_solve_socp_ipm(handle, x=x, u=u, uc=uc, io_manager=iom)
+            elif soc_dim == 0:
+                sln = opt.handle_solve_lp_ipm(handle, x=x, u=u, io_manager=iom)
         except (utils.NagValueError, utils.NagAlgorithmicWarning,
                 utils.NagAlgorithmicMajorWarning) as exc:
             status = exc.errno
