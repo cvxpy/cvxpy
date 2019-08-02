@@ -15,7 +15,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone
 from cvxpy.reductions.solution import failure_solution, Solution
