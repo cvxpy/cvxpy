@@ -70,6 +70,6 @@ def inverse(expr):
 
 def invertible(expr):
     if (isinstance(expr, atoms.multiply) or isinstance(expr, DivExpression) or
-        isinstance(expr, AddExpression)):
+            isinstance(expr, AddExpression)):
         return len(expr._non_const_idx()) == 1
     return type(expr) in INVERTIBLE
