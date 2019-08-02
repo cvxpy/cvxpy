@@ -76,6 +76,7 @@ class MatrixStuffing(Reduction):
 
         # Batch expressions together, then split apart.
         expr_list = [arg for c in cons for arg in c.args]
+        # TODO QPs go here for constraints. Need to cast into right dimensions.
         Afull, bfull = extractor.affine(expr_list)
         new_cons = []
         offset = 0

@@ -97,7 +97,9 @@ class CoeffExtractor(object):
         affine_id_map = affine_inverse_data.id_map
         affine_var_shapes = affine_inverse_data.var_shapes
         extractor = CoeffExtractor(affine_inverse_data)
-        c, b = extractor.affine(affine_problem.objective.expr)
+        coeffs = extractor.affine(affine_problem.objective.expr)
+        c = coeffs[:-1].A.flatten()
+        b = coeffs[-1, 0]
 
         # Combine affine data with quadforms.
         coeffs = {}
@@ -108,16 +110,15 @@ class CoeffExtractor(object):
                 var_offset = affine_id_map[var_id][0]
                 var_size = affine_id_map[var_id][1]
                 if quad_forms[var_id][2].P.value is not None:
-                    c_part = c[0, var_offset:var_offset+var_size].toarray().flatten()
+                    c_part = c[var_offset:var_offset+var_size]
                     P = quad_forms[var_id][2].P.value
                     if sp.issparse(P):
                         P = P.toarray()
-                    P = c_part * P
+                    P = c_part @ P
                 else:
-                    P = sp.diags(c[0, var_offset:var_offset+var_size].toarray().flatten())
+                    P = sp.diags(c[var_offset:var_offset+var_size])
                 if orig_id in coeffs:
                     coeffs[orig_id]['P'] += P
-                    coeffs[orig_id]['q'] += np.zeros(P.shape[0])
                 else:
                     coeffs[orig_id] = dict()
                     coeffs[orig_id]['P'] = P
@@ -127,13 +128,11 @@ class CoeffExtractor(object):
                 var_size = np.prod(affine_var_shapes[var.id], dtype=int)
                 if var.id in coeffs:
                     coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] += c[
-                        0, var_offset:var_offset+var_size].toarray().flatten()
+                    coeffs[var.id]['q'] += c[var_offset:var_offset+var_size]
                 else:
                     coeffs[var.id] = dict()
                     coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] = c[
-                        0, var_offset:var_offset+var_size].toarray().flatten()
+                    coeffs[var.id]['q'] = c[var_offset:var_offset+var_size]
         return coeffs, b
 
     def quad_form(self, expr):
@@ -170,10 +169,10 @@ class CoeffExtractor(object):
                 P = sp.block_diag([P, sp.csr_matrix((size, size))])
                 q = np.concatenate([q, np.zeros(size)])
 
-        # TODO(akshayka): This chain of != smells of a bug.
-        if P.shape[0] != P.shape[1] != self.N or q.shape[0] != self.N:
+        if (P.shape[0] != P.shape[1] and P.shape[1] != self.x_length) or \
+           q.shape[0] != self.x_length:
             raise RuntimeError("Resulting quadratic form does not have "
                                "appropriate dimensions")
-        if constant.size != 1:
+        if not np.isscalar(constant):
             raise RuntimeError("Constant must be a scalar")
-        return P.tocsr(), q, constant[0]
+        return P.tocsr(), q, constant

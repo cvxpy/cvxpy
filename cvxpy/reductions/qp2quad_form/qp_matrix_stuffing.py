@@ -22,6 +22,7 @@ from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import are_args_affine
 
+# TODO make ParamQP? A special class for parameterized QPs?
 
 class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
@@ -50,7 +51,7 @@ class QpMatrixStuffing(MatrixStuffing):
 
         # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
-        x = Variable(extractor.N, boolean=boolean, integer=integer)
+        x = Variable(extractor.x_length, boolean=boolean, integer=integer)
         new_obj = QuadForm(x, P) + q.T*x
 
         return new_obj, x, r
