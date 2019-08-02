@@ -24,6 +24,7 @@ from cvxpy.reductions.utilities import are_args_affine
 
 # TODO make ParamQP? A special class for parameterized QPs?
 
+
 class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
 
