@@ -134,6 +134,8 @@ def construct_solving_chain(problem, candidates, gp=False):
         solver = sorted(candidates['qp_solvers'],
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
+        # TODO remove when QPs can handle parameters.
+        reductions += [EvalParams()]
         reductions += [QpMatrixStuffing(),
                        solver_instance]
         return SolvingChain(reductions=reductions)
