@@ -26,7 +26,7 @@ def build_non_disciplined_error_msg(problem, discipline_type):
         prop_name = "is_dgp"
         prefix_conv = "log_log_"
     else:
-        raise Exception("Unknown discipline type")
+        raise ValueError("Unknown discipline type")
 
     def find_non_prop_leaves(expr, res=None):
         if res is None:
