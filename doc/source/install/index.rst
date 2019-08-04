@@ -16,7 +16,8 @@ your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
 If you prefer `Anaconda`_ to `pip`_, see the 
 :ref:`Anaconda installation guide <anaconda-installation>`.
 
-1. (Windows only) Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
+1. (Windows only) Download the `Visual Studio C++ compiler for Python 2.7 <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_
+or the Visual Studio build tools for Python 3 (`download <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_, `install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
 
 2. Install ``cvxpy``.
   ::
@@ -39,21 +40,28 @@ The CVXPY installation process on other platforms is less automated and less wel
 Anaconda
 ----------------
 
-`Anaconda`_ is an alternative to `pip`_ that combines package and environment management.
+`Anaconda`_ is a system for package and environment management.
 
 1. Install `Anaconda`_.
 
-2. (Windows only) Download the `Visual Studio C++ compiler for Python <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_.
-
-3. Install ``cvxpy`` with ``conda``.
+2. Install `pip`_ and ``setuptools`` with ``conda``.
 
    ::
 
-      conda config --add channels oxfordcontrol
-      conda install -c conda-forge lapack
-      conda install -c cvxgrp cvxpy=1.0.24
+      conda install pip
+      pip install --upgrade setuptools
 
-4. Test the installation with ``nose``.
+3. (Windows only) Download the `Visual Studio C++ compiler for Python 2.7 <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_
+or the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
+   
+
+4. Install ``cvxpy`` with `pip`_ inside `Anaconda`_.
+
+   ::
+
+      pip install cvxpy
+
+5. Test the installation with ``nose``.
 
   ::
 
@@ -116,18 +124,11 @@ On other platforms, to install CVXPY and its dependencies with GLPK support, fol
 
 3. Follow the standard installation procedure to install CVXPY and its remaining dependencies.
 
-Install with Elemental support
-------------------------------
-
-CVXPY supports the Elemental solver.
-Simply install Elemental such that you can ``import El`` in Python.
-See the `Elemental <http://libelemental.org/>`_ website for installation instructions.
-
 Install with GUROBI support
 ---------------------------
 
 CVXPY supports the GUROBI solver.
-Simply install GUROBI such that you can ``import gurobipy`` in Python.
+Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
 See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
 
 Install with MOSEK support
@@ -174,7 +175,6 @@ The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows yo
 .. _SciPy: http://www.scipy.org/
 .. _Nose: http://nose.readthedocs.org
 .. _CVXPY git repository: https://github.com/cvxgrp/cvxpy
-.. _cvxcore: https://github.com/jacklzhu/cvxcore
 .. _Swig: http://www.swig.org/
 .. _pip: https://pip.pypa.io/
 .. _GLPK: https://www.gnu.org/software/glpk/
