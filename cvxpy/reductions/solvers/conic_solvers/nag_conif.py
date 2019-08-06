@@ -1,26 +1,27 @@
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
-from cvxpy.reductions.solvers.solver import group_constraints
-from .conic_solver import ConeDims, ConicSolver
-import cvxpy.interface as intf
+from cvxpy.constraints import SOC, NonPos, Zero
+from .conic_solver import ConicSolver
 import scipy as sp
 import numpy as np
 from cvxpy.reductions.solution import Solution
 
+
 class NAG(ConicSolver):
     """ An interface to the NAG SOCP solver
-    """ 
+    """
+
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
     # Map of NAG status to CVXPY status
     STATUS_MAP = {0: s.OPTIMAL}
-    
+
     def import_solver(self):
         """Imports the solver.
         """
         from naginterfaces.library import opt
-        
+        opt  # For flake8
+
     def name(self):
         """The name of the solver.
         """
@@ -39,7 +40,7 @@ class NAG(ConicSolver):
         coeff = sp.sparse.vstack(matrices).tocsc()
         offset = np.hstack(offsets)
         return coeff, offset, lengths, ids
-    
+
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -60,7 +61,7 @@ class NAG(ConicSolver):
         Gs = list()
         hs = list()
         data[s.DIMS] = {s.SOC_DIM: [], s.LEQ_DIM: 0, s.EQ_DIM: 0}
-        
+
         # Linear inequalities
         leq_constr = [ci for ci in problem.constraints if type(ci) == NonPos]
         if len(leq_constr) > 0:
@@ -86,7 +87,7 @@ class NAG(ConicSolver):
             G, h, lengths, ids = self.block_format(problem, soc_constr)  # G * z <=_{soc} h.
             inv_data['soc_dim'] = [(ids[k], lengths[k]) for k in range(len(lengths))]
             Gs.append(G)
-            hs.append(h)    
+            hs.append(h)
 
         data['nvar'] = len(c) + sum(data[s.DIMS][s.SOC_DIM])
         inv_data['nr'] = len(c)
@@ -103,18 +104,18 @@ class NAG(ConicSolver):
 
     def invert(self, solution, inverse_data):
 
-        STATUS_MAP ={0: s.OPTIMAL,
-                     20: s.SOLVER_ERROR,
-                     22: s.SOLVER_ERROR,
-                     23: s.SOLVER_ERROR,
-                     24: s.SOLVER_ERROR,
-                     50: s.OPTIMAL_INACCURATE,
-                     51: s.INFEASIBLE,
-                     52: s.UNBOUNDED}
+        STATUS_MAP = {0: s.OPTIMAL,
+                      20: s.SOLVER_ERROR,
+                      22: s.SOLVER_ERROR,
+                      23: s.SOLVER_ERROR,
+                      24: s.SOLVER_ERROR,
+                      50: s.OPTIMAL_INACCURATE,
+                      51: s.INFEASIBLE,
+                      52: s.UNBOUNDED}
 
         status = STATUS_MAP[solution['status']]
         sln = solution['sln']
-        
+
         opt_val = None
         primal_vars = None
         dual_vars = None
@@ -145,7 +146,6 @@ class NAG(ConicSolver):
                     idx += dim
             soc_dim = sum(ell for _, ell in inverse_data['soc_dim'])
             if soc_dim > 0:
-                soc_dvars = np.zeros(soc_dim)
                 idx = 0
                 for id, dim in inverse_data['soc_dim']:
                     if dim == 1:
@@ -155,7 +155,7 @@ class NAG(ConicSolver):
                     idx += dim
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
-        
+
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         from naginterfaces.library import opt
         from naginterfaces.base import utils
@@ -194,7 +194,7 @@ class NAG(ConicSolver):
         rows = rows + 1
         cols = cols + 1
         opt.handle_set_linconstr(handle, lb, ub, rows, cols, vals)
-        
+
         # define the cones
         idx = len(c)
         size_cdvars = 0
@@ -211,15 +211,20 @@ class NAG(ConicSolver):
         if verbose:
             opt.handle_opt_set(handle, "Monitoring File = 6")
             opt.handle_opt_set(handle, "Monitoring Level = 2")
-     
+
         # Set the optional parameters
-        for option, value in solver_opts.items():
-            optstr = option + '=' + str(value)
-            opt.handle_opt_set(handle, optstr)
+        kwargs = sorted(solver_opts.keys())
+        if "nag_params" in kwargs:
+            for option, value in solver_opts["nag_params"].items():
+                optstr = option + '=' + str(value)
+                opt.handle_opt_set(handle, optstr)
+            kwargs.remove("nag_params")
+        if kwargs:
+            raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
 
         # Use an explicit I/O manager for abbreviated iteration output:
         iom = utils.FileObjManager(locus_in_output=False)
-        
+
         # Call SOCP interior point solver
         x = np.zeros(nvar)
         status = 0
