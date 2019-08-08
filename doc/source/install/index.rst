@@ -163,6 +163,13 @@ Install with SDPT3 support
 
 The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows you to model problems with CVXPY and solve them with SDPT3.
 
+Install with NAG support
+---------------------------
+
+CVXPY supports the NAG solver.
+Simply install NAG such that you can ``import naginterfaces`` in Python.
+See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
+
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
