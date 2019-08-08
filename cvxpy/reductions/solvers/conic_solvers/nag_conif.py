@@ -14,7 +14,14 @@ class NAG(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
     # Map of NAG status to CVXPY status
-    STATUS_MAP = {0: s.OPTIMAL}
+    STATUS_MAP = {0: s.OPTIMAL,
+                  20: s.SOLVER_ERROR,
+                  22: s.SOLVER_ERROR,
+                  23: s.SOLVER_ERROR,
+                  24: s.SOLVER_ERROR,
+                  50: s.OPTIMAL_INACCURATE,
+                  51: s.INFEASIBLE,
+                  52: s.UNBOUNDED}
 
     def import_solver(self):
         """Imports the solver.
@@ -104,16 +111,7 @@ class NAG(ConicSolver):
 
     def invert(self, solution, inverse_data):
 
-        STATUS_MAP = {0: s.OPTIMAL,
-                      20: s.SOLVER_ERROR,
-                      22: s.SOLVER_ERROR,
-                      23: s.SOLVER_ERROR,
-                      24: s.SOLVER_ERROR,
-                      50: s.OPTIMAL_INACCURATE,
-                      51: s.INFEASIBLE,
-                      52: s.UNBOUNDED}
-
-        status = STATUS_MAP[solution['status']]
+        status = self.STATUS_MAP[solution['status']]
         sln = solution['sln']
 
         opt_val = None
