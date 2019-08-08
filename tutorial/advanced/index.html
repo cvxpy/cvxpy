@@ -408,7 +408,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td>&#160;</td>
 <td>X</td>
 </tr>
-<tr class="row-odd"><td><a class="reference external" href="http://libelemental.org/">Elemental</a></td>
+<tr class="row-odd"><td><a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a></td>
 <td>X</td>
 <td>X</td>
 <td>X</td>
@@ -416,7 +416,15 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://libelemental.org/">Elemental</a></td>
+<td>X</td>
+<td>X</td>
+<td>X</td>
+<td>&#160;</td>
+<td>&#160;</td>
+<td>&#160;</td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a></td>
 <td>X</td>
 <td>X</td>
 <td>X</td>
@@ -424,7 +432,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td>X</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a></td>
+<tr class="row-even"><td><a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a></td>
 <td>X</td>
 <td>X</td>
 <td>X</td>
@@ -432,7 +440,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td>X</td>
 <td>X</td>
 </tr>
-<tr class="row-even"><td><a class="reference external" href="http://www.gurobi.com/">GUROBI</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://www.gurobi.com/">GUROBI</a></td>
 <td>X</td>
 <td>X</td>
 <td>X</td>
@@ -440,7 +448,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td>&#160;</td>
 <td>X</td>
 </tr>
-<tr class="row-odd"><td><a class="reference external" href="https://www.mosek.com/">MOSEK</a></td>
+<tr class="row-even"><td><a class="reference external" href="https://www.mosek.com/">MOSEK</a></td>
 <td>X</td>
 <td>X</td>
 <td>X</td>
@@ -448,7 +456,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-even"><td><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></td>
+<tr class="row-odd"><td><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></td>
 <td>X</td>
 <td>X</td>
 <td>X</td>
@@ -456,7 +464,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td>&#160;</td>
 <td>&#160;</td>
 </tr>
-<tr class="row-odd"><td><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></td>
+<tr class="row-even"><td><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></td>
 <td>X</td>
 <td>X</td>
 <td>X</td>
@@ -525,6 +533,10 @@ The table below shows the types of problems the supported solvers can handle.</p
 <span class="c1"># Solve with CPLEX.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CPLEX</span><span class="p">)</span>
 <span class="nb">print</span> <span class="s2">&quot;optimal value with CPLEX:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with NAG.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">NAG</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with NAG:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">OSQP</span><span class="p">:</span> <span class="mf">6.0</span>
@@ -539,13 +551,14 @@ The table below shows the types of problems the supported solvers can handle.</p
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">Elemental</span><span class="p">:</span> <span class="mf">6.0000044085242727</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CBC</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CPLEX</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">NAG</span><span class="p">:</span> <span class="mf">6.000000003182365</span>
 </pre></div>
 </div>
 <p>Use the <code class="docutils literal"><span class="pre">installed_solvers</span></code> utility function to get a list of the solvers your installation of CVXPY supports.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="n">installed_solvers</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS_BB&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;ELEMENTAL&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS_BB&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;ELEMENTAL&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -630,7 +643,7 @@ If <code class="docutils literal"><span class="pre">A</span></code> were a param
 warm start would only be a good initial point.</p>
 <div class="section" id="setting-solver-options">
 <h3>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Permalink to this headline">¶</a></h3>
-<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -771,6 +784,11 @@ It is slower, but more robust.</dd>
 <dd>a dictionary where the key-value pairs are composed of parameter names (as used in the CPLEX Python API) and parameter values. For example, to set the advance start switch parameter (i.e., CPX_PARAM_ADVIND), use “advance” for the parameter name. For the data consistency checking and modeling assistance parameter (i.e., CPX_PARAM_DATACHECK), use “read.datacheck” for the parameter name, and so on.</dd>
 <dt><code class="docutils literal"><span class="pre">'cplex_filename'</span></code></dt>
 <dd>a string specifying the filename to which the problem will be written. For example, use “model.lp”, “model.sav”, or “model.mps” to export to the LP, SAV, and MPS formats, respectively.</dd>
+</dl>
+<p><a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a> options:</p>
+<dl class="docutils">
+<dt><code class="docutils literal"><span class="pre">'nag_params'</span></code></dt>
+<dd>a dictionary of NAG option parameters. Refer to NAG’s Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use “LPIPM Iteration Limit” for the key name and 20 for its value .</dd>
 </dl>
 </div>
 </div>
