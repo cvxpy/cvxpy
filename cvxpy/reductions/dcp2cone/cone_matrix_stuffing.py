@@ -222,6 +222,9 @@ class ConeMatrixStuffing(MatrixStuffing):
             return Solution(solution.status, opt_val, primal_vars, dual_vars,
                             solution.attr)
 
+        # TODO make a double dictionary full of matrices
+        # to represent mapping from primal to primal and dual to dual.
+
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
         for var_id, offset in var_map.items():
@@ -236,16 +239,13 @@ class ConeMatrixStuffing(MatrixStuffing):
             dual_var = list(solution.dual_vars.values())[0]
             offset = 0
             for constr in inverse_data.constraints:
-                dual_vars[constr.id] = []
-                for arg in constr.args:
-                    dual_vars[constr.id].append(
-                        np.reshape(
-                            dual_var[offset:offset+arg.size],
-                            arg.shape,
-                            order='F'
-                        )
+                for dv in constr.dual_variables:
+                    dual_vars[dv.id] = np.reshape(
+                        dual_var[offset:offset+dv.size],
+                        dv.shape,
+                        order='F'
                     )
-                    offset += arg.size
+                    offset += dv.size
 
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)
