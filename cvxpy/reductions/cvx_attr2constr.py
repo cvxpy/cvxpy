@@ -117,15 +117,17 @@ class CvxAttr2Constr(Reduction):
         cons_id_map = {}
         for cons in problem.constraints:
             constr.append(cons.tree_copy(id_objects=id2new_obj))
-            cons_id_map[cons.id] = constr[-1].id
-        inverse_data = (id2new_var, id2old_var, cons_id_map)
+            for dv_old, dv_new in zip(cons.dual_variables,
+                                      constr[-1].dual_variables):
+                dv_id_map[dv_old.id] = dv_new.id
+        inverse_data = (id2new_var, id2old_var, dv_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 
     def invert(self, solution, inverse_data):
         if not inverse_data:
             return solution
 
-        id2new_var, id2old_var, cons_id_map = inverse_data
+        id2new_var, id2old_var, dv_id_map = inverse_data
         pvars = {}
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
@@ -144,7 +146,7 @@ class CvxAttr2Constr(Reduction):
                     pvars[id] = var.project(solution.primal_vars[new_var.id])
 
         dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in cons_id_map.items()
+                 for orig_id, vid in dv_id_map.items()
                  if vid in solution.dual_vars}
         return Solution(solution.status, solution.opt_val, pvars,
                         dvars, solution.attr)

@@ -41,8 +41,10 @@ class Canonicalization(Reduction):
             canon_constr, aux_constr = self.canonicalize_tree(
                 constraint)
             canon_constraints += aux_constr + [canon_constr]
-            inverse_data.cons_id_map.update({constraint.id:
-                                             canon_constr.id})
+            for dv_old, dv_new in zip(constraint.dual_variables,
+                                      canon_constr.dual_variables):
+                inverse_data.dv_id_map.update({dv_old.id:
+                                               dv_new.id})
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
@@ -52,7 +54,7 @@ class Canonicalization(Reduction):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
         dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in inverse_data.cons_id_map.items()
+                 for orig_id, vid in inverse_data.dv_id_map.items()
                  if vid in solution.dual_vars}
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)

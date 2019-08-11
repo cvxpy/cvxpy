@@ -476,7 +476,8 @@ class Problem(u.Canonical):
         for v in self.variables():
             v.save_value(None)
         for c in self.constraints:
-            c.save_value(None)
+            for dv in c.dual_variables:
+                dv.save_value(None)
         self._value = None
         self._status = None
         self._solution = None
@@ -496,13 +497,15 @@ class Problem(u.Canonical):
             for v in self.variables():
                 v.save_value(solution.primal_vars[v.id])
             for c in self.constraints:
-                if c.id in solution.dual_vars:
-                    c.save_value(solution.dual_vars[c.id])
+                for dv in c.dual_variables:
+                    if dv.id in solution.dual_vars:
+                        dv.save_value(solution.dual_vars[dv.id])
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)
             for constr in self.constraints:
-                constr.save_value(None)
+                for dv in constr.dual_variables:
+                    dv.save_value(None)
         else:
             raise ValueError("Cannot unpack invalid solution.")
         self._value = solution.opt_val
