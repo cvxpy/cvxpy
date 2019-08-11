@@ -54,21 +54,19 @@
 <li><a class="reference internal" href="#what-solvers-does-cvxpy-support" id="id9">What solvers does CVXPY support?</a></li>
 <li><a class="reference internal" href="#what-are-the-differences-between-cvxpy-s-solvers" id="id10">What are the differences between CVXPY’s solvers?</a></li>
 <li><a class="reference internal" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" id="id11">What do I do if I get “Exception: Cannot evaluate the truth value of a constraint”?</a></li>
-<li><a class="reference internal" href="#what-do-i-do-if-i-get-runtimeerror-maximum-recursion-depth-exceeded" id="id12">What do I do if I get “RuntimeError: maximum recursion depth exceeded”?</a></li>
-<li><a class="reference internal" href="#can-i-use-numpy-functions-on-cvxpy-objects" id="id13">Can I use NumPy functions on CVXPY objects?</a></li>
-<li><a class="reference internal" href="#can-i-use-scipy-sparse-matrices-with-cvxpy" id="id14">Can I use SciPy sparse matrices with CVXPY?</a></li>
-<li><a class="reference internal" href="#how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite" id="id15">How do I constrain a CVXPY matrix expression to be positive semidefinite?</a></li>
-<li><a class="reference internal" href="#how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables" id="id16">How do I create variables with special properties, such as boolean or symmetric variables?</a></li>
-<li><a class="reference internal" href="#how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric" id="id17">How do I create a variable that has multiple special properties, such as boolean and symmetric?</a></li>
-<li><a class="reference internal" href="#how-do-i-create-complex-variables" id="id18">How do I create complex variables?</a></li>
-<li><a class="reference internal" href="#how-do-i-create-variables-with-more-than-2-dimensions" id="id19">How do I create variables with more than 2 dimensions?</a></li>
-<li><a class="reference internal" href="#why-does-it-take-so-long-to-compile-my-problem" id="id20">Why does it take so long to compile my Problem?</a></li>
-<li><a class="reference internal" href="#how-do-i-cite-cvxpy" id="id21">How do I cite CVXPY?</a></li>
+<li><a class="reference internal" href="#can-i-use-numpy-functions-on-cvxpy-objects" id="id12">Can I use NumPy functions on CVXPY objects?</a></li>
+<li><a class="reference internal" href="#can-i-use-scipy-sparse-matrices-with-cvxpy" id="id13">Can I use SciPy sparse matrices with CVXPY?</a></li>
+<li><a class="reference internal" href="#how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite" id="id14">How do I constrain a CVXPY matrix expression to be positive semidefinite?</a></li>
+<li><a class="reference internal" href="#how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables" id="id15">How do I create variables with special properties, such as boolean or symmetric variables?</a></li>
+<li><a class="reference internal" href="#how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric" id="id16">How do I create a variable that has multiple special properties, such as boolean and symmetric?</a></li>
+<li><a class="reference internal" href="#how-do-i-create-variables-with-more-than-2-dimensions" id="id17">How do I create variables with more than 2 dimensions?</a></li>
+<li><a class="reference internal" href="#why-does-it-take-so-long-to-compile-my-problem" id="id18">Why does it take so long to compile my Problem?</a></li>
+<li><a class="reference internal" href="#how-do-i-cite-cvxpy" id="id19">How do I cite CVXPY?</a></li>
 </ul>
 </div>
 <div class="section" id="where-can-i-get-help-with-cvxpy">
 <h2>Where can I get help with CVXPY?<a class="headerlink" href="#where-can-i-get-help-with-cvxpy" title="Permalink to this headline">¶</a></h2>
-<p>You can post questions about how to use CVXPY on the <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a>.
+<p>You can post questions about how to use CVXPY on StackOverflow or on the <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a>.
 If you’ve found a bug in CVXPY or have a feature request,
 create an issue on the <a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues">CVXPY Github issue tracker</a>.</p>
 </div>
@@ -127,11 +125,6 @@ functions on CVXPY expressions.
 It is not possible for CVXPY to correctly handle these use cases,
 so CVXPY throws an (admittedly cryptic) exception.</p>
 </div>
-<div class="section" id="what-do-i-do-if-i-get-runtimeerror-maximum-recursion-depth-exceeded">
-<h2>What do I do if I get “RuntimeError: maximum recursion depth exceeded”?<a class="headerlink" href="#what-do-i-do-if-i-get-runtimeerror-maximum-recursion-depth-exceeded" title="Permalink to this headline">¶</a></h2>
-<p>See <a class="reference external" href="https://groups.google.com/forum/#!topic/cvxpy/btQuh4FsQ-I">this thread</a>
-on the mailing list.</p>
-</div>
 <div class="section" id="can-i-use-numpy-functions-on-cvxpy-objects">
 <h2>Can I use NumPy functions on CVXPY objects?<a class="headerlink" href="#can-i-use-numpy-functions-on-cvxpy-objects" title="Permalink to this headline">¶</a></h2>
 <p>No, you can only use CVXPY functions on CVXPY objects.
@@ -140,16 +133,7 @@ it will probably fail in a confusing way.</p>
 </div>
 <div class="section" id="can-i-use-scipy-sparse-matrices-with-cvxpy">
 <h2>Can I use SciPy sparse matrices with CVXPY?<a class="headerlink" href="#can-i-use-scipy-sparse-matrices-with-cvxpy" title="Permalink to this headline">¶</a></h2>
-<p>Yes, though you need to be careful.
-SciPy sparse matrices do not support operator overloading to the extent needed by CVXPY.
-(See <a class="reference external" href="https://github.com/scipy/scipy/issues/4819">this Github issue</a> for details.)
-You can wrap a SciPy sparse matrix as a CVXPY constant, however, and then use it normally with CVXPY:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Wrap the SciPy sparse matrix A as a CVXPY constant.</span>
-<span class="n">A</span> <span class="o">=</span> <span class="n">Constant</span><span class="p">(</span><span class="n">A</span><span class="p">)</span>
-<span class="c1"># Use A normally in CVXPY expressions.</span>
-<span class="n">expr</span> <span class="o">=</span> <span class="n">A</span><span class="o">*</span><span class="n">x</span>
-</pre></div>
-</div>
+<p>Yes, they are fully supported.</p>
 </div>
 <div class="section" id="how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite">
 <h2>How do I constrain a CVXPY matrix expression to be positive semidefinite?<a class="headerlink" href="#how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite" title="Permalink to this headline">¶</a></h2>
@@ -161,14 +145,7 @@ You can wrap a SciPy sparse matrix as a CVXPY constant, however, and then use it
 </div>
 <div class="section" id="how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric">
 <h2>How do I create a variable that has multiple special properties, such as boolean and symmetric?<a class="headerlink" href="#how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric" title="Permalink to this headline">¶</a></h2>
-<p>Create one variable with each desired property, and then set them all equal by adding equality constraints.
-<a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/199">CVXPY 1.0</a> will have a more elegant solution.</p>
-</div>
-<div class="section" id="how-do-i-create-complex-variables">
-<h2>How do I create complex variables?<a class="headerlink" href="#how-do-i-create-complex-variables" title="Permalink to this headline">¶</a></h2>
-<p>You must represent complex variables using real variables,
-as described in <a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/191">this Github issue</a>.
-We hope to add complex variables soon.</p>
+<p>Create one variable with each desired property, and then set them all equal by adding equality constraints.</p>
 </div>
 <div class="section" id="how-do-i-create-variables-with-more-than-2-dimensions">
 <h2>How do I create variables with more than 2 dimensions?<a class="headerlink" href="#how-do-i-create-variables-with-more-than-2-dimensions" title="Permalink to this headline">¶</a></h2>
@@ -182,7 +159,7 @@ care about performance (e.g., write A * x == b instead of a_i  * x == b_i for
 every row a_i of A). Consult this <a class="reference external" href="https://github.com/cvxgrp/cvxpy/blob/1.0/examples/notebooks/building_models_with_fast_compile_times.ipynb">IPython notebook</a> for details.</p>
 <div class="section" id="how-does-cvxpy-work">
 <h3>How does CVXPY work?<a class="headerlink" href="#how-does-cvxpy-work" title="Permalink to this headline">¶</a></h3>
-<p>The algorithms and data structures used by CVXPY are discussed in <a class="reference external" href="http://arxiv.org/abs/1506.00760">this paper</a>.</p>
+<p>The fundamental concepts behind CVXPY are discussed in <a class="reference external" href="http://arxiv.org/abs/1506.0076">this paper</a>.</p>
 </div>
 </div>
 <div class="section" id="how-do-i-cite-cvxpy">
