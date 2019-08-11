@@ -498,3 +498,13 @@ class TestDgp2Dcp(BaseTest):
         soln = solution.Solution(SOLVER_ERROR, None, {}, {}, {})
         dgp_soln = dgp2dcp.invert(soln, inverse_data)
         self.assertEqual(dgp_soln.status, SOLVER_ERROR)
+
+    def test_sum_single_expr(self):
+        w = cvxpy.Variable(pos=True)
+        h = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(h),
+                                [w*h >= 10, cvxpy.sum(w) <= 5])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 2)
+        np.testing.assert_almost_equal(h.value, 2)
+        np.testing.assert_almost_equal(w.value, 5)
