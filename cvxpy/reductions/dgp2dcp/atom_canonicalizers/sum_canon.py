@@ -8,7 +8,8 @@ def sum_canon(expr, args):
     X = args[0]
     if expr.axis is None:
         x = vec(X)
-        summation = sum([xi for xi in x])
+        # sum([expr]) == 0 + expr, which violates DGP, hence the size check.
+        summation = sum([xi for xi in x]) if x.size > 1 else x
         canon, _ = add_canon(summation, summation.args)
         return reshape(canon, expr.shape), []
 
@@ -18,7 +19,7 @@ def sum_canon(expr, args):
     rows = []
     for i in range(X.shape[0]):
         x = vec(X[i])
-        summation = sum([xi for xi in x])
+        summation = sum([xi for xi in x]) if x.size > 1 else x
         canon, _ = add_canon(summation, summation.args)
         rows.append(canon)
     canon = hstack(rows)
