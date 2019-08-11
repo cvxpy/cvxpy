@@ -84,8 +84,12 @@ class Complex2Real(Reduction):
                         pvars[vid] = solution.primal_vars[vid]
                 elif var.is_complex():
                     imag_id = inverse_data.real2imag[vid]
-                    pvars[vid] = solution.primal_vars[vid] + \
-                        1j*solution.primal_vars[imag_id]
+                    # Imaginary part may have been lost.
+                    if imag_id in solution.primal_vars:
+                        pvars[vid] = solution.primal_vars[vid] + \
+                            1j*solution.primal_vars[imag_id]
+                    else:
+                        pvars[vid] = solution.primal_vars[vid]
             for cid, cons in inverse_data.id2cons.items():
                 if cons.is_real():
                     dvars[vid] = solution.dual_vars[cid]
@@ -95,8 +99,11 @@ class Complex2Real(Reduction):
                 # For equality and inequality constraints.
                 elif isinstance(cons, (Equality, Zero, NonPos)) and cons.is_complex():
                     imag_id = inverse_data.real2imag[cid]
-                    dvars[cid] = solution.dual_vars[cid] + \
-                        1j*solution.dual_vars[imag_id]
+                    if imag_id in solution.dual_vars:
+                        dvars[cid] = solution.dual_vars[cid] + \
+                            1j*solution.dual_vars[imag_id]
+                    else:
+                        dvars[cid] = solution.dual_vars[cid]
                 elif isinstance(cons, SOC) and cons.is_complex():
                     # TODO add dual variables for complex SOC.
                     pass
