@@ -113,8 +113,9 @@ class MatrixStuffing(Reduction):
                 arg_list.append(reshape(A*new_var + b, arg.shape))
                 offset += arg.size
             new_cons.append(con.copy(arg_list))
-            # Map old constraint id to new constraint id.
-            inverse_data.cons_id_map[con.id] = new_cons[-1].id
+            for dv_old, dv_new in zip(con.dual_variables,
+                                      new_cons[-1].dual_variables):
+                inverse_data.dv_id_map[dv_new] = dv_old
 
         inverse_data.minimize = type(problem.objective) == Minimize
         new_prob = problems.problem.Problem(Minimize(new_obj), new_cons)
@@ -123,7 +124,6 @@ class MatrixStuffing(Reduction):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
         var_map = inverse_data.var_offsets
-        con_map = inverse_data.cons_id_map
         # Flip sign of opt val if maximize.
         opt_val = solution.opt_val
         if solution.status not in s.ERROR and not inverse_data.minimize:
@@ -134,6 +134,9 @@ class MatrixStuffing(Reduction):
             return Solution(solution.status, opt_val, primal_vars, dual_vars,
                             solution.attr)
 
+        # TODO make a double dictionary full of matrices
+        # to represent mapping from primal to primal and dual to dual.
+
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
         for var_id, offset in var_map.items():
@@ -141,26 +144,21 @@ class MatrixStuffing(Reduction):
             size = np.prod(shape, dtype=int)
             primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
                                              order='F')
+
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
-            for old_con, new_con in con_map.items():
-                con_obj = inverse_data.id2cons[old_con]
-                shape = con_obj.shape
-                # TODO rationalize Exponential.
-                if shape == () or isinstance(con_obj, (ExpCone, SOC)):
-                    dual_vars[old_con] = solution.dual_vars[new_con]
-                else:
-                    dual_vars[old_con] = np.reshape(
-                        solution.dual_vars[new_con],
-                        shape,
+            # Giant dual variable.
+            dual_var = list(solution.dual_vars.values())[0]
+            offset = 0
+            for constr in inverse_data.constraints:
+                for dv in constr.dual_variables:
+                    dv_old = inverse_data.dv_id_map[dv]
+                    dual_vars[dv_old] = np.reshape(
+                        dual_var[offset:offset+dv.size],
+                        dv.shape,
                         order='F'
                     )
-
-        # Add constant part
-        if inverse_data.minimize:
-            opt_val += inverse_data.r
-        else:
-            opt_val -= inverse_data.r
+                    offset += dv.size
 
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)

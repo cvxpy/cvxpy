@@ -181,6 +181,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Lower equality and inequality to Zero and NonPos.
         cons = []
         for con in problem.constraints:
+            orig_con = con
             if isinstance(con, Equality):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
@@ -189,6 +190,9 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
             cons.append(con)
+            for dv_old, dv_new in zip(orig_con.dual_variables,
+                                      con.dual_variables):
+                inverse_data.dv_id_map[dv_new] = dv_old
         # Reorder constraints to Zero, NonPos, SOC, PSD, EXP.
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonPos] + \
@@ -208,44 +212,3 @@ class ConeMatrixStuffing(MatrixStuffing):
                                  problem.parameters(),
                                  inverse_data.param_id_map)
         return new_prob, inverse_data
-
-    def invert(self, solution, inverse_data):
-        """Returns the solution to the original problem given the inverse_data."""
-        var_map = inverse_data.var_offsets
-        # Flip sign of opt val if maximize.
-        opt_val = solution.opt_val
-        if solution.status not in s.ERROR and not inverse_data.minimize:
-            opt_val = -solution.opt_val
-
-        primal_vars, dual_vars = {}, {}
-        if solution.status not in s.SOLUTION_PRESENT:
-            return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                            solution.attr)
-
-        # TODO make a double dictionary full of matrices
-        # to represent mapping from primal to primal and dual to dual.
-
-        # Split vectorized variable into components.
-        x_opt = list(solution.primal_vars.values())[0]
-        for var_id, offset in var_map.items():
-            shape = inverse_data.var_shapes[var_id]
-            size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
-
-        # Remap dual variables if dual exists (problem is convex).
-        if solution.dual_vars is not None:
-            # Giant dual variable.
-            dual_var = list(solution.dual_vars.values())[0]
-            offset = 0
-            for constr in inverse_data.constraints:
-                for dv in constr.dual_variables:
-                    dual_vars[dv.id] = np.reshape(
-                        dual_var[offset:offset+dv.size],
-                        dv.shape,
-                        order='F'
-                    )
-                    offset += dv.size
-
-        return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                        solution.attr)

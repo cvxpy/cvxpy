@@ -22,8 +22,6 @@ from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import are_args_affine
 
-# TODO make ParamQP? A special class for parameterized QPs?
-
 
 class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
