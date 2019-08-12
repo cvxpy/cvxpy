@@ -1,6 +1,6 @@
-from cvxpy.reductions.dgp2dcp import util
+from cvxpy.reductions.dgp2dcp.util import explicit_sum
 
 
 def quad_over_lin_canon(expr, args):
-    numerator = util.sum(2 * args[0])
+    numerator = explicit_sum(2 * args[0])
     return numerator - args[1], []
