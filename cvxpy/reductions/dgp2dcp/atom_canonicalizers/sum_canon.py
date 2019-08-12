@@ -1,18 +1,13 @@
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.atoms.affine.vec import vec
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.add_canon import add_canon
+from cvxpy.reductions.dgp2dcp import util
 
 
 def sum_canon(expr, args):
     X = args[0]
     if expr.axis is None:
-        x = vec(X)
-        # the Python `sum` function is a reduction with initial value 0.0,
-        # resulting in a non-DGP expression
-        summation = x[0]
-        for xi in x[1:]:
-            summation += xi
+        summation = util.sum(X)
         canon, _ = add_canon(summation, summation.args)
         return reshape(canon, expr.shape), []
 
@@ -21,10 +16,7 @@ def sum_canon(expr, args):
 
     rows = []
     for i in range(X.shape[0]):
-        x = vec(X[i])
-        summation = x[0]
-        for xi in x[1:]:
-            summation += xi
+        summation = util.sum(X[i])
         canon, _ = add_canon(summation, summation.args)
         rows.append(canon)
     canon = hstack(rows)

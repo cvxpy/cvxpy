@@ -530,3 +530,13 @@ class TestDgp2Dcp(BaseTest):
         np.testing.assert_almost_equal(problem.value, 8)
         np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]))
         np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]))
+
+    def test_trace(self):
+        w = cvxpy.Variable((1, 1), pos=True)
+        h = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(h),
+                                [w*h >= 10, cvxpy.trace(w) <= 5])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 2)
+        np.testing.assert_almost_equal(h.value, 2)
+        np.testing.assert_almost_equal(w.value, np.array([[5]]))
