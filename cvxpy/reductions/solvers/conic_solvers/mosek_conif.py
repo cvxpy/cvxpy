@@ -75,7 +75,9 @@ class MOSEK(ConicSolver):
     """
 
     MIP_CAPABLE = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
+                                                                 PSD,
+                                                                 ExpCone]
     EXP_CONE_ORDER = [2, 1, 0]
 
     """
