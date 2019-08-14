@@ -499,7 +499,7 @@ class TestDgp2Dcp(BaseTest):
         dgp_soln = dgp2dcp.invert(soln, inverse_data)
         self.assertEqual(dgp_soln.status, SOLVER_ERROR)
 
-    def test_sum_single_expr(self):
+    def test_sum_scalar(self):
         w = cvxpy.Variable(pos=True)
         h = cvxpy.Variable(pos=True)
         problem = cvxpy.Problem(cvxpy.Minimize(h),
@@ -508,3 +508,35 @@ class TestDgp2Dcp(BaseTest):
         np.testing.assert_almost_equal(problem.value, 2)
         np.testing.assert_almost_equal(h.value, 2)
         np.testing.assert_almost_equal(w.value, 5)
+
+    def test_sum_vector(self):
+        w = cvxpy.Variable(2, pos=True)
+        h = cvxpy.Variable(2, pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(h)),
+                                [cvxpy.multiply(w, h) >= 10,
+                                cvxpy.sum(w) <= 10])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 4)
+        np.testing.assert_almost_equal(h.value, np.array([2, 2]))
+        np.testing.assert_almost_equal(w.value, np.array([5, 5]))
+
+    def test_sum_matrix(self):
+        w = cvxpy.Variable((2, 2), pos=True)
+        h = cvxpy.Variable((2, 2), pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(h)),
+                                [cvxpy.multiply(w, h) >= 10,
+                                cvxpy.sum(w) <= 20])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 8)
+        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]))
+        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]))
+
+    def test_trace(self):
+        w = cvxpy.Variable((1, 1), pos=True)
+        h = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(h),
+                                [w*h >= 10, cvxpy.trace(w) <= 5])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 2)
+        np.testing.assert_almost_equal(h.value, 2)
+        np.testing.assert_almost_equal(w.value, np.array([[5]]))
