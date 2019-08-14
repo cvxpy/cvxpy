@@ -205,6 +205,8 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         # Map of old constraint id to new constraint id.
         inverse_data.minimize = type(problem.objective) == Minimize
+        # TODO backing out of ParamConeProg,
+        # doing a matrix interface instead.
         new_prob = ParamConeProg(c, x, A,
                                  problem.variables(),
                                  inverse_data.var_offsets,
