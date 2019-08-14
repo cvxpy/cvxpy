@@ -128,7 +128,7 @@ class MatrixStuffing(Reduction):
             offset = 0
             for constr in inverse_data.constraints:
                 for dv in constr.dual_variables:
-                    dv_old = inverse_data.dv_id_map[dv]
+                    dv_old = inverse_data.dv_id_map[dv.id]
                     dual_vars[dv_old] = np.reshape(
                         dual_var[offset:offset+dv.size],
                         dv.shape,
