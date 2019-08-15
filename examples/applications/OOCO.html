@@ -56,7 +56,7 @@ and sink are the last two edges. The problem becomes</p>
 <span class="n">source</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 <span class="n">sink</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Maximize</span><span class="p">(</span><span class="n">source</span><span class="p">),</span>
-              <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">vstack</span><span class="p">([</span><span class="n">flows</span><span class="p">,</span><span class="n">source</span><span class="p">,</span><span class="n">sink</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+              <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">hstack</span><span class="p">([</span><span class="n">flows</span><span class="p">,</span><span class="n">source</span><span class="p">,</span><span class="n">sink</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
                <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">flows</span><span class="p">,</span>
                <span class="n">flows</span> <span class="o">&lt;=</span> <span class="n">c</span><span class="p">])</span>
 </pre></div>
