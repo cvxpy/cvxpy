@@ -50,13 +50,13 @@ define the problem explicitly by constructing an <code class="docutils literal">
 incidence matrix <code class="docutils literal"><span class="pre">A</span></code>. <code class="docutils literal"><span class="pre">A[i,</span> <span class="pre">j]</span></code> is +1 if edge <code class="docutils literal"><span class="pre">j</span></code> enters node
 <code class="docutils literal"><span class="pre">i</span></code>, -1 if edge <code class="docutils literal"><span class="pre">j</span></code> leaves node <code class="docutils literal"><span class="pre">i</span></code>, and 0 otherwise. The source
 and sink are the last two edges. The problem becomes</p>
-<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="c1"># A is the incidence matrix.</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># A is the incidence matrix.</span>
 <span class="c1"># c is a vector of edge capacities.</span>
-<span class="n">flows</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">E</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">flows</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">E</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">source</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 <span class="n">sink</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 <span class="n">p</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Maximize</span><span class="p">(</span><span class="n">source</span><span class="p">),</span>
-              <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">vstack</span><span class="p">(</span><span class="n">flows</span><span class="p">,</span><span class="n">source</span><span class="p">,</span><span class="n">sink</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
+              <span class="p">[</span><span class="n">A</span><span class="o">*</span><span class="n">vstack</span><span class="p">([</span><span class="n">flows</span><span class="p">,</span><span class="n">source</span><span class="p">,</span><span class="n">sink</span><span class="p">])</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span>
                <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">flows</span><span class="p">,</span>
                <span class="n">flows</span> <span class="o">&lt;=</span> <span class="n">c</span><span class="p">])</span>
 </pre></div>
@@ -64,7 +64,7 @@ and sink are the last two edges. The problem becomes</p>
 <p>The more natural way to frame the max-flow problem is not in terms of
 incidence matrices, however, but in terms of the properties of edges and
 nodes. We can write an <code class="docutils literal"><span class="pre">Edge</span></code> class to capture these properties.</p>
-<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Edge</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Edge</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; An undirected, capacity limited edge. &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>
@@ -85,7 +85,7 @@ capacity constraint is stored locally in the <code class="docutils literal"><spa
 structure is also stored locally, by calling
 <code class="docutils literal"><span class="pre">edge.connect(node1,</span> <span class="pre">node2)</span></code> for each edge.</p>
 <p>We also define a <code class="docutils literal"><span class="pre">Node</span></code> class:</p>
-<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; A node with accumulation. &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span> <span class="o">=</span> <span class="n">accumulation</span>
@@ -100,7 +100,7 @@ structure is also stored locally, by calling
 Nodes with a variable as their accumulation target.</p>
 <p>Suppose <code class="docutils literal"><span class="pre">nodes</span></code> is a list of all the nodes, <code class="docutils literal"><span class="pre">edges</span></code> is a list of all
 the edges, and <code class="docutils literal"><span class="pre">sink</span></code> is the sink node. The problem becomes:</p>
-<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="o">+</span> <span class="n">edges</span><span class="p">:</span>
     <span class="n">constraints</span> <span class="o">+=</span> <span class="n">obj</span><span class="o">.</span><span class="n">constraints</span><span class="p">()</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Maximize</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">accumulation</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
