@@ -798,15 +798,15 @@ For example:
 .. code:: python
 
   problem = cp.Problem(objective, constraints)
-  data, _, _ = problem.get_problem_data(cp.SCS)
+  probdata, _, _ = problem.get_problem_data(cp.SCS)
 
   import scs
-  probdata = {
-    'A': data['A'],
-    'b': data['b'],
-    'c': data['c'],
+  data = {
+    'A': probdata['A'],
+    'b': probdata['b'],
+    'c': probdata['c'],
   }
-  cone_dims = data['dims']
+  cone_dims = probdata['dims']
   cones = {
       "f": cone_dims.zero,
       "l": cone_dims.nonpos,
