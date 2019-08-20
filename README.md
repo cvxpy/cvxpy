@@ -73,7 +73,7 @@ CVXPY has the following dependencies:
 - SciPy >= 1.1.0
 
 For detailed instructions, see the [installation
-guide](http://www.cvxpy.org/en/latest/install/index.html).
+guide](https://www.cvxpy.org/install/index.html).
 
 **Python 2.7 end of life**: The CVXPY development team plans to stop supporting Python 2 later this year, starting with the release of CVXPY 1.1.
 
