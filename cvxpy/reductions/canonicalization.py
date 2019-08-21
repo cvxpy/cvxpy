@@ -18,6 +18,8 @@ from cvxpy import problems
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions import InverseData, Reduction, Solution
+from cvxpy.reductions.utilities import tensor_mul
+import scipy.sparse as sp
 
 
 class Canonicalization(Reduction):
@@ -30,9 +32,15 @@ class Canonicalization(Reduction):
     def apply(self, problem):
         inverse_data = InverseData(problem)
 
+        primal_tensor = {}
+        for var in problem.variables():
+            primal_tensor[var.id] = {var.id: sp.eye(var.size)}
+        inverse_data.primal_tensor = primal_tensor
+
         canon_objective, canon_constraints = self.canonicalize_tree(
             problem.objective)
 
+        dual_tensor = {}
         for constraint in problem.constraints:
             # canon_constr is the constraint rexpressed in terms of
             # its canonicalized arguments, and aux_constr are the constraints
@@ -43,19 +51,21 @@ class Canonicalization(Reduction):
             canon_constraints += aux_constr + [canon_constr]
             for dv_old, dv_new in zip(constraint.dual_variables,
                                       canon_constr.dual_variables):
-                inverse_data.dv_id_map.update({dv_old.id:
-                                               dv_new.id})
+                dual_tensor[dv_old.id] = {dv_new.id: sp.eye(dv_new.shape)}
+        inverse_data.dual_tensor = dual_tensor
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
         return new_problem, inverse_data
 
     def invert(self, solution, inverse_data):
-        pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
-                 if vid in solution.primal_vars}
-        dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in inverse_data.dv_id_map.items()
-                 if vid in solution.dual_vars}
+        pvars = tensor_mul(inverse_data.primal_tensor, solution.primal_vars)
+        dvars = tensor_mul(inverse_data.dual_tensor, solution.dual_vars)
+        # pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
+        #          if vid in solution.primal_vars}
+        # dvars = {orig_id: solution.dual_vars[vid]
+        #          for orig_id, vid in inverse_data.dv_id_map.items()
+        #          if vid in solution.dual_vars}
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
 
