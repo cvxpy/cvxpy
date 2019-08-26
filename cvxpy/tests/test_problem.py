@@ -1401,7 +1401,7 @@ class TestProblem(BaseTest):
         """
         tt = cp.Variable(5)
         prob = cp.Problem(cp.Maximize(cp.sum(tt)),
-                          [cp.cummax(tt, 0) <= numpy.array([1,2,3,4,5])])
+                          [cp.cummax(tt, 0) <= numpy.array([1, 2, 3, 4, 5])])
         result = prob.solve()
         self.assertAlmostEqual(result, 15)
 
