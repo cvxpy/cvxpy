@@ -73,8 +73,15 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="c1"># TODO allow imaginary X.</span>
-        <span class="k">assert</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">t</span><span class="o">.</span><span class="n">is_real</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid first argument.&quot;</span><span class="p">)</span>
+        <span class="c1"># Check t has one entry per cone.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> \
+           <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">t</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="o">-</span><span class="n">axis</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Argument dimensions </span><span class="si">%s</span><span class="s2"> and </span><span class="si">%s</span><span class="s2">, with axis=</span><span class="si">%i</span><span class="s2">, are incompatible.&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">axis</span><span class="p">)</span>
+            <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">axis</span> <span class="o">=</span> <span class="n">axis</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">SOC</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">t</span><span class="p">,</span> <span class="n">X</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
 
@@ -146,12 +153,8 @@
     <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="c1"># TODO hack</span>
-    <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">t</span><span class="p">,</span> <span class="n">t_cons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
-        <span class="n">X</span><span class="p">,</span> <span class="n">X_cons</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
-        <span class="n">new_soc</span> <span class="o">=</span> <span class="n">SOC</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">axis</span><span class="p">)</span>
-        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="n">new_soc</span><span class="p">]</span> <span class="o">+</span> <span class="n">t_cons</span> <span class="o">+</span> <span class="n">X_cons</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span></div>
 </pre></div>
 
           </div>

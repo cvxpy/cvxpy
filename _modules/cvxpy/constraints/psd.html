@@ -106,6 +106,9 @@
     <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
 
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The residual of the constraint.</span>

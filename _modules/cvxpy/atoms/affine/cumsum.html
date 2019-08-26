@@ -173,7 +173,7 @@
 <span class="sd">            (LinOp for objective, list of constraints)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Implicit O(n) definition:</span>
-        <span class="c1"># X = Y[:1,:] - Y[1:,:]</span>
+        <span class="c1"># X = Y[1:,:] - Y[:-1, :]</span>
         <span class="n">Y</span> <span class="o">=</span> <span class="n">lu</span><span class="o">.</span><span class="n">create_var</span><span class="p">(</span><span class="n">shape</span><span class="p">)</span>
         <span class="n">axis</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="n">shape</span><span class="p">[</span><span class="n">axis</span><span class="p">]</span>

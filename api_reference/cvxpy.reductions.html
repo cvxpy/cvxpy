@@ -399,7 +399,7 @@ problem.</p>
 
 <dl class="method">
 <dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data">
-<code class="descname">solve_via_data</code><span class="sig-paren">(</span><em>problem</em>, <em>data</em>, <em>warm_start</em>, <em>verbose</em>, <em>solver_opts</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.solve_via_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data" title="Permalink to this definition">¶</a></dt>
+<code class="descname">solve_via_data</code><span class="sig-paren">(</span><em>problem</em>, <em>data</em>, <em>warm_start=False</em>, <em>verbose=False</em>, <em>solver_opts={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.solve_via_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the problem using the data output by the an apply invocation.</p>
 <p>The semantics are:</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>

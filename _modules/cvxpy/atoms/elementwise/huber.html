@@ -133,9 +133,7 @@
     <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Checks that M &gt;= 0 and is constant.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">M</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;M must be a non-negative scalar constant.&quot;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">huber</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">validate_arguments</span><span class="p">()</span>
 

@@ -56,12 +56,12 @@
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">fastcache</span> <span class="k">import</span> <span class="n">clru_cache</span>
-<span class="kn">import</span> <span class="nn">cvxpy.interface</span> <span class="k">as</span> <span class="nn">intf</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.leaf</span> <span class="k">import</span> <span class="n">Leaf</span>
-<span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="k">import</span> <span class="n">EIGVAL_TOL</span>
 <span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
-<span class="kn">from</span> <span class="nn">scipy.sparse.linalg</span> <span class="k">import</span> <span class="n">eigsh</span>
+<span class="kn">import</span> <span class="nn">cvxpy.interface</span> <span class="k">as</span> <span class="nn">intf</span>
+<span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="k">import</span> <span class="n">EIGVAL_TOL</span>
+<span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="k">import</span> <span class="n">performance_utils</span> <span class="k">as</span> <span class="n">perf</span>
+<span class="kn">from</span> <span class="nn">scipy</span> <span class="k">import</span> <span class="n">linalg</span> <span class="k">as</span> <span class="n">LA</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
@@ -89,8 +89,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_nonneg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nonpos</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_symm</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_herm</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Constant</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">intf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -102,6 +101,9 @@
         <span class="sd">&quot;&quot;&quot;Returns self as a constant.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -170,13 +172,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_compute_attr</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_imag</span>
 
-    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_complex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the Leaf complex valued?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">iscomplexobj</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
-    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the expression symmetric?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -189,7 +191,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_hermitian</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the expression a Hermitian matrix?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -223,7 +225,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_symm</span> <span class="o">=</span> <span class="n">is_symm</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_herm</span> <span class="o">=</span> <span class="n">is_herm</span>
 
-    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_psd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the expression a positive semidefinite matrix?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -239,14 +241,12 @@
         <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="c1"># Compute bottom eigenvalue if absent.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">=</span> <span class="n">eigsh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                                     <span class="n">which</span><span class="o">=</span><span class="s1">&#39;SA&#39;</span><span class="p">,</span>
-                                     <span class="n">return_eigenvectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">EIGVAL_TOL</span>
+        <span class="c1"># Compute eigenvalues if absent.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compute_eigvals</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span><span class="o">.</span><span class="n">real</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">EIGVAL_TOL</span><span class="p">)</span>
 
-    <span class="nd">@clru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_nsd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the expression a negative semidefinite matrix?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -262,12 +262,19 @@
         <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_hermitian</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-        <span class="c1"># Compute top eigenvalue if absent.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">=</span> <span class="n">eigsh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                                  <span class="n">which</span><span class="o">=</span><span class="s1">&#39;LA&#39;</span><span class="p">,</span>
-                                  <span class="n">return_eigenvectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">&lt;=</span> <span class="n">EIGVAL_TOL</span></div>
+        <span class="c1"># Compute eigenvalues if absent.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_compute_eigvals</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span><span class="o">.</span><span class="n">real</span> <span class="o">&lt;=</span> <span class="n">EIGVAL_TOL</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_compute_eigvals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Compute the eigenvalues of the Hermitian or</span>
+<span class="sd">        symmetric matrix represented by this constant.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sparse</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span> <span class="o">=</span> <span class="n">LA</span><span class="o">.</span><span class="n">eigvalsh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">todense</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_eigvals</span> <span class="o">=</span> <span class="n">LA</span><span class="o">.</span><span class="n">eigvalsh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">)</span></div>
 </pre></div>
 
           </div>

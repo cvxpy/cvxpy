@@ -189,9 +189,14 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Minimize.is_dgp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.objective.Minimize.is_dgp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The objective must be log_log_convex.</span>
+        <span class="sd">&quot;&quot;&quot;The objective must be log-log convex.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The objective must be quasiconvex.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_quasiconvex</span><span class="p">()</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">primal_to_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>
@@ -243,6 +248,11 @@
         <span class="sd">&quot;&quot;&quot;The objective must be log-log concave.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;The objective must be quasiconcave.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_quasiconcave</span><span class="p">()</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">primal_to_result</span><span class="p">(</span><span class="n">result</span><span class="p">):</span>

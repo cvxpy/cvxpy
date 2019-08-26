@@ -96,7 +96,9 @@
 <span class="sd">    &gt;&gt;&gt; print(dgp_problem.variables())</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span>
+        <span class="c1"># Canonicalization of DGP is stateful; canon_methods created</span>
+        <span class="c1"># in `apply`.</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">Dgp2Dcp</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">canon_methods</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Dgp2Dcp.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;A problem is accepted if it is DGP.</span>

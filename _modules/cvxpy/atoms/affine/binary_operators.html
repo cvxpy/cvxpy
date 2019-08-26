@@ -63,7 +63,6 @@
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.affine_atom</span> <span class="k">import</span> <span class="n">AffAtom</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.add_expr</span> <span class="k">import</span> <span class="n">AddExpression</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.promote</span> <span class="k">import</span> <span class="n">promote</span>
-<span class="kn">from</span> <span class="nn">cvxpy.expressions.constants</span> <span class="k">import</span> <span class="n">Parameter</span>
 <span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="k">import</span> <span class="n">DCPError</span>
 <span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
 <span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
@@ -154,17 +153,6 @@
         <span class="sd">&quot;&quot;&quot;Returns the (row, col) shape of the expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">mul_shapes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">&#39;CP&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;The expression is a disciplined parameterized expression.</span>
-
-<span class="sd">           context: cone program (CP) or quadratic program (QP)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">is_dpp</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-                <span class="n">is_dpp</span> <span class="o">&amp;=</span> <span class="nb">type</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span> <span class="o">==</span> <span class="n">Parameter</span>
-        <span class="k">return</span> <span class="n">is_dpp</span>
 
     <span class="k">def</span> <span class="nf">is_atom_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Multiplication is convex (affine) in its arguments only if one of</span>
@@ -284,6 +272,18 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
 
+    <span class="k">def</span> <span class="nf">is_atom_quasiconvex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_constant</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">())</span> <span class="ow">or</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">is_atom_quasiconcave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_constant</span><span class="p">())</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Multiplies the values elementwise.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -341,7 +341,7 @@
                            <span class="s2">&quot;DCP.&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="DivExpression"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.DivExpression">[docs]</a><span class="k">class</span> <span class="nc">DivExpression</span><span class="p">(</span><span class="n">BinaryOperator</span><span class="p">):</span>
+<div class="viewcode-block" id="DivExpression"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.DivExpression">[docs]</a><span class="k">class</span> <span class="nc">DivExpression</span><span class="p">(</span><span class="n">multiply</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Division by scalar.</span>
 
 <span class="sd">    Can be created by using the / operator of expression.</span>
@@ -349,15 +349,6 @@
 
     <span class="n">OP_NAME</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span>
     <span class="n">OP_FUNC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">):</span>
-        <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">DivExpression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">)</span>
-        <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">DivExpression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">rh_expr</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-            <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">promote</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-            <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">promote</span><span class="p">(</span><span class="n">rh_expr</span><span class="p">,</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">DivExpression</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Divides numerator by denominator.</span>
@@ -396,6 +387,12 @@
         <span class="sd">&quot;&quot;&quot;Is the atom log-log concave?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="kc">True</span>
+
+    <span class="k">def</span> <span class="nf">is_atom_quasiconvex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">is_atom_quasiconcave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_atom_quasiconvex</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">is_incr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">idx</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Is the composition non-decreasing in argument idx?</span>

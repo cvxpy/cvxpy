@@ -41,7 +41,7 @@
             
   <h1>Source code for cvxpy.constraints.nonpos</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Copyright 2013 Steven Diamond</span>
+<span class="sd">Copyright, the CVXPY authors</span>
 
 <span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="sd">you may not use this file except in compliance with the License.</span>
@@ -81,8 +81,6 @@
 <span class="sd">        A unique id for the constraint.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">constr_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">is_complex</span><span class="p">():</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inequality constraints cannot be complex.&quot;</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">NonPos</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">([</span><span class="n">expr</span><span class="p">],</span> <span class="n">constr_id</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -94,6 +92,9 @@
 
     <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_quasiconvex</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the graph implementation of the object.</span>
@@ -166,6 +167,12 @@
     <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">()</span> <span class="ow">and</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span> <span class="ow">or</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_quasiconvex</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_constant</span><span class="p">())</span> <span class="ow">or</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_quasiconcave</span><span class="p">()))</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">residual</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

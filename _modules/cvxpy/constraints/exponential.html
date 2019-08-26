@@ -125,12 +125,6 @@
         <span class="c1"># TODO use size of dual variable(s) instead.</span>
         <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cone_sizes</span><span class="p">())</span>
 
-    <span class="c1"># @property</span>
-    <span class="c1"># def shape(self):</span>
-    <span class="c1">#     &quot;&quot;&quot;Represented as vectorized.</span>
-    <span class="c1">#     &quot;&quot;&quot;</span>
-    <span class="c1">#     return (self.size,)</span>
-
     <span class="k">def</span> <span class="nf">num_cones</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;The number of elementwise cones.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -153,6 +147,9 @@
 
     <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Canonicalizes by converting expressions to LinOps.</span>
