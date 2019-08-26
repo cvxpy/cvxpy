@@ -17,16 +17,17 @@ limitations under the License.
 from cvxpy.expressions.variable import Variable
 
 
-def cumsum_canon(expr, args):
-    """Cumulative sum.
+def cummax_canon(expr, args):
+    """Cumulative max.
     """
     X = args[0]
     axis = expr.axis
     # Implicit O(n) definition:
-    # X = Y[:1,:] - Y[1:, :]
+    # Y_{k} = maximum(Y_{k-1}, X_k)
     Y = Variable(expr.shape)
+    constr = [X <= Y]
     if axis == 0:
-        constr = [X[1:] == Y[1:] - Y[:-1], Y[0] == X[0]]
+        constr += [Y[:-1] <= Y[1:]]
     else:
-        constr = [X[:, 1:] == Y[:, 1:] - Y[:, :-1], Y[:, 0] == X[:, 0]]
+        constr += [Y[:, :-1] <= Y[:, 1:]]
     return (Y, constr)

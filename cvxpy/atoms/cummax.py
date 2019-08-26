@@ -20,17 +20,22 @@ import numpy as np
 
 
 class cummax(AxisAtom):
-    """:math:`\\max_{i,j}\\{X_{i,j}\\}`.
+    """Cumulative maximum.
     """
 
-    def __init__(self, x, axis=None):
+    def __init__(self, x, axis=0):
         super(cummax, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the largest entry in x.
         """
-        return values[0].max(axis=self.axis)
+        return np.maximum.accumulate(values[0], axis=self.axis)
+
+    def shape_from_args(self):
+        """The same as the input.
+        """
+        return self.args[0].shape
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -56,11 +61,13 @@ class cummax(AxisAtom):
         Returns:
             A NumPy ndarray or None.
         """
-        # Grad: 1 for a largest index.
+        # Grad: 1 wherever maximum changes.
         value = np.array(value).ravel(order='F')
-        idx = np.argmax(value)
+        maxes = np.maximum.accumulate(value)
         D = np.zeros((value.size, 1))
-        D[idx] = 1
+        D[0] = 1
+        if value.size > 1:
+            D[1:] = maxes[1:] > maxes[:-1]
         return D
 
     def sign_from_args(self):
@@ -68,6 +75,11 @@ class cummax(AxisAtom):
         """
         # Same as argument.
         return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
+
+    def get_data(self):
+        """Returns the axis being summed.
+        """
+        return [self.axis]
 
     def is_atom_convex(self):
         """Is the atom convex?

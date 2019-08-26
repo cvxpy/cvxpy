@@ -1396,6 +1396,15 @@ class TestProblem(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, -0.0001)
 
+    def test_cummax(self):
+        """Test problems with cummax.
+        """
+        tt = cp.Variable(5)
+        prob = cp.Problem(cp.Maximize(cp.sum(tt)),
+                          [cp.cummax(tt, 0) <= numpy.array([1,2,3,4,5])])
+        result = prob.solve()
+        self.assertAlmostEqual(result, 15)
+
     def test_vec(self):
         """Tests problems with vec.
         """
