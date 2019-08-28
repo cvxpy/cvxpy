@@ -180,6 +180,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         c, x = self.stuffed_objective(problem, extractor)
         # Lower equality and inequality to Zero and NonPos.
         cons = []
+        dual_size = 0
         for con in problem.constraints:
             orig_con = con
             if isinstance(con, Equality):
@@ -190,9 +191,8 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
             cons.append(con)
-            for dv_old, dv_new in zip(orig_con.dual_variables,
-                                      con.dual_variables):
-                inverse_data.dv_id_map[dv_new] = dv_old
+            for dv in orig_con.dual_variables:
+                dual_size += dv.size
         # Reorder constraints to Zero, NonPos, SOC, PSD, EXP.
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonPos] + \
@@ -202,6 +202,28 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Batch expressions together, then split apart.
         expr_list = [arg for c in ordered_cons for arg in c.args]
         A = extractor.affine(expr_list)
+
+        # Make primal tensor.
+        offset = 0
+        primal_tensor = {}
+        diag_mat = sp.eye(x.size).tocsc()
+        for var_id, offset in inverse_data.var_offsets.items():
+            shape = inverse_data.var_shapes[var_id]
+            size = np.prod(shape, dtype=int)
+            primal_tensor[var_id] = {x.id: diag_mat[offset:offset+size, :]}
+        inverse_data.primal_tensor = primal_tensor
+
+        # Make dual tensor.
+        offset = 0
+        dual_tensor = {}
+        diag_mat = sp.eye(dual_size).tocsc()
+        for con in ordered_cons:
+            for dv in con.dual_variables:
+                dual_tensor[dv.id] = {
+                    x.id: diag_mat[offset:offset+dv.size, :]
+                }
+                offset += dv.size
+        inverse_data.dual_tensor = dual_tensor
 
         # Map of old constraint id to new constraint id.
         inverse_data.minimize = type(problem.objective) == Minimize
