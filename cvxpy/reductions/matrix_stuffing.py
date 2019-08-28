@@ -15,15 +15,18 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import Equality, ExpCone, Inequality, SOC
+from cvxpy.constraints import Equality, Inequality, SOC
 from cvxpy.reductions import Reduction, Solution, InverseData
-from cvxpy.reductions.utilities import lower_equality, lower_inequality
+from cvxpy.reductions.utilities import (lower_equality,
+                                        lower_inequality,
+                                        tensor_mul)
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.atoms import reshape
 from cvxpy import problems
 from cvxpy.problems.objective import Minimize
 import abc
 import numpy as np
+import scipy.sparse as sp
 
 
 def extract_mip_idx(variables):
@@ -95,6 +98,16 @@ class MatrixStuffing(Reduction):
                           constr_id=con.constr_id)
             cons.append(con)
 
+        # Make primal tensor.
+        offset = 0
+        primal_tensor = {}
+        diag_mat = sp.eye(new_var.size).tocsc()
+        for var_id, offset in inverse_data.var_offsets.items():
+            shape = inverse_data.var_shapes[var_id]
+            size = np.prod(shape, dtype=int)
+            primal_tensor[var_id] = {new_var.id: diag_mat[offset:offset+size, :]}
+        inverse_data.primal_tensor = primal_tensor
+
         # Batch expressions together, then split apart.
         expr_list = [arg for c in cons for arg in c.args]
         # TODO QPs go here for constraints. Need to cast into right dimensions.
@@ -105,6 +118,7 @@ class MatrixStuffing(Reduction):
 
         new_cons = []
         offset = 0
+        dual_size = 0
         for con in cons:
             arg_list = []
             for arg in con.args:
@@ -113,9 +127,20 @@ class MatrixStuffing(Reduction):
                 arg_list.append(reshape(A*new_var + b, arg.shape))
                 offset += arg.size
             new_cons.append(con.copy(arg_list))
-            for dv_old, dv_new in zip(con.dual_variables,
-                                      new_cons[-1].dual_variables):
-                inverse_data.dv_id_map[dv_new] = dv_old
+            for dv in con.dual_variables:
+                dual_size += dv
+
+        # Make dual tensor.
+        offset = 0
+        dual_tensor = {}
+        diag_mat = sp.eye(dual_size).tocsc()
+        for con in cons:
+            for dv in con.dual_variables:
+                dual_tensor[dv.id] = {
+                    new_var.id: diag_mat[offset:offset+dv.size, :]
+                }
+                offset += dv.size
+        inverse_data.dual_tensor = dual_tensor
 
         inverse_data.minimize = type(problem.objective) == Minimize
         new_prob = problems.problem.Problem(Minimize(new_obj), new_cons)
@@ -123,7 +148,7 @@ class MatrixStuffing(Reduction):
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data."""
-        var_map = inverse_data.var_offsets
+        # var_map = inverse_data.var_offsets
         # Flip sign of opt val if maximize.
         opt_val = solution.opt_val
         if solution.status not in s.ERROR and not inverse_data.minimize:
@@ -134,34 +159,33 @@ class MatrixStuffing(Reduction):
             return Solution(solution.status, opt_val, primal_vars, dual_vars,
                             solution.attr)
 
-        # TODO make a double dictionary full of matrices
-        # to represent mapping from primal to primal and dual to dual.
+        # # Split vectorized variable into components.
+        # x_opt = list(solution.primal_vars.values())[0]
+        # for var_id, offset in var_map.items():
+        #     shape = inverse_data.var_shapes[var_id]
+        #     size = np.prod(shape, dtype=int)
+        #     primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
+        #                                      order='F')
 
-        # Split vectorized variable into components.
-        x_opt = list(solution.primal_vars.values())[0]
-        for var_id, offset in var_map.items():
-            shape = inverse_data.var_shapes[var_id]
-            size = np.prod(shape, dtype=int)
-            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
-                                             order='F')
+        # # Remap dual variables if dual exists (problem is convex).
+        # if solution.dual_vars is not None:
+        #     # Giant dual variable.
+        #     dual_var = list(solution.dual_vars.values())[0]
+        #     offset = 0
+        #     for constr in inverse_data.constraints:
+        #         for dv in constr.dual_variables:
+        #             dv_old = inverse_data.dv_id_map[dv.id]
+        #             dual_vars[dv_old] = np.reshape(
+        #                 dual_var[offset:offset+dv.size],
+        #                 dv.shape,
+        #                 order='F'
+        #             )
+        #             offset += dv.size
+        pvars = tensor_mul(inverse_data.primal_tensor, solution.primal_vars)
+        dvars = tensor_mul(inverse_data.dual_tensor, solution.dual_vars)
 
-        # Remap dual variables if dual exists (problem is convex).
-        if solution.dual_vars is not None:
-            # Giant dual variable.
-            dual_var = list(solution.dual_vars.values())[0]
-            offset = 0
-            for constr in inverse_data.constraints:
-                for dv in constr.dual_variables:
-                    dv_old = inverse_data.dv_id_map[dv.id]
-                    dual_vars[dv_old] = np.reshape(
-                        dual_var[offset:offset+dv.size],
-                        dv.shape,
-                        order='F'
-                    )
-                    offset += dv.size
-
-        return Solution(solution.status, opt_val, primal_vars, dual_vars,
-                        solution.attr)
+        return Solution(solution.status, opt_val, pvars,
+                        dvars, solution.attr)
 
     def stuffed_objective(self, problem, inverse_data):
         return NotImplementedError
