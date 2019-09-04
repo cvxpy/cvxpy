@@ -746,6 +746,30 @@ The following cut-generators are available:
 ``'CutGenName'``
     if cut-generator is activated (e.g. ``'GomoryCuts=True'``)
 
+``'integerTolerance'``
+    an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away
+
+``'maximumSeconds'``
+    stop after given amount of seconds
+
+``'maximumNodes'``
+    stop after given maximum number of nodes
+
+``'maximumSolutions'``
+    stop after evalutation x number of solutions
+
+``'numberThreads'``
+    sets the number of threads
+
+``'allowableGap'``
+    returns a solution if the gap between the best known solution and the best possible solution is less than this value.
+
+``'allowableFractionGap'``
+    returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.
+
+``'allowablePercentageGap'``
+    returns if the gap between the best known solution and the best possible solution is less than this percentage.
+
 `CPLEX`_ options:
 
 ``'cplex_params'``
