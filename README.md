@@ -64,7 +64,6 @@ pip install cvxpy
 CVXPY has the following dependencies:
 
 - Python 2.7, 3.4, 3.5, 3.6, or 3.7.
-- six
 - multiprocess
 - OSQP
 - ECOS >= 2
