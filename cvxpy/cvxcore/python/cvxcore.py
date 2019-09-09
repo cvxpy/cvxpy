@@ -3,13 +3,19 @@
 #
 # Do not make changes to this file unless you know what you are doing--modify
 # the SWIG interface file instead.
-
-
-
-
-
-from sys import version_info
-if version_info >= (2, 6, 0):
+from sys import version_info as _swig_python_version_info
+if _swig_python_version_info >= (2, 7, 0):
+    def swig_import_helper():
+        import importlib
+        pkg = __name__.rpartition('.')[0]
+        mname = '.'.join((pkg, '_cvxcore')).lstrip('.')
+        try:
+            return importlib.import_module(mname)
+        except ImportError:
+            return importlib.import_module('_cvxcore')
+    _cvxcore = swig_import_helper()
+    del swig_import_helper
+elif _swig_python_version_info >= (2, 6, 0):
     def swig_import_helper():
         from os.path import dirname
         import imp
@@ -19,17 +25,18 @@ if version_info >= (2, 6, 0):
         except ImportError:
             import _cvxcore
             return _cvxcore
-        if fp is not None:
-            try:
-                _mod = imp.load_module('_cvxcore', fp, pathname, description)
-            finally:
+        try:
+            _mod = imp.load_module('_cvxcore', fp, pathname, description)
+        finally:
+            if fp is not None:
                 fp.close()
-            return _mod
+        return _mod
     _cvxcore = swig_import_helper()
     del swig_import_helper
 else:
     import _cvxcore
-del version_info
+del _swig_python_version_info
+
 try:
     _swig_property = property
 except NameError:
