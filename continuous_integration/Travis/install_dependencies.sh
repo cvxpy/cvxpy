@@ -27,6 +27,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         echo "python=$PYTHON_VERSION" >> $PIN_FILE
         conda install -c conda-forge --yes lapack
         conda install -c conda-forge --yes ecos scs multiprocess
+        conda install -c oxfordcontrol --yes osqp
         conda install -c default --yes flake8
 
         # Install GLPK.
@@ -49,6 +50,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         touch $PIN_FILE
         echo "python=$PYTHON_VERSION.*" >> $PIN_FILE
         conda install -c conda-forge --yes ecos scs multiprocess
+        conda install -c oxfordcontrol --yes osqp
         conda install -c default --yes flake8=3.5.0
     fi
 
