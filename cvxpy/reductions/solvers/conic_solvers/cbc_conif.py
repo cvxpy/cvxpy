@@ -36,7 +36,7 @@ class CBC(SCS):
                       'stopped on user event': s.SOLVER_ERROR,
                       'stopped on nodes': s.OPTIMAL_INACCURATE,
                       'stopped on gap': s.OPTIMAL_INACCURATE,
-                      'stopped on time':s.OPTIMAL_INACCURATE,
+                      'stopped on time': s.OPTIMAL_INACCURATE,
                       'stopped on solutions': s.OPTIMAL_INACCURATE,
                       'linear relaxation unbounded': s.UNBOUNDED,
                       'unset': s.UNBOUNDED}
