@@ -39,6 +39,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="advanced-features">
@@ -777,6 +779,22 @@ It is slower, but more robust.</dd>
 <dd><code class="docutils literal"><span class="pre">GomoryCuts</span></code>, <code class="docutils literal"><span class="pre">MIRCuts</span></code>, <code class="docutils literal"><span class="pre">MIRCuts2</span></code>, <code class="docutils literal"><span class="pre">TwoMIRCuts</span></code>, <code class="docutils literal"><span class="pre">ResidualCapacityCuts</span></code>, <code class="docutils literal"><span class="pre">KnapsackCuts</span></code> <code class="docutils literal"><span class="pre">FlowCoverCuts</span></code>, <code class="docutils literal"><span class="pre">CliqueCuts</span></code>, <code class="docutils literal"><span class="pre">LiftProjectCuts</span></code>, <code class="docutils literal"><span class="pre">AllDifferentCuts</span></code>, <code class="docutils literal"><span class="pre">OddHoleCuts</span></code>, <code class="docutils literal"><span class="pre">RedSplitCuts</span></code>, <code class="docutils literal"><span class="pre">LandPCuts</span></code>, <code class="docutils literal"><span class="pre">PreProcessCuts</span></code>, <code class="docutils literal"><span class="pre">ProbingCuts</span></code>, <code class="docutils literal"><span class="pre">SimpleRoundingCuts</span></code>.</dd>
 <dt><code class="docutils literal"><span class="pre">'CutGenName'</span></code></dt>
 <dd>if cut-generator is activated (e.g. <code class="docutils literal"><span class="pre">'GomoryCuts=True'</span></code>)</dd>
+<dt><code class="docutils literal"><span class="pre">'integerTolerance'</span></code></dt>
+<dd>an integer variable is deemed to be at an integral value if it is no further than this value (tolerance) away</dd>
+<dt><code class="docutils literal"><span class="pre">'maximumSeconds'</span></code></dt>
+<dd>stop after given amount of seconds</dd>
+<dt><code class="docutils literal"><span class="pre">'maximumNodes'</span></code></dt>
+<dd>stop after given maximum number of nodes</dd>
+<dt><code class="docutils literal"><span class="pre">'maximumSolutions'</span></code></dt>
+<dd>stop after evalutation x number of solutions</dd>
+<dt><code class="docutils literal"><span class="pre">'numberThreads'</span></code></dt>
+<dd>sets the number of threads</dd>
+<dt><code class="docutils literal"><span class="pre">'allowableGap'</span></code></dt>
+<dd>returns a solution if the gap between the best known solution and the best possible solution is less than this value.</dd>
+<dt><code class="docutils literal"><span class="pre">'allowableFractionGap'</span></code></dt>
+<dd>returns a solution if the gap between the best known solution and the best possible solution is less than this fraction.</dd>
+<dt><code class="docutils literal"><span class="pre">'allowablePercentageGap'</span></code></dt>
+<dd>returns if the gap between the best known solution and the best possible solution is less than this percentage.</dd>
 </dl>
 <p><a class="reference external" href="https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/">CPLEX</a> options:</p>
 <dl class="docutils">
@@ -859,6 +877,7 @@ The full set of reductions available is discussed in <a class="reference interna
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -958,8 +977,8 @@ The full set of reductions available is discussed in <a class="reference interna
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../../_sources/tutorial/advanced/index.rst.txt"
