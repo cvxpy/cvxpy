@@ -197,7 +197,7 @@ non-DQCP problems:
     x = cp.Variable(nonneg=True)
     concave_fractional_fn = x * cp.sqrt(x)
     constraint = [cp.ceil(x) <= 10]
-    problem = cp.Problem(cp.Maximize(concave_frac), constraint)
+    problem = cp.Problem(cp.Maximize(concave_fractional_fn), constraint)
     assert concave_fractional_fn.is_quasiconcave()
     assert constraint[0].is_dqcp()
     assert problem.is_dqcp()
