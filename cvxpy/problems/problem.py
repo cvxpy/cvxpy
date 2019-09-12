@@ -429,7 +429,7 @@ class Problem(u.Canonical):
                                     gp=gp)
 
     def _solve(self,
-               solver='SCS',
+               solver=None,
                warm_start=True,
                verbose=False,
                gp=False, **kwargs):
