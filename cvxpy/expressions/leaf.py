@@ -342,6 +342,18 @@ class Leaf(expression.Expression):
 
     # Getter and setter for parameter value.
     def save_value(self, val):
+        if not np.isscalar(val):
+            # If val should be a scalar,
+            # it is scalarized.
+            if self.ndim == 0:
+                if val.ndim == 1:
+                    val = val[0]
+                elif val.ndim == 2:
+                    val = val[0, 0]
+            # If val is a vector, will be converted
+            # to a matrix of the appropriate size.
+            if self.ndim == 2 and val.ndim == 1:
+                val = np.reshape(val, self.shape)
         self._value = val
 
     @property

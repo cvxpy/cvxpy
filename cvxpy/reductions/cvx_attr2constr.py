@@ -87,6 +87,8 @@ class CvxAttr2Constr(Reduction):
                         new_var = True
                         new_attr[key] = False
 
+                # The mapping from new variable value to old variable value.
+                coeff_mat = None
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
                     shape = (n*(n+1)//2, 1)
@@ -95,7 +97,7 @@ class CvxAttr2Constr(Reduction):
                     fill_coeff = upper_tri_to_full(n)
                     full_mat = Constant(fill_coeff)*upper_tri
                     obj = reshape(full_mat, (n, n))
-                    primal_tensor[var.id] = {var.id: fill_coeff}
+                    coeff_mat = fill_coeff
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], **new_attr)
                     id2new_var[var.id] = diag_var
@@ -106,14 +108,19 @@ class CvxAttr2Constr(Reduction):
                     cols = np.arange(var.shape[0])
                     mat = sp.coo_matrix((vals, (rows, cols)),
                                         shape=(diag_var.size, var.shape[0]))
-                    mat = mat.tocsc()
-                    primal_tensor[var.id] = {var.id: mat}
+                    coeff_mat = mat.tocsc()
                 elif new_var:
                     obj = Variable(var.shape, **new_attr)
                     id2new_var[var.id] = obj
                 else:
                     obj = var
                     id2new_var[var.id] = obj
+
+                # Map from new to old variable value.
+                if coeff_mat is None:
+                    # Default is identity.
+                    coeff_mat = sp.eye(var.size, var.size, format="csc")
+                primal_tensor[var.id] = {id2new_var[var.id].id: coeff_mat}
 
                 id2new_obj[id(var)] = obj
                 if var.is_pos() or var.is_nonneg():
@@ -133,7 +140,9 @@ class CvxAttr2Constr(Reduction):
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             for dv_old, dv_new in zip(cons.dual_variables,
                                       constr[-1].dual_variables):
-                dual_tensor[dv_old.id] = {dv_new.id: sp.eye(dv_new.size)}
+                dual_tensor[dv_old.id] = {dv_new.id: sp.eye(dv_new.size,
+                                                            dv_new.size,
+                                                            format="csc")}
         inverse_data.dual_tensor = dual_tensor
         return cvxtypes.problem()(obj, constr), inverse_data
 
