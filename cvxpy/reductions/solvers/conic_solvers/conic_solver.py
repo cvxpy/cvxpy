@@ -111,15 +111,12 @@ class ConicSolver(Solver):
         SciPy CSC matrix
             A sparse matrix
         """
-        val_arr = []
-        row_arr = []
-        col_arr = []
-        # Selects from each column.
-        for var_row in range(num_blocks):
-            for i in range(streak):
-                val_arr.append(np.float64(1.0))
-                row_arr.append((streak + spacing)*var_row + i + offset)
-                col_arr.append(var_row*streak + i)
+        num_values = num_blocks * streak
+        val_arr = np.ones(num_values, dtype=np.float64)
+        streak_plus_spacing = streak + spacing
+        row_arr = np.arange(0, num_blocks * streak_plus_spacing).reshape(
+            num_blocks, streak_plus_spacing)[:, :streak].flatten() + offset
+        col_arr = np.arange(num_values)
         return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
     def psd_format_mat(self, constr):
@@ -174,29 +171,29 @@ class ConicSolver(Solver):
                 #     coeffs[0][1, :]
                 #     coeffs[1][gap-1:2*(gap-1), :]
                 t_spacer = ConicSolver.get_spacing_matrix(
-                    (total_height, constr.args[0].size),
-                    constr.args[1].shape[0],
-                    1,
-                    constr.args[0].size,
-                    0,
+                    shape=(total_height, constr.args[0].size),
+                    spacing=constr.args[1].shape[0],
+                    streak=1,
+                    num_blocks=constr.args[0].size,
+                    offset=0,
                 )
                 X_spacer = ConicSolver.get_spacing_matrix(
-                    (total_height, constr.args[1].size),
-                    1,
-                    constr.args[1].shape[0],
-                    constr.args[0].size,
-                    1,
+                    shape=(total_height, constr.args[1].size),
+                    spacing=1,
+                    streak=constr.args[1].shape[0],
+                    num_blocks=constr.args[0].size,
+                    offset=1,
                 )
                 restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
             elif type(constr) == ExpCone:
                 arg_mats = []
                 for i, arg in enumerate(constr.args):
                     space_mat = ConicSolver.get_spacing_matrix(
-                        (total_height, arg.size),
-                        len(exp_cone_order) - 1,
-                        1,
-                        arg.size,
-                        exp_cone_order[i],
+                        shape=(total_height, arg.size),
+                        spacing=len(exp_cone_order) - 1,
+                        streak=1,
+                        num_blocks=arg.size,
+                        offset=exp_cone_order[i],
                     )
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
