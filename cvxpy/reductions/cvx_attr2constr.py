@@ -114,7 +114,7 @@ class CvxAttr2Constr(Reduction):
 
         # Create new problem.
         obj = problem.objective.tree_copy(id_objects=id2new_obj)
-        cons_id_map = {}
+        dv_id_map = {}
         for cons in problem.constraints:
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             for dv_old, dv_new in zip(cons.dual_variables,
