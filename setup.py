@@ -83,5 +83,4 @@ setup(
             ),
         ],
     },
-    use_2to3=True,
 )
