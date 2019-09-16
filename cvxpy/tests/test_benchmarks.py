@@ -20,6 +20,7 @@ def benchmark(func, *func_args, **bench_kwargs):
 
 class TestBenchmarks(BaseTest):
     def test_diffcp_sdp_example(self):
+        self.fail("This test takes too long.")
         def randn_symm(n):
             A = np.random.randn(n, n)
             return (A + A.T) / 2
@@ -44,6 +45,8 @@ class TestBenchmarks(BaseTest):
         benchmark(diffcp_sdp, iters=1)
 
     def test_tv_inpainting(self):
+        self.fail("This test takes too long and gets killed by the OS. "
+                  "The slowness is in conic_solver.format_constraints.")
         if os.name == "nt":
             self.skipTest("Skipping test due to SciPy overflow issues.")
         Uorig = np.random.randn(512, 512, 3)
