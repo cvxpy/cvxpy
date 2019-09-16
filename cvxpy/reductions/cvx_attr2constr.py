@@ -19,8 +19,6 @@ from cvxpy.atoms import diag, reshape
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable, upper_tri_to_full
-from cvxpy.reductions import InverseData
-from cvxpy.reductions.utilities import tensor_mul
 import numpy as np
 import scipy.sparse as sp
 
@@ -70,13 +68,11 @@ class CvxAttr2Constr(Reduction):
         if not attributes_present(problem.variables(), CONVEX_ATTRIBUTES):
             return problem, ()
 
-        inverse_data = InverseData(problem)
         # For each unique variable, add constraints.
         id2new_var = {}
         id2new_obj = {}
         id2old_var = {}
         constr = []
-        primal_tensor = {}
         for var in problem.variables():
             if var.id not in id2new_var:
                 id2old_var[var.id] = var
@@ -99,9 +95,6 @@ class CvxAttr2Constr(Reduction):
                     diag_var = Variable(var.shape[0], **new_attr)
                     id2new_var[var.id] = diag_var
                     obj = diag(diag_var)
-                    # TODO column j is 
-                    XXX = 
-                    primal_tensor[var.id] = {var.id: XXX}
                 elif new_var:
                     obj = Variable(var.shape, **new_attr)
                     id2new_var[var.id] = obj
@@ -118,45 +111,42 @@ class CvxAttr2Constr(Reduction):
                     constr.append(obj >> 0)
                 elif var.attributes['NSD']:
                     constr.append(obj << 0)
-        inverse_data.primal_tensor = primal_tensor
 
         # Create new problem.
         obj = problem.objective.tree_copy(id_objects=id2new_obj)
-        dual_tensor = {}
+        cons_id_map = {}
         for cons in problem.constraints:
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             for dv_old, dv_new in zip(cons.dual_variables,
                                       constr[-1].dual_variables):
-                dual_tensor[dv_old.id] = {dv_new.id: sp.eye(dv_new.shape)}
-        inverse_data.dual_tensor = dual_tensor
+                dv_id_map[dv_old.id] = dv_new.id
+        inverse_data = (id2new_var, id2old_var, dv_id_map)
         return cvxtypes.problem()(obj, constr), inverse_data
 
     def invert(self, solution, inverse_data):
         if not inverse_data:
             return solution
-        pvars = tensor_mul(inverse_data.primal_tensor, solution.primal_vars)
-        dvars = tensor_mul(inverse_data.dual_tensor, solution.dual_vars)
 
-        # id2new_var, id2old_var, dv_id_map = inverse_data
-        # pvars = {}
-        # for id, var in id2old_var.items():
-        #     new_var = id2new_var[id]
-        #     # Need to map from constrained to symmetric variable.
-        #     if new_var.id in solution.primal_vars:
-        #         if var.attributes['diag']:
-        #             pvars[id] = sp.diags(solution.primal_vars[new_var.id].flatten())
-        #         elif attributes_present([var], SYMMETRIC_ATTRIBUTES):
-        #             n = var.shape[0]
-        #             value = np.zeros(var.shape)
-        #             idxs = np.triu_indices(n)
-        #             value[idxs] = solution.primal_vars[new_var.id].flatten()
-        #             value += value.T - np.diag(value.diagonal())
-        #             pvars[id] = value
-        #         else:
-        #             pvars[id] = var.project(solution.primal_vars[new_var.id])
+        id2new_var, id2old_var, dv_id_map = inverse_data
+        pvars = {}
+        for id, var in id2old_var.items():
+            new_var = id2new_var[id]
+            # Need to map from constrained to symmetric variable.
+            if new_var.id in solution.primal_vars:
+                if var.attributes['diag']:
+                    pvars[id] = sp.diags(solution.primal_vars[new_var.id].flatten())
+                elif attributes_present([var], SYMMETRIC_ATTRIBUTES):
+                    n = var.shape[0]
+                    value = np.zeros(var.shape)
+                    idxs = np.triu_indices(n)
+                    value[idxs] = solution.primal_vars[new_var.id].flatten()
+                    value += value.T - np.diag(value.diagonal())
+                    pvars[id] = value
+                else:
+                    pvars[id] = var.project(solution.primal_vars[new_var.id])
 
-        # dvars = {orig_id: solution.dual_vars[vid]
-        #          for orig_id, vid in dv_id_map.items()
-        #          if vid in solution.dual_vars}
+        dvars = {orig_id: solution.dual_vars[vid]
+                 for orig_id, vid in dv_id_map.items()
+                 if vid in solution.dual_vars}
         return Solution(solution.status, solution.opt_val, pvars,
                         dvars, solution.attr)
