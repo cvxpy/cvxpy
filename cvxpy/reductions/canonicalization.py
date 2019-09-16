@@ -58,9 +58,7 @@ class Canonicalization(Reduction):
 
         primal_tensor = {}
         for var in problem.variables():
-            primal_tensor[var.id] = {var.id: sp.eye(var.size,
-                                                    var.size,
-                                                    format="csc")}
+            primal_tensor[var.id] = {var.id: sp.eye(var.size)}
         inverse_data.primal_tensor = primal_tensor
 
         canon_objective, canon_constraints = self.canonicalize_tree(
@@ -77,9 +75,7 @@ class Canonicalization(Reduction):
             canon_constraints += aux_constr + [canon_constr]
             for dv_old, dv_new in zip(constraint.dual_variables,
                                       canon_constr.dual_variables):
-                dual_tensor[dv_old.id] = {dv_new.id: sp.eye(dv_new.size,
-                                                            dv_new.size,
-                                                            format="csc")}
+                dual_tensor[dv_old.id] = {dv_new.id: sp.eye(dv_new.size)}
         inverse_data.dual_tensor = dual_tensor
 
         new_problem = problems.problem.Problem(canon_objective,
