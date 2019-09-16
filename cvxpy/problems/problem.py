@@ -487,7 +487,7 @@ class Problem(u.Canonical):
             self, candidate_solvers, gp=gp)
 
     def _solve(self,
-               solver='SCS',
+               solver=None,
                warm_start=True,
                verbose=False,
                gp=False, qcp=False, **kwargs):

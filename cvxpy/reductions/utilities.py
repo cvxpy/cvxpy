@@ -80,24 +80,20 @@ def dict_mat_mul(lh_dm, rh_dm):
 
     Returns
     -------
-    NumPy ndarray
+    dict mat
         The product of the dict mats.
     """
-    result = 0
-    # result = {}
+    result = {}
     for lh_key, lh_mat in lh_dm.items():
         for rh_key, rh_mat in rh_dm.items():
-            # # Imagine an elementwise matrix product
-            # # of two dictionaries.
-            # Imagine a matrix dot product
+            # Imagine an elementwise matrix product
             # of two dictionaries.
             if lh_key == rh_key:
-                prod_mat = lh_mat*rh_mat
-                # if rh_key not in result:
-                #     result[rh_key] = prod_mat
-                # else:
-                #     result[rh_key] += prod_mat
-                result += prod_mat
+                prod_mat = lh_mat@rh_mat
+                if rh_key not in result:
+                    result[rh_key] = prod_mat
+                else:
+                    result[rh_key] += prod_mat
     return result
 
 
@@ -116,22 +112,22 @@ def acc_dict_mat(lh_dm, rh_dm):
             lh_dm[rh_key] += rh_mat
 
 
-def tensor_mul(lh_ten, rh_dm):
-    """Multiply a tensor by a dict mat.
+def tensor_mul(lh_ten, rh_ten):
+    """Multiply two tensors.
 
     Parameters
     ----------
     lh_ten : A dict of dict mats.
-    rh_dm : A dict mat.
+    rh_ten : A dict of dict mats.
 
     Returns
     -------
-    dict mat
-        A dictionary of matrices.
+    tensor
+        The product of tensors.
     """
     result = {}
     for lh_key, lh_dm in lh_ten.items():
-        # for rh_key, rh_dm in rh_ten.items():
+        for rh_key, rh_dm in rh_ten.items():
             prod_dm = dict_mat_mul(lh_dm, rh_dm)
             if lh_key not in result:
                 result[lh_key] = prod_dm

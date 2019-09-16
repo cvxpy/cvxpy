@@ -92,22 +92,16 @@ class CvxAttr2Constr(Reduction):
                     shape = (n*(n+1)//2, 1)
                     upper_tri = Variable(shape, **new_attr)
                     id2new_var[var.id] = upper_tri
-                    fill_coeff = upper_tri_to_full(n)
-                    full_mat = Constant(fill_coeff)*upper_tri
+                    fill_coeff = Constant(upper_tri_to_full(n))
+                    full_mat = fill_coeff*upper_tri
                     obj = reshape(full_mat, (n, n))
-                    primal_tensor[var.id] = {var.id: fill_coeff}
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], **new_attr)
                     id2new_var[var.id] = diag_var
                     obj = diag(diag_var)
-                    # Column j is offset j*(n + 1)
-                    vals = np.ones(var.shape[0])
-                    rows = np.arange(diag_var.size, var.shape[0] + 1)
-                    cols = np.arange(var.shape[0])
-                    mat = sp.coo_matrix((vals, (rows, cols)),
-                                        shape=(diag_var.size, var.shape[0]))
-                    mat = mat.tocsc()
-                    primal_tensor[var.id] = {var.id: mat}
+                    # TODO column j is 
+                    XXX = 
+                    primal_tensor[var.id] = {var.id: XXX}
                 elif new_var:
                     obj = Variable(var.shape, **new_attr)
                     id2new_var[var.id] = obj
@@ -133,7 +127,7 @@ class CvxAttr2Constr(Reduction):
             constr.append(cons.tree_copy(id_objects=id2new_obj))
             for dv_old, dv_new in zip(cons.dual_variables,
                                       constr[-1].dual_variables):
-                dual_tensor[dv_old.id] = {dv_new.id: sp.eye(dv_new.size)}
+                dual_tensor[dv_old.id] = {dv_new.id: sp.eye(dv_new.shape)}
         inverse_data.dual_tensor = dual_tensor
         return cvxtypes.problem()(obj, constr), inverse_data
 
@@ -143,5 +137,26 @@ class CvxAttr2Constr(Reduction):
         pvars = tensor_mul(inverse_data.primal_tensor, solution.primal_vars)
         dvars = tensor_mul(inverse_data.dual_tensor, solution.dual_vars)
 
+        # id2new_var, id2old_var, dv_id_map = inverse_data
+        # pvars = {}
+        # for id, var in id2old_var.items():
+        #     new_var = id2new_var[id]
+        #     # Need to map from constrained to symmetric variable.
+        #     if new_var.id in solution.primal_vars:
+        #         if var.attributes['diag']:
+        #             pvars[id] = sp.diags(solution.primal_vars[new_var.id].flatten())
+        #         elif attributes_present([var], SYMMETRIC_ATTRIBUTES):
+        #             n = var.shape[0]
+        #             value = np.zeros(var.shape)
+        #             idxs = np.triu_indices(n)
+        #             value[idxs] = solution.primal_vars[new_var.id].flatten()
+        #             value += value.T - np.diag(value.diagonal())
+        #             pvars[id] = value
+        #         else:
+        #             pvars[id] = var.project(solution.primal_vars[new_var.id])
+
+        # dvars = {orig_id: solution.dual_vars[vid]
+        #          for orig_id, vid in dv_id_map.items()
+        #          if vid in solution.dual_vars}
         return Solution(solution.status, solution.opt_val, pvars,
                         dvars, solution.attr)
