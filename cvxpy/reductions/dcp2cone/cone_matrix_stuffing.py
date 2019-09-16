@@ -192,7 +192,7 @@ class ConeMatrixStuffing(MatrixStuffing):
             cons.append(con)
             for dv_old, dv_new in zip(orig_con.dual_variables,
                                       con.dual_variables):
-                inverse_data.dv_id_map[dv_new] = dv_old
+                inverse_data.dv_id_map[dv_new.id] = dv_old.id
         # Reorder constraints to Zero, NonPos, SOC, PSD, EXP.
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonPos] + \

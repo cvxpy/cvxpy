@@ -115,7 +115,7 @@ class MatrixStuffing(Reduction):
             new_cons.append(con.copy(arg_list))
             for dv_old, dv_new in zip(con.dual_variables,
                                       new_cons[-1].dual_variables):
-                inverse_data.dv_id_map[dv_new] = dv_old
+                inverse_data.dv_id_map[dv_new.id] = dv_old.id
 
         inverse_data.minimize = type(problem.objective) == Minimize
         new_prob = problems.problem.Problem(Minimize(new_obj), new_cons)
