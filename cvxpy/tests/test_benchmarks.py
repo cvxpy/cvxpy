@@ -7,15 +7,15 @@ import os
 import time
 
 
-def benchmark(func, *func_args, **bench_kwargs):
-    iters = bench_kwargs['iters']
+def benchmark(func, iters=1, name=None):
     vals = []
     for _ in range(iters):
         start = time.time()
-        func(*func_args)
+        func()
         vals.append(time.time() - start)
+    name = func.__name__ if name is None else name
     print("{:s}: avg={:.3e} s , std={:.3e} s ({:d} iterations)".format(
-        func.__name__, np.mean(vals), np.std(vals), iters))
+        name, np.mean(vals), np.std(vals), iters))
 
 
 class TestBenchmarks(BaseTest):
@@ -115,9 +115,117 @@ class TestBenchmarks(BaseTest):
         constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
         constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])
 
-        p = cp.Problem(cp.Minimize(cost), constraints)
+        problem = cp.Problem(cp.Minimize(cost), constraints)
 
-        def stuff(mat):
-            ConeMatrixStuffing().apply(mat)
+        def stuff():
+            ConeMatrixStuffing().apply(problem)
 
-        benchmark(stuff, p, iters=1)
+        benchmark(stuff, iters=1)
+
+    def test_parameterized_cone_matrix_stuffing_with_many_constraints(self):
+        self.fail("This test takes too long and/or will cause your machine to "
+                  "hang.")
+        m = 2000
+        n = 2000
+        A = cp.Parameter((m, n))
+        C = cp.Parameter(m // 2)
+        b = cp.Parameter(m)
+        A.value = np.random.randn(m, n)
+        C.value = np.random.rand(m // 2)
+        b.value = np.random.randn(m)
+
+        x = cp.Variable(n)
+        cost = cp.sum(A*x)
+
+        constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
+        constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])
+
+        problem = cp.Problem(cp.Minimize(cost), constraints)
+
+        def parameterized_cone_matrix_stuffing():
+            ConeMatrixStuffing().apply(problem)
+
+        benchmark(parameterized_cone_matrix_stuffing, iters=1)
+
+    def test_small_cone_matrix_stuffing(self):
+        m = 200
+        n = 200
+        A = np.random.randn(m, n)
+        C = np.random.rand(m // 2)
+        b = np.random.randn(m)
+
+        x = cp.Variable(n)
+        cost = cp.sum(A*x)
+
+        constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
+        constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])
+
+        problem = cp.Problem(cp.Minimize(cost), constraints)
+
+        def small_cone_matrix_stuffing():
+            ConeMatrixStuffing().apply(problem)
+
+        benchmark(small_cone_matrix_stuffing, iters=10)
+
+    def test_small_parameterized_cone_matrix_stuffing(self):
+        m = 200
+        n = 200
+        A = cp.Parameter((m, n))
+        C = cp.Parameter(m // 2)
+        b = cp.Parameter(m)
+        A.value = np.random.randn(m, n)
+        C.value = np.random.rand(m // 2)
+        b.value = np.random.randn(m)
+
+        x = cp.Variable(n)
+        cost = cp.sum(A*x)
+
+        constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
+        constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])
+
+        problem = cp.Problem(cp.Minimize(cost), constraints)
+
+        def small_parameterized_cone_matrix_stuffing():
+            ConeMatrixStuffing().apply(problem)
+
+        benchmark(small_parameterized_cone_matrix_stuffing, iters=1)
+
+    def test_small_lp(self):
+        m = 200
+        n = 200
+        A = np.random.randn(m, n)
+        b = np.random.randn(m)
+        c = np.random.rand(n)
+
+        x = cp.Variable(n)
+        cost = cp.matmul(c, x)
+        constraints = [A @ x <= b]
+        problem = cp.Problem(cp.Minimize(cost), constraints)
+
+        def small_lp():
+            problem.get_problem_data(cp.SCS)
+
+        benchmark(small_lp, iters=1)
+        benchmark(small_lp, iters=1, name="small_lp_second_time")
+
+    def test_small_parameterized_lp(self):
+        m = 200
+        n = 200
+        A = cp.Parameter((m, n))
+        b = cp.Parameter(m)
+        c = cp.Parameter(n)
+        A.value = np.random.randn(m, n)
+        b.value = np.random.randn(m)
+        c.value = np.random.rand(n)
+
+        x = cp.Variable(n)
+        cost = cp.matmul(c, x)
+        constraints = [A @ x <= b]
+        problem = cp.Problem(cp.Minimize(cost), constraints)
+
+        def small_parameterized_lp():
+            problem.get_problem_data(cp.SCS)
+
+        benchmark(small_parameterized_lp, iters=1)
+        benchmark(small_parameterized_lp, iters=1,
+                  name="small_parameterized_lp_second_time")
