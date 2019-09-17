@@ -102,7 +102,7 @@ class TestBenchmarks(BaseTest):
                        cp.matmul(A, x) == b]).get_problem_data(cp.OSQP)
         benchmark(qp, iters=1)
 
-    def test_stuffing_perf_many_constraints(self):
+    def test_cone_matrix_stuffing_with_many_constraints(self):
         m = 2000
         n = 2000
         A = np.random.randn(m, n)
