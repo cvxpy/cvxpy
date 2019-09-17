@@ -26,6 +26,10 @@ import numpy as np
 import scipy.sparse as sp
 
 
+# NOTE(akshayka): Small changes to this file can lead to drastic
+# performance regressions. If you are making a change to this file,
+# make sure to run cvxpy/tests/test_benchmarks.py to ensure that you have
+# not introduced a regression.
 class ConeDims(object):
     """Summary of cone dimensions present in constraints.
 
@@ -204,8 +208,13 @@ class ConicSolver(Solver):
 
         # Form new ParamConeProg
         restruct_mat = sp.block_diag(restruct_mat)
-        restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
-        restruct_A = restruct_mat_rep*problem.A
+        # this is equivalent to but _much_ faster than:
+        #  restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
+        #  restruct_A = restruct_mat_rep * problem.A
+        reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F')
+        restruct_A = (restruct_mat*reshaped_A).reshape(
+            restruct_mat.shape[0] * (problem.x.size + 1),
+            problem.A.shape[1], order='F')
         new_param_cone_prog = ParamConeProg(problem.c,
                                             problem.x,
                                             restruct_A,

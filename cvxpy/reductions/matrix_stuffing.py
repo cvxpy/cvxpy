@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import Equality, ExpCone, Inequality, SOC
+from cvxpy.constraints import Equality, Inequality, SOC
 from cvxpy.reductions import Reduction, Solution, InverseData
 from cvxpy.reductions.utilities import lower_equality, lower_inequality
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
