@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.settings as s
 import cvxpy.lin_ops.lin_op as lo
 from cvxpy.constraints import (Equality, ExpCone, Inequality,
                                SOC, Zero, NonPos, PSD)
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions import InverseData, Solution
+from cvxpy.reductions import InverseData
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import (are_args_affine,
@@ -73,6 +72,13 @@ class ParamConeProg(object):
         Args:
           id_to_param_value: (optional) dict mapping parameter ids to values
         """
+        var_size = self.x.size + 1
+        if not self.parameters:
+            # fast path: parameter application via matmul can be very slow,
+            # if self.A is large (even if param_vec is just a 1x1 matrix [[1]])
+            return self.c.toarray().flatten(), self.A.reshape(
+                (self.A.shape[0]//var_size, var_size), order='F').tocsc()
+
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value
                     is None else id_to_param_value[idx])
@@ -91,7 +97,6 @@ class ParamConeProg(object):
         c = (self.c@param_vec).flatten()
         # Need to cast to sparse matrix.
         param_vec = sp.csc_matrix(param_vec[:, None])
-        var_size = self.x.size + 1
         A = (self.A@param_vec).reshape((self.A.shape[0]//var_size, var_size),
                                        order='F')
         A = A.tocsc()
