@@ -46,9 +46,8 @@ DictMat dict_mat_mul(DictMat &lh_dm, DictMat &rh_dm) {
   DictMat result;
 	typedef DictMat::iterator it_type;
 	for (it_type it = lh_dm.begin(); it != lh_dm.end(); ++it){
-    int lh_var_id = it->first;
     // Left hand is always constant.
-    assert(lh_var_id == CONSTANT_ID);
+    assert(it->first == CONSTANT_ID);
     std::vector<Matrix> lh_mat_vec = it->second;
     for (it_type jit = rh_dm.begin(); jit != rh_dm.end(); ++jit){
       int rh_var_id = jit->first;
