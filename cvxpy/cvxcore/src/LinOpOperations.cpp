@@ -251,8 +251,7 @@ Matrix sparse_reshape_to_vec(Matrix &mat) {
 // TODO delete
 Tensor stack_matrices(LinOp &lin, int arg_idx, bool vertical) {
 	int row_offset = 0;
-	int num_args = lin.args.size();
-  assert(arg_idx <= num_args);
+  assert(arg_idx <= lin.args.size());
   std::vector<Triplet> tripletList;
   tripletList.reserve(vecprod(lin.size));
   LinOp arg = *lin.args[arg_idx];
@@ -409,8 +408,7 @@ Tensor get_kron_mat(LinOp &lin, int arg_idx) {
 Tensor get_vstack_mat(LinOp &lin, int arg_idx) {
 	assert(lin.type == VSTACK);
 	int row_offset = 0;
-	int num_args = lin.args.size();
-  assert(arg_idx <= num_args);
+  assert(arg_idx <= lin.args.size());
   std::vector<Triplet> tripletList;
   LinOp arg = *lin.args[arg_idx];
   tripletList.reserve(vecprod(arg.size));
@@ -447,8 +445,7 @@ Tensor get_vstack_mat(LinOp &lin, int arg_idx) {
 Tensor get_hstack_mat(LinOp &lin, int arg_idx) {
 	assert(lin.type == HSTACK);
 	int row_offset = 0;
-	int num_args = lin.args.size();
-  assert(arg_idx <= num_args);
+  assert(arg_idx <= lin.args.size());
   std::vector<Triplet> tripletList;
   tripletList.reserve(vecprod(lin.size));
   LinOp arg = *lin.args[arg_idx];

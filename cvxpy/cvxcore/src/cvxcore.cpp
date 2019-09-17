@@ -150,7 +150,6 @@ ProblemData build_matrix(std::vector< LinOp* > constraints,
                            std::map<int, int> id_to_col,
                            std::map<int, int> param_to_size) {
   ProblemData prob_data = init_data_tensor(param_to_size);
-	int num_rows = get_total_constraint_length(constraints);
 	int vert_offset = 0;
 	/* Build matrix one constraint at a time */
 	for (unsigned i = 0; i < constraints.size(); i++){
@@ -177,9 +176,6 @@ ProblemData build_matrix(std::vector<LinOp*> constraints,
                            std::map<int, int> param_to_size,
                            std::vector<int> constr_offsets){
   ProblemData prob_data = init_data_tensor(param_to_size);
-
-	/* Function also verifies the offsets are valid */
-	int num_rows = get_total_constraint_length(constraints, constr_offsets);
 
 	/* Build matrix one constraint at a time */
 	for (unsigned i = 0; i < constraints.size(); i++){
