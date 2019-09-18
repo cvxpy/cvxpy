@@ -21,6 +21,7 @@ from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConeDims, ConicSolver
 from cvxpy.reductions.utilities import group_constraints
+import numpy as np
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
@@ -89,25 +90,29 @@ class ECOS(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
-        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(
-            problem.objective.args[0])
-        data[s.C] = data[s.C].ravel()
-        inv_data[s.OFFSET] = data[s.OFFSET][0]
+        inv_data = {self.VAR_ID: problem.x.id}
 
+        # ECOS requires constraints to be specified in the following order:
+        # 1. zero cone
+        # 2. non-negative orthant
+        # 3. soc
+        # 4. exponential
         constr_map = group_constraints(problem.constraints)
         data[ConicSolver.DIMS] = ConeDims(constr_map)
+        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
+        len_eq = sum([c.size for c in constr_map[Zero]])
 
-        inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        data[s.A], data[s.B] = self.group_coeff_offset(
-            problem, constr_map[Zero], ECOS.EXP_CONE_ORDER)
+        # Format the constraints.
+        formatted = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = formatted
 
-        # Order and group nonlinear constraints.
-        neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
-        inv_data[self.NEQ_CONSTR] = neq_constr
-        data[s.G], data[s.H] = self.group_coeff_offset(
-            problem, neq_constr, ECOS.EXP_CONE_ORDER)
-
+        c, A = formatted.apply_parameters()
+        data[s.C] = c[:-1]
+        inv_data[s.OFFSET] = c[-1]
+        data[s.A] = -A[:len_eq, :-1]
+        data[s.B] = A[:len_eq, -1].A.flatten()
+        data[s.G] = -A[len_eq:, :-1]
+        data[s.H] = A[len_eq:, -1].A.flatten()
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -127,16 +132,10 @@ class ECOS(ConicSolver):
             primal_vars = {
                 inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
             }
-            eq_dual = utilities.get_dual_values(
-                solution['y'],
-                utilities.extract_dual_value,
-                inverse_data[self.EQ_CONSTR])
-            leq_dual = utilities.get_dual_values(
-                solution['z'],
-                utilities.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR])
-            eq_dual.update(leq_dual)
-            dual_vars = eq_dual
+            dual_vars = {
+                ECOS.DUAL_VAR_ID: np.concatenate([solution["y"],
+                                                  solution["z"]])
+            }
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)

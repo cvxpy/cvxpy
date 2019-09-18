@@ -56,7 +56,7 @@ class ECOS_BB(ECOS):
         data, inv_data = super(ECOS_BB, self).apply(problem)
         # Because the problem variable is single dimensional, every
         # boolean/integer index has length one.
-        var = problem.variables()[0]
+        var = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in var.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
@@ -75,16 +75,10 @@ class ECOS_BB(ECOS):
             }
             dual_vars = None
             if not inverse_data['is_mip']:
-                eq_dual = utilities.get_dual_values(
-                    solution['y'],
-                    utilities.extract_dual_value,
-                    inverse_data[self.EQ_CONSTR])
-                leq_dual = utilities.get_dual_values(
-                    solution['z'],
-                    utilities.extract_dual_value,
-                    inverse_data[self.NEQ_CONSTR])
-                eq_dual.update(leq_dual)
-                dual_vars = eq_dual
+                dual_vars = {
+                    ECOS_BB.DUAL_VAR_ID: np.concatenate([solution["y"],
+                                                         solution["z"]])
+                }
             return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
             return failure_solution(status)
