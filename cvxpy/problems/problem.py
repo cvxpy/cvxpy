@@ -185,9 +185,6 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.parameter.Parameter`
             A list of the parameters in the problem.
         """
-        return self._params
-
-    def _parameters(self):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
@@ -202,9 +199,6 @@ class Problem(u.Canonical):
         list of :class:`~cvxpy.expressions.constants.constant.Constant`
             A list of the constants in the problem.
         """
-        return self._consts
-
-    def _constants(self):
         const_dict = {}
         constants_ = self.objective.constants()
         for constr in self.constraints:

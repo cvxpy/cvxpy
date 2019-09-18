@@ -16,6 +16,10 @@ from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 
+def _solve_as_qp(problem, candidates):
+    return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
+
+
 def _reductions_for_problem_class(problem, candidates, gp=False):
     """
     Builds a chain that rewrites a problem into an intermediate
@@ -73,11 +77,10 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    # First, attempt to canonicalize the problem to a linearly constrained QP.
-    if candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem):
+    if _solve_as_qp(problem, candidates):
         reductions += [CvxAttr2Constr(),
                        Qp2SymbolicQp()]
-     else:
+    else:
         # Canonicalize it to conic problem.
         if not candidates['conic_solvers']:
             raise SolverError("Problem could not be reduced to a QP, and no "
@@ -86,7 +89,7 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
         else:
             reductions += [Dcp2Cone(),
                            CvxAttr2Constr()]
-            return reductions
+    return reductions
 
 
 def construct_solving_chain(problem, candidates, gp=False):
@@ -119,18 +122,13 @@ def construct_solving_chain(problem, candidates, gp=False):
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-
     reductions = _reductions_for_problem_class(problem, candidates, gp)
-    # TODO remove this.
-    # Eliminate parameters.
-    if problem.parameters():
-        reductions += [EvalParams()]
 
     # Conclude the chain with one of the following:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
     # First, attempt to canonicalize the problem to a linearly constrained QP.
-    if solve_as_qp:
+    if _solve_as_qp(problem, candidates):
         solver = sorted(candidates['qp_solvers'],
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
