@@ -17,10 +17,10 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "../include/Eigen/Sparse"
 #include "../include/Eigen/Core"
+#include "../include/Eigen/Sparse"
 
-#define NULL_MATRIX Eigen::SparseMatrix<double>(0,0)
+#define NULL_MATRIX Eigen::SparseMatrix<double>(0, 0)
 
 typedef Eigen::Matrix<int, Eigen::Dynamic, 1> Vector;
 typedef Eigen::SparseMatrix<double> Matrix;

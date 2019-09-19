@@ -15,12 +15,12 @@
 #ifndef LINOPOPERATIONS_H
 #define LINOPOPERATIONS_H
 
-#include <vector>
-#include <map>
-#include "Utils.hpp"
 #include "LinOp.hpp"
+#include "Utils.hpp"
+#include <map>
+#include <vector>
 
-Tensor get_node_coeffs(LinOp& lin, int arg_idx);
-Tensor lin_to_tensor(LinOp& lin);
+Tensor get_node_coeffs(LinOp &lin, int arg_idx);
+Tensor lin_to_tensor(LinOp &lin);
 
 #endif

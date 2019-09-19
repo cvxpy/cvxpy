@@ -15,20 +15,18 @@
 #ifndef CVXCANON_H
 #define CVXCANON_H
 
-#include <vector>
 #include "LinOp.hpp"
-#include "Utils.hpp"
 #include "ProblemData.hpp"
+#include "Utils.hpp"
+#include <vector>
 
 typedef std::map<int, std::vector<ProblemData> > ProblemTensor;
 
 // Top Level Entry point
-ProblemData build_matrix(std::vector< LinOp* > constraints,
-                         int var_length,
+ProblemData build_matrix(std::vector<LinOp *> constraints, int var_length,
                          std::map<int, int> id_to_col,
                          std::map<int, int> param_to_size);
-ProblemData build_matrix(std::vector< LinOp* > constraints,
-                         int var_length,
+ProblemData build_matrix(std::vector<LinOp *> constraints, int var_length,
                          std::map<int, int> id_to_col,
                          std::map<int, int> param_to_size,
                          std::vector<int> constr_offsets);

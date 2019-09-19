@@ -1,14 +1,15 @@
 #include "Utils.hpp"
 #include <functional>
-#include <numeric>
 #include <iostream>
+#include <numeric>
 
 int vecprod(const std::vector<int> &vec) {
   return std::accumulate(vec.begin(), vec.end(), 1.0, std::multiplies<int>());
 }
 
 int vecprod_before(const std::vector<int> &vec, int end) {
-  return std::accumulate(vec.rbegin() + vec.size() - end, vec.rend(), 1.0, std::multiplies<int>());
+  return std::accumulate(vec.rbegin() + vec.size() - end, vec.rend(), 1.0,
+                         std::multiplies<int>());
 }
 
 // multiply two vectors of matrices
@@ -18,9 +19,9 @@ std::vector<Matrix> mat_vec_mul(std::vector<Matrix> &lh_vec,
   // Can only have single matrix * many, not many * many.
   assert(lh_vec.size() == 1 || rh_vec.size() == 1);
   std::vector<Matrix> result;
-  for (unsigned i=0; i < lh_vec.size(); ++i) {
-    for (unsigned j=0; j < rh_vec.size(); ++j) {
-      result.push_back(lh_vec[i]*rh_vec[j]);
+  for (unsigned i = 0; i < lh_vec.size(); ++i) {
+    for (unsigned j = 0; j < rh_vec.size(); ++j) {
+      result.push_back(lh_vec[i] * rh_vec[j]);
     }
   }
   return result;
@@ -32,7 +33,7 @@ void acc_mat_vec(std::vector<Matrix> &lh_mat_vec,
                  std::vector<Matrix> &rh_mat_vec) {
   // Length of vectors must match.
   assert(lh_mat_vec.size() == rh_mat_vec.size());
-  for (unsigned i=0; i < rh_mat_vec.size(); ++i) {
+  for (unsigned i = 0; i < rh_mat_vec.size(); ++i) {
     lh_mat_vec[i] += rh_mat_vec[i];
   }
 }
@@ -44,12 +45,12 @@ void acc_mat_vec(std::vector<Matrix> &lh_mat_vec,
 //    under key key1*key2 (constant * key = key)
 DictMat dict_mat_mul(DictMat &lh_dm, DictMat &rh_dm) {
   DictMat result;
-	typedef DictMat::iterator it_type;
-	for (it_type it = lh_dm.begin(); it != lh_dm.end(); ++it){
+  typedef DictMat::iterator it_type;
+  for (it_type it = lh_dm.begin(); it != lh_dm.end(); ++it) {
     // Left hand is always constant.
     assert(it->first == CONSTANT_ID);
     std::vector<Matrix> lh_mat_vec = it->second;
-    for (it_type jit = rh_dm.begin(); jit != rh_dm.end(); ++jit){
+    for (it_type jit = rh_dm.begin(); jit != rh_dm.end(); ++jit) {
       int rh_var_id = jit->first;
       std::vector<Matrix> rh_mat_vec = jit->second;
       std::vector<Matrix> prod_mat_vec = mat_vec_mul(lh_mat_vec, rh_mat_vec);
@@ -66,8 +67,8 @@ DictMat dict_mat_mul(DictMat &lh_dm, DictMat &rh_dm) {
 // Accumulate right hand DictMat
 // into left hand by addition.
 void acc_dict_mat(DictMat &lh_dm, DictMat &rh_dm) {
-	typedef DictMat::iterator it_type;
-	for (it_type it = rh_dm.begin(); it != rh_dm.end(); ++it){
+  typedef DictMat::iterator it_type;
+  for (it_type it = rh_dm.begin(); it != rh_dm.end(); ++it) {
     int rh_var_id = it->first;
     std::vector<Matrix> rh_mat_vec = it->second;
     if (lh_dm.count(rh_var_id) == 0) {
@@ -85,13 +86,13 @@ void acc_dict_mat(DictMat &lh_dm, DictMat &rh_dm) {
 //         multiply map1[key1] by mat to get new vector.
 //    stack the vectors.
 //    under key key1*key2 (constant * key = key)
-Tensor tensor_mul(Tensor &lh_ten, Tensor &rh_ten){
+Tensor tensor_mul(Tensor &lh_ten, Tensor &rh_ten) {
   Tensor result;
-	typedef Tensor::iterator it_type;
-	for (it_type it = lh_ten.begin(); it != lh_ten.end(); ++it){
+  typedef Tensor::iterator it_type;
+  for (it_type it = lh_ten.begin(); it != lh_ten.end(); ++it) {
     int lh_param_id = it->first;
     DictMat lh_var_map = it->second;
-    for (it_type jit = rh_ten.begin(); jit != rh_ten.end(); ++jit){
+    for (it_type jit = rh_ten.begin(); jit != rh_ten.end(); ++jit) {
       int rh_param_id = jit->first;
       DictMat rh_var_map = jit->second;
       // No cross terms allowed.
@@ -116,8 +117,8 @@ Tensor tensor_mul(Tensor &lh_ten, Tensor &rh_ten){
 // Accumulate right hand Tensor
 // into left hand by addition.
 void acc_tensor(Tensor &lh_ten, Tensor &rh_ten) {
-	typedef Tensor::iterator it_type;
-	for (it_type it = rh_ten.begin(); it != rh_ten.end(); ++it){
+  typedef Tensor::iterator it_type;
+  for (it_type it = rh_ten.begin(); it != rh_ten.end(); ++it) {
     int rh_param_id = it->first;
     DictMat rh_dm = it->second;
     if (lh_ten.count(rh_param_id) == 0) {
@@ -131,16 +132,16 @@ void acc_tensor(Tensor &lh_ten, Tensor &rh_ten) {
 // Create a giant diagonal matrix
 // with entries given by the entries of mat.
 Matrix diagonalize(Matrix &mat) {
-  Matrix diag(mat.rows()*mat.cols(), mat.rows()*mat.cols());
-	std::vector<Triplet> tripletList;
-	tripletList.reserve(mat.nonZeros());
-  for (int k=0; k<mat.outerSize(); ++k) {
-    for (Matrix::InnerIterator it(mat,k); it; ++it) {
-      unsigned loc = it.row() + k*mat.rows();
+  Matrix diag(mat.rows() * mat.cols(), mat.rows() * mat.cols());
+  std::vector<Triplet> tripletList;
+  tripletList.reserve(mat.nonZeros());
+  for (int k = 0; k < mat.outerSize(); ++k) {
+    for (Matrix::InnerIterator it(mat, k); it; ++it) {
+      unsigned loc = it.row() + k * mat.rows();
       tripletList.push_back(Triplet(loc, loc, it.value()));
     }
   }
-	diag.setFromTriplets(tripletList.begin(), tripletList.end());
-	diag.makeCompressed();
+  diag.setFromTriplets(tripletList.begin(), tripletList.end());
+  diag.makeCompressed();
   return diag;
 }
