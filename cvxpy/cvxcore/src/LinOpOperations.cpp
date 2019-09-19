@@ -965,7 +965,7 @@ Tensor get_reshape_mat(LinOp &lin, int arg_idx) {
  */
 Tensor get_div_mat(LinOp &lin, int arg_idx) {
   assert(lin.type == DIV);
-  Matrix constant = get_constant_data(lin, true);
+  Matrix constant = get_constant_data(*lin.linOp_data, true);
   int n = constant.rows();
 
   // build a giant diagonal matrix
