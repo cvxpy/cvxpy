@@ -20,7 +20,7 @@
 #include <map>
 #include <vector>
 
-Tensor get_node_coeffs(LinOp &lin, int arg_idx);
-Tensor lin_to_tensor(LinOp &lin);
+Tensor get_node_coeffs(const LinOp &lin, int arg_idx);
+Tensor lin_to_tensor(const LinOp &lin);
 
 #endif

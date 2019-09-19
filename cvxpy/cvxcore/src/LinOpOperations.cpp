@@ -22,29 +22,29 @@
 /***********************
  * FUNCTION PROTOTYPES *
  ***********************/
-Tensor build_tensor(Matrix &mat);
-Tensor get_sum_coefficients(LinOp &lin, int arg_idx);
-Tensor get_sum_entries_mat(LinOp &lin, int arg_idx);
-Tensor get_trace_mat(LinOp &lin, int arg_idx);
-Tensor get_neg_mat(LinOp &lin, int arg_idx);
-Tensor get_div_mat(LinOp &lin, int arg_idx);
-Tensor get_promote_mat(LinOp &lin, int arg_idx);
-Tensor get_mul_mat(LinOp &lin, int arg_idx);
-Tensor get_mul_elemwise_mat(LinOp &lin, int arg_idx);
-Tensor get_rmul_mat(LinOp &lin, int arg_idx);
-Tensor get_index_mat(LinOp &lin, int arg_idx);
-Tensor get_transpose_mat(LinOp &lin, int arg_idx);
-Tensor get_reshape_mat(LinOp &lin, int arg_idx);
-Tensor get_diag_vec_mat(LinOp &lin, int arg_idx);
-Tensor get_diag_matrix_mat(LinOp &lin, int arg_idx);
-Tensor get_upper_tri_mat(LinOp &lin, int arg_idx);
-Tensor get_conv_mat(LinOp &lin, int arg_idx);
-Tensor get_hstack_mat(LinOp &lin, int arg_idx);
-Tensor get_vstack_mat(LinOp &lin, int arg_idx);
-Tensor get_kron_mat(LinOp &lin, int arg_idx);
-Tensor get_variable_coeffs(LinOp &lin, int arg_idx);
-Tensor get_const_coeffs(LinOp &lin, int arg_idx);
-Tensor get_param_coeffs(LinOp &lin, int arg_idx);
+Tensor build_tensor(const Matrix &mat);
+Tensor get_sum_coefficients(const LinOp &lin, int arg_idx);
+Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx);
+Tensor get_trace_mat(const LinOp &lin, int arg_idx);
+Tensor get_neg_mat(const LinOp &lin, int arg_idx);
+Tensor get_div_mat(const LinOp &lin, int arg_idx);
+Tensor get_promote_mat(const LinOp &lin, int arg_idx);
+Tensor get_mul_mat(const LinOp &lin, int arg_idx);
+Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx);
+Tensor get_rmul_mat(const LinOp &lin, int arg_idx);
+Tensor get_index_mat(const LinOp &lin, int arg_idx);
+Tensor get_transpose_mat(const LinOp &lin, int arg_idx);
+Tensor get_reshape_mat(const LinOp &lin, int arg_idx);
+Tensor get_diag_vec_mat(const LinOp &lin, int arg_idx);
+Tensor get_diag_matrix_mat(const LinOp &lin, int arg_idx);
+Tensor get_upper_tri_mat(const LinOp &lin, int arg_idx);
+Tensor get_conv_mat(const LinOp &lin, int arg_idx);
+Tensor get_hstack_mat(const LinOp &lin, int arg_idx);
+Tensor get_vstack_mat(const LinOp &lin, int arg_idx);
+Tensor get_kron_mat(const LinOp &lin, int arg_idx);
+Tensor get_variable_coeffs(const LinOp &lin, int arg_idx);
+Tensor get_const_coeffs(const LinOp &lin, int arg_idx);
+Tensor get_param_coeffs(const LinOp &lin, int arg_idx);
 
 /**
  * Computes a vector of coefficient matrices for the linOp LIN based on the
@@ -58,7 +58,7 @@ Tensor get_param_coeffs(LinOp &lin, int arg_idx);
  *
  * Returns: std::vector of sparse coefficient matrices for LIN
  */
-Tensor get_node_coeffs(LinOp &lin, int arg_idx) {
+Tensor get_node_coeffs(const LinOp &lin, int arg_idx) {
   Tensor coeffs;
   switch (lin.type) {
   case VARIABLE:
@@ -140,7 +140,7 @@ Tensor get_node_coeffs(LinOp &lin, int arg_idx) {
   return coeffs;
 }
 
-Tensor lin_to_tensor(LinOp &lin) {
+Tensor lin_to_tensor(const LinOp &lin) {
   if (lin.args.size() == 0) {
     return get_node_coeffs(lin, 0);
   } else {
@@ -163,7 +163,7 @@ Tensor lin_to_tensor(LinOp &lin) {
 /**
  * Returns a vector containing the sparse matrix MAT
  */
-Tensor build_tensor(Matrix &mat) {
+Tensor build_tensor(const Matrix &mat) {
   Tensor ten;
   DictMat dm;
   std::vector<Matrix> mat_vec;
@@ -209,7 +209,7 @@ Matrix sparse_selector(int rows, int cols, int row_sel, int col_sel) {
  * Returns: sparse Eigen matrix OUT of size ROWS * COLS by 1
  */
 
-Matrix sparse_reshape_to_vec(Matrix &mat) {
+Matrix sparse_reshape_to_vec(const Matrix &mat) {
   int rows = mat.rows();
   int cols = mat.cols();
   Matrix out(rows * cols, 1);
@@ -223,76 +223,6 @@ Matrix sparse_reshape_to_vec(Matrix &mat) {
   out.setFromTriplets(tripletList.begin(), tripletList.end());
   out.makeCompressed();
   return out;
-}
-
-/**
- * Builds and returns the stacked coefficient matrices for both horizontal
- * and vertical stacking linOps.
- *
- * Constructs coefficient matrix COEFF for each argument of LIN. COEFF is
- * essentially an identity matrix with an offset to account for stacking.
- *
- * If the stacking is vertical, the columns of the matrix for each argument
- * are interleaved with each other. Otherwise, if the stacking is horizontal,
- * the columns are laid out in the order of the arguments.
- *
- * Parameters: linOP LIN that performs a stacking operation (HSTACK or VSTACK)
- * 						 boolean VERTICAL: True if
- * vertical stack. False otherwise.
- *
- * Returns: vector COEFF_MATS containing the stacked coefficient matrices
- * 					for each argument.
- *
- */
-// TODO delete
-Tensor stack_matrices(LinOp &lin, int arg_idx, bool vertical) {
-  int row_offset = 0;
-  assert(arg_idx <= lin.args.size());
-  std::vector<Triplet> tripletList;
-  tripletList.reserve(vecprod(lin.size));
-  LinOp arg = *lin.args[arg_idx];
-
-  int arg_cols = 1;
-  int arg_rows = 1;
-  if (arg.size.size() == 1) {
-    if (vertical) {
-      arg_cols = arg.size[0];
-    } else {
-      arg_rows = arg.size[0];
-    }
-  } else if (arg.size.size() == 2) {
-    arg_rows = arg.size[0];
-    arg_cols = arg.size[1];
-  }
-  /* If VERTICAL, columns are interleaved. Otherwise, they are
-      laid out in order. */
-  int column_offset;
-  int row_offset_increment;
-  if (vertical) {
-    column_offset = lin.size[0];
-    row_offset_increment = arg_rows;
-    for (int idx = 0; idx < arg_idx; ++idx) {
-      row_offset += vecprod((*lin.args[idx]).size);
-    }
-  } else {
-    column_offset = arg_rows;
-    for (int idx = 0; idx < arg_idx; ++idx) {
-      row_offset += vecprod((*lin.args[idx]).size);
-    }
-  }
-
-  for (int i = 0; i < arg_rows; ++i) {
-    for (int j = 0; j < arg_cols; ++j) {
-      int row_idx = i + (j * column_offset) + row_offset;
-      int col_idx = i + (j * arg_rows);
-      tripletList.push_back(Triplet(row_idx, col_idx, 1));
-    }
-  }
-
-  Matrix coeff(vecprod(lin.size), vecprod(arg.size));
-  coeff.setFromTriplets(tripletList.begin(), tripletList.end());
-  coeff.makeCompressed();
-  return build_tensor(coeff);
 }
 
 /******************
@@ -317,7 +247,7 @@ Tensor stack_matrices(LinOp &lin, int arg_idx, bool vertical) {
  * Returns: sparse eigen matrix COEFFS
  *
  */
-Matrix get_constant_data(LinOp &lin, bool column) {
+Matrix get_constant_data(const LinOp &lin, bool column) {
   Matrix coeffs;
   if (lin.sparse) {
     if (column) {
@@ -327,7 +257,7 @@ Matrix get_constant_data(LinOp &lin, bool column) {
     }
   } else {
     if (column) {
-      Eigen::Map<Eigen::MatrixXd> column(
+      Eigen::Map<const Eigen::MatrixXd> column(
           lin.dense_data.data(), lin.dense_data.rows() * lin.dense_data.cols(),
           1);
       coeffs = column.sparseView();
@@ -348,7 +278,7 @@ Matrix get_constant_data(LinOp &lin, bool column) {
  *
  * Returns: integer variable ID
  */
-int get_id_data(LinOp &lin, int arg_idx) {
+int get_id_data(const LinOp &lin, int arg_idx) {
   assert(lin.type == VARIABLE || lin.type == PARAM);
   return int(lin.dense_data(0, 0));
 }
@@ -363,7 +293,7 @@ int get_id_data(LinOp &lin, int arg_idx) {
  * Returns: vector containing the coefficient matrix for the Kronecker
                                                 product.
  */
-Tensor get_kron_mat(LinOp &lin, int arg_idx) {
+Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == KRON);
   Matrix constant = get_constant_data(*lin.linOp_data, false);
   int lh_rows = constant.rows();
@@ -402,7 +332,7 @@ Tensor get_kron_mat(LinOp &lin, int arg_idx) {
  * Parameters: linOp LIN with type VSTACK
  * Returns: vector of coefficient matrices for each argument.
  */
-Tensor get_vstack_mat(LinOp &lin, int arg_idx) {
+Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == VSTACK);
   int row_offset = 0;
   assert(arg_idx <= lin.args.size());
@@ -439,7 +369,7 @@ Tensor get_vstack_mat(LinOp &lin, int arg_idx) {
  * Parameters: linOp LIN with type HSTACK
  * Returns: vector of coefficient matrices for each argument.
  */
-Tensor get_hstack_mat(LinOp &lin, int arg_idx) {
+Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == HSTACK);
   int row_offset = 0;
   assert(arg_idx <= lin.args.size());
@@ -481,7 +411,7 @@ Tensor get_hstack_mat(LinOp &lin, int arg_idx) {
  *
  * Returns: vector of coefficients for convolution linOp
  */
-Tensor get_conv_mat(LinOp &lin, int arg_idx) {
+Tensor get_conv_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == CONV);
   Matrix constant = get_constant_data(*lin.linOp_data, false);
   int rows = lin.size[0];
@@ -514,7 +444,7 @@ Tensor get_conv_mat(LinOp &lin, int arg_idx) {
  * Parameters: LinOp with type UPPER_TRI.
  * Returns: vector of coefficients for upper triangular matrix linOp
  */
-Tensor get_upper_tri_mat(LinOp &lin, int arg_idx) {
+Tensor get_upper_tri_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == UPPER_TRI);
   int rows = lin.args[0]->size[0];
   int cols = lin.args[0]->size[1];
@@ -552,7 +482,7 @@ Tensor get_upper_tri_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-Tensor get_diag_matrix_mat(LinOp &lin, int arg_idx) {
+Tensor get_diag_matrix_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == DIAG_MAT);
   int rows = lin.size[0];
 
@@ -582,7 +512,7 @@ Tensor get_diag_matrix_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-Tensor get_diag_vec_mat(LinOp &lin, int arg_idx) {
+Tensor get_diag_vec_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == DIAG_VEC);
   int rows = lin.size[0];
 
@@ -611,7 +541,7 @@ Tensor get_diag_vec_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-Tensor get_transpose_mat(LinOp &lin, int arg_idx) {
+Tensor get_transpose_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == TRANSPOSE);
   int rows = lin.size[0];
   int cols = lin.size[1];
@@ -678,7 +608,7 @@ int add_triplets(std::vector<Triplet> &tripletList,
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-Tensor get_index_mat(LinOp &lin, int arg_idx) {
+Tensor get_index_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == INDEX);
   Matrix coeffs(vecprod(lin.size), vecprod(lin.args[0]->size));
 
@@ -712,7 +642,7 @@ Tensor get_index_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing the coefficient matrix COEFFS
  *
  */
-Tensor get_mul_elemwise_mat(LinOp &lin, int arg_idx) {
+Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == MUL_ELEM);
   Tensor mul_ten = lin_to_tensor(*lin.linOp_data);
   // Convert all the Tensor matrices into diagonal matrices.
@@ -744,7 +674,7 @@ Tensor get_mul_elemwise_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing the corresponding coefficient matrix COEFFS
  *
  */
-Tensor get_rmul_mat(LinOp &lin, int arg_idx) {
+Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == RMUL);
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.args[0]->size.size() > 0);
@@ -841,7 +771,7 @@ Tensor get_rmul_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-Tensor get_mul_mat(LinOp &lin, int arg_idx) {
+Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == MUL);
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.args[0]->size.size() > 0);
@@ -928,7 +858,7 @@ Tensor get_mul_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing coefficient matrix ONES.
  *
  */
-Tensor get_promote_mat(LinOp &lin, int arg_idx) {
+Tensor get_promote_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == PROMOTE);
   int num_entries = vecprod(lin.size);
   Matrix ones = sparse_ones(num_entries, 1);
@@ -946,7 +876,7 @@ Tensor get_promote_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing the coefficient matrix ONE.
  *
  */
-Tensor get_reshape_mat(LinOp &lin, int arg_idx) {
+Tensor get_reshape_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == RESHAPE);
   int n = vecprod(lin.size);
   Matrix coeffs = sparse_eye(n);
@@ -963,7 +893,7 @@ Tensor get_reshape_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing the coefficient matrix COEFFS
  *
  */
-Tensor get_div_mat(LinOp &lin, int arg_idx) {
+Tensor get_div_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == DIV);
   Matrix constant = get_constant_data(*lin.linOp_data, true);
   int n = constant.rows();
@@ -989,7 +919,7 @@ Tensor get_div_mat(LinOp &lin, int arg_idx) {
  *
  * Returns: vector containing the coefficient matrix COEFFS
  */
-Tensor get_neg_mat(LinOp &lin, int arg_idx) {
+Tensor get_neg_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == NEG);
   int n = vecprod(lin.size);
   Matrix coeffs = sparse_eye(n);
@@ -1008,7 +938,7 @@ Tensor get_neg_mat(LinOp &lin, int arg_idx) {
  * Returns: vector containing the coefficient matrix COEFFS
  *
  */
-Tensor get_trace_mat(LinOp &lin, int arg_idx) {
+Tensor get_trace_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == TRACE);
   int rows = lin.args[0]->size[0];
   Matrix coeffs(1, rows * rows);
@@ -1027,7 +957,7 @@ Tensor get_trace_mat(LinOp &lin, int arg_idx) {
  *
  * Returns: vector containing the coefficient matrix COEFFS
  */
-Tensor get_sum_entries_mat(LinOp &lin, int arg_idx) {
+Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == SUM_ENTRIES);
   // assumes all args have the same size
   int size = vecprod(lin.args[0]->size);
@@ -1043,7 +973,7 @@ Tensor get_sum_entries_mat(LinOp &lin, int arg_idx) {
  *
  * Returns: A vector of length N where each element is a 1x1 matrix
  */
-Tensor get_sum_coefficients(LinOp &lin, int arg_idx) {
+Tensor get_sum_coefficients(const LinOp &lin, int arg_idx) {
   assert(lin.type == SUM);
   int n = vecprod(lin.size);
   Matrix coeffs = sparse_eye(n);
@@ -1061,7 +991,7 @@ Tensor get_sum_coefficients(LinOp &lin, int arg_idx) {
  * Returns: Map from VARIABLE_ID to coefficient matrix COEFFS for LIN
  *
  */
-Tensor get_variable_coeffs(LinOp &lin, int arg_idx) {
+Tensor get_variable_coeffs(const LinOp &lin, int arg_idx) {
   assert(lin.type == VARIABLE);
   Tensor ten;
   DictMat id_to_coeffs;
@@ -1087,7 +1017,7 @@ Tensor get_variable_coeffs(LinOp &lin, int arg_idx) {
  * Returns: Tensor
  *
  */
-Tensor get_param_coeffs(LinOp &lin, int arg_idx) {
+Tensor get_param_coeffs(const LinOp &lin, int arg_idx) {
   assert(lin.type == PARAM);
   int id = get_id_data(lin, arg_idx);
   // create a giant identity matrix
@@ -1120,7 +1050,7 @@ Tensor get_param_coeffs(LinOp &lin, int arg_idx) {
  *
  * Returns: map from CONSTANT_ID to the coefficient matrix COEFFS for LIN.
  */
-Tensor get_const_coeffs(LinOp &lin, int arg_idx) {
+Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
   assert(lin.has_constant_type());
   Tensor ten;
   DictMat id_to_coeffs;

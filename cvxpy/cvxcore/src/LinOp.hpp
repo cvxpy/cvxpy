@@ -63,28 +63,29 @@ public:
   /* Children LinOps in the tree */
   std::vector<LinOp *> args;
 
-  /* Store linOp tree. */
+  /* Store linOp tree of data. */
   LinOp *linOp_data;
   /* Dimensions of data */
   int data_ndim;
-  /* Sparse Data Fields */
-  bool sparse; // True only if linOp has sparse_data
+  /* Sparse data fields */
+  // True only if linOp has sparse_data
+  bool sparse;
   Matrix sparse_data;
 
-  /* Dense Data Field */
+  /* Dense data field */
   Eigen::MatrixXd dense_data;
 
-  /* Slice Data: stores slice data as (row_slice, col_slice)
+  /* Slice data: stores slice data as (row_slice, col_slice)
    * where slice = (start, end, step_size) */
   std::vector<std::vector<int> > slice;
 
-  /* Constructor */
   LinOp() {
-    sparse = false; // sparse by default
+    // dense by default
+    sparse = false;
   }
 
   /* Checks if LinOp is constant type */
-  bool has_constant_type() {
+  bool has_constant_type() const {
     return type == SCALAR_CONST || type == DENSE_CONST || type == SPARSE_CONST;
   }
 

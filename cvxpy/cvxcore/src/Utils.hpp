@@ -34,8 +34,8 @@ static const int CONSTANT_ID = -1;
 
 int vecprod(const std::vector<int> &vec);
 int vecprod_before(const std::vector<int> &vec, int end);
-Tensor tensor_mul(Tensor &lh_ten, Tensor &rh_ten);
-void acc_tensor(Tensor &lh_ten, Tensor &rh_ten);
-Matrix diagonalize(Matrix &mat);
+Tensor tensor_mul(const Tensor &lh_ten, const Tensor &rh_ten);
+void acc_tensor(Tensor &lh_ten, const Tensor &rh_ten);
+Matrix diagonalize(const Matrix &mat);
 
 #endif
