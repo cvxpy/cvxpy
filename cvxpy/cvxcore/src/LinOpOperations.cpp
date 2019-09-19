@@ -237,8 +237,8 @@ Matrix sparse_reshape_to_vec(Matrix &mat) {
  * the columns are laid out in the order of the arguments.
  *
  * Parameters: linOP LIN that performs a stacking operation (HSTACK or VSTACK)
- * 						 boolean VERTICAL: True if vertical
- * stack. False otherwise.
+ * 						 boolean VERTICAL: True if
+ * vertical stack. False otherwise.
  *
  * Returns: vector COEFF_MATS containing the stacked coefficient matrices
  * 					for each argument.
@@ -365,7 +365,7 @@ int get_id_data(LinOp &lin, int arg_idx) {
  */
 Tensor get_kron_mat(LinOp &lin, int arg_idx) {
   assert(lin.type == KRON);
-  Matrix constant = get_constant_data(lin, false);
+  Matrix constant = get_constant_data(*lin.linOp_data, false);
   int lh_rows = constant.rows();
   int lh_cols = constant.cols();
   int rh_rows = lin.args[0]->size[0];
@@ -476,14 +476,14 @@ Tensor get_hstack_mat(LinOp &lin, int arg_idx) {
  * to convolution.
  *
  * Parameters: linOp LIN with type CONV. Data should should contain a
- *						 column vector that the variables
- *are convolved with.
+ *						 column vector that the
+ *variables are convolved with.
  *
  * Returns: vector of coefficients for convolution linOp
  */
 Tensor get_conv_mat(LinOp &lin, int arg_idx) {
   assert(lin.type == CONV);
-  Matrix constant = get_constant_data(lin, false);
+  Matrix constant = get_constant_data(*lin.linOp_data, false);
   int rows = lin.size[0];
   int nonzeros = constant.rows();
   int cols = lin.args[0]->size[0];
