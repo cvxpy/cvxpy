@@ -53,14 +53,15 @@ namespace std {
    %template(DoubleVector2D) vector< vector<double> >;
    %template(IntIntMap) map<int, int>;
    %template(LinOpVector) vector< LinOp * >;
+   %template(ConstLinOpVector) vector< const LinOp * >;
 }
 
 /* Wrapper for entry point into CVXCanon Library */
-ProblemData build_matrix(std::vector< LinOp* > constraints,
+ProblemData build_matrix(std::vector< const LinOp* > constraints,
                          int var_length,
                          std::map<int, int> id_to_col,
                          std::map<int, int> param_to_size);
-ProblemData build_matrix(std::vector< LinOp* > constraints,
+ProblemData build_matrix(std::vector< const LinOp* > constraints,
                          int var_length,
                          std::map<int, int> id_to_col,
                          std::map<int, int> param_to_size,

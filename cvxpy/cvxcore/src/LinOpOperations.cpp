@@ -256,6 +256,8 @@ Matrix get_constant_data(const LinOp &lin, bool column) {
       coeffs = lin.sparse_data;
     }
   } else {
+    assert(lin.dense_data.rows() > 0);
+    assert(lin.dense_data.cols() > 0);
     if (column) {
       Eigen::Map<const Eigen::MatrixXd> column(
           lin.dense_data.data(), lin.dense_data.rows() * lin.dense_data.cols(),
@@ -923,7 +925,7 @@ Tensor get_neg_mat(const LinOp &lin, int arg_idx) {
   assert(lin.type == NEG);
   int n = vecprod(lin.size);
   Matrix coeffs = sparse_eye(n);
-  coeffs *= -1;
+  coeffs *= -1.0;
   coeffs.makeCompressed();
   return build_tensor(coeffs);
 }
@@ -1057,6 +1059,7 @@ Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
   int id = CONSTANT_ID;
 
   // get coeffs as a column vector
+  assert(lin.linOp_data == nullptr);
   Matrix coeffs = get_constant_data(lin, true);
   coeffs.makeCompressed();
   std::vector<Matrix> mat_vec;

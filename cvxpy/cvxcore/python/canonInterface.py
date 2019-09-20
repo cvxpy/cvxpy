@@ -46,7 +46,7 @@ def get_problem_matrix(linOps,
         const_vec: a numpy column vector representing the constant_data in our
                    problem
     """
-    lin_vec = cvxcore.LinOpVector()
+    lin_vec = cvxcore.ConstLinOpVector()
 
     # Loading the variable offsets from our
     # Python map into a C++ map
@@ -115,9 +115,8 @@ def get_problem_matrix(linOps,
     V = np.concatenate(V)
     I = np.concatenate(I)
     J = np.concatenate(J)
-    A = scipy.sparse.csc_matrix((V, (I, J)),
-                                shape=(constr_length*(var_length+1),
-                                       total_size))
+    A = scipy.sparse.csc_matrix(
+        (V, (I, J)), shape=(constr_length*(var_length+1), total_size))
     return A
 
 
@@ -240,7 +239,7 @@ def build_lin_op_tree(root_linPy, tmp):
     while len(Q) > 0:
         linPy, linC = Q.popleft()
 
-        # Updating the arguments our LinOp
+        # Updating the arguments of our LinOp
         for argPy in linPy.args:
             tree = cvxcore.LinOp()
             tmp.append(tree)

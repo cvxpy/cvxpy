@@ -865,6 +865,112 @@ class LinOpVector(object):
 # Register LinOpVector in _cvxcore:
 _cvxcore.LinOpVector_swigregister(LinOpVector)
 
+class ConstLinOpVector(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+
+    def iterator(self) -> "swig::SwigPyIterator *":
+        return _cvxcore.ConstLinOpVector_iterator(self)
+    def __iter__(self):
+        return self.iterator()
+
+    def __nonzero__(self) -> "bool":
+        return _cvxcore.ConstLinOpVector___nonzero__(self)
+
+    def __bool__(self) -> "bool":
+        return _cvxcore.ConstLinOpVector___bool__(self)
+
+    def __len__(self) -> "std::vector< LinOp const * >::size_type":
+        return _cvxcore.ConstLinOpVector___len__(self)
+
+    def __getslice__(self, i: "std::vector< LinOp const * >::difference_type", j: "std::vector< LinOp const * >::difference_type") -> "std::vector< LinOp const *,std::allocator< LinOp const * > > *":
+        return _cvxcore.ConstLinOpVector___getslice__(self, i, j)
+
+    def __setslice__(self, *args) -> "void":
+        return _cvxcore.ConstLinOpVector___setslice__(self, *args)
+
+    def __delslice__(self, i: "std::vector< LinOp const * >::difference_type", j: "std::vector< LinOp const * >::difference_type") -> "void":
+        return _cvxcore.ConstLinOpVector___delslice__(self, i, j)
+
+    def __delitem__(self, *args) -> "void":
+        return _cvxcore.ConstLinOpVector___delitem__(self, *args)
+
+    def __getitem__(self, *args) -> "std::vector< LinOp const * >::value_type":
+        return _cvxcore.ConstLinOpVector___getitem__(self, *args)
+
+    def __setitem__(self, *args) -> "void":
+        return _cvxcore.ConstLinOpVector___setitem__(self, *args)
+
+    def pop(self) -> "std::vector< LinOp const * >::value_type":
+        return _cvxcore.ConstLinOpVector_pop(self)
+
+    def append(self, x: "LinOp") -> "void":
+        return _cvxcore.ConstLinOpVector_append(self, x)
+
+    def empty(self) -> "bool":
+        return _cvxcore.ConstLinOpVector_empty(self)
+
+    def size(self) -> "std::vector< LinOp const * >::size_type":
+        return _cvxcore.ConstLinOpVector_size(self)
+
+    def swap(self, v: "ConstLinOpVector") -> "void":
+        return _cvxcore.ConstLinOpVector_swap(self, v)
+
+    def begin(self) -> "std::vector< LinOp const * >::iterator":
+        return _cvxcore.ConstLinOpVector_begin(self)
+
+    def end(self) -> "std::vector< LinOp const * >::iterator":
+        return _cvxcore.ConstLinOpVector_end(self)
+
+    def rbegin(self) -> "std::vector< LinOp const * >::reverse_iterator":
+        return _cvxcore.ConstLinOpVector_rbegin(self)
+
+    def rend(self) -> "std::vector< LinOp const * >::reverse_iterator":
+        return _cvxcore.ConstLinOpVector_rend(self)
+
+    def clear(self) -> "void":
+        return _cvxcore.ConstLinOpVector_clear(self)
+
+    def get_allocator(self) -> "std::vector< LinOp const * >::allocator_type":
+        return _cvxcore.ConstLinOpVector_get_allocator(self)
+
+    def pop_back(self) -> "void":
+        return _cvxcore.ConstLinOpVector_pop_back(self)
+
+    def erase(self, *args) -> "std::vector< LinOp const * >::iterator":
+        return _cvxcore.ConstLinOpVector_erase(self, *args)
+
+    def __init__(self, *args):
+        _cvxcore.ConstLinOpVector_swiginit(self, _cvxcore.new_ConstLinOpVector(*args))
+
+    def push_back(self, x: "LinOp") -> "void":
+        return _cvxcore.ConstLinOpVector_push_back(self, x)
+
+    def front(self) -> "std::vector< LinOp const * >::value_type":
+        return _cvxcore.ConstLinOpVector_front(self)
+
+    def back(self) -> "std::vector< LinOp const * >::value_type":
+        return _cvxcore.ConstLinOpVector_back(self)
+
+    def assign(self, n: "std::vector< LinOp const * >::size_type", x: "LinOp") -> "void":
+        return _cvxcore.ConstLinOpVector_assign(self, n, x)
+
+    def resize(self, *args) -> "void":
+        return _cvxcore.ConstLinOpVector_resize(self, *args)
+
+    def insert(self, *args) -> "void":
+        return _cvxcore.ConstLinOpVector_insert(self, *args)
+
+    def reserve(self, n: "std::vector< LinOp const * >::size_type") -> "void":
+        return _cvxcore.ConstLinOpVector_reserve(self, n)
+
+    def capacity(self) -> "std::vector< LinOp const * >::size_type":
+        return _cvxcore.ConstLinOpVector_capacity(self)
+    __swig_destroy__ = _cvxcore.delete_ConstLinOpVector
+
+# Register ConstLinOpVector in _cvxcore:
+_cvxcore.ConstLinOpVector_swigregister(ConstLinOpVector)
+
 
 def build_matrix(*args) -> "ProblemData":
     return _cvxcore.build_matrix(*args)

@@ -41,7 +41,7 @@ void add_matrix_to_vectors(Matrix &block, std::vector<double> &V,
   }
 }
 
-void process_constraint(LinOp &lin, ProblemData &problemData, int &vert_offset,
+void process_constraint(const LinOp &lin, ProblemData &problemData, int &vert_offset,
                         int var_length, std::map<int, int> &id_to_col) {
   /* Get the coefficient for the current constraint */
   Tensor coeffs = lin_to_tensor(lin);
@@ -140,7 +140,7 @@ ProblemData init_data_tensor(std::map<int, int> param_to_size) {
  * our matrix to their corresponding constraint.
  *
  */
-ProblemData build_matrix(std::vector<LinOp *> constraints, int var_length,
+ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
                          std::map<int, int> id_to_col,
                          std::map<int, int> param_to_size) {
   ProblemData prob_data = init_data_tensor(param_to_size);
@@ -163,7 +163,7 @@ ProblemData build_matrix(std::vector<LinOp *> constraints, int var_length,
                 the vertical offset for constraint i + the size of constraint i
    must be less than the vertical offset for constraint i+1.
                 */
-ProblemData build_matrix(std::vector<LinOp *> constraints, int var_length,
+ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
                          std::map<int, int> id_to_col,
                          std::map<int, int> param_to_size,
                          std::vector<int> constr_offsets) {
