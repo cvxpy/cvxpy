@@ -15,10 +15,9 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
+from cvxpy.constraints import SOC, ExpCone, Zero
 import cvxpy.interface as intf
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConeDims, ConicSolver
 from cvxpy.reductions.utilities import group_constraints
 import numpy as np

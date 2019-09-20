@@ -21,7 +21,8 @@ import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import (
                                                     dims_to_solver_dict, ECOS)
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers import utilities
+
+import numpy as np
 
 
 class ECOS_BB(ECOS):
