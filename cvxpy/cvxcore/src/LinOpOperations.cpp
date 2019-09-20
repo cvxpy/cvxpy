@@ -60,7 +60,7 @@ Tensor get_param_coeffs(const LinOp &lin, int arg_idx);
  */
 Tensor get_node_coeffs(const LinOp &lin, int arg_idx) {
   Tensor coeffs;
-  switch (lin.type) {
+  switch (lin.get_type()) {
   case VARIABLE:
     coeffs = get_variable_coeffs(lin, arg_idx);
     break;
@@ -141,14 +141,14 @@ Tensor get_node_coeffs(const LinOp &lin, int arg_idx) {
 }
 
 Tensor lin_to_tensor(const LinOp &lin) {
-  if (lin.args.size() == 0) {
+  if (lin.get_args().size() == 0) {
     return get_node_coeffs(lin, 0);
   } else {
     Tensor result;
     /* Multiply the arguments of the function coefficient in order */
-    for (unsigned i = 0; i < lin.args.size(); ++i) {
+    for (unsigned i = 0; i < lin.get_args().size(); ++i) {
       Tensor lh_coeff = get_node_coeffs(lin, i);
-      Tensor rh_coeff = lin_to_tensor(*lin.args[i]);
+      Tensor rh_coeff = lin_to_tensor(*lin.get_args()[i]);
       Tensor prod = tensor_mul(lh_coeff, rh_coeff);
       acc_tensor(result, prod);
     }
@@ -249,22 +249,22 @@ Matrix sparse_reshape_to_vec(const Matrix &mat) {
  */
 Matrix get_constant_data(const LinOp &lin, bool column) {
   Matrix coeffs;
-  if (lin.sparse) {
+  if (lin.is_sparse()) {
     if (column) {
-      coeffs = sparse_reshape_to_vec(lin.sparse_data);
+      coeffs = sparse_reshape_to_vec(lin.get_sparse_data());
     } else {
-      coeffs = lin.sparse_data;
+      coeffs = lin.get_sparse_data();
     }
   } else {
-    assert(lin.dense_data.rows() > 0);
-    assert(lin.dense_data.cols() > 0);
+    assert(lin.get_dense_data().rows() > 0);
+    assert(lin.get_dense_data().cols() > 0);
     if (column) {
       Eigen::Map<const Eigen::MatrixXd> column(
-          lin.dense_data.data(), lin.dense_data.rows() * lin.dense_data.cols(),
-          1);
+          lin.get_dense_data().data(),
+          lin.get_dense_data().rows() * lin.get_dense_data().cols(), 1);
       coeffs = column.sparseView();
     } else {
-      coeffs = lin.dense_data.sparseView();
+      coeffs = lin.get_dense_data().sparseView();
     }
   }
   coeffs.makeCompressed();
@@ -281,8 +281,8 @@ Matrix get_constant_data(const LinOp &lin, bool column) {
  * Returns: integer variable ID
  */
 int get_id_data(const LinOp &lin, int arg_idx) {
-  assert(lin.type == VARIABLE || lin.type == PARAM);
-  return int(lin.dense_data(0, 0));
+  assert(lin.get_type() == VARIABLE || lin.get_type() == PARAM);
+  return int(lin.get_dense_data()(0, 0));
 }
 
 /*****************************
@@ -296,12 +296,12 @@ int get_id_data(const LinOp &lin, int arg_idx) {
                                                 product.
  */
 Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == KRON);
-  Matrix constant = get_constant_data(*lin.linOp_data, false);
+  assert(lin.get_type() == KRON);
+  Matrix constant = get_constant_data(*lin.get_linOp_data(), false);
   int lh_rows = constant.rows();
   int lh_cols = constant.cols();
-  int rh_rows = lin.args[0]->size[0];
-  int rh_cols = lin.args[0]->size[1];
+  int rh_rows = lin.get_args()[0]->get_shape()[0];
+  int rh_cols = lin.get_args()[0]->get_shape()[1];
 
   int rows = rh_rows * rh_cols * lh_rows * lh_cols;
   int cols = rh_rows * rh_cols;
@@ -335,20 +335,23 @@ Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
  * Returns: vector of coefficient matrices for each argument.
  */
 Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == VSTACK);
+  assert(lin.get_type() == VSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.args.size());
+  assert(arg_idx <= lin.get_args().size());
   std::vector<Triplet> tripletList;
-  LinOp arg = *lin.args[arg_idx];
-  tripletList.reserve(vecprod(arg.size));
+  const LinOp &arg = *lin.get_args()[arg_idx];
+  tripletList.reserve(vecprod(arg.get_shape()));
 
-  int arg_rows = (arg.size.size() >= 2) ? arg.size[0] : 1;
-  int arg_cols = (arg.size.size() >= 1) ? arg.size[arg.size.size() - 1] : 1;
+  int arg_rows = (arg.get_shape().size() >= 2) ? arg.get_shape()[0] : 1;
+  int arg_cols = (arg.get_shape().size() >= 1)
+                     ? arg.get_shape()[arg.get_shape().size() - 1]
+                     : 1;
   /* Columns are interleaved. */
-  int column_offset = lin.size[0];
+  int column_offset = lin.get_shape()[0];
   for (int idx = 0; idx < arg_idx; ++idx) {
-    LinOp prev_arg = *lin.args[idx];
-    row_offset += (prev_arg.size.size() >= 2) ? prev_arg.size[0] : 1;
+    const LinOp &prev_arg = *lin.get_args()[idx];
+    row_offset +=
+        (prev_arg.get_shape().size() >= 2) ? prev_arg.get_shape()[0] : 1;
   }
 
   for (int i = 0; i < arg_rows; ++i) {
@@ -359,7 +362,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
     }
   }
 
-  Matrix coeff(vecprod(lin.size), vecprod(arg.size));
+  Matrix coeff(vecprod(lin.get_shape()), vecprod(arg.get_shape()));
   coeff.setFromTriplets(tripletList.begin(), tripletList.end());
   coeff.makeCompressed();
   return build_tensor(coeff);
@@ -372,19 +375,19 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
  * Returns: vector of coefficient matrices for each argument.
  */
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == HSTACK);
+  assert(lin.get_type() == HSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.args.size());
+  assert(arg_idx <= lin.get_args().get_shape());
   std::vector<Triplet> tripletList;
-  tripletList.reserve(vecprod(lin.size));
-  LinOp arg = *lin.args[arg_idx];
+  tripletList.reserve(vecprod(lin.get_shape()));
+  const LinOp &arg = *lin.get_args()[arg_idx];
 
-  int arg_rows = (arg.size.size() >= 1) ? arg.size[0] : 1;
-  int arg_cols = (arg.size.size() >= 2) ? arg.size[1] : 1;
+  int arg_rows = (arg.get_shape().size() >= 1) ? arg.get_shape()[0] : 1;
+  int arg_cols = (arg.get_shape().size() >= 2) ? arg.get_shape()[1] : 1;
   /* Columns are laid out in order. */
   int column_offset = arg_rows;
   for (int idx = 0; idx < arg_idx; ++idx) {
-    row_offset += vecprod((*lin.args[idx]).size);
+    row_offset += vecprod(lin.get_args()[idx]->get_shape());
   }
 
   for (int i = 0; i < arg_rows; ++i) {
@@ -395,7 +398,7 @@ Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
     }
   }
 
-  Matrix coeff(vecprod(lin.size), vecprod(arg.size));
+  Matrix coeff(vecprod(lin.get_shape()), vecprod(arg.get_shape()));
   coeff.setFromTriplets(tripletList.begin(), tripletList.end());
   coeff.makeCompressed();
   return build_tensor(coeff);
@@ -414,11 +417,11 @@ Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
  * Returns: vector of coefficients for convolution linOp
  */
 Tensor get_conv_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == CONV);
-  Matrix constant = get_constant_data(*lin.linOp_data, false);
-  int rows = lin.size[0];
+  assert(lin.get_type() == CONV);
+  Matrix constant = get_constant_data(*lin.get_linOp_data(), false);
+  int rows = lin.get_shape()[0];
   int nonzeros = constant.rows();
-  int cols = lin.args[0]->size[0];
+  int cols = lin.get_args()[0]->get_shape()[0];
 
   Matrix toeplitz(rows, cols);
 
@@ -447,11 +450,11 @@ Tensor get_conv_mat(const LinOp &lin, int arg_idx) {
  * Returns: vector of coefficients for upper triangular matrix linOp
  */
 Tensor get_upper_tri_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == UPPER_TRI);
-  int rows = lin.args[0]->size[0];
-  int cols = lin.args[0]->size[1];
+  assert(lin.get_type() == UPPER_TRI);
+  int rows = lin.get_args()[0]->get_shape()[0];
+  int cols = lin.get_args()[0]->get_shape()[1];
 
-  int entries = lin.size[0];
+  int entries = lin.get_shape()[0];
   Matrix coeffs(entries, rows * cols);
 
   std::vector<Triplet> tripletList;
@@ -485,8 +488,8 @@ Tensor get_upper_tri_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_diag_matrix_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == DIAG_MAT);
-  int rows = lin.size[0];
+  assert(lin.get_type() == DIAG_MAT);
+  int rows = lin.get_shape()[0];
 
   Matrix coeffs(rows, rows * rows);
   std::vector<Triplet> tripletList;
@@ -515,8 +518,8 @@ Tensor get_diag_matrix_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_diag_vec_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == DIAG_VEC);
-  int rows = lin.size[0];
+  assert(lin.get_type() == DIAG_VEC);
+  int rows = lin.get_shape()[0];
 
   Matrix coeffs(rows * rows, rows);
   std::vector<Triplet> tripletList;
@@ -544,9 +547,9 @@ Tensor get_diag_vec_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_transpose_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == TRANSPOSE);
-  int rows = lin.size[0];
-  int cols = lin.size[1];
+  assert(lin.get_type() == TRANSPOSE);
+  int rows = lin.get_shape()[0];
+  int cols = lin.get_shape()[1];
 
   Matrix coeffs(rows * cols, rows * cols);
 
@@ -611,8 +614,9 @@ int add_triplets(std::vector<Triplet> &tripletList,
  *
  */
 Tensor get_index_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == INDEX);
-  Matrix coeffs(vecprod(lin.size), vecprod(lin.args[0]->size));
+  assert(lin.get_type() == INDEX);
+  Matrix coeffs(vecprod(lin.get_shape()),
+                vecprod(lin.get_args()[0]->get_shape()));
 
   /* If slice is empty, return empty matrix */
   if (coeffs.rows() == 0 || coeffs.cols() == 0) {
@@ -626,9 +630,10 @@ Tensor get_index_mat(const LinOp &lin, int arg_idx) {
   /* Set the index coefficients by looping over the column selection
    * first to remain consistent with CVXPY. */
   std::vector<Triplet> tripletList;
-  std::vector<int> dims = lin.args[0]->size;
-  assert(lin.slice.size() == dims.size());
-  add_triplets(tripletList, lin.slice, dims, lin.slice.size() - 1, 0, 0);
+  std::vector<int> dims = lin.get_args()[0]->get_shape();
+  assert(lin.get_slice().size() == dims.size());
+  add_triplets(tripletList, lin.get_slice(), dims, lin.get_slice().size() - 1,
+               0, 0);
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
   return build_tensor(coeffs);
@@ -645,8 +650,8 @@ Tensor get_index_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == MUL_ELEM);
-  Tensor mul_ten = lin_to_tensor(*lin.linOp_data);
+  assert(lin.get_type() == MUL_ELEM);
+  Tensor mul_ten = lin_to_tensor(*lin.get_linOp_data());
   // Convert all the Tensor matrices into diagonal matrices.
   // Replace them in-place.
   typedef Tensor::iterator it_type;
@@ -677,12 +682,12 @@ Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == RMUL);
+  assert(lin.get_type() == RMUL);
   // Scalar multiplication handled in mul_elemwise.
-  assert(lin.args[0]->size.size() > 0);
-  Tensor rmul_ten = lin_to_tensor(*lin.linOp_data);
+  assert(lin.get_args()[0]->get_shape().size() > 0);
+  Tensor rmul_ten = lin_to_tensor(*lin.get_linOp_data());
   // Interpret as row or column vector as needed.
-  if (lin.data_ndim == 1 && lin.args[0]->size[0] != 1) {
+  if (lin.get_data_ndim() == 1 && lin.get_args()[0]->get_shape()[0] != 1) {
     // Transpose matrices.
     typedef Tensor::iterator it_type;
     for (it_type it = rmul_ten.begin(); it != rmul_ten.end(); ++it) {
@@ -700,22 +705,24 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
     }
   }
   // Get rows and cols of data (1 if not present).
-  int data_rows =
-      (lin.linOp_data->size.size() >= 1) ? lin.linOp_data->size[0] : 1;
-  int data_cols =
-      (lin.linOp_data->size.size() >= 2) ? lin.linOp_data->size[1] : 1;
+  int data_rows = (lin.get_linOp_data()->get_shape().size() >= 1)
+                      ? lin.get_linOp_data()->get_shape()[0]
+                      : 1;
+  int data_cols = (lin.get_linOp_data()->get_shape().size() >= 2)
+                      ? lin.get_linOp_data()->get_shape()[1]
+                      : 1;
 
   // Interpret as row or column vector as needed.
   int arg_cols;
   int result_rows;
-  if (lin.args[0]->size.size() == 1) {
-    arg_cols = lin.args[0]->size[0];
+  if (lin.get_args()[0]->get_shape().size() == 1) {
+    arg_cols = lin.get_args()[0]->get_shape()[0];
     result_rows = 1;
   } else {
-    arg_cols = lin.args[0]->size[1];
-    result_rows = lin.args[0]->size[0];
+    arg_cols = lin.get_args()[0]->get_shape()[1];
+    result_rows = lin.get_args()[0]->get_shape()[0];
   }
-  int n = (lin.size.size() > 0) ? result_rows : 1;
+  int n = (lin.get_shape().size() > 0) ? result_rows : 1;
 
   typedef Tensor::iterator it_type;
   for (it_type it = rmul_ten.begin(); it != rmul_ten.end(); ++it) {
@@ -774,12 +781,12 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == MUL);
+  assert(lin.get_type() == MUL);
   // Scalar multiplication handled in mul_elemwise.
-  assert(lin.args[0]->size.size() > 0);
-  Tensor mul_ten = lin_to_tensor(*lin.linOp_data);
+  assert(lin.get_args()[0]->get_shape().size() > 0);
+  Tensor mul_ten = lin_to_tensor(*lin.get_linOp_data());
   // Interpret as row or column vector as needed.
-  if (lin.data_ndim == 1 && lin.args[0]->size[0] != 1) {
+  if (lin.get_data_ndim() == 1 && lin.get_args()[0]->get_shape()[0] != 1) {
     // Transpose matrices.
     typedef Tensor::iterator it_type;
     for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it) {
@@ -797,16 +804,20 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
     }
   }
   // Get rows and cols of data (1 if not present).
-  int data_rows =
-      (lin.linOp_data->size.size() >= 1) ? lin.linOp_data->size[0] : 1;
-  int data_cols =
-      (lin.linOp_data->size.size() >= 2) ? lin.linOp_data->size[1] : 1;
+  int data_rows = (lin.get_linOp_data()->get_shape().size() >= 1)
+                      ? lin.get_linOp_data()->get_shape()[0]
+                      : 1;
+  int data_cols = (lin.get_linOp_data()->get_shape().size() >= 2)
+                      ? lin.get_linOp_data()->get_shape()[1]
+                      : 1;
 
-  int num_blocks = (lin.args[0]->size.size() <= 1) ? 1 : lin.args[0]->size[1];
+  int num_blocks = (lin.get_args()[0]->get_shape().size() <= 1)
+                       ? 1
+                       : lin.get_args()[0]->get_shape()[1];
   // Swap rows and cols if necessary.
   int block_rows = data_rows;
   int block_cols = data_cols;
-  if (lin.args[0]->size[0] != data_cols) {
+  if (lin.get_args()[0]->get_shape()[0] != data_cols) {
     block_rows = data_cols;
     block_cols = data_rows;
   }
@@ -861,8 +872,8 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_promote_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == PROMOTE);
-  int num_entries = vecprod(lin.size);
+  assert(lin.get_type() == PROMOTE);
+  int num_entries = vecprod(lin.get_shape());
   Matrix ones = sparse_ones(num_entries, 1);
   ones.makeCompressed();
   return build_tensor(ones);
@@ -879,8 +890,8 @@ Tensor get_promote_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_reshape_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == RESHAPE);
-  int n = vecprod(lin.size);
+  assert(lin.get_type() == RESHAPE);
+  int n = vecprod(lin.get_shape());
   Matrix coeffs = sparse_eye(n);
   coeffs.makeCompressed();
   return build_tensor(coeffs);
@@ -896,8 +907,8 @@ Tensor get_reshape_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_div_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == DIV);
-  Matrix constant = get_constant_data(*lin.linOp_data, true);
+  assert(lin.get_type() == DIV);
+  Matrix constant = get_constant_data(*lin.get_linOp_data(), true);
   int n = constant.rows();
 
   // build a giant diagonal matrix
@@ -922,8 +933,8 @@ Tensor get_div_mat(const LinOp &lin, int arg_idx) {
  * Returns: vector containing the coefficient matrix COEFFS
  */
 Tensor get_neg_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == NEG);
-  int n = vecprod(lin.size);
+  assert(lin.get_type() == NEG);
+  int n = vecprod(lin.get_shape());
   Matrix coeffs = sparse_eye(n);
   coeffs *= -1.0;
   coeffs.makeCompressed();
@@ -941,8 +952,8 @@ Tensor get_neg_mat(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_trace_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == TRACE);
-  int rows = lin.args[0]->size[0];
+  assert(lin.get_type() == TRACE);
+  int rows = lin.get_args()[0]->get_shape()[0];
   Matrix coeffs(1, rows * rows);
   for (int i = 0; i < rows; ++i) {
     coeffs.insert(0, i * rows + i) = 1;
@@ -960,9 +971,9 @@ Tensor get_trace_mat(const LinOp &lin, int arg_idx) {
  * Returns: vector containing the coefficient matrix COEFFS
  */
 Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.type == SUM_ENTRIES);
+  assert(lin.get_type() == SUM_ENTRIES);
   // assumes all args have the same size
-  int size = vecprod(lin.args[0]->size);
+  int size = vecprod(lin.get_args()[0]->get_shape());
   Matrix coeffs = sparse_ones(1, size);
   coeffs.makeCompressed();
   return build_tensor(coeffs);
@@ -976,8 +987,8 @@ Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx) {
  * Returns: A vector of length N where each element is a 1x1 matrix
  */
 Tensor get_sum_coefficients(const LinOp &lin, int arg_idx) {
-  assert(lin.type == SUM);
-  int n = vecprod(lin.size);
+  assert(lin.get_type() == SUM);
+  int n = vecprod(lin.get_shape());
   Matrix coeffs = sparse_eye(n);
   coeffs.makeCompressed();
   return build_tensor(coeffs);
@@ -994,13 +1005,13 @@ Tensor get_sum_coefficients(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_variable_coeffs(const LinOp &lin, int arg_idx) {
-  assert(lin.type == VARIABLE);
+  assert(lin.get_type() == VARIABLE);
   Tensor ten;
   DictMat id_to_coeffs;
   int id = get_id_data(lin, arg_idx);
 
   // create a giant identity matrix
-  int n = vecprod(lin.size);
+  int n = vecprod(lin.get_shape());
   Matrix coeffs = sparse_eye(n);
   coeffs.makeCompressed();
   std::vector<Matrix> mat_vec;
@@ -1020,11 +1031,11 @@ Tensor get_variable_coeffs(const LinOp &lin, int arg_idx) {
  *
  */
 Tensor get_param_coeffs(const LinOp &lin, int arg_idx) {
-  assert(lin.type == PARAM);
+  assert(lin.get_type() == PARAM);
   int id = get_id_data(lin, arg_idx);
   // create a giant identity matrix
-  unsigned m = (lin.size.size() >= 1) ? lin.size[0] : 1;
-  unsigned n = (lin.size.size() >= 2) ? lin.size[1] : 1;
+  unsigned m = (lin.get_shape().size() >= 1) ? lin.get_shape()[0] : 1;
+  unsigned n = (lin.get_shape().size() >= 2) ? lin.get_shape()[1] : 1;
   Tensor ten;
   DictMat dm;
   std::vector<Matrix> mat_vec;
@@ -1053,13 +1064,13 @@ Tensor get_param_coeffs(const LinOp &lin, int arg_idx) {
  * Returns: map from CONSTANT_ID to the coefficient matrix COEFFS for LIN.
  */
 Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
-  assert(lin.has_constant_type());
+  assert(lin.is_constant());
   Tensor ten;
   DictMat id_to_coeffs;
   int id = CONSTANT_ID;
 
   // get coeffs as a column vector
-  assert(lin.linOp_data == nullptr);
+  assert(lin.get_linOp_data() == nullptr);
   Matrix coeffs = get_constant_data(lin, true);
   coeffs.makeCompressed();
   std::vector<Matrix> mat_vec;

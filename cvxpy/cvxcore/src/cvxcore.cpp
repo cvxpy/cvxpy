@@ -41,8 +41,9 @@ void add_matrix_to_vectors(Matrix &block, std::vector<double> &V,
   }
 }
 
-void process_constraint(const LinOp &lin, ProblemData &problemData, int &vert_offset,
-                        int var_length, std::map<int, int> &id_to_col) {
+void process_constraint(const LinOp &lin, ProblemData &problemData,
+                        int &vert_offset, int var_length,
+                        std::map<int, int> &id_to_col) {
   /* Get the coefficient for the current constraint */
   Tensor coeffs = lin_to_tensor(lin);
   // Convert variable ids into column offsets.
@@ -78,7 +79,7 @@ void process_constraint(const LinOp &lin, ProblemData &problemData, int &vert_of
 int get_total_constraint_length(std::vector<LinOp *> constraints) {
   int result = 0;
   for (unsigned i = 0; i < constraints.size(); i++) {
-    result += vecprod(constraints[i]->size);
+    result += vecprod(constraints[i]->get_shape());
   }
   return result;
 }
@@ -100,7 +101,7 @@ int get_total_constraint_length(std::vector<LinOp *> &constraints,
   for (unsigned i = 0; i < constr_offsets.size(); i++) {
     LinOp constr = *constraints[i];
     int offset_start = constr_offsets[i];
-    offset_end = offset_start + vecprod(constr.size);
+    offset_end = offset_start + vecprod(constr.get_shape());
 
     if (i + 1 < constr_offsets.size() && constr_offsets[i + 1] < offset_end) {
       std::cerr << "Error: Invalid constraint offsets: ";
@@ -149,7 +150,7 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
   for (unsigned i = 0; i < constraints.size(); i++) {
     LinOp constr = *constraints[i];
     process_constraint(constr, prob_data, vert_offset, var_length, id_to_col);
-    vert_offset += vecprod(constr.size);
+    vert_offset += vecprod(constr.get_shape());
   }
   return prob_data;
 }

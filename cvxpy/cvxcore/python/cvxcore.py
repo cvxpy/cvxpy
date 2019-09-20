@@ -150,24 +150,51 @@ KRON = _cvxcore.KRON
 class LinOp(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
-    type = property(_cvxcore.LinOp_type_get, _cvxcore.LinOp_type_set)
-    size = property(_cvxcore.LinOp_size_get, _cvxcore.LinOp_size_set)
-    args = property(_cvxcore.LinOp_args_get, _cvxcore.LinOp_args_set)
-    linOp_data = property(_cvxcore.LinOp_linOp_data_get, _cvxcore.LinOp_linOp_data_set)
-    data_ndim = property(_cvxcore.LinOp_data_ndim_get, _cvxcore.LinOp_data_ndim_set)
-    sparse = property(_cvxcore.LinOp_sparse_get, _cvxcore.LinOp_sparse_set)
-    sparse_data = property(_cvxcore.LinOp_sparse_data_get, _cvxcore.LinOp_sparse_data_set)
-    dense_data = property(_cvxcore.LinOp_dense_data_get, _cvxcore.LinOp_dense_data_set)
-    slice = property(_cvxcore.LinOp_slice_get, _cvxcore.LinOp_slice_set)
 
-    def __init__(self):
-        _cvxcore.LinOp_swiginit(self, _cvxcore.new_LinOp())
+    def __init__(self, type: "OperatorType", shape: "IntVector"):
+        _cvxcore.LinOp_swiginit(self, _cvxcore.new_LinOp(type, shape))
 
-    def has_constant_type(self) -> "bool":
-        return _cvxcore.LinOp_has_constant_type(self)
+    def get_type(self) -> "OperatorType":
+        return _cvxcore.LinOp_get_type(self)
+
+    def is_constant(self) -> "bool":
+        return _cvxcore.LinOp_is_constant(self)
+
+    def get_shape(self) -> "std::vector< int,std::allocator< int > >":
+        return _cvxcore.LinOp_get_shape(self)
+
+    def get_args(self) -> "std::vector< LinOp const *,std::allocator< LinOp const * > > const":
+        return _cvxcore.LinOp_get_args(self)
+
+    def push_back_arg(self, arg: "LinOp") -> "void":
+        return _cvxcore.LinOp_push_back_arg(self, arg)
+
+    def get_slice(self) -> "std::vector< std::vector< int,std::allocator< int > >,std::allocator< std::vector< int,std::allocator< int > > > > const":
+        return _cvxcore.LinOp_get_slice(self)
+
+    def push_back_slice_vec(self, slice_vec: "IntVector") -> "void":
+        return _cvxcore.LinOp_push_back_slice_vec(self, slice_vec)
+
+    def get_linOp_data(self) -> "LinOp const *":
+        return _cvxcore.LinOp_get_linOp_data(self)
 
     def set_linOp_data(self, tree: "LinOp") -> "void":
         return _cvxcore.LinOp_set_linOp_data(self, tree)
+
+    def set_data_ndim(self, ndim: "int") -> "void":
+        return _cvxcore.LinOp_set_data_ndim(self, ndim)
+
+    def get_data_ndim(self) -> "int":
+        return _cvxcore.LinOp_get_data_ndim(self)
+
+    def is_sparse(self) -> "bool":
+        return _cvxcore.LinOp_is_sparse(self)
+
+    def get_sparse_data(self) -> "Matrix const &":
+        return _cvxcore.LinOp_get_sparse_data(self)
+
+    def get_dense_data(self) -> "Eigen::MatrixXd const &":
+        return _cvxcore.LinOp_get_dense_data(self)
 
     def set_dense_data(self, matrix: "double *") -> "void":
         return _cvxcore.LinOp_set_dense_data(self, matrix)

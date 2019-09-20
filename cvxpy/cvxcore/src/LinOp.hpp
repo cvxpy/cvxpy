@@ -58,39 +58,31 @@ typedef operatortype OperatorType;
          and the semantics of SIZE, ARGS, and DATA depends on the linop TYPE. */
 class LinOp {
 public:
-  OperatorType type;
-  std::vector<int> size;
-  /* Children LinOps in the tree */
-  std::vector<LinOp *> args;
+  LinOp(OperatorType type, const std::vector<int> &shape)
+      : type_(type), shape_(shape), sparse_(false) {}
 
-  /* Store linOp tree of data. */
-  LinOp *linOp_data;
-  /* Dimensions of data */
-  int data_ndim;
-  /* Sparse data fields */
-  // True only if linOp has sparse_data
-  bool sparse;
-  Matrix sparse_data;
+  OperatorType get_type() const { return type_; }
+  bool is_constant() const {
+    return type_ == SCALAR_CONST || type_ == DENSE_CONST ||
+           type_ == SPARSE_CONST;
+  }
+  std::vector<int> get_shape() const { return shape_; }
 
-  /* Dense data field */
-  Eigen::MatrixXd dense_data;
+  const std::vector<const LinOp *> get_args() const { return args_; }
+  void push_back_arg(const LinOp *arg) { args_.push_back(arg); }
 
-  /* Slice data: stores slice data as (row_slice, col_slice)
-   * where slice = (start, end, step_size) */
-  std::vector<std::vector<int> > slice;
-
-  LinOp() {
-    // dense by default
-    sparse = false;
+  const std::vector<std::vector<int> > get_slice() const { return slice_; }
+  void push_back_slice_vec(const std::vector<int> &slice_vec) {
+    slice_.push_back(slice_vec);
   }
 
-  /* Checks if LinOp is constant type */
-  bool has_constant_type() const {
-    return type == SCALAR_CONST || type == DENSE_CONST || type == SPARSE_CONST;
-  }
-
-  /* Store linOp tree as data. */
-  void set_linOp_data(LinOp *tree) { linOp_data = tree; }
+  const LinOp *get_linOp_data() const { return linOp_data_; }
+  void set_linOp_data(const LinOp *tree) { linOp_data_ = tree; }
+  void set_data_ndim(int ndim) { data_ndim_ = ndim; }
+  int get_data_ndim() const { return data_ndim_; }
+  bool is_sparse() const { return sparse_; }
+  const Matrix &get_sparse_data() const { return sparse_data_; }
+  const Eigen::MatrixXd &get_dense_data() const { return dense_data_; }
 
   /* Initializes DENSE_DATA. MATRIX is a pointer to the data of a 2D
    * numpy array, ROWS and COLS are the size of the ARRAY.
@@ -102,7 +94,8 @@ public:
    * exactly to compile and run properly.
    */
   void set_dense_data(double *matrix, int rows, int cols) {
-    dense_data = Eigen::Map<Eigen::MatrixXd>(matrix, rows, cols);
+    dense_data_ = Eigen::Map<Eigen::MatrixXd>(matrix, rows, cols);
+    sparse_ = false;
   }
 
   /* Initializes SPARSE_DATA from a sparse matrix in COO format.
@@ -116,9 +109,8 @@ public:
   void set_sparse_data(double *data, int data_len, double *row_idxs,
                        int rows_len, double *col_idxs, int cols_len, int rows,
                        int cols) {
-
     assert(rows_len == data_len && cols_len == data_len);
-    sparse = true;
+    sparse_ = true;
     Matrix sparse_coeffs(rows, cols);
     std::vector<Triplet> tripletList;
     tripletList.reserve(data_len);
@@ -128,8 +120,25 @@ public:
     }
     sparse_coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
     sparse_coeffs.makeCompressed();
-    sparse_data = sparse_coeffs;
-    data_ndim = 2;
+    sparse_data_ = sparse_coeffs;
+    data_ndim_ = 2;
   }
+
+private:
+  const OperatorType type_;
+  std::vector<int> shape_;
+  // children of this LinOp
+  std::vector<const LinOp *> args_;
+  // stores slice data as (row_slice, col_slice), where slice = (start, end,
+  // step_size)
+  std::vector<std::vector<int> > slice_;
+  // numerical data acted upon by this linOp
+  const LinOp *linOp_data_;
+  int data_ndim_;
+  // true iff linOp has sparse_data; at most one of sparse_data and
+  // dense_data should be set
+  bool sparse_;
+  Matrix sparse_data_;
+  Eigen::MatrixXd dense_data_;
 };
 #endif

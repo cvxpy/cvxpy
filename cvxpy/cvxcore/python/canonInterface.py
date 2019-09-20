@@ -99,8 +99,7 @@ def get_problem_matrix(linOps,
     for id, size in param_to_size.items():
         param_to_size_C[int(id)] = int(size)
 
-    # This array keeps variables data in scope
-    # after build_lin_op_tree returns
+    # This array keeps variables data in scope after build_lin_op_tree returns
     tmp = []
     for lin in linOps:
         tree = build_lin_op_tree(lin, tmp)
@@ -217,10 +216,10 @@ def set_slice_data(linC, linPy):
     since we must load integers into our vector.
     """
     for i, sl in enumerate(linPy.data):
-        vec = cvxcore.IntVector()
+        slice_vec = cvxcore.IntVector()
         for var in [sl.start, sl.stop, sl.step]:
-            vec.push_back(int(var))
-        linC.slice.push_back(vec)
+            slice_vec.push_back(int(var))
+        linC.push_back_slice_vec(slice_vec)
 
 
 type_map = {
@@ -252,16 +251,28 @@ type_map = {
 }
 
 
-def get_type(ty):
+def get_type(linPy):
+    ty = linPy.type.upper()
     if ty in type_map:
         return type_map[ty]
     else:
         raise NotImplementedError("Type %s is not supported." % ty)
 
 
+def make_linC_from_linPy(linPy):
+    typ = get_type(linPy)
+    shape = cvxcore.IntVector()
+    for dim in linPy.shape:
+        shape.push_back(int(dim))
+    return cvxcore.LinOp(typ, shape)
+
+
+# TODO(akshayka): This should do an in-order traversal, so it's possible
+# to construct each C-linOp at once, instead of in stages
 def build_lin_op_tree(root_linPy, tmp):
     """
     Breadth-first, pre-order traversal on the Python linOp tree
+    that constructs an equivalent C++ linOp tree
 
     Parameters
     -------------
@@ -273,42 +284,32 @@ def build_lin_op_tree(root_linPy, tmp):
     --------
     root_linC: a C++ LinOp tree created through our swig interface
     """
-    Q = deque()
-    root_linC = cvxcore.LinOp()
-    Q.append((root_linPy, root_linC))
-
-    while len(Q) > 0:
-        linPy, linC = Q.popleft()
-
-        # Updating the arguments of our LinOp
+    queue = deque()
+    root_linC = make_linC_from_linPy(root_linPy)
+    queue.append((root_linPy, root_linC))
+    while queue:
+        linPy, linC = queue.popleft()
         for argPy in linPy.args:
-            tree = cvxcore.LinOp()
+            tree = make_linC_from_linPy(argPy)
             tmp.append(tree)
-            Q.append((argPy, tree))
-            linC.args.push_back(tree)
+            queue.append((argPy, tree))
+            linC.push_back_arg(tree)
 
-        # Setting the type of our lin op
-        linC.type = get_type(linPy.type.upper())
-
-        # Setting size
-        for dim in linPy.shape:
-            linC.size.push_back(int(dim))
-
-        # Loading the problem data into the appropriate array format
+        # Load the problem data into the appropriate array format
         if linPy.data is None:
             pass
         elif isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
             set_slice_data(linC, linPy)
-        elif isinstance(linPy.data, float) or isinstance(linPy.data, numbers.Integral):
+        elif isinstance(linPy.data, float) or isinstance(linPy.data,
+                                                         numbers.Integral):
             linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
             linC.data_ndim = 0
         elif isinstance(linPy.data, lo.LinOp):
             # Recurse on LinOp.
             linC_data = build_lin_op_tree(linPy.data, tmp)
             linC.set_linOp_data(linC_data)
-            linC.data_ndim = len(linPy.data.shape)
+            linC.set_data_ndim(len(linPy.data.shape))
         else:
             set_matrix_data(linC, linPy)
-
     tmp.append(root_linC)
     return root_linC
