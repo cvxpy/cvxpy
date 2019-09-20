@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_op as lo
 from cvxpy.constraints import (Equality, ExpCone, Inequality,
                                SOC, Zero, NonPos, PSD)
+from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions import InverseData
@@ -56,6 +56,7 @@ class ParamConeProg(object):
         self.parameters = parameters
         self.param_id_to_col = param_id_to_col
         self.id_to_param = {p.id: p for p in self.parameters}
+        self.param_id_to_size = {p.id: p.size for p in self.parameters}
         self.total_param_size = sum([p.size for p in self.parameters])
         # TODO technically part of inverse data.
         self.variables = variables
@@ -72,35 +73,20 @@ class ParamConeProg(object):
         Args:
           id_to_param_value: (optional) dict mapping parameter ids to values
         """
-        var_size = self.x.size + 1
-        if not self.parameters:
-            # fast path: parameter application via matmul can be very slow,
-            # if self.A is large (even if param_vec is just a 1x1 matrix [[1]])
-            return self.c.toarray().flatten(), self.A.reshape(
-                (self.A.shape[0]//var_size, var_size), order='F').tocsc()
-
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value
                     is None else id_to_param_value[idx])
-
-        # Flatten parameters.
-        param_vec = np.zeros(self.total_param_size + 1)
-        # TODO handle parameters with structure.
-        for param_id, col in self.param_id_to_col.items():
-            if param_id == lo.CONSTANT_ID:
-                param_vec[col] = 1
-            else:
-                value = param_value(param_id).flatten(order='F')
-                param = self.id_to_param[param_id]
-                param_vec[col:param.size+col] = value
-        # New problem without parameters.
-        c = (self.c@param_vec).flatten()
-        # Need to cast to sparse matrix.
-        param_vec = sp.csc_matrix(param_vec[:, None])
-        A = (self.A@param_vec).reshape((self.A.shape[0]//var_size, var_size),
-                                       order='F')
-        A = A.tocsc()
-        return c, A
+        param_vec = canonInterface.get_parameter_vector(
+            self.total_param_size,
+            self.param_id_to_col,
+            self.param_id_to_size,
+            param_value)
+        c, d = canonInterface.get_matrix_and_offset_from_tensor(
+            self.c, param_vec, self.x.size)
+        c = c.toarray().flatten()
+        A, b = canonInterface.get_matrix_and_offset_from_tensor(
+            self.A, param_vec, self.x.size)
+        return c, d, A, b
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
@@ -110,21 +96,20 @@ class ParamConeProg(object):
         if active_params is None:
             active_params = {p.id for p in self.parameters}
 
-        del_param_vec = delc@self.c[:-1]
+        del_param_vec = delc @ self.c[:-1]
         flatdelA = delA.reshape((np.prod(delA.shape), 1), order='F')
         delAb = sp.vstack([flatdelA, sp.csc_matrix(delb[:, None])])
         del_param_vec += np.squeeze((delAb.T @ self.A).A)
         del_param_vec = np.squeeze(del_param_vec)
-        # Make dictionary of param id to delta.
-        del_param_dict = {}
+
+        param_id_to_delta_param = {}
         for param_id, col in self.param_id_to_col.items():
             if param_id in active_params:
                 param = self.id_to_param[param_id]
-                delta = del_param_vec[col:param.size+col]
-                del_param_dict[param_id] = np.reshape(delta, param.shape,
-                                                      order='F')
-
-        return del_param_dict
+                delta = del_param_vec[col:col + param.size]
+                param_id_to_delta_param[param_id] = np.reshape(
+                    delta, param.shape, order='F')
+        return param_id_to_delta_param
 
     def split_solution(self, sltn, active_vars=None):
         """Splits the solution into individual variables.

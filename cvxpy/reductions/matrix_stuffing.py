@@ -102,6 +102,7 @@ class MatrixStuffing(Reduction):
         # Batch expressions together, then split apart.
         expr_list = [arg for c in cons for arg in c.args]
         # TODO QPs go here for constraints. Need to cast into right dimensions.
+        # TODO(akshayka): call canonInterface.get_matrix_and_offset_from_unparameterized_tensor
         Afull, bfull = extractor.affine(expr_list)
         if 0 not in Afull.shape and 0 not in bfull.shape:
             Afull = cvxtypes.constant()(Afull)

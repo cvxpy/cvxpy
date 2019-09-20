@@ -105,13 +105,13 @@ class ECOS(ConicSolver):
         formatted = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = formatted
 
-        c, A = formatted.apply_parameters()
-        data[s.C] = c[:-1]
-        inv_data[s.OFFSET] = c[-1]
-        data[s.A] = -A[:len_eq, :-1]
-        data[s.B] = A[:len_eq, -1].A.flatten()
-        data[s.G] = -A[len_eq:, :-1]
-        data[s.H] = A[len_eq:, -1].A.flatten()
+        c, d, A, b = formatted.apply_parameters()
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A[:len_eq]
+        data[s.B] = b[:len_eq].flatten()
+        data[s.G] = -A[len_eq:]
+        data[s.H] = b[len_eq:].flatten()
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -141,6 +141,7 @@ class ECOS(ConicSolver):
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import ecos
+        print(data)
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         if (data[s.G].nnz == 0) or (data[s.A].nnz == 0):
             raise ValueError(

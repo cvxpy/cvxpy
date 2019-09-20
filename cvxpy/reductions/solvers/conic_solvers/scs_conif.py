@@ -218,11 +218,11 @@ class SCS(ConicSolver):
         # Note that scs mandates that the cones MUST be ordered with
         # zero cones first, then non-nonnegative orthant, then SOC,
         # then PSD, then exponential.
-        c, A = formatted.apply_parameters()
-        data[s.C] = c[:-1]
-        inv_data[s.OFFSET] = c[-1]
-        data[s.A] = -A[:, :-1]
-        data[s.B] = A[:, -1].A.flatten()
+        c, d, A, b = formatted.apply_parameters()
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A
+        data[s.B] = b
         return data, inv_data
 
     def extract_dual_value(self, result_vec, offset, constraint):

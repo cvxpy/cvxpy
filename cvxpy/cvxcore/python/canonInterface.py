@@ -21,6 +21,45 @@ import scipy.sparse
 from collections import deque
 
 
+def get_parameter_vector(param_size,
+                         param_id_to_col,
+                         param_id_to_size,
+                         param_id_to_value_fn):
+    # TODO handle parameters with structure.
+    if param_size == 0:
+        return None
+    param_vec = np.zeros(param_size + 1)
+    for param_id, col in param_id_to_col.items():
+        if param_id == lo.CONSTANT_ID:
+            param_vec[col] = 1
+        else:
+            value = param_id_to_value_fn(param_id).flatten(order='F')
+            size = param_id_to_size[param_id]
+            param_vec[col:col + size] = value
+    return param_vec
+
+
+def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
+                                      var_length):
+    if param_vec is None:
+        tensor_application = problem_data_tensor
+    else:
+        if scipy.sparse.issparse(problem_data_tensor):
+            param_vec = scipy.sparse.csc_matrix(param_vec[:, None])
+        tensor_application = problem_data_tensor @ param_vec
+    A_concat_b = tensor_application.reshape(
+        (-1, var_length + 1), order='F').tocsc()
+    A = A_concat_b[:, :-1].tocsc()
+    b = np.squeeze(A_concat_b[:, -1].toarray().flatten())
+    return (A, b)
+
+
+def get_matrix_and_offset_from_unparameterized_tensor(problem_data_tensor,
+                                                      var_length):
+    assert problem_data_tensor.shape[1] == 1
+    return get_matrix_and_offset_from_tensor(
+        roblem_data_tensor, None, var_length)
+
 def get_problem_matrix(linOps,
                        var_length,
                        id_to_col,
@@ -33,7 +72,7 @@ def get_problem_matrix(linOps,
 
     Parameters
     ----------
-        linOps: A list of python linOp trees
+        linOps: A list of python linOp trees representing an affine expression
         var_length: The total length of the variables.
         id_to_col: A map from variable id to column offset.
         param_to_size: A map from parameter id to parameter size.
@@ -41,10 +80,10 @@ def get_problem_matrix(linOps,
         constr_offsets: A map from constraint id to row offset.
 
     Returns
-    ----------
-        V, I, J: numpy arrays encoding a sparse representation of our problem
-        const_vec: a numpy column vector representing the constant_data in our
-                   problem
+    -------
+        A sparse (CSC) matrix with constr_length * (var_length + 1) rows and
+        param_size + 1 columns (where param_size is the length of the
+        parameter vector).
     """
     lin_vec = cvxcore.ConstLinOpVector()
 
@@ -103,10 +142,12 @@ def get_problem_matrix(linOps,
     V = []
     I = []
     J = []
-    total_size = 0
+    # one of the 'parameters' in param_to_col is a constant scalar
+    # offset, hence 'plus_one'
+    param_size_plus_one = 0
     for param_id, col in param_to_col.items():
         size = param_to_size[param_id]
-        total_size += size
+        param_size_plus_one += size
         for i in range(size):
             V.append(tensor_V[param_id][i])
             I.append(tensor_I[param_id][i] +
@@ -116,7 +157,7 @@ def get_problem_matrix(linOps,
     I = np.concatenate(I)
     J = np.concatenate(J)
     A = scipy.sparse.csc_matrix(
-        (V, (I, J)), shape=(constr_length*(var_length+1), total_size))
+        (V, (I, J)), shape=(constr_length*(var_length+1), param_size_plus_one))
     return A
 
 

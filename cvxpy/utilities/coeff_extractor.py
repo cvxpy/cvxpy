@@ -57,6 +57,7 @@ class CoeffExtractor(object):
         return sp.csr_matrix((size, self.N)), np.reshape(expr.value, (size,),
                                                          order='F')
 
+    # TODO(akshayka): update docstring, it is incorrect
     def affine(self, expr):
         """Extract A, b from an expression that is reducable to A*x + b.
 
