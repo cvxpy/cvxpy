@@ -1169,14 +1169,25 @@ class TestProblem(BaseTest):
         obj = cp.Minimize(cp.sum(self.x))
         constraints = [self.x == 2, self.x == 2, self.x.T == 2, self.x[0] == 2]
         p = Problem(obj, constraints)
-        result = p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.SCS)
         self.assertAlmostEqual(result, 4)
 
         obj = cp.Minimize(cp.sum(cp.square(self.x)))
         constraints = [self.x == self.x]
         p = Problem(obj, constraints)
-        result = p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.SCS)
         self.assertAlmostEqual(result, 0)
+
+        with self.assertRaises(ValueError) as cm:
+            obj = cp.Minimize(cp.sum(cp.square(self.x)))
+            constraints = [self.x == self.x]
+            problem = Problem(obj, constraints)
+            problem.solve(solver=s.ECOS)
+        self.assertEqual(
+            str(cm.exception),
+            "ECOS cannot handle sparse data with nnz == 0; "
+            "this is a bug in ECOS, and it indicates that your problem "
+            "might have redundant constraints.")
 
     # Test that symmetry is enforced.
     def test_sdp_symmetry(self):
