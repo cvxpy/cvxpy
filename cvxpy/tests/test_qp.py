@@ -66,7 +66,7 @@ class TestQp(BaseTest):
             self.solvers.append('MOSEK')
 
     def solve_QP(self, problem, solver_name):
-        return problem.solve(solver=solver_name, verbose=True)
+        return problem.solve(solver=solver_name, verbose=False)
 
     def test_all_solvers(self):
         for solver in self.solvers:

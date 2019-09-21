@@ -19,13 +19,14 @@ from cvxpy.constraints import (Equality, ExpCone, Inequality,
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions import InverseData
+from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import (are_args_affine,
                                         group_constraints,
                                         lower_equality,
                                         lower_inequality)
+import cvxpy.settings as s
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 import scipy.sparse as sp
@@ -195,8 +196,6 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         # Map of old constraint id to new constraint id.
         inverse_data.minimize = type(problem.objective) == Minimize
-        # TODO backing out of ParamConeProg,
-        # doing a matrix interface instead.
         new_prob = ParamConeProg(c, x, A,
                                  problem.variables(),
                                  inverse_data.var_offsets,
@@ -204,3 +203,42 @@ class ConeMatrixStuffing(MatrixStuffing):
                                  problem.parameters(),
                                  inverse_data.param_id_map)
         return new_prob, inverse_data
+
+    def invert(self, solution, inverse_data):
+        """Retrieves a solution to the original problem"""
+        var_map = inverse_data.var_offsets
+        # Flip sign of opt val if maximize.
+        opt_val = solution.opt_val
+        if solution.status not in s.ERROR and not inverse_data.minimize:
+            opt_val = -solution.opt_val
+
+        primal_vars, dual_vars = {}, {}
+        if solution.status not in s.SOLUTION_PRESENT:
+            return Solution(solution.status, opt_val, primal_vars, dual_vars,
+                            solution.attr)
+
+        # Split vectorized variable into components.
+        x_opt = list(solution.primal_vars.values())[0]
+        for var_id, offset in var_map.items():
+            shape = inverse_data.var_shapes[var_id]
+            size = np.prod(shape, dtype=int)
+            primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
+                                             order='F')
+
+        # Remap dual variables if dual exists (problem is convex).
+        if solution.dual_vars is not None:
+            # Giant dual variable.
+            dual_var = list(solution.dual_vars.values())[0]
+            offset = 0
+            for constr in inverse_data.constraints:
+                for dv in constr.dual_variables:
+                    dv_old = inverse_data.dv_id_map[dv.id]
+                    dual_vars[dv_old] = np.reshape(
+                        dual_var[offset:offset+dv.size],
+                        dv.shape,
+                        order='F'
+                    )
+                    offset += dv.size
+
+        return Solution(solution.status, opt_val, primal_vars, dual_vars,
+                        solution.attr)

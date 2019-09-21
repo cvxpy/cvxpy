@@ -22,9 +22,9 @@ class InverseData(object):
     """Data useful for retrieving a solution from a problem."""
 
     def __init__(self, problem):
-        varis = problem.variables()
+        variables = problem.variables()
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
-                                                self.get_var_offsets(varis))
+            self.get_var_offsets(variables))
 
         self.param_shapes = {}
         # Always start with CONSTANT_ID.
@@ -38,8 +38,8 @@ class InverseData(object):
             offset += param.size
         self.param_id_map[lo.CONSTANT_ID] = offset
 
-        self.id2var = {var.id: var for var in varis}
-        self.real2imag = {var.id: lu.get_id() for var in varis
+        self.id2var = {var.id: var for var in variables}
+        self.real2imag = {var.id: lu.get_id() for var in variables
                           if var.is_complex()}
         constr_dict = {cons.id: lu.get_id() for cons in problem.constraints
                        if cons.is_complex()}
