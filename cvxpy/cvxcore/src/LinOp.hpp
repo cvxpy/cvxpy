@@ -58,8 +58,10 @@ typedef operatortype OperatorType;
          and the semantics of SIZE, ARGS, and DATA depends on the linop TYPE. */
 class LinOp {
 public:
-  LinOp(OperatorType type, const std::vector<int> &shape)
-      : type_(type), shape_(shape), sparse_(false) {}
+  LinOp(OperatorType type, const std::vector<int> &shape,
+        const std::vector<const LinOp *> &args)
+      : type_(type), shape_(shape), args_(args), sparse_(false),
+        data_has_been_set_(false) {}
 
   OperatorType get_type() const { return type_; }
   bool is_constant() const {
@@ -69,17 +71,19 @@ public:
   std::vector<int> get_shape() const { return shape_; }
 
   const std::vector<const LinOp *> get_args() const { return args_; }
-  void push_back_arg(const LinOp *arg) { args_.push_back(arg); }
-
   const std::vector<std::vector<int> > get_slice() const { return slice_; }
   void push_back_slice_vec(const std::vector<int> &slice_vec) {
     slice_.push_back(slice_vec);
   }
 
   const LinOp *get_linOp_data() const { return linOp_data_; }
-  void set_linOp_data(const LinOp *tree) { linOp_data_ = tree; }
-  void set_data_ndim(int ndim) { data_ndim_ = ndim; }
+  void set_linOp_data(const LinOp *tree) {
+    assert(!data_has_been_set_);
+    linOp_data_ = tree;
+    data_has_been_set_ = true;
+  }
   int get_data_ndim() const { return data_ndim_; }
+  void set_data_ndim(int ndim) { data_ndim_ = ndim; }
   bool is_sparse() const { return sparse_; }
   const Matrix &get_sparse_data() const { return sparse_data_; }
   const Eigen::MatrixXd &get_dense_data() const { return dense_data_; }
@@ -94,8 +98,10 @@ public:
    * exactly to compile and run properly.
    */
   void set_dense_data(double *matrix, int rows, int cols) {
+    assert(!data_has_been_set_);
     dense_data_ = Eigen::Map<Eigen::MatrixXd>(matrix, rows, cols);
     sparse_ = false;
+    data_has_been_set_ = true;
   }
 
   /* Initializes SPARSE_DATA from a sparse matrix in COO format.
@@ -109,6 +115,7 @@ public:
   void set_sparse_data(double *data, int data_len, double *row_idxs,
                        int rows_len, double *col_idxs, int cols_len, int rows,
                        int cols) {
+    assert(!data_has_been_set_);
     assert(rows_len == data_len && cols_len == data_len);
     sparse_ = true;
     Matrix sparse_coeffs(rows, cols);
@@ -122,6 +129,7 @@ public:
     sparse_coeffs.makeCompressed();
     sparse_data_ = sparse_coeffs;
     data_ndim_ = 2;
+    data_has_been_set_ = true;
   }
 
 private:
@@ -140,5 +148,6 @@ private:
   bool sparse_;
   Matrix sparse_data_;
   Eigen::MatrixXd dense_data_;
+  bool data_has_been_set_;
 };
 #endif

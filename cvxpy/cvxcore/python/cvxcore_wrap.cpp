@@ -6867,14 +6867,17 @@ SWIGINTERN PyObject *_wrap_new_LinOp(PyObject *SWIGUNUSEDPARM(self), PyObject *a
   PyObject *resultobj = 0;
   OperatorType arg1 ;
   std::vector< int,std::allocator< int > > *arg2 = 0 ;
+  std::vector< LinOp const *,std::allocator< LinOp const * > > *arg3 = 0 ;
   int val1 ;
   int ecode1 = 0 ;
   void *argp2 = 0 ;
   int res2 = 0 ;
-  PyObject *swig_obj[2] ;
+  void *argp3 = 0 ;
+  int res3 = 0 ;
+  PyObject *swig_obj[3] ;
   LinOp *result = 0 ;
   
-  if (!SWIG_Python_UnpackTuple(args, "new_LinOp", 2, 2, swig_obj)) SWIG_fail;
+  if (!SWIG_Python_UnpackTuple(args, "new_LinOp", 3, 3, swig_obj)) SWIG_fail;
   ecode1 = SWIG_AsVal_int(swig_obj[0], &val1);
   if (!SWIG_IsOK(ecode1)) {
     SWIG_exception_fail(SWIG_ArgError(ecode1), "in method '" "new_LinOp" "', argument " "1"" of type '" "OperatorType""'");
@@ -6888,7 +6891,15 @@ SWIGINTERN PyObject *_wrap_new_LinOp(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_LinOp" "', argument " "2"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
   }
   arg2 = reinterpret_cast< std::vector< int,std::allocator< int > > * >(argp2);
-  result = (LinOp *)new LinOp(arg1,(std::vector< int,std::allocator< int > > const &)*arg2);
+  res3 = SWIG_ConvertPtr(swig_obj[2], &argp3, SWIGTYPE_p_std__vectorT_LinOp_const_p_std__allocatorT_LinOp_const_p_t_t,  0  | 0);
+  if (!SWIG_IsOK(res3)) {
+    SWIG_exception_fail(SWIG_ArgError(res3), "in method '" "new_LinOp" "', argument " "3"" of type '" "std::vector< LinOp const *,std::allocator< LinOp const * > > const &""'"); 
+  }
+  if (!argp3) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "new_LinOp" "', argument " "3"" of type '" "std::vector< LinOp const *,std::allocator< LinOp const * > > const &""'"); 
+  }
+  arg3 = reinterpret_cast< std::vector< LinOp const *,std::allocator< LinOp const * > > * >(argp3);
+  result = (LinOp *)new LinOp(arg1,(std::vector< int,std::allocator< int > > const &)*arg2,(std::vector< LinOp const *,std::allocator< LinOp const * > > const &)*arg3);
   resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_LinOp, SWIG_POINTER_NEW |  0 );
   return resultobj;
 fail:
@@ -6988,35 +6999,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_LinOp_push_back_arg(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  LinOp *arg1 = (LinOp *) 0 ;
-  LinOp *arg2 = (LinOp *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
-  PyObject *swig_obj[2] ;
-  
-  if (!SWIG_Python_UnpackTuple(args, "LinOp_push_back_arg", 2, 2, swig_obj)) SWIG_fail;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_push_back_arg" "', argument " "1"" of type '" "LinOp *""'"); 
-  }
-  arg1 = reinterpret_cast< LinOp * >(argp1);
-  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2,SWIGTYPE_p_LinOp, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "LinOp_push_back_arg" "', argument " "2"" of type '" "LinOp const *""'"); 
-  }
-  arg2 = reinterpret_cast< LinOp * >(argp2);
-  (arg1)->push_back_arg((LinOp const *)arg2);
-  resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_LinOp_get_slice(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   LinOp *arg1 = (LinOp *) 0 ;
@@ -7043,10 +7025,10 @@ fail:
 SWIGINTERN PyObject *_wrap_LinOp_push_back_slice_vec(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   LinOp *arg1 = (LinOp *) 0 ;
-  std::vector< int,std::allocator< int > > arg2 ;
+  std::vector< int,std::allocator< int > > *arg2 = 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 ;
+  void *argp2 = 0 ;
   int res2 = 0 ;
   PyObject *swig_obj[2] ;
   
@@ -7056,20 +7038,15 @@ SWIGINTERN PyObject *_wrap_LinOp_push_back_slice_vec(PyObject *SWIGUNUSEDPARM(se
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_push_back_slice_vec" "', argument " "1"" of type '" "LinOp *""'"); 
   }
   arg1 = reinterpret_cast< LinOp * >(argp1);
-  {
-    res2 = SWIG_ConvertPtr(swig_obj[1], &argp2, SWIGTYPE_p_std__vectorT_int_std__allocatorT_int_t_t,  0  | 0);
-    if (!SWIG_IsOK(res2)) {
-      SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "LinOp_push_back_slice_vec" "', argument " "2"" of type '" "std::vector< int,std::allocator< int > > const""'"); 
-    }  
-    if (!argp2) {
-      SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "LinOp_push_back_slice_vec" "', argument " "2"" of type '" "std::vector< int,std::allocator< int > > const""'");
-    } else {
-      std::vector< int,std::allocator< int > > * temp = reinterpret_cast< std::vector< int,std::allocator< int > > * >(argp2);
-      arg2 = *temp;
-      if (SWIG_IsNewObj(res2)) delete temp;
-    }
+  res2 = SWIG_ConvertPtr(swig_obj[1], &argp2, SWIGTYPE_p_std__vectorT_int_std__allocatorT_int_t_t,  0  | 0);
+  if (!SWIG_IsOK(res2)) {
+    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "LinOp_push_back_slice_vec" "', argument " "2"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
   }
-  (arg1)->push_back_slice_vec(arg2);
+  if (!argp2) {
+    SWIG_exception_fail(SWIG_ValueError, "invalid null reference " "in method '" "LinOp_push_back_slice_vec" "', argument " "2"" of type '" "std::vector< int,std::allocator< int > > const &""'"); 
+  }
+  arg2 = reinterpret_cast< std::vector< int,std::allocator< int > > * >(argp2);
+  (arg1)->push_back_slice_vec((std::vector< int,std::allocator< int > > const &)*arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
@@ -7129,6 +7106,29 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_LinOp_get_data_ndim(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  LinOp *arg1 = (LinOp *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *swig_obj[1] ;
+  int result;
+  
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_get_data_ndim" "', argument " "1"" of type '" "LinOp const *""'"); 
+  }
+  arg1 = reinterpret_cast< LinOp * >(argp1);
+  result = (int)((LinOp const *)arg1)->get_data_ndim();
+  resultobj = SWIG_From_int(static_cast< int >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_LinOp_set_data_ndim(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   LinOp *arg1 = (LinOp *) 0 ;
@@ -7152,29 +7152,6 @@ SWIGINTERN PyObject *_wrap_LinOp_set_data_ndim(PyObject *SWIGUNUSEDPARM(self), P
   arg2 = static_cast< int >(val2);
   (arg1)->set_data_ndim(arg2);
   resultobj = SWIG_Py_Void();
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_LinOp_get_data_ndim(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  LinOp *arg1 = (LinOp *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject *swig_obj[1] ;
-  int result;
-  
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_get_data_ndim" "', argument " "1"" of type '" "LinOp const *""'"); 
-  }
-  arg1 = reinterpret_cast< LinOp * >(argp1);
-  result = (int)((LinOp const *)arg1)->get_data_ndim();
-  resultobj = SWIG_From_int(static_cast< int >(result));
   return resultobj;
 fail:
   return NULL;
@@ -20390,13 +20367,12 @@ static PyMethodDef SwigMethods[] = {
 	 { "LinOp_is_constant", _wrap_LinOp_is_constant, METH_O, NULL},
 	 { "LinOp_get_shape", _wrap_LinOp_get_shape, METH_O, NULL},
 	 { "LinOp_get_args", _wrap_LinOp_get_args, METH_O, NULL},
-	 { "LinOp_push_back_arg", _wrap_LinOp_push_back_arg, METH_VARARGS, NULL},
 	 { "LinOp_get_slice", _wrap_LinOp_get_slice, METH_O, NULL},
 	 { "LinOp_push_back_slice_vec", _wrap_LinOp_push_back_slice_vec, METH_VARARGS, NULL},
 	 { "LinOp_get_linOp_data", _wrap_LinOp_get_linOp_data, METH_O, NULL},
 	 { "LinOp_set_linOp_data", _wrap_LinOp_set_linOp_data, METH_VARARGS, NULL},
-	 { "LinOp_set_data_ndim", _wrap_LinOp_set_data_ndim, METH_VARARGS, NULL},
 	 { "LinOp_get_data_ndim", _wrap_LinOp_get_data_ndim, METH_O, NULL},
+	 { "LinOp_set_data_ndim", _wrap_LinOp_set_data_ndim, METH_VARARGS, NULL},
 	 { "LinOp_is_sparse", _wrap_LinOp_is_sparse, METH_O, NULL},
 	 { "LinOp_get_sparse_data", _wrap_LinOp_get_sparse_data, METH_O, NULL},
 	 { "LinOp_get_dense_data", _wrap_LinOp_get_dense_data, METH_O, NULL},

@@ -151,8 +151,8 @@ class LinOp(object):
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
-    def __init__(self, type: "OperatorType", shape: "IntVector"):
-        _cvxcore.LinOp_swiginit(self, _cvxcore.new_LinOp(type, shape))
+    def __init__(self, type: "OperatorType", shape: "IntVector", args: "ConstLinOpVector"):
+        _cvxcore.LinOp_swiginit(self, _cvxcore.new_LinOp(type, shape, args))
 
     def get_type(self) -> "OperatorType":
         return _cvxcore.LinOp_get_type(self)
@@ -166,9 +166,6 @@ class LinOp(object):
     def get_args(self) -> "std::vector< LinOp const *,std::allocator< LinOp const * > > const":
         return _cvxcore.LinOp_get_args(self)
 
-    def push_back_arg(self, arg: "LinOp") -> "void":
-        return _cvxcore.LinOp_push_back_arg(self, arg)
-
     def get_slice(self) -> "std::vector< std::vector< int,std::allocator< int > >,std::allocator< std::vector< int,std::allocator< int > > > > const":
         return _cvxcore.LinOp_get_slice(self)
 
@@ -181,11 +178,11 @@ class LinOp(object):
     def set_linOp_data(self, tree: "LinOp") -> "void":
         return _cvxcore.LinOp_set_linOp_data(self, tree)
 
-    def set_data_ndim(self, ndim: "int") -> "void":
-        return _cvxcore.LinOp_set_data_ndim(self, ndim)
-
     def get_data_ndim(self) -> "int":
         return _cvxcore.LinOp_get_data_ndim(self)
+
+    def set_data_ndim(self, ndim: "int") -> "void":
+        return _cvxcore.LinOp_set_data_ndim(self, ndim)
 
     def is_sparse(self) -> "bool":
         return _cvxcore.LinOp_is_sparse(self)

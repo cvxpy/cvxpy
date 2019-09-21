@@ -25,6 +25,21 @@ def get_parameter_vector(param_size,
                          param_id_to_col,
                          param_id_to_size,
                          param_id_to_value_fn):
+    """Returns a flattened parameter vector
+
+    The flattened vector includes a constant offset (i.e, a 1).
+
+    Parameters
+    ----------
+        param_size: The number of parameters
+        param_id_to_col: A dict from parameter id to column offset
+        param_id_to_size: A dict from parameter id to parameter size
+        param_id_to_value_fn: A callable that returns a value for a parameter id
+
+    Returns
+    -------
+        A flattened NumPy array of parameter values, of length param_size + 1
+    """
     # TODO handle parameters with structure.
     if param_size == 0:
         return None
@@ -41,6 +56,23 @@ def get_parameter_vector(param_size,
 
 def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
                                       var_length):
+    """Applies problem_data_tensor to param_vec to obtain matrix, offset
+
+    This function applies problem_data_tensor to param_vec to obtain
+    a matrix representation of the corresponding affine map.
+
+    Parameters
+    ----------
+        problem_data_tensor: tensor returned from get_problem_matrix,
+            representing a parameterized affine map
+        param_vec: flattened parameter vector
+        var_length: the number of variables
+
+    Returns
+    -------
+        A tuple (A, b), where A is a matrix with `var_length` columns
+        and b is a flattened NumPy array representing the constant offset.
+    """
     if param_vec is None:
         tensor_application = problem_data_tensor
     else:
@@ -56,17 +88,33 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
 
 def get_matrix_and_offset_from_unparameterized_tensor(problem_data_tensor,
                                                       var_length):
+    """Converts unparameterized tensor to matrix offset representation
+
+    problem_data_tensor _must_ have been obtained from calling
+    get_problem_matrix on a problem with 0 parameters.
+
+    Parameters
+    ----------
+        problem_data_tensor: tensor returned from get_problem_matrix,
+            representing an affine map
+        var_length: the number of variables
+
+    Returns
+    -------
+        A tuple (A, b), where A is a matrix with `var_length` columns
+        and b is a flattened NumPy array representing the constant offset.
+    """
     assert problem_data_tensor.shape[1] == 1
     return get_matrix_and_offset_from_tensor(
-        roblem_data_tensor, None, var_length)
+        problem_data_tensor, None, var_length)
+
 
 def get_problem_matrix(linOps,
                        var_length,
                        id_to_col,
                        param_to_size,
                        param_to_col,
-                       constr_length,
-                       constr_offsets=None):
+                       constr_length):
     """
     Builds a sparse representation of the problem data.
 
@@ -77,7 +125,6 @@ def get_problem_matrix(linOps,
         id_to_col: A map from variable id to column offset.
         param_to_size: A map from parameter id to parameter size.
         param_to_col: A map from parameter id to column in tensor.
-        constr_offsets: A map from constraint id to row offset.
 
     Returns
     -------
@@ -87,39 +134,25 @@ def get_problem_matrix(linOps,
     """
     lin_vec = cvxcore.ConstLinOpVector()
 
-    # Loading the variable offsets from our
-    # Python map into a C++ map
     id_to_col_C = cvxcore.IntIntMap()
     for id, col in id_to_col.items():
         id_to_col_C[int(id)] = int(col)
 
-    # Loading the param_to_size from our
-    # Python map into a C++ map
     param_to_size_C = cvxcore.IntIntMap()
     for id, size in param_to_size.items():
         param_to_size_C[int(id)] = int(size)
 
-    # This array keeps variables data in scope after build_lin_op_tree returns
-    tmp = []
+    # dict to memoize construction of C++ linOps, and to keep Python references
+    # to them to prevent their deletion
+    linPy_to_linC = {}
     for lin in linOps:
-        tree = build_lin_op_tree(lin, tmp)
+        build_lin_op_tree(lin, linPy_to_linC)
+        tree = linPy_to_linC[lin]
         lin_vec.push_back(tree)
-
-    if constr_offsets is None:
-        problemData = cvxcore.build_matrix(lin_vec,
-                                           int(var_length),
-                                           id_to_col_C,
-                                           param_to_size_C)
-    else:
-        # Load constraint offsets into a C++ vector
-        constr_offsets_C = cvxcore.IntVector()
-        for offset in constr_offsets:
-            constr_offsets_C.push_back(int(offset))
-        problemData = cvxcore.build_matrix(lin_vec,
-                                           var_length,
-                                           id_to_col_C,
-                                           param_to_size_C,
-                                           constr_offsets_C)
+    problemData = cvxcore.build_matrix(lin_vec,
+                                       int(var_length),
+                                       id_to_col_C,
+                                       param_to_size_C)
 
     # Populate tensors with info from problemData.
     tensor_V = {}
@@ -141,8 +174,8 @@ def get_problem_matrix(linOps,
     V = []
     I = []
     J = []
-    # one of the 'parameters' in param_to_col is a constant scalar
-    # offset, hence 'plus_one'
+    # one of the 'parameters' in param_to_col is a constant scalar offset,
+    # hence 'plus_one'
     param_size_plus_one = 0
     for param_id, col in param_to_col.items():
         size = param_to_size[param_id]
@@ -161,9 +194,7 @@ def get_problem_matrix(linOps,
 
 
 def format_matrix(matrix, shape=None, format='dense'):
-    """ Returns the matrix in the appropriate form,
-        so that it can be efficiently loaded with our swig wrapper
-    """
+    """Returns the matrix in the appropriate form for SWIG wrapper"""
     if (format == 'dense'):
         # Ensure is 2D.
         if len(shape) == 0:
@@ -179,50 +210,7 @@ def format_matrix(matrix, shape=None, format='dense'):
         raise NotImplementedError()
 
 
-def set_matrix_data(linC, linPy):
-    """Calls the appropriate cvxcore function to set the matrix data field of
-       our C++ linOp.
-    """
-    # data is supposed to be a LinOp
-    if isinstance(linPy.data, lo.LinOp):
-        if linPy.data.type == 'sparse_const':
-            coo = format_matrix(linPy.data.data, format='sparse')
-            linC.set_sparse_data(coo.data, coo.row.astype(float),
-                                 coo.col.astype(float), coo.shape[0],
-                                 coo.shape[1])
-        elif linPy.data.type == 'dense_const':
-            linC.set_dense_data(format_matrix(linPy.data.data,
-                                              shape=linPy.data.shape))
-            linC.data_ndim = len(linPy.data.shape)
-        else:
-            raise NotImplementedError()
-    else:  # TODO remove this case.
-        if linPy.type == 'sparse_const':
-            coo = format_matrix(linPy.data, format='sparse')
-            linC.set_sparse_data(coo.data, coo.row.astype(float),
-                                 coo.col.astype(float), coo.shape[0],
-                                 coo.shape[1])
-        else:
-            linC.set_dense_data(format_matrix(linPy.data,
-                                              shape=linPy.shape))
-            linC.data_ndim = len(linPy.data.shape)
-
-
-def set_slice_data(linC, linPy):
-    """
-    Loads the slice data, start, stop, and step into our C++ linOp.
-    The semantics of the slice operator is treated exactly the same as in
-    Python.  Note that the 'None' cases had to be handled at the wrapper level,
-    since we must load integers into our vector.
-    """
-    for i, sl in enumerate(linPy.data):
-        slice_vec = cvxcore.IntVector()
-        for var in [sl.start, sl.stop, sl.step]:
-            slice_vec.push_back(int(var))
-        linC.push_back_slice_vec(slice_vec)
-
-
-type_map = {
+TYPE_MAP = {
     "VARIABLE": cvxcore.VARIABLE,
     "PARAM": cvxcore.PARAM,
     "PROMOTE": cvxcore.PROMOTE,
@@ -253,63 +241,102 @@ type_map = {
 
 def get_type(linPy):
     ty = linPy.type.upper()
-    if ty in type_map:
-        return type_map[ty]
+    if ty in TYPE_MAP:
+        return TYPE_MAP[ty]
     else:
         raise NotImplementedError("Type %s is not supported." % ty)
 
 
-def make_linC_from_linPy(linPy):
+def set_matrix_data(linC, linPy):
+    """Calls the appropriate cvxcore function to set the matrix data field of
+       our C++ linOp.
+    """
+    if get_type(linPy) == cvxcore.SPARSE_CONST:
+        coo = format_matrix(linPy.data, format='sparse')
+        linC.set_sparse_data(coo.data, coo.row.astype(float),
+                             coo.col.astype(float), coo.shape[0],
+                             coo.shape[1])
+    else:
+        linC.set_dense_data(format_matrix(linPy.data, shape=linPy.shape))
+        linC.set_data_ndim(len(linPy.data.shape))
+
+
+def set_slice_data(linC, linPy):
+    """
+    Loads the slice data, start, stop, and step into our C++ linOp.
+    The semantics of the slice operator is treated exactly the same as in
+    Python.  Note that the 'None' cases had to be handled at the wrapper level,
+    since we must load integers into our vector.
+    """
+    for i, sl in enumerate(linPy.data):
+        slice_vec = cvxcore.IntVector()
+        for var in [sl.start, sl.stop, sl.step]:
+            slice_vec.push_back(int(var))
+        linC.push_back_slice_vec(slice_vec)
+
+
+def set_linC_data(linC, linPy):
+    """Sets numerical data fields in linC."""
+    assert linPy.data is not None
+    if isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
+        slice_data = set_slice_data(linC, linPy)
+    elif isinstance(linPy.data, float) or isinstance(linPy.data,
+                                                   numbers.Integral):
+        linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
+        linC.set_data_ndim(0)
+    else:
+        set_matrix_data(linC, linPy)
+
+
+def make_linC_from_linPy(linPy, linPy_to_linC):
+    """Construct a C++ LinOp corresponding to LinPy.
+
+    Children of linPy are retrieved from linPy_to_linC.
+    """
+    if linPy in linPy_to_linC:
+        return
     typ = get_type(linPy)
     shape = cvxcore.IntVector()
+    lin_args_vec = cvxcore.ConstLinOpVector()
+    lin_data = None
+    data_ndim = 0
     for dim in linPy.shape:
         shape.push_back(int(dim))
-    return cvxcore.LinOp(typ, shape)
+    for argPy in linPy.args:
+        lin_args_vec.push_back(linPy_to_linC[argPy])
+    linC = cvxcore.LinOp(typ, shape, lin_args_vec)
+    linPy_to_linC[linPy] = linC
 
-
-# TODO(akshayka): This should do an in-order traversal, so it's possible
-# to construct each C-linOp at once, instead of in stages
-def build_lin_op_tree(root_linPy, tmp):
-    """
-    Breadth-first, pre-order traversal on the Python linOp tree
-    that constructs an equivalent C++ linOp tree
-
-    Parameters
-    -------------
-    root_linPy: a Python LinOp tree
-
-    tmp: an array to keep data from going out of scope
-
-    Returns
-    --------
-    root_linC: a C++ LinOp tree created through our swig interface
-    """
-    queue = deque()
-    root_linC = make_linC_from_linPy(root_linPy)
-    queue.append((root_linPy, root_linC))
-    while queue:
-        linPy, linC = queue.popleft()
-        for argPy in linPy.args:
-            tree = make_linC_from_linPy(argPy)
-            tmp.append(tree)
-            queue.append((argPy, tree))
-            linC.push_back_arg(tree)
-
-        # Load the problem data into the appropriate array format
-        if linPy.data is None:
-            pass
-        elif isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
-            set_slice_data(linC, linPy)
-        elif isinstance(linPy.data, float) or isinstance(linPy.data,
-                                                         numbers.Integral):
-            linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
-            linC.data_ndim = 0
-        elif isinstance(linPy.data, lo.LinOp):
-            # Recurse on LinOp.
-            linC_data = build_lin_op_tree(linPy.data, tmp)
+    if linPy.data is not None:
+        if isinstance(linPy.data, lo.LinOp):
+            linC_data = linPy_to_linC[linPy.data]
             linC.set_linOp_data(linC_data)
             linC.set_data_ndim(len(linPy.data.shape))
         else:
-            set_matrix_data(linC, linPy)
-    tmp.append(root_linC)
-    return root_linC
+            set_linC_data(linC, linPy)
+
+
+def build_lin_op_tree(root_linPy, linPy_to_linC):
+    """Construct C++ LinOp tree from Python LinOp tree.
+
+    Constructed C++ linOps are stored in the linPy_to_linC dict,
+    which maps Python linOps to their corresponding C++ linOps.
+
+    Parameters
+    ----------
+        linPy_to_linC: a dict for memoizing construction and storing
+            the C++ LinOps
+    """
+    bfs_stack = [root_linPy]
+    post_order_stack = []
+    while bfs_stack:
+        linPy = bfs_stack.pop()
+        if linPy not in linPy_to_linC:
+            post_order_stack.append(linPy)
+            for arg in linPy.args:
+                bfs_stack.append(arg)
+            if isinstance(linPy.data, lo.LinOp):
+                bfs_stack.append(linPy.data)
+    while post_order_stack:
+        linPy = post_order_stack.pop()
+        make_linC_from_linPy(linPy, linPy_to_linC)
