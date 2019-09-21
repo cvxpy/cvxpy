@@ -298,8 +298,6 @@ def make_linC_from_linPy(linPy, linPy_to_linC):
     typ = get_type(linPy)
     shape = cvxcore.IntVector()
     lin_args_vec = cvxcore.ConstLinOpVector()
-    lin_data = None
-    data_ndim = 0
     for dim in linPy.shape:
         shape.push_back(int(dim))
     for argPy in linPy.args:
