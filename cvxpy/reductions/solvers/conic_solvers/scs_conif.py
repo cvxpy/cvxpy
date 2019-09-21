@@ -39,41 +39,6 @@ def dims_to_solver_dict(cone_dims):
     return cones
 
 
-# Utility methods for special handling of semidefinite constraints.
-def scaled_lower_tri(size):
-    """Returns an expression representing the lower triangular entries
-
-    Scales the strictly lower triangular entries by sqrt(2), as required
-    by SCS.
-
-    Parameters
-    ----------
-    size : The dimension of the PSD constraint.
-
-    Returns
-    -------
-    Expression
-        An expression representing the (scaled) lower triangular part of
-        the supplied matrix expression.
-    """
-    rows = cols = size
-    entries = rows * (cols + 1)//2
-
-    row_arr = np.arange(0, entries)
-
-    lower_diag_indices = np.tril_indices(rows)
-    col_arr = np.sort(np.ravel_multi_index(lower_diag_indices, (rows, cols), order='F'))
-
-    val_arr = np.zeros((rows, cols))
-    val_arr[lower_diag_indices] = 1/np.sqrt(2)
-    np.fill_diagonal(val_arr, 0.5)
-    val_arr = np.ravel(val_arr, order='F')
-    val_arr = val_arr[np.nonzero(val_arr)]
-
-    shape = (entries, rows*cols)
-    return sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
-
-
 def tri_to_full(lower_tri, n):
     """Expands n*(n+1)//2 lower triangular to full matrix
 
@@ -182,9 +147,6 @@ class SCS(ConicSolver):
         val_arr = np.full(entries, 0.5)
         shape = (rows*cols, rows*cols)
         symm_mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
-
-        print(symm_mat.A)
-        print(scaled_lower_tri.A)
         return scaled_lower_tri*symm_mat
 
     def apply(self, problem):
