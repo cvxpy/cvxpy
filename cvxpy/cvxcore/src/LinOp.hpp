@@ -76,6 +76,7 @@ public:
     slice_.push_back(slice_vec);
   }
 
+  bool has_numerical_data() const { return data_has_been_set_; }
   const LinOp *get_linOp_data() const { return linOp_data_; }
   void set_linOp_data(const LinOp *tree) {
     assert(!data_has_been_set_);

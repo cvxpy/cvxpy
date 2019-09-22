@@ -249,6 +249,7 @@ Matrix sparse_reshape_to_vec(const Matrix &mat) {
  */
 Matrix get_constant_data(const LinOp &lin, bool column) {
   Matrix coeffs;
+  assert(lin.has_numerical_data());
   if (lin.is_sparse()) {
     if (column) {
       coeffs = sparse_reshape_to_vec(lin.get_sparse_data());
@@ -686,6 +687,7 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.get_args()[0]->get_shape().size() > 0);
   Tensor rmul_ten = lin_to_tensor(*lin.get_linOp_data());
+
   // Interpret as row or column vector as needed.
   if (lin.get_data_ndim() == 1 && lin.get_args()[0]->get_shape()[0] != 1) {
     // Transpose matrices.
@@ -738,13 +740,21 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
 
         std::vector<Triplet> tripletList;
         tripletList.reserve(n * mat_vec[i].nonZeros());
-        for (int k = 0; k < mat_vec[i].outerSize(); ++k) {
-          for (Matrix::InnerIterator it(mat_vec[i], k); it; ++it) {
+        const Matrix &curr_matrix = mat_vec[i];
+        for (int k = 0; k < curr_matrix.outerSize(); ++k) {
+          for (Matrix::InnerIterator it(curr_matrix, k); it; ++it) {
             double val = it.value();
 
             // Data is flattened.
-            int col = it.row() / data_rows;
-            int row = it.row() % data_rows;
+            int col;
+            int row;
+            if (curr_matrix.rows() == 1) {
+              col = it.col() / data_rows;
+              row = it.col() % data_rows;
+            } else {
+              col = it.row() / data_rows;
+              row = it.row() % data_rows;
+            }
             // Each element of CONSTANT occupies an N x N block in the matrix
             // if X,A in R^{2x2}, then XA yields
             // A_11 0 A_21 0
@@ -842,10 +852,19 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
         for (int curr_block = 0; curr_block < num_blocks; curr_block++) {
           int start_i = curr_block * block_rows;
           int start_j = curr_block * block_cols;
+          const Matrix &curr_matrix = mat_vec[i];
           for (int k = 0; k < mat_vec[i].outerSize(); ++k) {
             for (Matrix::InnerIterator it(mat_vec[i], k); it; ++it) {
-              int row = it.row() % block_rows;
-              int col = it.row() / block_rows;
+              // Data is flattened.
+              int row;
+              int col;
+              if (curr_matrix.rows() == 1) {
+                row = it.col() % block_rows;
+                col = it.col() / block_rows;
+              } else {
+                row = it.row() % block_rows;
+                col = it.row() / block_rows;
+              }
               tripletList.push_back(
                   Triplet(start_i + row, start_j + col, it.value()));
             }

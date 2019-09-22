@@ -172,6 +172,9 @@ class LinOp(object):
     def push_back_slice_vec(self, slice_vec: "IntVector") -> "void":
         return _cvxcore.LinOp_push_back_slice_vec(self, slice_vec)
 
+    def has_numerical_data(self) -> "bool":
+        return _cvxcore.LinOp_has_numerical_data(self)
+
     def get_linOp_data(self) -> "LinOp const *":
         return _cvxcore.LinOp_get_linOp_data(self)
 

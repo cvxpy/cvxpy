@@ -7054,6 +7054,29 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_LinOp_has_numerical_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  LinOp *arg1 = (LinOp *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject *swig_obj[1] ;
+  bool result;
+  
+  if (!args) SWIG_fail;
+  swig_obj[0] = args;
+  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_has_numerical_data" "', argument " "1"" of type '" "LinOp const *""'"); 
+  }
+  arg1 = reinterpret_cast< LinOp * >(argp1);
+  result = (bool)((LinOp const *)arg1)->has_numerical_data();
+  resultobj = SWIG_From_bool(static_cast< bool >(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_LinOp_get_linOp_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   LinOp *arg1 = (LinOp *) 0 ;
@@ -20369,6 +20392,7 @@ static PyMethodDef SwigMethods[] = {
 	 { "LinOp_get_args", _wrap_LinOp_get_args, METH_O, NULL},
 	 { "LinOp_get_slice", _wrap_LinOp_get_slice, METH_O, NULL},
 	 { "LinOp_push_back_slice_vec", _wrap_LinOp_push_back_slice_vec, METH_VARARGS, NULL},
+	 { "LinOp_has_numerical_data", _wrap_LinOp_has_numerical_data, METH_O, NULL},
 	 { "LinOp_get_linOp_data", _wrap_LinOp_get_linOp_data, METH_O, NULL},
 	 { "LinOp_set_linOp_data", _wrap_LinOp_set_linOp_data, METH_VARARGS, NULL},
 	 { "LinOp_get_data_ndim", _wrap_LinOp_get_data_ndim, METH_O, NULL},
