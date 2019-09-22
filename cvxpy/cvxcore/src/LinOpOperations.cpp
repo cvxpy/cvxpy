@@ -853,8 +853,8 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
           int start_i = curr_block * block_rows;
           int start_j = curr_block * block_cols;
           const Matrix &curr_matrix = mat_vec[i];
-          for (int k = 0; k < mat_vec[i].outerSize(); ++k) {
-            for (Matrix::InnerIterator it(mat_vec[i], k); it; ++it) {
+          for (int k = 0; k < curr_matrix.outerSize(); ++k) {
+            for (Matrix::InnerIterator it(curr_matrix, k); it; ++it) {
               // Data is flattened.
               int row;
               int col;
