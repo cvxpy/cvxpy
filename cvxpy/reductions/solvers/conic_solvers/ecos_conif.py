@@ -144,7 +144,7 @@ class ECOS(ConicSolver):
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import ecos
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
-        if data[s.A].nnz == 0:
+        if data[s.A].nnz == 0 and np.prod(data[s.A].shape) > 0:
             raise ValueError(
                 "ECOS cannot handle sparse data with nnz == 0; "
                 "this is a bug in ECOS, and it indicates that your problem "
