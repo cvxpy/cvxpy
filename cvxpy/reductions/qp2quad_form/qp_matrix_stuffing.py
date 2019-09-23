@@ -86,7 +86,7 @@ class QpMatrixStuffing(MatrixStuffing):
             problem_data_tensor, new_var.size)
         if 0 not in Afull.shape and 0 not in bfull.shape:
             Afull = cvxtypes.constant()(Afull)
-            bfull = cvxtypes.constant()(bfull)
+            bfull = cvxtypes.constant()(np.atleast_1d(bfull))
 
         new_cons = []
         offset = 0
