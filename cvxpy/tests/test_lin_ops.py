@@ -42,8 +42,7 @@ class test_lin_ops(BaseTest):
     def test_param(self):
         """Test creating a parameter.
         """
-        A = Parameter(5, 4)
-        var = create_param(A, (5, 4))
+        var = create_param((5, 4))
         self.assertEqual(var.shape, (5, 4))
         self.assertEqual(len(var.args), 0)
         self.assertEqual(var.type, PARAM)
