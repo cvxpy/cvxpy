@@ -100,9 +100,9 @@ class ConicSolver(Solver):
     REQUIRES_CONSTR = False
 
     def accepts(self, problem):
-        return (type(problem.objective) == Minimize
+        return (isinstance(problem, ParamConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
-                and not convex_attributes(problem.x)
+                and not convex_attributes([problem.x])
                 and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
                 and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
                         problem.constraints))
