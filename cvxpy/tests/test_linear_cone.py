@@ -178,12 +178,12 @@ class TestLinearCone(BaseTest):
     def test_matrix_lp(self):
         for solver in self.solvers:
             T = Constant(numpy.ones((2, 2))).value
-            p = Problem(Minimize(1 + self.a), [self.A == T + self.a, self.a >= 0])
+            p = Problem(Minimize(self.a), [self.A == T + self.a, self.a >= 0])
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             result = p.solve(solver.name())
             p_new = ConeMatrixStuffing().apply(p)
             sltn = solver.solve(p_new[0], False, False, {})
-            self.assertAlmostEqual(sltn.opt_val, result - 1)
+            self.assertAlmostEqual(sltn.opt_val, result)
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             for var in p.variables():
@@ -197,7 +197,7 @@ class TestLinearCone(BaseTest):
             result = p.solve(solver.name())
             p_new = ConeMatrixStuffing().apply(p)
             sltn = solver.solve(p_new[0], False, False, {})
-            self.assertAlmostEqual(sltn.opt_val, result - 1)
+            self.assertAlmostEqual(sltn.opt_val, result)
             inv_sltn = ConeMatrixStuffing().invert(sltn, p_new[1])
             self.assertAlmostEqual(inv_sltn.opt_val, result)
             for var in p.variables():
