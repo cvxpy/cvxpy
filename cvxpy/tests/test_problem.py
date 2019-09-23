@@ -495,41 +495,6 @@ class TestProblem(BaseTest):
                              [self.a >= self.b, self.a >= 1, self.b >= 3])
         self.assertAlmostEqual(combo3.solve(), combo3_ref.solve())
 
-    # Test solving problems in parallel.
-    def test_solve_parallel(self):
-        p = Parameter()
-        problem = Problem(cp.Minimize(cp.square(self.a) + cp.square(self.b) + p),
-                          [self.b >= 2, self.a >= 1])
-        p.value = 1
-        # Ensure that parallel solver still works after repeated calls
-        for _ in range(2):
-            result = problem.solve(parallel=True)
-            self.assertAlmostEqual(result, 6.0)
-            self.assertEqual(problem.status, s.OPTIMAL)
-            self.assertAlmostEqual(self.a.value, 1)
-            self.assertAlmostEqual(self.b.value, 2)
-            self.a.value = 0
-            self.b.value = 0
-        # The constant p should not be a separate problem, but rather added to
-        # the first separable problem.
-        self.assertTrue(len(problem._separable_problems) == 2)
-
-        # Ensure that parallel solver works with options.
-        result = problem.solve(parallel=True, verbose=True, warm_start=True)
-        self.assertAlmostEqual(result, 6.0)
-        self.assertEqual(problem.status, s.OPTIMAL)
-        self.assertAlmostEqual(self.a.value, 1)
-        self.assertAlmostEqual(self.b.value, 2)
-
-        # Ensure that parallel solver works when problem changes.
-        objective = cp.Minimize(cp.square(self.a) + cp.square(self.b))
-        problem = Problem(objective, problem.constraints)
-        result = problem.solve(parallel=True)
-        self.assertAlmostEqual(result, 5.0)
-        self.assertEqual(problem.status, s.OPTIMAL)
-        self.assertAlmostEqual(self.a.value, 1)
-        self.assertAlmostEqual(self.b.value, 2)
-
     # Test scalar LP problems.
     def test_scalar_lp(self):
         p = Problem(cp.Minimize(3*self.a), [self.a >= 2])
