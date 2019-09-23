@@ -87,7 +87,7 @@ class ParamConeProg(object):
         c = c.toarray().flatten()
         A, b = canonInterface.get_matrix_and_offset_from_tensor(
             self.A, param_vec, self.x.size)
-        return c, d, A, b
+        return c, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
