@@ -225,14 +225,17 @@ class ConicSolver(Solver):
                 raise ValueError("Unsupported constraint type.")
 
         # Form new ParamConeProg
-        restruct_mat = sp.block_diag(restruct_mat)
-        # this is equivalent to but _much_ faster than:
-        #  restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
-        #  restruct_A = restruct_mat_rep * problem.A
-        reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F')
-        restructured_A = (restruct_mat*reshaped_A).reshape(
-            restruct_mat.shape[0] * (problem.x.size + 1),
-            problem.A.shape[1], order='F')
+        if restruct_mat:
+            restruct_mat = sp.block_diag(restruct_mat)
+            # this is equivalent to but _much_ faster than:
+            #  restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
+            #  restruct_A = restruct_mat_rep * problem.A
+            reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F')
+            restructured_A = (restruct_mat*reshaped_A).reshape(
+                restruct_mat.shape[0] * (problem.x.size + 1),
+                problem.A.shape[1], order='F')
+        else:
+            restructured_A = problem.A
         new_param_cone_prog = ParamConeProg(problem.c,
                                             problem.x,
                                             restructured_A,
