@@ -102,6 +102,8 @@ class ECOS(ConicSolver):
         len_eq = sum([c.size for c in constr_map[Zero]])
 
         # Format the constraints.
+        # TODO(akshayka): for a given problem, formatting should only happen on
+        # the first call to this function
         formatted = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = formatted
 

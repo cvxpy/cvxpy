@@ -156,7 +156,7 @@ class ConeMatrixStuffing(MatrixStuffing):
                 and are_args_affine(problem.constraints))
 
     def stuffed_objective(self, problem, extractor):
-        # Extract to c.T * x + r
+        # Extract to c.T * x + r; c is represented by a ma
         c = extractor.affine(problem.objective.expr)
 
         boolean, integer = extract_mip_idx(problem.variables())
@@ -168,7 +168,8 @@ class ConeMatrixStuffing(MatrixStuffing):
         inverse_data = InverseData(problem)
         # Form the constraints
         extractor = CoeffExtractor(inverse_data)
-        c, x = self.stuffed_objective(problem, extractor)
+        params_to_objective, flattened_variable = self.stuffed_objective(
+            problem, extractor)
         # Lower equality and inequality to Zero and NonPos.
         cons = []
         for con in problem.constraints:
@@ -192,11 +193,12 @@ class ConeMatrixStuffing(MatrixStuffing):
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
         expr_list = [arg for c in ordered_cons for arg in c.args]
-        A = extractor.affine(expr_list)
+        params_to_problem_data = extractor.affine(expr_list)
 
-        # Map of old constraint id to new constraint id.
         inverse_data.minimize = type(problem.objective) == Minimize
-        new_prob = ParamConeProg(c, x, A,
+        new_prob = ParamConeProg(params_to_objective,
+                                 flattened_variable,
+                                 params_to_problem_data,
                                  problem.variables(),
                                  inverse_data.var_offsets,
                                  ordered_cons,
