@@ -71,6 +71,20 @@ class ConeDims(object):
                                                                 self.soc,
                                                                 self.psd)
 
+    def __getitem__(self, key):
+        if key == s.EQ_DIM:
+            return self.zero
+        elif key == s.LEQ_DIM:
+            return self.nonpos
+        elif key == s.EXP_DIM:
+            return self.exp
+        elif key == s.SOC_DIM:
+            return self.soc
+        elif key == s.PSD_DIM:
+            return self.psd
+        else:
+            raise KeyError(key)
+
 
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
@@ -131,8 +145,9 @@ class ConicSolver(Solver):
 
     def format_constraints(self, problem, exp_cone_order):
         """
-        Return the coefficient "A" and offset "b" for the constraint in the
-        following formats:
+        Returns a ParamConeProg whose problem data tensors will yield the
+        coefficient "A" and offset "b" for the constraint in the following
+        formats:
             Linear equations: (A, b) such that A * x == b,
             Linear inequalities: (A, b) such that A * x <= b,
             Second order cone: (A, b) such that A * x <=_{SOC} b,
@@ -157,13 +172,13 @@ class ConicSolver(Solver):
         Returns:
           ParamConeProg with structured A.
         """
-        # Create a matrix to reshape constraints,
-        # then replicate for each variable entry.
+        # Create a matrix to reshape constraints, then replicate for each
+        # variable entry.
         restruct_mat = []  # Form a block diagonal matrix.
         for constr in problem.constraints:
             total_height = sum([arg.size for arg in constr.args])
             if type(constr) in [Zero, NonPos]:
-                # Both of these constraints have but a single argument.
+                # Both of these constraints have a single argument.
                 # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
                 # Need to negate to switch from NonPos to NonNeg.
                 restruct_mat.append(-sp.eye(constr.size, format='csc'))
@@ -215,12 +230,12 @@ class ConicSolver(Solver):
         #  restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
         #  restruct_A = restruct_mat_rep * problem.A
         reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F')
-        restruct_A = (restruct_mat*reshaped_A).reshape(
+        restructured_A = (restruct_mat*reshaped_A).reshape(
             restruct_mat.shape[0] * (problem.x.size + 1),
             problem.A.shape[1], order='F')
         new_param_cone_prog = ParamConeProg(problem.c,
                                             problem.x,
-                                            restruct_A,
+                                            restructured_A,
                                             problem.variables,
                                             problem.var_id_to_col,
                                             problem.constraints,
