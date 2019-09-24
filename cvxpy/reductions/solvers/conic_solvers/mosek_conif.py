@@ -18,8 +18,6 @@ import numpy as np
 import scipy as sp
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonPos, Zero, ExpCone
-from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.utilities import group_constraints
 from .conic_solver import ConeDims, ConicSolver
@@ -44,31 +42,6 @@ def vectorized_lower_tri_to_mat(v, dim):
     d = np.diag(np.diag(A))
     A = A + A.T - d
     return A
-
-
-def psd_coeff_offset(problem, c):
-    """
-    Returns an array "G" and vector "h" such that the given constraint is
-      equivalent to "G * z <=_{PSD} h".
-
-    :param problem: the cvxpy Problem in which "c" arises.
-    :param c: a cvxpy Constraint defining a linear matrix inequality
-      "B + sum_j A[j] * z[j] >=_{PSD} 0".
-    :return: (G, h) such that "c" holds at "z" iff "G * z <=_{PSD} b"
-      (where the PSD cone is reshaped into a subset of R^N with N = dim ** 2).
-
-    Note: It is desirable to change this mosek interface so that PSD constraints
-    are represented by a vector in R^N with N = (dim * (dim + 1) / 2). This is
-    possible because arguments to a linear matrix inequality are necessarily
-    symmetric. For now we use N = dim ** 2, because it simplifies implementation
-    and only makes a modest difference in the size of the problem seen by mosek.
-    """
-    extractor = CoeffExtractor(InverseData(problem))
-    A_vec, b_vec = extractor.affine(c.expr)
-    G = -A_vec
-    h = b_vec
-    dim = c.expr.shape[0]
-    return G, h, dim
 
 
 class MOSEK(ConicSolver):
@@ -508,10 +481,8 @@ class MOSEK(ConicSolver):
             if sol == mosek.soltype.itg:
                 dual_vars = None
             else:
-                flattened_dual_var = MOSEK.flatten_dual_variables(
-                    MOSEK.recover_dual_variables(task, sol, inverse_data),
-                    inverse_data['constraints'])
-                dual_vars = {MOSEK.DUAL_VAR_ID: flattened_dual_var}
+                dual_vars = MOSEK.recover_dual_variables(task, sol,
+                                                         inverse_data)
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf

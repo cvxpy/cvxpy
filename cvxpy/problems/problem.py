@@ -570,9 +570,8 @@ class Problem(u.Canonical):
             for v in self.variables():
                 v.save_value(solution.primal_vars[v.id])
             for c in self.constraints:
-                for dv in c.dual_variables:
-                    if dv.id in solution.dual_vars:
-                        dv.save_value(solution.dual_vars[dv.id])
+                if c.id in solution.dual_vars:
+                    c.save_value(solution.dual_vars[c.id])
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)

@@ -238,7 +238,7 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
-             for old_con, new_con in con_map.items():
+            for old_con, new_con in con_map.items():
                 con_obj = inverse_data.id2cons[old_con]
                 shape = con_obj.shape
                 # TODO rationalize Exponential.
