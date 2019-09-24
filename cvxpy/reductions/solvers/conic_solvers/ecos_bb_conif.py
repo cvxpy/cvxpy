@@ -21,8 +21,7 @@ import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import (
                                                     dims_to_solver_dict, ECOS)
 from cvxpy.reductions.solution import failure_solution, Solution
-
-import numpy as np
+from cvxpy.reductions.solvers import utilities
 
 
 class ECOS_BB(ECOS):
@@ -76,10 +75,16 @@ class ECOS_BB(ECOS):
             }
             dual_vars = None
             if not inverse_data['is_mip']:
-                dual_vars = {
-                    ECOS_BB.DUAL_VAR_ID: np.concatenate([solution["y"],
-                                                         solution["z"]])
-                }
+                eq_dual = utilities.get_dual_values(
+                    solution['y'],
+                    utilities.extract_dual_value,
+                    inverse_data[self.EQ_CONSTR])
+                leq_dual = utilities.get_dual_values(
+                    solution['z'],
+                    utilities.extract_dual_value,
+                    inverse_data[self.NEQ_CONSTR])
+                eq_dual.update(leq_dual)
+                dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
             return failure_solution(status)
