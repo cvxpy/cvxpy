@@ -196,6 +196,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonPos] + \
             constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone]
+        inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
@@ -216,6 +217,7 @@ class ConeMatrixStuffing(MatrixStuffing):
     def invert(self, solution, inverse_data):
         """Retrieves a solution to the original problem"""
         var_map = inverse_data.var_offsets
+        con_map = inverse_data.cons_id_map
         # Flip sign of opt val if maximize.
         opt_val = solution.opt_val
         if solution.status not in s.ERROR and not inverse_data.minimize:
@@ -236,18 +238,18 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
-            # Giant dual variable.
-            dual_var = list(solution.dual_vars.values())[0]
-            offset = 0
-            for constr in inverse_data.constraints:
-                # TODO massively inappropriate for SOC and ExpCone.
-                for arg in constr.args:
-                    dual_vars[constr.id] = np.reshape(
-                        dual_var[offset:offset+arg.size],
-                        arg.shape,
+             for old_con, new_con in con_map.items():
+                con_obj = inverse_data.id2cons[old_con]
+                shape = con_obj.shape
+                # TODO rationalize Exponential.
+                if shape == () or isinstance(con_obj, (ExpCone, SOC)):
+                    dual_vars[old_con] = solution.dual_vars[new_con]
+                else:
+                    dual_vars[old_con] = np.reshape(
+                        solution.dual_vars[new_con],
+                        shape,
                         order='F'
                     )
-                    offset += arg.size
 
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)

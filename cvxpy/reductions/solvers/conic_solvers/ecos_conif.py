@@ -15,10 +15,11 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, Zero
+from cvxpy.constraints import NonPos, SOC, ExpCone, Zero
 import cvxpy.interface as intf
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConeDims, ConicSolver
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.utilities import group_constraints
 import numpy as np
 
@@ -100,6 +101,9 @@ class ECOS(ConicSolver):
         data[ConicSolver.DIMS] = ConeDims(constr_map)
         inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
         len_eq = sum([c.size for c in constr_map[Zero]])
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
+        inv_data[self.NEQ_CONSTR] = neq_constr
 
         # Format the constraints.
         # TODO(akshayka): for a given problem, formatting should only happen on
@@ -133,10 +137,16 @@ class ECOS(ConicSolver):
             primal_vars = {
                 inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
             }
-            dual_vars = {
-                ECOS.DUAL_VAR_ID: np.concatenate([solution["y"],
-                                                  solution["z"]])
-            }
+            eq_dual = utilities.get_dual_values(
+                solution['y'],
+                utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            leq_dual = utilities.get_dual_values(
+                solution['z'],
+                utilities.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR])
+            eq_dual.update(leq_dual)
+            dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
