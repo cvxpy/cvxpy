@@ -19,12 +19,12 @@ import cvxpy.lin_ops.lin_utils as lu
 
 
 class InverseData(object):
-    """Data useful for retrieving a solution from a problem."""
+    """ TODO(akshayka): Document this class."""
 
     def __init__(self, problem):
-        variables = problem.variables()
+        varis = problem.variables()
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
-            self.get_var_offsets(variables))
+                                                self.get_var_offsets(varis))
 
         self.param_shapes = {}
         # Always start with CONSTANT_ID.
@@ -38,14 +38,9 @@ class InverseData(object):
             offset += param.size
         self.param_id_map[lo.CONSTANT_ID] = offset
 
-        self.id2var = {var.id: var for var in variables}
-        self.real2imag = {var.id: lu.get_id() for var in variables
-                          if var.is_complex()}
-        constr_dict = {cons.id: lu.get_id() for cons in problem.constraints
-                       if cons.is_complex()}
-        self.real2imag.update(constr_dict)
+        self.id2var = {var.id: var for var in varis}
         self.id2cons = {cons.id: cons for cons in problem.constraints}
-        self.dv_id_map = dict()
+        self.cons_id_map = dict()
         self.constraints = None
 
     def get_var_offsets(self, variables):

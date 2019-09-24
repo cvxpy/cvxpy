@@ -173,7 +173,6 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Lower equality and inequality to Zero and NonPos.
         cons = []
         for con in problem.constraints:
-            orig_con = con
             if isinstance(con, Equality):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
@@ -182,9 +181,6 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
             cons.append(con)
-            for dv_old, dv_new in zip(orig_con.dual_variables,
-                                      con.dual_variables):
-                inverse_data.dv_id_map[dv_new.id] = dv_old.id
         # Reorder constraints to Zero, NonPos, SOC, PSD, EXP.
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonPos] + \
@@ -233,14 +229,14 @@ class ConeMatrixStuffing(MatrixStuffing):
             dual_var = list(solution.dual_vars.values())[0]
             offset = 0
             for constr in inverse_data.constraints:
-                for dv in constr.dual_variables:
-                    dv_old = inverse_data.dv_id_map[dv.id]
-                    dual_vars[dv_old] = np.reshape(
-                        dual_var[offset:offset+dv.size],
-                        dv.shape,
+                # TODO massively inappropriate for SOC and ExpCone.
+                for arg in constr.args:
+                    dual_vars[constr.id] = np.reshape(
+                        dual_var[offset:offset+arg.size],
+                        arg.shape,
                         order='F'
                     )
-                    offset += dv.size
+                    offset += arg.size
 
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)

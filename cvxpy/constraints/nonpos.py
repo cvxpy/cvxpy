@@ -78,6 +78,7 @@ class Inequality(Constraint):
     """
     def __init__(self, lhs, rhs, constr_id=None):
         self._expr = lhs - rhs
+        # TODO remove this restriction.
         if self._expr.is_complex():
             raise ValueError("Inequality constraints cannot be complex.")
         super(Inequality, self).__init__([lhs, rhs], constr_id)

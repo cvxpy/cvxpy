@@ -125,6 +125,7 @@ def get_problem_matrix(linOps,
         id_to_col: A map from variable id to column offset.
         param_to_size: A map from parameter id to parameter size.
         param_to_col: A map from parameter id to column in tensor.
+        constr_length: Summed sizes of constraints input.
 
     Returns
     -------

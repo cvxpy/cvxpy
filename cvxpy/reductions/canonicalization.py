@@ -65,10 +65,7 @@ class Canonicalization(Reduction):
             canon_constr, aux_constr = self.canonicalize_tree(
                 constraint)
             canon_constraints += aux_constr + [canon_constr]
-            for dv_old, dv_new in zip(constraint.dual_variables,
-                                      canon_constr.dual_variables):
-                inverse_data.dv_id_map.update({dv_old.id:
-                                               dv_new.id})
+            inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
 
         new_problem = problems.problem.Problem(canon_objective,
                                                canon_constraints)
@@ -78,7 +75,7 @@ class Canonicalization(Reduction):
         pvars = {vid: solution.primal_vars[vid] for vid in inverse_data.id_map
                  if vid in solution.primal_vars}
         dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in inverse_data.dv_id_map.items()
+                 for orig_id, vid in inverse_data.cons_id_map.items()
                  if vid in solution.dual_vars}
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
@@ -106,8 +103,8 @@ class Canonicalization(Reduction):
     def canonicalize_expr(self, expr, args):
         """Canonicalize an expression, w.r.t. canonicalized arguments."""
         # Constant trees are collapsed, but parameter trees are preserved.
-        if isinstance(expr, Expression) and (
-          expr.is_constant() and not expr.parameters()):
+        if isinstance(expr, Expression) and \
+          (expr.is_constant() and not expr.parameters()):
             return expr, []
         elif type(expr) in self.canon_methods:
             return self.canon_methods[type(expr)](expr, args)

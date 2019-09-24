@@ -99,9 +99,6 @@ class QpMatrixStuffing(MatrixStuffing):
                 offset += arg.size
             new_constraint = con.copy(arg_list)
             new_cons.append(new_constraint)
-            for dv_old, dv_new in zip(orig_con.dual_variables,
-                                      new_constraint.dual_variables):
-                inverse_data.dv_id_map[dv_new.id] = dv_old.id
 
         inverse_data.constraints = new_cons
         inverse_data.minimize = type(problem.objective) == Minimize
@@ -135,14 +132,13 @@ class QpMatrixStuffing(MatrixStuffing):
             dual_var = list(solution.dual_vars.values())[0]
             offset = 0
             for constr in inverse_data.constraints:
-                for dv in constr.dual_variables:
-                    dv_old = inverse_data.dv_id_map[dv.id]
-                    dual_vars[dv_old] = np.reshape(
-                        dual_var[offset:offset+dv.size],
-                        dv.shape,
-                        order='F'
-                    )
-                    offset += dv.size
+                # QP constraints can only have one argument.
+                dual_vars[constr.id] = np.reshape(
+                    dual_var[offset:offset+constr.args[0].size],
+                    constr.args[0].shape,
+                    order='F'
+                )
+                offset += constr.size
 
         # Add constant part
         if inverse_data.minimize:

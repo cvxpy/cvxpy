@@ -126,17 +126,22 @@ class AffAtom(Atom):
         fake_expr, _ = self.graph_implementation(fake_args, self.shape,
                                                  self.get_data())
         param_to_size = {lo.CONSTANT_ID: 1}
+        param_to_col = {lo.CONSTANT_ID: 0}
         # Get the matrix representation of the function.
-        V, I, J = canonInterface.get_problem_matrix(
+        canon_mat = canonInterface.get_problem_matrix(
             [fake_expr],
             var_length,
             var_offsets,
             param_to_size,
+            param_to_col,
+            self.size,
         )
         # HACK TODO TODO convert tensors back to vectors.
-        COO = (V[lo.CONSTANT_ID][0], (J[lo.CONSTANT_ID][0], I[lo.CONSTANT_ID][0]))
+        # COO = (V[lo.CONSTANT_ID][0], (J[lo.CONSTANT_ID][0], I[lo.CONSTANT_ID][0]))
         shape = (var_length + 1, self.size)
-        stacked_grad = sp.csc_matrix(COO, shape=shape)[:-1, :]
+        print("canon shape:", canon_mat.shape)
+        print("target shape:", shape)
+        stacked_grad = canon_mat.reshape(shape).tocsc()[:-1, :]
         # Break up into per argument matrices.
         grad_list = []
         start = 0
