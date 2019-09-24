@@ -243,15 +243,13 @@ class MOSEK(ConicSolver):
             hs.append(b[-num_exp:])
 
         # PSD constraints
-        # TODO(akshayka): PSD constraints are not working, something is wrong.
-        # run test_mosek_conif to see a failure
         num_psd = len(constr_map[PSD])
-        psd_dim = sum(data[s.DIMS][s.PSD_DIM])
+        psd_dim = sum([dim ** 2 for dim in data[s.DIMS][s.PSD_DIM]])
         if num_psd > 0:
             offset = num_linear_inequalities + num_linear_equalities + num_soc
             for c in problem.constraints[offset:offset + num_psd]:
                 assert(isinstance(c, PSD))
-                inv_data['psd_dims'].append((c.id, c.size))
+                inv_data['psd_dims'].append((c.id, c.expr.shape[0]))
             row_offset = leq_dim + eq_dim + soc_dim
             Gs.append(A[row_offset:row_offset + psd_dim])
             hs.append(b[row_offset:row_offset + psd_dim])
@@ -544,7 +542,8 @@ class MOSEK(ConicSolver):
         """
         flattened_dual_variables = []
         for constraint in constraints:
-            flattened_dual_variables.append(dual_variables[constraint.id])
+            flattened_dual_variables.append(
+                np.asarray(dual_variables[constraint.id]).ravel())
         return np.hstack(flattened_dual_variables)
 
     @staticmethod
