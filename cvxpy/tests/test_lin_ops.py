@@ -19,7 +19,6 @@ from cvxpy.lin_ops.lin_utils import (create_var, create_param, sum_expr,
                                      create_const, create_eq, create_leq)
 from cvxpy.lin_ops.lin_op import (VARIABLE, PARAM, SCALAR_CONST, NEG,
                                   DENSE_CONST, SPARSE_CONST, SUM_ENTRIES)
-from cvxpy.expressions.constants import Parameter
 import numpy as np
 import scipy.sparse as sp
 from cvxpy.tests.base_test import BaseTest
