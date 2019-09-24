@@ -19,8 +19,7 @@ from cvxpy.constraints import (Equality, ExpCone, Inequality,
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions import InverseData, Solution
-from cvxpy.reductions.cvx_attr2constr import convex_attributes
+from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import (are_args_affine,
                                         group_constraints,
@@ -32,6 +31,7 @@ import numpy as np
 import scipy.sparse as sp
 
 
+# TODO(akshayka): unit tests
 class ParamConeProg(object):
     """Represents a parameterized cone program
 
@@ -123,9 +123,15 @@ class ParamConeProg(object):
             if var_id in active_vars:
                 var = self.id_to_var[var_id]
                 value = sltn[col:var.size+col]
-                sltn_dict[var_id] = np.reshape(value, var.shape,
-                                               order='F')
-
+                if var.attributes_were_lowered():
+                    orig_var = var.variable_of_provenance()
+                    value = cvx_attr2constr.recover_value_for_variable(
+                        orig_var, value, project=False)
+                    sltn_dict[orig_var.id] = np.reshape(
+                        value, orig_var.shape, order='F')
+                else:
+                    sltn_dict[var_id] = np.reshape(
+                        value, var.shape, order='F')
         return sltn_dict
 
     def split_adjoint(self, del_vars):
@@ -135,8 +141,13 @@ class ParamConeProg(object):
         for var_id, delta in del_vars.items():
             var = self.id_to_var[var_id]
             col = self.var_id_to_col[var_id]
-            var_vec[col:var.size+col] = delta.flatten(order='F')
-
+            if var.attributes_were_lowered():
+                orig_var = var.variable_of_provenance()
+                if cvx_attr2constr.attributes_present(
+                        [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
+                    delta += delta.T - np.diag(np.diag(delta))
+                delta = cvx_attr2constr.lower_value(orig_var, delta)
+            var_vec[col:col + var.size] = delta.flatten(order='F')
         return var_vec
 
 
@@ -152,7 +163,7 @@ class ConeMatrixStuffing(MatrixStuffing):
     def accepts(self, problem):
         return (type(problem.objective) == Minimize
                 and problem.objective.expr.is_affine()
-                and not convex_attributes(problem.variables())
+                and not cvx_attr2constr.convex_attributes(problem.variables())
                 and are_args_affine(problem.constraints))
 
     def stuffed_objective(self, problem, extractor):

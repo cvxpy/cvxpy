@@ -16,7 +16,6 @@ limitations under the License.
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
-from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
