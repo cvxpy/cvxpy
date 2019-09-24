@@ -92,5 +92,9 @@ class TestParamConeProg(BaseTest):
         self.assertEqual(sltn_dict[s.id].shape, s.shape)
         adjoint = param_cone_prog.split_adjoint(sltn_dict)
         self.assertEqual(adjoint.shape, raw_solution.shape)
-        for value in sltn_dict[s.id].ravel():
-            self.assertTrue(any(value == adjoint))
+        sltn_value = sltn_dict[s.id]
+        self.assertTrue(any(sltn_value[0, 0] == adjoint))
+        self.assertTrue(any(sltn_value[1, 1] == adjoint))
+        # off-diagonals will be scaled by two
+        self.assertTrue(any(np.isclose(sltn_value[0, 1], 2 * adjoint)))
+        self.assertTrue(any(np.isclose(sltn_value[1, 0], 2 * adjoint)))
