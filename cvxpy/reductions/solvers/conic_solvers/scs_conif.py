@@ -16,7 +16,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone
+from cvxpy.constraints import Zero, NonPos, PSD, SOC, ExpCone
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
                                                                  ConicSolver)
@@ -169,6 +169,11 @@ class SCS(ConicSolver):
         constr_map = group_constraints(problem.constraints)
         data[ConicSolver.DIMS] = ConeDims(constr_map)
         inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
+        zero_constr = constr_map[Zero]
+        neq_constr = (constr_map[NonPos] + constr_map[SOC]
+                      + constr_map[PSD] + constr_map[ExpCone])
+        inv_data[SCS.EQ_CONSTR] = zero_constr
+        inv_data[SCS.NEQ_CONSTR] = neq_constr
 
         # Format the constraints.
         formatted = self.format_constraints(problem, self.EXP_CONE_ORDER)
@@ -221,9 +226,19 @@ class SCS(ConicSolver):
             primal_vars = {
                 inverse_data[SCS.VAR_ID]: solution["x"]
             }
-            dual_vars = {
-                SCS.DUAL_VAR_ID: solution["y"]
-            }
+            eq_dual_vars = utilities.get_dual_values(
+                solution["y"][:inverse_data[ConicSolver.DIMS].zero],
+                self.extract_dual_value,
+                inverse_data[SCS.EQ_CONSTR]
+            )
+            ineq_dual_vars = utilities.get_dual_values(
+                solution["y"][inverse_data[ConicSolver.DIMS].zero:],
+                self.extract_dual_value,
+                inverse_data[SCS.NEQ_CONSTR]
+            )
+            dual_vars = {}
+            dual_vars.update(eq_dual_vars)
+            dual_vars.update(ineq_dual_vars)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
