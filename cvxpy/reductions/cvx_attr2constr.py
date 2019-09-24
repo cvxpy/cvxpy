@@ -58,23 +58,23 @@ def attributes_present(variables, attr_map):
                                              in variables)]
 
 
-def recover_value_for_variable(variable, value, project=True):
+def recover_value_for_variable(variable, lowered_value, project=True):
     if variable.attributes['diag']:
-        return sp.diags(value.flatten())
+        return sp.diags(lowered_value.flatten())
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         n = variable.shape[0]
         value = np.zeros(variable.shape)
         idxs = np.triu_indices(n)
-        value[idxs] = value.flatten()
+        value[idxs] = lowered_value.flatten()
         return value + value.T - np.diag(value.diagonal())
     elif project:
-        return variable.project(value)
+        return variable.project(lowered_value)
     else:
-        return value
+        return lowered_value
 
 
 def lower_value(variable, value):
-    if attributes_present(variable.attributes, SYMMETRIC_ATTRIBUTES):
+    if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
         return value[np.triu_indices(variable.shape[0])]
     elif variable.attributes['diag']:
         return np.diag(value)
@@ -110,19 +110,19 @@ class CvxAttr2Constr(Reduction):
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
                     shape = (n*(n+1)//2, 1)
-                    upper_tri = Variable(shape, **new_attr)
+                    upper_tri = Variable(shape, var_id=var.id, **new_attr)
                     upper_tri.set_variable_of_provenance(var)
                     id2new_var[var.id] = upper_tri
                     fill_coeff = Constant(upper_tri_to_full(n))
                     full_mat = fill_coeff*upper_tri
                     obj = reshape(full_mat, (n, n))
                 elif var.attributes['diag']:
-                    diag_var = Variable(var.shape[0], **new_attr)
+                    diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
                     diag_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = diag_var
                     obj = diag(diag_var)
                 elif new_var:
-                    obj = Variable(var.shape, **new_attr)
+                    obj = Variable(var.shape, var_id=var.id, **new_attr)
                     obj.set_variable_of_provenance(var)
                     id2new_var[var.id] = obj
                 else:

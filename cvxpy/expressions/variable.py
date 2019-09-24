@@ -120,7 +120,7 @@ class Variable(Leaf):
         assert variable.attributes
         self._variable_with_attributes = variable
 
-    def variable_of_provenance(self, variable):
+    def variable_of_provenance(self):
         """Returns a variable with attributes from which this variable was generated."""
         return self._variable_with_attributes
 
