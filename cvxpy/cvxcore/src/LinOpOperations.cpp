@@ -221,7 +221,6 @@ Matrix sparse_reshape_to_vec(const Matrix &mat) {
     }
   }
   out.setFromTriplets(tripletList.begin(), tripletList.end());
-  out.makeCompressed();
   return out;
 }
 
@@ -1086,7 +1085,6 @@ Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
   assert(lin.is_constant());
   Tensor ten;
   DictMat id_to_coeffs;
-  int id = CONSTANT_ID;
 
   // get coeffs as a column vector
   assert(lin.get_linOp_data() == nullptr);
@@ -1094,7 +1092,7 @@ Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
   coeffs.makeCompressed();
   std::vector<Matrix> mat_vec;
   mat_vec.push_back(coeffs);
-  id_to_coeffs[id] = mat_vec;
+  id_to_coeffs[CONSTANT_ID] = mat_vec;
   ten[CONSTANT_ID] = id_to_coeffs;
   return ten;
 }
