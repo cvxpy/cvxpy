@@ -145,7 +145,7 @@ class ParamConeProg(object):
                 orig_var = var.variable_of_provenance()
                 if cvx_attr2constr.attributes_present(
                         [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
-                    delta += delta.T - np.diag(np.diag(delta))
+                    delta = delta + delta.T - np.diag(np.diag(delta))
                 delta = cvx_attr2constr.lower_value(orig_var, delta)
             var_vec[col:col + var.size] = delta.flatten(order='F')
         return var_vec

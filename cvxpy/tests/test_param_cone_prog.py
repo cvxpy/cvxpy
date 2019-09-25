@@ -90,11 +90,14 @@ class TestParamConeProg(BaseTest):
         sltn_dict = param_cone_prog.split_solution(
             raw_solution, active_vars=var_dict)
         self.assertEqual(sltn_dict[s.id].shape, s.shape)
+        sltn_value = sltn_dict[s.id]
         adjoint = param_cone_prog.split_adjoint(sltn_dict)
         self.assertEqual(adjoint.shape, raw_solution.shape)
-        sltn_value = sltn_dict[s.id]
         self.assertTrue(any(sltn_value[0, 0] == adjoint))
         self.assertTrue(any(sltn_value[1, 1] == adjoint))
-        # off-diagonals will be scaled by two
-        self.assertTrue(any(np.isclose(sltn_value[0, 1], 2 * adjoint)))
-        self.assertTrue(any(np.isclose(sltn_value[1, 0], 2 * adjoint)))
+        # off-diagonals of adjoint will be scaled by two
+        self.assertTrue(any(2 * np.isclose(sltn_value[0, 1], adjoint)))
+        self.assertTrue(any(2 * np.isclose(sltn_value[1, 0], adjoint)))
+
+        problem.solve(solver=cp.SCS)
+        self.assertItemsAlmostEqual(s.value, sltn_value)
