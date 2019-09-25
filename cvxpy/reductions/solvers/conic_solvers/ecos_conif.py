@@ -115,7 +115,11 @@ class ECOS(ConicSolver):
         data[s.C] = c
         inv_data[s.OFFSET] = d
         data[s.A] = -A[:len_eq]
+        if data[s.A].shape[0] == 0:
+            data[s.A] = None
         data[s.B] = b[:len_eq].flatten()
+        if data[s.B].shape[0] == 0:
+            data[s.B] = None
         data[s.G] = -A[len_eq:]
         data[s.H] = b[len_eq:].flatten()
         return data, inv_data
@@ -154,7 +158,7 @@ class ECOS(ConicSolver):
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import ecos
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
-        if data[s.A].nnz == 0 and np.prod(data[s.A].shape) > 0:
+        if data[s.A] is not None and data[s.A].nnz == 0 and np.prod(data[s.A].shape) > 0:
             raise ValueError(
                 "ECOS cannot handle sparse data with nnz == 0; "
                 "this is a bug in ECOS, and it indicates that your problem "
