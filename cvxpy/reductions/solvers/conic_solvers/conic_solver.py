@@ -279,7 +279,8 @@ class ConicSolver(Solver):
                                             problem.var_id_to_col,
                                             problem.constraints,
                                             problem.parameters,
-                                            problem.param_id_to_col)
+                                            problem.param_id_to_col,
+                                            formatted=True)
         return new_param_cone_prog
 
     def invert(self, solution, inverse_data):

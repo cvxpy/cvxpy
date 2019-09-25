@@ -92,6 +92,8 @@ class ECOS(ConicSolver):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
+        # Format constraints
+        #
         # ECOS requires constraints to be specified in the following order:
         # 1. zero cone
         # 2. non-negative orthant
@@ -105,13 +107,11 @@ class ECOS(ConicSolver):
         neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
         inv_data[self.NEQ_CONSTR] = neq_constr
 
-        # Format the constraints.
-        # TODO(akshayka): for a given problem, formatting should only happen on
-        # the first call to this function
-        formatted = self.format_constraints(problem, self.EXP_CONE_ORDER)
-        data[s.PARAM_PROB] = formatted
+        if not problem.formatted:
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
 
-        c, d, A, b = formatted.apply_parameters()
+        c, d, A, b = problem.apply_parameters()
         data[s.C] = c
         inv_data[s.OFFSET] = d
         data[s.A] = -A[:len_eq]

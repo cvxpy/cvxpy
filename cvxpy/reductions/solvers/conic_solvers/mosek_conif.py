@@ -156,12 +156,16 @@ class MOSEK(ConicSolver):
 
         constr_map = group_constraints(problem.constraints)
         data[s.DIMS] = ConeDims(constr_map)
-        formatted_param_cone_prog = self.format_constraints(
-            problem, MOSEK.EXP_CONE_ORDER)
-        inv_data['constraints'] = formatted_param_cone_prog.constraints
+
+        if not problem.formatted:
+            problem = self.format_constraints(problem,
+                                              MOSEK.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
+
+        inv_data['constraints'] = problem.constraints
 
         # A is ordered as [Zero, NonPos, SOC, PSD, EXP]
-        c, d, A, b = formatted_param_cone_prog.apply_parameters()
+        c, d, A, b = problem.apply_parameters()
         A = -A
         data[s.C] = c.ravel()
         inv_data['n0'] = len(data[s.C])

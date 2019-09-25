@@ -160,6 +160,8 @@ class SCS(ConicSolver):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
+        # Format constraints
+        #
         # SCS requires constraints to be specified in the following order:
         # 1. zero cone
         # 2. non-negative orthant
@@ -175,9 +177,9 @@ class SCS(ConicSolver):
         inv_data[SCS.EQ_CONSTR] = zero_constr
         inv_data[SCS.NEQ_CONSTR] = neq_constr
 
-        # Format the constraints.
-        formatted = self.format_constraints(problem, self.EXP_CONE_ORDER)
-        data[s.PARAM_PROB] = formatted
+        if not problem.formatted:
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
 
         # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
@@ -185,7 +187,7 @@ class SCS(ConicSolver):
         # Note that scs mandates that the cones MUST be ordered with
         # zero cones first, then non-nonnegative orthant, then SOC,
         # then PSD, then exponential.
-        c, d, A, b = formatted.apply_parameters()
+        c, d, A, b = problem.apply_parameters()
         data[s.C] = c
         inv_data[s.OFFSET] = d
         data[s.A] = -A

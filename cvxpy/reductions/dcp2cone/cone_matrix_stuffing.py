@@ -48,7 +48,8 @@ class ParamConeProg(object):
                  var_id_to_col,
                  constraints,
                  parameters,
-                 param_id_to_col):
+                 param_id_to_col,
+                 formatted=False):
         self.c = c
         self.x = x
         self.A = A
@@ -63,6 +64,8 @@ class ParamConeProg(object):
         self.variables = variables
         self.var_id_to_col = var_id_to_col
         self.id_to_var = {v.id: v for v in self.variables}
+        # whether this param cone prog has been formatted for a solver
+        self.formatted = formatted
 
     def is_mixed_integer(self):
         return self.x.attributes['boolean'] or \

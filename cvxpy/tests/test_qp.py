@@ -443,6 +443,7 @@ class TestQp(BaseTest):
 
         for solver in self.solvers:
 
+            print(solver)
             # Solve from scratch with no parameters
             x_full = []
             obj_full = []
