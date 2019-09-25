@@ -85,6 +85,43 @@ class ConeDims(object):
             raise KeyError(key)
 
 
+class LinearOperator(object):
+    """A wrapper for linear operators."""
+    def __init__(self, linear_op, shape):
+        if sp.issparse(linear_op):
+            self._matmul = lambda X: linear_op @ X
+        else:
+            self._matmul = linear_op
+        self.shape = shape
+
+    def __call__(self, X):
+        return self._matmul(X)
+
+
+def as_linear_operator(linear_op):
+    if isinstance(linear_op, LinearOperator):
+        return linear_op
+    elif sp.issparse(linear_op):
+        return LinearOperator(linear_op, linear_op.shape)
+
+
+def as_block_diag_linear_operator(matrices):
+    """Block diag of SciPy sparse matrices or linear operators."""
+    linear_operators = [as_linear_operator(op) for op in matrices]
+    nrows = [op.shape[0] for op in linear_operators]
+    ncols = [op.shape[1] for op in linear_operators]
+    m, n = sum(nrows), sum(ncols)
+    col_indices = np.append(0, np.cumsum(ncols))
+
+    def matmul(X):
+        outputs = []
+        for i, op in enumerate(linear_operators):
+            Xi = X[col_indices[i]:col_indices[i + 1]]
+            outputs.append(op(Xi))
+        return sp.vstack(outputs)
+    return LinearOperator(matmul, (m, n))
+
+
 class ConicSolver(Solver):
     """Conic solver class with reduction semantics
     """
@@ -180,7 +217,7 @@ class ConicSolver(Solver):
                 # Both of these constraints have a single argument.
                 # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
                 # Need to negate to switch from NonPos to NonNeg.
-                restruct_mat.append(-sp.eye(constr.size, format='csc'))
+                restruct_mat.append(-sp.eye(constr.size, format='csr'))
             elif type(constr) == SOC:
                 # Group each t row with appropriate X rows.
                 assert constr.axis == 0, 'SOC must be lowered to axis == 0'
@@ -225,12 +262,12 @@ class ConicSolver(Solver):
 
         # Form new ParamConeProg
         if restruct_mat:
-            restruct_mat = sp.block_diag(restruct_mat)
+            restruct_mat = as_block_diag_linear_operator(restruct_mat)
             # this is equivalent to but _much_ faster than:
             #  restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
             #  restruct_A = restruct_mat_rep * problem.A
-            reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F')
-            restructured_A = (restruct_mat*reshaped_A).reshape(
+            reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F').tocsr()
+            restructured_A = restruct_mat(reshaped_A).reshape(
                 restruct_mat.shape[0] * (problem.x.size + 1),
                 problem.A.shape[1], order='F')
         else:

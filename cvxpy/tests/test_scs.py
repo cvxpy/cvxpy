@@ -78,7 +78,7 @@ class TestSCS(BaseTest):
         const = cvx.Constant([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
         X = cvx.Variable((3, 3), PSD=True)
         prob = cvx.Problem(cvx.Minimize(0), [X == const])
-        prob.solve(verbose=True, solver=cvx.SCS)
+        prob.solve(solver=cvx.SCS)
         self.assertEqual(prob.status, cvx.INFEASIBLE)
 
     def test_cplx_mats(self):
@@ -132,7 +132,7 @@ class TestSCS(BaseTest):
         constrs = [sum(v_prob[k, 0] for k in range(kK)) == 1]
         klprob = cvx.Problem(cvx.Minimize(objkl), constrs)
         p_refProb.value = npSPriors
-        klprob.solve(solver=cvx.SCS, verbose=True)
+        klprob.solve(solver=cvx.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     def test_entr(self):
@@ -143,7 +143,7 @@ class TestSCS(BaseTest):
             x = cvx.Variable(n)
             obj = cvx.Maximize(cvx.sum(cvx.entr(x)))
             p = cvx.Problem(obj, [cvx.sum(x) == 1])
-            p.solve(solver=cvx.SCS, verbose=True)
+            p.solve(solver=cvx.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
     def test_exp(self):
@@ -154,7 +154,7 @@ class TestSCS(BaseTest):
             x = cvx.Variable(n)
             obj = cvx.Minimize(cvx.sum(cvx.exp(x)))
             p = cvx.Problem(obj, [cvx.sum(x) == 1])
-            p.solve(solver=cvx.SCS, verbose=True)
+            p.solve(solver=cvx.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
     def test_log(self):
@@ -165,7 +165,7 @@ class TestSCS(BaseTest):
             x = cvx.Variable(n)
             obj = cvx.Maximize(cvx.sum(cvx.log(x)))
             p = cvx.Problem(obj, [cvx.sum(x) == 1])
-            p.solve(solver=cvx.SCS, verbose=True)
+            p.solve(solver=cvx.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
     def test_warm_start(self):

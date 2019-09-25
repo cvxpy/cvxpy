@@ -19,6 +19,7 @@ import cvxpy.settings as s
 from cvxpy.constraints import Zero, NonPos, PSD, SOC, ExpCone
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
+                                                                 LinearOperator,
                                                                  ConicSolver)
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.utilities import group_constraints
@@ -105,12 +106,12 @@ class SCS(ConicSolver):
         scs  # For flake8
 
     def psd_format_mat(self, constr):
-        """Return a matrix to multiply by PSD constraint coefficients.
+        """Return a linear operator to multiply by PSD constraint coefficients.
 
         Special cases PSD constraints, as SCS expects constraints to be
         imposed on solely the lower triangular part of the variable matrix.
         Moreover, it requires the off-diagonal coefficients to be scaled by
-        sqrt(2).
+        sqrt(2), and applies to the symmetric part of the constrained expression.
         """
         rows = cols = constr.expr.shape[0]
         entries = rows * (cols + 1)//2
@@ -131,23 +132,22 @@ class SCS(ConicSolver):
         shape = (entries, rows*cols)
         scaled_lower_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
-        # (expr + expr.T)/2 for lower triangle.
-        entries = rows*(cols+1)
-        lower_diag_indices = np.tril_indices(rows)
-        tril_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
-                                                (rows, cols),
-                                                order='F'))
-        row_arr = np.concatenate([tril_arr]*2)
-        upper_diag_indices = np.triu_indices(rows)
-        triu_arr = np.sort(np.ravel_multi_index(upper_diag_indices,
-                                                (rows, cols),
-                                                order='C'))
-        # Align lower triangular (col major) with upper triangular (row major).
-        col_arr = np.concatenate([tril_arr, triu_arr])
-        val_arr = np.full(entries, 0.5)
-        shape = (rows*cols, rows*cols)
-        symm_mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
-        return scaled_lower_tri*symm_mat
+        def symmetrize(X_vec):
+            X = X_vec.reshape((rows, cols))
+            symmetrized = (X + X.T) / 2.0
+            return symmetrized.reshape(X_vec.shape)
+
+        def lower_tri_and_symmetrize(X_vecs):
+            symms = []
+            for column in range(X_vecs.shape[1]):
+                X_vec = X_vecs[:, column]
+                symms.append(symmetrize(X_vec))
+            stacked = sp.hstack(symms)
+            return scaled_lower_tri @ stacked
+
+        return LinearOperator(
+            lower_tri_and_symmetrize,
+            shape=(scaled_lower_tri.shape[0], rows*cols))
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
