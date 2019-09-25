@@ -132,22 +132,14 @@ class SCS(ConicSolver):
         shape = (entries, rows*cols)
         scaled_lower_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
 
-        def symmetrize(X_vec):
-            X = X_vec.reshape((rows, cols))
-            symmetrized = (X + X.T) / 2.0
-            return symmetrized.reshape(X_vec.shape)
+        idx = np.arange(rows * cols)
+        val_symm = 0.5 * np.ones(2 * rows * cols)
+        K = idx.reshape((rows, cols))
+        row_symm = np.append(idx, np.ravel(K, order='F'))
+        col_symm = np.append(idx, np.ravel(K.T, order='F'))
+        symm_matrix = sp.csc_matrix((val_symm, (row_symm, col_symm)))
 
-        def lower_tri_and_symmetrize(X_vecs):
-            symms = []
-            for column in range(X_vecs.shape[1]):
-                X_vec = X_vecs[:, column]
-                symms.append(symmetrize(X_vec))
-            stacked = sp.hstack(symms)
-            return scaled_lower_tri @ stacked
-
-        return LinearOperator(
-            lower_tri_and_symmetrize,
-            shape=(scaled_lower_tri.shape[0], rows*cols))
+        return scaled_lower_tri @ symm_matrix
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.

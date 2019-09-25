@@ -19,6 +19,7 @@ std::vector<Matrix> mat_vec_mul(const std::vector<Matrix> &lh_vec,
   // Can only have single matrix * many, not many * many.
   assert(lh_vec.size() == 1 || rh_vec.size() == 1);
   std::vector<Matrix> result;
+  result.reserve(lh_vec.size() * rh_vec.size());
   for (unsigned i = 0; i < lh_vec.size(); ++i) {
     for (unsigned j = 0; j < rh_vec.size(); ++j) {
       result.push_back(lh_vec[i] * rh_vec[j]);
