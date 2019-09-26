@@ -24,31 +24,13 @@ def quad_over_lin_canon(expr, args):
     x = args[0]
     y = args[1]
 
-    if y.ndim == 0:
-        # quad_over_lin := sum_{ij} X^2_{ij} / y
-        y = y.flatten()
-        # precondition: shape == ()
-        t = Variable(1,)
-        # (y+t, y-t, 2*x) must lie in the second-order cone,
-        # where y+t is the scalar part of the second-order
-        # cone constraint.
-        constraints = [SOC(
-                           t=y+t,
-                           X=hstack([y-t, 2*x.flatten()]), axis=0
-                          )]
-        return t, constraints
-
-    if (y.ndim == 1):
-        if x.ndim == 1:
-            x = reshape(x, (x.size, 1))
-        assert x.ndim == 2, "Wrong sizes"
-        # quad_over_lin := sum_{i} X^2_{i} / y_{i}
-        # precondition: shape == ()
-        t = Variable(y.size,)
-        assert x.shape[0] == y.size, "Wrong sizes"
-        y_minus_t = reshape(y-t, (y.size, 1))
-        constraints = [SOC(
-                           t=y+t,
-                           X=hstack([y_minus_t, 2*x]), axis=1
-                          )]
-        return t, constraints
+    # quad_over_lin := sum_{i} X^2_{i} / y_{i}
+    # precondition: shape == ()
+    t = Variable(y.size,)
+    assert x.shape[1] == y.size, "Wrong sizes"
+    y_minus_t = reshape(y-t, (y.size, 1))
+    constraints = [SOC(
+                       t=y+t,
+                       X=hstack([y_minus_t, 2*x.T]), axis=1
+                      )]
+    return t, constraints

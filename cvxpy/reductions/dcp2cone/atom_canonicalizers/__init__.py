@@ -63,7 +63,7 @@ CANON_METHODS = {
     norm_inf : norm_inf_canon,
     Pnorm : pnorm_canon,
     QuadForm : quad_form_canon,
-    quad_over_lin : quad_over_lin_canon,
+    QuadOverLin : quad_over_lin_canon,
     sigma_max : sigma_max_canon,
     sum_largest : sum_largest_canon,
     abs : abs_canon,

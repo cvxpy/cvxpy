@@ -44,7 +44,7 @@ from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import pnorm, Pnorm
 from cvxpy.atoms.prod import prod, Prod
 from cvxpy.atoms.quad_form import quad_form, QuadForm
-from cvxpy.atoms.quad_over_lin import quad_over_lin
+from cvxpy.atoms.quad_over_lin import quad_over_lin, QuadOverLin
 from cvxpy.atoms.sigma_max import sigma_max
 from cvxpy.atoms.sign import sign
 from cvxpy.atoms.sum_largest import sum_largest

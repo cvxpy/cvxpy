@@ -15,19 +15,50 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.affine.reshape import reshape
 import numpy as np
 import scipy.sparse as sp
 import scipy as scipy
 
 
-class quad_over_lin(Atom):
+def quad_over_lin(x, y, axis=0):
+
+    if y.is_scalar():
+        x = reshape(x, (x.size, 1))
+        y = reshape(y, (1,))
+    elif y.is_vector():
+        if x.is_vector():
+            if x.size != y.size:
+                raise ValueError(
+                    "If both arguments to quad_over_lin are vectors, their sizes must match."
+                )
+            else:
+                x = reshape(x, (1, x.size))
+                y = reshape(y, (y.size,))
+        elif x.is_matrix():
+            x = x.T if axis == 1 else x
+            if x.shape[1] != y.size:
+                raise ValueError(
+                    "For quad_over_lin(X, y, axis) with matrix X and vector y, "
+                    "we must have X.shape[1-axis] == y.size"
+                )
+        else:
+            raise ValueError(
+                "If the second argument to quad_over_lin is a vector,"
+                "the first argument must be a vector or matrix."
+            )
+
+    return QuadOverLin(x, y)
+
+
+class QuadOverLin(Atom):
     """ :math:`(sum_{ij}X^2_{ij})/y`
 
     """
     _allow_complex = True
 
     def __init__(self, x, y):
-        super(quad_over_lin, self).__init__(x, y)
+        super(QuadOverLin, self).__init__(x, y)
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -74,33 +105,15 @@ class quad_over_lin(Atom):
     def validate_arguments(self):
         """Check dimensions of arguments.
         """
-        x = self.args[0]
-        y = self.args[1]
+        if self.args[0].shape[1] != self.args[1].size:
+            raise ValueError(
+                "For quad_over_lin(X, y, axis) with matrix X and vector y, "
+                "we must have X.shape[1-axis] == y.size"
+            )
 
-        #if y.is_scalar():
-        #    raise ValueError(
-        #        "The second argument to quad_over_lin must be a scalar or vector."
-        #    )
-
-        if y.is_vector() and not y.is_scalar():
-            if x.is_vector():
-                if x.size != y.size:
-                    raise ValueError(
-                        "If both arguments to quad_over_lin are vectors, their sizes must match."
-                    )
-            elif x.is_matrix():
-                if x.shape[0] != y.size:
-                    raise ValueError(
-                        "If both arguments to quad_over_lin are vectors, their sizes must match."
-                    )
-            else:
-                raise ValueError(
-                    "If the second argument to quad_over_lin is a vector,"
-                    "the first argument must be a vector or matrix."
-                )
         if self.args[1].is_complex():
-            raise ValueError("The second argument to quad_over_lin cannot be complex.")
-        super(quad_over_lin, self).validate_arguments()
+            raise ValueError("The second argument to QuadOverLin cannot be complex.")
+        super(QuadOverLin, self).validate_arguments()
 
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
