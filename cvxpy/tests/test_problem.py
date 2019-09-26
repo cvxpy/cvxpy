@@ -103,6 +103,13 @@ class TestProblem(BaseTest):
         else:
             self.assertCountEqual(params, ref)
 
+    def test_solving_a_problem_with_unspecified_parameters(self):
+        param = cp.Parameter(name="lambda")
+        problem = cp.Problem(cp.Minimize(param), [])
+        with self.assertRaises(
+              ParameterError, msg="A Parameter (whose name is 'lambda').*"):
+            problem.solve()
+
     def test_constants(self):
         """Test the constants method.
         """
@@ -1739,23 +1746,6 @@ class TestProblem(BaseTest):
         """Test constraints that evaluate to booleans.
         """
         pass
-
-    # def test_len_zero(self):
-    #     """Test expressions with length zero.
-    #     """
-    #     # Dimension zero always makes things zero.
-    #     n = 0
-
-    #     x = cp.Variable((n,))
-    #     cp.Parameter((n,))
-
-    #     a = numpy.zeros((n,))
-    #     expr = cp.hstack([x, a])
-    #     self.assertEqual(expr.shape, (1,))
-    #     obj = cp.Minimize(cp.sum(expr))
-    #     prob = cp.Problem(obj, [x == 2])
-    #     result = prob.solve()
-    #     self.assertAlmostEqual(result, 2)
 
     def test_pos(self):
         """Test the pos and neg attributes.

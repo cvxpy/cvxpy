@@ -562,6 +562,13 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
+        for parameter in self.parameters():
+            if parameter.value is None:
+                raise error.ParameterError(
+                    "A Parameter (whose name is '%s') does not have a value "
+                    "associated with it; all Parameter objects must have "
+                    "values before solving a problem." % parameter.name())
+
         if gp and qcp:
             raise ValueError("At most one of `gp` and `qcp` can be True.")
         if qcp and not self.is_dcp():
