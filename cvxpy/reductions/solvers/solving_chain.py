@@ -1,3 +1,6 @@
+import warnings
+
+
 import cvxpy.settings as s
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC
@@ -142,6 +145,13 @@ def construct_solving_chain(problem, candidates, gp=False):
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)
+
+    if not problem.is_dpp():
+        warnings.warn(
+            "You are solving a parameterized problem that is not DPP. "
+            "Because the problem is not DPP, subsequent solves will not be "
+            "faster than the first one.")
+        reductions += [EvalParams()]
 
     # Our choice of solver depends upon which atoms are present in the
     # problem. The types of atoms to check for are SOC atoms, PSD atoms,

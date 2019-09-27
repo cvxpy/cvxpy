@@ -61,6 +61,9 @@ class PSD(Constraint):
         """
         return self.args[0].is_affine()
 
+    def is_dpp(self):
+        return self.is_dcp() and self.args[0].is_dpp()
+
     def is_dgp(self):
         return False
 

@@ -167,7 +167,8 @@ class ConeMatrixStuffing(MatrixStuffing):
         return (type(problem.objective) == Minimize
                 and problem.objective.expr.is_affine()
                 and not cvx_attr2constr.convex_attributes(problem.variables())
-                and are_args_affine(problem.constraints))
+                and are_args_affine(problem.constraints)
+                and problem.is_dpp())
 
     def stuffed_objective(self, problem, extractor):
         # Extract to c.T * x + r; c is represented by a ma

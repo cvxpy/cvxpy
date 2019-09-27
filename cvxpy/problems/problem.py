@@ -147,7 +147,7 @@ class Problem(u.Canonical):
         """Does the problem satisfy DPP rules?
         """
         return all(
-          expr.is_dcp() for expr in self.constraints + [self.objective])
+          expr.is_dpp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
     def is_dgp(self):

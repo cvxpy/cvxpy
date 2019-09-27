@@ -21,7 +21,7 @@ import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
-from cvxpy.expressions.constants import Parameter
+from cvxpy.expressions.constants import parameter
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -113,22 +113,39 @@ class MulExpression(BinaryOperator):
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
-    def is_dpp(self, context='CP'):
-        """The expression is a disciplined parameterized expression.
-
-           context: cone program (CP) or quadratic program (QP)
-        """
-        is_dpp = True
-        for arg in self.args:
-            if arg.parameters():
-                is_dpp &= type(arg) == Parameter
-        return is_dpp
-
     def is_atom_convex(self):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
-        return self.args[0].is_constant() or self.args[1].is_constant()
+        if parameter.param_affine_scope_active(self):
+            # This branch applies curvature rules for DPP.
+            #
+            # Because a parameter-affine scope is active, parameters will be
+            # treated as affine (like variables, not constants) by curvature
+            # analysis methods.
+            #
+            # A product x * y is convex if the following criteria are met:
+            #
+            #    1. at most one of x and y has variables
+            #    2. at most one of x and y has parameters
+            #    3. if x has parameters, then x must be affine (jointly in
+            #       its parameters and variables)
+            #    4. if y has parameters, then y must be affine
+            x = self.args[0]
+            y = self.args[1]
+            at_most_one_has_variables = not (x.variables() and y.variables())
+            if x.parameters():
+                return (not y.parameters()
+                        and x.is_affine()
+                        and at_most_one_has_variables)
+            elif y.parameters():
+                return (not x.parameters()
+                        and x.is_affine()
+                        and at_most_one_has_variables)
+            else:
+                return at_most_one_has_variables
+        else:
+            return self.args[0].is_constant() or self.args[1].is_constant()
 
     def is_atom_concave(self):
         """If the multiplication atom is convex, then it is affine.

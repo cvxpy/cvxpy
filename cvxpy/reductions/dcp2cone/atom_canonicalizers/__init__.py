@@ -32,7 +32,6 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_sum_exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log1p_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.logistic_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.matrix_frac_canon import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.mul_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.normNuc_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.pnorm_canon import *
@@ -58,8 +57,6 @@ CANON_METHODS = {
     log_det : log_det_canon,
     log_sum_exp : log_sum_exp_canon,
     MatrixFrac : matrix_frac_canon,
-    MulExpression : mul_canon,
-    multiply : mul_canon,
     max : max_canon,
     min : min_canon,
     norm1 : norm1_canon,

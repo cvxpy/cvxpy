@@ -49,7 +49,8 @@ class QpMatrixStuffing(MatrixStuffing):
                 and not convex_attributes(problem.variables())
                 and all(type(c) in [Zero, NonPos, Equality, Inequality]
                         for c in problem.constraints)
-                and are_args_affine(problem.constraints))
+                and are_args_affine(problem.constraints)
+                and problem.is_dpp())
 
     def stuffed_objective(self, problem, extractor):
         # extract to x.T * P * x + q.T * x + r

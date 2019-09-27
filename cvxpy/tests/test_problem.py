@@ -1450,7 +1450,8 @@ class TestProblem(BaseTest):
         # set up the problem
         obj = cp.abs(x - 1)
         prob = Problem(cp.Minimize(obj), [g == 0])
-        prob.solve()
+        self.assertFalse(prob.is_dpp())
+        prob.solve(cp.SCS)
         x0.value = 1
         prob.solve()
         self.assertAlmostEqual(g.value, 0)

@@ -103,6 +103,9 @@ class ExpCone(Constraint):
         """
         return all(arg.is_affine() for arg in self.args)
 
+    def is_dpp(self):
+        return self.is_dcp() and all(arg.is_dpp() for arg in self.args)
+
     def is_dgp(self):
         return False
 

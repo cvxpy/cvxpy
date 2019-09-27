@@ -79,6 +79,7 @@ class CoeffExtractor(object):
             expr_list = expr
         else:
             expr_list = [expr]
+        assert all([e.is_dpp() for e in expr_list])
         num_rows = sum([e.size for e in expr_list])
         op_list = [e.canonical_form[0] for e in expr_list]
         return canonInterface.get_problem_matrix(op_list,
@@ -92,7 +93,7 @@ class CoeffExtractor(object):
         """ Assumes quadratic forms all have variable arguments.
             Affine expressions can be anything.
         """
-
+        assert affine_expr.is_dpp()
         # Extract affine data.
         affine_problem = cvxpy.Problem(Minimize(affine_expr), [])
         affine_inverse_data = InverseData(affine_problem)

@@ -47,6 +47,9 @@ class NonPos(Constraint):
         """A non-positive constraint is DCP if its argument is convex."""
         return self.args[0].is_convex()
 
+    def is_dpp(self):
+        return self.is_dcp() and self.args[0].is_dpp()
+
     def is_dgp(self):
         return False
 
@@ -106,6 +109,9 @@ class Inequality(Constraint):
     def is_dcp(self):
         """A non-positive constraint is DCP if its argument is convex."""
         return self.expr.is_convex()
+
+    def is_dpp(self):
+        return self.is_dcp() and self.expr.is_dpp()
 
     def is_dgp(self):
         return (self.args[0].is_log_log_convex() and

@@ -1,22 +1,8 @@
-import contextlib
-
+from cvxpy.expressions.constants.parameter import treat_params_as_affine
 from cvxpy.expressions.variable import Variable
 
 
-@contextlib.contextmanager
-def _param_vexity_scope(expr):
-    """Treats parameters as affine, not constants."""
-    for p in expr.parameters():
-        p._is_constant = False
-    expr._check_is_constant(recompute=True)
-
-    yield
-
-    for p in expr.parameters():
-        p._is_constant = True
-    expr._check_is_constant(recompute=True)
-
-
+# TODO(akshayka): expose as a reduction for user's convenience
 def mul_canon(expr, args):
     # Only allow param * var (not var * param). Associate right to left.
     # TODO: Only descend if both sides have parameters
@@ -27,12 +13,12 @@ def mul_canon(expr, args):
 
     op_type = type(expr)
     if lhs.variables():
-        with _param_vexity_scope(rhs):
+        with treat_params_as_affine(rhs):
             assert rhs.is_affine()
         t = Variable(lhs.shape)
         return op_type(t, rhs), [t == lhs]
     elif rhs.variables():
-        with _param_vexity_scope(lhs):
+        with treat_params_as_affine(lhs):
             assert lhs.is_affine()
         t = Variable(rhs.shape)
         return op_type(lhs, t), [t == rhs]
@@ -40,9 +26,9 @@ def mul_canon(expr, args):
     # Neither side has variables. One side must be affine in parameters.
     lhs_affine = False
     rhs_affine = False
-    with _param_vexity_scope(lhs):
+    with treat_params_as_affine(lhs):
         lhs_affine = lhs.is_affine()
-    with _param_vexity_scope(rhs):
+    with treat_params_as_affine(rhs):
         rhs_affine = rhs.is_affine()
     assert lhs_affine or rhs_affine
 

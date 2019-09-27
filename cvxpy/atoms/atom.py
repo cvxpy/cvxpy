@@ -19,6 +19,7 @@ from cvxpy import utilities as u
 from cvxpy import interface as intf
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import parameter
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list
@@ -201,24 +202,8 @@ class Atom(Expression):
 
            context: cone program (CP) or quadratic program (QP)
         """
-        if not all([arg.is_dpp() for arg in self.args]):
-            return False
-        # If all arguments DPP,
-        # same as DCP rule but without exception for constants.
-        # TODO: exception for constants, but not for parameterized expressions?
-        for idx, arg in enumerate(self.args):
-            if self.is_incr(idx):
-                if not (self.is_atom_convex() and arg.is_convex() or
-                        self.is_atom_concave() and arg.is_concave()):
-                    return False
-            elif self.is_decr(idx):
-                if not (self.is_atom_convex() and arg.is_concave() or
-                        self.is_atom_concave() and arg.is_convex()):
-                    return False
-            else:  # Non-monotonic.
-                if not arg.is_affine():
-                    return False
-        return True
+        with parameter.treat_params_as_affine(self):
+            return self.is_dcp()
 
     @perf.compute_once
     def is_log_log_convex(self):
