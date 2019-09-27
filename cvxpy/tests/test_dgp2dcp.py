@@ -545,3 +545,11 @@ class TestDgp2Dcp(BaseTest):
         np.testing.assert_almost_equal(problem.value, 2)
         np.testing.assert_almost_equal(h.value, 2)
         np.testing.assert_almost_equal(w.value, np.array([[5]]))
+
+    def test_parameter(self):
+        param = cvxpy.Parameter(pos=True)
+        param.value = 1.0
+        dgp = cvxpy.Problem(cvxpy.Minimize(param), [])
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
+        self.assertAlmostEqual(dcp.parameters()[0].value, np.log(param.value))
