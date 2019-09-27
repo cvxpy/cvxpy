@@ -117,10 +117,10 @@ class TestBenchmarks(BaseTest):
 
         problem = cp.Problem(cp.Minimize(cost), constraints)
 
-        def stuff():
+        def cone_matrix_stuffing_with_many_constraints():
             ConeMatrixStuffing().apply(problem)
 
-        benchmark(stuff, iters=1)
+        benchmark(cone_matrix_stuffing_with_many_constraints, iters=1)
 
     def test_parameterized_cone_matrix_stuffing_with_many_constraints(self):
         self.fail("This test takes too long and/or will cause your machine to "

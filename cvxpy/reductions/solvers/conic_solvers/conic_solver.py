@@ -262,6 +262,8 @@ class ConicSolver(Solver):
 
         # Form new ParamConeProg
         if restruct_mat:
+            # TODO(akshayka): profile to see whether using linear operators
+            # or bmat is faster
             restruct_mat = as_block_diag_linear_operator(restruct_mat)
             # this is equivalent to but _much_ faster than:
             #  restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))

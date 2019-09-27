@@ -19,7 +19,6 @@ import cvxpy.settings as s
 from cvxpy.constraints import Zero, NonPos, PSD, SOC, ExpCone
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
-                                                                 LinearOperator,
                                                                  ConicSolver)
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.utilities import group_constraints
