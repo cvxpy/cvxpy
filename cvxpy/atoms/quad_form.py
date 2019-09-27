@@ -21,7 +21,6 @@ import warnings
 import numpy as np
 from scipy import linalg as LA
 from cvxpy.atoms.atom import Atom
-from cvxpy.expressions.constants import Parameter
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
 import scipy.sparse as sp
@@ -55,25 +54,17 @@ class QuadForm(Atom):
         """
         return (self.is_atom_convex(), self.is_atom_concave())
 
-    def is_dpp(self, context='CP'):
-        """The expression is a disciplined parameterized expression.
-
-           context: cone program (CP) or quadratic program (QP)
-        """
-        if context == 'QP':
-            return not self.args[1].parameters() or type(self.args[1]) == Parameter
-        else:
-            return False
-
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return self.args[1].is_psd()
+        P = self.args[1]
+        return P.is_constant() and P.is_psd()
 
     def is_atom_concave(self):
         """Is the atom concave?
         """
-        return self.args[1].is_nsd()
+        P = self.args[1]
+        return P.is_constant() and P.is_nsd()
 
     def is_atom_log_log_convex(self):
         """Is the atom log-log convex?
