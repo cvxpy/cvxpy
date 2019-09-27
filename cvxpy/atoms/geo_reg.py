@@ -21,4 +21,4 @@ from cvxpy.atoms.affine.sum import sum
 # geo_reg(x, a) = sum_{k=1}^\infty \|x\|_k^k / a^k
 def geo_reg(x, a=2.0):
     assert a > 1, "a must be > 1"
-    return 1 / (1 / (1 - 1 / a) - 1) * sum(inv_pos(1 - abs(x) / a) - 1)
+    return (a - 1) * sum(inv_pos(1 - abs(x) / a) - 1)
