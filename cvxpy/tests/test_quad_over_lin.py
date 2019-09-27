@@ -73,26 +73,10 @@ class TestQuadOverLin(unittest.TestCase):
         result = p.solve()
         self.assertAlmostEqual(result, 1 + 4/3 + 9 + 16/3 + 25 + 36/3, places=4)
 
-
-
-
-
-
-        ##x = cvx.Variable((3, 5))
-        ##y = cvx.Variable(3)
-        ##f = cvx.quad_over_lin(x, y)
-
-        ##x = cvx.Variable(3)
-        ##y = cvx.Variable(3)
-        ##f =cvx.quad_over_lin(x, y)
-
-        #constr = []
-        ##constr += [np.array([1, 2, 3]) == y]
-        #constr += [y == 1]
-        #constr += [x == 1]
-        #prob = cvx.Problem(cvx.Minimize(cvx.sum(cvx.quad_over_lin(x, y))), constr)
-        #prob.solve()
-        #print(prob.value)
+        # TODO fails:
+        val = cvx.sum(cvx.quad_over_lin(np.array([[1, 2], [3, 4], [5, 6]]),
+                                        np.array([1, 3])))
+        self.assertAlmostEqual(val, 1 + 4/3 + 9 + 16/3 + 25 + 36/3, places=4)
 
 
 if __name__ == '__main__':

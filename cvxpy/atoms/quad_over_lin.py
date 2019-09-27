@@ -65,8 +65,8 @@ class QuadOverLin(Atom):
         """Returns the sum of the entries of x squared over y.
         """
         if self.args[0].is_complex():
-            return (np.square(values[0].imag) + np.square(values[0].real)).sum()/values[1]
-        return np.square(values[0]).sum()/values[1]
+            return (np.square(values[0].imag) + np.square(values[0].real)) @ (1/values[1])
+        return np.square(values[0]) @ (1/values[1])
     
     def _domain(self):
         """Returns constraints describing the domain of the node.
