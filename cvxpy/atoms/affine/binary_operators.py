@@ -128,22 +128,11 @@ class MulExpression(BinaryOperator):
             #
             #    1. at most one of x and y has variables
             #    2. at most one of x and y has parameters
-            #    3. if x has parameters, then x must be affine (jointly in
-            #       its parameters and variables)
-            #    4. if y has parameters, then y must be affine
             x = self.args[0]
             y = self.args[1]
             at_most_one_has_variables = not (x.variables() and y.variables())
-            if x.parameters():
-                return (not y.parameters()
-                        and x.is_affine()
-                        and at_most_one_has_variables)
-            elif y.parameters():
-                return (not x.parameters()
-                        and x.is_affine()
-                        and at_most_one_has_variables)
-            else:
-                return at_most_one_has_variables
+            at_most_one_has_parameters = not (x.parameters() and y.parameters())
+            return at_most_one_has_variables and at_most_one_has_parameters
         else:
             return self.args[0].is_constant() or self.args[1].is_constant()
 
