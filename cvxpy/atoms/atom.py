@@ -202,7 +202,7 @@ class Atom(Expression):
 
            context: cone program (CP) or quadratic program (QP)
         """
-        with parameter.treat_params_as_affine(self):
+        with parameter.dpp_scope():
             return self.is_dcp()
 
     @perf.compute_once

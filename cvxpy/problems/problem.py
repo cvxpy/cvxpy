@@ -724,7 +724,7 @@ class Problem(u.Canonical):
             return NotImplemented
         return Problem(self.objective * (1.0 / other), self.constraints)
 
-    def _check_is_constant(self, recompute=False):
+    def is_constant(self):
         return False
 
     __truediv__ = __div__

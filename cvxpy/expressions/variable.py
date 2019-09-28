@@ -82,7 +82,7 @@ class Variable(Leaf):
         """str : The name of the variable."""
         return self._name
 
-    def _check_is_constant(self, recompute=False):
+    def is_constant(self):
         return False
 
     @property

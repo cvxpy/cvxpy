@@ -23,29 +23,41 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import performance_utils as perf
 
 
+_dpp_scope_active = False
+
+
 @contextlib.contextmanager
-def treat_params_as_affine(expr):
-    """Treats parameters as affine, not constants."""
+def dpp_scope():
+    """Context manager for DPP curvature analysis
+
+    When this scope is active, parameters are affine, not constant. The
+    argument For example, if `param` is a Parameter, then
+
+    ```
+        with dpp_scope():
+            print("param is constant: ", param.is_constant())
+            print("param is affine: ", param.is_affine())
+    ```
+
+    would print
+
+        param is constant: False
+        param is affine: True
+    """
+    global _dpp_scope_active
     with perf.disable_caches():
         # caches are disabled: we don't want to accidentally cache dpp
         # curvature (e.g., is_convex() might be false under this scope but true
         # when a param-affine scope is not active)
-        old_constant_flags = []
-        for p in expr.parameters():
-            old_constant_flags.append(p._is_constant)
-            p._is_constant = False
-        expr._check_is_constant(recompute=True)
-
+        prev_state = _dpp_scope_active
+        _dpp_scope_active = True
         yield
-
-        for p, flag in zip(expr.parameters(), old_constant_flags):
-            p._is_constant = flag
-        expr._check_is_constant(recompute=True)
+        _dpp_scope_active = prev_state
 
 
-def param_affine_scope_active(expr):
-    """Returns True if a `treat_params_as_affine` scope is active. """
-    return expr.parameters() and not expr.parameters()[0].is_constant()
+def dpp_scope_active():
+    """Returns True if a `dpp_scope` is active. """
+    return _dpp_scope_active
 
 
 class Parameter(Leaf):
@@ -81,8 +93,10 @@ class Parameter(Leaf):
     def name(self):
         return self._name
 
-    def _check_is_constant(self, recompute=False):
-        return self._is_constant
+    def is_constant(self):
+        if dpp_scope_active():
+            return False
+        return True
 
     # Getter and setter for parameter value.
     @property

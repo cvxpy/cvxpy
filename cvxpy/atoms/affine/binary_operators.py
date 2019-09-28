@@ -117,10 +117,10 @@ class MulExpression(BinaryOperator):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
-        if parameter.param_affine_scope_active(self):
+        if parameter.dpp_scope_active():
             # This branch applies curvature rules for DPP.
             #
-            # Because a parameter-affine scope is active, parameters will be
+            # Because a DPP scope is active, parameters will be
             # treated as affine (like variables, not constants) by curvature
             # analysis methods.
             #
