@@ -36,6 +36,12 @@ class TestDpp(BaseTest):
         y = cp.Variable()
         product = cp.exp(x) * y
         self.assertFalse(product.is_dpp())
+
+    def test_multiply_nonlinear_nonneg_param_and_nonneg_variable_is_not_dpp(self):
+        x = cp.Parameter(nonneg=True)
+        y = cp.Variable(nonneg=True)
+        product = cp.exp(x) * y
+        self.assertFalse(product.is_dpp())
         self.assertTrue(product.is_dcp())
 
     def test_multiply_affine_param_and_variable_is_dpp(self):
