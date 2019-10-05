@@ -60,6 +60,17 @@ def dpp_scope_active():
     return _dpp_scope_active
 
 
+def is_param_affine(expr):
+    """Returns true if expression is parameters-affine (and variable-free)"""
+    with dpp_scope():
+        return not expr.variables() and expr.is_affine()
+
+
+def is_param_free(expr):
+    """Returns true if expression is not parametrized."""
+    return not expr.parameters()
+
+
 class Parameter(Leaf):
     """Parameters in optimization problems.
 

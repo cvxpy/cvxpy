@@ -22,6 +22,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.expressions.constants import parameter
+from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -124,23 +125,15 @@ class MulExpression(BinaryOperator):
             # treated as affine (like variables, not constants) by curvature
             # analysis methods.
             #
-            # A product x * y is convex if the following criteria are met:
-            #
-            #    1. at most one of x and y has variables
-            #    2. at most one of x and y has parameters
-            #    3. if x (resp. y) has variables and y (resp. x) is
-            #       parametrized, y (resp. x) must be affine
+            # Like under DCP, a product x * y is convex if x or y is constant.
+            # If neither x nor y is constant, then the product is DPP
+            # if one of the expressions is affine in its parameters and the
+            # other is parameter-free.
             x = self.args[0]
             y = self.args[1]
-            at_most_one_has_variables = not (x.variables() and y.variables())
-            at_most_one_has_parameters = not (x.parameters() and y.parameters())
-            is_cvx = at_most_one_has_variables and at_most_one_has_parameters
-            if x.parameters() and y.variables():
-                return is_cvx and x.is_affine()
-            elif x.variables() and y.parameters():
-                return is_cvx and y.is_affine()
-            else:
-                return is_cvx
+            return ((x.is_constant() or y.is_constant()) or
+                    (is_param_affine(x) and is_param_free(y)) or
+                    (is_param_affine(y) and is_param_free(x)))
         else:
             return self.args[0].is_constant() or self.args[1].is_constant()
 
