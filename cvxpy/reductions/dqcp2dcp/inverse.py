@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy import atoms
+from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import DivExpression
 from cvxpy.atoms.affine.unary_operators import NegExpression
 import numpy as np
@@ -57,11 +58,18 @@ def inverse(expr):
         else:
             const = expr.args[1]
         return lambda t: t * const
+    elif type(expr) == AddExpression:
+        if expr.args[0].is_constant():
+            const = expr.args[0]
+        else:
+            const = expr.args[1]
+        return lambda t: t - const
     else:
         raise ValueError
 
 
 def invertible(expr):
-    if isinstance(expr, atoms.multiply) or isinstance(expr, DivExpression):
+    if (isinstance(expr, atoms.multiply) or isinstance(expr, DivExpression) or
+            isinstance(expr, AddExpression)):
         return len(expr._non_const_idx()) == 1
     return type(expr) in INVERTIBLE

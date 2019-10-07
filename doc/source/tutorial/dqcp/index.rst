@@ -197,7 +197,7 @@ non-DQCP problems:
     x = cp.Variable(nonneg=True)
     concave_fractional_fn = x * cp.sqrt(x)
     constraint = [cp.ceil(x) <= 10]
-    problem = cp.Problem(cp.Maximize(concave_frac), constraint)
+    problem = cp.Problem(cp.Maximize(concave_fractional_fn), constraint)
     assert concave_fractional_fn.is_quasiconcave()
     assert constraint[0].is_dqcp()
     assert problem.is_dqcp()
@@ -240,10 +240,10 @@ when the denominator is positive.
 **Scalar product.**
 The scalar product ``*`` is quasiconvex when one of its arguments is
 nonnegative and the other is nonpositive, and it is quasiconcave when its
-arguments are both nonnegative or both nonpositive. Hence, the product
-of two nonnegative quasiconcave functions is quasiconcave, and the product
-of a nonnegative concave function and a nonpositive convex function is
-quasiconvex.
+arguments are both nonnegative or both nonpositive. Hence, by the composition
+rule, the product of two nonnegative quasiconcave functions is quasiconcave,
+and the product of a nonnegative concave function and a nonpositive convex
+function is quasiconvex.
 
 **Distance ratio function.**
 The atom ``cvxpy.dist_ratio(x, a, b)`` denotes the function

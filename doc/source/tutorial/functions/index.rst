@@ -195,6 +195,24 @@ and returns a scalar.
 
        |decr| for :math:`x_{i} \leq 0`
 
+   * - :ref:`norm(x, 1) <norm>`
+     - :math:`\sum_{i}\lvert x_{i} \rvert`
+     - :math:`x \in\mathbf{R}^{n}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x_{i} \geq 0`
+
+       |decr| for :math:`x_{i} \leq 0`
+
+   * - :ref:`norm(x, "inf") <norm>`
+     - :math:`\max_{i} \{\lvert x_{i} \rvert\}`
+     - :math:`x \in\mathbf{R}^{n}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x_{i} \geq 0`
+
+       |decr| for :math:`x_{i} \leq 0`
+
    * - :ref:`norm(X, "fro") <norm>`
      - :math:`\sqrt{\sum_{ij}X_{ij}^2 }`
      - :math:`X \in\mathbf{R}^{m \times n}`
@@ -205,7 +223,7 @@ and returns a scalar.
        |decr| for :math:`X_{ij} \leq 0`
 
    * - :ref:`norm(X, 1) <norm>`
-     - :math:`\sum_{ij}\lvert X_{ij} \rvert`
+     - :math:`\max_{j} \|X_{:,j}\|_1`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
@@ -214,7 +232,7 @@ and returns a scalar.
        |decr| for :math:`X_{ij} \leq 0`
 
    * - :ref:`norm(X, "inf") <norm>`
-     - :math:`\max_{ij} \{\lvert X_{ij} \rvert\}`
+     - :math:`\max_{i} \|X_{i,:}\|_1`
      - :math:`X \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex

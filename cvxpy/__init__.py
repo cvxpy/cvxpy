@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = "1.0.24"
+__version__ = "1.0.25"
 from cvxpy.atoms import *
 from cvxpy.constraints import NonPos, Zero, SOC, PSD
 from cvxpy.expressions.variable import Variable
@@ -23,7 +23,7 @@ from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Maximize, Minimize
 import cvxpy.interface.scipy_wrapper
 from cvxpy.error import DCPError, DGPError, SolverError, disable_warnings, enable_warnings, warnings_enabled
-from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP,
+from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP, NAG,
                             ECOS, ECOS_BB, SUPER_SCS, SCS, GUROBI, MOSEK, XPRESS,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)

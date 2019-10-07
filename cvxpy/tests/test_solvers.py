@@ -923,6 +923,104 @@ class TestSolvers(BaseTest):
                 prob.solve(solver=cvx.XPRESS)
                 self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.XPRESS)
 
+    def test_nag(self):
+        """Test a basic LP with NAG.
+        """
+        if cvx.NAG in cvx.installed_solvers():
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
+            prob.solve(solver=cvx.NAG)
+            self.assertAlmostEqual(prob.value, 1.0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from
+            # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.NAG)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            objective = cvx.Minimize(self.x[0])
+            constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.NAG)
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cvx.NAG)
+                self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.NAG)
+
+    def test_nag_socp(self):
+        """Test a basic SOCP with NAG.
+        """
+        if cvx.NAG in cvx.installed_solvers():
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
+            prob.solve(solver=cvx.NAG)
+            self.assertAlmostEqual(prob.value, 1.0)
+            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+            # Example from
+            # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           (self.x[0] + 2 * self.x[1])**2 <= 9,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.NAG)
+            self.assertAlmostEqual(prob.value, -9)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            objective = cvx.Minimize(self.x[0])
+            constraints = [self.x[0] >= -100, self.x[0] <= -10, self.x[1] == 1]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.NAG)
+            self.assertItemsAlmostEqual(self.x.value, [-100, 1])
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cvx.NAG)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.NAG)
+
+    def test_nag_dual(self):
+        """Make sure NAG's dual result matches other solvers
+        """
+        if cvx.NAG in cvx.installed_solvers():
+            constraints = [self.x == 0]
+            prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
+            prob.solve(solver=cvx.NAG)
+            duals_nag = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_nag, duals_ecos)
+
+            # Example from
+            # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
+            objective = cvx.Minimize(-4 * self.x[0] - 5 * self.x[1])
+            constraints = [2 * self.x[0] + self.x[1] <= 3,
+                           self.x[0] + 2 * self.x[1] <= 3,
+                           self.x[0] >= 0,
+                           self.x[1] >= 0]
+            prob = cvx.Problem(objective, constraints)
+            prob.solve(solver=cvx.NAG)
+            duals_nag = [x.dual_value for x in constraints]
+            prob.solve(solver=cvx.ECOS)
+            duals_ecos = [x.dual_value for x in constraints]
+            self.assertItemsAlmostEqual(duals_nag, duals_ecos)
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cvx.NAG)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.NAG)
+
     def test_installed_solvers(self):
         """Test the list of installed solvers.
         """

@@ -580,6 +580,18 @@ class TestGrad(BaseTest):
         val = np.zeros((4, 4)) + np.diag([1, 0, 0, 0])
         self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
 
+        # cummax
+        expr = cp.cummax(self.x)
+        self.x.value = [2, 1]
+        val = np.zeros((2, 2))
+        val[0, 0] = 1
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+
+        expr = cp.cummax(self.x[:, None], axis=1)
+        self.x.value = [2, 1]
+        val = np.eye(2)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+
     def test_minimum(self):
         """Test domain for minimum.
         """

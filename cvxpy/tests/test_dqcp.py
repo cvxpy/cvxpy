@@ -557,3 +557,11 @@ class TestDqcp(base_test.BaseTest):
         problem = cp.Problem(cp.Maximize(fn))
         self.assertFalse(fn.is_dqcp())
         self.assertFalse(problem.is_dqcp())
+
+    def test_add_constant(self):
+        # The sign of variables affects curvature analysis.
+        x = cp.Variable()
+        problem = cp.Problem(cp.Minimize(cp.ceil(x) + 5), [x >= 2])
+        problem.solve(qcp=True)
+        np.testing.assert_almost_equal(x.value, 2)
+        np.testing.assert_almost_equal(problem.objective.value, 7)

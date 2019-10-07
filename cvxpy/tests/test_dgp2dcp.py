@@ -313,8 +313,8 @@ class TestDgp2Dcp(BaseTest):
 
     def test_solving_non_dgp_problem_raises_error(self):
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegexp(error.DGPError, r"Problem does not follow "
-                                     "DGP rules. However, the problem does follow DCP rules.*"):
+        with self.assertRaisesRegexp(error.DGPError, r"Problem does not follow DGP "
+                                     "rules(?s)*.*However, the problem does follow DCP rules.*"):
             problem.solve(gp=True)
         problem.solve()
         self.assertEqual(problem.status, "unbounded")
@@ -324,12 +324,23 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
         )
-        with self.assertRaisesRegexp(error.DCPError, "Problem does not follow "
-                                     "DCP rules. However, the problem does follow DGP rules.*"):
+        with self.assertRaisesRegexp(error.DCPError, r"Problem does not follow DCP "
+                                     "rules(?s)*.*However, the problem does follow DGP rules.*"):
             problem.solve()
         problem.solve(gp=True)
         self.assertEqual(problem.status, "unbounded")
         self.assertAlmostEqual(problem.value, 0.0)
+
+    def test_solving_non_dcp_problems_raises_detailed_error(self):
+        x = cvxpy.Variable(3)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(x) - cvxpy.sum_squares(x)))
+        with self.assertRaisesRegexp(error.DCPError, r"The objective is not DCP"):
+            problem.solve()
+
+        x = cvxpy.Variable(name='x')
+        problem = cvxpy.Problem(cvxpy.Minimize(x), [x * x <= 5])
+        with self.assertRaisesRegexp(error.DCPError, r"The following constraints are not DCP"):
+            problem.solve()
 
     def test_add_canon(self):
         X = cvxpy.Constant(np.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]]))
@@ -487,3 +498,45 @@ class TestDgp2Dcp(BaseTest):
         soln = solution.Solution(SOLVER_ERROR, None, {}, {}, {})
         dgp_soln = dgp2dcp.invert(soln, inverse_data)
         self.assertEqual(dgp_soln.status, SOLVER_ERROR)
+
+    def test_sum_scalar(self):
+        w = cvxpy.Variable(pos=True)
+        h = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(h),
+                                [w*h >= 10, cvxpy.sum(w) <= 5])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 2)
+        np.testing.assert_almost_equal(h.value, 2)
+        np.testing.assert_almost_equal(w.value, 5)
+
+    def test_sum_vector(self):
+        w = cvxpy.Variable(2, pos=True)
+        h = cvxpy.Variable(2, pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(h)),
+                                [cvxpy.multiply(w, h) >= 10,
+                                cvxpy.sum(w) <= 10])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 4)
+        np.testing.assert_almost_equal(h.value, np.array([2, 2]))
+        np.testing.assert_almost_equal(w.value, np.array([5, 5]))
+
+    def test_sum_matrix(self):
+        w = cvxpy.Variable((2, 2), pos=True)
+        h = cvxpy.Variable((2, 2), pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(h)),
+                                [cvxpy.multiply(w, h) >= 10,
+                                cvxpy.sum(w) <= 20])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 8)
+        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]))
+        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]))
+
+    def test_trace(self):
+        w = cvxpy.Variable((1, 1), pos=True)
+        h = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(h),
+                                [w*h >= 10, cvxpy.trace(w) <= 5])
+        problem.solve(gp=True)
+        np.testing.assert_almost_equal(problem.value, 2)
+        np.testing.assert_almost_equal(h.value, 2)
+        np.testing.assert_almost_equal(w.value, np.array([[5]]))
