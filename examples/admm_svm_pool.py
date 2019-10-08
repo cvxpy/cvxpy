@@ -31,11 +31,11 @@ N = NUM_PROCS*SPLIT_SIZE
 n = 10
 offset = np.random.randn(n, 1)
 data = []
-for i in xrange(N/2):
+for i in range(N/2):
     data += [(1, offset + np.random.normal(1.0, 2.0, (n, 1)))]
-for i in xrange(N/2):
+for i in range(N/2):
     data += [(-1, offset + np.random.normal(-1.0, 2.0, (n, 1)))]
-data_splits = [data[i:i+SPLIT_SIZE] for i in xrange(0, N, SPLIT_SIZE)]
+data_splits = [data[i:i+SPLIT_SIZE] for i in range(0, N, SPLIT_SIZE)]
 
 # Count misclassifications.
 def get_error(w):
@@ -65,11 +65,11 @@ pool = Pool(NUM_PROCS)
 w_avg = np.zeros((n+1, 1))
 u_vals = NUM_PROCS*[np.zeros((n+1, 1))]
 for i in range(10):
-    print get_error(w_avg)
+    print(get_error(w_avg))
     prox_args = [w_avg - ui for ui in u_vals]
     w_vals = pool.map(prox, zip(fi, prox_args))
     w_avg = sum(w_vals)/len(w_vals)
     u_vals = [ui + wi - w_avg for ui, wi in zip(u_vals, w_vals)]
 
-print w_avg[:-1]
-print w_avg[-1]
+print(w_avg[:-1])
+print(w_avg[-1])

@@ -48,14 +48,14 @@ import numpy as np
 
 class MyMeta(type):
     def __getitem__(self, key):
-        print key
+        print(key)
         return 2
 
     def __len__(self):
         return 1
 
     def __contains__(self, obj):
-        print "hello"
+        print("hello")
         return 0
 
 
@@ -67,7 +67,7 @@ class Exp(object):
         return 1
 
     def __rmul__(self, other):
-        print 1
+        print(1)
 
     __array_priority__ = 100
 
@@ -87,13 +87,13 @@ class Bar1(object):
     def __ge__(self, rhs): return 5
 
     def __array_prepare__(self):
-        print "hello"
+        print("hello")
         return self
     def __array_wrap__(self):
         return self
 
     def __array__(self):
-        print "Afafaf"
+        print("Afafaf")
         arr = np.array([self], dtype="object")
         return arr
 
@@ -102,7 +102,7 @@ class Bar1(object):
 def override(name):
     if name == "equal":
         def ufunc(x, y):
-            print y
+            print(y)
             if isinstance(y, Bar1) or \
                isinstance(y, np.ndarray) and isinstance(y[0], Bar1):
                 return NotImplemented
@@ -110,7 +110,7 @@ def override(name):
         return ufunc
     else:
         def ufunc(x, y):
-            print y
+            print(y)
             if isinstance(y, Bar1):
                 return NotImplemented
             return getattr(np, name)(x, y)
@@ -125,6 +125,6 @@ np.set_numeric_ops(
 )
 
 b = Bar1()
-print a == b
-print a <= b
-print a + b
+print(a == b)
+print(a <= b)
+print(a + b)

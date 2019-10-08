@@ -32,7 +32,7 @@ class Ground(Node):
     """ A node at 0 volts. """
     def constraints(self):
         return [self.voltage == 0] + super(Ground, self).constraints()
-    
+
 class Device(object):
     __metaclass__ = abc.ABCMeta
     """ A device on a circuit. """
@@ -113,4 +113,4 @@ for obj in nodes + devices:
     constraints += obj.constraints()
 Problem(Minimize(0), constraints).solve()
 for node in nodes:
-    print node.voltage.value
+    print(node.voltage.value)

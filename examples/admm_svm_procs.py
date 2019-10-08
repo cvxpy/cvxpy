@@ -32,12 +32,12 @@ N = NUM_PROCS*SPLIT_SIZE
 n = 11
 data = []
 offset = np.random.randn(n-1, 1)
-for i in xrange(N/2):
+for i in range(N/2):
     data += [(1, offset + np.random.normal(1.0, 4.0, (n-1, 1)))]
-for i in xrange(N/2):
+for i in range(N/2):
     data += [(-1, offset + np.random.normal(-1.0, 4.0, (n-1, 1)))]
 np.random.shuffle(data)
-data_splits = [data[i:i+SPLIT_SIZE] for i in xrange(0, N, SPLIT_SIZE)]
+data_splits = [data[i:i+SPLIT_SIZE] for i in range(0, N, SPLIT_SIZE)]
 
 # Count misclassifications.
 def get_error(x):
@@ -83,7 +83,7 @@ for i in range(NUM_PROCS):
 for i in range(MAX_ITER):
     # Gather.
     xbar = sum([pipe.recv() for pipe in pipes])/NUM_PROCS
-    print get_error(xbar)
+    print(get_error(xbar))
     # Scatter.
     [pipe.send(xbar) for pipe in pipes]
 

@@ -22,7 +22,7 @@ l = misc.ascent()
 l = l.astype(np.float64, copy=False)
 l = l/np.max(l) #rescale pixels into [0,1]
 
-plt.imshow(l, cmap=plt.cm.gray)
+plt.imshow(l, cmap=plt.gray)
 #plt.show()
 
 from PIL import Image, ImageDraw
@@ -48,12 +48,11 @@ del draw
 err = np.asarray(im,dtype=np.bool)
 r = l.copy()
 r[err] = 1.0
-plt.imshow(r, cmap=plt.cm.gray)
+plt.imshow(r, cmap=plt.gray)
 
-import itertools
 idx2pair = np.nonzero(err)
 idx2pair = zip(idx2pair[0].tolist(), idx2pair[1].tolist())
-pair2idx = dict(itertools.izip(idx2pair, xrange(len(idx2pair))))
+pair2idx = dict(zip(idx2pair, range(len(idx2pair))))
 idx2pair = np.array(idx2pair) #convert back to numpy array
 
 import scipy.sparse as sp

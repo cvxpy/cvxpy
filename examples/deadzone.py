@@ -49,12 +49,12 @@ objective = Minimize( sum(maximum( abs(A*x -b) - 1 , 0 )) )
 p = Problem(objective, [])
 
 # Solve it
-print 'Computing the optimal solution of the deadzone approximation problem:'
+print ('Computing the optimal solution of the deadzone approximation problem:')
 p.solve()
 
-print 'Optimal vector:'
-print x.value
+print ('Optimal vector:')
+print (x.value)
 
-print 'Residual vector:'
-print A*x.value - b
+print ('Residual vector:')
+print (A*x.value - b)
 

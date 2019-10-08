@@ -47,8 +47,8 @@ flows = Variable(E)
 source = Variable()
 sink = Variable()
 p = Problem(Maximize(source),
-            [A*vstack(flows,source,sink) == 0,
+            [A*vstack([flows,source,sink]) == 0,
              0 <= flows,
              flows <= c])
 result = p.solve()
-print result
+print(result)

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from noncvx_variable import NonCvxVariable
+from .noncvx_variable import NonCvxVariable
 import cvxpy as cvx
 from cvxpy import settings as s
 import numpy as np
@@ -31,12 +31,11 @@ def admm(self, rho=0.5, iterations=5, *args, **kwargs):
         obj = obj + (rho/2)*cvx.sum(cvx.square(var - var.z + var.u))
     prob = cvx.Problem(cvx.Minimize(obj), self.constraints)
     # ADMM loop
-    for i in range(iterations):
+    for _ in range(iterations):
         result = prob.solve(*args, **kwargs)
-        print "relaxation", result
-        for idx, var in enumerate(noncvx_vars):
+        print("relaxation", result)
+        for var in noncvx_vars:
             var.z.value = var.round(var.value + var.u.value)
-            # print idx, var.z.value, var.value, var.u.value
             var.u.value += var.value - var.z.value
     return polish(self, noncvx_vars, *args, **kwargs)
 
@@ -53,15 +52,15 @@ def admm2(self, rho=0.5, iterations=5, *args, **kwargs):
     prob = cvx.Problem(cvx.Minimize(obj), self.constraints)
     # ADMM loop
     best_so_far = np.inf
-    for i in range(iterations):
-        result = prob.solve(*args, **kwargs)
+    for _ in range(iterations):
+        _ = prob.solve(*args, **kwargs)
         for var in noncvx_vars:
             var.z.value = var.round(var.value + var.u.value)
             var.u.value += var.value - var.z.value
         polished_opt = polish(self, noncvx_vars, *args, **kwargs)
         if polished_opt < best_so_far:
             best_so_far = polished_opt
-            print best_so_far
+            print(best_so_far)
     return best_so_far
 
 def polish(prob, noncvx_vars, *args, **kwargs):
