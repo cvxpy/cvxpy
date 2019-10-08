@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
 
 def perspective_canon(expr, args):
     # perspective(f)(x, t) = {
@@ -20,15 +21,10 @@ def perspective_canon(expr, args):
     #    0        if t = 0, x = 0
     #    infinity otherwise
     # } 
-    x = args[0]
-    y = args[1].flatten()
-    # precondition: shape == ()
+    x = args[:-1]
+    y = args[-1].flatten()
     t = Variable(1,)
-    # (y+t, y-t, 2*x) must lie in the second-order cone,
-    # where y+t is the scalar part of the second-order
-    # cone constraint.
-    constraints = [SOC(
-                       t=y+t,
-                       X=hstack([y-t, 2*x.flatten()]), axis=0
-                      )]
+
+    t_underlying, constraints_underlying = CANON_METHODS[expr](*x)
+
     return t, constraints

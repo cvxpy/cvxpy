@@ -23,12 +23,9 @@ import IPython as ipy
 class perspective(Atom):
     """ :math:`\text{perspective}(f, x, t) = tf(x/t)`
     """
-    def __init__(self, *args, underlying_atom=None):
-        if underlying_atom is None:
-            self.underlying_atom = None
-        else:
-            self.underlying_atom = underlying_atom(*args[:-1])
-        super(perspective, self).__init__(*args)
+    def __init__(self, expr, t):
+        self.underlying_expr = expr
+        super(perspective, self).__init__(*(expr.args + [t]))
 
     @Atom.numpy_numeric
     def numeric(self, values):
@@ -81,7 +78,7 @@ class perspective(Atom):
     def is_atom_concave(self):
         """Is the atom concave?
         """
-        return False
+        return self.underlying_atom.is_atom_concave()
 
     def is_atom_log_log_convex(self):
         """Is the atom log-log convex?
@@ -99,7 +96,7 @@ class perspective(Atom):
         if idx < len(self.args) - 1:
             return self.underlying_atom.is_incr(idx)
         else:
-            return False
+            return NotImplementedError
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
@@ -107,7 +104,7 @@ class perspective(Atom):
         if idx < len(self.args) - 1:
             return self.underlying_atom.is_decr(idx)
         else:
-            return False
+            return NotImplementedError
 
     def validate_arguments(self):
         """Check dimensions of arguments.
