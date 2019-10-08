@@ -106,9 +106,9 @@ class ConvexHull(ConvexSet):
     # The convex hull of a list of values.
     def __init__(self, values):
         values = map(self.cast_to_const, values)
-        rows, cols = values[0].size
+        rows, cols = next(values).size
         def constr_func(aff_obj):
-            theta = [lu.create_var((1, 1)) for i in xrange(len(values))]
+            theta = [lu.create_var((1, 1)) for i in range(len(values))]
             convex_objs = []
             for val, theta_var in zip(values, theta):
                 val_aff = val.canonical_form[0]

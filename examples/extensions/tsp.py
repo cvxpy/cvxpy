@@ -1,6 +1,7 @@
 from __future__ import division
 from cvxpy import *
 from mixed_integer import *
+from ncvx import Boolean
 import numpy as np
 
 # Traveling salesman problem.
@@ -22,29 +23,29 @@ cost = 0
 for i in range(n-1):
     x_diff = ordered_x[i+1] - ordered_x[i]
     y_diff = ordered_y[i+1] - ordered_y[i]
-    cost += norm(vstack(x_diff, y_diff))
+    cost += norm(vstack([x_diff, y_diff]))
 prob = Problem(Minimize(cost))
 result = prob.solve(method="admm", iterations=MAX_ITER,
                     solver=ECOS, verbose=False)#, tau=1.1, tau_max=100)
-print "all constraints hold:", np.all([c.value for c in prob.constraints])
-print "final value", result
+print("all constraints hold:", np.all([c.value for c in prob.constraints]))
+print("final value", result)
 
 # print prob.solve(method="polish")
 # print np.around(positions.value)
 
-assignment = Bool(n, n)
+assignment = Boolean(n, n)
 ordered_x = assignment*x
 ordered_y = assignment*y
 cost = 0
 for i in range(n-1):
     x_diff = ordered_x[i+1] - ordered_x[i]
     y_diff = ordered_y[i+1] - ordered_y[i]
-    cost += norm(vstack(x_diff, y_diff))
+    cost += norm(vstack([x_diff, y_diff]))
 prob = Problem(Minimize(cost),
         [assignment*np.ones((n, 1)) == 1,
          np.ones((1, n))*assignment == 1])
 prob.solve(solver=GUROBI, verbose=False, TimeLimit=10)
-print "gurobi solution", prob.value
+print("gurobi solution", prob.value)
 # print positions.value
 
 # Randomly guess permutations.
@@ -59,5 +60,5 @@ for k in range(RESTARTS*MAX_ITER):
     if cost.value < best:
         best = cost.value
     # print positions.value
-print "%% better = ", (total/(RESTARTS*MAX_ITER))
-print "best = ", best
+print("%% better = ", (total/(RESTARTS*MAX_ITER)))
+print("best = ", best)

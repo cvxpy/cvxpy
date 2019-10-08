@@ -17,7 +17,7 @@ limitations under the License.
 # Finds the separating hyperplane between two polyhedra.
 # Data from Section 8.2.2: Separating polyhedra in 2D in http://cvxr.com/cvx/examples/
 
-import convex_sets as cs
+from .convex_sets import Polyhedron, sep_hyp
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -28,12 +28,12 @@ A2 = np.matrix("1 0; -1 0; 0 1; 0 -1")
 b1 = 2*np.ones((m,1))
 b2 = np.matrix("5; -3; 4; -2")
 
-poly1 = cs.Polyhedron(A1, b1)
-poly2 = cs.Polyhedron(A2, b2)
+poly1 = Polyhedron(A1, b1)
+poly2 = Polyhedron(A2, b2)
 
 # Separating hyperplane.
-normal,offset = cs.sep_hyp(poly1, poly2)
-print normal, offset
+normal,offset = sep_hyp(poly1, poly2)
+print(normal, offset)
 
 # Plotting
 t = np.linspace(-3,6,100);

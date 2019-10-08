@@ -25,8 +25,8 @@ z = cvxopt.matrix([3, 7, 9])
 
 p = Problem(Minimize(sum_squares(A*x - z))).solve(method="branch and bound")
 
-print x.value
-print p
+print(x.value)
+print(p)
 
 # even a simple problem like this introduces too many variables
 # y = Boolean()

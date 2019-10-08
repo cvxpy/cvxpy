@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from noncvx_variable import NonCvxVariable
+from .noncvx_variable import NonCvxVariable
 
 class Integer(NonCvxVariable):
     """ An integer variable. """

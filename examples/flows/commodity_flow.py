@@ -46,7 +46,7 @@ class MultiNode(Node):
     # The total accumulation of flow.
     def accumulation(self):
         return sum(f for f in self.edge_flows)
-    
+
     def constraints(self):
         return [abs(self.accumulation()) <= self.capacity]
 
@@ -88,8 +88,8 @@ if __name__ == "__main__":
         constraints += o.constraints()
     p = Problem(objective, constraints)
     result = p.solve()
-    print "Objective value = %s" % result
+    print("Objective value = %s" % result)
     # Show how the flow for each commodity.
     for i,s in enumerate(sinks):
         accumulation = sum(f.value[i] for f in s.edge_flows)
-        print "Accumulation of commodity %s = %s" % (i, accumulation)
+        print("Accumulation of commodity %s = %s" % (i, accumulation))
