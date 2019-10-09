@@ -24,6 +24,9 @@ class perspective(Atom):
     """ :math:`\text{perspective}(f, x, t) = tf(x/t)` """
 
     def __init__(self, *args, atom=None):
+        # TODO: do not accept non-base atoms by looking up in CANON_METHODS
+        # TODO: do not accept atoms that are not superlinear
+        # https://web.stanford.edu/~boyd/papers/pdf/sw_aff_ctrl.pdf (Section 2)
         self._atom = atom
         self._atom_initialized = atom(*args[:-1])
         super(perspective, self).__init__(*args)
