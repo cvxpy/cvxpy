@@ -17,6 +17,7 @@ from cvxpy.reductions.dcp2cone import atom_canonicalizers
 import cvxpy as cp
 import numpy as np
 import IPython as ipy
+from cvxpy.expressions.expression import Expression
 
 def perspective_canon(expr, args):
     # perspective(f)(x, t) = {
@@ -26,14 +27,20 @@ def perspective_canon(expr, args):
     # }     
 
     # f(x) <= s <==> Ax + bs + c \in \mathcal K
-    # tf(x/t) <= s <==> Ax + bs + ct \in \mathcal K
+    # tf(x/t) <= s <==> Ax + bs + c + c(t-1) \in \mathcal K
 
     x = args[:-1]
     t = args[-1].flatten()
 
     underlying_canonicalizer = atom_canonicalizers.CANON_METHODS[type(expr._atom_initialized)]
     s, constraints_underlying = underlying_canonicalizer(expr._atom_initialized, expr._atom_initialized.args)
-    s.value = np.zeros(s.shape)
+
+    # set s (or all variables in s) to zero
+    if isinstance(s, cp.Variable):
+        s.value = np.zeros(s.shape)
+    elif isinstance(s, Expression):
+        for var in s.variables():
+            var.value = np.zeros(var.shape)
 
     constraints = []
     for constraint in constraints_underlying:
