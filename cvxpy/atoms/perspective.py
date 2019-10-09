@@ -21,22 +21,26 @@ import scipy as scipy
 import IPython as ipy
 
 class perspective(Atom):
-    """ :math:`\text{perspective}(f, x, t) = tf(x/t)`
-    """
-    def __init__(self, expr, t):
-        self.underlying_expr = expr
-        super(perspective, self).__init__(*(expr.args + [t]))
+    """ :math:`\text{perspective}(f, x, t) = tf(x/t)` """
 
+    def __init__(self, *args, atom=None):
+        self._atom = atom
+        self._atom_initialized = atom(*args[:-1])
+        super(perspective, self).__init__(*args)
+    
+    def get_data(self):
+        return [self._atom, self._atom_initialized]
+    
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the evaluation of the perspective.
         """
         args = values[:-1]
-        t = values[-1]
+        t = values[-1].flatten()[0]
 
         if t > 0:
             args = [a / t for a in args]
-            return self.underlying_atom.numeric(*args) / t
+            return t * self._atom(*args).value # we have to do this
         elif all([np.all(a == 0) for a in args]) and t == 0:
             return 0.0
         else:
@@ -68,48 +72,48 @@ class perspective(Atom):
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
-        return self.underlying_atom.sign_from_args()
+        return self._atom_initialized.sign_from_args()
 
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return self.underlying_atom.is_atom_convex()
+        return self._atom_initialized.is_atom_convex()
 
     def is_atom_concave(self):
         """Is the atom concave?
         """
-        return self.underlying_atom.is_atom_concave()
+        return self._atom_initialized.is_atom_concave()
 
     def is_atom_log_log_convex(self):
         """Is the atom log-log convex?
         """
-        return NotImplementedError
+        return False
 
     def is_atom_log_log_concave(self):
         """Is the atom log-log concave?
         """
-        return NotImplementedError
+        return False
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
         if idx < len(self.args) - 1:
-            return self.underlying_atom.is_incr(idx)
+            return self._atom_initialized.is_incr(idx)
         else:
-            return NotImplementedError
+            return False
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
         if idx < len(self.args) - 1:
-            return self.underlying_atom.is_decr(idx)
+            return self._atom_initialized.is_decr(idx)
         else:
-            return NotImplementedError
+            return False
 
     def validate_arguments(self):
         """Check dimensions of arguments.
         """
-        self.underlying_atom.validate_arguments()
+        self._atom_initialized.validate_arguments()
         if not self.args[-1].is_scalar():
             raise ValueError("The last argument to perspective must be a scalar.")
         if self.args[-1].is_complex():
@@ -124,4 +128,5 @@ class perspective(Atom):
     def is_qpwa(self):
         """Quadratic of piecewise affine if XXX.
         """
-        return NotImplementedError
+        return False
+    
