@@ -1,0 +1,3482 @@
+events: Hits
+
+fl=??
+fn=(1) 0x00000001095749ff
+cfl=??
+cfn=(2) std::__1::vector::max_size
+calls=1 0
+0 1
+
+fl=??
+fn=(3) Eigen::internal::conservative_sparse_sparse_product_selector::run
+cfl=??
+cfn=(4) 0x00007ffee68f2f00
+calls=5 0
+0 5
+
+fl=??
+fn=(5) std::__1::__tree::__root_ptr
+cfl=??
+cfn=(6) Eigen::SparseMatrix::outerSize
+calls=2 0
+0 2
+
+fl=??
+fn=(7) 0x00007ffdd87e399f
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(8) std::__1::__tree::__count_unique
+cfl=??
+cfn=(9) add_matrix_to_vectors
+calls=1 0
+0 1
+
+fl=??
+fn=(10) get_node_coeffs
+cfl=??
+cfn=(11) get_sum_coefficients
+calls=2 0
+0 2
+
+fl=??
+fn=(12) 0x00000007fffffff7
+cfl=??
+cfn=(13) 0x0000000109359f0e
+calls=10 0
+0 10
+
+fl=??
+fn=(14) Eigen::internal::smart_copy
+cfl=??
+cfn=(15) Eigen::internal::pstore
+calls=1 0
+0 1
+
+fl=??
+fn=(16) get_variable_coeffs
+cfl=??
+cfn=(17) build_tensor
+calls=1 0
+0 1
+
+fl=??
+fn=(18) std::__1::__tree::destroy
+0 2
+
+fl=??
+fn=(19) Eigen::internal::conditional_aligned_malloc
+cfl=??
+cfn=(20) 0x00007ffee68f36df
+calls=1 0
+0 1
+
+fl=??
+fn=(21) 0x00007ffdd84be10f
+cfl=??
+cfn=(22) Eigen::internal::CompressedStorage::value
+calls=1 0
+0 1
+
+fl=??
+fn=(9)
+cfl=??
+cfn=(23) 0x00007ffdd91c013f
+calls=1 0
+0 1
+
+fl=??
+fn=(24) 0x00007fff69a7ab80
+cfl=??
+cfn=(25) 0x00007fff69a7ac04
+calls=4 0
+0 4
+
+fl=??
+fn=(26) Eigen::DenseStorage::data
+cfl=??
+cfn=(4)
+calls=4 0
+0 4
+
+fl=??
+fn=(27) 0x00007ffdd91c006f
+cfl=??
+cfn=(26)
+calls=1 0
+0 1
+
+fl=??
+fn=(28) 0xf69a800070001005
+cfl=??
+cfn=(29) std::__1::map::__construct_node_with_key
+calls=1 0
+0 1
+
+fl=??
+fn=(30) 0x00000001093676cd
+cfl=??
+cfn=(31) 0x0000000109356afb
+calls=15 0
+0 15
+
+fl=??
+fn=(32) Eigen::internal::pstoret
+cfl=??
+cfn=(14)
+calls=1 0
+0 1
+
+fl=??
+fn=(33) get_const_coeffs
+cfl=??
+cfn=(34) std::__1::map::operator[]
+calls=4 0
+0 4
+
+fl=??
+fn=(35) acc_tensor
+cfl=??
+cfn=(34)
+calls=2 0
+0 2
+
+fl=??
+fn=(9)
+cfl=??
+cfn=(13)
+calls=1 0
+0 1
+
+fl=??
+fn=(36) std::__1::__tree::clear
+cfl=??
+cfn=(37) Eigen::internal::pset1
+calls=1 0
+0 1
+
+fl=??
+fn=(38) _PyInit__cvxcore
+cfl=??
+cfn=(39) 0x0000000109358444
+calls=10 0
+0 10
+
+fl=??
+fn=(40) Eigen::SparseMatrix::operator=
+cfl=??
+cfn=(41) Eigen::DenseBase::setZero
+calls=4 0
+0 4
+
+fl=??
+fn=(23)
+cfl=??
+cfn=(6)
+calls=1 0
+0 1
+
+fl=??
+fn=(42) 0x00000001093fbf7f
+cfl=??
+cfn=(43) 0x00000001093fb89d
+calls=179 0
+0 179
+
+fl=??
+fn=(8)
+cfl=??
+cfn=(44) std::__1::__tree::__find_equal
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(45) 0x00007fff69a7c048
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(46) 0x00007ffee68f30d7
+calls=4 0
+0 4
+
+fl=??
+fn=(47) std::__1::vector::insert
+cfl=??
+cfn=(48) build_matrix
+calls=141 0
+0 141
+
+fl=??
+fn=(3)
+cfl=??
+cfn=(40)
+calls=12 0
+0 12
+
+fl=??
+fn=(49) std::__1::vector::__push_back_slow_path
+cfl=??
+cfn=(5)
+calls=2 0
+0 2
+
+fl=??
+fn=(38)
+cfl=??
+cfn=(50) 0x00000001093566fc
+calls=5 0
+0 5
+
+fl=??
+fn=(51) Eigen::SparseMatrix::setIdentity
+cfl=??
+cfn=(52) Eigen::PlainObjectBase::data
+calls=1 0
+0 1
+
+fl=??
+fn=(53) Eigen::internal::CompressedStorage::index
+0 2
+
+fl=??
+fn=(54) Eigen::DenseCoeffsBase::operator[]
+cfl=??
+cfn=(55) Eigen::internal::CompressedStorage::reallocate
+calls=3 0
+0 3
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(56) Eigen::EigenBase::derived
+calls=2 0
+0 2
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(22)
+calls=1 0
+0 1
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(57) 0x00007ffee68f310f
+calls=1 0
+0 1
+
+fl=??
+fn=(18)
+cfl=??
+cfn=(34)
+calls=1 0
+0 1
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(18)
+calls=10 0
+0 10
+
+fl=??
+fn=(58) 0x00000001093b642a
+cfl=??
+cfn=(59) 0x00000001093be4c2
+calls=1 0
+0 1
+
+fl=??
+fn=(60) Eigen::SparseMatrix::resize
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(61) 0x00007ffdd87e3c3f
+calls=1 0
+0 1
+
+fl=??
+fn=(62) Eigen::SparseMatrix::valuePtr
+cfl=??
+cfn=(21)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(63) 0x00007ffdd905d5f7
+calls=2 0
+0 2
+
+fl=??
+fn=(15)
+0 2
+
+fl=??
+fn=(64) tensor_mul
+cfl=??
+cfn=(34)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(65) 0x00007ffdd91bff97
+calls=1 0
+0 1
+
+fl=??
+fn=(66) 0x00007fff69a7bfc8
+cfl=??
+cfn=(36)
+calls=1 0
+0 1
+
+fl=??
+fn=(43)
+cfl=??
+cfn=(67) 0x00000001093e301a
+calls=179 0
+0 179
+
+fl=??
+fn=(68) Eigen::internal::assign_selector::run
+cfl=??
+cfn=(69) Eigen::PlainObjectBase::lazyAssign
+calls=1 0
+0 1
+
+fl=??
+fn=(19)
+cfl=??
+cfn=(70) _PyInit__lsprof
+calls=2 0
+0 2
+
+fl=??
+fn=(55)
+cfl=??
+cfn=(71) Eigen::PlainObjectBase::coeffRef
+calls=3 0
+0 3
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(72) 0x00007ffdd91bffaf
+calls=1 0
+0 1
+
+fl=??
+fn=(73) Eigen::SparseSparseProduct::init
+cfl=??
+cfn=(40)
+calls=90 0
+0 90
+
+fl=??
+fn=(60)
+cfl=??
+cfn=(74) 0x00007ffdd87e3cff
+calls=1 0
+0 1
+
+fl=??
+fn=(64)
+cfl=??
+cfn=(1)
+calls=1 0
+0 1
+
+fl=??
+fn=(75) 0x000000010937661a
+cfl=??
+cfn=(76) 0x000000010936d716
+calls=6 0
+0 6
+
+fl=??
+fn=(74)
+cfl=??
+cfn=(77) 0x00007fff69ab554d
+calls=1 0
+0 1
+
+fl=??
+fn=(78) Eigen::DenseBase::setConstant
+cfl=??
+cfn=(79) Eigen::Matrix::operator=
+calls=1 0
+0 1
+
+fl=??
+fn=(38)
+cfl=??
+cfn=(38)
+calls=30 0
+0 30
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(5)
+calls=40 0
+0 40
+
+fl=??
+fn=(80) 0x00007ffdd905d53f
+cfl=??
+cfn=(40)
+calls=1 0
+0 1
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(81) 0x00007fff69a7aba4
+calls=1 0
+0 1
+
+fl=??
+fn=(82) 0x0000000109329a76
+cfl=??
+cfn=(83) 0x00000001093bf7a5
+calls=367 0
+0 367
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(7)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(84) 0x00007ffee68f30cf
+calls=1 0
+0 1
+
+fl=??
+fn=(39)
+cfl=??
+cfn=(85) 0x00007ffdd64075ef
+calls=4 0
+0 4
+
+fl=??
+fn=(64)
+cfl=??
+cfn=(86) dict_mat_mul
+calls=91 0
+0 91
+
+fl=??
+fn=(87) 0x00007ffdd84bdf3f
+cfl=??
+cfn=(88) std::__1::vector::__swap_out_circular_buffer
+calls=1 0
+0 1
+
+fl=??
+fn=(89) 0x00000001093b7c6f
+cfl=??
+cfn=(90) 0x00000001093beeef
+calls=22 0
+0 22
+
+fl=??
+fn=(91) 0x00007fff69a7bf95
+cfl=??
+cfn=(36)
+calls=1 0
+0 1
+
+fl=??
+fn=(92) Eigen::internal::set_from_triplets
+cfl=??
+cfn=(93) 0x00007ffdd91bfedf
+calls=1 0
+0 1
+
+fl=??
+fn=(1)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(94) 0x00000001093bc5a7
+cfl=??
+cfn=(95) 0x0000000109364d83
+calls=5 0
+0 5
+
+fl=??
+fn=(96) 0x00007fff69a7ec1f
+0 1
+
+fl=??
+fn=(17)
+cfl=??
+cfn=(34)
+calls=1 0
+0 1
+
+fl=??
+fn=(10)
+cfl=??
+cfn=(97) get_index_mat
+calls=9 0
+0 9
+
+fl=??
+fn=(98) Eigen::MapBase::writePacket
+cfl=??
+cfn=(18)
+calls=1 0
+0 1
+
+fl=??
+fn=(99) 0x0000000121e48faf
+cfl=??
+cfn=(64)
+calls=1 0
+0 1
+
+fl=??
+fn=(100) Eigen::internal::assign_impl::run
+cfl=??
+cfn=(101) Eigen::DenseCoeffsBase::copyPacket
+calls=6 0
+0 6
+
+fl=??
+fn=(89)
+cfl=??
+cfn=(102) 0x00000001093beef6
+calls=182 0
+0 182
+
+fl=??
+fn=(103) Eigen::internal::sparse_sparse_product_with_pruning_selector::run
+0 7
+
+fl=??
+fn=(104) 0x00000001093bd3cf
+cfl=??
+cfn=(105) 0x00000001093ed824
+calls=4 0
+0 4
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(106) 0x00007ffdd905d607
+calls=3 0
+0 3
+
+fl=??
+fn=(65)
+cfl=??
+cfn=(62)
+calls=1 0
+0 1
+
+fl=??
+fn=(64)
+cfl=??
+cfn=(8)
+calls=11 0
+0 11
+
+fl=??
+fn=(107) std::__1::__fill_n_false
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(108) 0x00000001093b7c56
+cfl=??
+cfn=(109) 0x00000001093befcb
+calls=1 0
+0 1
+
+fl=??
+fn=(110) 0x00007ffdd905d60f
+cfl=??
+cfn=(111) 0x00007fff69ab56e2
+calls=1 0
+0 1
+
+fl=??
+fn=(83)
+cfl=??
+cfn=(94)
+calls=5 0
+0 5
+
+fl=??
+fn=(35)
+cfl=??
+cfn=(64)
+calls=5 0
+0 5
+
+fl=??
+fn=(112) 0x00007fff69ab5588
+0 5
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(110)
+calls=2 0
+0 2
+
+fl=??
+fn=(113) 0x00000001093cbc2e
+cfl=??
+cfn=(114) 0x00000001093cc786
+calls=1 0
+0 1
+
+fl=??
+fn=(26)
+cfl=??
+cfn=(115) 0x00007ffee68f31a7
+calls=4 0
+0 4
+
+fl=??
+fn=(48)
+cfl=??
+cfn=(18)
+calls=1 0
+0 1
+
+fl=??
+fn=(116) Eigen::SparseMatrix::initAssignment
+cfl=??
+cfn=(60)
+calls=4 0
+0 4
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(117) 0x00007ffdd84bdfdf
+calls=1 0
+0 1
+
+fl=??
+fn=(32)
+0 1
+
+fl=??
+fn=(39)
+cfl=??
+cfn=(9)
+calls=1 0
+0 1
+
+fl=??
+fn=(60)
+cfl=??
+cfn=(24)
+calls=2 0
+0 2
+
+fl=??
+fn=(3)
+cfl=??
+cfn=(118) 0x00007ffee68f302f
+calls=1 0
+0 1
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(72)
+calls=1 0
+0 1
+
+fl=??
+fn=(119) Eigen::SparseMatrix::startVec
+0 2
+
+fl=??
+fn=(39)
+cfl=??
+cfn=(12)
+calls=10 0
+0 10
+
+fl=??
+fn=(120) 0x00007fff69a06a1e
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(121) Eigen::SparseMatrix::InnerIterator::operator bool
+calls=3 0
+0 3
+
+fl=??
+fn=(84)
+cfl=??
+cfn=(62)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(2)
+calls=1 0
+0 1
+
+fl=??
+fn=(122) 0x000000012453586f
+cfl=??
+cfn=(123) Eigen::SparseMatrixBase::operator*=
+calls=2 0
+0 2
+
+fl=??
+fn=(18)
+cfl=??
+cfn=(2)
+calls=11 0
+0 11
+
+fl=??
+fn=(124) get_constant_data
+cfl=??
+cfn=(9)
+calls=2 0
+0 2
+
+fl=??
+fn=(125) Eigen::internal::smart_copy_helper::run
+cfl=??
+cfn=(110)
+calls=1 0
+0 1
+
+fl=??
+fn=(46)
+cfl=??
+cfn=(126) ProblemData::operator=
+calls=1 0
+0 1
+
+fl=??
+fn=(127) Eigen::CwiseNullaryOp::packet
+cfl=??
+cfn=(128) Eigen::internal::linspaced_op::packetOp
+calls=1 0
+0 1
+
+fl=??
+fn=(76)
+cfl=??
+cfn=(39)
+calls=6 0
+0 6
+
+fl=??
+fn=(26)
+0 2
+
+fl=??
+fn=(125)
+cfl=??
+cfn=(6)
+calls=1 0
+0 1
+
+fl=??
+fn=(80)
+cfl=??
+cfn=(2)
+calls=1 0
+0 1
+
+fl=??
+fn=(129) Eigen::Map::operator=
+cfl=??
+cfn=(130) Eigen::MatrixBase::operator=
+calls=6 0
+0 6
+
+fl=??
+fn=(10)
+cfl=??
+cfn=(131) get_mul_elemwise_mat
+calls=3 0
+0 3
+
+fl=??
+fn=(132) 0x00000001093b62b7
+cfl=??
+cfn=(83)
+calls=180 0
+0 180
+
+fl=??
+fn=(62)
+cfl=??
+cfn=(2)
+calls=1 0
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(125)
+calls=1 0
+0 1
+
+fl=??
+fn=(133) 0x00000001093ed8e6
+cfl=??
+cfn=(134) 0x00000001093fd7ac
+calls=4 0
+0 4
+
+fl=??
+fn=(135) Eigen::internal::CompressedStorage::operator=
+cfl=??
+cfn=(14)
+calls=4 0
+0 4
+
+fl=??
+fn=(19)
+cfl=??
+cfn=(19)
+calls=30 0
+0 30
+
+fl=??
+fn=(136) 0x00007ffdd905d6d7
+cfl=??
+cfn=(35)
+calls=1 0
+0 1
+
+fl=??
+fn=(137) 0x0000000109364c1f
+cfl=??
+cfn=(138) 0x0000000109367f7c
+calls=22 0
+0 22
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(56)
+calls=1 0
+0 1
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(139) std::__1::__tree::__construct_node
+calls=6 0
+0 6
+
+fl=??
+fn=(140) 0x00007ffdd905d72f
+cfl=??
+cfn=(18)
+calls=1 0
+0 1
+
+fl=??
+fn=(141) Eigen::MapBase::coeffRef
+0 1
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(96)
+calls=1 0
+0 1
+
+fl=??
+fn=(142) 0x00007fff69a7c0eb
+0 1
+
+fl=??
+fn=(143) Eigen::internal::CompressedStorage::resize
+cfl=??
+cfn=(55)
+calls=1 0
+0 1
+
+fl=??
+fn=(144) 0x00007fff69a7e58e
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(106)
+calls=1 0
+0 1
+
+fl=??
+fn=(64)
+cfl=??
+cfn=(64)
+calls=7 0
+0 7
+
+fl=??
+fn=(20)
+cfl=??
+cfn=(19)
+calls=1 0
+0 1
+
+fl=??
+fn=(71)
+0 6
+
+fl=??
+fn=(143)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(101)
+cfl=??
+cfn=(36)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(40)
+calls=1 0
+0 1
+
+fl=??
+fn=(145) Eigen::SparseMatrix::InnerIterator::operator++
+0 1
+
+fl=??
+fn=(103)
+cfl=??
+cfn=(146) 0x00007ffee68f2eef
+calls=4 0
+0 4
+
+fl=??
+fn=(147) Eigen::DenseBase::fill
+cfl=??
+cfn=(78)
+calls=1 0
+0 1
+
+fl=??
+fn=(26)
+cfl=??
+cfn=(148) 0x00007ffdd87e3c27
+calls=2 0
+0 2
+
+fl=??
+fn=(3)
+cfl=??
+cfn=(103)
+calls=62 0
+0 62
+
+fl=??
+fn=(105)
+cfl=??
+cfn=(133)
+calls=4 0
+0 4
+
+fl=??
+fn=(70)
+cfl=??
+cfn=(70)
+calls=2 0
+0 2
+
+fl=??
+fn=(149) 0x00000001093bf5a7
+cfl=??
+cfn=(150) std::__1::vector::__construct_at_end
+calls=1 0
+0 1
+
+fl=??
+fn=(151) 0x000000010936a5dd
+cfl=??
+cfn=(152) 0x000000010932a73b
+calls=5 0
+0 5
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(153) process_constraint
+calls=9 0
+0 9
+
+fl=??
+fn=(138)
+cfl=??
+cfn=(154) 0x000000010932a828
+calls=22 0
+0 22
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(155) Eigen::SparseMatrix::innerIndexPtr
+calls=2 0
+0 2
+
+fl=??
+fn=(41)
+cfl=??
+cfn=(78)
+calls=4 0
+0 4
+
+fl=??
+fn=(45)
+0 1
+
+fl=??
+fn=(44)
+cfl=??
+cfn=(156) std::__1::__tree::__insert_node_at
+calls=1 0
+0 1
+
+fl=??
+fn=(103)
+cfl=??
+cfn=(115)
+calls=1 0
+0 1
+
+fl=??
+fn=(88)
+cfl=??
+cfn=(1)
+calls=1 0
+0 1
+
+fl=??
+fn=(93)
+cfl=??
+cfn=(40)
+calls=1 0
+0 1
+
+fl=??
+fn=(157) Eigen::PlainObjectBase::_set
+cfl=??
+cfn=(158) Eigen::PlainObjectBase::_set_selector
+calls=1 0
+0 1
+
+fl=??
+fn=(123)
+0 7
+
+fl=??
+fn=(159) Eigen::internal::scalar_constant_op::packetOp
+cfl=??
+cfn=(36)
+calls=1 0
+0 1
+
+fl=??
+fn=(130)
+cfl=??
+cfn=(68)
+calls=6 0
+0 6
+
+fl=??
+fn=(101)
+0 1
+
+fl=??
+fn=(123)
+cfl=??
+cfn=(60)
+calls=3 0
+0 3
+
+fl=??
+fn=(160) 0x00007ffdd905d4af
+cfl=??
+cfn=(101)
+calls=1 0
+0 1
+
+fl=??
+fn=(25)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(161) 0x0000000109329e8b
+cfl=??
+cfn=(94)
+calls=16 0
+0 16
+
+fl=??
+fn=(29)
+cfl=??
+cfn=(162) 0x00007fff69a7da6c
+calls=1 0
+0 1
+
+fl=??
+fn=(163) 0x00000005ffffffff
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(124)
+cfl=??
+cfn=(123)
+calls=8 0
+0 8
+
+fl=??
+fn=(164) lin_to_tensor
+cfl=??
+cfn=(164)
+calls=163 0
+0 163
+
+fl=??
+fn=(165) mat_vec_mul
+cfl=??
+cfn=(166) Eigen::SparseMatrixBase::operator*
+calls=90 0
+0 90
+
+fl=??
+fn=(167) 0x0000000109329dc4
+cfl=??
+cfn=(38)
+calls=15 0
+0 15
+
+fl=??
+fn=(49)
+cfl=??
+cfn=(49)
+calls=2 0
+0 2
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(168) 0x00007ffee68f376f
+calls=1 0
+0 1
+
+fl=??
+fn=(162)
+0 1
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(169) 0x000000012903386f
+calls=1 0
+0 1
+
+fl=??
+fn=(170) Eigen::SparseMatrix::innerSize
+cfl=??
+cfn=(171) Eigen::SparseMatrix::insertBackByOuterInnerUnordered
+calls=1 0
+0 1
+
+fl=??
+fn=(77)
+0 2
+
+fl=??
+fn=(172) _RotatingTree_Get
+0 2
+
+fl=??
+fn=(166)
+cfl=??
+cfn=(73)
+calls=90 0
+0 90
+
+fl=??
+fn=(70)
+cfl=??
+cfn=(173) 0x00007ffee68f3bef
+calls=1 0
+0 1
+
+fl=??
+fn=(14)
+cfl=??
+cfn=(123)
+calls=1 0
+0 1
+
+fl=??
+fn=(32)
+cfl=??
+cfn=(55)
+calls=1 0
+0 1
+
+fl=??
+fn=(55)
+cfl=??
+cfn=(174) 0x00007fff66935377
+calls=1 0
+0 1
+
+fl=??
+fn=(175) swig::traits_reserve::reserve
+cfl=??
+cfn=(49)
+calls=1 0
+0 1
+
+fl=??
+fn=(176) 0x0000000109388625
+cfl=??
+cfn=(177) 0x000000010936ebd0
+calls=1 0
+0 1
+
+fl=??
+fn=(123)
+cfl=??
+cfn=(178) 0x00007ffee68f2f8f
+calls=1 0
+0 1
+
+fl=??
+fn=(62)
+0 7
+
+fl=??
+fn=(71)
+cfl=??
+cfn=(84)
+calls=1 0
+0 1
+
+fl=??
+fn=(179) 0x00007fff69a7ac5d
+0 1
+
+fl=??
+fn=(180) 0x00000001093e494a
+cfl=??
+cfn=(132)
+calls=180 0
+0 180
+
+fl=??
+fn=(181) 0x0000000109329ab1
+cfl=??
+cfn=(182) 0x000000010932a42a
+calls=159 0
+0 159
+
+fl=??
+fn=(18)
+cfl=??
+cfn=(32)
+calls=1 0
+0 1
+
+fl=??
+fn=(183) 0x00000001093b7d0a
+cfl=??
+cfn=(102)
+calls=232 0
+0 232
+
+fl=??
+fn=(10)
+cfl=??
+cfn=(16)
+calls=9 0
+0 9
+
+fl=??
+fn=(10)
+cfl=??
+cfn=(33)
+calls=4 0
+0 4
+
+fl=??
+fn=(127)
+cfl=??
+cfn=(159)
+calls=1 0
+0 1
+
+fl=??
+fn=(184) Eigen::SparseMatrix::sumupDuplicates
+cfl=??
+cfn=(147)
+calls=1 0
+0 1
+
+fl=??
+fn=(56)
+0 4
+
+fl=??
+fn=(34)
+cfl=??
+cfn=(163)
+calls=1 0
+0 1
+
+fl=??
+fn=(123)
+cfl=??
+cfn=(185) 0x00000001000e38be
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(53)
+calls=1 0
+0 1
+
+fl=??
+fn=(18)
+cfl=??
+cfn=(186) 0x00007ffee68f303f
+calls=1 0
+0 1
+
+fl=??
+fn=(38)
+cfl=??
+cfn=(175)
+calls=1 0
+0 1
+
+fl=??
+fn=(187) Eigen::DenseBase::setOnes
+cfl=??
+cfn=(78)
+calls=1 0
+0 1
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(188) 0xf69a800070001003
+calls=1 0
+0 1
+
+fl=??
+fn=(158)
+cfl=??
+cfn=(189) Eigen::PlainObjectBase::_set_noalias
+calls=1 0
+0 1
+
+fl=??
+fn=(97)
+cfl=??
+cfn=(190) Eigen::SparseMatrix::setFromTriplets
+calls=9 0
+0 9
+
+fl=??
+fn=(106)
+cfl=??
+cfn=(5)
+calls=2 0
+0 2
+
+fl=??
+fn=(191) 0x00000001093e3974
+cfl=??
+cfn=(180)
+calls=180 0
+0 180
+
+fl=??
+fn=(8)
+cfl=??
+cfn=(192) 0x000000010957c9ff
+calls=1 0
+0 1
+
+fl=??
+fn=(36)
+0 2
+
+fl=??
+fn=(115)
+cfl=??
+cfn=(40)
+calls=3 0
+0 3
+
+fl=??
+fn=(70)
+cfl=??
+cfn=(9)
+calls=1 0
+0 1
+
+fl=??
+fn=(55)
+cfl=??
+cfn=(15)
+calls=1 0
+0 1
+
+fl=??
+fn=(8)
+0 2
+
+fl=??
+fn=(193) 0x000000010932fed2
+cfl=??
+cfn=(167)
+calls=15 0
+0 15
+
+fl=??
+fn=(194) Eigen::SparseSparseProduct::evalTo
+cfl=??
+cfn=(3)
+calls=90 0
+0 90
+
+fl=??
+fn=(195) 0x00007fff69a06be6
+0 1
+
+fl=??
+fn=(196) 0x00007ffee68f336f
+cfl=??
+cfn=(13)
+calls=4 0
+0 4
+
+fl=??
+fn=(185)
+cfl=??
+cfn=(2)
+calls=1 0
+0 1
+
+fl=??
+fn=(79)
+cfl=??
+cfn=(157)
+calls=1 0
+0 1
+
+fl=??
+fn=(83)
+cfl=??
+cfn=(183)
+calls=220 0
+0 220
+
+fl=??
+fn=(168)
+cfl=??
+cfn=(40)
+calls=1 0
+0 1
+
+fl=??
+fn=(62)
+cfl=??
+cfn=(46)
+calls=1 0
+0 1
+
+fl=??
+fn=(3)
+cfl=??
+cfn=(5)
+calls=8 0
+0 8
+
+fl=??
+fn=(197) Eigen::SparseMatrix::InnerIterator::operator
+0 9
+
+fl=??
+fn=(110)
+cfl=??
+cfn=(62)
+calls=1 0
+0 1
+
+fl=??
+fn=(198) 0x00007fff698d03d4
+cfl=??
+cfn=(42)
+calls=179 0
+0 179
+
+fl=??
+fn=(50)
+cfl=??
+cfn=(199) 0x00000001093677cd
+calls=5 0
+0 5
+
+fl=??
+fn=(153)
+cfl=??
+cfn=(164)
+calls=135 0
+0 135
+
+fl=??
+fn=(103)
+cfl=??
+cfn=(6)
+calls=11 0
+0 11
+
+fl=??
+fn=(71)
+cfl=??
+cfn=(27)
+calls=1 0
+0 1
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(127)
+calls=1 0
+0 1
+
+fl=??
+fn=(150)
+cfl=??
+cfn=(2)
+calls=10 0
+0 10
+
+fl=??
+fn=(200) Eigen::DenseCoeffsBase::copyCoeff
+0 1
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(80)
+calls=1 0
+0 1
+
+fl=??
+fn=(85)
+cfl=??
+cfn=(120)
+calls=1 0
+0 1
+
+fl=??
+fn=(102)
+cfl=??
+cfn=(82)
+calls=366 0
+0 366
+
+fl=??
+fn=(68)
+cfl=??
+cfn=(201) Eigen::DenseBase::lazyAssign
+calls=6 0
+0 6
+
+fl=??
+fn=(17)
+cfl=??
+cfn=(49)
+calls=2 0
+0 2
+
+fl=??
+fn=(18)
+cfl=??
+cfn=(18)
+calls=4 0
+0 4
+
+fl=??
+fn=(83)
+cfl=??
+cfn=(89)
+calls=141 0
+0 141
+
+fl=??
+fn=(202) 0x0000000109329917
+cfl=??
+cfn=(137)
+calls=22 0
+0 22
+
+fl=??
+fn=(134)
+cfl=??
+cfn=(203) 0x00000001093fd67d
+calls=4 0
+0 4
+
+fl=??
+fn=(125)
+cfl=??
+cfn=(1)
+calls=1 0
+0 1
+
+fl=??
+fn=(78)
+cfl=??
+cfn=(129)
+calls=5 0
+0 5
+
+fl=??
+fn=(8)
+cfl=??
+cfn=(8)
+calls=39 0
+0 39
+
+fl=??
+fn=(72)
+cfl=??
+cfn=(121)
+calls=1 0
+0 1
+
+fl=??
+fn=(34)
+0 1
+
+fl=??
+fn=(204) 0x00007ffdd91bfe0f
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(88)
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(205) add_triplets
+calls=2 0
+0 2
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(206) std::__1::vector::__vallocate
+calls=1 0
+0 1
+
+fl=??
+fn=(186)
+cfl=??
+cfn=(103)
+calls=1 0
+0 1
+
+fl=??
+fn=(16)
+cfl=??
+cfn=(207) sparse_eye
+calls=3 0
+0 3
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(1)
+calls=1 0
+0 1
+
+fl=??
+fn=(39)
+cfl=??
+cfn=(196)
+calls=4 0
+0 4
+
+fl=??
+fn=(135)
+cfl=??
+cfn=(143)
+calls=2 0
+0 2
+
+fl=??
+fn=(208) 0x00007ffdd91bffa7
+cfl=??
+cfn=(71)
+calls=1 0
+0 1
+
+fl=??
+fn=(101)
+cfl=??
+cfn=(98)
+calls=3 0
+0 3
+
+fl=??
+fn=(1)
+cfl=??
+cfn=(111)
+calls=1 0
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(54)
+calls=8 0
+0 8
+
+fl=??
+fn=(48)
+cfl=??
+cfn=(29)
+calls=1 0
+0 1
+
+fl=??
+fn=(61)
+cfl=??
+cfn=(6)
+calls=2 0
+0 2
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(110)
+calls=1 0
+0 1
+
+fl=??
+fn=(125)
+cfl=??
+cfn=(209) 0x00007ffdd84bdf8f
+calls=1 0
+0 1
+
+fl=??
+fn=(46)
+cfl=??
+cfn=(22)
+calls=1 0
+0 1
+
+fl=??
+fn=(86)
+cfl=??
+cfn=(210) std::__1::vector::assign
+calls=1 0
+0 1
+
+fl=??
+fn=(164)
+cfl=??
+cfn=(10)
+calls=27 0
+0 27
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(208)
+calls=1 0
+0 1
+
+fl=??
+fn=(154)
+cfl=??
+cfn=(161)
+calls=22 0
+0 22
+
+fl=??
+fn=(114)
+cfl=??
+cfn=(211) 0x0000000109371256
+calls=1 0
+0 1
+
+fl=??
+fn=(212) 0x00007ffdd84be097
+cfl=??
+cfn=(6)
+calls=1 0
+0 1
+
+fl=??
+fn=(46)
+cfl=??
+cfn=(121)
+calls=2 0
+0 2
+
+fl=??
+fn=(88)
+cfl=??
+cfn=(88)
+calls=3 0
+0 3
+
+fl=??
+fn=(51)
+cfl=??
+cfn=(187)
+calls=1 0
+0 1
+
+fl=??
+fn=(213) Eigen::internal::pfirst
+cfl=??
+cfn=(88)
+calls=1 0
+0 1
+
+fl=??
+fn=(174)
+cfl=??
+cfn=(24)
+calls=3 0
+0 3
+
+fl=??
+fn=(49)
+cfl=??
+cfn=(18)
+calls=2 0
+0 2
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(204)
+calls=1 0
+0 1
+
+fl=??
+fn=(1)
+cfl=??
+cfn=(179)
+calls=1 0
+0 1
+
+fl=??
+fn=(150)
+cfl=??
+cfn=(149)
+calls=1 0
+0 1
+
+fl=??
+fn=(48)
+cfl=??
+cfn=(153)
+calls=141 0
+0 141
+
+fl=??
+fn=(25)
+cfl=??
+cfn=(91)
+calls=1 0
+0 1
+
+fl=??
+fn=(178)
+cfl=??
+cfn=(123)
+calls=1 0
+0 1
+
+fl=??
+fn=(22)
+0 6
+
+fl=??
+fn=(214) Eigen::internal::linspaced_op_impl::packetOp
+0 2
+
+fl=??
+fn=(215) 0x00007ffee68f2f6f
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(34)
+cfl=??
+cfn=(29)
+calls=2 0
+0 2
+
+fl=??
+fn=(207)
+cfl=??
+cfn=(51)
+calls=3 0
+0 3
+
+fl=??
+fn=(81)
+0 1
+
+fl=??
+fn=(19)
+0 6
+
+fl=??
+fn=(34)
+cfl=??
+cfn=(48)
+calls=3 0
+0 3
+
+fl=??
+fn=(92)
+cfl=??
+cfn=(40)
+calls=6 0
+0 6
+
+fl=??
+fn=(111)
+0 4
+
+fl=??
+fn=(161)
+cfl=??
+cfn=(183)
+calls=12 0
+0 12
+
+fl=??
+fn=(153)
+cfl=??
+cfn=(9)
+calls=5 0
+0 5
+
+fl=??
+fn=(205)
+cfl=??
+cfn=(213)
+calls=3 0
+0 3
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(62)
+calls=5 0
+0 5
+
+fl=??
+fn=(48)
+cfl=??
+cfn=(48)
+calls=14 0
+0 14
+
+fl=??
+fn=(60)
+cfl=??
+cfn=(9)
+calls=3 0
+0 3
+
+fl=??
+fn=(44)
+cfl=??
+cfn=(14)
+calls=2 0
+0 2
+
+fl=??
+fn=(26)
+cfl=??
+cfn=(40)
+calls=29 0
+0 29
+
+fl=??
+fn=(170)
+cfl=??
+cfn=(107)
+calls=1 0
+0 1
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(40)
+calls=10 0
+0 10
+
+fl=??
+fn=(216) 0x0000000109359d4f
+cfl=??
+cfn=(217) 0x0000000109359c07
+calls=1 0
+0 1
+
+fl=??
+fn=(163)
+cfl=??
+cfn=(36)
+calls=1 0
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(6)
+calls=19 0
+0 19
+
+fl=??
+fn=(16)
+cfl=??
+cfn=(34)
+calls=2 0
+0 2
+
+fl=??
+fn=(186)
+cfl=??
+cfn=(2)
+calls=1 0
+0 1
+
+fl=??
+fn=(19)
+cfl=??
+cfn=(218) 0x0000000109356b4f
+calls=2 0
+0 2
+
+fl=??
+fn=(219) 0x000000010932f3b5
+cfl=??
+cfn=(177)
+calls=5 0
+0 5
+
+fl=??
+fn=(199)
+cfl=??
+cfn=(151)
+calls=5 0
+0 5
+
+fl=??
+fn=(65)
+cfl=??
+cfn=(40)
+calls=1 0
+0 1
+
+fl=??
+fn=(220) 0x00007ffdd905d46f
+cfl=??
+cfn=(53)
+calls=1 0
+0 1
+
+fl=??
+fn=(64)
+cfl=??
+cfn=(221) 0x00007ffdd91c01af
+calls=1 0
+0 1
+
+fl=??
+fn=(26)
+cfl=??
+cfn=(65)
+calls=1 0
+0 1
+
+fl=??
+fn=(46)
+cfl=??
+cfn=(5)
+calls=2 0
+0 2
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(2)
+calls=33 0
+0 33
+
+fl=??
+fn=(72)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(123)
+cfl=??
+cfn=(2)
+calls=3 0
+0 3
+
+fl=??
+fn=(208)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(101)
+cfl=??
+cfn=(127)
+calls=2 0
+0 2
+
+fl=??
+fn=(222) 0x00000001093b7f42
+cfl=??
+cfn=(161)
+calls=181 0
+0 181
+
+fl=??
+fn=(51)
+cfl=??
+cfn=(223) Eigen::DenseBase::setLinSpaced
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(150)
+calls=9 0
+0 9
+
+fl=??
+fn=(54)
+cfl=??
+cfn=(71)
+calls=2 0
+0 2
+
+fl=??
+fn=(62)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(9)
+cfl=??
+cfn=(112)
+calls=3 0
+0 3
+
+fl=??
+fn=(192)
+cfl=??
+cfn=(8)
+calls=1 0
+0 1
+
+fl=??
+fn=(189)
+cfl=??
+cfn=(68)
+calls=1 0
+0 1
+
+fl=??
+fn=(49)
+cfl=??
+cfn=(150)
+calls=1 0
+0 1
+
+fl=??
+fn=(25)
+cfl=??
+cfn=(1)
+calls=1 0
+0 1
+
+fl=??
+fn=(85)
+cfl=??
+cfn=(13)
+calls=4 0
+0 4
+
+fl=??
+fn=(213)
+cfl=??
+cfn=(36)
+calls=2 0
+0 2
+
+fl=??
+fn=(34)
+cfl=??
+cfn=(36)
+calls=4 0
+0 4
+
+fl=??
+fn=(3)
+cfl=??
+cfn=(186)
+calls=2 0
+0 2
+
+fl=??
+fn=(92)
+cfl=??
+cfn=(184)
+calls=1 0
+0 1
+
+fl=??
+fn=(88)
+cfl=??
+cfn=(87)
+calls=1 0
+0 1
+
+fl=??
+fn=(128)
+cfl=??
+cfn=(14)
+calls=1 0
+0 1
+
+fl=??
+fn=(146)
+cfl=??
+cfn=(145)
+calls=1 0
+0 1
+
+fl=??
+fn=(83)
+cfl=??
+cfn=(222)
+calls=181 0
+0 181
+
+fl=??
+fn=(115)
+cfl=??
+cfn=(119)
+calls=1 0
+0 1
+
+fl=??
+fn=(103)
+cfl=??
+cfn=(170)
+calls=2 0
+0 2
+
+fl=??
+fn=(139)
+cfl=??
+cfn=(5)
+calls=13 0
+0 13
+
+fl=??
+fn=(217)
+cfl=??
+cfn=(85)
+calls=1 0
+0 1
+
+fl=??
+fn=(150)
+0 1
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(208)
+calls=1 0
+0 1
+
+fl=??
+fn=(25)
+cfl=??
+cfn=(66)
+calls=1 0
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(135)
+calls=6 0
+0 6
+
+fl=??
+fn=(209)
+cfl=??
+cfn=(111)
+calls=1 0
+0 1
+
+fl=??
+fn=(131)
+cfl=??
+cfn=(164)
+calls=2 0
+0 2
+
+fl=??
+fn=(100)
+cfl=??
+cfn=(160)
+calls=1 0
+0 1
+
+fl=??
+fn=(95)
+cfl=??
+cfn=(219)
+calls=5 0
+0 5
+
+fl=??
+fn=(37)
+0 1
+
+fl=??
+fn=(29)
+cfl=??
+cfn=(29)
+calls=4 0
+0 4
+
+fl=??
+fn=(224) 0x00007ffdd905d40f
+cfl=??
+cfn=(2)
+calls=1 0
+0 1
+
+fl=??
+fn=(223)
+cfl=??
+cfn=(223)
+calls=1 0
+0 1
+
+fl=??
+fn=(35)
+cfl=??
+cfn=(225) acc_dict_mat
+calls=1 0
+0 1
+
+fl=??
+fn=(14)
+cfl=??
+cfn=(18)
+calls=1 0
+0 1
+
+fl=??
+fn=(161)
+cfl=??
+cfn=(108)
+calls=363 0
+0 363
+
+fl=??
+fn=(153)
+cfl=??
+cfn=(34)
+calls=1 0
+0 1
+
+fl=??
+fn=(206)
+cfl=??
+cfn=(2)
+calls=2 0
+0 2
+
+fl=??
+fn=(226) 0x00000001093becd9
+cfl=??
+cfn=(181)
+calls=159 0
+0 159
+
+fl=??
+fn=(155)
+0 1
+
+fl=??
+fn=(153)
+cfl=??
+cfn=(5)
+calls=10 0
+0 10
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(227) Eigen::SparseMatrixBase::operator=
+calls=90 0
+0 90
+
+fl=??
+fn=(63)
+cfl=??
+cfn=(40)
+calls=2 0
+0 2
+
+fl=??
+fn=(110)
+cfl=??
+cfn=(5)
+calls=2 0
+0 2
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(36)
+calls=25 0
+0 25
+
+fl=??
+fn=(8)
+cfl=??
+cfn=(139)
+calls=8 0
+0 8
+
+fl=??
+fn=(152)
+cfl=??
+cfn=(161)
+calls=5 0
+0 5
+
+fl=??
+fn=(155)
+cfl=??
+cfn=(220)
+calls=1 0
+0 1
+
+fl=??
+fn=(127)
+0 1
+
+fl=??
+fn=(34)
+cfl=??
+cfn=(44)
+calls=2 0
+0 2
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(224)
+calls=1 0
+0 1
+
+fl=??
+fn=(16)
+cfl=??
+cfn=(36)
+calls=3 0
+0 3
+
+fl=??
+fn=(38)
+cfl=??
+cfn=(47)
+calls=141 0
+0 141
+
+fl=??
+fn=(26)
+cfl=??
+cfn=(63)
+calls=2 0
+0 2
+
+fl=??
+fn=(9)
+cfl=??
+cfn=(172)
+calls=1 0
+0 1
+
+fl=??
+fn=(211)
+cfl=??
+cfn=(176)
+calls=1 0
+0 1
+
+fl=??
+fn=(203)
+cfl=??
+cfn=(39)
+calls=4 0
+0 4
+
+fl=??
+fn=(228) 0x00007ffdd91bffef
+cfl=??
+cfn=(111)
+calls=1 0
+0 1
+
+fl=??
+fn=(107)
+cfl=??
+cfn=(107)
+calls=1 0
+0 1
+
+fl=??
+fn=(98)
+cfl=??
+cfn=(32)
+calls=2 0
+0 2
+
+fl=??
+fn=(173)
+cfl=??
+cfn=(172)
+calls=1 0
+0 1
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(229) 0x000000010957237f
+calls=1 0
+0 1
+
+fl=??
+fn=(227)
+cfl=??
+cfn=(194)
+calls=90 0
+0 90
+
+fl=??
+fn=(30)
+cfl=??
+cfn=(230) 0x0000000109356c71
+calls=1 0
+0 1
+
+fl=??
+fn=(70)
+cfl=??
+cfn=(19)
+calls=2 0
+0 2
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(46)
+calls=2 0
+0 2
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(55)
+calls=1 0
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(231) 0x00007ffdd64d4077
+calls=1 0
+0 1
+
+fl=??
+fn=(109)
+cfl=??
+cfn=(70)
+calls=1 0
+0 1
+
+fl=??
+fn=(63)
+cfl=??
+cfn=(22)
+calls=2 0
+0 2
+
+fl=??
+fn=(48)
+cfl=??
+cfn=(140)
+calls=1 0
+0 1
+
+fl=??
+fn=(139)
+cfl=??
+cfn=(163)
+calls=1 0
+0 1
+
+fl=??
+fn=(94)
+cfl=??
+cfn=(30)
+calls=16 0
+0 16
+
+fl=??
+fn=(106)
+cfl=??
+cfn=(126)
+calls=1 0
+0 1
+
+fl=??
+fn=(4)
+cfl=??
+cfn=(40)
+calls=7 0
+0 7
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(103)
+calls=5 0
+0 5
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(22)
+calls=1 0
+0 1
+
+fl=??
+fn=(89)
+cfl=??
+cfn=(226)
+calls=159 0
+0 159
+
+fl=??
+fn=(106)
+cfl=??
+cfn=(54)
+calls=1 0
+0 1
+
+fl=??
+fn=(14)
+cfl=??
+cfn=(214)
+calls=1 0
+0 1
+
+fl=??
+fn=(221)
+cfl=??
+cfn=(123)
+calls=1 0
+0 1
+
+fl=??
+fn=(31)
+cfl=??
+cfn=(193)
+calls=15 0
+0 15
+
+fl=??
+fn=(171)
+cfl=??
+cfn=(206)
+calls=1 0
+0 1
+
+fl=??
+fn=(201)
+cfl=??
+cfn=(100)
+calls=7 0
+0 7
+
+fl=??
+fn=(40)
+0 22
+
+fl=??
+fn=(230)
+cfl=??
+cfn=(113)
+calls=1 0
+0 1
+
+fl=??
+fn=(161)
+cfl=??
+cfn=(58)
+calls=1 0
+0 1
+
+fl=??
+fn=(54)
+cfl=??
+cfn=(2)
+calls=2 0
+0 2
+
+fl=??
+fn=(169)
+cfl=??
+cfn=(40)
+calls=1 0
+0 1
+
+fl=??
+fn=(186)
+cfl=??
+cfn=(40)
+calls=1 0
+0 1
+
+fl=??
+fn=(86)
+cfl=??
+cfn=(153)
+calls=1 0
+0 1
+
+fl=??
+fn=(90)
+cfl=??
+cfn=(202)
+calls=22 0
+0 22
+
+fl=??
+fn=(9)
+cfl=??
+cfn=(123)
+calls=2 0
+0 2
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(5)
+calls=20 0
+0 20
+
+fl=??
+fn=(86)
+0 1
+
+fl=??
+fn=(57)
+cfl=??
+cfn=(29)
+calls=1 0
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(61)
+calls=2 0
+0 2
+
+fl=??
+fn=(102)
+cfl=??
+cfn=(161)
+calls=410 0
+0 410
+
+fl=??
+fn=(229)
+cfl=??
+cfn=(156)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(77)
+calls=1 0
+0 1
+
+fl=??
+fn=(115)
+cfl=??
+cfn=(6)
+calls=1 0
+0 1
+
+fl=??
+fn=(84)
+cfl=??
+cfn=(26)
+calls=1 0
+0 1
+
+fl=??
+fn=(232) 0x00007ffdd84be557
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(1)
+cfl=??
+cfn=(86)
+calls=1 0
+0 1
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(233) 0x0000000128fe681f
+calls=1 0
+0 1
+
+fl=??
+fn=(148)
+cfl=??
+cfn=(40)
+calls=2 0
+0 2
+
+fl=??
+fn=(61)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(26)
+cfl=??
+cfn=(212)
+calls=1 0
+0 1
+
+fl=??
+fn=(234) 0x000000012042f2ff
+cfl=??
+cfn=(2)
+calls=1 0
+0 1
+
+fl=??
+fn=(86)
+cfl=??
+cfn=(165)
+calls=90 0
+0 90
+
+fl=??
+fn=(117)
+cfl=??
+cfn=(121)
+calls=1 0
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(116)
+calls=4 0
+0 4
+
+fl=??
+fn=(235) 0x00007fff69a7e5d4
+0 1
+
+fl=??
+fn=(210)
+cfl=??
+cfn=(150)
+calls=1 0
+0 1
+
+fl=??
+fn=(156)
+0 2
+
+fl=??
+fn=(6)
+0 9
+
+fl=??
+fn=(9)
+cfl=??
+cfn=(6)
+calls=4 0
+0 4
+
+fl=??
+fn=(9)
+cfl=??
+cfn=(8)
+calls=1 0
+0 1
+
+fl=??
+fn=(64)
+0 1
+
+fl=??
+fn=(182)
+cfl=??
+cfn=(38)
+calls=159 0
+0 159
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(126)
+calls=1 0
+0 1
+
+fl=??
+fn=(161)
+cfl=??
+cfn=(89)
+calls=222 0
+0 222
+
+fl=??
+fn=(188)
+cfl=??
+cfn=(44)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+0 19
+
+fl=??
+fn=(236) Eigen::PlainObjectBase::operator
+0 1
+
+fl=??
+fn=(69)
+cfl=??
+cfn=(201)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(107)
+calls=1 0
+0 1
+
+fl=??
+fn=(223)
+cfl=??
+cfn=(129)
+calls=1 0
+0 1
+
+fl=??
+fn=(103)
+cfl=??
+cfn=(215)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(71)
+calls=2 0
+0 2
+
+fl=??
+fn=(24)
+cfl=??
+cfn=(36)
+calls=1 0
+0 1
+
+fl=??
+fn=(29)
+cfl=??
+cfn=(28)
+calls=1 0
+0 1
+
+fl=??
+fn=(38)
+cfl=??
+cfn=(19)
+calls=17 0
+0 17
+
+fl=??
+fn=(36)
+cfl=??
+cfn=(142)
+calls=1 0
+0 1
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(232)
+calls=1 0
+0 1
+
+fl=??
+fn=(55)
+0 1
+
+fl=??
+fn=(156)
+cfl=??
+cfn=(88)
+calls=1 0
+0 1
+
+fl=??
+fn=(218)
+cfl=??
+cfn=(19)
+calls=2 0
+0 2
+
+fl=??
+fn=(19)
+cfl=??
+cfn=(124)
+calls=12 0
+0 12
+
+fl=??
+fn=(131)
+cfl=??
+cfn=(205)
+calls=1 0
+0 1
+
+fl=??
+fn=(57)
+cfl=??
+cfn=(36)
+calls=1 0
+0 1
+
+fl=??
+fn=(5)
+cfl=??
+cfn=(49)
+calls=2 0
+0 2
+
+fl=??
+fn=(39)
+cfl=??
+cfn=(216)
+calls=1 0
+0 1
+
+fl=??
+fn=(59)
+cfl=??
+cfn=(70)
+calls=1 0
+0 1
+
+fl=??
+fn=(14)
+cfl=??
+cfn=(125)
+calls=4 0
+0 4
+
+fl=??
+fn=(46)
+cfl=??
+cfn=(155)
+calls=1 0
+0 1
+
+fl=??
+fn=(107)
+0 1
+
+fl=??
+fn=(150)
+cfl=??
+cfn=(150)
+calls=1 0
+0 1
+
+fl=??
+fn=(125)
+cfl=??
+cfn=(228)
+calls=1 0
+0 1
+
+fl=??
+fn=(4)
+cfl=??
+cfn=(103)
+calls=1 0
+0 1
+
+fl=??
+fn=(146)
+cfl=??
+cfn=(121)
+calls=2 0
+0 2
+
+fl=??
+fn=(52)
+cfl=??
+cfn=(123)
+calls=1 0
+0 1
+
+fl=??
+fn=(233)
+cfl=??
+cfn=(40)
+calls=1 0
+0 1
+
+fl=??
+fn=(231)
+cfl=??
+cfn=(56)
+calls=1 0
+0 1
+
+fl=??
+fn=(108)
+cfl=??
+cfn=(102)
+calls=362 0
+0 362
+
+fl=??
+fn=(177)
+cfl=??
+cfn=(75)
+calls=6 0
+0 6
+
+fl=??
+fn=(2)
+cfl=??
+cfn=(174)
+calls=2 0
+0 2
+
+fl=??
+fn=(123)
+cfl=??
+cfn=(234)
+calls=1 0
+0 1
+
+fl=??
+fn=(40)
+cfl=??
+cfn=(5)
+calls=6 0
+0 6
+
+fl=??
+fn=(4)
+cfl=??
+cfn=(54)
+calls=1 0
+0 1
+
+fl=??
+fn=(54)
+0 2
+
+fl=??
+fn=(146)
+cfl=??
+cfn=(119)
+calls=1 0
+0 1
+
+fl=??
+fn=(164)
+cfl=??
+cfn=(99)
+calls=1 0
+0 1
+
+fl=??
+fn=(17)
+cfl=??
+cfn=(17)
+calls=1 0
+0 1
+
+fl=??
+fn=(164)
+cfl=??
+cfn=(136)
+calls=1 0
+0 1
+
+fl=??
+fn=(103)
+cfl=??
+cfn=(26)
+calls=43 0
+0 43
+
+fl=??
+fn=(29)
+cfl=??
+cfn=(57)
+calls=1 0
+0 1
+
+fl=??
+fn=(29)
+0 2
+
+fl=??
+fn=(6)
+cfl=??
+cfn=(46)
+calls=3 0
+0 3
+
+fl=??
+fn=(11)
+cfl=??
+cfn=(17)
+calls=2 0
+0 2
+
+fl=??
+fn=(164)
+cfl=??
+cfn=(64)
+calls=100 0
+0 100
+
+fl=??
+fn=(118)
+cfl=??
+cfn=(6)
+calls=1 0
+0 1
+
+fl=??
+fn=(161)
+cfl=??
+cfn=(104)
+calls=4 0
+0 4
+
+fl=??
+fn=(2)
+0 6
+
+fl=??
+fn=(13)
+0 21
+
+fl=??
+fn=(155)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(44)
+0 1
+
+fl=??
+fn=(67)
+cfl=??
+cfn=(191)
+calls=179 0
+0 179
+
+fl=??
+fn=(164)
+cfl=??
+cfn=(35)
+calls=8 0
+0 8
+
+fl=??
+fn=(54)
+cfl=??
+cfn=(5)
+calls=1 0
+0 1
+
+fl=??
+fn=(190)
+cfl=??
+cfn=(92)
+calls=9 0
+0 9
+
+fl=??
+fn=(237) 0x00007fff69a7e64a
+0 1
+
+fl=??
+fn=(46)
+cfl=??
+cfn=(62)
+calls=3 0
+0 3
+
+fl=??
+fn=(225)
+cfl=??
+cfn=(86)
+calls=1 0
+0 1
+
+fl=??
+fn=(35)
+0 1
+
+fl=??
+fn=(92)
+cfl=??
+cfn=(80)
+calls=1 0
+0 1
+
+fl=??
+fn=(124)
+cfl=??
+cfn=(122)
+calls=2 0
+0 2
+
+fl=??
+fn=(126)
+0 4
+
