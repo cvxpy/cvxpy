@@ -1,2 +1,0 @@
-cd cvxpy/cvxcore/python
-swig -python -py3 -c++ -I../src -outcurrentdir -o cvxcore_wrap.cpp cvxcore.i

@@ -39,8 +39,6 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="problems">
@@ -167,14 +165,14 @@ accessed via the <a class="reference internal" href="#cvxpy.problems.problem.Pro
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Reports various metrics regarding the problem.</p>
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_variables">
-<code class="descname">num_scalar_variables</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_variables" title="Permalink to this definition">¶</a></dt>
+<dt id="SizeMetrics.num_scalar_variables">
+<code class="descname">num_scalar_variables</code><a class="headerlink" href="#SizeMetrics.num_scalar_variables" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>integer</em> – The number of scalar variables in the problem.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_data">
-<code class="descname">num_scalar_data</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_data" title="Permalink to this definition">¶</a></dt>
+<dt id="SizeMetrics.num_scalar_data">
+<code class="descname">num_scalar_data</code><a class="headerlink" href="#SizeMetrics.num_scalar_data" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>integer</em> – The number of scalar constants and parameters in the problem. The number of
 constants used across all matrices, vectors, in the problem.
 Some constants are not apparent when the problem is constructed: for example,
@@ -183,26 +181,26 @@ constant 1 in the denominator.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_eq_constr">
-<code class="descname">num_scalar_eq_constr</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_eq_constr" title="Permalink to this definition">¶</a></dt>
+<dt id="SizeMetrics.num_scalar_eq_constr">
+<code class="descname">num_scalar_eq_constr</code><a class="headerlink" href="#SizeMetrics.num_scalar_eq_constr" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>integer</em> – The number of scalar equality constraints in the problem.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_leq_constr">
-<code class="descname">num_scalar_leq_constr</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_leq_constr" title="Permalink to this definition">¶</a></dt>
+<dt id="SizeMetrics.num_scalar_leq_constr">
+<code class="descname">num_scalar_leq_constr</code><a class="headerlink" href="#SizeMetrics.num_scalar_leq_constr" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>integer</em> – The number of scalar inequality constraints in the problem.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.max_data_dimension">
-<code class="descname">max_data_dimension</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.max_data_dimension" title="Permalink to this definition">¶</a></dt>
+<dt id="SizeMetrics.max_data_dimension">
+<code class="descname">max_data_dimension</code><a class="headerlink" href="#SizeMetrics.max_data_dimension" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>integer</em> – The longest dimension of any data block constraint or parameter.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.max_big_small_squared">
-<code class="descname">max_big_small_squared</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.max_big_small_squared" title="Permalink to this definition">¶</a></dt>
+<dt id="SizeMetrics.max_big_small_squared">
+<code class="descname">max_big_small_squared</code><a class="headerlink" href="#SizeMetrics.max_big_small_squared" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>integer</em> – The maximum value of (big)(small)^2 over all data blocks of the problem, where
 (big) is the larger dimension and (small) is the smaller dimension
 for each data block.</p>
@@ -221,20 +219,20 @@ for each data block.</p>
 by the solver after solving but that is not captured directly by
 the Problem instance.</p>
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SolverStats.solve_time">
-<code class="descname">solve_time</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.solve_time" title="Permalink to this definition">¶</a></dt>
+<dt id="SolverStats.solve_time">
+<code class="descname">solve_time</code><a class="headerlink" href="#SolverStats.solve_time" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>double</em> – The time (in seconds) it took for the solver to solve the problem.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SolverStats.setup_time">
-<code class="descname">setup_time</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.setup_time" title="Permalink to this definition">¶</a></dt>
+<dt id="SolverStats.setup_time">
+<code class="descname">setup_time</code><a class="headerlink" href="#SolverStats.setup_time" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>double</em> – The time (in seconds) it took for the solver to setup the problem.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.problems.problem.SolverStats.num_iters">
-<code class="descname">num_iters</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.num_iters" title="Permalink to this definition">¶</a></dt>
+<dt id="SolverStats.num_iters">
+<code class="descname">num_iters</code><a class="headerlink" href="#SolverStats.num_iters" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>int</em> – The number of iterations the solver had to go through to find a solution.</p>
 </dd></dl>
 
@@ -563,7 +561,6 @@ and invoking the solver on the resulting data.</li>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -656,8 +653,8 @@ and invoking the solver on the resulting data.</li>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
       <a href="../_sources/api_reference/cvxpy.problems.rst.txt"

@@ -39,8 +39,6 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="reductions">
@@ -98,32 +96,32 @@ as might those who are simply curious to learn how CVXPY works.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>A solution to an optimization problem.</p>
 <dl class="attribute">
-<dt id="cvxpy.reductions.solution.Solution.status">
-<code class="descname">status</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.status" title="Permalink to this definition">¶</a></dt>
+<dt id="Solution.status">
+<code class="descname">status</code><a class="headerlink" href="#Solution.status" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>str</em> – The status code.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.reductions.solution.Solution.opt_val">
-<code class="descname">opt_val</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.opt_val" title="Permalink to this definition">¶</a></dt>
+<dt id="Solution.opt_val">
+<code class="descname">opt_val</code><a class="headerlink" href="#Solution.opt_val" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>float</em> – The optimal value.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.reductions.solution.Solution.primal_vars">
-<code class="descname">primal_vars</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.primal_vars" title="Permalink to this definition">¶</a></dt>
+<dt id="Solution.primal_vars">
+<code class="descname">primal_vars</code><a class="headerlink" href="#Solution.primal_vars" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>dict of id to NumPy ndarray</em> – A map from variable ids to optimal values.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.reductions.solution.Solution.dual_vars">
-<code class="descname">dual_vars</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.dual_vars" title="Permalink to this definition">¶</a></dt>
+<dt id="Solution.dual_vars">
+<code class="descname">dual_vars</code><a class="headerlink" href="#Solution.dual_vars" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>dict of id to NumPy ndarray</em> – A map from constraint ids to dual values.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.reductions.solution.Solution.attr">
-<code class="descname">attr</code><a class="headerlink" href="#cvxpy.reductions.solution.Solution.attr" title="Permalink to this definition">¶</a></dt>
+<dt id="Solution.attr">
+<code class="descname">attr</code><a class="headerlink" href="#Solution.attr" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>dict</em> – Miscelleneous information propagated up from a solver.</p>
 </dd></dl>
 
@@ -279,8 +277,8 @@ called.</td>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.reduction.Reduction</span></code></a></p>
 <p>A logical grouping of multiple reductions into a single reduction.</p>
 <dl class="attribute">
-<dt id="cvxpy.reductions.chain.Chain.reductions">
-<code class="descname">reductions</code><a class="headerlink" href="#cvxpy.reductions.chain.Chain.reductions" title="Permalink to this definition">¶</a></dt>
+<dt id="Chain.reductions">
+<code class="descname">reductions</code><a class="headerlink" href="#Chain.reductions" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>list[Reduction]</em> – A list of reductions.</p>
 </dd></dl>
 
@@ -352,14 +350,14 @@ instance.</td>
 </tbody>
 </table>
 <dl class="attribute">
-<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions">
-<code class="descname">reductions</code><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions" title="Permalink to this definition">¶</a></dt>
+<dt id="SolvingChain.reductions">
+<code class="descname">reductions</code><a class="headerlink" href="#SolvingChain.reductions" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>list[Reduction]</em> – A list of reductions.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="cvxpy.reductions.solvers.solving_chain.SolvingChain.solver">
-<code class="descname">solver</code><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver" title="Permalink to this definition">¶</a></dt>
+<dt id="SolvingChain.solver">
+<code class="descname">solver</code><a class="headerlink" href="#SolvingChain.solver" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>Solver</em> – The solver, i.e., reductions[-1].</p>
 </dd></dl>
 
@@ -443,7 +441,6 @@ a Solution object.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -537,8 +534,8 @@ a Solution object.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
       
       |
       <a href="../_sources/api_reference/cvxpy.reductions.rst.txt"
