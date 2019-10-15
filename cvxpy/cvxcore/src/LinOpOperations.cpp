@@ -793,7 +793,42 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == MUL);
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.get_args()[0]->get_shape().size() > 0);
-  Tensor mul_ten = lin_to_tensor(*lin.get_linOp_data());
+  // Get rows and cols of data (1 if not present).
+  int data_rows = (lin.get_linOp_data()->get_shape().size() >= 1)
+    ? lin.get_linOp_data()->get_shape()[0]
+    : 1;
+  int data_cols = (lin.get_linOp_data()->get_shape().size() >= 2)
+    ? lin.get_linOp_data()->get_shape()[1]
+    : 1;
+
+  int num_blocks = (lin.get_args()[0]->get_shape().size() <= 1)
+    ? 1
+    : lin.get_args()[0]->get_shape()[1];
+  // Swap rows and cols if necessary.
+  int block_rows = data_rows;
+  int block_cols = data_cols;
+  if (lin.get_args()[0]->get_shape()[0] != data_cols) {
+    block_rows = data_cols;
+    block_cols = data_rows;
+  }
+
+  LinOp data = *lin.get_linOp_data();
+  Tensor mul_ten;
+  bool data_flattened = true;
+  if (data.get_type() == SPARSE_CONST || data.get_type() == DENSE_CONST) {
+    // Fast path for when data is a sparse matrix.
+    // Needed because sparse matrices don't support
+    // vectorized views.
+    data_flattened = data_rows == 1 || data_cols == 1;
+    Matrix coeffs = get_constant_data(data, false);
+    DictMat id_to_coeffs;
+    std::vector<Matrix> mat_vec;
+    mat_vec.push_back(coeffs);
+    id_to_coeffs[CONSTANT_ID] = mat_vec;
+    mul_ten[CONSTANT_ID] = id_to_coeffs;
+  } else {
+    mul_ten = lin_to_tensor(*lin.get_linOp_data());
+  }
   // Interpret as row or column vector as needed.
   if (lin.get_data_ndim() == 1 && lin.get_args()[0]->get_shape()[0] != 1) {
     // Transpose matrices.
@@ -811,24 +846,6 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
         }
       }
     }
-  }
-  // Get rows and cols of data (1 if not present).
-  int data_rows = (lin.get_linOp_data()->get_shape().size() >= 1)
-                      ? lin.get_linOp_data()->get_shape()[0]
-                      : 1;
-  int data_cols = (lin.get_linOp_data()->get_shape().size() >= 2)
-                      ? lin.get_linOp_data()->get_shape()[1]
-                      : 1;
-
-  int num_blocks = (lin.get_args()[0]->get_shape().size() <= 1)
-                       ? 1
-                       : lin.get_args()[0]->get_shape()[1];
-  // Swap rows and cols if necessary.
-  int block_rows = data_rows;
-  int block_cols = data_cols;
-  if (lin.get_args()[0]->get_shape()[0] != data_cols) {
-    block_rows = data_cols;
-    block_cols = data_rows;
   }
 
   // TODO may need to speed up. Copying data.
@@ -857,12 +874,17 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
               // Data is flattened.
               int row;
               int col;
-              if (curr_matrix.rows() == 1) {
-                row = it.col() % block_rows;
-                col = it.col() / block_rows;
-              } else {
-                row = it.row() % block_rows;
-                col = it.row() / block_rows;
+              if (data_flattened) {
+                if (curr_matrix.rows() == 1) {
+                  row = it.col() % block_rows;
+                  col = it.col() / block_rows;
+                } else {
+                  row = it.row() % block_rows;
+                  col = it.row() / block_rows;
+                }
+              } else { // Sparse matrices may not be flattened.
+                row = it.row();
+                col = it.col();
               }
               tripletList.push_back(
                   Triplet(start_i + row, start_j + col, it.value()));

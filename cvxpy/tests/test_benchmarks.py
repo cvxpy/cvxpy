@@ -20,7 +20,6 @@ def benchmark(func, iters=1, name=None):
 
 class TestBenchmarks(BaseTest):
     def test_diffcp_sdp_example(self):
-        self.fail("This test takes too long.")
 
         def randn_symm(n):
             A = np.random.randn(n, n)
