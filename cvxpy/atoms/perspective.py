@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
-from cvxpy.reductions.dcp2cone import atom_canonicalizers
 import numpy as np
 import warnings
 
@@ -25,9 +24,6 @@ class perspective(Atom):
     def __init__(self, *args, atom=None):
         self._atom = atom
         self._atom_initialized = atom(*args[:-1])
-        if type(self._atom_initialized) not in CANON_METHODS.keys():
-            raise ValueError(f"Cannot take perspective of {atom}."
-                              "{atom} must be canonicalizable.")
         super(perspective, self).__init__(*args)
     
     def get_data(self):

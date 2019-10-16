@@ -13,10 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.reductions.dcp2cone import atom_canonicalizers
 import cvxpy as cp
 import numpy as np
-import IPython as ipy
+from cvxpy.reductions.dcp2cone import atom_canonicalizers
 from cvxpy.expressions.expression import Expression
 
 def perspective_canon(expr, args):
@@ -37,7 +36,11 @@ def perspective_canon(expr, args):
     x = args[:-1]
     t = args[-1].flatten()
 
-    underlying_canonicalizer = atom_canonicalizers.CANON_METHODS[type(expr._atom_initialized)]
+    try:
+        underlying_canonicalizer = atom_canonicalizers.CANON_METHODS[type(expr._atom_initialized)]
+    except KeyError:
+        raise ValueError(f"Cannot take perspective of {expr._atom}. "
+                         f"Must be able to canonicalize {expr.atom}.")
     s, constraints_underlying = underlying_canonicalizer(
         expr._atom_initialized,
         expr._atom_initialized.args
