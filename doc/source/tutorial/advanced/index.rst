@@ -874,6 +874,9 @@ data. As a result, subsequent rewritings of DPP problems can be substantially
 faster. CVXPY allows you to solve parametrized problems that are not DPP, but
 you won't see a speed-up when doing so.
 
+Currently, only problems that are solved by conic solvers will see
+a speed-up with DPP.
+
 The DPP ruleset
 ^^^^^^^^^^^^^^^
 DPP is a subset of DCP, with mild restrictions on how parameters can enter
