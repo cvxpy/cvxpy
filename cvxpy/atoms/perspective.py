@@ -15,20 +15,19 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.reductions.dcp2cone import atom_canonicalizers
 import numpy as np
-import scipy.sparse as sp
-import scipy as scipy
-import IPython as ipy
+import warnings
 
 class perspective(Atom):
-    """ :math:`\text{perspective}(f, x, t) = tf(x/t)` """
+    """ :math:`\text{perspective}(f)(x, t) = tf(x/t)` """
 
     def __init__(self, *args, atom=None):
-        # TODO: do not accept non-base atoms by looking up in CANON_METHODS
-        # TODO: do not accept atoms that are not superlinear
-        # https://web.stanford.edu/~boyd/papers/pdf/sw_aff_ctrl.pdf (Section 2)
         self._atom = atom
         self._atom_initialized = atom(*args[:-1])
+        if type(self._atom_initialized) not in CANON_METHODS.keys():
+            raise ValueError(f"Cannot take perspective of {atom}."
+                              "{atom} must be canonicalizable.")
         super(perspective, self).__init__(*args)
     
     def get_data(self):
@@ -43,9 +42,15 @@ class perspective(Atom):
 
         if t > 0:
             args = [a / t for a in args]
-            return t * self._atom(*args).value # we have to do this
-        elif all([np.all(a == 0) for a in args]) and t == 0:
-            return 0.0
+            return t * self._atom(*args).value
+        elif t == 0:
+            # TODO(sbarratt): make this correct for every atom
+            warnings.warn(f"Assuming {self._atom} is superlinear. If not, "
+                           "this value may be incorrect.")
+            if all([np.all(a == 0) for a in args]):
+                return 0.0
+            else:
+                return float("inf")
         else:
             return float("inf")
 
@@ -103,6 +108,7 @@ class perspective(Atom):
         if idx < len(self.args) - 1:
             return self._atom_initialized.is_incr(idx)
         else:
+            # TODO(sbarratt): check this
             return False
 
     def is_decr(self, idx):
@@ -111,6 +117,7 @@ class perspective(Atom):
         if idx < len(self.args) - 1:
             return self._atom_initialized.is_decr(idx)
         else:
+            # TODO(sbarratt): check this
             return False
 
     def validate_arguments(self):
@@ -124,12 +131,14 @@ class perspective(Atom):
         super(perspective, self).validate_arguments()
 
     def is_quadratic(self):
-        """Quadratic if XXX.
+        """Quadratic.
         """
+        # TODO(sbarratt): check this
         return False
 
     def is_qpwa(self):
-        """Quadratic of piecewise affine if XXX.
+        """Quadratic piecewise-affine.
         """
+        # TODO(sbarratt): check this
         return False
     

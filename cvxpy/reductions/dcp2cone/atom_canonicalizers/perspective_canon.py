@@ -20,28 +20,40 @@ import IPython as ipy
 from cvxpy.expressions.expression import Expression
 
 def perspective_canon(expr, args):
-    # perspective(f)(x, t) = {
-    #    tf(x/t)  if t > 0,
-    #    0        if t = 0, x = 0
-    #    infinity otherwise
-    # }     
+    """
+    perspective(f)(x, t) = {
+        tf(x/t)            if t > 0,
+        lim_{a->0} af(x/a) if t = 0
+        +infinity          otherwise
+    }     
 
-    # f(x) <= s <==> Ax + bs + c \in \mathcal K
-    # tf(x/t) <= s <==> Ax + bs + c + c(t-1) \in \mathcal K
+    If we have:
+        f(x) <= s <==> Ax + bs + c \in \mathcal K
+    Then:
+        perspective(f)(x, t) <= s <==> Ax + bs + c + c(t-1) \in \mathcal K
+    See https://web.stanford.edu/~boyd/papers/pdf/sw_aff_ctrl.pdf
+    """
 
     x = args[:-1]
     t = args[-1].flatten()
 
     underlying_canonicalizer = atom_canonicalizers.CANON_METHODS[type(expr._atom_initialized)]
-    s, constraints_underlying = underlying_canonicalizer(expr._atom_initialized, expr._atom_initialized.args)
+    s, constraints_underlying = underlying_canonicalizer(
+        expr._atom_initialized,
+        expr._atom_initialized.args
+    )
 
-    # set s (or all variables in s) to zero
+    # set s (or all variables inside s) to zero
     if isinstance(s, cp.Variable):
         s.value = np.zeros(s.shape)
     elif isinstance(s, Expression):
         for var in s.variables():
             var.value = np.zeros(var.shape)
+    else:
+        raise ValueError(f"perspective canon does not support {expr._atom}.")
 
+    # For each constraint, find the offset, and create a new constraint:
+    #   Ax + bs + c + c(t-1) \in \mathcal K 
     constraints = []
     for constraint in constraints_underlying:
         constraint_arguments = []
@@ -56,7 +68,8 @@ def perspective_canon(expr, args):
                 var.value = np.zeros(var.shape)
             
             # create new constraint for perspective
-            constraint_arguments.append(arg + arg.value[:] * (t - 1.0))
+            c = arg.value[:]
+            constraint_arguments.append(arg + c * (t - 1.0))
 
             # reset variables to previous values
             for var, value in zip(arg.variables(), var_values):
