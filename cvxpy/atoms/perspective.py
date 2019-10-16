@@ -18,6 +18,7 @@ from cvxpy.atoms.atom import Atom
 import numpy as np
 import warnings
 
+
 class perspective(Atom):
     """ :math:`\text{perspective}(f)(x, t) = tf(x/t)` """
 
@@ -25,10 +26,10 @@ class perspective(Atom):
         self._atom = atom
         self._atom_initialized = atom(*args[:-1])
         super(perspective, self).__init__(*args)
-    
+
     def get_data(self):
         return [self._atom, self._atom_initialized]
-    
+
     @Atom.numpy_numeric
     def numeric(self, values):
         """Returns the evaluation of the perspective.
@@ -41,8 +42,8 @@ class perspective(Atom):
             return t * self._atom(*args).value
         elif t == 0:
             # TODO(sbarratt): make this correct for every atom
-            warnings.warn(f"Assuming {self._atom} is superlinear. If not, "
-                           "this value may be incorrect.")
+            warnings.warn(f"Assuming {self._atom} is superlinear. If not, \
+                this value may be incorrect.")
             if all([np.all(a == 0) for a in args]):
                 return 0.0
             else:
@@ -137,4 +138,3 @@ class perspective(Atom):
         """
         # TODO(sbarratt): check this
         return False
-    

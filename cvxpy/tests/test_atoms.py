@@ -976,7 +976,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.value, 0.0)
         x.value = 2
         self.assertEqual(expr.value, np.inf)
-    
+
     def test_perspective(self):
         np.random.seed(0)
 
@@ -989,14 +989,18 @@ class TestAtoms(BaseTest):
         x.value = np.ones(n)
         t.value = np.ones(1)*1
 
-        quad_over_lin = lambda x, t: cp.perspective(x, t, atom=lambda x: cp.quad_form(x, P))
+        def quad_over_lin(x, t):
+            return cp.perspective(x, t, atom=lambda x: cp.quad_form(x, P))
         objective = quad_over_lin(x, t)
 
         prob = cp.Problem(cp.Minimize(objective), [x >= 1.0, t <= 1.0])
         result_perspective = prob.solve(solver=cp.SCS, eps=1e-12)
         x_perspective = x.value[:]
 
-        prob = cp.Problem(cp.Minimize(cp.quad_over_lin(np.linalg.cholesky(P).T * x, t)), [x >= 1.0, t <= 1.0])
+        prob = cp.Problem(
+            cp.Minimize(cp.quad_over_lin(np.linalg.cholesky(P).T * x, t)),
+            [x >= 1.0, t <= 1.0]
+        )
         result = prob.solve(solver=cp.SCS, eps=1e-12)
 
         self.assertAlmostEqual(result_perspective, result)

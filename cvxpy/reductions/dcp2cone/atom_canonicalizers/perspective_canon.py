@@ -18,13 +18,13 @@ import numpy as np
 from cvxpy.reductions.dcp2cone import atom_canonicalizers
 from cvxpy.expressions.expression import Expression
 
+
 def perspective_canon(expr, args):
     """
-    perspective(f)(x, t) = {
+    perspective(f)(x, t) =
         tf(x/t)            if t > 0,
         lim_{a->0} af(x/a) if t = 0
         +infinity          otherwise
-    }     
 
     If we have:
         f(x) <= s <==> Ax + bs + c \in \mathcal K
@@ -32,8 +32,6 @@ def perspective_canon(expr, args):
         perspective(f)(x, t) <= s <==> Ax + bs + c + c(t-1) \in \mathcal K
     See https://web.stanford.edu/~boyd/papers/pdf/sw_aff_ctrl.pdf
     """
-
-    x = args[:-1]
     t = args[-1].flatten()
 
     try:
@@ -56,7 +54,7 @@ def perspective_canon(expr, args):
         raise ValueError(f"perspective canon does not support {expr._atom}.")
 
     # For each constraint, find the offset, and create a new constraint:
-    #   Ax + bs + c + c(t-1) \in \mathcal K 
+    #   Ax + bs + c + c(t-1) \in \mathcal K
     constraints = []
     for constraint in constraints_underlying:
         constraint_arguments = []
@@ -69,7 +67,7 @@ def perspective_canon(expr, args):
                     continue
                 var_values.append(var.value[:])
                 var.value = np.zeros(var.shape)
-            
+
             # create new constraint for perspective
             c = arg.value[:]
             constraint_arguments.append(arg + c * (t - 1.0))
@@ -79,7 +77,7 @@ def perspective_canon(expr, args):
                 if var.is_constant():
                     continue
                 var.value = value
-        
+
         constraints += [type(constraint)(*constraint_arguments)]
 
     return s, constraints
