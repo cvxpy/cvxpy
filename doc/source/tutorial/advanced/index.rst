@@ -855,6 +855,187 @@ to a solution of the other.
 Reductions take a CVXPY Problem as input and output a CVXPY Problem.
 The full set of reductions available is discussed in :ref:`reductions-api`.
 
+
+.. _dpp:
+
+Disciplined Parametrized Programming
+------------------------------------
+:py:class:`Parameters <cvxpy.expressions.constants.parameter.Parameter>` are
+symbolic representations of constants. Using parameters lets you modify the
+values of constants without reconstructing the entire problem. When your
+parametrized problem is constructed according to *Disciplined Parametrized
+Programming (DPP)*, solving it repeatedly, for different values of the
+parameters, can be much faster than repeatedly solving a new problem.
+
+DPP is a ruleset for producing parametrized DCP-compliant problems that
+CVXPY can re-canonicalize very quickly. The first time a DPP-compliant problem
+is solved, CVXPY compiles it and caches the mapping from parameters to problem
+data. As a result, subsequent rewritings of DPP problems can be substantially
+faster. CVXPY allows you to solve parametrized problems that are not DPP, but
+you won't see a speed-up when doing so.
+
+The DPP ruleset
+^^^^^^^^^^^^^^^
+DPP is a subset of DCP, with mild restrictions on how parameters can enter
+expressions. In DPP, an expression is said to be parameter-affine if it does
+not involve variables and is affine in its parameters, and it is variable-free
+if it does not have variables. DPP introduces two restrictions to DCP:
+
+1. Under DPP, all parameters are classified as affine, just like variables.
+2. Under DPP, the product of two expressions is affine when
+   at least one of the expressions is constant, or when one of the
+   expressions is parameter-affine and the other is parameter-free.
+
+An expression is DPP-compliant if it DCP-compliant, subject to these two
+restrictions. You can check whether an expression or problem is DPP-compliant
+by calling the ``is_dpp`` method. For example,
+
+.. code:: python
+
+    import cvxpy as cp
+
+
+    m, n = 3, 2
+    x = cp.Variable((n, 1))
+    F = cp.Parameter((m, n)) 
+    G = cp.Parameter((m, n)) 
+    g = cp.Parameter((m, 1))
+    gamma = cp.Parameter(nonneg=True) 
+
+    objective = cp.norm((F + G) @ x - g) + gamma * cp.norm(x)
+    print(objective.is_dpp())
+
+prints ``True``. We can walk through the DPP analysis to understand why
+``objective`` is DPP-compliant. The product ``(F + G) @ x`` is affine under DPP,
+because ``F + G`` is parameter-affine and ``x`` is variable-free. The difference
+``(F + G) @ x - g`` is affine because the addition atom is affine and both
+``(F + G) @ x`` and  ``- g`` are affine. The product ``gamma * cp.norm(x)`` is convex because
+``cp.norm(x)`` is convex, the product is affine because ``gamma`` is
+parameter-affine and ``cp.norm(x)`` is variable-free, and the expression
+``gamma * cp.norm(x)`` is convex because the product is increasing in its second
+argument (since ``gamma`` is nonnegative).
+
+Some expressions are DCP-compliant but not DPP-compliant. For example,
+DPP forbids taking the product of two parametrized expressions:
+
+.. code:: python
+
+    import cvxpy as cp
+
+
+    x = cp.Variable()
+    gamma = cp.Parameter(nonneg=True)
+    problem = cp.Problem(cp.Minimize(gamma * gamma * x), [x >= 1])
+    print("Is DPP? ", problem.is_dpp())
+    print("Is DCP? ", problem.is_dcp())
+
+This code snippet prints
+
+::
+
+    Is DPP? False
+    Is DCP? True
+
+Just as it is possible to rewrite non-DCP problems in DCP-compliant ways, it is
+also possible to re-express non-DPP problems in DPP-compliant ways. For
+example, the above problem can be equivalently written as
+
+.. code:: python
+
+    import cvxpy as cp
+
+
+    x = cp.Variable()
+    y = cp.Variable()
+    gamma = cp.Parameter(nonneg=True)
+    problem = cp.Problem(cp.Minimize(gamma * y), [y == gamma * x])
+    print("Is DPP? ", problem.is_dpp())
+    print("Is DCP? ", problem.is_dcp())
+
+This snippet prints 
+
+::
+
+    Is DPP? True
+    Is DCP? True
+
+In other cases, you can represent non-DPP transformations of parameters
+by doing them outside of the DSL, e.g., in NumPy. For example, 
+if ``P`` is a parameter and ``x`` is a variable, ``cp.quad_form(x, P)`` is not
+DPP. You can represent a parametric quadratic form like so:
+
+.. code:: python
+
+  import cvxpy as cp
+  import numpy as np
+  import scipy.linalg
+
+
+  n = 4
+  L = np.random.randn(n, n)
+  P = L.T @ L
+  P_sqrt = cp.Parameter((n, n))
+  x = cp.Variable((n, 1))
+  quad_form = cp.sum_squares(P_sqrt @ x)
+  P_sqrt.value = scipy.linalg.sqrtm(P)
+  assert quad_form.is_dpp()
+
+As another example, the quotient ``expr / p`` is not DPP-compliant when ``p`` is
+a parameter, but this can be rewritten as ``expr * p_tilde``, where ``p_tilde`` is
+a parameter that represents ``1/p``.
+
+Repeatedly solving a DPP problem
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The following example demonstrates how parameters can speed-up repeated
+solves of a DPP problem.
+
+.. code:: python
+
+    import cvxpy as cp
+    import numpy
+    import matplotlib.pyplot as plt
+    import time
+
+    n = 15
+    m = 10
+    numpy.random.seed(1)
+    A = numpy.random.randn(n, m)
+    b = numpy.random.randn(n)
+    # gamma must be nonnegative due to DCP rules.
+    gamma = cp.Parameter(nonneg=True)
+
+    x = cp.Variable(m)
+    error = cp.sum_squares(A*x - b)
+    obj = cp.Minimize(error + gamma*cp.norm(x, 1))
+    problem = cp.Problem(obj)
+    assert problem.is_dpp()
+
+    gamma_vals = numpy.logspace(-4, 1)
+    times = []
+    new_problem_times = []
+    for val in gamma_vals:
+        gamma.value = val
+        start = time.time()
+        problem.solve(cp.SCS)
+        end = time.time()
+        times.append(end - start)
+        new_problem = cp.Problem(obj)
+        start = time.time()
+        new_problem.solve(cp.SCS)
+        end = time.time()
+        new_problem_times.append(end - start)
+
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    plt.figure(figsize=(6, 6))
+    plt.plot(gamma_vals, times, label='Re-solving a DPP problem')
+    plt.plot(gamma_vals, new_problem_times, label='Solving a new problem')
+    plt.xlabel(r'$\gamma$', fontsize=16)
+    plt.ylabel(r'time (s)', fontsize=16)
+    plt.legend()
+
+.. image:: advanced_files/resolving_dpp.png
+
 .. _OSQP: https://osqp.org/
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
