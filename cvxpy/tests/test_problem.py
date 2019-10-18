@@ -1789,7 +1789,6 @@ class TestProblem(BaseTest):
                             [0, 0, 0, -1, 1, 0]], dtype=np.int8)
         D_sparse = sp.coo_matrix(D_dense)
 
-
         def make_problem(D):
             obj = cp.Minimize(0.5 * cp.quad_form(a, P) - a.T * q)
             assert obj.is_dcp()
@@ -1802,17 +1801,14 @@ class TestProblem(BaseTest):
             assert prob.status == 'optimal'
             return prob
 
-
         expected_coef = np.array([
             [-0.011728003147, 0.011728002895, 0.000000000252,
-            -0.017524801335, 0.017524801335, 0.]])
+             -0.017524801335, 0.017524801335, 0.]])
 
-        prob_dense = make_problem(D_dense)
+        make_problem(D_dense)
         coef_dense = a.value.T.dot(D_dense)
-
         np.testing.assert_almost_equal(expected_coef, coef_dense)
 
-        prob_spars = make_problem(D_sparse)
+        make_problem(D_sparse)
         coef_sparse = a.value.T * D_sparse
-
         np.testing.assert_almost_equal(expected_coef, coef_sparse)

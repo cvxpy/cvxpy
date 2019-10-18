@@ -41,7 +41,8 @@ class SparseMatrixInterface(NDArrayInterface):
             return sp.csc_matrix(value, dtype=np.double).T
         if value.dtype in [np.double, np.complex]:
             dtype = value.dtype
-        else: # Cast bool, int, etc to double
+        else:
+            # Cast bool, int, etc to double
             dtype = np.double
         return sp.csc_matrix(value, dtype=dtype)
 
