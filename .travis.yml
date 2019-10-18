@@ -5,19 +5,19 @@ os:
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="2.7" CVXOPT="true"
-      NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
+      NUMPY_VERSION="1.15" SCIPY_VERSION="1.2.0"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
     - DISTRIB="conda" PYTHON_VERSION="3.5" CVXOPT="true"
-      NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
+      NUMPY_VERSION="1.15" SCIPY_VERSION="1.2.0"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
     - DISTRIB="conda" PYTHON_VERSION="3.6" CVXOPT="true"
-      NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
+      NUMPY_VERSION="1.15" SCIPY_VERSION="1.2.0"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="True"
     - DISTRIB="conda" PYTHON_VERSION="3.7" CVXOPT="false"
-      NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
+      NUMPY_VERSION="1.15" SCIPY_VERSION="1.2.0"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
 sudo: required
