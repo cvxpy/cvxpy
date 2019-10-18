@@ -35,7 +35,7 @@ class NonCvxVariable(cvxpy.Variable):
 
     # Verify that the matrix has the same dimensions as the variable.
     def validate_matrix(self, matrix):
-        if self.size != intf.size(matrix):
+        if self.size != intf.shape(matrix):
             raise Exception(("The argument's dimensions must match "
                              "the variable's dimensions."))
 
@@ -47,7 +47,7 @@ class NonCvxVariable(cvxpy.Variable):
     # Project the matrix into the space defined by the non-convex constraint.
     # Returns the updated matrix.
     @abc.abstractmethod
-    def _round(matrix):
+    def _round(self, matrix):
         return NotImplemented
 
     # Wrapper to validate matrix and update curvature.

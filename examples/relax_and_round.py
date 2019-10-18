@@ -94,7 +94,7 @@ numpy.random.seed(1)
 # Min sum_squares(A*x + B*z - c)
 # z boolean.
 def example(n, get_vals=False):
-    print "n = %d #################" % n
+    print ("n = %d #################" % n)
     m = 2*n
     A = numpy.matrix(numpy.random.randn(m, n))
     B = numpy.matrix(numpy.random.randn(m, n))
@@ -111,13 +111,13 @@ def example(n, get_vals=False):
     obj = sum_squares(A*x + B*z - c)
     prob = Problem(Minimize(obj))
     relaxation = cvx_relax(prob)
-    print "relaxation", relaxation.solve()
+    print ("relaxation", relaxation.solve())
     rel_z = z.value
     rounded = round_and_fix(relaxation)
     rounded.solve()
-    print "relax and round", rounded.value
+    print ("relax and round", rounded.value)
     truth, true_z = branch_and_bound(n, A, B, c)
-    print "true optimum", truth
+    print ("true optimum", truth)
     if get_vals:
         return (rel_z, z.value, true_z)
     return (relaxation.value, rounded.value, truth)
@@ -142,7 +142,7 @@ truth = []
 vals = range(1, 36)
 for n in vals:
     results = example(n)
-    results = map(lambda x: numpy.around(x, 3), results)
+    results = list(map(lambda x: numpy.around(x, 3), results))
     relaxed.append(results[0])
     rounded.append(results[1])
     truth.append(results[2])

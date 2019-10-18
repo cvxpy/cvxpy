@@ -24,6 +24,9 @@ n = 75
 np.random.seed(1)
 A = np.random.randn(m, n)
 b = np.random.randn(m, 1)
+gamma = 0.1
+
+NUM_PROCS = 4
 
 def prox(args):
     f, v = args
@@ -56,5 +59,5 @@ for i in range(50):
 # Compare ADMM with standard solver.
 prob = Problem(Minimize(sum(funcs)))
 result = prob.solve()
-print "ADMM best", (sum_squares(np.dot(A, xbar) - b) + gamma*norm(xbar, 1)).value
-print "ECOS best", result
+print("ADMM best", (sum_squares(np.dot(A, xbar) - b) + gamma*norm(xbar, 1)).value)
+print("ECOS best", result)

@@ -28,9 +28,9 @@ N = 50
 M = 40
 n = 10
 data = []
-for i in xrange(N):
+for i in range(N):
     data += [(1, np.random.normal(1.0, 2.0, (n, 1)))]
-for i in xrange(M):
+for i in range(M):
     data += [(-1, np.random.normal(-1.0, 2.0, (n, 1)))]
 
 # Construct problem.
@@ -52,6 +52,6 @@ for label, sample in data:
     if not label*(a.value.T*sample - b.value)[0] >= 0:
         error += 1
 
-print "%s misclassifications" % error
-print a.value
-print b.value
+print("%s misclassifications" % error)
+print(a.value)
+print(b.value)
