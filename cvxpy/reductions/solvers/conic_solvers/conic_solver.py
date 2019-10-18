@@ -265,9 +265,12 @@ class ConicSolver(Solver):
             # TODO(akshayka): profile to see whether using linear operators
             # or bmat is faster
             restruct_mat = as_block_diag_linear_operator(restruct_mat)
+            # cast to int64 to avoid an overflow bug in scipy
+            problem.A.indices = problem.A.indices.astype(np.int64)
+            problem.A.indptr = problem.A.indptr.astype(np.int64)
             # this is equivalent to but _much_ faster than:
-            #  restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
-            #  restruct_A = restruct_mat_rep * problem.A
+            #    restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
+            #    restruct_A = restruct_mat_rep * problem.A
             reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F').tocsr()
             restructured_A = restruct_mat(reshaped_A).reshape(
                 restruct_mat.shape[0] * (problem.x.size + 1),
