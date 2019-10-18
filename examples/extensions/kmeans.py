@@ -32,11 +32,12 @@ from sklearn.preprocessing import scale
 np.random.seed(42)
 
 digits = load_digits()
-data = scale(digits.data)
+data, target = tuple(digits)
+data = scale(data)
 
 n_samples, n_features = data.shape
-n_digits = len(np.unique(digits.target))
-labels = digits.target
+n_digits = len(np.unique(target))
+labels = target
 
 sample_size = 300
 
@@ -101,7 +102,6 @@ plt.figure(1)
 plt.clf()
 plt.imshow(Z, interpolation='nearest',
            extent=(xx.min(), xx.max(), yy.min(), yy.max()),
-           cmap=plt.cm.Paired,
            aspect='auto', origin='lower')
 
 plt.plot(reduced_data[:, 0], reduced_data[:, 1], 'k.', markersize=2)

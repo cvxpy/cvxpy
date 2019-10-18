@@ -47,7 +47,7 @@ def FMMC(g,verbose=False):
       if i!=j: constraints.append(P[i,j]==0)
   prob=cvxpy.Problem(objective,constraints)
   prob.solve()
-  if verbose: print 'status: %s.'%prob.status,'optimal value=%.6f'%prob.value
+  if verbose: print('status: %s.'%prob.status,'optimal value=%.6f'%prob.value)
   return prob.status,prob.value,P.value
 
 def print_result(P,n,eps=1e-8):
@@ -55,24 +55,24 @@ def print_result(P,n,eps=1e-8):
     for i in range(n):
       x=row[0,i]
       if abs(x)<eps: x=0.0
-      print '%8.4f'%x,
+      print('%8.4f'%x)
     print
 
 def examples_p674():
-  print 'SIAM Rev. 46 examples p.674: Figure 1 and Table 1'
-  print '(a) line graph L(4)'
+  print('SIAM Rev. 46 examples p.674: Figure 1 and Table 1')
+  print('(a) line graph L(4)')
   g={0:(1,),1:(0,2,),2:(1,3,),3:(2,)}
   status,value,P=FMMC(g,verbose=True)
   print_result(P,len(g))
-  print '(b) triangle+one edge'
+  print('(b) triangle+one edge')
   g={0:(1,),1:(0,2,3,),2:(1,3,),3:(1,2,)}
   status,value,P=FMMC(g,verbose=True)
   print_result(P,len(g))
-  print '(c) bipartite 2+3'
+  print('(c) bipartite 2+3')
   g={0:(1,3,4,),1:(0,2,),2:(1,3,4,),3:(0,2,),4:(0,2,)}
   status,value,P=FMMC(g,verbose=True)
   print_result(P,len(g))
-  print '(d) square+central point'
+  print('(d) square+central point')
   g={0:(1,2,4,),1:(0,3,4,),2:(0,3,4,),3:(1,2,4,),4:(0,1,2,3,4,)}
   status,value,P=FMMC(g,verbose=True)
   print_result(P,len(g))

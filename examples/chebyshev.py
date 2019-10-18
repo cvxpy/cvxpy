@@ -66,8 +66,8 @@ p = Problem(objective, constraints)
 # The optimal objective is returned by p.solve().
 result = p.solve()
 # The optimal value
-print radius.value
-print center.value
+print(radius.value)
+print(center.value)
 # Convert to 1D array.
 center_val = np.asarray(center.value[:,0])
 

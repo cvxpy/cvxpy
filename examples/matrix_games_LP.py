@@ -65,20 +65,20 @@ p1 = Problem(objective1, constraints1)
 p2 = Problem(objective2, constraints2)
 
 # Optimal strategy for Player 1
-print 'Computing the optimal strategy for player 1 ... '
+print('Computing the optimal strategy for player 1 ... ')
 result1 = p1.solve()
-print 'Done!'
+print('Done!')
 
 # Optimal strategy for Player 2
-print 'Computing the optimal strategy for player 2 ... '
+print('Computing the optimal strategy for player 2 ... ')
 result2 = p2.solve()
-print 'Done!'
+print('Done!')
 
 # Displaying results
-print '------------------------------------------------------------------------'
-print 'The optimal strategies for players 1 and 2 are respectively: '
-print x.value, y.value
-print 'The expected payoffs for player 1 and player 2 respectively are: '
-print result1, result2
-print 'They are equal as expected!'
+print('------------------------------------------------------------------------')
+print('The optimal strategies for players 1 and 2 are respectively: ')
+print(x.value, y.value)
+print('The expected payoffs for player 1 and player 2 respectively are: ')
+print(result1, result2)
+print('They are equal as expected!')
 ## ISSUE: THEY AREN'T EXACTLY EQUAL FOR SOME REASON!

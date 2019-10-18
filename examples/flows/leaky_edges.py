@@ -15,8 +15,8 @@ limitations under the License.
 """
 
 from cvxpy import *
-import create_graph as g
-from max_flow import Node, Edge
+from .create_graph import FILE, NODE_COUNT_KEY, EDGES_KEY
+from .max_flow import Node, Edge
 import pickle
 
 # Max-flow with different kinds of edges.
@@ -52,12 +52,12 @@ class LeakyUndirected(Edge):
 
 if __name__ == "__main__":
     # Read a graph from a file.
-    f = open(g.FILE, 'r')
+    f = open(FILE, 'r')
     data = pickle.load(f)
     f.close()
 
     # Construct nodes.
-    node_count = data[g.NODE_COUNT_KEY]
+    node_count = data[NODE_COUNT_KEY]
     nodes = [Node() for i in range(node_count)]
     # Add source.
     nodes[0].accumulation = Variable()
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 
     # Construct edges.
     edges = []
-    for n1,n2,capacity in data[g.EDGES_KEY]:
+    for n1,n2,capacity in data[EDGES_KEY]:
         edges.append(LeakyUndirected(capacity))
         edges[-1].connect(nodes[n1], nodes[n2])
 
@@ -76,4 +76,4 @@ if __name__ == "__main__":
         constraints += o.constraints()
     p = Problem(Maximize(nodes[-1].accumulation), constraints)
     result = p.solve()
-    print result
+    print(result)

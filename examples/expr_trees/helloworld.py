@@ -49,4 +49,4 @@ constraints = [x >= 0]
 prob = Problem(Minimize(obj), constraints)
 result = prob.solve(solver=SCS, verbose=True)
 
-print norm(signal - x.value, 1).value
+print(norm(signal - x.value, 1).value)

@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy import *
-from itertools import izip, imap
 import cvxopt
 import pylab
 import math
@@ -51,11 +50,11 @@ img_gradx, img_grady = grad(img,'x'), grad(img,'y')
 # filter them (remove ones with small magnitude)
 
 def denoise(gradx, grady, thresh):
-    for dx, dy in izip(gradx, grady):
+    for dx, dy in zip(gradx, grady):
          if math.sqrt(dx*dx + dy*dy) >= thresh: yield (dx,dy)
          else: yield (0.0,0.0)
 
-denoise_gradx, denoise_grady = izip(*denoise(img_gradx, img_grady, 0.2))
+denoise_gradx, denoise_grady = zip(*denoise(img_gradx, img_grady, 0.2))
 
 # function to get boundary of image
 def boundary(img):
@@ -67,8 +66,8 @@ def boundary(img):
 
 # now, reconstruct the image by solving a constrained least-squares problem
 new_img = Variable(n,n)
-gradx_obj = imap(square, (fx - gx for fx, gx in izip(grad(new_img,'x'),denoise_gradx)))
-grady_obj = imap(square, (fy - gy for fy, gy in izip(grad(new_img,'y'),denoise_grady)))
+gradx_obj = map(square, (fx - gx for fx, gx in zip(grad(new_img,'x'),denoise_gradx)))
+grady_obj = map(square, (fy - gy for fy, gy in zip(grad(new_img,'y'),denoise_grady)))
 
 p = Problem(
     Minimize(sum(gradx_obj) + sum(grady_obj)),
@@ -80,4 +79,4 @@ plt = pylab.imshow(new_img.value)
 plt.set_cmap('gray')
 pylab.show()
 
-print new_img.value
+print(new_img.value)

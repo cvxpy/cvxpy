@@ -37,7 +37,7 @@ D.data = np.random.randn(len(D.data))**2
 # Z = np.cov(vals)
 Z = np.random.normal(size=(m, m))
 Z = Z.T.dot(Z)
-print Z.shape
+print(Z.shape)
 
 x = Variable(n)
 y = x.__rmul__(F)
@@ -51,23 +51,23 @@ constraints_longonly = [sum(x) == 1, x >= 0]
 prob = Problem(objective, constraints_longonly)
 #constraints_totalshort = [sum(x) == 1, one.T * max(-x, 0) <= 0.5]
 import time
-print "starting problems"
+print("starting problems")
 
 start = time.clock()
 prob.solve(verbose=True, solver=SCS)
 elapsed = (time.clock() - start)
-print "SCS time:", elapsed
-print prob.value
+print("SCS time:", elapsed)
+print(prob.value)
 
 start = time.clock()
 prob.solve(verbose=True, solver=ECOS)
 elapsed = (time.clock() - start)
-print "ECOS time:", elapsed
-print prob.value
+print("ECOS time:", elapsed)
+print(prob.value)
 
 start = time.clock()
 prob.solve(verbose=True, solver=CVXOPT)
 elapsed = (time.clock() - start)
-print "CVXOPT time:", elapsed
-print prob.value
+print("CVXOPT time:", elapsed)
+print(prob.value)
 

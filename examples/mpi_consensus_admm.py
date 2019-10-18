@@ -26,6 +26,7 @@ import operator as op
 import numpy as np
 from numpy.random import randn
 import dill
+from functools import reduce
 
 # Initialize the problem.
 n = 1000
@@ -74,4 +75,4 @@ for i in range(10):
         pool.map(apply_f, zip(functions, len(functions)*[xbar]))
     )
     xbar = total/len(functions)
-    print i
+    print(i)

@@ -49,8 +49,8 @@ def plot_regularization_path(lambd_values, beta_values):
     plt.xscale("log")
     plt.title("Regularization Path")
     plt.show()
-    
-    
+
+
 if __name__ == "__main__":
     m = 100
     n = 20
