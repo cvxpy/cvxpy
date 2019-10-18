@@ -272,7 +272,10 @@ class ConicSolver(Solver):
             #    restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
             #    restruct_A = restruct_mat_rep * problem.A
             reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F').tocsr()
-            restructured_A = restruct_mat(reshaped_A).reshape(
+            restructured_A = restruct_mat(reshaped_A).tocsc()
+            restructured_A.indices = restructured_A.indices.astype(np.int64)
+            restructured_A.indptr = restructured_A.indptr.astype(np.int64)
+            restructured_A = restructured_A.reshape(
                 restruct_mat.shape[0] * (problem.x.size + 1),
                 problem.A.shape[1], order='F')
         else:
