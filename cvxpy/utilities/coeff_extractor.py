@@ -36,8 +36,11 @@ class CoeffExtractor(object):
 
     def __init__(self, inverse_data):
         self.id_map = inverse_data.var_offsets
-        self.N = inverse_data.x_length
+        self.x_length = inverse_data.x_length
         self.var_shapes = inverse_data.var_shapes
+        self.param_shapes = inverse_data.param_shapes
+        self.param_to_size = inverse_data.param_to_size
+        self.param_id_map = inverse_data.param_id_map
 
     def get_coeffs(self, expr):
         if expr.is_constant():
@@ -55,7 +58,11 @@ class CoeffExtractor(object):
                                                          order='F')
 
     def affine(self, expr):
-        """Extract A, b from an expression that is reducable to A*x + b.
+        """Extract problem data tensor from an expression that is reducible to
+        A*x + b.
+
+        Applying the tensor to a flattened parameter vector and reshaping
+        will recover A and b (see the helpers in canonInterface).
 
         Parameters
         ----------
@@ -65,32 +72,37 @@ class CoeffExtractor(object):
         Returns
         -------
         SciPy CSR matrix
-            The coefficient matrix A of shape (np.prod(expr.shape), self.N).
-        NumPy.ndarray
-            The offset vector b of shape (np.prod(expr.shape,)).
+            Problem data tensor, of shape
+            (constraint length * (variable length + 1), parameter length + 1)
         """
         if isinstance(expr, list):
             expr_list = expr
         else:
             expr_list = [expr]
-        size = sum([e.size for e in expr_list])
+        assert all([e.is_dpp() for e in expr_list])
+        num_rows = sum([e.size for e in expr_list])
         op_list = [e.canonical_form[0] for e in expr_list]
-        V, I, J, b = canonInterface.get_problem_matrix(op_list, self.id_map)
-        A = sp.csr_matrix((V, (I, J)), shape=(size, self.N))
-        return A, b.flatten()
+        return canonInterface.get_problem_matrix(op_list,
+                                                 self.x_length,
+                                                 self.id_map,
+                                                 self.param_to_size,
+                                                 self.param_id_map,
+                                                 num_rows)
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
         """ Assumes quadratic forms all have variable arguments.
             Affine expressions can be anything.
         """
-
+        assert affine_expr.is_dpp()
         # Extract affine data.
         affine_problem = cvxpy.Problem(Minimize(affine_expr), [])
         affine_inverse_data = InverseData(affine_problem)
         affine_id_map = affine_inverse_data.id_map
         affine_var_shapes = affine_inverse_data.var_shapes
         extractor = CoeffExtractor(affine_inverse_data)
-        c, b = extractor.affine(affine_problem.objective.expr)
+        coeffs = extractor.affine(affine_problem.objective.expr)
+        c = coeffs[:-1].A.flatten()
+        b = coeffs[-1, 0]
 
         # Combine affine data with quadforms.
         coeffs = {}
@@ -101,16 +113,16 @@ class CoeffExtractor(object):
                 var_offset = affine_id_map[var_id][0]
                 var_size = affine_id_map[var_id][1]
                 if quad_forms[var_id][2].P.value is not None:
-                    c_part = c[0, var_offset:var_offset+var_size].toarray().flatten()
+                    c_part = c[var_offset:var_offset+var_size]
                     P = quad_forms[var_id][2].P.value
                     if sp.issparse(P):
                         P = P.toarray()
+                    # NB: this is _not_ matrix multiplication
                     P = c_part * P
                 else:
-                    P = sp.diags(c[0, var_offset:var_offset+var_size].toarray().flatten())
+                    P = sp.diags(c[var_offset:var_offset+var_size])
                 if orig_id in coeffs:
                     coeffs[orig_id]['P'] += P
-                    coeffs[orig_id]['q'] += np.zeros(P.shape[0])
                 else:
                     coeffs[orig_id] = dict()
                     coeffs[orig_id]['P'] = P
@@ -120,13 +132,11 @@ class CoeffExtractor(object):
                 var_size = np.prod(affine_var_shapes[var.id], dtype=int)
                 if var.id in coeffs:
                     coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] += c[
-                        0, var_offset:var_offset+var_size].toarray().flatten()
+                    coeffs[var.id]['q'] += c[var_offset:var_offset+var_size]
                 else:
                     coeffs[var.id] = dict()
                     coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] = c[
-                        0, var_offset:var_offset+var_size].toarray().flatten()
+                    coeffs[var.id]['q'] = c[var_offset:var_offset+var_size]
         return coeffs, b
 
     def quad_form(self, expr):
@@ -163,10 +173,10 @@ class CoeffExtractor(object):
                 P = sp.block_diag([P, sp.csr_matrix((size, size))])
                 q = np.concatenate([q, np.zeros(size)])
 
-        # TODO(akshayka): This chain of != smells of a bug.
-        if P.shape[0] != P.shape[1] != self.N or q.shape[0] != self.N:
+        if (P.shape[0] != P.shape[1] and P.shape[1] != self.x_length) or \
+           q.shape[0] != self.x_length:
             raise RuntimeError("Resulting quadratic form does not have "
                                "appropriate dimensions")
-        if constant.size != 1:
+        if not np.isscalar(constant):
             raise RuntimeError("Constant must be a scalar")
-        return P.tocsr(), q, constant[0]
+        return P.tocsr(), q, constant

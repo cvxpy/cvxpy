@@ -73,7 +73,7 @@ class CPLEX(SCS):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(CPLEX, self).apply(problem)
-        variables = problem.variables()[0]
+        variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
@@ -391,7 +391,7 @@ class CPLEX(SCS):
             val = [x for x in csr[i].data]
             lin_expr.append([ind, val])
             rhs.append(vec[i])
-        # For better performance, we add the contraints in a batch.
+        # For better performance, we add the constraints in a batch.
         if lin_expr:
             assert len(lin_expr) == len(rhs)
             constr.extend(list(

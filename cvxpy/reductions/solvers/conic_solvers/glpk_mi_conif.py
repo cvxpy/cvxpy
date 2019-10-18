@@ -42,7 +42,7 @@ class GLPK_MI(GLPK):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(GLPK_MI, self).apply(problem)
-        var = problem.variables()[0]
+        var = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in var.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
         return data, inv_data
@@ -91,6 +91,6 @@ class GLPK_MI(GLPK):
             # No dual variables.
             solution[s.PRIMAL] = intf.cvxopt2dense(results_dict['x'])
             primal_val = (data[s.C].T*results_dict['x'])[0]
-            solution[s.VALUE] = primal_val + data[s.OFFSET]
+            solution[s.VALUE] = primal_val
 
         return solution

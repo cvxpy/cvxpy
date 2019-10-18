@@ -73,7 +73,10 @@ SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
 XPRESS_IIS = "XPRESS_IIS"
 XPRESS_TROW = "XPRESS_TROW"
 
-# Parallel (meta) solver
+# Parameterized problem.
+PARAM_PROB = "param_prob"
+
+# Parallel (meta) solver.
 PARALLEL = "parallel"
 
 # Robust CVXOPT LDL KKT solver.

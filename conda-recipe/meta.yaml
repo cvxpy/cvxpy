@@ -16,7 +16,6 @@ requirements:
     - osqp
     - ecos >=2
     - scs >=1.1.3
-    - multiprocess
     - numpy >=1.14
     - scipy >=0.15
     - libgcc # [not win]
@@ -28,7 +27,6 @@ requirements:
     - osqp
     - ecos >=2
     - scs >=1.1.3
-    - multiprocess
     - numpy >=1.9
     - scipy >=0.15
     - libgcc # [not win]

@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.lin_ops.lin_utils as lu
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
 import numpy as np
@@ -48,26 +47,14 @@ class NonPos(Constraint):
         """A non-positive constraint is DCP if its argument is convex."""
         return self.args[0].is_convex()
 
+    def is_dpp(self):
+        return self.is_dcp() and self.args[0].is_dpp()
+
     def is_dgp(self):
         return False
 
     def is_dqcp(self):
         return self.args[0].is_quasiconvex()
-
-    def canonicalize(self):
-        """Returns the graph implementation of the object.
-
-        Marks the top level constraint as the dual_holder,
-        so the dual value will be saved to the LeqConstraint.
-
-        Returns
-        -------
-        tuple
-            A tuple of (affine expression, [constraints]).
-        """
-        obj, constraints = self.args[0].canonical_form
-        dual_holder = lu.create_leq(obj, constr_id=self.id)
-        return (None, constraints + [dual_holder])
 
     @property
     def residual(self):
@@ -94,6 +81,7 @@ class Inequality(Constraint):
     """
     def __init__(self, lhs, rhs, constr_id=None):
         self._expr = lhs - rhs
+        # TODO remove this restriction.
         if self._expr.is_complex():
             raise ValueError("Inequality constraints cannot be complex.")
         super(Inequality, self).__init__([lhs, rhs], constr_id)
@@ -121,6 +109,9 @@ class Inequality(Constraint):
     def is_dcp(self):
         """A non-positive constraint is DCP if its argument is convex."""
         return self.expr.is_convex()
+
+    def is_dpp(self):
+        return self.is_dcp() and self.expr.is_dpp()
 
     def is_dgp(self):
         return (self.args[0].is_log_log_convex() and

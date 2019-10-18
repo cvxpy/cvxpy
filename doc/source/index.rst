@@ -55,9 +55,9 @@ more.
 
 **News.**
 
-* CVXPY v1.1.0 is under development. It will make using parameters
-  more efficient, and it will also lay the groundwork for differentiation
-  through problems and code generation.
+* CVXPY v1.1 alpha has been released. It makes repeatedly canonicalizing
+  parametrized problems much faster than before. See the tutorial on :ref:`dpp`
+  for more information.
 
 * CVXPY v1.0.24 supports
   `disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_,

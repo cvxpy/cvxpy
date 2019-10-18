@@ -13,7 +13,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import contextlib
 import functools
+
+
+_disable_cache = False
+
+
+@contextlib.contextmanager
+def disable_caches():
+    global _disable_cache
+    tmp = _disable_cache
+    _disable_cache = True
+    yield
+    _disable_cache = tmp
 
 
 def lazyprop(func):
@@ -23,6 +36,10 @@ def lazyprop(func):
     @property
     @functools.wraps(func)
     def _lazyprop(self):
+        global _disable_cache
+        if _disable_cache:
+            return func(self)
+
         try:
             return getattr(self, attr_name)
         except AttributeError:
@@ -36,10 +53,14 @@ def compute_once(func):
     attr_name = '_compute_once_' + func.__name__
 
     @functools.wraps(func)
-    def _compute_once(self):
+    def _compute_once(self, *args, **kwargs):
+        global _disable_cache
+        if _disable_cache:
+            return func(self, *args, **kwargs)
+
         try:
             return getattr(self, attr_name)
         except AttributeError:
-            setattr(self, attr_name, func(self))
+            setattr(self, attr_name, func(self, *args, **kwargs))
         return getattr(self, attr_name)
     return _compute_once

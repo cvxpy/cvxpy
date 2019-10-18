@@ -125,6 +125,13 @@ class PartialProblem(Expression):
         return self.args[0].is_dcp() and \
             type(self.args[0].objective) == Maximize
 
+    def is_dpp(self, context='CP'):
+        """The expression is a disciplined parameterized expression.
+
+           context: cone program (CP) or quadratic program (QP)
+        """
+        return self.args[0].is_dpp(context)
+
     def is_log_log_convex(self):
         """Is the expression convex?
         """

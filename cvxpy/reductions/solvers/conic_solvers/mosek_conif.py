@@ -18,10 +18,9 @@ import numpy as np
 import scipy as sp
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonPos, Zero, ExpCone
-from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
 from cvxpy.reductions.solution import Solution
-from .conic_solver import ConicSolver
+from cvxpy.reductions.utilities import group_constraints
+from .conic_solver import ConeDims, ConicSolver
 from collections import defaultdict
 
 
@@ -43,31 +42,6 @@ def vectorized_lower_tri_to_mat(v, dim):
     d = np.diag(np.diag(A))
     A = A + A.T - d
     return A
-
-
-def psd_coeff_offset(problem, c):
-    """
-    Returns an array "G" and vector "h" such that the given constraint is
-      equivalent to "G * z <=_{PSD} h".
-
-    :param problem: the cvxpy Problem in which "c" arises.
-    :param c: a cvxpy Constraint defining a linear matrix inequality
-      "B + sum_j A[j] * z[j] >=_{PSD} 0".
-    :return: (G, h) such that "c" holds at "z" iff "G * z <=_{PSD} b"
-      (where the PSD cone is reshaped into a subset of R^N with N = dim ** 2).
-
-    Note: It is desirable to change this mosek interface so that PSD constraints
-    are represented by a vector in R^N with N = (dim * (dim + 1) / 2). This is
-    possible because arguments to a linear matrix inequality are necessarily
-    symmetric. For now we use N = dim ** 2, because it simplifies implementation
-    and only makes a modest difference in the size of the problem seen by mosek.
-    """
-    extractor = CoeffExtractor(InverseData(problem))
-    A_vec, b_vec = extractor.affine(c.expr)
-    G = -A_vec
-    h = b_vec
-    dim = c.expr.shape[0]
-    return G, h, dim
 
 
 class MOSEK(ConicSolver):
@@ -171,73 +145,91 @@ class MOSEK(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = dict()
-        inv_data = {self.VAR_ID: problem.variables()[0].id,
+        var = problem.x
+        inv_data = {self.VAR_ID: var.id,
                     'suc_slacks': [], 'y_slacks': [], 'snx_slacks': [], 'psd_dims': []}
 
         # Get integrality constraint information
-        var = problem.variables()[0]
         data[s.BOOL_IDX] = [int(t[0]) for t in var.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
         inv_data['integer_variables'] = len(data[s.BOOL_IDX]) + len(data[s.INT_IDX]) > 0
 
-        # Parse the coefficient vector from the objective.
-        c, constant = self.get_coeff_offset(problem.objective.args[0])
+        constr_map = group_constraints(problem.constraints)
+        data[s.DIMS] = ConeDims(constr_map)
+
+        if not problem.formatted:
+            problem = self.format_constraints(problem,
+                                              MOSEK.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
+
+        inv_data['constraints'] = problem.constraints
+
+        # A is ordered as [Zero, NonPos, SOC, PSD, EXP]
+        c, d, A, b = problem.apply_parameters()
+        A = -A
         data[s.C] = c.ravel()
         inv_data['n0'] = len(data[s.C])
-        data[s.OBJ_OFFSET] = constant[0]
-        data[s.DIMS] = {s.SOC_DIM: [], s.EXP_DIM: [], s.PSD_DIM: [], s.LEQ_DIM: 0, s.EQ_DIM: 0}
-        inv_data[s.OBJ_OFFSET] = constant[0]
-        Gs = list()
-        hs = list()
+        data[s.OBJ_OFFSET] = float(d)
+        inv_data[s.OBJ_OFFSET] = float(d)
 
+        Gs = []
+        hs = []
         # Linear inequalities
-        leq_constr = [ci for ci in problem.constraints if type(ci) == NonPos]
-        if len(leq_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, leq_constr)  # G, h : G * z <= h
-            inv_data['suc_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            data[s.DIMS][s.LEQ_DIM] = sum(lengths)
-            Gs.append(G)
-            hs.append(h)
+        num_linear_equalities = len(constr_map[Zero])
+        num_linear_inequalities = len(constr_map[NonPos])
+        leq_dim = data[s.DIMS][s.LEQ_DIM]
+        eq_dim = data[s.DIMS][s.EQ_DIM]
+        if num_linear_inequalities > 0:
+            # G, h : G * z <= h
+            offset = num_linear_equalities
+            for c in problem.constraints[offset:offset + num_linear_inequalities]:
+                assert(isinstance(c, NonPos))
+                inv_data['suc_slacks'].append((c.id, c.size))
+            row_offset = eq_dim
+            Gs.append(A[row_offset:row_offset + leq_dim])
+            hs.append(b[row_offset:row_offset + leq_dim])
 
         # Linear equations
-        eq_constr = [ci for ci in problem.constraints if type(ci) == Zero]
-        if len(eq_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, eq_constr)  # G, h : G * z == h.
-            inv_data['y_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            data[s.DIMS][s.EQ_DIM] = sum(lengths)
-            Gs.append(G)
-            hs.append(h)
+        if num_linear_equalities > 0:
+            for c in problem.constraints[:num_linear_equalities]:
+                assert(isinstance(c, Zero))
+                inv_data['y_slacks'].append((c.id, c.size))
+            Gs.append(A[:eq_dim])
+            hs.append(b[:eq_dim])
 
         # Second order cone
-        soc_constr = [ci for ci in problem.constraints if type(ci) == SOC]
-        data[s.DIMS][s.SOC_DIM] = [dim for ci in soc_constr for dim in ci.cone_sizes()]
-        if len(soc_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, soc_constr)  # G * z <=_{soc} h.
-            inv_data['snx_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            Gs.append(G)
-            hs.append(h)
+        num_soc = len(constr_map[SOC])
+        soc_dim = sum(data[s.DIMS][s.SOC_DIM])
+        if num_soc > 0:
+            offset = num_linear_inequalities + num_linear_equalities
+            for c in problem.constraints[offset:offset + num_soc]:
+                assert(isinstance(c, SOC))
+                inv_data['snx_slacks'].append((c.id, c.size))
+            row_offset = leq_dim + eq_dim
+            Gs.append(A[row_offset:row_offset + soc_dim])
+            hs.append(b[row_offset:row_offset + soc_dim])
 
         # Exponential cone
-        exp_constr = [ci for ci in problem.constraints if type(ci) == ExpCone]
-        if len(exp_constr) > 0:
+        num_exp = len(constr_map[ExpCone])
+        if num_exp > 0:
             # G * z <=_{EXP} h.
-            G, h, lengths, ids = self.block_format(problem, exp_constr,
-                                                   MOSEK.EXP_CONE_ORDER)
-            data[s.DIMS][s.EXP_DIM] = lengths
-            inv_data['snx_slacks'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            Gs.append(G)
-            hs.append(h)
+            for c in problem.constraints[-num_exp:]:
+                assert(isinstance(c, ExpCone))
+                inv_data['snx_slacks'].append((c.id, c.num_cones()))
+            Gs.append(A[-num_exp:])
+            hs.append(b[-num_exp:])
 
         # PSD constraints
-        psd_constr = [ci for ci in problem.constraints if type(ci) == PSD]
-        if len(psd_constr) > 0:
-            data[s.DIMS][s.PSD_DIM] = list()
-            for c in psd_constr:
-                G_vec, h_vec, dim = psd_coeff_offset(problem, c)
-                inv_data['psd_dims'].append((c.id, dim))
-                data[s.DIMS][s.PSD_DIM].append(dim)
-                Gs.append(G_vec)
-                hs.append(h_vec)
+        num_psd = len(constr_map[PSD])
+        psd_dim = sum([dim ** 2 for dim in data[s.DIMS][s.PSD_DIM]])
+        if num_psd > 0:
+            offset = num_linear_inequalities + num_linear_equalities + num_soc
+            for c in problem.constraints[offset:offset + num_psd]:
+                assert(isinstance(c, PSD))
+                inv_data['psd_dims'].append((c.id, c.expr.shape[0]))
+            row_offset = leq_dim + eq_dim + soc_dim
+            Gs.append(A[row_offset:row_offset + psd_dim])
+            hs.append(b[row_offset:row_offset + psd_dim])
 
         if Gs:
             data[s.G] = sp.sparse.vstack(tuple(Gs))
@@ -247,7 +239,9 @@ class MOSEK(ConicSolver):
             data[s.H] = np.hstack(tuple(hs))
         else:
             data[s.H] = np.array([])
-        inv_data['is_LP'] = (len(psd_constr) + len(exp_constr) + len(soc_constr)) == 0
+        inv_data['is_LP'] = (len(constr_map[PSD]) +
+                             len(constr_map[ExpCone]) +
+                             len(constr_map[SOC])) == 0
 
         return data, inv_data
 
@@ -314,7 +308,7 @@ class MOSEK(ConicSolver):
         G, h = data[s.G], data[s.H]
         dims = data[s.DIMS]
         n0 = len(c)
-        n = n0 + sum(dims[s.SOC_DIM]) + sum(dims[s.EXP_DIM])
+        n = n0 + sum(dims[s.SOC_DIM]) + dims[s.EXP_DIM]
         psd_total_dims = sum(el ** 2 for el in dims[s.PSD_DIM])
         m = len(h)
         num_bool = len(data[s.BOOL_IDX])
@@ -346,7 +340,7 @@ class MOSEK(ConicSolver):
                             0.0,  # unused
                             np.arange(running_idx, running_idx + size_cone))
             running_idx += size_cone
-        for k in range(sum(dims[s.EXP_DIM]) // 3):
+        for k in range(dims[s.EXP_DIM] // 3):
             task.appendcone(mosek.conetype.pexp,
                             0.0,  # unused
                             np.arange(running_idx, running_idx + 3))
@@ -384,7 +378,7 @@ class MOSEK(ConicSolver):
         task.appendcons(m)
         row, col, vals = sp.sparse.find(G)
         task.putaijlist(row.tolist(), col.tolist(), vals.tolist())
-        total_soc_exp_slacks = sum(dims[s.SOC_DIM]) + sum(dims[s.EXP_DIM])
+        total_soc_exp_slacks = sum(dims[s.SOC_DIM]) + dims[s.EXP_DIM]
         if total_soc_exp_slacks > 0:
             i = dims[s.LEQ_DIM] + dims[s.EQ_DIM]  # constraint index in {0, ..., m - 1}
             j = len(c)  # index of the first slack variable in the block vector "x".
@@ -491,7 +485,8 @@ class MOSEK(ConicSolver):
             if sol == mosek.soltype.itg:
                 dual_vars = None
             else:
-                dual_vars = MOSEK.recover_dual_variables(task, sol, inverse_data)
+                dual_vars = MOSEK.recover_dual_variables(task, sol,
+                                                         inverse_data)
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
@@ -511,6 +506,20 @@ class MOSEK(ConicSolver):
         env.__exit__(None, None, None)
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
+
+    @staticmethod
+    def flatten_dual_variables(dual_variables, constraints):
+        """
+        Takes a dictionary of dual variables, keyed by constraint id,
+        and concatenates the variables into a flattened array, such that
+        the nth contiguous block corresponds to dual variables in the
+        nth constraint in `constraints`
+        """
+        flattened_dual_variables = []
+        for constraint in constraints:
+            flattened_dual_variables.append(
+                np.asarray(dual_variables[constraint.id]).ravel())
+        return np.hstack(flattened_dual_variables)
 
     @staticmethod
     def recover_dual_variables(task, sol, inverse_data):

@@ -103,6 +103,13 @@ class TestProblem(BaseTest):
         else:
             self.assertCountEqual(params, ref)
 
+    def test_solving_a_problem_with_unspecified_parameters(self):
+        param = cp.Parameter(name="lambda")
+        problem = cp.Problem(cp.Minimize(param), [])
+        with self.assertRaises(
+              ParameterError, msg="A Parameter (whose name is 'lambda').*"):
+            problem.solve()
+
     def test_constants(self):
         """Test the constants method.
         """
@@ -495,41 +502,6 @@ class TestProblem(BaseTest):
                              [self.a >= self.b, self.a >= 1, self.b >= 3])
         self.assertAlmostEqual(combo3.solve(), combo3_ref.solve())
 
-    # Test solving problems in parallel.
-    def test_solve_parallel(self):
-        p = Parameter()
-        problem = Problem(cp.Minimize(cp.square(self.a) + cp.square(self.b) + p),
-                          [self.b >= 2, self.a >= 1])
-        p.value = 1
-        # Ensure that parallel solver still works after repeated calls
-        for _ in range(2):
-            result = problem.solve(parallel=True)
-            self.assertAlmostEqual(result, 6.0)
-            self.assertEqual(problem.status, s.OPTIMAL)
-            self.assertAlmostEqual(self.a.value, 1)
-            self.assertAlmostEqual(self.b.value, 2)
-            self.a.value = 0
-            self.b.value = 0
-        # The constant p should not be a separate problem, but rather added to
-        # the first separable problem.
-        self.assertTrue(len(problem._separable_problems) == 2)
-
-        # Ensure that parallel solver works with options.
-        result = problem.solve(parallel=True, verbose=True, warm_start=True)
-        self.assertAlmostEqual(result, 6.0)
-        self.assertEqual(problem.status, s.OPTIMAL)
-        self.assertAlmostEqual(self.a.value, 1)
-        self.assertAlmostEqual(self.b.value, 2)
-
-        # Ensure that parallel solver works when problem changes.
-        objective = cp.Minimize(cp.square(self.a) + cp.square(self.b))
-        problem = Problem(objective, problem.constraints)
-        result = problem.solve(parallel=True)
-        self.assertAlmostEqual(result, 5.0)
-        self.assertEqual(problem.status, s.OPTIMAL)
-        self.assertAlmostEqual(self.a.value, 1)
-        self.assertAlmostEqual(self.b.value, 2)
-
     # Test scalar LP problems.
     def test_scalar_lp(self):
         p = Problem(cp.Minimize(3*self.a), [self.a >= 2])
@@ -802,7 +774,10 @@ class TestProblem(BaseTest):
     def test_quad_form(self):
         with self.assertRaises(Exception) as cm:
             Problem(cp.Minimize(cp.quad_form(self.x, self.A))).solve()
-        self.assertEqual(str(cm.exception), "At least one argument to quad_form must be constant.")
+        self.assertEqual(
+            str(cm.exception),
+            "At least one argument to quad_form must be non-variable."
+        )
 
         with self.assertRaises(Exception) as cm:
             Problem(cp.Minimize(cp.quad_form(1, self.A))).solve()
@@ -1166,14 +1141,25 @@ class TestProblem(BaseTest):
         obj = cp.Minimize(cp.sum(self.x))
         constraints = [self.x == 2, self.x == 2, self.x.T == 2, self.x[0] == 2]
         p = Problem(obj, constraints)
-        result = p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.SCS)
         self.assertAlmostEqual(result, 4)
 
         obj = cp.Minimize(cp.sum(cp.square(self.x)))
         constraints = [self.x == self.x]
         p = Problem(obj, constraints)
-        result = p.solve(solver=s.ECOS)
+        result = p.solve(solver=s.SCS)
         self.assertAlmostEqual(result, 0)
+
+        with self.assertRaises(ValueError) as cm:
+            obj = cp.Minimize(cp.sum(cp.square(self.x)))
+            constraints = [self.x == self.x]
+            problem = Problem(obj, constraints)
+            problem.solve(solver=s.ECOS)
+        self.assertEqual(
+            str(cm.exception),
+            "ECOS cannot handle sparse data with nnz == 0; "
+            "this is a bug in ECOS, and it indicates that your problem "
+            "might have redundant constraints.")
 
     # Test that symmetry is enforced.
     def test_sdp_symmetry(self):
@@ -1232,6 +1218,7 @@ class TestProblem(BaseTest):
     def test_mult_by_zero(self):
         """Test multiplication by zero.
         """
+        self.a.value = 1
         exp = 0*self.a
         self.assertEqual(exp.value, 0)
         obj = cp.Minimize(exp)
@@ -1463,7 +1450,8 @@ class TestProblem(BaseTest):
         # set up the problem
         obj = cp.abs(x - 1)
         prob = Problem(cp.Minimize(obj), [g == 0])
-        prob.solve()
+        self.assertFalse(prob.is_dpp())
+        prob.solve(cp.SCS)
         x0.value = 1
         prob.solve()
         self.assertAlmostEqual(g.value, 0)
@@ -1759,23 +1747,6 @@ class TestProblem(BaseTest):
         """Test constraints that evaluate to booleans.
         """
         pass
-
-    # def test_len_zero(self):
-    #     """Test expressions with length zero.
-    #     """
-    #     # Dimension zero always makes things zero.
-    #     n = 0
-
-    #     x = cp.Variable((n,))
-    #     cp.Parameter((n,))
-
-    #     a = numpy.zeros((n,))
-    #     expr = cp.hstack([x, a])
-    #     self.assertEqual(expr.shape, (1,))
-    #     obj = cp.Minimize(cp.sum(expr))
-    #     prob = cp.Problem(obj, [x == 2])
-    #     result = prob.solve()
-    #     self.assertAlmostEqual(result, 2)
 
     def test_pos(self):
         """Test the pos and neg attributes.

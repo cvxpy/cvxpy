@@ -22,6 +22,7 @@ from cvxpy.constraints import Equality, Inequality, Zero, NonPos, PSD, SOC
 from cvxpy.reductions.complex2real.atom_canonicalizers import (
     CANON_METHODS as elim_cplx_methods)
 from cvxpy.reductions import utilities
+import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
 
 
@@ -38,6 +39,12 @@ class Complex2Real(Reduction):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
+        real2imag = {var.id: lu.get_id() for var in problem.variables()
+                     if var.is_complex()}
+        constr_dict = {cons.id: lu.get_id() for cons in problem.constraints
+                       if cons.is_complex()}
+        real2imag.update(constr_dict)
+        inverse_data.real2imag = real2imag
 
         leaf_map = {}
         real_obj, imag_obj = self.canonicalize_tree(

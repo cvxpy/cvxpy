@@ -18,7 +18,8 @@ limitations under the License.
 from cvxpy import utilities as u
 from cvxpy import interface as intf
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants import Constant, CallbackParam
+from cvxpy.expressions.constants import Constant
+from cvxpy.expressions.constants import parameter
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list
@@ -196,6 +197,15 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
+    def is_dpp(self, context='CP'):
+        """The expression is a disciplined parameterized expression.
+
+           context: cone program (CP) or quadratic program (QP)
+        """
+        with parameter.dpp_scope():
+            return self.is_dcp()
+
+    @perf.compute_once
     def is_log_log_convex(self):
         """Is the expression log-log convex?
         """
@@ -284,14 +294,9 @@ class Atom(Expression):
         """Represent the atom as an affine objective and conic constraints.
         """
         # Constant atoms are treated as a leaf.
-        if self.is_constant():
-            # Parameterized expressions are evaluated later.
-            if self.parameters():
-                param = CallbackParam(lambda: self.value, self.shape)
-                return param.canonical_form
+        if self.is_constant() and not self.parameters():
             # Non-parameterized expressions are evaluated immediately.
-            else:
-                return Constant(self.value).canonical_form
+            return Constant(self.value).canonical_form
         else:
             arg_objs = []
             constraints = []
@@ -335,10 +340,6 @@ class Atom(Expression):
         # shapes with 0's dropped in presolve.
         if 0 in self.shape:
             result = np.array([])
-        # Catch the case when the expression is known to be
-        # zero through DCP analysis.
-        elif self.is_zero():
-            result = intf.DEFAULT_INTF.zeros(self.shape)
         else:
             arg_values = []
             for arg in self.args:

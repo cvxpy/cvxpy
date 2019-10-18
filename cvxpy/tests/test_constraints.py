@@ -37,23 +37,12 @@ class TestConstraints(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
-    # def test_constr_str(self):
-    #     """Test string representations of the constraints.
-    #     """
-    #     constr = self.x <= self.x
-    #     self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(self.x)))
-    #     constr = self.x <= 2*self.x
-    #     self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
-    #     constr = 2*self.x >= self.x
-    #     self.assertEqual(repr(constr), "NonPos(%s, %s)" % (repr(self.x), repr(2*self.x)))
-
     def test_equality(self):
         """Test the Equality class.
         """
         constr = self.x == self.z
         self.assertEqual(constr.name(), "x == z")
         self.assertEqual(constr.shape, (2,))
-        # self.assertItemsEqual(constr.variables().keys(), [self.x.id, self.z.id])
         # Test value and dual_value.
         assert constr.dual_value is None
         with self.assertRaises(ValueError):

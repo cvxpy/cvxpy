@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.constraints.constraint import Constraint
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
@@ -76,19 +75,6 @@ class Zero(Constraint):
             return None
         return np.abs(self.expr.value)
 
-    def canonicalize(self):
-        """Returns the graph implementation of the object.
-
-        Marks the top level constraint as the dual_holder,
-        so the dual value will be saved to the EqConstraint.
-
-        Returns:
-            A tuple of (affine expression, [constraints]).
-        """
-        obj, constraints = self.args[0].canonical_form
-        dual_holder = lu.create_eq(obj, constr_id=self.id)
-        return (None, constraints + [dual_holder])
-
     # The value of the dual variable.
     @property
     def dual_value(self):
@@ -148,6 +134,9 @@ class Equality(Constraint):
     def is_dcp(self):
         """An equality constraint is DCP if its argument is affine."""
         return self.expr.is_affine()
+
+    def is_dpp(self):
+        return self.is_dcp() and self.expr.is_dpp()
 
     def is_dgp(self):
         return (self.args[0].is_log_log_affine() and

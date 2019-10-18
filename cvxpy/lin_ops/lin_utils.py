@@ -73,7 +73,7 @@ def create_var(shape, var_id=None):
     return lo.LinOp(lo.VARIABLE, shape, [], var_id)
 
 
-def create_param(value, shape):
+def create_param(shape, param_id=None):
     """Wraps a parameter.
 
     Parameters
@@ -88,7 +88,9 @@ def create_param(value, shape):
     LinOP
         A LinOp wrapping the parameter.
     """
-    return lo.LinOp(lo.PARAM, shape, [], value)
+    if param_id is None:
+        param_id = get_id()
+    return lo.LinOp(lo.PARAM, shape, [], param_id)
 
 
 def create_const(value, shape, sparse=False):
@@ -148,7 +150,10 @@ def is_const(operator):
     -------
         True if the LinOp is a constant, False otherwise.
     """
-    return operator.type in [lo.SCALAR_CONST, lo.SPARSE_CONST, lo.DENSE_CONST]
+    return operator.type in [lo.SCALAR_CONST,
+                             lo.SPARSE_CONST,
+                             lo.DENSE_CONST,
+                             lo.PARAM]
 
 
 def sum_expr(operators):

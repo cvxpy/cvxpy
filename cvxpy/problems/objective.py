@@ -16,6 +16,7 @@ limitations under the License.
 
 import cvxpy.utilities as u
 from cvxpy.error import DCPError
+from cvxpy.expressions.constants.parameter import dpp_scope
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import scalar_value
 import cvxpy.lin_ops.lin_utils as lu
@@ -146,6 +147,10 @@ class Minimize(Objective):
         """
         return self.args[0].is_convex()
 
+    def is_dpp(self):
+        with dpp_scope():
+            return self.args[0].is_convex()
+
     def is_dgp(self):
         """The objective must be log-log convex.
         """
@@ -201,6 +206,12 @@ class Maximize(Objective):
         """The objective must be concave.
         """
         return self.args[0].is_concave()
+
+    def is_dpp(self):
+        """The objective must be concave.
+        """
+        with dpp_scope():
+            return self.args[0].is_concave()
 
     def is_dgp(self):
         """The objective must be log-log concave.

@@ -282,7 +282,7 @@ def check_solver(prob, solver_name):
         if solver_name == ROBUST_CVXOPT:
             solver_name = CVXOPT
 
-        prob._construct_chains(solver=solver_name)
+        prob._construct_chain(solver=solver_name)
 
         return True
     except SolverError:

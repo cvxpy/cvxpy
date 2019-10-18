@@ -15,21 +15,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-import scipy.sparse as sp
-
 import cvxpy.settings as s
-from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.constraints import PSD, SOC, ExpCone, NonPos, Zero
-from cvxpy.expressions.constants.constant import Constant
-import cvxpy.interface as intf
-from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.constraints import Zero, NonPos, PSD, SOC, ExpCone
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
                                                                  ConicSolver)
 from cvxpy.reductions.solvers import utilities
-from cvxpy.utilities.coeff_extractor import CoeffExtractor
+from cvxpy.reductions.utilities import group_constraints
+import numpy as np
+import scipy.sparse as sp
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
@@ -43,44 +37,6 @@ def dims_to_solver_dict(cone_dims):
         "s": cone_dims.psd,
     }
     return cones
-
-
-# Utility methods for special handling of semidefinite constraints.
-def scaled_lower_tri(matrix):
-    """Returns an expression representing the lower triangular entries
-
-    Scales the strictly lower triangular entries by sqrt(2), as required
-    by SCS.
-
-    Parameters
-    ----------
-    matrix : Expression
-        A 2-dimensional CVXPY expression.
-
-    Returns
-    -------
-    Expression
-        An expression representing the (scaled) lower triangular part of
-        the supplied matrix expression.
-    """
-    rows = cols = matrix.shape[0]
-    entries = rows * (cols + 1)//2
-
-    row_arr = np.arange(0, entries)
-
-    lower_diag_indices = np.tril_indices(rows)
-    col_arr = np.sort(np.ravel_multi_index(lower_diag_indices, (rows, cols), order='F'))
-
-    val_arr = np.zeros((rows, cols))
-    val_arr[lower_diag_indices] = np.sqrt(2)
-    np.fill_diagonal(val_arr, 1)
-    val_arr = np.ravel(val_arr, order='F')
-    val_arr = val_arr[np.nonzero(val_arr)]
-
-    shape = (entries, rows*cols)
-    coeff = Constant(sp.csc_matrix((val_arr, (row_arr, col_arr)), shape))
-    vectorized_matrix = reshape(matrix, (rows*cols, 1))
-    return coeff * vectorized_matrix
 
 
 def tri_to_full(lower_tri, n):
@@ -148,27 +104,41 @@ class SCS(ConicSolver):
         import scs
         scs  # For flake8
 
-    def format_constr(self, problem, constr, exp_cone_order):
-        """Extract coefficient and offset vector from constraint.
+    def psd_format_mat(self, constr):
+        """Return a linear operator to multiply by PSD constraint coefficients.
 
         Special cases PSD constraints, as SCS expects constraints to be
         imposed on solely the lower triangular part of the variable matrix.
         Moreover, it requires the off-diagonal coefficients to be scaled by
-        sqrt(2).
+        sqrt(2), and applies to the symmetric part of the constrained expression.
         """
-        if isinstance(constr, PSD):
-            expr = constr.expr
-            triangularized_expr = scaled_lower_tri(expr + expr.T)/2
-            extractor = CoeffExtractor(InverseData(problem))
-            A_prime, b_prime = extractor.affine(triangularized_expr)
-            # SCS requests constraints to be formatted as
-            # Ax + s = b, where s is constrained to reside in some
-            # cone. Here, however, we are formatting the constraint
-            # as A"x + b" = s = -Ax + b; hence, A = -A", b = b"
-            return -1 * A_prime, b_prime
-        else:
-            return super(SCS, self).format_constr(problem, constr,
-                                                  exp_cone_order)
+        rows = cols = constr.expr.shape[0]
+        entries = rows * (cols + 1)//2
+
+        row_arr = np.arange(0, entries)
+
+        lower_diag_indices = np.tril_indices(rows)
+        col_arr = np.sort(np.ravel_multi_index(lower_diag_indices,
+                                               (rows, cols),
+                                               order='F'))
+
+        val_arr = np.zeros((rows, cols))
+        val_arr[lower_diag_indices] = np.sqrt(2)
+        np.fill_diagonal(val_arr, 1.0)
+        val_arr = np.ravel(val_arr, order='F')
+        val_arr = val_arr[np.nonzero(val_arr)]
+
+        shape = (entries, rows*cols)
+        scaled_lower_tri = sp.csc_matrix((val_arr, (row_arr, col_arr)), shape)
+
+        idx = np.arange(rows * cols)
+        val_symm = 0.5 * np.ones(2 * rows * cols)
+        K = idx.reshape((rows, cols))
+        row_symm = np.append(idx, np.ravel(K, order='F'))
+        col_symm = np.append(idx, np.ravel(K.T, order='F'))
+        symm_matrix = sp.csc_matrix((val_symm, (row_symm, col_symm)))
+
+        return scaled_lower_tri @ symm_matrix
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -179,38 +149,40 @@ class SCS(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
+        inv_data = {self.VAR_ID: problem.x.id}
 
-        # Parse the coefficient vector from the objective.
-        data[s.C], data[s.OFFSET] = self.get_coeff_offset(
-            problem.objective.args[0])
-        data[s.C] = data[s.C].ravel()
-        inv_data[s.OFFSET] = data[s.OFFSET][0]
-
-        # Order and group nonlinear constraints.
-        constr_map = group_constraints(problem.constraints)
-        data[ConicSolver.DIMS] = ConeDims(constr_map)
-        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
-
+        # Format constraints
+        #
         # SCS requires constraints to be specified in the following order:
         # 1. zero cone
         # 2. non-negative orthant
         # 3. soc
         # 4. psd
         # 5. exponential
+        constr_map = group_constraints(problem.constraints)
+        data[ConicSolver.DIMS] = ConeDims(constr_map)
+        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
         zero_constr = constr_map[Zero]
         neq_constr = (constr_map[NonPos] + constr_map[SOC]
                       + constr_map[PSD] + constr_map[ExpCone])
         inv_data[SCS.EQ_CONSTR] = zero_constr
         inv_data[SCS.NEQ_CONSTR] = neq_constr
 
+        if not problem.formatted:
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
+
+        # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
         #
         # Note that scs mandates that the cones MUST be ordered with
         # zero cones first, then non-nonnegative orthant, then SOC,
         # then PSD, then exponential.
-        data[s.A], data[s.B] = self.group_coeff_offset(
-            problem, zero_constr + neq_constr, self.EXP_CONE_ORDER)
+        c, d, A, b = problem.apply_parameters()
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A
+        data[s.B] = b
         return data, inv_data
 
     def extract_dual_value(self, result_vec, offset, constraint):
@@ -242,20 +214,21 @@ class SCS(ConicSolver):
         if status in s.SOLUTION_PRESENT:
             primal_val = solution["info"]["pobj"]
             opt_val = primal_val + inverse_data[s.OFFSET]
+            # TODO expand primal and dual variables from lower triangular to full.
+            # TODO but this makes map from solution to variables not a slice.
             primal_vars = {
-                inverse_data[SCS.VAR_ID]:
-                intf.DEFAULT_INTF.const_to_matrix(solution["x"])
+                inverse_data[SCS.VAR_ID]: solution["x"]
             }
             eq_dual_vars = utilities.get_dual_values(
-                intf.DEFAULT_INTF.const_to_matrix(
-                    solution["y"][:inverse_data[ConicSolver.DIMS].zero]),
+                solution["y"][:inverse_data[ConicSolver.DIMS].zero],
                 self.extract_dual_value,
-                inverse_data[SCS.EQ_CONSTR])
+                inverse_data[SCS.EQ_CONSTR]
+            )
             ineq_dual_vars = utilities.get_dual_values(
-                intf.DEFAULT_INTF.const_to_matrix(
-                    solution["y"][inverse_data[ConicSolver.DIMS].zero:]),
+                solution["y"][inverse_data[ConicSolver.DIMS].zero:],
                 self.extract_dual_value,
-                inverse_data[SCS.NEQ_CONSTR])
+                inverse_data[SCS.NEQ_CONSTR]
+            )
             dual_vars = {}
             dual_vars.update(eq_dual_vars)
             dual_vars.update(ineq_dual_vars)

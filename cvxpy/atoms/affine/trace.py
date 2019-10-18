@@ -59,8 +59,7 @@ class trace(AffAtom):
         """
         return False
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Sum the diagonal entries of the linear expression.
 
         Parameters

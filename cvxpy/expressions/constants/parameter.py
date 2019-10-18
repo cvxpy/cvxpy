@@ -14,9 +14,61 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
+import contextlib
+
 from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.utilities import performance_utils as perf
+
+
+_dpp_scope_active = False
+
+
+@contextlib.contextmanager
+def dpp_scope():
+    """Context manager for DPP curvature analysis
+
+    When this scope is active, parameters are affine, not constant. The
+    argument For example, if `param` is a Parameter, then
+
+    ```
+        with dpp_scope():
+            print("param is constant: ", param.is_constant())
+            print("param is affine: ", param.is_affine())
+    ```
+
+    would print
+
+        param is constant: False
+        param is affine: True
+    """
+    global _dpp_scope_active
+    with perf.disable_caches():
+        # caches are disabled: we don't want to accidentally cache dpp
+        # curvature (e.g., is_convex() might be false under this scope but true
+        # when a param-affine scope is not active)
+        prev_state = _dpp_scope_active
+        _dpp_scope_active = True
+        yield
+        _dpp_scope_active = prev_state
+
+
+def dpp_scope_active():
+    """Returns True if a `dpp_scope` is active. """
+    return _dpp_scope_active
+
+
+def is_param_affine(expr):
+    """Returns true if expression is parameters-affine (and variable-free)"""
+    with dpp_scope():
+        return not expr.variables() and expr.is_affine()
+
+
+def is_param_free(expr):
+    """Returns true if expression is not parametrized."""
+    return not expr.parameters()
 
 
 class Parameter(Leaf):
@@ -30,8 +82,11 @@ class Parameter(Leaf):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, shape=(), name=None, value=None, **kwargs):
-        self.id = lu.get_id()
+    def __init__(self, shape=(), name=None, value=None, id=None, **kwargs):
+        if id is None:
+            self.id = lu.get_id()
+        else:
+            self.id = id
         if name is None:
             self._name = "%s%d" % (s.PARAM_PREFIX, self.id)
         else:
@@ -39,16 +94,19 @@ class Parameter(Leaf):
         # Initialize with value if provided.
         self._value = None
         super(Parameter, self).__init__(shape, value, **kwargs)
+        self._is_constant = True
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self.shape, self._name, self.value, self.attributes]
+        return [self.shape, self._name, self.value, self.id, self.attributes]
 
     def name(self):
         return self._name
 
     def is_constant(self):
+        if dpp_scope_active():
+            return False
         return True
 
     # Getter and setter for parameter value.
@@ -84,7 +142,7 @@ class Parameter(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_param(self, self.shape)
+        obj = lu.create_param(self.shape, self.id)
         return (obj, [])
 
     def __repr__(self):
