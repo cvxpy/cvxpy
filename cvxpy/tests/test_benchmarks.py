@@ -122,8 +122,7 @@ class TestBenchmarks(BaseTest):
         benchmark(cone_matrix_stuffing_with_many_constraints, iters=1)
 
     def test_parameterized_cone_matrix_stuffing_with_many_constraints(self):
-        self.fail("This test takes too long and/or will cause your machine to "
-                  "hang.")
+        self.skipTest("This benchmark takes too long.")
         m = 2000
         n = 2000
         A = cp.Parameter((m, n))
