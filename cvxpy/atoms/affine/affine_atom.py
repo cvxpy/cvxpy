@@ -139,8 +139,6 @@ class AffAtom(Atom):
         # HACK TODO TODO convert tensors back to vectors.
         # COO = (V[lo.CONSTANT_ID][0], (J[lo.CONSTANT_ID][0], I[lo.CONSTANT_ID][0]))
         shape = (var_length + 1, self.size)
-        print("canon shape:", canon_mat.shape)
-        print("target shape:", shape)
         stacked_grad = canon_mat.reshape(shape).tocsc()[:-1, :]
         # Break up into per argument matrices.
         grad_list = []
