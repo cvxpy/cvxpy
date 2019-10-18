@@ -46,7 +46,7 @@ class TestBenchmarks(BaseTest):
 
     def test_tv_inpainting(self):
         if os.name == "nt":
-            self.skipTest("Skipping test due to SciPy overflow issues.")
+            self.skipTest("Skipping test due to overflow bug in SciPy < 1.2.0.")
         Uorig = np.random.randn(512, 512, 3)
         rows, cols, colors = Uorig.shape
         known = np.zeros((rows, cols, colors))
