@@ -191,10 +191,10 @@ class TestDpp(BaseTest):
         problem = cp.Problem(objective, constraints)
         self.assertTrue(problem.is_dpp())
         x.value = np.array([5, 5])
-        problem.solve()
+        problem.solve(cp.SCS, eps=1e-8)
         self.assertItemsAlmostEqual(y.value, x.value)
         x.value = np.array([-4, -4])
-        problem.solve()
+        problem.solve(cp.SCS, eps=1e-8)
         self.assertItemsAlmostEqual(y.value, np.zeros(2))
 
     def test_paper_example_opt_net_qp(self):
