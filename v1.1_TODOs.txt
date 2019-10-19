@@ -1,8 +1,0 @@
-TODOs:
-
-Figure out how to handle affine mapping from cone program solution to problem variables
-(for PSD constraints/variables this is not just a slice).
-Make SOC and EXP cones efficient with in-place operations in conic_solver.py
-Make other cone solvers work again.
-Make QPs work again.
-
