@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>Advanced Features &#8212; CVXPY 1.0.25 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '1.0.25',
+        VERSION:     '1.1.0a0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -39,6 +39,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="advanced-features">
@@ -83,9 +85,9 @@
 <p>Variables and parameters can be created with attributes specifying additional properties.
 For example, <code class="docutils literal"><span class="pre">Variable(nonneg=True)</span></code> is a scalar variable constrained to be nonnegative.
 Similarly, <code class="docutils literal"><span class="pre">Parameter(nonpos=True)</span></code> is a scalar parameter constrained to be nonpositive.
-The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal"><span class="pre">Leaf</span></code></a> (the parent class
-of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal"><span class="pre">Variable</span></code></a> and
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code></a>) is given below.</p>
+The full constructor for <code class="xref py py-class docutils literal"><span class="pre">Leaf</span></code> (the parent class
+of <code class="xref py py-class docutils literal"><span class="pre">Variable</span></code> and
+<code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code>) is given below.</p>
 <dl class="function">
 <dt id="Leaf">
 <code class="descname">Leaf</code><span class="sig-paren">(</span><em>shape=None</em>, <em>name=None</em>, <em>value=None</em>, <em>nonneg=False</em>, <em>nonpos=False</em>, <em>symmetric=False</em>, <em>diag=False</em>, <em>PSD=False</em>, <em>NSD=False</em>, <em>boolean=False</em>, <em>integer=False</em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
@@ -124,7 +126,7 @@ length of shape.</li>
 <p>The <code class="docutils literal"><span class="pre">value</span></code> field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
 A Euclidean projection onto the set defined by the attributes is given by the
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project" title="cvxpy.expressions.leaf.Leaf.project"><code class="xref py py-meth docutils literal"><span class="pre">project</span></code></a> method.</p>
+<code class="xref py py-meth docutils literal"><span class="pre">project</span></code> method.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -139,10 +141,10 @@ A Euclidean projection onto the set defined by the attributes is given by the
 </pre></div>
 </div>
 <p>A sensible idiom for assigning values to leaves is
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project" title="cvxpy.expressions.leaf.Leaf.project"><code class="xref py py-meth docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code></a>,
+<code class="xref py py-meth docutils literal"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>,
 ensuring that the assigned value satisfies the leaf’s properties.
 A slightly more efficient variant is
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project_and_assign" title="cvxpy.expressions.leaf.Leaf.project_and_assign"><code class="xref py py-meth docutils literal"><span class="pre">leaf.project_and_assign(val)</span></code></a>,
+<code class="xref py py-meth docutils literal"><span class="pre">leaf.project_and_assign(val)</span></code>,
 which projects and assigns the value directly, without additionally checking
 that the value satisfies the leaf’s properties.  In most cases <code class="docutils literal"><span class="pre">project</span></code> and
 checking that a value satisfies a leaf’s properties are cheap operations (i.e.,
@@ -249,7 +251,7 @@ All constraints are defined for complex expressions.</p>
 <div class="section" id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
 <p>Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
+beyond the atomic functions.  For example, the <code class="xref py py-class docutils literal"><span class="pre">indicator</span></code> transform converts a list of constraints into an
 expression representing the convex function that takes value 0 when the
 constraints hold and <span class="math">\(\infty\)</span> when they are violated.</p>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -601,7 +603,7 @@ the problem object records the optimal value, the values of the primal and dual 
 and several solver statistics.
 We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the <code class="docutils literal"><span class="pre">problem.solver_stats</span></code> attribute,
-which returns a <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats"><code class="xref py py-class docutils literal"><span class="pre">SolverStats</span></code></a> object.
+which returns a <code class="xref py py-class docutils literal"><span class="pre">SolverStats</span></code> object.
 For example, <code class="docutils literal"><span class="pre">problem.solver_stats.solve_time</span></code> gives the time it took the solver to solve the problem.</p>
 </div>
 <div class="section" id="warm-start">
@@ -812,7 +814,7 @@ It is slower, but more robust.</dd>
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
 <p>If you are interested in getting the standard form that CVXPY produces for a
 problem, you can use the <code class="docutils literal"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
-a <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal"><span class="pre">SolvingChain</span></code></a> passes a
+a <code class="xref py py-class docutils literal"><span class="pre">SolvingChain</span></code> passes a
 low-level representation that is compatible with the targeted solver to a
 solver, which solves the problem. This method returns that low-level
 representation, along with a <code class="docutils literal"><span class="pre">SolvingChain</span></code> and metadata for unpacking
@@ -871,10 +873,176 @@ to a solution of the other.
 Reductions take a CVXPY Problem as input and output a CVXPY Problem.
 The full set of reductions available is discussed in <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#reductions-api"><span class="std std-ref">Reductions</span></a>.</p>
 </div>
+<div class="section" id="disciplined-parametrized-programming">
+<span id="dpp"></span><h2>Disciplined Parametrized Programming<a class="headerlink" href="#disciplined-parametrized-programming" title="Permalink to this headline">¶</a></h2>
+<p><em>Note: DPP requires CVXPY &gt;= 1.1.0a0.</em></p>
+<p><code class="xref py py-class docutils literal"><span class="pre">Parameters</span></code> are
+symbolic representations of constants. Using parameters lets you modify the
+values of constants without reconstructing the entire problem. When your
+parametrized problem is constructed according to <em>Disciplined Parametrized
+Programming (DPP)</em>, solving it repeatedly, for different values of the
+parameters, can be much faster than repeatedly solving a new problem.</p>
+<p>DPP is a ruleset for producing parametrized DCP-compliant problems that
+CVXPY can re-canonicalize very quickly. The first time a DPP-compliant problem
+is solved, CVXPY compiles it and caches the mapping from parameters to problem
+data. As a result, subsequent rewritings of DPP problems can be substantially
+faster. CVXPY allows you to solve parametrized problems that are not DPP, but
+you won’t see a speed-up when doing so.</p>
+<p>Currently, only problems that are solved by conic solvers will see
+a speed-up with DPP.</p>
+<div class="section" id="the-dpp-ruleset">
+<h3>The DPP ruleset<a class="headerlink" href="#the-dpp-ruleset" title="Permalink to this headline">¶</a></h3>
+<p>DPP is a subset of DCP, with mild restrictions on how parameters can enter
+expressions. In DPP, an expression is said to be parameter-affine if it does
+not involve variables and is affine in its parameters, and it is variable-free
+if it does not have variables. DPP introduces two restrictions to DCP:</p>
+<ol class="arabic simple">
+<li>Under DPP, all parameters are classified as affine, just like variables.</li>
+<li>Under DPP, the product of two expressions is affine when
+at least one of the expressions is constant, or when one of the
+expressions is parameter-affine and the other is parameter-free.</li>
+</ol>
+<p>An expression is DPP-compliant if it DCP-compliant, subject to these two
+restrictions. You can check whether an expression or problem is DPP-compliant
+by calling the <code class="docutils literal"><span class="pre">is_dpp</span></code> method. For example,</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+
+<span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+<span class="n">G</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">F</span> <span class="o">+</span> <span class="n">G</span><span class="p">)</span> <span class="o">@</span> <span class="n">x</span> <span class="o">-</span> <span class="n">g</span><span class="p">)</span> <span class="o">+</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">objective</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>prints <code class="docutils literal"><span class="pre">True</span></code>. We can walk through the DPP analysis to understand why
+<code class="docutils literal"><span class="pre">objective</span></code> is DPP-compliant. The product <code class="docutils literal"><span class="pre">(F</span> <span class="pre">+</span> <span class="pre">G)</span> <span class="pre">&#64;</span> <span class="pre">x</span></code> is affine under DPP,
+because <code class="docutils literal"><span class="pre">F</span> <span class="pre">+</span> <span class="pre">G</span></code> is parameter-affine and <code class="docutils literal"><span class="pre">x</span></code> is variable-free. The difference
+<code class="docutils literal"><span class="pre">(F</span> <span class="pre">+</span> <span class="pre">G)</span> <span class="pre">&#64;</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">g</span></code> is affine because the addition atom is affine and both
+<code class="docutils literal"><span class="pre">(F</span> <span class="pre">+</span> <span class="pre">G)</span> <span class="pre">&#64;</span> <span class="pre">x</span></code> and  <code class="docutils literal"><span class="pre">-</span> <span class="pre">g</span></code> are affine. The product <code class="docutils literal"><span class="pre">gamma</span> <span class="pre">*</span> <span class="pre">cp.norm(x)</span></code> is convex because
+<code class="docutils literal"><span class="pre">cp.norm(x)</span></code> is convex, the product is affine because <code class="docutils literal"><span class="pre">gamma</span></code> is
+parameter-affine and <code class="docutils literal"><span class="pre">cp.norm(x)</span></code> is variable-free, and the expression
+<code class="docutils literal"><span class="pre">gamma</span> <span class="pre">*</span> <span class="pre">cp.norm(x)</span></code> is convex because the product is increasing in its second
+argument (since <code class="docutils literal"><span class="pre">gamma</span></code> is nonnegative).</p>
+<p>Some expressions are DCP-compliant but not DPP-compliant. For example,
+DPP forbids taking the product of two parametrized expressions:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">x</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DPP? &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DCP? &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>This code snippet prints</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>Is DPP? False
+Is DCP? True
+</pre></div>
+</div>
+<p>Just as it is possible to rewrite non-DCP problems in DCP-compliant ways, it is
+also possible to re-express non-DPP problems in DPP-compliant ways. For
+example, the above problem can be equivalently written as</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">gamma</span> <span class="o">*</span> <span class="n">y</span><span class="p">),</span> <span class="p">[</span><span class="n">y</span> <span class="o">==</span> <span class="n">gamma</span> <span class="o">*</span> <span class="n">x</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DPP? &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is DCP? &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>This snippet prints</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span>Is DPP? True
+Is DCP? True
+</pre></div>
+</div>
+<p>In other cases, you can represent non-DPP transformations of parameters
+by doing them outside of the DSL, e.g., in NumPy. For example,
+if <code class="docutils literal"><span class="pre">P</span></code> is a parameter and <code class="docutils literal"><span class="pre">x</span></code> is a variable, <code class="docutils literal"><span class="pre">cp.quad_form(x,</span> <span class="pre">P)</span></code> is not
+DPP. You can represent a parametric quadratic form like so:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.linalg</span>
+
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">4</span>
+<span class="n">L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">L</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">L</span>
+<span class="n">P_sqrt</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">quad_form</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">P_sqrt</span> <span class="o">@</span> <span class="n">x</span><span class="p">)</span>
+<span class="n">P_sqrt</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">sqrtm</span><span class="p">(</span><span class="n">P</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">quad_form</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>As another example, the quotient <code class="docutils literal"><span class="pre">expr</span> <span class="pre">/</span> <span class="pre">p</span></code> is not DPP-compliant when <code class="docutils literal"><span class="pre">p</span></code> is
+a parameter, but this can be rewritten as <code class="docutils literal"><span class="pre">expr</span> <span class="pre">*</span> <span class="pre">p_tilde</span></code>, where <code class="docutils literal"><span class="pre">p_tilde</span></code> is
+a parameter that represents <code class="docutils literal"><span class="pre">1/p</span></code>.</p>
+</div>
+<div class="section" id="repeatedly-solving-a-dpp-problem">
+<h3>Repeatedly solving a DPP problem<a class="headerlink" href="#repeatedly-solving-a-dpp-problem" title="Permalink to this headline">¶</a></h3>
+<p>The following example demonstrates how parameters can speed-up repeated
+solves of a DPP problem.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">time</span>
+
+<span class="n">n</span> <span class="o">=</span> <span class="mi">15</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+<span class="n">b</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="c1"># gamma must be nonnegative due to DCP rules.</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="n">error</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">A</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">)</span>
+<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">error</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">()</span>
+
+<span class="n">gamma_vals</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">times</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">new_problem_times</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">gamma_vals</span><span class="p">:</span>
+    <span class="n">gamma</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">val</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+    <span class="n">new_problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">new_problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">new_problem_times</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">end</span> <span class="o">-</span> <span class="n">start</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_vals</span><span class="p">,</span> <span class="n">times</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Re-solving a DPP problem&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gamma_vals</span><span class="p">,</span> <span class="n">new_problem_times</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Solving a new problem&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\gamma$&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;time (s)&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../../_images/resolving_dpp.png" src="../../_images/resolving_dpp.png" />
+</div>
+</div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -919,6 +1087,7 @@ The full set of reductions available is discussed in <a class="reference interna
 <li class="toctree-l3"><a class="reference internal" href="#warm-start">Warm start</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#getting-the-standard-form">Getting the standard form</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#reductions">Reductions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#disciplined-parametrized-programming">Disciplined Parametrized Programming</a></li>
 </ul>
 </li>
 </ul>
@@ -974,8 +1143,8 @@ The full set of reductions available is discussed in <a class="reference interna
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../../_sources/tutorial/advanced/index.rst.txt"

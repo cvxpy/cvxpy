@@ -5,13 +5,13 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title>cvxpy.reductions.dcp2cone package &#8212; CVXPY 1.0.25 documentation</title>
+    <title>cvxpy.reductions.dcp2cone package &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.0.25',
+        VERSION:     '1.1.0a0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true,
@@ -37,6 +37,8 @@
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="cvxpy-reductions-dcp2cone-package">
@@ -49,99 +51,20 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.dcp2cone.cone_matrix_stuffing">
-<span id="cvxpy-reductions-dcp2cone-cone-matrix-stuffing-module"></span><h2>cvxpy.reductions.dcp2cone.cone_matrix_stuffing module<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone.cone_matrix_stuffing" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2013 Steven Diamond</p>
-<p>Licensed under the Apache License, Version 2.0 (the “License”);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at</p>
-<blockquote>
-<div><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></div></blockquote>
-<p>Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an “AS IS” BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.</p>
-<dl class="class">
-<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing">
-<em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</code><code class="descname">ConeMatrixStuffing</code><span class="sig-paren">(</span><em>problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.matrix_stuffing.MatrixStuffing</span></code></p>
-<p>Construct matrices for linear cone problems.</p>
-<p>Linear cone problems are assumed to have a linear objective and cone
-constraints which may have zero or more arguments, all of which must be
-affine.</p>
-<p>minimize   c’x
-subject to cone_constr1(A_1*x + b_1, …)</p>
-<blockquote>
-<div>…
-cone_constrK(A_i*x + b_i, …)</div></blockquote>
-<dl class="method">
-<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts">
-<code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">
-<code class="descname">stuffed_objective</code><span class="sig-paren">(</span><em>problem</em>, <em>extractor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.stuffed_objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="cvxpy-reductions-dcp2cone-cone-matrix-stuffing-module">
+<h2>cvxpy.reductions.dcp2cone.cone_matrix_stuffing module<a class="headerlink" href="#cvxpy-reductions-dcp2cone-cone-matrix-stuffing-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.dcp2cone.dcp2cone">
-<span id="cvxpy-reductions-dcp2cone-dcp2cone-module"></span><h2>cvxpy.reductions.dcp2cone.dcp2cone module<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone.dcp2cone" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2013 Steven Diamond, 2017 Akshay Agrawal, 2017 Robin Verschueren</p>
-<p>Licensed under the Apache License, Version 2.0 (the “License”);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at</p>
-<blockquote>
-<div><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></div></blockquote>
-<p>Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an “AS IS” BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.</p>
-<dl class="class">
-<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
-<em class="property">class </em><code class="descclassname">cvxpy.reductions.dcp2cone.dcp2cone.</code><code class="descname">Dcp2Cone</code><span class="sig-paren">(</span><em>problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
-<p>Reduce DCP problems to a conic form.</p>
-<p>This reduction takes as input (minimization) DCP problems and converts
-them into problems with affine objectives and conic constraints whose
-arguments are affine.</p>
-<dl class="method">
-<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
-<code class="descname">accepts</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>A problem is accepted if it is a minimization and is DCP.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
-<code class="descname">apply</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a DCP problem to a conic form.</p>
-</dd></dl>
-
-</dd></dl>
-
+<div class="section" id="cvxpy-reductions-dcp2cone-dcp2cone-module">
+<h2>cvxpy.reductions.dcp2cone.dcp2cone module<a class="headerlink" href="#cvxpy-reductions-dcp2cone-dcp2cone-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.dcp2cone">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2013 Steven Diamond</p>
-<p>Licensed under the Apache License, Version 2.0 (the “License”);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at</p>
-<blockquote>
-<div><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></div></blockquote>
-<p>Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an “AS IS” BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.</p>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -219,8 +142,8 @@ limitations under the License.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
       <a href="../_sources/api_reference/cvxpy.reductions.dcp2cone.rst.txt"

@@ -1,0 +1,214 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Consensus optimization &#8212; CVXPY 1.1.0a0 documentation</title>
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="consensus-optimization">
+<h1>Consensus optimization<a class="headerlink" href="#consensus-optimization" title="Permalink to this headline">¶</a></h1>
+<p>Suppose we have a convex optimization problem with <span class="math notranslate nohighlight">\(N\)</span> terms in
+the objective</p>
+<p>For example, we might be fitting a model to data and <span class="math notranslate nohighlight">\(f_i\)</span> is the
+loss function for the <span class="math notranslate nohighlight">\(i\)</span>th block of training data.</p>
+<p>We can convert this problem into consensus form</p>
+<p>We interpret the <span class="math notranslate nohighlight">\(x_i\)</span> as local variables, since they are
+particular to a given <span class="math notranslate nohighlight">\(f_i\)</span>. The variable <span class="math notranslate nohighlight">\(z\)</span>, by contrast,
+is global. The constraints <span class="math notranslate nohighlight">\(x_i = z\)</span> enforce consistency, or
+consensus.</p>
+<p>We can solve a problem in consensus form using the Alternating Direction
+Method of Multipliers (ADMM). Each iteration of ADMM reduces to the
+following updates:</p>
+<p>where <span class="math notranslate nohighlight">\(\overline{x}^k = (1/N)\sum_{i=1}^N x^k_i\)</span>.</p>
+<p>The following code carries out consensus ADMM, using CVXPY to solve the
+local subproblems.</p>
+<p>We split the <span class="math notranslate nohighlight">\(x_i\)</span> variables across <span class="math notranslate nohighlight">\(N\)</span> different worker
+processes. The workers update the <span class="math notranslate nohighlight">\(x_i\)</span> in parallel. A master
+process then gathers and averages the <span class="math notranslate nohighlight">\(x_i\)</span> and broadcasts
+<span class="math notranslate nohighlight">\(\overline x\)</span> back to the workers. The workers update <span class="math notranslate nohighlight">\(u_i\)</span>
+locally.</p>
+<div class="code highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="k">import</span> <span class="n">Process</span><span class="p">,</span> <span class="n">Pipe</span>
+
+<span class="c1"># Number of terms f_i.</span>
+<span class="n">N</span> <span class="o">=</span> <span class="o">...</span>
+<span class="c1"># A list of all the f_i.</span>
+<span class="n">f_list</span> <span class="o">=</span> <span class="o">...</span>
+
+<span class="k">def</span> <span class="nf">run_worker</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">pipe</span><span class="p">):</span>
+    <span class="n">xbar</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="n">f</span> <span class="o">+=</span> <span class="p">(</span><span class="n">rho</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span><span class="o">*</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="n">xbar</span> <span class="o">+</span> <span class="n">u</span><span class="p">)</span>
+    <span class="n">prox</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+    <span class="c1"># ADMM loop.</span>
+    <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="n">prox</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+        <span class="n">pipe</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">xbar</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">pipe</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span>
+        <span class="n">u</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">xbar</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Setup the workers.</span>
+<span class="n">pipes</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">procs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">local</span><span class="p">,</span> <span class="n">remote</span> <span class="o">=</span> <span class="n">Pipe</span><span class="p">()</span>
+    <span class="n">pipes</span> <span class="o">+=</span> <span class="p">[</span><span class="n">local</span><span class="p">]</span>
+    <span class="n">procs</span> <span class="o">+=</span> <span class="p">[</span><span class="n">Process</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">run_process</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">f_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">remote</span><span class="p">))]</span>
+    <span class="n">procs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="c1"># ADMM loop.</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">MAX_ITER</span><span class="p">):</span>
+    <span class="c1"># Gather and average xi</span>
+    <span class="n">xbar</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">pipe</span><span class="o">.</span><span class="n">recv</span><span class="p">()</span> <span class="k">for</span> <span class="n">pipe</span> <span class="ow">in</span> <span class="n">pipes</span><span class="p">)</span><span class="o">/</span><span class="n">N</span>
+    <span class="c1"># Scatter xbar</span>
+    <span class="k">for</span> <span class="n">pipe</span> <span class="ow">in</span> <span class="n">pipes</span><span class="p">:</span>
+        <span class="n">pipe</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">xbar</span><span class="p">)</span>
+
+<span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">procs</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../versions/index.html">Versions</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/applications/consensus_opt.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxgrp/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
