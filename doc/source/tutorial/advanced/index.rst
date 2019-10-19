@@ -860,6 +860,8 @@ The full set of reductions available is discussed in :ref:`reductions-api`.
 
 Disciplined Parametrized Programming
 ------------------------------------
+*Note: DPP requires CVXPY >= 1.1.0a0.*
+
 :py:class:`Parameters <cvxpy.expressions.constants.parameter.Parameter>` are
 symbolic representations of constants. Using parameters lets you modify the
 values of constants without reconstructing the entire problem. When your
