@@ -623,14 +623,82 @@ class Problem(u.Canonical):
         return self.value
 
     def backward(self):
-        """TODO(akshayka): Document"""
+        """Compute the gradient of a solution with respect to parameters.
+
+        This method differentiates through the solution map of the problem,
+        to obtain the gradient of a solution with respect to the parameters.
+        In other words, it calculates the sensitivities of the parameters
+        with respect to perturbations in the optimal variable values.
+
+        .backward() populates the .gradient attribute of each parameter as a
+        side-effect. It can only be called after calling .solve() with
+        `requires_grad=True`.
+
+        Below is a simple example:
+
+        ```python
+        import cvxpy as cp
+        import numpy as np
+
+
+        p = cp.Parameter()
+        x = cp.Variable()
+        quadratic = cp.square(x - 2 * p)
+        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+        p.value = 3.0
+        problem.solve(requires_grad=True, eps=1e-10)
+        # .backward() populates the .gradient attribute of the parameters
+        problem.backward()
+        # Because x* = 2 * p, dx*/dp = 2
+        np.testing.assert_allclose(p.gradient, 2.0)
+        ```
+
+        In the above example, the gradient could easily be computed by hand;
+        however, .backward() can be used to differentiate through any DCP
+        program (that is also DPP-compliant).
+
+
+        This method uses the chain rule to evaluate the gradients of a
+        scalar-valued function of the variables with respect to the parameters.
+        For example, let x be a variable and p a parameter; x and p might be
+        scalars, vectors, or matrices. Let f be a scalar-valued function, with
+        z = f(x). Then this method computes dz/dp = (dz/dx) (dx/p). dz/dx
+        is chosen to be the all ones vector by default, corresponding to
+        choosing f to be the sum function. You can specify a custom value for
+        dz/dx by setting the .gradient attribute on your variables. For example,
+
+        ```python
+        import cvxpy as cp
+        import numpy as np
+
+
+        b = cp.Parameter()
+        x = cp.Variable()
+        quadratic = cp.square(x - 2 * b)
+        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+        b.value = 3.
+        problem.solve(requires_grad=True, eps=1e-10)
+        x.gradient = 4.
+        problem.backward()
+        # dz/dp = dz/dx dx/dp = 4. * 2. == 8.
+        np.testing.assert_allclose(b.gradient, 8.)
+        ```
+
+        The .gradient attribute on a variable can also be interpreted as a
+        perturbation to its optimal value.
+
+        Raises:
+            ValueError if solve was not called with `requires_grad=True`
+            SolverError if the problem is infeasible or unbounded
+        """
         if s.DIFFCP not in self._solver_cache:
             raise ValueError("backward can only be called after calling "
                              "solve with `requires_grad=True`")
         elif self.status not in s.SOLUTION_PRESENT:
-            raise ValueError("Backpropagating through infeasible/unbounded "
-                             "problems is not yet supported. Please file an "
-                             "issue on Github if you need this feature.")
+            raise error.SolverError("Backpropagating through "
+                                    "infeasible/unbounded problems is not "
+                                    "yet supported. Please file an issue on "
+                                    "Github if you need this feature.")
 
         # TODO(akshayka): Backpropagate through dual variables as well.
         backward_cache = self._solver_cache[s.DIFFCP]
@@ -650,7 +718,44 @@ class Problem(u.Canonical):
             parameter.gradient = dparams[parameter.id]
 
     def derivative(self):
-        """TODO(akshayka): Document"""
+        """Apply the derivative of the solution map to perturbations in the parameters
+
+        This method applies the derivative of the solution map to perturbations
+        in the parameters, to obtain perturbations in the optimal values of the
+        variables. In other words, it tells you how the optimal values of the
+        variables would be changed.
+
+        You can specify perturbations in a parameter by setting its .delta
+        attribute (if unspecified, the perturbation defaults to 0). This method
+        populates the .delta attribute of the variables as a side-effect.
+
+        This method can only be called after calling .solve() with
+        `requires_grad=True`.
+
+        Below is a simple example:
+
+        ```python
+        import cvxpy as cp
+        import numpy as np
+
+
+        p = cp.Parameter()
+        x = cp.Variable()
+        quadratic = cp.square(x - 2 * p)
+        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+        p.value = 3.0
+        problem.solve(requires_grad=True, eps=1e-10)
+        # .derivative() populates the .gradient attribute of the parameters
+        problem.backward()
+        p.delta = 1e-3
+        # Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3
+        np.testing.assert_allclose(p.gradient, 2e-3)
+        ```
+
+        Raises:
+            ValueError if solve was not called with `requires_grad=True`
+            SolverError if the problem is infeasible or unbounded
+        """
         if s.DIFFCP not in self._solver_cache:
             raise ValueError("derivative can only be called after calling "
                              "solve with `requires_grad=True`")
@@ -662,20 +767,20 @@ class Problem(u.Canonical):
         backward_cache = self._solver_cache[s.DIFFCP]
         param_cone_prog = self._cache.param_cone_prog
         D = backward_cache["D"]
-        param_grads = {}
+        param_deltas = {}
         for parameter in self.parameters():
-            if parameter.gradient is None:
-                param_grads[parameter.id] = np.zeros(parameter.shape)
+            if parameter.delta is None:
+                param_deltas[parameter.id] = np.zeros(parameter.shape)
             else:
-                param_grads[parameter.id] = np.asarray(parameter.gradient,
-                                                       dtype=np.float64)
-        dc, _, dA, db = param_cone_prog.apply_parameters(param_grads,
+                param_deltas[parameter.id] = np.asarray(parameter.delta,
+                                                        dtype=np.float64)
+        dc, _, dA, db = param_cone_prog.apply_parameters(param_deltas,
                                                          zero_offset=True)
         dx, _, _ = D(-dA, db, dc)
         dvars = param_cone_prog.split_solution(
             dx, [v.id for v in self.variables()])
         for variable in self.variables():
-            variable.gradient = dvars[variable.id]
+            variable.delta = dvars[variable.id]
 
     def _clear_solution(self):
         for v in self.variables():

@@ -9,23 +9,23 @@ def perturbcheck(problem, delta=1e-5, atol=1e-8, eps=1e-10):
     np.random.seed(0)
     # Compute perturbations analytically
     for param in problem.parameters():
-        param.gradient = delta * np.random.randn(*param.shape)
+        param.delta = delta * np.random.randn(*param.shape)
     problem.solve(requires_grad=True, eps=eps)
     problem.derivative()
     variable_values = [v.value for v in problem.variables()]
-    gradients = [v.gradient for v in problem.variables()]
+    deltas = [v.delta for v in problem.variables()]
 
     # Compute perturbations numerically
     old_values = {}
     for param in problem.parameters():
         old_values[param] = param.value
-        param.value += param.gradient
+        param.value += param.delta
     problem.solve(cp.SCS, eps=eps)
-    diffs = [
+    num_deltas = [
         v.value - old_value for (v, old_value)
         in zip(problem.variables(), variable_values)]
 
-    for analytical, numerical in zip(gradients, diffs):
+    for analytical, numerical in zip(deltas, num_deltas):
         np.testing.assert_allclose(analytical, numerical, atol=atol)
 
     for param in problem.parameters():
@@ -84,19 +84,24 @@ class TestBackward(BaseTest):
         x = cp.Variable()
         quadratic = cp.square(x - 2 * b)
         problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
-        b.value = 3.0
+        b.value = 3.
         problem.solve(requires_grad=True, eps=1e-10)
-        self.assertAlmostEqual(x.value, 6.0)
+        self.assertAlmostEqual(x.value, 6.)
         problem.backward()
 
         # x* = 2 * b, dx*/db = 2
         # x.gradient == None defaults to 1.0
-        self.assertAlmostEqual(b.gradient, 2.0)
-        x.gradient = 3.0
+        self.assertAlmostEqual(b.gradient, 2.)
+        x.gradient = 4.
         problem.backward()
-        self.assertAlmostEqual(b.gradient, 6.0)
+        self.assertAlmostEqual(b.gradient, 8.)
         gradcheck(problem, atol=1e-4)
         perturbcheck(problem, atol=1e-4)
+
+        problem.solve(requires_grad=True, eps=1e-10)
+        b.delta = 1e-3
+        problem.derivative()
+        self.assertAlmostEqual(x.delta, 2e-3)
 
     def test_l1_square(self):
         np.random.seed(0)
