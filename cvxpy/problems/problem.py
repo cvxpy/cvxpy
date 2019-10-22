@@ -274,8 +274,9 @@ class Problem(u.Canonical):
             instead of a disciplined convex program.
         requires_grad : bool, optional
             Makes it possible to compute gradients with respect to
-            parameters by calling `.backward()` after solving. When True,
-            the solver must be SCS, and gp, qcp must be false; a DPPError is
+            parameters by calling `.backward()` after solving, or to compute
+            perturbations to the variables by calling `.derivative()`. When
+            True, the solver must be SCS, and gp, qcp must be false; a DPPError is
             thrown when problem is not DPP.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
@@ -560,8 +561,9 @@ class Problem(u.Canonical):
             If True, parses the problem as a disciplined quasiconvex program.
         requires_grad : bool, optional
             Makes it possible to compute gradients with respect to
-            parameters by calling `.backward()` after solving. When True,
-            the solver must be SCS, and gp, qcp must be False;
+            parameters by calling `.backward()` after solving, or to compute
+            perturbations to the variables by calling `.derivative()`. When
+            True, the solver must be SCS, and gp, qcp must be False;
             a DPPError is thrown when problem is not DPP.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
