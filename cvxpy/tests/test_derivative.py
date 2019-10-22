@@ -78,6 +78,12 @@ def gradcheck(problem, delta=1e-5, atol=1e-5, eps=1e-10):
 
 class TestBackward(BaseTest):
     """Test problem.backward() and problem.derivative()."""
+    def setUp(self):
+        try:
+            import diffcp
+            diffcp  # for flake8
+        except ImportError:
+            self.skipTest("diffcp not installed.")
 
     def test_scalar_quadratic(self):
         b = cp.Parameter()
