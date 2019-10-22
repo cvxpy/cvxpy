@@ -591,7 +591,7 @@ class Problem(u.Canonical):
                 raise ValueError("Cannot compute gradients of DGP problems.")
             elif qcp:
                 raise ValueError("Cannot compute gradients of DQCP problems.")
-            elif solver is not None and solver != s.SCS:
+            elif solver is not None and solver not in [s.SCS, s.DIFFCP]:
                 raise ValueError("When requires_grad is True, the only "
                                  "supported solver is SCS "
                                  "(received %s)." % solver)
