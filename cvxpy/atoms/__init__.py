@@ -120,3 +120,8 @@ PSD_ATOMS = [
     normNuc,
     sigma_max,
 ]
+
+NONPOS_ATOMS = [
+    norm1,
+    abs
+]

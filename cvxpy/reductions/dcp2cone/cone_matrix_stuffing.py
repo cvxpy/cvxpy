@@ -71,11 +71,13 @@ class ParamConeProg(object):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
-    def apply_parameters(self, id_to_param_value=None):
+    def apply_parameters(self, id_to_param_value=None, zero_offset=False):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:
           id_to_param_value: (optional) dict mapping parameter ids to values
+          zero_offset: (optional) if True, zero out the constant offset in the
+                       parameter vector
         """
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value
@@ -84,7 +86,8 @@ class ParamConeProg(object):
             self.total_param_size,
             self.param_id_to_col,
             self.param_id_to_size,
-            param_value)
+            param_value,
+            zero_offset=zero_offset)
         c, d = canonInterface.get_matrix_and_offset_from_tensor(
             self.c, param_vec, self.x.size)
         c = c.toarray().flatten()
@@ -96,6 +99,9 @@ class ParamConeProg(object):
         """Multiplies by Jacobian of parameter mapping.
 
         Assumes delA is sparse.
+
+        Returns:
+            A dictionary param.id -> dparam
         """
         if active_params is None:
             active_params = {p.id for p in self.parameters}
@@ -119,7 +125,7 @@ class ParamConeProg(object):
         """Splits the solution into individual variables.
         """
         if active_vars is None:
-            active_vars = {v.id for v in self.variables}
+            active_vars = [v.id for v in self.variables]
         # var id to solution.
         sltn_dict = {}
         for var_id, col in self.var_id_to_col.items():
@@ -137,7 +143,7 @@ class ParamConeProg(object):
                         value, var.shape, order='F')
         return sltn_dict
 
-    def split_adjoint(self, del_vars):
+    def split_adjoint(self, del_vars=None):
         """Adjoint of split_solution.
         """
         var_vec = np.zeros(self.x.size)

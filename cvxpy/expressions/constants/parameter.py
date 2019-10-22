@@ -93,6 +93,7 @@ class Parameter(Leaf):
             self._name = name
         # Initialize with value if provided.
         self._value = None
+        self.gradient = None
         super(Parameter, self).__init__(shape, value, **kwargs)
         self._is_constant = True
 
