@@ -58,7 +58,8 @@ setup(
     name='cvxpy',
     version='1.1.0a0',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
-    author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
+    author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
+                 'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=[canon],
     packages=find_packages(exclude=["cvxpy.performance_tests"]),
