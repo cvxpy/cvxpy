@@ -2,8 +2,9 @@ import warnings
 
 
 import cvxpy.settings as s
-from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
-from cvxpy.constraints import ExpCone, PSD, SOC
+from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
+from cvxpy.constraints import ExpCone, PSD, SOC, \
+                              NonPos, Inequality, Equality, Zero
 from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, Dcp2Cone,
@@ -164,6 +165,11 @@ def construct_solving_chain(problem, candidates, gp=False):
     if (any(atom in EXP_ATOMS for atom in atoms)
             or any(type(c) == ExpCone for c in problem.constraints)):
         cones.append(ExpCone)
+    if (any(atom in NONPOS_ATOMS for atom in atoms)
+            or any(type(c) in [Inequality, NonPos] for c in problem.constraints)):
+        cones.append(NonPos)
+    if (any(type(c) in [Equality, Zero] for c in problem.constraints)):
+        cones.append(Zero)
     if (any(atom in PSD_ATOMS for atom in atoms)
             or any(type(c) == PSD for c in problem.constraints)
             or any(v.is_psd() or v.is_nsd()
@@ -180,7 +186,7 @@ def construct_solving_chain(problem, candidates, gp=False):
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             # TODO remove eventually.
-            if solver != s.SCS:
+            if solver not in [s.SCS, s.DIFFCP]:
                 reductions += [EvalParams()]
             reductions += [ConeMatrixStuffing(),
                            solver_instance]

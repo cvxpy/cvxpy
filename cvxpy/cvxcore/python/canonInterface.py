@@ -24,7 +24,8 @@ from collections import deque
 def get_parameter_vector(param_size,
                          param_id_to_col,
                          param_id_to_size,
-                         param_id_to_value_fn):
+                         param_id_to_value_fn,
+                         zero_offset=False):
     """Returns a flattened parameter vector
 
     The flattened vector includes a constant offset (i.e, a 1).
@@ -35,6 +36,8 @@ def get_parameter_vector(param_size,
         param_id_to_col: A dict from parameter id to column offset
         param_id_to_size: A dict from parameter id to parameter size
         param_id_to_value_fn: A callable that returns a value for a parameter id
+        zero_offset: (optional) if True, zero out the constant offset in the
+                     parameter vector
 
     Returns
     -------
@@ -46,7 +49,8 @@ def get_parameter_vector(param_size,
     param_vec = np.zeros(param_size + 1)
     for param_id, col in param_id_to_col.items():
         if param_id == lo.CONSTANT_ID:
-            param_vec[col] = 1
+            if not zero_offset:
+                param_vec[col] = 1
         else:
             value = param_id_to_value_fn(param_id).flatten(order='F')
             size = param_id_to_size[param_id]

@@ -76,6 +76,8 @@ class Variable(Leaf):
 
         self._variable_with_attributes = None
         self._value = None
+        self.delta = None
+        self.gradient = None
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self):

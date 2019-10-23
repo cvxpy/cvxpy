@@ -29,7 +29,9 @@ from cvxpy.utilities.deterministic import unique_list
 import cvxpy.utilities.performance_utils as perf
 from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
+
 from collections import namedtuple
+import numpy as np
 
 
 SolveResult = namedtuple(
@@ -84,13 +86,12 @@ class Problem(u.Canonical):
         self._status = None
         self._solution = None
         self._cache = Cache()
+        self._solver_cache = {}
         # Information about the shape of the problem and its constituent parts
         self._size_metrics = None
         # Benchmarks reported by the solver:
         self._solver_stats = None
         self.args = [self._objective, self._constraints]
-        # Cache for warm start.
-        self._solver_cache = {}
 
     @property
     def value(self):
@@ -271,6 +272,12 @@ class Problem(u.Canonical):
         qcp : bool, optional
             If True, parses the problem as a disciplined quasiconvex program
             instead of a disciplined convex program.
+        requires_grad : bool, optional
+            Makes it possible to compute gradients with respect to
+            parameters by calling `.backward()` after solving, or to compute
+            perturbations to the variables by calling `.derivative()`. When
+            True, the solver must be SCS, and gp, qcp must be false; a DPPError is
+            thrown when problem is not DPP.
         solver_specific_opts : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -400,6 +407,7 @@ class Problem(u.Canonical):
             solving_chain = self._construct_chain(solver=solver, gp=gp)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
+            self._solver_cache = {}
         else:
             solving_chain = self._cache.solving_chain
 
@@ -533,7 +541,7 @@ class Problem(u.Canonical):
                solver=None,
                warm_start=True,
                verbose=False,
-               gp=False, qcp=False, **kwargs):
+               gp=False, qcp=False, requires_grad=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -551,6 +559,12 @@ class Problem(u.Canonical):
             If True, parses the problem as a disciplined geometric program.
         qcp : bool, optional
             If True, parses the problem as a disciplined quasiconvex program.
+        requires_grad : bool, optional
+            Makes it possible to compute gradients with respect to
+            parameters by calling `.backward()` after solving, or to compute
+            perturbations to the variables by calling `.derivative()`. When
+            True, the solver must be SCS, and gp, qcp must be False;
+            a DPPError is thrown when problem is not DPP.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -569,26 +583,206 @@ class Problem(u.Canonical):
                     "associated with it; all Parameter objects must have "
                     "values before solving a problem." % parameter.name())
 
-        if gp and qcp:
-            raise ValueError("At most one of `gp` and `qcp` can be True.")
-        if qcp and not self.is_dcp():
-            if not self.is_dqcp():
-                raise error.DQCPError("The problem is not DQCP.")
-            reductions = [dqcp2dcp.Dqcp2Dcp()]
-            if type(self.objective) == Maximize:
-                reductions = [FlipObjective()] + reductions
-            chain = Chain(problem=self, reductions=reductions)
-            soln = bisection.bisect(
-                chain.reduce(), solver=solver, verbose=verbose, **kwargs)
-            self.unpack(chain.retrieve(soln))
-            return self.value
+        if requires_grad:
+            if not self.is_dpp():
+                raise error.DPPError("Problem is not DPP (when requires_grad "
+                                     "is True, problem must be DPP).")
+            elif gp:
+                raise ValueError("Cannot compute gradients of DGP problems.")
+            elif qcp:
+                raise ValueError("Cannot compute gradients of DQCP problems.")
+            elif solver is not None and solver not in [s.SCS, s.DIFFCP]:
+                raise ValueError("When requires_grad is True, the only "
+                                 "supported solver is SCS "
+                                 "(received %s)." % solver)
+            elif s.DIFFCP not in slv_def.INSTALLED_SOLVERS:
+                raise ImportError(
+                    "The Python package diffcp must be installed to "
+                    "differentiate through problems. Please follow the "
+                    "installation instructions at "
+                    "https://github.com/cvxgrp/diffcp")
+            else:
+                solver = s.DIFFCP
+        else:
+            if gp and qcp:
+                raise ValueError("At most one of `gp` and `qcp` can be True.")
+            if qcp and not self.is_dcp():
+                if not self.is_dqcp():
+                    raise error.DQCPError("The problem is not DQCP.")
+                reductions = [dqcp2dcp.Dqcp2Dcp()]
+                if type(self.objective) == Maximize:
+                    reductions = [FlipObjective()] + reductions
+                chain = Chain(problem=self, reductions=reductions)
+                soln = bisection.bisect(
+                    chain.reduce(), solver=solver, verbose=verbose, **kwargs)
+                self.unpack(chain.retrieve(soln))
+                return self.value
 
         data, solving_chain, inverse_data = self.get_problem_data(solver, gp)
         solution = solving_chain.solve_via_data(
             self, data, warm_start, verbose, kwargs)
         self.unpack_results(solution, solving_chain, inverse_data)
-
         return self.value
+
+    def backward(self):
+        """Compute the gradient of a solution with respect to parameters.
+
+        This method differentiates through the solution map of the problem,
+        to obtain the gradient of a solution with respect to the parameters.
+        In other words, it calculates the sensitivities of the parameters
+        with respect to perturbations in the optimal variable values.
+
+        .backward() populates the .gradient attribute of each parameter as a
+        side-effect. It can only be called after calling .solve() with
+        `requires_grad=True`.
+
+        Below is a simple example:
+
+        ```python
+        import cvxpy as cp
+        import numpy as np
+
+
+        p = cp.Parameter()
+        x = cp.Variable()
+        quadratic = cp.square(x - 2 * p)
+        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+        p.value = 3.0
+        problem.solve(requires_grad=True, eps=1e-10)
+        # .backward() populates the .gradient attribute of the parameters
+        problem.backward()
+        # Because x* = 2 * p, dx*/dp = 2
+        np.testing.assert_allclose(p.gradient, 2.0)
+        ```
+
+        In the above example, the gradient could easily be computed by hand;
+        however, .backward() can be used to differentiate through any DCP
+        program (that is also DPP-compliant).
+
+
+        This method uses the chain rule to evaluate the gradients of a
+        scalar-valued function of the variables with respect to the parameters.
+        For example, let x be a variable and p a parameter; x and p might be
+        scalars, vectors, or matrices. Let f be a scalar-valued function, with
+        z = f(x). Then this method computes dz/dp = (dz/dx) (dx/p). dz/dx
+        is chosen to be the all ones vector by default, corresponding to
+        choosing f to be the sum function. You can specify a custom value for
+        dz/dx by setting the .gradient attribute on your variables. For example,
+
+        ```python
+        import cvxpy as cp
+        import numpy as np
+
+
+        b = cp.Parameter()
+        x = cp.Variable()
+        quadratic = cp.square(x - 2 * b)
+        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+        b.value = 3.
+        problem.solve(requires_grad=True, eps=1e-10)
+        x.gradient = 4.
+        problem.backward()
+        # dz/dp = dz/dx dx/dp = 4. * 2. == 8.
+        np.testing.assert_allclose(b.gradient, 8.)
+        ```
+
+        The .gradient attribute on a variable can also be interpreted as a
+        perturbation to its optimal value.
+
+        Raises:
+            ValueError if solve was not called with `requires_grad=True`
+            SolverError if the problem is infeasible or unbounded
+        """
+        if s.DIFFCP not in self._solver_cache:
+            raise ValueError("backward can only be called after calling "
+                             "solve with `requires_grad=True`")
+        elif self.status not in s.SOLUTION_PRESENT:
+            raise error.SolverError("Backpropagating through "
+                                    "infeasible/unbounded problems is not "
+                                    "yet supported. Please file an issue on "
+                                    "Github if you need this feature.")
+
+        # TODO(akshayka): Backpropagate through dual variables as well.
+        backward_cache = self._solver_cache[s.DIFFCP]
+        DT = backward_cache["DT"]
+        zeros = np.zeros(backward_cache["s"].shape)
+        del_vars = {}
+        for variable in self.variables():
+            if variable.gradient is None:
+                del_vars[variable.id] = np.ones(variable.shape)
+            else:
+                del_vars[variable.id] = np.asarray(variable.gradient,
+                                                   dtype=np.float64)
+        dx = self._cache.param_cone_prog.split_adjoint(del_vars)
+        dA, db, dc = DT(dx, zeros, zeros)
+        dparams = self._cache.param_cone_prog.apply_param_jac(dc, -dA, db)
+        for parameter in self.parameters():
+            parameter.gradient = dparams[parameter.id]
+
+    def derivative(self):
+        """Apply the derivative of the solution map to perturbations in the parameters
+
+        This method applies the derivative of the solution map to perturbations
+        in the parameters, to obtain perturbations in the optimal values of the
+        variables. In other words, it tells you how the optimal values of the
+        variables would be changed.
+
+        You can specify perturbations in a parameter by setting its .delta
+        attribute (if unspecified, the perturbation defaults to 0). This method
+        populates the .delta attribute of the variables as a side-effect.
+
+        This method can only be called after calling .solve() with
+        `requires_grad=True`.
+
+        Below is a simple example:
+
+        ```python
+        import cvxpy as cp
+        import numpy as np
+
+
+        p = cp.Parameter()
+        x = cp.Variable()
+        quadratic = cp.square(x - 2 * p)
+        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+        p.value = 3.0
+        problem.solve(requires_grad=True, eps=1e-10)
+        # .derivative() populates the .gradient attribute of the parameters
+        problem.backward()
+        p.delta = 1e-3
+        # Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3
+        np.testing.assert_allclose(p.gradient, 2e-3)
+        ```
+
+        Raises:
+            ValueError if solve was not called with `requires_grad=True`
+            SolverError if the problem is infeasible or unbounded
+        """
+        if s.DIFFCP not in self._solver_cache:
+            raise ValueError("derivative can only be called after calling "
+                             "solve with `requires_grad=True`")
+        elif self.status not in s.SOLUTION_PRESENT:
+            raise ValueError("Differentiating through infeasible/unbounded "
+                             "problems is not yet supported. Please file an "
+                             "issue on Github if you need this feature.")
+        # TODO(akshayka): Forward differentiate dual variables as well
+        backward_cache = self._solver_cache[s.DIFFCP]
+        param_cone_prog = self._cache.param_cone_prog
+        D = backward_cache["D"]
+        param_deltas = {}
+        for parameter in self.parameters():
+            if parameter.delta is None:
+                param_deltas[parameter.id] = np.zeros(parameter.shape)
+            else:
+                param_deltas[parameter.id] = np.asarray(parameter.delta,
+                                                        dtype=np.float64)
+        dc, _, dA, db = param_cone_prog.apply_parameters(param_deltas,
+                                                         zero_offset=True)
+        dx, _, _ = D(-dA, db, dc)
+        dvars = param_cone_prog.split_solution(
+            dx, [v.id for v in self.variables()])
+        for variable in self.variables():
+            variable.delta = dvars[variable.id]
 
     def _clear_solution(self):
         for v in self.variables():

@@ -17,6 +17,7 @@ limitations under the License.
 from .cbc_conif import CBC
 from .cplex_conif import CPLEX
 from .cvxopt_conif import CVXOPT
+from .diffcp_conif import DIFFCP
 from .ecos_conif import ECOS
 from .glpk_conif import GLPK
 from .glpk_mi_conif import GLPK_MI
