@@ -125,8 +125,13 @@ class GUROBI(QpSolver):
         x = np.array(model.getVars(), copy=False)
 
         if A.shape[0] > 0:
-            if hasattr(model, '_v811_addMConstrs'):
-                # We can pass all of A == b at once
+            if hasattr(model, 'addMConstrs'):
+                # We can pass all of A @ x == b at once, use stable API
+                # introduced with Gurobi v9
+                model.addMConstrs(A, None, grb.GRB.EQUAL, b)
+            elif hasattr(model, '_v811_addMConstrs'):
+                # We can pass all of A @ x == b at once, API only for Gurobi
+                # v811
                 sense = np.repeat(grb.GRB.EQUAL, A.shape[0])
                 model._v811_addMConstrs(A, sense, b)
             else:
@@ -142,8 +147,13 @@ class GUROBI(QpSolver):
         model.update()
 
         if F.shape[0] > 0:
-            if hasattr(model, '_v811_addMConstrs'):
-                # We can pass all of F <= g at once
+            if hasattr(model, 'addMConstrs'):
+                # We can pass all of F @ x <= g at once, use stable API
+                # introduced with Gurobi v9
+                model.addMConstrs(F, None, grb.GRB.LESS_EQUAL, g)
+            elif hasattr(model, '_v811_addMConstrs'):
+                # We can pass all of F @ x <= g at once, API only for Gurobi
+                # v811.
                 sense = np.repeat(grb.GRB.LESS_EQUAL, F.shape[0])
                 model._v811_addMConstrs(F, sense, g)
             else:
@@ -159,11 +169,16 @@ class GUROBI(QpSolver):
         model.update()
 
         # Define objective
-        obj = grb.QuadExpr()
-        if hasattr(model, '_v811_setMObjective'):
+        if hasattr(model, 'setMObjective'):
+            # Use stable API starting in Gurobi v9
+            P = P.tocoo()
+            model.setMObjective(0.5 * P, q, 0.0)
+        elif hasattr(model, '_v811_setMObjective'):
+            # Use temporary API for Gurobi v811 only
             P = P.tocoo()
             model._v811_setMObjective(0.5 * P, q)
         else:
+            obj = grb.QuadExpr()
             if P.count_nonzero():  # If there are any nonzero elms in P
                 P = P.tocoo()
                 obj.addTerms(0.5*P.data, vars=list(x[P.row]),
