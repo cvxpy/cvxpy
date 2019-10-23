@@ -29,7 +29,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda install -c conda-forge --yes ecos scs
         conda install -c oxfordcontrol --yes osqp
         conda install -c default --yes flake8
-        pip install diffcp
+        pip install --index-url https://test.pypi.org/simple/ --upgrade diffcp
 
         # Install GLPK.
         if [[ "$CVXOPT" == "true" ]]; then
@@ -53,7 +53,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda install -c conda-forge --yes ecos scs
         conda install -c oxfordcontrol --yes osqp
         conda install -c default --yes flake8=3.5.0
-        pip install diffcp
+        pip install --index-url https://test.pypi.org/simple/ --upgrade diffcp
     fi
 
 
