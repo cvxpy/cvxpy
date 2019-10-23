@@ -204,7 +204,7 @@ class TestBackward(BaseTest):
         b.value = b_np
         F.value = F_np
         g.value = g_np
-        gradcheck(problem, atol=1e-3, eps=1e-8)
+        gradcheck(problem, atol=1e-2, eps=1e-8)
         perturbcheck(problem)
 
     def test_lml(self):
