@@ -1,4 +1,5 @@
 language: C
+osx_image: xcode11.1
 os:
   - osx
   - linux
