@@ -2,6 +2,7 @@ language: C
 os:
   - osx
   - linux
+dist: bionic
 env:
   matrix:
     - DISTRIB="conda" PYTHON_VERSION="3.5" CVXOPT="true"
