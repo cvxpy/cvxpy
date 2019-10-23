@@ -153,6 +153,8 @@ def construct_solving_chain(problem, candidates, gp=False):
             "Because the problem is not DPP, subsequent solves will not be "
             "faster than the first one.")
         reductions += [EvalParams()]
+    elif any(param.is_complex() for param in problem.parameters()):
+        reductions += [EvalParams()]
 
     # Our choice of solver depends upon which atoms are present in the
     # problem. The types of atoms to check for are SOC atoms, PSD atoms,
@@ -185,9 +187,6 @@ def construct_solving_chain(problem, candidates, gp=False):
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
-            # TODO remove eventually.
-            if solver not in [s.SCS, s.DIFFCP]:
-                reductions += [EvalParams()]
             reductions += [ConeMatrixStuffing(),
                            solver_instance]
             return SolvingChain(reductions=reductions)
