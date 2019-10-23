@@ -1,5 +1,4 @@
 language: C
-osx_image: xcode11.1
 os:
   - osx
   - linux
@@ -21,6 +20,7 @@ sudo: required
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CC=g++ ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CXX=g++; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CFLAGS='-stdlib=libc++'; fi
 install: source continuous_integration/Travis/install_dependencies.sh
 script:
   - bash continuous_integration/Travis/test_script.sh
