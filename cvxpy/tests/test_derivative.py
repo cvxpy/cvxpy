@@ -177,7 +177,7 @@ class TestBackward(BaseTest):
             cp.Minimize(-log_likelihood + lam * cp.sum_squares(a)))
         X.value = X_np
         lam.value = 1
-        gradcheck(problem, atol=1e-3, eps=1e-8)
+        gradcheck(problem, atol=1e-2, eps=1e-8)
         perturbcheck(problem)
 
     def test_entropy_maximization(self):
