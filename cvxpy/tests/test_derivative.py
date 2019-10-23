@@ -179,7 +179,7 @@ class TestBackward(BaseTest):
         lam.value = 1
         # TODO(akshayka): too low but this problem is ill-conditioned
         gradcheck(problem, atol=1e-1, eps=1e-8)
-        perturbcheck(problem)
+        perturbcheck(problem, atol=1e-4)
 
     def test_entropy_maximization(self):
         np.random.seed(0)
@@ -205,7 +205,7 @@ class TestBackward(BaseTest):
         F.value = F_np
         g.value = g_np
         gradcheck(problem, atol=1e-2, eps=1e-8)
-        perturbcheck(problem)
+        perturbcheck(problem, atol=1e-4)
 
     def test_lml(self):
         np.random.seed(0)
@@ -219,7 +219,7 @@ class TestBackward(BaseTest):
         x.value = np.array([1., -1., -1., -1.])
         # TODO(akshayka): This tolerance is too low.
         gradcheck(problem, atol=1e-2)
-        perturbcheck(problem)
+        perturbcheck(problem, atol=1e-4)
 
     def test_sdp(self):
         np.random.seed(0)
