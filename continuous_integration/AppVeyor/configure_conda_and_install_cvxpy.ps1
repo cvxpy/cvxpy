@@ -6,5 +6,5 @@ conda activate testenv
 conda install --yes lapack ecos multiprocess
 conda install -c conda-forge --yes scs
 conda install -c anaconda --yes flake8
-pip install --index-url https://test.pypi.org/simple/ --upgrade diffcp
+pip install diffcp
 python setup.py install
