@@ -66,7 +66,8 @@ setup(
     url='http://github.com/cvxgrp/cvxpy/',
     license='Apache License, Version 2.0',
     zip_safe=False,
-    description='A domain-specific language for modeling convex optimization problems in Python.',
+    description='A domain-specific language for modeling convex optimization '
+                'problems in Python.',
     install_requires=["osqp >= 0.4.1",
                       "ecos >= 2",
                       "scs >= 1.1.3",
