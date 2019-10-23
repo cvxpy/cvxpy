@@ -1,7 +1,6 @@
 import warnings
 
 
-import cvxpy.settings as s
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC, \
                               NonPos, Inequality, Equality, Zero
