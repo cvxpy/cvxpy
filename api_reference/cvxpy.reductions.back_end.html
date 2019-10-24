@@ -4,24 +4,16 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Back-End Reductions &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.1.0a0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Transforms" href="cvxpy.transforms.html" />
@@ -32,8 +24,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
@@ -48,11 +39,11 @@
 <p>The reductions listed here are specific to the choice of back end, i.e.,
 solver. Currently, we support two types of back ends: conic solvers and
 quadratic program solvers.  When a problem is solved through the
-<code class="xref py py-meth docutils literal"><span class="pre">solve()</span></code> method, CVXPY attempts to find
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code> method, CVXPY attempts to find
 the best back end for your problem. The
-<code class="xref py py-class docutils literal"><span class="pre">Dcp2Cone</span></code> reduction converts DCP-compliant
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Dcp2Cone</span></code> reduction converts DCP-compliant
 problems into conic form, while the
-<code class="xref py py-class docutils literal"><span class="pre">Qp2SymbolicQp</span></code> converts problems with
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Qp2SymbolicQp</span></code> converts problems with
 quadratic, piecewise affine objectives, affine equality constraints, and
 piecewise-linear inequality constraints into a form that is closer to what is
 accepted by solvers. The problems output by both reductions must be passed
@@ -156,12 +147,14 @@ ready for to be solved.</p>
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -172,7 +165,7 @@ ready for to be solved.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

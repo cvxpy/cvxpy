@@ -4,24 +4,16 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Disciplined Convex Programming &#8212; CVXPY 0.4.11 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '0.4.11',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Functions" href="../functions/index.html" />
@@ -32,8 +24,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
@@ -53,9 +44,9 @@ more interactive introduction to DCP.</p>
 <h2>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h2>
 <p>Expressions in CVXPY are formed from variables, parameters, numerical
 constants such as Python floats and Numpy matrices, the standard
-arithmetic operators <code class="docutils literal"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code>, and a library of
+arithmetic operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code>, and a library of
 <a class="reference internal" href="../functions/index.html#functions"><span class="std std-ref">functions</span></a>. Here are some examples of CVXPY expressions:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="o">*</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="o">*</span>
 
 <span class="c1"># Create variables and parameters.</span>
 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(),</span> <span class="n">Variable</span><span class="p">()</span>
@@ -68,10 +59,10 @@ arithmetic operators <code class="docutils literal"><span class="pre">+,</span> 
 <span class="n">max_elemwise</span><span class="p">(</span><span class="mf">2.66</span> <span class="o">-</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>Expressions can be scalars, vectors, or matrices. The dimensions of an expression are stored as <code class="docutils literal"><span class="pre">expr.size</span></code>. CVXPY will raise an exception if an
+<p>Expressions can be scalars, vectors, or matrices. The dimensions of an expression are stored as <code class="docutils literal notranslate"><span class="pre">expr.size</span></code>. CVXPY will raise an exception if an
 expression is used in a way that doesn’t make sense given its
 dimensions, for example adding matrices of different size.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
 
 <span class="n">X</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
@@ -88,7 +79,7 @@ dimensions, for example adding matrices of different size.</p>
     <span class="nb">print</span> <span class="n">e</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">dimensions</span> <span class="n">of</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dimensions</span> <span class="n">of</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">dimensions</span> <span class="n">of</span> <span class="n">sum_entries</span><span class="p">(</span><span class="n">X</span><span class="p">):</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 <span class="n">dimensions</span> <span class="n">of</span> <span class="n">A</span><span class="o">*</span><span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">Incompatible</span> <span class="n">dimensions</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
@@ -110,11 +101,11 @@ subexpressions. For example, the sign of the expression expr1*expr2 is</p>
 </ul>
 <p>The sign given to an expression is always correct. But DCP sign analysis
 may flag an expression as unknown sign when the sign could be figured
-out through more complex analysis. For instance, <code class="docutils literal"><span class="pre">x*x</span></code> is positive but
+out through more complex analysis. For instance, <code class="docutils literal notranslate"><span class="pre">x*x</span></code> is positive but
 has unknown sign by the rules above.</p>
 <p>CVXPY determines the sign of constants by looking at their value. For scalar constants, this is straightforward. Vector and matrix constants with all positive (negative) entries are marked as positive (negative). Vector and matrix constants with both positive and negative entries are marked as unknown sign.</p>
-<p>The sign of an expression is stored as <code class="docutils literal"><span class="pre">expr.sign</span></code>:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+<p>The sign of an expression is stored as <code class="docutils literal notranslate"><span class="pre">expr.sign</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">sign</span><span class="o">=</span><span class="s2">&quot;negative&quot;</span><span class="p">)</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
@@ -124,7 +115,7 @@ has unknown sign by the rules above.</p>
 <span class="nb">print</span> <span class="s2">&quot;sign of c*a:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sign</span> <span class="n">of</span> <span class="n">x</span><span class="p">:</span> <span class="n">UNKNOWN</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sign</span> <span class="n">of</span> <span class="n">x</span><span class="p">:</span> <span class="n">UNKNOWN</span>
 <span class="n">sign</span> <span class="n">of</span> <span class="n">a</span><span class="p">:</span> <span class="n">NEGATIVE</span>
 <span class="n">sign</span> <span class="n">of</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="n">POSITIVE</span>
 <span class="n">sign</span> <span class="n">of</span> <span class="n">c</span><span class="o">*</span><span class="n">a</span><span class="p">:</span> <span class="n">UNKNOWN</span>
@@ -146,16 +137,16 @@ has unknown sign by the rules above.</p>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td>constant</td>
-<td><span class="math">\(f(x)\)</span> independent of <span class="math">\(x\)</span></td>
+<td><span class="math notranslate nohighlight">\(f(x)\)</span> independent of <span class="math notranslate nohighlight">\(x\)</span></td>
 </tr>
 <tr class="row-odd"><td>affine</td>
-<td><span class="math">\(f(\theta x + (1-\theta)y) = \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></td>
+<td><span class="math notranslate nohighlight">\(f(\theta x + (1-\theta)y) = \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></td>
 </tr>
 <tr class="row-even"><td>convex</td>
-<td><span class="math">\(f(\theta x + (1-\theta)y) \leq \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></td>
+<td><span class="math notranslate nohighlight">\(f(\theta x + (1-\theta)y) \leq \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></td>
 </tr>
 <tr class="row-odd"><td>concave</td>
-<td><span class="math">\(f(\theta x + (1-\theta)y) \geq \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></td>
+<td><span class="math notranslate nohighlight">\(f(\theta x + (1-\theta)y) \geq \theta f(x) + (1-\theta)f(y), \; \forall x, \; y,\; \theta \in [0,1]\)</span></td>
 </tr>
 <tr class="row-even"><td>unknown</td>
 <td>DCP analysis cannot determine the curvature</td>
@@ -172,34 +163,34 @@ convex and concave.</p>
 <h2>Curvature rules<a class="headerlink" href="#curvature-rules" title="Permalink to this headline">¶</a></h2>
 <p>DCP analysis is based on applying a general composition theorem from
 convex analysis to each (sub)expression.</p>
-<p><span class="math">\(f(expr_1, expr_2, ..., expr_n)\)</span> is convex if <span class="math">\(\text{ } f\)</span>
-is a convex function and for each <span class="math">\(expr_{i}\)</span> one of the following
+<p><span class="math notranslate nohighlight">\(f(expr_1, expr_2, ..., expr_n)\)</span> is convex if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is a convex function and for each <span class="math notranslate nohighlight">\(expr_{i}\)</span> one of the following
 conditions holds:</p>
 <ul class="simple">
-<li><span class="math">\(f\)</span> is increasing in argument <span class="math">\(i\)</span> and <span class="math">\(expr_{i}\)</span> is convex.</li>
-<li><span class="math">\(f\)</span> is decreasing in argument <span class="math">\(i\)</span> and <span class="math">\(expr_{i}\)</span> is
+<li><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_{i}\)</span> is convex.</li>
+<li><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_{i}\)</span> is
 concave.</li>
-<li><span class="math">\(expr_{i}\)</span> is affine or constant.</li>
+<li><span class="math notranslate nohighlight">\(expr_{i}\)</span> is affine or constant.</li>
 </ul>
-<p><span class="math">\(f(expr_1, expr_2, ..., expr_n)\)</span> is concave if <span class="math">\(\text{ } f\)</span>
-is a concave function and for each <span class="math">\(expr_{i}\)</span> one of the following
+<p><span class="math notranslate nohighlight">\(f(expr_1, expr_2, ..., expr_n)\)</span> is concave if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is a concave function and for each <span class="math notranslate nohighlight">\(expr_{i}\)</span> one of the following
 conditions holds:</p>
 <ul class="simple">
-<li><span class="math">\(f\)</span> is increasing in argument <span class="math">\(i\)</span> and <span class="math">\(expr_{i}\)</span> is
+<li><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_{i}\)</span> is
 concave.</li>
-<li><span class="math">\(f\)</span> is decreasing in argument <span class="math">\(i\)</span> and <span class="math">\(expr_{i}\)</span> is convex.</li>
-<li><span class="math">\(expr_{i}\)</span> is affine or constant.</li>
+<li><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_{i}\)</span> is convex.</li>
+<li><span class="math notranslate nohighlight">\(expr_{i}\)</span> is affine or constant.</li>
 </ul>
-<p><span class="math">\(f(expr_1, expr_2, ..., expr_n)\)</span> is affine if <span class="math">\(\text{ } f\)</span>
-is an affine function and each <span class="math">\(expr_{i}\)</span> is affine.</p>
+<p><span class="math notranslate nohighlight">\(f(expr_1, expr_2, ..., expr_n)\)</span> is affine if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is an affine function and each <span class="math notranslate nohighlight">\(expr_{i}\)</span> is affine.</p>
 <p>If none of the three rules apply, the expression
-<span class="math">\(f(expr_1, expr_2, ..., expr_n)\)</span> is marked as having unknown
+<span class="math notranslate nohighlight">\(f(expr_1, expr_2, ..., expr_n)\)</span> is marked as having unknown
 curvature.</p>
 <p>Whether a function is increasing or decreasing in an argument may depend
-on the sign of the argument. For instance, <code class="docutils literal"><span class="pre">square</span></code> is increasing for
+on the sign of the argument. For instance, <code class="docutils literal notranslate"><span class="pre">square</span></code> is increasing for
 positive arguments and decreasing for negative arguments.</p>
-<p>The curvature of an expression is stored as <code class="docutils literal"><span class="pre">expr.curvature</span></code>:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+<p>The curvature of an expression is stored as <code class="docutils literal notranslate"><span class="pre">expr.curvature</span></code>:</p>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">sign</span><span class="o">=</span><span class="s2">&quot;positive&quot;</span><span class="p">)</span>
 
 <span class="nb">print</span> <span class="s2">&quot;curvature of x:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">curvature</span>
@@ -208,7 +199,7 @@ positive arguments and decreasing for negative arguments.</p>
 <span class="nb">print</span> <span class="s2">&quot;curvature of sqrt(x):&quot;</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">curvature</span> <span class="n">of</span> <span class="n">x</span><span class="p">:</span> <span class="n">AFFINE</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curvature</span> <span class="n">of</span> <span class="n">x</span><span class="p">:</span> <span class="n">AFFINE</span>
 <span class="n">curvature</span> <span class="n">of</span> <span class="n">a</span><span class="p">:</span> <span class="n">CONSTANT</span>
 <span class="n">curvature</span> <span class="n">of</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="n">CONVEX</span>
 <span class="n">curvature</span> <span class="n">of</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="n">CONCAVE</span>
@@ -217,51 +208,51 @@ positive arguments and decreasing for negative arguments.</p>
 </div>
 <div class="section" id="infix-operators">
 <h2>Infix operators<a class="headerlink" href="#infix-operators" title="Permalink to this headline">¶</a></h2>
-<p>The infix operators <code class="docutils literal"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code> are treated exactly like functions.
-The infix operators <code class="docutils literal"><span class="pre">+</span></code> and <code class="docutils literal"><span class="pre">-</span></code> are affine, so the rules above are
-used to flag the curvature. For example, <code class="docutils literal"><span class="pre">expr1</span> <span class="pre">+</span> <span class="pre">expr2</span></code> is flagged as
-convex if <code class="docutils literal"><span class="pre">expr1</span></code> and <code class="docutils literal"><span class="pre">expr2</span></code> are convex.</p>
-<p><code class="docutils literal"><span class="pre">expr1*expr2</span></code> is allowed only when one of the expressions is constant.
+<p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code> are treated exactly like functions.
+The infix operators <code class="docutils literal notranslate"><span class="pre">+</span></code> and <code class="docutils literal notranslate"><span class="pre">-</span></code> are affine, so the rules above are
+used to flag the curvature. For example, <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">+</span> <span class="pre">expr2</span></code> is flagged as
+convex if <code class="docutils literal notranslate"><span class="pre">expr1</span></code> and <code class="docutils literal notranslate"><span class="pre">expr2</span></code> are convex.</p>
+<p><code class="docutils literal notranslate"><span class="pre">expr1*expr2</span></code> is allowed only when one of the expressions is constant.
 If both expressions are non-constant, CVXPY will raise an exception.
-<code class="docutils literal"><span class="pre">expr1/expr2</span></code> is allowed only when <code class="docutils literal"><span class="pre">expr2</span></code> is a scalar constant. The
-curvature rules above apply. For example, <code class="docutils literal"><span class="pre">expr1/expr2</span></code> is convex when
-<code class="docutils literal"><span class="pre">expr1</span></code> is concave and <code class="docutils literal"><span class="pre">expr2</span></code> is negative and constant.</p>
+<code class="docutils literal notranslate"><span class="pre">expr1/expr2</span></code> is allowed only when <code class="docutils literal notranslate"><span class="pre">expr2</span></code> is a scalar constant. The
+curvature rules above apply. For example, <code class="docutils literal notranslate"><span class="pre">expr1/expr2</span></code> is convex when
+<code class="docutils literal notranslate"><span class="pre">expr1</span></code> is concave and <code class="docutils literal notranslate"><span class="pre">expr2</span></code> is negative and constant.</p>
 </div>
 <div class="section" id="example-1">
 <h2>Example 1<a class="headerlink" href="#example-1" title="Permalink to this headline">¶</a></h2>
 <p>DCP analysis breaks expressions down into subexpressions. The tree
 visualization below shows how this works for the expression
-<code class="docutils literal"><span class="pre">2*square(x)</span> <span class="pre">+</span> <span class="pre">3</span></code>. Each subexpression is shown in a blue box. We mark
+<code class="docutils literal notranslate"><span class="pre">2*square(x)</span> <span class="pre">+</span> <span class="pre">3</span></code>. Each subexpression is shown in a blue box. We mark
 its curvature on the left and its sign on the right.</p>
-<a class="reference internal image-reference" href="../../_images/example1.png"><img alt="../../_images/example1.png" class="align-center" src="../../_images/example1.png" style="width: 548.8px; height: 400.0px;" /></a>
+<a class="reference internal image-reference" href="../../_images/example1.png"><img alt="../../_images/example1.png" class="align-center" src="../../_images/example1.png" style="width: 548.8000000000001px; height: 400.0px;" /></a>
 </div>
 <div class="section" id="example-2">
 <h2>Example 2<a class="headerlink" href="#example-2" title="Permalink to this headline">¶</a></h2>
 <p>We’ll walk through the application of the DCP rules to the expression
-<code class="docutils literal"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>.</p>
 <a class="reference internal image-reference" href="../../_images/example2.png"><img alt="../../_images/example2.png" class="align-center" src="../../_images/example2.png" style="width: 460.8px; height: 400.0px;" /></a>
-<p>The variable <code class="docutils literal"><span class="pre">x</span></code> has affine curvature and unknown sign. The <code class="docutils literal"><span class="pre">square</span></code>
+<p>The variable <code class="docutils literal notranslate"><span class="pre">x</span></code> has affine curvature and unknown sign. The <code class="docutils literal notranslate"><span class="pre">square</span></code>
 function is convex and non-monotone for arguments of unknown sign. It
-can take the affine expression <code class="docutils literal"><span class="pre">x</span></code> as an argument; the result
-<code class="docutils literal"><span class="pre">square(x)</span></code> is convex.</p>
-<p>The arithmetic operator <code class="docutils literal"><span class="pre">+</span></code> is affine and increasing, so the
-composition <code class="docutils literal"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">square(x)</span></code> is convex by the curvature rule for convex
-functions. The function <code class="docutils literal"><span class="pre">sqrt</span></code> is concave and increasing, which means
-it can only take a concave argument. Since <code class="docutils literal"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">square(x)</span></code> is convex,
-<code class="docutils literal"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code> violates the DCP rules and cannot be verified as
+can take the affine expression <code class="docutils literal notranslate"><span class="pre">x</span></code> as an argument; the result
+<code class="docutils literal notranslate"><span class="pre">square(x)</span></code> is convex.</p>
+<p>The arithmetic operator <code class="docutils literal notranslate"><span class="pre">+</span></code> is affine and increasing, so the
+composition <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">square(x)</span></code> is convex by the curvature rule for convex
+functions. The function <code class="docutils literal notranslate"><span class="pre">sqrt</span></code> is concave and increasing, which means
+it can only take a concave argument. Since <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">+</span> <span class="pre">square(x)</span></code> is convex,
+<code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code> violates the DCP rules and cannot be verified as
 convex.</p>
-<p>In fact, <code class="docutils literal"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code> is a convex function of <code class="docutils literal"><span class="pre">x</span></code>, but the
+<p>In fact, <code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code> is a convex function of <code class="docutils literal notranslate"><span class="pre">x</span></code>, but the
 DCP rules are not able to verify convexity. If the expression is written
-as <code class="docutils literal"><span class="pre">norm(vstack(1,</span> <span class="pre">x),</span> <span class="pre">2)</span></code>, the L2 norm of the vector <span class="math">\([1,x]\)</span>,
-which has the same value as <code class="docutils literal"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>, then it will be
+as <code class="docutils literal notranslate"><span class="pre">norm(vstack(1,</span> <span class="pre">x),</span> <span class="pre">2)</span></code>, the L2 norm of the vector <span class="math notranslate nohighlight">\([1,x]\)</span>,
+which has the same value as <code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>, then it will be
 certified as convex using the DCP rules.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="s2">&quot;sqrt(1 + square(x)) curvature:&quot;</span><span class="p">,</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="s2">&quot;sqrt(1 + square(x)) curvature:&quot;</span><span class="p">,</span>
 <span class="nb">print</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">curvature</span>
 <span class="nb">print</span> <span class="s2">&quot;norm(vstack(1, x), 2) curvature:&quot;</span><span class="p">,</span>
 <span class="nb">print</span> <span class="n">norm</span><span class="p">(</span><span class="n">vstack</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="n">curvature</span><span class="p">:</span> <span class="n">UNKNOWN</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="n">curvature</span><span class="p">:</span> <span class="n">UNKNOWN</span>
 <span class="n">norm</span><span class="p">(</span><span class="n">vstack</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="n">curvature</span><span class="p">:</span> <span class="n">CONVEX</span>
 </pre></div>
 </div>
@@ -283,9 +274,9 @@ one of two forms:</p>
 <li>concave &gt;= convex</li>
 </ul>
 <p>You can check that a problem, constraint, or objective satisfies the DCP
-rules by calling <code class="docutils literal"><span class="pre">object.is_dcp()</span></code>. Here are some examples of DCP and
+rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dcp()</span></code>. Here are some examples of DCP and
 non-DCP problems:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 
 <span class="c1"># DCP problems.</span>
@@ -312,7 +303,7 @@ non-DCP problems:</p>
 <span class="nb">print</span> <span class="s2">&quot;sqrt(x) &lt;= 2 is DCP:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">prob1</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">True</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob1</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">True</span>
 <span class="n">prob2</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">True</span>
 <span class="n">prob3</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">False</span>
 <span class="n">Maximize</span><span class="p">(</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">False</span>
@@ -320,9 +311,9 @@ non-DCP problems:</p>
 <span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">False</span>
 </pre></div>
 </div>
-<p>CVXPY will raise an exception if you call <code class="docutils literal"><span class="pre">problem.solve()</span></code> on a
+<p>CVXPY will raise an exception if you call <code class="docutils literal notranslate"><span class="pre">problem.solve()</span></code> on a
 non-DCP problem.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># A non-DCP problem.</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A non-DCP problem.</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -331,7 +322,7 @@ non-DCP problem.</p>
     <span class="nb">print</span> <span class="n">e</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">follow</span> <span class="n">DCP</span> <span class="n">rules</span><span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">follow</span> <span class="n">DCP</span> <span class="n">rules</span><span class="o">.</span>
 </pre></div>
 </div>
 </div>
@@ -420,12 +411,14 @@ non-DCP problem.</p>
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -436,7 +429,7 @@ non-DCP problem.</p>
       &copy;2014, Steven Diamond, Eric Chu, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

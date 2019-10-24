@@ -4,24 +4,16 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Install &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.1.0a0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorial" href="../tutorial/index.html" />
@@ -32,8 +24,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
@@ -58,18 +49,18 @@ If you prefer <a class="reference external" href="https://store.continuum.io/csh
 <p>1. (Windows only) Download the <a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=44266">Visual Studio C++ compiler for Python 2.7</a>
 or the Visual Studio build tools for Python 3 (<a class="reference external" href="https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&amp;rel=16">download</a>, <a class="reference external" href="https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing">install instructions</a>).</p>
 <ol class="arabic simple" start="2">
-<li>Install <code class="docutils literal"><span class="pre">cvxpy</span></code>.</li>
+<li>Install <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code>.</li>
 </ol>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
 </div></blockquote>
 <ol class="arabic simple" start="3">
-<li>Test the installation with <code class="docutils literal"><span class="pre">nose</span></code>.</li>
+<li>Test the installation with <code class="docutils literal notranslate"><span class="pre">nose</span></code>.</li>
 </ol>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">nose</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">nose</span>
 <span class="n">nosetests</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
@@ -85,8 +76,8 @@ or the Visual Studio build tools for Python 3 (<a class="reference external" hre
 <ol class="arabic">
 <li><p class="first">Install <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a>.</p>
 </li>
-<li><p class="first">Install <a class="reference external" href="https://pip.pypa.io/">pip</a> and <code class="docutils literal"><span class="pre">setuptools</span></code> with <code class="docutils literal"><span class="pre">conda</span></code>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pip</span>
+<li><p class="first">Install <a class="reference external" href="https://pip.pypa.io/">pip</a> and <code class="docutils literal notranslate"><span class="pre">setuptools</span></code> with <code class="docutils literal notranslate"><span class="pre">conda</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pip</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">setuptools</span>
 </pre></div>
 </div>
@@ -95,16 +86,16 @@ or the Visual Studio build tools for Python 3 (<a class="reference external" hre
 <p>3. (Windows only) Download the <a class="reference external" href="https://www.microsoft.com/en-us/download/details.aspx?id=44266">Visual Studio C++ compiler for Python 2.7</a>
 or the <a class="reference external" href="https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&amp;rel=16">Visual Studio build tools for Python 3</a>.</p>
 <ol class="arabic" start="4">
-<li><p class="first">Install <code class="docutils literal"><span class="pre">cvxpy</span></code> with <a class="reference external" href="https://pip.pypa.io/">pip</a> inside <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
+<li><p class="first">Install <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> with <a class="reference external" href="https://pip.pypa.io/">pip</a> inside <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Test the installation with <code class="docutils literal"><span class="pre">nose</span></code>.</p>
+<li><p class="first">Test the installation with <code class="docutils literal notranslate"><span class="pre">nose</span></code>.</p>
 </li>
 </ol>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">nose</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">nose</span>
 <span class="n">nosetests</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
@@ -129,7 +120,7 @@ as will <a class="reference external" href="http://www.swig.org/">Swig</a> . Onc
 <li><p class="first">Clone the <a class="reference external" href="https://github.com/cvxgrp/cvxpy">CVXPY git repository</a>.</p>
 </li>
 <li><p class="first">Navigate to the top-level of the cloned directory and run</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
 </li>
@@ -142,7 +133,7 @@ Additionally, through CVXOPT, CVXPY supports the <a class="reference external" h
 platforms</a>,
 <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> comes with GLPK bundled. On such platforms, installing CVXOPT with</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -153,7 +144,7 @@ platforms</a>,
 </li>
 <li><p class="first">Install <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> with GLPK bindings.</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
 <span class="n">CVXOPT_GLPK_LIB_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">lib</span>
 <span class="n">CVXOPT_GLPK_INC_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">include</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
@@ -168,19 +159,19 @@ platforms</a>,
 <div class="section" id="install-with-gurobi-support">
 <h2>Install with GUROBI support<a class="headerlink" href="#install-with-gurobi-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the GUROBI solver.
-Install GUROBI version 7.5.2 or greater such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">gurobipy</span></code> in Python.
+Install GUROBI version 7.5.2 or greater such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">gurobipy</span></code> in Python.
 See the <a class="reference external" href="http://www.gurobi.com/">GUROBI</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-mosek-support">
 <h2>Install with MOSEK support<a class="headerlink" href="#install-with-mosek-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the MOSEK solver.
-Simply install MOSEK such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">mosek</span></code> in Python.
+Simply install MOSEK such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">mosek</span></code> in Python.
 See the <a class="reference external" href="https://www.mosek.com/">MOSEK</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-xpress-support">
 <h2>Install with XPRESS support<a class="headerlink" href="#install-with-xpress-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the XPRESS solver.
-Simply install XPRESS such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
+Simply install XPRESS such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
 See the <a class="reference external" href="http://www.fico.com/en/products/fico-xpress-optimization-suite">XPRESS</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-cbc-clp-cgl-support">
@@ -192,7 +183,7 @@ See the <a class="reference external" href="https://github.com/coin-or/CyLP">cyl
 <div class="section" id="install-with-cplex-support">
 <h2>Install with CPLEX support<a class="headerlink" href="#install-with-cplex-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the CPLEX solver.
-Simply install CPLEX such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">cplex</span></code> in Python.
+Simply install CPLEX such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">cplex</span></code> in Python.
 See the <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P">CPLEX</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-sdpt3-support">
@@ -202,7 +193,7 @@ See the <a class="reference external" href="https://www.ibm.com/support/knowledg
 <div class="section" id="install-with-nag-support">
 <h2>Install with NAG support<a class="headerlink" href="#install-with-nag-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the NAG solver.
-Simply install NAG such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">naginterfaces</span></code> in Python.
+Simply install NAG such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">naginterfaces</span></code> in Python.
 See the <a class="reference external" href="https://www.nag.co.uk/nag-library-python">NAG</a> website for installation instructions.</p>
 </div>
 </div>
@@ -285,12 +276,14 @@ See the <a class="reference external" href="https://www.nag.co.uk/nag-library-py
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -301,7 +294,7 @@ See the <a class="reference external" href="https://www.nag.co.uk/nag-library-py
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

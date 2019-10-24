@@ -4,24 +4,16 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Install Guide &#8212; CVXPY 0.4.11 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '0.4.11',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorial" href="../tutorial/index.html" />
@@ -32,8 +24,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
@@ -51,16 +42,16 @@
 <ol class="arabic">
 <li><p class="first">Install <a class="reference external" href="https://store.continuum.io/cshop/anaconda/">Anaconda</a>.</p>
 </li>
-<li><p class="first">Install <code class="docutils literal"><span class="pre">cvxpy</span></code> with <code class="docutils literal"><span class="pre">conda</span></code>.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">cvxgrp</span> <span class="n">cvxpy</span> <span class="n">libgcc</span>
+<li><p class="first">Install <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> with <code class="docutils literal notranslate"><span class="pre">conda</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">cvxgrp</span> <span class="n">cvxpy</span> <span class="n">libgcc</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Test the installation with <code class="docutils literal"><span class="pre">nose</span></code>.</p>
+<li><p class="first">Test the installation with <code class="docutils literal notranslate"><span class="pre">nose</span></code>.</p>
 </li>
 </ol>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">nose</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">nose</span>
 <span class="n">nosetests</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
@@ -90,7 +81,7 @@ This will bring up a console.</p>
 <blockquote>
 <div><a class="reference internal image-reference" href="../_images/windows3.png"><img alt="../_images/windows3.png" src="../_images/windows3.png" style="width: 286.0px; height: 449.0px;" /></a>
 </div></blockquote>
-<p>5. From the console, run <code class="docutils literal"><span class="pre">nosetests</span> <span class="pre">cvxpy</span></code>.
+<p>5. From the console, run <code class="docutils literal notranslate"><span class="pre">nosetests</span> <span class="pre">cvxpy</span></code>.
 If all but one of the tests pass, your installation was successful.</p>
 </div>
 <div class="section" id="windows-with-anaconda">
@@ -101,7 +92,7 @@ If all but one of the tests pass, your installation was successful.</p>
 <li>Install SCS from the Anaconda prompt by running the following command:</li>
 </ol>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">omnia</span> <span class="n">scs</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">conda</span><span class="o">.</span><span class="n">anaconda</span><span class="o">.</span><span class="n">org</span><span class="o">/</span><span class="n">omnia</span> <span class="n">scs</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -109,11 +100,11 @@ If all but one of the tests pass, your installation was successful.</p>
 <li>Install CVXPY from the Anaconda prompt by running the following command:</li>
 </ol>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
 </div></blockquote>
-<p>5. From the console, run <code class="docutils literal"><span class="pre">nosetests</span> <span class="pre">cvxpy</span></code>.
+<p>5. From the console, run <code class="docutils literal notranslate"><span class="pre">nosetests</span> <span class="pre">cvxpy</span></code>.
 If all the tests pass, your installation was successful.</p>
 </div>
 </div>
@@ -125,7 +116,7 @@ If all the tests pass, your installation was successful.</p>
 <h2>Install from pip<a class="headerlink" href="#install-from-pip" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY can be installed on all platforms with <a class="reference external" href="https://pip.pypa.io/">pip</a>. Simply execute:</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -157,7 +148,7 @@ Once you’ve installed
 <li><p class="first">Clone the <a class="reference external" href="https://github.com/cvxgrp/cvxpy">CVXPY git repository</a>.</p>
 </li>
 <li><p class="first">Navigate to the top-level of the cloned directory and run</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">setup</span><span class="o">.</span><span class="n">py</span> <span class="n">install</span>
 </pre></div>
 </div>
 </li>
@@ -166,31 +157,31 @@ Once you’ve installed
 <div class="section" id="install-with-cvxopt-support">
 <h2>Install with CVXOPT support<a class="headerlink" href="#install-with-cvxopt-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> solver.
-Simply install CVXOPT such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">cvxopt</span></code> in Python.
+Simply install CVXOPT such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">cvxopt</span></code> in Python.
 See the <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-elemental-support">
 <h2>Install with Elemental support<a class="headerlink" href="#install-with-elemental-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the Elemental solver.
-Simply install Elemental such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">El</span></code> in Python.
+Simply install Elemental such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">El</span></code> in Python.
 See the <a class="reference external" href="http://libelemental.org/">Elemental</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-gurobi-support">
 <h2>Install with GUROBI support<a class="headerlink" href="#install-with-gurobi-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the GUROBI solver.
-Simply install GUROBI such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">gurobipy</span></code> in Python.
+Simply install GUROBI such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">gurobipy</span></code> in Python.
 See the <a class="reference external" href="http://www.gurobi.com/">GUROBI</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-mosek-support">
 <h2>Install with MOSEK support<a class="headerlink" href="#install-with-mosek-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the MOSEK solver.
-Simply install MOSEK such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">mosek</span></code> in Python.
+Simply install MOSEK such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">mosek</span></code> in Python.
 See the <a class="reference external" href="https://www.mosek.com/">MOSEK</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-xpress-support">
 <h2>Install with XPRESS support<a class="headerlink" href="#install-with-xpress-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the XPRESS solver.
-Simply install XPRESS such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
+Simply install XPRESS such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
 See the <a class="reference external" href="http://www.fico.com/en/products/fico-xpress-optimization-suite">XPRESS</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-glpk-support">
@@ -201,7 +192,7 @@ See the <a class="reference external" href="http://www.fico.com/en/products/fico
 </li>
 <li><p class="first">Install <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> with GLPK bindings.</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
 <span class="n">CVXOPT_GLPK_LIB_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">lib</span>
 <span class="n">CVXOPT_GLPK_INC_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">include</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
@@ -306,12 +297,14 @@ See the <a class="reference external" href="https://github.com/coin-or/CyLP">cyl
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -322,7 +315,7 @@ See the <a class="reference external" href="https://github.com/coin-or/CyLP">cyl
       &copy;2014, Steven Diamond, Eric Chu, Stephen Boyd.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

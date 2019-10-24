@@ -4,24 +4,16 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Problems &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.1.0a0',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true,
-        SOURCELINK_SUFFIX: '.txt'
-      };
-    </script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Reductions" href="cvxpy.reductions.html" />
@@ -32,8 +24,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body>
+  </head><body>
   
 
     <div class="document">
@@ -45,16 +36,16 @@
             
   <div class="section" id="problems">
 <h1>Problems<a class="headerlink" href="#problems" title="Permalink to this headline">¶</a></h1>
-<p>The <code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> class is the entry point to
+<p>The <code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code> class is the entry point to
 specifying and solving optimization problems. Each
-<code class="xref py py-class docutils literal"><span class="pre">cvxpy.problems.problem.Problem</span></code> instance encapsulates an optimization
+<code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.problem.Problem</span></code> instance encapsulates an optimization
 problem, i.e., an objective and a set of constraints, and the
-<code class="xref py py-meth docutils literal"><span class="pre">solve()</span></code> method either solves the problem
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code> method either solves the problem
 encoded by the instance, returning the optimal value and setting variables
 values to optimal points, or reports that the problem was in fact infeasible or
 unbounded. You can construct a problem, solve it, and inspect both its value
 and the values of its variables like so:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;infeasible&quot;</span><span class="p">,</span> <span class="s2">&quot;unbounded&quot;</span><span class="p">]:</span>
     <span class="c1"># Otherwise, problem.value is inf or -inf, respectively.</span>
@@ -64,28 +55,28 @@ and the values of its variables like so:</p>
 </pre></div>
 </div>
 <p>Problems are <strong>immutable</strong>, except through the specification of
-<code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code> values. This means
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code> values. This means
 that you <strong>cannot</strong> modify a problem’s objective or constraints after you have
 created it. If you find yourself wanting to add a constraint to an existing
 problem, you should instead create a new problem using, for example, the
 following idiom:</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">new_constraints</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Most users need not know anything about the
-<code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> class except how to instantiate it,
-how to solve problem instances (<code class="xref py py-meth docutils literal"><span class="pre">solve()</span></code>),
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code> class except how to instantiate it,
+how to solve problem instances (<code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code>),
 and how to query the solver results
-(<code class="xref py py-attr docutils literal"><span class="pre">status</span></code> and
-<code class="xref py py-attr docutils literal"><span class="pre">value</span></code>).</p>
+(<code class="xref py py-attr docutils literal notranslate"><span class="pre">status</span></code> and
+<code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code>).</p>
 <p>Information about the size of a problem instance and statistics about the most
 recent solve invocation are captured by the
-<code class="xref py py-class docutils literal"><span class="pre">SizeMetrics</span></code> and
-<code class="xref py py-class docutils literal"><span class="pre">SolverStats</span></code> classes, respectively, and can be
-accessed via the <code class="xref py py-meth docutils literal"><span class="pre">size_metrics()</span></code> and
-<code class="xref py py-meth docutils literal"><span class="pre">solver_stats()</span></code> properties of the
-<code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> class.</p>
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SizeMetrics</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code> classes, respectively, and can be
+accessed via the <code class="xref py py-meth docutils literal notranslate"><span class="pre">size_metrics()</span></code> and
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">solver_stats()</span></code> properties of the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code> class.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><a class="reference internal" href="#minimize" id="id1">Minimize</a></li>
@@ -191,12 +182,14 @@ accessed via the <code class="xref py py-meth docutils literal"><span class="pre
 
 <div id="searchbox" style="display: none" role="search">
   <h3>Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <div><input type="text" name="q" /></div>
-      <div><input type="submit" value="Go" /></div>
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
       <input type="hidden" name="check_keywords" value="yes" />
       <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
 <script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
@@ -207,7 +200,7 @@ accessed via the <code class="xref py py-meth docutils literal"><span class="pre
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
