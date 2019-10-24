@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Object Oriented Convex Optimization &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -13,7 +11,8 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -43,7 +42,7 @@ define the problem explicitly by constructing an <code class="docutils literal n
 incidence matrix <code class="docutils literal notranslate"><span class="pre">A</span></code>. <code class="docutils literal notranslate"><span class="pre">A[i,</span> <span class="pre">j]</span></code> is +1 if edge <code class="docutils literal notranslate"><span class="pre">j</span></code> enters node
 <code class="docutils literal notranslate"><span class="pre">i</span></code>, -1 if edge <code class="docutils literal notranslate"><span class="pre">j</span></code> leaves node <code class="docutils literal notranslate"><span class="pre">i</span></code>, and 0 otherwise. The source
 and sink are the last two edges. The problem becomes</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># A is the incidence matrix.</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A is the incidence matrix.</span>
 <span class="c1"># c is a vector of edge capacities.</span>
 <span class="n">flows</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">E</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">source</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
@@ -57,9 +56,9 @@ and sink are the last two edges. The problem becomes</p>
 <p>The more natural way to frame the max-flow problem is not in terms of
 incidence matrices, however, but in terms of the properties of edges and
 nodes. We can write an <code class="docutils literal notranslate"><span class="pre">Edge</span></code> class to capture these properties.</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Edge</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Edge</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; An undirected, capacity limited edge. &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 
@@ -78,9 +77,9 @@ capacity constraint is stored locally in the <code class="docutils literal notra
 structure is also stored locally, by calling
 <code class="docutils literal notranslate"><span class="pre">edge.connect(node1,</span> <span class="pre">node2)</span></code> for each edge.</p>
 <p>We also define a <code class="docutils literal notranslate"><span class="pre">Node</span></code> class:</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; A node with accumulation. &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span> <span class="o">=</span> <span class="n">accumulation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edge_flows</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -93,7 +92,7 @@ structure is also stored locally, by calling
 Nodes with a variable as their accumulation target.</p>
 <p>Suppose <code class="docutils literal notranslate"><span class="pre">nodes</span></code> is a list of all the nodes, <code class="docutils literal notranslate"><span class="pre">edges</span></code> is a list of all
 the edges, and <code class="docutils literal notranslate"><span class="pre">sink</span></code> is the sink node. The problem becomes:</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="o">+</span> <span class="n">edges</span><span class="p">:</span>
     <span class="n">constraints</span> <span class="o">+=</span> <span class="n">obj</span><span class="o">.</span><span class="n">constraints</span><span class="p">()</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Maximize</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">accumulation</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
@@ -175,13 +174,11 @@ problems, look in the <code class="docutils literal notranslate"><span class="pr
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -194,7 +191,7 @@ problems, look in the <code class="docutils literal notranslate"><span class="pr
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

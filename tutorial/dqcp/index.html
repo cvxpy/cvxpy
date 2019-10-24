@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Disciplined Quasiconvex Programming &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -13,7 +11,8 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Advanced Features" href="../advanced/index.html" />
@@ -53,17 +52,17 @@ convex program is a disciplined quasiconvex program, but the converse is not
 true.</p>
 <p>CVXPY lets you form and solve DQCP problems, just as it does for DCP
 problems. For example, the following code solves a simple QCP,</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">objective_fn</span> <span class="o">=</span> <span class="o">-</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">/</span> <span class="n">y</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">y</span><span class="p">])</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">qcp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">qcp</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="k">assert</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">()</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value: &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;y: &quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Optimal value: &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;x: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;y: &quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>and it prints the below output.</p>
@@ -98,16 +97,16 @@ it will never mistakenly flag an expression as quasiconvex or quasiconcave.</p>
 <p>The curvature of an Expression is stored in its
 <code class="code docutils literal notranslate"><span class="pre">.curvature</span></code> attribute. For example, running the following
 script</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="n">z</span> <span class="o">=</span> <span class="o">-</span><span class="n">y</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
 
 <span class="n">w</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>prints the following output.</p>
@@ -128,29 +127,29 @@ calling the <code class="code docutils literal notranslate"><span class="pre">is
 convex analysis to each expression. An expression is verifiably
 quasiconvex under DQCP if it is one of the following:</p>
 <ul class="simple">
-<li>convex (under DCP);</li>
-<li>a quasiconvex atom, applied to a variable or constant:</li>
-<li>the max (<code class="code docutils literal notranslate"><span class="pre">cvxpy.maximum</span></code>) of quasiconvex expressions;</li>
-<li>an increasing function of a quasiconvex expression, or a decreasing function
-of a quasiconcave expression;</li>
-<li>an expression of the form <span class="math notranslate nohighlight">\(f(e_1, e_2, \ldots, e_n)\)</span> such
+<li><p>convex (under DCP);</p></li>
+<li><p>a quasiconvex atom, applied to a variable or constant:</p></li>
+<li><p>the max (<code class="code docutils literal notranslate"><span class="pre">cvxpy.maximum</span></code>) of quasiconvex expressions;</p></li>
+<li><p>an increasing function of a quasiconvex expression, or a decreasing function
+of a quasiconcave expression;</p></li>
+<li><p>an expression of the form <span class="math notranslate nohighlight">\(f(e_1, e_2, \ldots, e_n)\)</span> such
 that (1) <span class="math notranslate nohighlight">\(f\)</span> is a quasiconvex atom, and (2) for each <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(f\)</span> is
 increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(e_i\)</span> is convex, <span class="math notranslate nohighlight">\(f\)</span> is
 decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(e_i\)</span> is concave, or <span class="math notranslate nohighlight">\(e_i\)</span>
-is affine.</li>
+is affine.</p></li>
 </ul>
 <p>An expression quasiconcave under DQCP if it is one of the following:</p>
 <ul class="simple">
-<li>concave (under DCP);</li>
-<li>a quasiconcave atom, applied to a variable or constant:</li>
-<li>the min (<code class="code docutils literal notranslate"><span class="pre">cvxpy.minimum</span></code>) of quasiconcave expressions;</li>
-<li>an increasing function of a quasiconcave expression, or a decreasing function
-of a quasiconvex expression;</li>
-<li>an expression of the form <span class="math notranslate nohighlight">\(f(e_1, e_2, \ldots, e_n)\)</span> such
+<li><p>concave (under DCP);</p></li>
+<li><p>a quasiconcave atom, applied to a variable or constant:</p></li>
+<li><p>the min (<code class="code docutils literal notranslate"><span class="pre">cvxpy.minimum</span></code>) of quasiconcave expressions;</p></li>
+<li><p>an increasing function of a quasiconcave expression, or a decreasing function
+of a quasiconvex expression;</p></li>
+<li><p>an expression of the form <span class="math notranslate nohighlight">\(f(e_1, e_2, \ldots, e_n)\)</span> such
 that (1) <span class="math notranslate nohighlight">\(f\)</span> is a quasiconcave atom, and (2) for each <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(f\)</span> is
 increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(e_i\)</span> is concave, <span class="math notranslate nohighlight">\(f\)</span> is
 decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(e_i\)</span> is convex, or <span class="math notranslate nohighlight">\(e_i\)</span>
-is affine.</li>
+is affine.</p></li>
 </ul>
 <p>Whether an atom is quasiconvex or quasiconcave may depend on the signs of its
 arguments. For example, the scalar product <span class="math notranslate nohighlight">\(xy\)</span> is quasiconcave when <cite>x</cite>
@@ -160,10 +159,10 @@ one the arguments is nonnegative and the other is nonpositive.</p>
 the Expression “is DQCP.” You can check whether an Expression is DQCP
 by calling the method <code class="code docutils literal notranslate"><span class="pre">is_dqcp()</span></code>. For example, the assertions
 in the following code block will pass.</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 <span class="n">product</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 
@@ -184,24 +183,24 @@ a list of constraints. If a problem follows the DQCP rules, it is guaranteed to
 be a DQCP and solvable by CVXPY (if a solution to the problem exists). The DQCP
 rules require that the problem objective have one of two forms:</p>
 <ul class="simple">
-<li>Minimize(quasiconvex)</li>
-<li>Maximize(quasiconcave)</li>
+<li><p>Minimize(quasiconvex)</p></li>
+<li><p>Maximize(quasiconcave)</p></li>
 </ul>
 <p>The only valid constraints under the DQCP rules are</p>
 <ul class="simple">
-<li>affine == affine</li>
-<li>convex &lt;= concave</li>
-<li>concave &gt;= convex</li>
-<li>qausiconvex &lt;= constant</li>
-<li>quasiconcave &gt;= constant</li>
+<li><p>affine == affine</p></li>
+<li><p>convex &lt;= concave</p></li>
+<li><p>concave &gt;= convex</p></li>
+<li><p>qausiconvex &lt;= constant</p></li>
+<li><p>quasiconcave &gt;= constant</p></li>
 </ul>
 <p>You can check that a problem, constraint, or objective satisfies the DQCP
 rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dqcp()</span></code>. Here are some examples of DQCP and
 non-DQCP problems:</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
 
 <span class="c1"># The sign of variables affects curvature analysis.</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">concave_fractional_fn</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
 <span class="n">constraint</span> <span class="o">=</span> <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">]</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">concave_fractional_fn</span><span class="p">),</span> <span class="n">constraint</span><span class="p">)</span>
@@ -365,13 +364,11 @@ verbose output describing the bisection, supply the keyword argument
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -384,7 +381,7 @@ verbose output describing the bisection, supply the keyword argument
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

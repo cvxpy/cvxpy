@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Optimal parade route &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -13,7 +11,8 @@
     <script type="text/javascript" src="../../_static/jquery.js"></script>
     <script type="text/javascript" src="../../_static/underscore.js"></script>
     <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -38,8 +37,8 @@
 <div class="section" id="topic-references">
 <h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><cite>Iterated weighted :math:</cite>ell_1`
-heuristic &lt;<a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf</a>&gt;`__</li>
+<li><p><cite>Iterated weighted :math:</cite>ell_1`
+heuristic &lt;<a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf</a>&gt;`__</p></li>
 </ul>
 </div>
 <div class="section" id="problem-statement">
@@ -91,8 +90,8 @@ notes</a>.</p>
 <p>The algorithm consists of initializing <span class="math notranslate nohighlight">\(w = 0\)</span> and repeating the
 two steps</p>
 <ol class="arabic simple">
-<li>\[ ]</li>
-<li>Let <span class="math notranslate nohighlight">\(w_i = \alpha/(\tau + x_i) \forall i\)</span></li>
+<li><p>\[ ]</p></li>
+<li><p>Let <span class="math notranslate nohighlight">\(w_i = \alpha/(\tau + x_i) \forall i\)</span></p></li>
 </ol>
 <p>until we reach a Boolean solution. Here, <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\tau\)</span>
 are adjusted to promote a sparse solution. Typical choices would be
@@ -111,9 +110,9 @@ distance between the two points. We also add buildings in the unit
 square to obstruct the guards’ view. The guard has no effect on a point
 if his line of sight is obstructed. We generate the <span class="math notranslate nohighlight">\(A\)</span> matrix for
 this problem instance below.</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
 
 <span class="k">def</span> <span class="nf">form_path</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">n</span><span class="p">):</span>
     <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
@@ -152,13 +151,13 @@ this problem instance below.</p>
     <span class="sd">&#39;&#39;&#39;Remove guards inside buildings and outside unit square.&#39;&#39;&#39;</span>
     <span class="n">outside</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">guard</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">guards</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
-        <span class="n">inside</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">inside</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">for</span> <span class="n">build</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">inRect</span><span class="p">(</span><span class="n">guard</span><span class="p">,</span><span class="n">build</span><span class="p">):</span>
-                <span class="n">inside</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">inside</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">break</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">inRect</span><span class="p">(</span><span class="n">guard</span><span class="p">,(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)):</span>
-                <span class="n">inside</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">inside</span> <span class="o">=</span> <span class="bp">True</span>
                 <span class="k">break</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">inside</span><span class="p">:</span>
             <span class="n">outside</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
@@ -168,16 +167,16 @@ this problem instance below.</p>
 <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span><span class="n">p2</span><span class="p">,</span><span class="n">xmin</span><span class="p">,</span><span class="n">xmax</span><span class="p">,</span><span class="n">ymin</span><span class="p">,</span><span class="n">ymax</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;determine if a rectangle given by xy limits blocks the line of sight between p1 and p2&#39;&#39;&#39;</span>
 
-    <span class="n">block</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">block</span> <span class="o">=</span> <span class="bp">False</span>
 
     <span class="c1"># if either point inside block</span>
     <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="p">[</span><span class="n">p1</span><span class="p">,</span><span class="n">p1</span><span class="p">]:</span>
         <span class="k">if</span> <span class="n">xmin</span> <span class="o">&lt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">xmax</span> <span class="ow">and</span> <span class="n">ymin</span> <span class="o">&lt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">ymax</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="bp">True</span>
 
     <span class="c1"># if the two points are equal at this stage, then they are outside the block</span>
     <span class="k">if</span> <span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
-        <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="bp">False</span>
 
 
     <span class="k">if</span> <span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
@@ -186,7 +185,7 @@ this problem instance below.</p>
             <span class="n">y</span> <span class="o">=</span> <span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
             <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">alpha</span> <span class="ow">and</span> <span class="n">alpha</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">ymin</span> <span class="o">&lt;=</span> <span class="n">y</span> <span class="ow">and</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="n">ymax</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="bp">True</span>
 
     <span class="k">if</span> <span class="n">p2</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">p1</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
         <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="p">[</span><span class="n">ymin</span><span class="p">,</span><span class="n">ymax</span><span class="p">]:</span>
@@ -194,9 +193,9 @@ this problem instance below.</p>
             <span class="n">x</span> <span class="o">=</span> <span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">alpha</span><span class="o">*</span><span class="p">(</span><span class="n">p2</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">p1</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
             <span class="k">if</span> <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">alpha</span> <span class="ow">and</span> <span class="n">alpha</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">xmin</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="ow">and</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">xmax</span><span class="p">:</span>
-                <span class="k">return</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="bp">True</span>
 
-    <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="bp">False</span>
 
 <span class="k">def</span> <span class="nf">p_evade</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">r</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span><span class="n">minval</span><span class="o">=.</span><span class="mi">1</span><span class="p">):</span>
     <span class="n">d</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="o">-</span><span class="n">y</span><span class="p">)</span>
@@ -226,7 +225,7 @@ this problem instance below.</p>
             <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">point</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">detect_p</span><span class="p">)))</span>
 </pre></div>
 </div>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="n">buildings</span> <span class="o">=</span> <span class="p">[(</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
              <span class="p">(</span><span class="o">.</span><span class="mi">6</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">4</span><span class="p">),</span>
@@ -242,12 +241,12 @@ this problem instance below.</p>
 
 <span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
 
-<span class="n">points</span> <span class="o">=</span> <span class="p">[(</span><span class="o">.</span><span class="mi">05</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="o">.</span><span class="mi">05</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">),(</span><span class="o">.</span><span class="mi">55</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">),(</span><span class="o">.</span><span class="mi">55</span><span class="p">,</span><span class="o">.</span><span class="mi">6</span><span class="p">),(</span><span class="o">.</span><span class="mi">75</span><span class="p">,</span><span class="o">.</span><span class="mi">6</span><span class="p">),(</span><span class="o">.</span><span class="mi">75</span><span class="p">,</span><span class="o">.</span><span class="mi">05</span><span class="p">),(</span><span class="o">.</span><span class="mi">95</span><span class="p">,</span><span class="o">.</span><span class="mi">05</span><span class="p">),</span> <span class="p">(</span><span class="o">.</span><span class="mi">95</span><span class="p">,</span><span class="o">.</span><span class="mi">45</span><span class="p">),(</span><span class="o">.</span><span class="mi">75</span><span class="p">,</span><span class="o">.</span><span class="mi">45</span><span class="p">),</span> <span class="p">(</span><span class="o">.</span><span class="mi">75</span><span class="p">,</span><span class="o">.</span><span class="mi">65</span><span class="p">),(</span><span class="o">.</span><span class="mi">85</span><span class="p">,</span><span class="o">.</span><span class="mi">65</span><span class="p">),</span>
+<span class="n">points</span> <span class="o">=</span> <span class="p">[(</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span><span class="mi">0</span><span class="p">),(</span><span class="o">.</span><span class="mo">05</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">),(</span><span class="o">.</span><span class="mi">55</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">),(</span><span class="o">.</span><span class="mi">55</span><span class="p">,</span><span class="o">.</span><span class="mi">6</span><span class="p">),(</span><span class="o">.</span><span class="mi">75</span><span class="p">,</span><span class="o">.</span><span class="mi">6</span><span class="p">),(</span><span class="o">.</span><span class="mi">75</span><span class="p">,</span><span class="o">.</span><span class="mo">05</span><span class="p">),(</span><span class="o">.</span><span class="mi">95</span><span class="p">,</span><span class="o">.</span><span class="mo">05</span><span class="p">),</span> <span class="p">(</span><span class="o">.</span><span class="mi">95</span><span class="p">,</span><span class="o">.</span><span class="mi">45</span><span class="p">),(</span><span class="o">.</span><span class="mi">75</span><span class="p">,</span><span class="o">.</span><span class="mi">45</span><span class="p">),</span> <span class="p">(</span><span class="o">.</span><span class="mi">75</span><span class="p">,</span><span class="o">.</span><span class="mi">65</span><span class="p">),(</span><span class="o">.</span><span class="mi">85</span><span class="p">,</span><span class="o">.</span><span class="mi">65</span><span class="p">),</span>
           <span class="p">(</span><span class="o">.</span><span class="mi">85</span><span class="p">,</span><span class="o">.</span><span class="mi">85</span><span class="p">),(</span><span class="o">.</span><span class="mi">35</span><span class="p">,</span><span class="o">.</span><span class="mi">85</span><span class="p">),(</span><span class="o">.</span><span class="mi">35</span><span class="p">,</span><span class="o">.</span><span class="mi">65</span><span class="p">),(</span><span class="o">.</span><span class="mi">15</span><span class="p">,</span><span class="o">.</span><span class="mi">65</span><span class="p">),(</span><span class="o">.</span><span class="mi">15</span><span class="p">,</span><span class="mi">1</span><span class="p">)]</span>
 
 <span class="n">path</span> <span class="o">=</span> <span class="n">form_path</span><span class="p">(</span><span class="n">points</span><span class="p">,</span><span class="n">n</span><span class="p">)</span>
 
-<span class="n">g</span> <span class="o">=</span> <span class="n">guard_sets</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">02</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">guard_sets</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mo">02</span><span class="p">)</span>
 <span class="n">g</span> <span class="o">=</span> <span class="n">remove_guards</span><span class="p">(</span><span class="n">g</span><span class="p">,</span><span class="n">buildings</span><span class="p">)</span>
 
 <span class="n">guard_effects</span> <span class="o">=</span> <span class="n">get_guard_effects</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">g</span><span class="p">,</span> <span class="n">buildings</span><span class="p">,</span> <span class="n">p_evade</span><span class="p">)</span>
@@ -272,7 +271,7 @@ this problem instance below.</p>
 <p>We perform the iterative algorithm below. At each step, we plot the
 vector <span class="math notranslate nohighlight">\(x\)</span>, demonstrating that it becomes increasingly sparse at
 each iteration.</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">num_guards</span> <span class="o">=</span> <span class="mi">12</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">num_guards</span> <span class="o">=</span> <span class="mi">12</span>
 <span class="n">tau</span> <span class="o">=</span> <span class="mf">1e-2</span>
 
 <span class="n">m</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span>
@@ -285,7 +284,7 @@ each iteration.</p>
 
     <span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">t</span> <span class="o">-</span> <span class="n">x</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">w</span><span class="p">)</span>
     <span class="n">constr</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">t</span> <span class="o">&lt;=</span> <span class="n">A</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_guards</span><span class="p">]</span>
-    <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constr</span><span class="p">)</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
     <span class="n">w</span> <span class="o">=</span> <span class="mi">2</span><span class="o">/</span><span class="p">(</span><span class="n">tau</span><span class="o">+</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
     <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
@@ -293,7 +292,7 @@ each iteration.</p>
     <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="s1">&#39;o&#39;</span><span class="p">)</span>
 
 <span class="n">xsol</span> <span class="o">=</span> <span class="n">x</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;final objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">objective</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s2">&quot;final objective value: {}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">objective</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">final</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="o">-</span><span class="mf">10.27091799207174</span>
@@ -306,7 +305,7 @@ each iteration.</p>
 parade route. The red dots represent the possible guard placement
 locations. The green dots show the actual guard placements. Yellow
 rectangles are buildings which obstruct the guards’ view.</p>
-<div class="code python highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span><span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
     <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">3</span><span class="p">)</span>
@@ -387,13 +386,11 @@ rectangles are buildings which obstruct the guards’ view.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -406,7 +403,7 @@ rectangles are buildings which obstruct the guards’ view.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

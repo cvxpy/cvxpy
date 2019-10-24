@@ -1,11 +1,9 @@
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
     <title>Atoms &#8212; CVXPY 1.1.0a0 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -13,7 +11,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Affine Atoms" href="cvxpy.atoms.affine.html" />
@@ -37,7 +36,7 @@
   <div class="section" id="atoms">
 <h1>Atoms<a class="headerlink" href="#atoms" title="Permalink to this headline">¶</a></h1>
 <p>Atoms are mathematical functions that can be applied to
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code> instances.
+<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a> instances.
 Applying an atom to an expression yields another expression.
 Atoms and compositions thereof are precisely the mechanisms that allow you to
 build up mathematical expression trees in CVXPY.</p>
@@ -132,6 +131,81 @@ for a compact, accessible summary of each atom’s attributes.</p>
 </div>
 <div class="section" id="atom">
 <h2>Atom<a class="headerlink" href="#atom" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="cvxpy.atoms.atom.Atom">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.atom.</code><code class="sig-name descname">Atom</code><span class="sig-paren">(</span><em class="sig-param">*args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.expressions.expression.Expression</span></code></a></p>
+<p>Abstract base class for atoms.</p>
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.domain">
+<em class="property">property </em><code class="sig-name descname">domain</code><a class="headerlink" href="#cvxpy.atoms.atom.Atom.domain" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of constraints describing the closure of the region
+where the expression is finite.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.grad">
+<em class="property">property </em><code class="sig-name descname">grad</code><a class="headerlink" href="#cvxpy.atoms.atom.Atom.grad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gives the (sub/super)gradient of the expression w.r.t. each variable.</p>
+<p>Matrix expressions are vectorized, so the gradient is a matrix.
+None indicates variable values unknown or outside domain.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A map of variable to SciPy CSC sparse matrix or None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.is_atom_affine">
+<code class="sig-name descname">is_atom_affine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the atom affine?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.is_atom_concave">
+<em class="property">abstract </em><code class="sig-name descname">is_atom_concave</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_concave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_concave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the atom concave?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.is_atom_convex">
+<em class="property">abstract </em><code class="sig-name descname">is_atom_convex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_convex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_convex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the atom convex?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.is_atom_log_log_affine">
+<code class="sig-name descname">is_atom_log_log_affine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_affine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the atom log-log affine?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.is_atom_log_log_concave">
+<code class="sig-name descname">is_atom_log_log_concave</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_concave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_concave" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the atom log-log concave?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.is_atom_log_log_convex">
+<code class="sig-name descname">is_atom_log_log_convex</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_convex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_convex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the atom log-log convex?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.is_decr">
+<em class="property">abstract </em><code class="sig-name descname">is_decr</code><span class="sig-paren">(</span><em class="sig-param">idx</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_decr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_decr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the composition non-increasing in argument idx?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.atoms.atom.Atom.is_incr">
+<em class="property">abstract </em><code class="sig-name descname">is_incr</code><span class="sig-paren">(</span><em class="sig-param">idx</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_incr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_incr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the composition non-decreasing in argument idx?</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
@@ -212,13 +286,11 @@ for a compact, accessible summary of each atom’s attributes.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
     </div>
 </div>
@@ -231,7 +303,7 @@ for a compact, accessible summary of each atom’s attributes.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.2</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
