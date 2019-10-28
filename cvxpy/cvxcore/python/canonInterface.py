@@ -59,7 +59,7 @@ def get_parameter_vector(param_size,
 
 
 def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
-                                      var_length):
+                                      var_length, keep_zeros=False):
     """Applies problem_data_tensor to param_vec to obtain matrix, offset
 
     This function applies problem_data_tensor to param_vec to obtain
@@ -71,6 +71,8 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
             representing a parameterized affine map
         param_vec: flattened parameter vector
         var_length: the number of variables
+        keep_zeros: whether or not to keep zeros in A that are affected
+            by parameters
 
     Returns
     -------
@@ -86,6 +88,18 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
     A_concat_b = tensor_application.reshape(
         (-1, var_length + 1), order='F').tocsc()
     A = A_concat_b[:, :-1].tocsc()
+    if keep_zeros:
+        problem_data_tensor_csc = problem_data_tensor.tocsc()
+        A_nrows, A_ncols = A.shape
+        A_mapping = problem_data_tensor_csc[:A_nrows*A_ncols, :param_vec.shape[0]-1]
+        A_mapping_nonzero_rows, _ = A_mapping.nonzero()
+        if A_mapping_nonzero_rows.size > 0:
+            A_rows, A_cols = A.nonzero()
+            A_vals = np.append(A.data, np.zeros(A_mapping_nonzero_rows.size))
+            A_rows = np.append(A_rows, A_mapping_nonzero_rows % A_nrows)
+            A_cols = np.append(A_cols, A_mapping_nonzero_rows // A_ncols)
+            A = scipy.sparse.csc_matrix((A_vals, (A_rows, A_cols)), shape=A.shape)
+
     b = np.squeeze(A_concat_b[:, -1].toarray().flatten())
     return (A, b)
 
