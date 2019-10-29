@@ -81,7 +81,9 @@ def A_mapping_nonzero_rows(problem_data_tensor, var_length):
     A_nrows = problem_data_tensor.shape[0] // (var_length + 1)
     A_ncols = var_length
     A_mapping = problem_data_tensor_csc[:A_nrows*A_ncols, :-1]
-    A_mapping_nonzero_rows, _ = nonzero_csc_matrix(A_mapping)
+    # don't call nonzero_csc_matrix, because here we don't want to
+    # count explicit zeros
+    A_mapping_nonzero_rows, _ = A_mapping.nonzero()
     return A_mapping_nonzero_rows
 
 
