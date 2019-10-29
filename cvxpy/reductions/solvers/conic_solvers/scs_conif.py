@@ -140,14 +140,7 @@ class SCS(ConicSolver):
 
         return scaled_lower_tri @ symm_matrix
 
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution.
-
-        Returns
-        -------
-        tuple
-            (dict of arguments needed for the solver, inverse data)
-        """
+    def _prepare_data_and_inv_data(self, problem):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
@@ -171,13 +164,20 @@ class SCS(ConicSolver):
         if not problem.formatted:
             problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
+        return problem, data, inv_data
+
+    def apply(self, problem):
+        """Returns a new problem and data for inverting the new solution.
+
+        Returns
+        -------
+        tuple
+            (dict of arguments needed for the solver, inverse data)
+        """
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
 
         # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
-        #
-        # Note that scs mandates that the cones MUST be ordered with
-        # zero cones first, then non-nonnegative orthant, then SOC,
-        # then PSD, then exponential.
         c, d, A, b = problem.apply_parameters()
         data[s.C] = c
         inv_data[s.OFFSET] = d

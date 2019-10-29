@@ -53,6 +53,7 @@ class ParamConeProg(object):
         self.c = c
         self.x = x
         self.A = A
+        self._A_mapping_nonzero = None
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
         self.parameters = parameters
@@ -94,8 +95,12 @@ class ParamConeProg(object):
         c, d = canonInterface.get_matrix_and_offset_from_tensor(
             self.c, param_vec, self.x.size)
         c = c.toarray().flatten()
+        if keep_zeros and self._A_mapping_nonzero is None:
+            self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
+                self.A, self.x.size)
         A, b = canonInterface.get_matrix_and_offset_from_tensor(
-            self.A, param_vec, self.x.size, keep_zeros=keep_zeros)
+            self.A, param_vec, self.x.size,
+            nonzero_rows=self._A_mapping_nonzero)
         return c, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):

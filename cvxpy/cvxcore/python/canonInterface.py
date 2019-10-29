@@ -58,8 +58,35 @@ def get_parameter_vector(param_size,
     return param_vec
 
 
+def nonzero_csc_matrix(A):
+    # this function returns (rows, cols) corresponding to nonzero entries in
+    # A; an entry that is explicitly set to zero is treated as nonzero
+    assert np.nan not in A.data
+    zero_indices = (A.data == 0)
+    # scipy drops rows, cols with explicit zeros; use nan as a sentinel
+    # to prevent them from being dropped
+    A.data[zero_indices] = np.nan
+    A_rows, A_cols = A.nonzero()
+    ind = np.argsort(A_cols, kind='mergesort')
+    A_rows = A_rows[ind]
+    A_cols = A_cols[ind]
+    A.data[zero_indices] = 0
+    return A_rows, A_cols
+
+
+def A_mapping_nonzero_rows(problem_data_tensor, var_length):
+    # get the rows in the map from parameters to problem data that
+    # have any nonzeros
+    problem_data_tensor_csc = problem_data_tensor.tocsc()
+    A_nrows = problem_data_tensor.shape[0] // (var_length + 1)
+    A_ncols = var_length
+    A_mapping = problem_data_tensor_csc[:A_nrows*A_ncols, :-1]
+    A_mapping_nonzero_rows, _ = nonzero_csc_matrix(A_mapping)
+    return A_mapping_nonzero_rows
+
+
 def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
-                                      var_length, keep_zeros=False):
+                                      var_length, nonzero_rows=None):
     """Applies problem_data_tensor to param_vec to obtain matrix, offset
 
     This function applies problem_data_tensor to param_vec to obtain
@@ -71,8 +98,10 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
             representing a parameterized affine map
         param_vec: flattened parameter vector
         var_length: the number of variables
-        keep_zeros: whether or not to keep zeros in A that are affected
-            by parameters
+        nonzero_rows: (optional) rows in the part of problem_data_tensor
+            corresponding to A that have nonzeros in them (i.e., rows that
+            are affected by parameters); if not None, then the corresponding
+            entries in A will have explicit zeros.
 
     Returns
     -------
@@ -87,18 +116,16 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
         tensor_application = problem_data_tensor @ param_vec
     A_concat_b = tensor_application.reshape(
         (-1, var_length + 1), order='F').tocsc()
+
     A = A_concat_b[:, :-1].tocsc()
-    if keep_zeros:
-        problem_data_tensor_csc = problem_data_tensor.tocsc()
-        A_nrows, A_ncols = A.shape
-        A_mapping = problem_data_tensor_csc[:A_nrows*A_ncols, :param_vec.shape[0]-1]
-        A_mapping_nonzero_rows, _ = A_mapping.nonzero()
-        if A_mapping_nonzero_rows.size > 0:
-            A_rows, A_cols = A.nonzero()
-            A_vals = np.append(A.data, np.zeros(A_mapping_nonzero_rows.size))
-            A_rows = np.append(A_rows, A_mapping_nonzero_rows % A_nrows)
-            A_cols = np.append(A_cols, A_mapping_nonzero_rows // A_ncols)
-            A = scipy.sparse.csc_matrix((A_vals, (A_rows, A_cols)), shape=A.shape)
+    if nonzero_rows is not None and nonzero_rows.size > 0:
+        A_nrows, _ = A.shape
+        A_rows, A_cols = nonzero_csc_matrix(A)
+        A_vals = np.append(A.data, np.zeros(nonzero_rows.size))
+        A_rows = np.append(A_rows, nonzero_rows % A_nrows)
+        A_cols = np.append(A_cols, nonzero_rows // A_nrows)
+        A = scipy.sparse.csc_matrix((A_vals, (A_rows, A_cols)),
+                                    shape=A.shape)
 
     b = np.squeeze(A_concat_b[:, -1].toarray().flatten())
     return (A, b)
