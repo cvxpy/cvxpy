@@ -155,23 +155,17 @@ doctest:
 		  "results in $(BUILDDIR)/doctest/output.txt."
 
 gh-pages:
-	git checkout 0.4
+	git checkout master
 	cd doc && make html
 	rm -rf /tmp/cvxpy_docs/*
 	mkdir -p /tmp/cvxpy_docs/
-	mv doc/build/html /tmp/cvxpy_docs/0.4.11
-	cd doc && make clean
+	mv build/html/* /tmp/cvxpy_docs/
+	make clean
+	cd ..
 	git checkout gh-pages
 	mv CNAME /tmp/cvxpy_docs/CNAME
 	git rm -r .
-	git checkout master $(GH_PAGES_SOURCES_DOC)
-	git reset HEAD
-	cp -r doc/* .
-	make html
-	rsync -a build/html/ ./
-	rm -r versions/0.4.11
-	mv /tmp/cvxpy_docs/0.4.11 versions/
-	mv /tmp/cvxpy_docs/CNAME CNAME
+	mv /tmp/cvxpy_docs/* .
 	touch .nojekyll
 	rm -rf $(GH_PAGES_SOURCES) build doc
 	git add -A
