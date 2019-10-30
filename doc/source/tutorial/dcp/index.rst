@@ -242,7 +242,7 @@ convex.
 
 In fact, ``sqrt(1 + square(x))`` is a convex function of ``x``, but the
 DCP rules are not able to verify convexity. If the expression is written
-as ``norm(vstack(1, x), 2)``, the L2 norm of the vector :math:`[1,x]`,
+as ``norm(hstack(1, x), 2)``, the L2 norm of the vector :math:`[1,x]`,
 which has the same value as ``sqrt(1 + square(x))``, then it will be
 certified as convex using the DCP rules.
 
