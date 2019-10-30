@@ -159,8 +159,3 @@ guide </contributing/index>`.
    :hidden:
 
    license/index
-
-.. toctree::
-   :hidden:
-
-   versions/index

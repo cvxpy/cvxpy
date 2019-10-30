@@ -161,10 +161,8 @@ class Expression(u.Canonical):
             arg.is_constant() for arg in self.args)
 
     @abc.abstractmethod
-    def is_dpp(self, context='CP'):
+    def is_dpp(self):
         """The expression is a disciplined parameterized expression.
-
-           context: cone program (CP) or quadratic program (QP)
         """
         return NotImplemented
 
