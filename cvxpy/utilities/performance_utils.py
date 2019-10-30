@@ -13,32 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import contextlib
 import functools
 
-
-_disable_cache = False
-
-
-@contextlib.contextmanager
-def disable_caches():
-    global _disable_cache
-    tmp = _disable_cache
-    _disable_cache = True
-    yield
-    _disable_cache = tmp
+from cvxpy.utilities import scopes
 
 
 def lazyprop(func):
     """Wraps a property so it is lazily evaluated."""
-    attr_name = '_lazy_' + func.__name__
 
     @property
     @functools.wraps(func)
     def _lazyprop(self):
-        global _disable_cache
-        if _disable_cache:
-            return func(self)
+        if scopes.dpp_scope_active():
+            attr_name = '_lazy_dpp_' + func.__name__
+        else:
+            attr_name = '_lazy_' + func.__name__
 
         try:
             return getattr(self, attr_name)
@@ -50,13 +39,13 @@ def lazyprop(func):
 
 def compute_once(func):
     """Computes a method exactly once and caches the result."""
-    attr_name = '_compute_once_' + func.__name__
 
     @functools.wraps(func)
     def _compute_once(self, *args, **kwargs):
-        global _disable_cache
-        if _disable_cache:
-            return func(self, *args, **kwargs)
+        if scopes.dpp_scope_active():
+            attr_name = '_compute_once_dpp_' + func.__name__
+        else:
+            attr_name = '_compute_once_' + func.__name__
 
         try:
             return getattr(self, attr_name)

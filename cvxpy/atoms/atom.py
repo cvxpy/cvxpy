@@ -19,11 +19,11 @@ from cvxpy import utilities as u
 from cvxpy import interface as intf
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.constants import parameter
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities import performance_utils as perf
+from cvxpy.utilities import scopes
 import abc
 import numpy as np
 
@@ -202,7 +202,7 @@ class Atom(Expression):
 
            context: cone program (CP) or quadratic program (QP)
         """
-        with parameter.dpp_scope():
+        with scopes.dpp_scope():
             return self.is_dcp()
 
     @perf.compute_once

@@ -1,5 +1,5 @@
-from cvxpy.expressions.constants.parameter import dpp_scope
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities import scopes
 
 
 # TODO(akshayka): expose as a reduction for user's convenience
@@ -13,12 +13,12 @@ def mul_canon(expr, args):
 
     op_type = type(expr)
     if lhs.variables():
-        with dpp_scope():
+        with scopes.dpp_scope():
             assert rhs.is_affine()
         t = Variable(lhs.shape)
         return op_type(t, rhs), [t == lhs]
     elif rhs.variables():
-        with dpp_scope():
+        with scopes.dpp_scope():
             assert lhs.is_affine()
         t = Variable(rhs.shape)
         return op_type(lhs, t), [t == rhs]
@@ -26,7 +26,7 @@ def mul_canon(expr, args):
     # Neither side has variables. One side must be affine in parameters.
     lhs_affine = False
     rhs_affine = False
-    with dpp_scope():
+    with scopes.dpp_scope():
         lhs_affine = lhs.is_affine()
         rhs_affine = rhs.is_affine()
     assert lhs_affine or rhs_affine

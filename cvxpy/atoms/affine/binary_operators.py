@@ -21,7 +21,6 @@ import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
-from cvxpy.expressions.constants import parameter
 from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
@@ -118,7 +117,7 @@ class MulExpression(BinaryOperator):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
-        if parameter.dpp_scope_active():
+        if u.scopes.dpp_scope_active():
             # This branch applies curvature rules for DPP.
             #
             # Because a DPP scope is active, parameters will be
