@@ -3,7 +3,7 @@
 
 # You can set these variables from the command line.
 GH_PAGES_SOURCES_DOC = doc/source doc/sphinxext doc/themes doc/Makefile
-GH_PAGES_SOURCES = source sphinxext themes Makefile
+GH_PAGES_SOURCES = cvxpy dev_notes.html source sphinxext themes Makefile
 SPHINXOPTS	  =
 SPHINXBUILD   = sphinx-build
 PAPER		  =
@@ -159,9 +159,8 @@ gh-pages:
 	cd doc && make html
 	rm -rf /tmp/cvxpy_docs/*
 	mkdir -p /tmp/cvxpy_docs/
-	mv build/html/* /tmp/cvxpy_docs/
+	mv doc/build/html/* /tmp/cvxpy_docs/
 	make clean
-	cd ..
 	git checkout gh-pages
 	mv CNAME /tmp/cvxpy_docs/CNAME
 	git rm -r .
