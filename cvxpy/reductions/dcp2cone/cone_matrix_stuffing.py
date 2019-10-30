@@ -53,6 +53,7 @@ class ParamConeProg(object):
         self.c = c
         self.x = x
         self.A = A
+        self._A_mapping_nonzero = None
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
         self.parameters = parameters
@@ -71,13 +72,16 @@ class ParamConeProg(object):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
-    def apply_parameters(self, id_to_param_value=None, zero_offset=False):
+    def apply_parameters(self, id_to_param_value=None, zero_offset=False,
+                         keep_zeros=False):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:
           id_to_param_value: (optional) dict mapping parameter ids to values
           zero_offset: (optional) if True, zero out the constant offset in the
                        parameter vector
+          keep_zeros: (optional) if True, store explicit zeros in A where
+                        parameters are affected
         """
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value
@@ -91,8 +95,12 @@ class ParamConeProg(object):
         c, d = canonInterface.get_matrix_and_offset_from_tensor(
             self.c, param_vec, self.x.size)
         c = c.toarray().flatten()
+        if keep_zeros and self._A_mapping_nonzero is None:
+            self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
+                self.A, self.x.size)
         A, b = canonInterface.get_matrix_and_offset_from_tensor(
-            self.A, param_vec, self.x.size)
+            self.A, param_vec, self.x.size,
+            nonzero_rows=self._A_mapping_nonzero)
         return c, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):

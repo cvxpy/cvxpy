@@ -37,6 +37,20 @@ class DIFFCP(scs_conif.SCS):
         if patch_version < 7:
             raise ImportError("diffcp >= 1.0.7 is required")
 
+    def apply(self, problem):
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+
+        # Apply parameter values.
+        # Obtain A, b such that Ax + s = b, s \in cones.
+        #
+        # Keep zeros in A that are affected by parameters
+        c, d, A, b = problem.apply_parameters(keep_zeros=True)
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A
+        data[s.B] = b
+        return data, inv_data
+
     def solve_via_data(self, data, warm_start, verbose, solver_opts,
                        solver_cache=None):
         """Returns the result of the call to the solver.

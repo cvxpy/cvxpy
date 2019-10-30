@@ -1,4 +1,5 @@
 import cvxpy as cp
+import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
 import numpy as np
@@ -300,3 +301,12 @@ class TestBackward(BaseTest):
                                     "When requires_grad is True, the "
                                     "only supported solver is SCS.*"):
             problem.solve(cp.ECOS, requires_grad=True)
+
+    def test_zero_in_problem_data(self):
+        x = cp.Variable()
+        param = cp.Parameter()
+        param.value = 0.0
+        problem = cp.Problem(cp.Minimize(x), [param * x >= 0])
+        data, _, _ = problem.get_problem_data(cp.DIFFCP)
+        A = data[s.A]
+        self.assertIn(0.0, A.data)
