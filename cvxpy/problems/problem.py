@@ -343,42 +343,44 @@ class Problem(u.Canonical):
         to recover a solution to the original problem.
 
         For example:
-        ```python
-        objective = ...
-        constraints = ...
-        problem = cp.Problem(objective, constraints)
-        data, chain, inverse_data = problem.get_problem_data(cp.SCS)
-        # calls SCS using `data`
-        soln = chain.solve_via_data(problem, data)
-        # unpacks the solution returned by SCS into `problem`
-        problem.unpack_results(soln, chain, inverse_data)
-        ```
+
+        ::
+
+            objective = ...
+            constraints = ...
+            problem = cp.Problem(objective, constraints)
+            data, chain, inverse_data = problem.get_problem_data(cp.SCS)
+            # calls SCS using `data`
+            soln = chain.solve_via_data(problem, data)
+            # unpacks the solution returned by SCS into `problem`
+            problem.unpack_results(soln, chain, inverse_data)
 
         Alternatively, the `data` dictionary returned by this method
         contains enough information to bypass CVXPY and call the solver
         directly.
 
         For example:
-        ```
-        problem = cp.Problem(objective, constraints)
-        data, _, _ = problem.get_problem_data(cp.SCS)
 
-        import scs
-        probdata = {
-          'A': data['A'],
-          'b': data['b'],
-          'c': data['c'],
-        }
-        cone_dims = data['dims']
-        cones = {
-            "f": cone_dims.zero,
-            "l": cone_dims.nonpos,
-            "q": cone_dims.soc,
-            "ep": cone_dims.exp,
-            "s": cone_dims.psd,
-        }
-        soln = scs.solve(data, cones)
-        ```
+        ::
+
+            problem = cp.Problem(objective, constraints)
+            data, _, _ = problem.get_problem_data(cp.SCS)
+
+            import scs
+            probdata = {
+              'A': data['A'],
+              'b': data['b'],
+              'c': data['c'],
+            }
+            cone_dims = data['dims']
+            cones = {
+                "f": cone_dims.zero,
+                "l": cone_dims.nonpos,
+                "q": cone_dims.soc,
+                "ep": cone_dims.exp,
+                "s": cone_dims.psd,
+            }
+            soln = scs.solve(data, cones)
 
         The structure of the data dict that CVXPY returns depends on the
         solver. For details, consult the solver interfaces in
@@ -638,27 +640,25 @@ class Problem(u.Canonical):
 
         Below is a simple example:
 
-        ```python
-        import cvxpy as cp
-        import numpy as np
+        ::
 
+            import cvxpy as cp
+            import numpy as np
 
-        p = cp.Parameter()
-        x = cp.Variable()
-        quadratic = cp.square(x - 2 * p)
-        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
-        p.value = 3.0
-        problem.solve(requires_grad=True, eps=1e-10)
-        # .backward() populates the .gradient attribute of the parameters
-        problem.backward()
-        # Because x* = 2 * p, dx*/dp = 2
-        np.testing.assert_allclose(p.gradient, 2.0)
-        ```
+            p = cp.Parameter()
+            x = cp.Variable()
+            quadratic = cp.square(x - 2 * p)
+            problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+            p.value = 3.0
+            problem.solve(requires_grad=True, eps=1e-10)
+            # .backward() populates the .gradient attribute of the parameters
+            problem.backward()
+            # Because x* = 2 * p, dx*/dp = 2
+            np.testing.assert_allclose(p.gradient, 2.0)
 
         In the above example, the gradient could easily be computed by hand;
         however, .backward() can be used to differentiate through any DCP
         program (that is also DPP-compliant).
-
 
         This method uses the chain rule to evaluate the gradients of a
         scalar-valued function of the variables with respect to the parameters.
@@ -669,29 +669,32 @@ class Problem(u.Canonical):
         choosing f to be the sum function. You can specify a custom value for
         dz/dx by setting the .gradient attribute on your variables. For example,
 
-        ```python
-        import cvxpy as cp
-        import numpy as np
+        ::
+
+            import cvxpy as cp
+            import numpy as np
 
 
-        b = cp.Parameter()
-        x = cp.Variable()
-        quadratic = cp.square(x - 2 * b)
-        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
-        b.value = 3.
-        problem.solve(requires_grad=True, eps=1e-10)
-        x.gradient = 4.
-        problem.backward()
-        # dz/dp = dz/dx dx/dp = 4. * 2. == 8.
-        np.testing.assert_allclose(b.gradient, 8.)
-        ```
+            b = cp.Parameter()
+            x = cp.Variable()
+            quadratic = cp.square(x - 2 * b)
+            problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+            b.value = 3.
+            problem.solve(requires_grad=True, eps=1e-10)
+            x.gradient = 4.
+            problem.backward()
+            # dz/dp = dz/dx dx/dp = 4. * 2. == 8.
+            np.testing.assert_allclose(b.gradient, 8.)
 
         The .gradient attribute on a variable can also be interpreted as a
         perturbation to its optimal value.
 
-        Raises:
-            ValueError if solve was not called with `requires_grad=True`
-            SolverError if the problem is infeasible or unbounded
+        Raises
+        ------
+            ValueError
+                if solve was not called with `requires_grad=True`
+            SolverError
+                if the problem is infeasible or unbounded
         """
         if s.DIFFCP not in self._solver_cache:
             raise ValueError("backward can only be called after calling "
@@ -736,27 +739,29 @@ class Problem(u.Canonical):
 
         Below is a simple example:
 
-        ```python
-        import cvxpy as cp
-        import numpy as np
+        ::
 
+            import cvxpy as cp
+            import numpy as np
 
-        p = cp.Parameter()
-        x = cp.Variable()
-        quadratic = cp.square(x - 2 * p)
-        problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
-        p.value = 3.0
-        problem.solve(requires_grad=True, eps=1e-10)
-        # .derivative() populates the .gradient attribute of the parameters
-        problem.backward()
-        p.delta = 1e-3
-        # Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3
-        np.testing.assert_allclose(p.gradient, 2e-3)
-        ```
+            p = cp.Parameter()
+            x = cp.Variable()
+            quadratic = cp.square(x - 2 * p)
+            problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+            p.value = 3.0
+            problem.solve(requires_grad=True, eps=1e-10)
+            # .derivative() populates the .gradient attribute of the parameters
+            problem.backward()
+            p.delta = 1e-3
+            # Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3
+            np.testing.assert_allclose(p.gradient, 2e-3)
 
-        Raises:
-            ValueError if solve was not called with `requires_grad=True`
-            SolverError if the problem is infeasible or unbounded
+        Raises
+        ------
+            ValueError
+                if solve was not called with `requires_grad=True`
+            SolverError
+                if the problem is infeasible or unbounded
         """
         if s.DIFFCP not in self._solver_cache:
             raise ValueError("derivative can only be called after calling "
