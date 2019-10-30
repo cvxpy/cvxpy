@@ -55,9 +55,9 @@ more.
 
 **News.**
 
-* CVXPY v1.1 alpha has been released. It makes repeatedly canonicalizing
-  parametrized problems much faster than before. See the tutorial on :ref:`dpp`
-  for more information.
+* CVXPY v1.1.a1 (which is an alpha version) has been released. This version makes
+  repeatedly canonicalizing parametrized problems much faster than before. See
+  the tutorial on :ref:`dpp` for more information.
 
 * CVXPY v1.0.24 supports
   `disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_,
@@ -159,8 +159,3 @@ guide </contributing/index>`.
    :hidden:
 
    license/index
-
-.. toctree::
-   :hidden:
-
-   versions/index

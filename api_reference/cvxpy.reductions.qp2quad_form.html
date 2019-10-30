@@ -41,128 +41,14 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.qp2quad_form.qp2symbolic_qp">
-<span id="cvxpy-reductions-qp2quad-form-qp2symbolic-qp-module"></span><h2>cvxpy.reductions.qp2quad_form.qp2symbolic_qp module<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form.qp2symbolic_qp" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2017 Robin Verschueren</p>
-<p>Licensed under the Apache License, Version 2.0 (the “License”);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at</p>
-<blockquote>
-<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
-</div></blockquote>
-<p>Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an “AS IS” BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.</p>
-<dl class="class">
-<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</code><code class="sig-name descname">Qp2SymbolicQp</code><span class="sig-paren">(</span><em class="sig-param">problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
-<p>Reduces a quadratic problem to a problem that consists of affine
-expressions and symbolic quadratic forms.</p>
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">
-<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param">problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Problems with quadratic, piecewise affine objectives,
-piecewise-linear constraints inequality constraints, and
-affine equality constraints are accepted.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply">
-<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param">problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a QP to an even more symbolic form.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.accepts">
-<code class="sig-prename descclassname">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</code><code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param">problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.accepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Problems with quadratic, piecewise affine objectives,
-piecewise-linear constraints inequality constraints, and
-affine equality constraints are accepted by the reduction.</p>
-</dd></dl>
-
+<div class="section" id="cvxpy-reductions-qp2quad-form-qp2symbolic-qp-module">
+<h2>cvxpy.reductions.qp2quad_form.qp2symbolic_qp module<a class="headerlink" href="#cvxpy-reductions-qp2quad-form-qp2symbolic-qp-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.qp2quad_form.qp_matrix_stuffing">
-<span id="cvxpy-reductions-qp2quad-form-qp-matrix-stuffing-module"></span><h2>cvxpy.reductions.qp2quad_form.qp_matrix_stuffing module<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form.qp_matrix_stuffing" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2016 Jaehyun Park, 2017 Robin Verschueren</p>
-<p>Licensed under the Apache License, Version 2.0 (the “License”);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at</p>
-<blockquote>
-<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
-</div></blockquote>
-<p>Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an “AS IS” BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.</p>
-<dl class="class">
-<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</code><code class="sig-name descname">QpMatrixStuffing</code><span class="sig-paren">(</span><em class="sig-param">problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.matrix_stuffing.MatrixStuffing</span></code></p>
-<p>Fills in numeric values for this problem instance.</p>
-<p>Outputs a DCP-compliant minimization problem with an objective
-of the form</p>
-<blockquote>
-<div><p>QuadForm(x, p) + q.T * x</p>
-</div></blockquote>
-<p>and Zero/NonPos constraints, both of which exclusively carry
-affine arguments.</p>
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts">
-<em class="property">static </em><code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param">problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.accepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>States whether the reduction accepts a problem.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<em>Problem</em>) – The problem to check.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.apply">
-<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param">problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>See docstring for MatrixStuffing.apply</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.invert">
-<code class="sig-name descname">invert</code><span class="sig-paren">(</span><em class="sig-param">solution</em>, <em class="sig-param">inverse_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.invert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieves the solution to the original problem.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.stuffed_objective">
-<code class="sig-name descname">stuffed_objective</code><span class="sig-paren">(</span><em class="sig-param">problem</em>, <em class="sig-param">extractor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing.stuffed_objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.stuffed_objective" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="cvxpy-reductions-qp2quad-form-qp-matrix-stuffing-module">
+<h2>cvxpy.reductions.qp2quad_form.qp_matrix_stuffing module<a class="headerlink" href="#cvxpy-reductions-qp2quad-form-qp-matrix-stuffing-module" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-cvxpy.reductions.qp2quad_form">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cvxpy.reductions.qp2quad_form" title="Permalink to this headline">¶</a></h2>
-<p>Copyright 2013 Steven Diamond</p>
-<p>Licensed under the Apache License, Version 2.0 (the “License”);
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at</p>
-<blockquote>
-<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
-</div></blockquote>
-<p>Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an “AS IS” BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.</p>
+<div class="section" id="module-contents">
+<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -222,9 +108,6 @@ limitations under the License.</p>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../versions/index.html">Versions</a></li>
 </ul>
 
 

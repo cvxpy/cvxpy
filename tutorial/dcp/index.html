@@ -251,7 +251,7 @@ it can only take a concave argument. Since <code class="docutils literal notrans
 convex.</p>
 <p>In fact, <code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code> is a convex function of <code class="docutils literal notranslate"><span class="pre">x</span></code>, but the
 DCP rules are not able to verify convexity. If the expression is written
-as <code class="docutils literal notranslate"><span class="pre">norm(vstack(1,</span> <span class="pre">x),</span> <span class="pre">2)</span></code>, the L2 norm of the vector <span class="math notranslate nohighlight">\([1,x]\)</span>,
+as <code class="docutils literal notranslate"><span class="pre">norm(hstack(1,</span> <span class="pre">x),</span> <span class="pre">2)</span></code>, the L2 norm of the vector <span class="math notranslate nohighlight">\([1,x]\)</span>,
 which has the same value as <code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>, then it will be
 certified as convex using the DCP rules.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">&quot;sqrt(1 + square(x)) curvature:&quot;</span><span class="p">,</span>
@@ -413,9 +413,6 @@ non-DCP problem.</p>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../versions/index.html">Versions</a></li>
 </ul>
 
 

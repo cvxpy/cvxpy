@@ -76,7 +76,7 @@
 For example, <code class="docutils literal notranslate"><span class="pre">Variable(nonneg=True)</span></code> is a scalar variable constrained to be nonnegative.
 Similarly, <code class="docutils literal notranslate"><span class="pre">Parameter(nonpos=True)</span></code> is a scalar parameter constrained to be nonpositive.
 The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Leaf</span></code></a> (the parent class
-of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and
+of <code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> and
 <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>) is given below.</p>
 <dl class="function">
 <dt id="Leaf">
@@ -237,7 +237,7 @@ All constraints are defined for complex expressions.</p>
 <div class="section" id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
 <p>Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
+beyond the atomic functions.  For example, the <code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code> transform converts a list of constraints into an
 expression representing the convex function that takes value 0 when the
 constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -1101,9 +1101,6 @@ solves of a DPP problem.</p>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
-</ul>
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="../../versions/index.html">Versions</a></li>
 </ul>
 
 
