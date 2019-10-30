@@ -61,15 +61,21 @@ def get_parameter_vector(param_size,
 def nonzero_csc_matrix(A):
     # this function returns (rows, cols) corresponding to nonzero entries in
     # A; an entry that is explicitly set to zero is treated as nonzero
-    assert np.nan not in A.data
-    zero_indices = (A.data == 0)
+    assert not np.isnan(A.data).any()
+
     # scipy drops rows, cols with explicit zeros; use nan as a sentinel
     # to prevent them from being dropped
+    zero_indices = (A.data == 0)
     A.data[zero_indices] = np.nan
+
+    # A.nonzero() returns (rows, cols) sorted in C-style order,
+    # but (when A is a csc matrix) A.data is stored in Fortran-order, hence
+    # the sorting below
     A_rows, A_cols = A.nonzero()
     ind = np.argsort(A_cols, kind='mergesort')
     A_rows = A_rows[ind]
     A_cols = A_cols[ind]
+
     A.data[zero_indices] = 0
     return A_rows, A_cols
 
@@ -84,7 +90,7 @@ def A_mapping_nonzero_rows(problem_data_tensor, var_length):
     # don't call nonzero_csc_matrix, because here we don't want to
     # count explicit zeros
     A_mapping_nonzero_rows, _ = A_mapping.nonzero()
-    return A_mapping_nonzero_rows
+    return np.unique(A_mapping_nonzero_rows)
 
 
 def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
