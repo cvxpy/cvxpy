@@ -17,6 +17,8 @@ Modeling frameworks
 
 - `cvxstoc <http://alnurali.github.io/cvxstoc/>`_ is a CVXPY extension that makes it easy to code and solve stochastic optimization problems, i.e., convex optimization problems that involve random variables.
 
+- `cvxpylayers <https://github.com/cvxgrp/cvxpylayers/>`_ is a library that converts CVXPY problems into differentiable PyTorch and TensorFlow 2.0 layers.
+
 - `SnapVX <http://snap.stanford.edu/snapvx/>`_ is a Python-based convex optimization solver for problems defined on graphs.
 
 - `CVX <http://cvxr.com/cvx/>`_ is a MATLAB-embedded modeling language for convex optimization problems. CVXPY is based on CVX.
@@ -34,11 +36,11 @@ Solvers
 
 - `OSQP <https://osqp.org/>`_ is an open-source C library for solving convex quadratic programs.
 
-- `ECOS <https://www.embotech.com/ECOS>`_ is an open-source C library for solving convex second-order and exponential cone programs.
+- `SCS <https://github.com/cvxgrp/scs>`_ is an open-source C library for solving large-scale convex cone problems.
+
+- `ECOS <https://github.com/embotech/ecos>`_ is an open-source C library for solving convex second-order and exponential cone programs.
 
 - `CVXOPT <http://cvxopt.org/>`_ is an open-source Python package for convex optimization.
-
-- `SCS <https://github.com/cvxgrp/scs>`_ is an open-source C library for solving large-scale convex cone problems.
 
 - `GLPK <https://www.gnu.org/software/glpk/>`_ is an open-source C library for solving linear programs and mixed integer linear programs.
 
