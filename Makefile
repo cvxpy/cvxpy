@@ -166,6 +166,7 @@ gh-pages:
 	git rm -r .
 	rm -rf /tmp/cvxpy_untracked/
 	mkdir -p /tmp/cvxpy_untracked/
+	rm -rf $(GH_PAGES_SOURCES) build doc
 	mv * /tmp/cvxpy_untracked/
 	mv /tmp/cvxpy_docs/* .
 	touch .nojekyll
