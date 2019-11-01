@@ -1812,3 +1812,19 @@ class TestProblem(BaseTest):
         make_problem(D_sparse)
         coef_sparse = a.value.T * D_sparse
         np.testing.assert_almost_equal(expected_coef, coef_sparse)
+
+    def test_special_index(self):
+        """Test QP code path with special indexing.
+        """
+        x = cp.Variable((1, 3))
+        y = cp.sum(x[:, 0:2], axis=1)
+        cost = cp.QuadForm(y, np.diag([1]))
+        prob = cp.Problem(cp.Minimize(cost))
+        result1 = prob.solve()
+
+        x = cp.Variable((1, 3))
+        y = cp.sum(x[:, [0, 1]], axis=1)
+        cost = cp.QuadForm(y, np.diag([1]))
+        prob = cp.Problem(cp.Minimize(cost))
+        result2 = prob.solve()
+        self.assertAlmostEqual(result1, result2)
