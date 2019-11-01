@@ -47,56 +47,15 @@
 <span class="sd">See the License for the specific language governing permissions and</span>
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
-
-<span class="kn">import</span> <span class="nn">contextlib</span>
-
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">s</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.leaf</span> <span class="k">import</span> <span class="n">Leaf</span>
 <span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
-<span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="k">import</span> <span class="n">performance_utils</span> <span class="k">as</span> <span class="n">perf</span>
-
-
-<span class="n">_dpp_scope_active</span> <span class="o">=</span> <span class="kc">False</span>
-
-
-<span class="nd">@contextlib</span><span class="o">.</span><span class="n">contextmanager</span>
-<span class="k">def</span> <span class="nf">dpp_scope</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Context manager for DPP curvature analysis</span>
-
-<span class="sd">    When this scope is active, parameters are affine, not constant. The</span>
-<span class="sd">    argument For example, if `param` is a Parameter, then</span>
-
-<span class="sd">    ```</span>
-<span class="sd">        with dpp_scope():</span>
-<span class="sd">            print(&quot;param is constant: &quot;, param.is_constant())</span>
-<span class="sd">            print(&quot;param is affine: &quot;, param.is_affine())</span>
-<span class="sd">    ```</span>
-
-<span class="sd">    would print</span>
-
-<span class="sd">        param is constant: False</span>
-<span class="sd">        param is affine: True</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">global</span> <span class="n">_dpp_scope_active</span>
-    <span class="k">with</span> <span class="n">perf</span><span class="o">.</span><span class="n">disable_caches</span><span class="p">():</span>
-        <span class="c1"># caches are disabled: we don&#39;t want to accidentally cache dpp</span>
-        <span class="c1"># curvature (e.g., is_convex() might be false under this scope but true</span>
-        <span class="c1"># when a param-affine scope is not active)</span>
-        <span class="n">prev_state</span> <span class="o">=</span> <span class="n">_dpp_scope_active</span>
-        <span class="n">_dpp_scope_active</span> <span class="o">=</span> <span class="kc">True</span>
-        <span class="k">yield</span>
-        <span class="n">_dpp_scope_active</span> <span class="o">=</span> <span class="n">prev_state</span>
-
-
-<span class="k">def</span> <span class="nf">dpp_scope_active</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Returns True if a `dpp_scope` is active. &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">_dpp_scope_active</span>
+<span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="k">import</span> <span class="n">scopes</span>
 
 
 <span class="k">def</span> <span class="nf">is_param_affine</span><span class="p">(</span><span class="n">expr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns true if expression is parameters-affine (and variable-free)&quot;&quot;&quot;</span>
-    <span class="k">with</span> <span class="n">dpp_scope</span><span class="p">():</span>
+    <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="n">expr</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span> <span class="ow">and</span> <span class="n">expr</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span>
 
 
@@ -141,7 +100,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span>
 
     <span class="k">def</span> <span class="nf">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">dpp_scope_active</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope_active</span><span class="p">():</span>
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span>
 
