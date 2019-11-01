@@ -76,7 +76,7 @@
 For example, <code class="docutils literal notranslate"><span class="pre">Variable(nonneg=True)</span></code> is a scalar variable constrained to be nonnegative.
 Similarly, <code class="docutils literal notranslate"><span class="pre">Parameter(nonpos=True)</span></code> is a scalar parameter constrained to be nonpositive.
 The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Leaf</span></code></a> (the parent class
-of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and
+of <code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> and
 <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>) is given below.</p>
 <dl class="function">
 <dt id="Leaf">
@@ -237,7 +237,7 @@ All constraints are defined for complex expressions.</p>
 <div class="section" id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
 <p>Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
+beyond the atomic functions.  For example, the <code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code> transform converts a list of constraints into an
 expression representing the convex function that takes value 0 when the
 constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -586,7 +586,7 @@ the problem object records the optimal value, the values of the primal and dual 
 and several solver statistics.
 We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the <code class="docutils literal notranslate"><span class="pre">problem.solver_stats</span></code> attribute,
-which returns a <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code></a> object.
+which returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code> object.
 For example, <code class="docutils literal notranslate"><span class="pre">problem.solver_stats.solve_time</span></code> gives the time it took the solver to solve the problem.</p>
 </div>
 <div class="section" id="warm-start">
@@ -796,7 +796,7 @@ It is slower, but more robust.</p>
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
 <p>If you are interested in getting the standard form that CVXPY produces for a
 problem, you can use the <code class="docutils literal notranslate"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
-a <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code></a> passes a
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code> passes a
 low-level representation that is compatible with the targeted solver to a
 solver, which solves the problem. This method returns that low-level
 representation, along with a <code class="docutils literal notranslate"><span class="pre">SolvingChain</span></code> and metadata for unpacking

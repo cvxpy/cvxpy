@@ -171,28 +171,28 @@ convex and concave.</p>
 <h2>Curvature rules<a class="headerlink" href="#curvature-rules" title="Permalink to this headline">¶</a></h2>
 <p>DCP analysis is based on applying a general composition theorem from
 convex analysis to each (sub)expression.</p>
-<p><span class="math notranslate nohighlight">\(f(\text{\textit{expr}}_1, \text{\textit{expr}}_2, ..., \text{\textit{expr}}_n)\)</span> is convex if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
-is a convex function and for each <span class="math notranslate nohighlight">\(\text{\textit{expr}}_{i}\)</span> one of the following
+<p><span class="math notranslate nohighlight">\(f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)\)</span> is convex if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is a convex function and for each <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> one of the following
 conditions holds:</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{\textit{expr}}_{i}\)</span> is convex.</p></li>
-<li><p><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{\textit{expr}}_{i}\)</span> is
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is convex.</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is
 concave.</p></li>
-<li><p><span class="math notranslate nohighlight">\(text{\textit{expr}}_{i}\)</span> is affine or constant.</p></li>
+<li><p><span class="math notranslate nohighlight">\(text{expr}_{i}\)</span> is affine or constant.</p></li>
 </ul>
-<p><span class="math notranslate nohighlight">\(f(\text{\textit{expr}}_1, \text{\textit{expr}}_2, ..., \text{\textit{expr}}_n)\)</span> is concave if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
-is a concave function and for each <span class="math notranslate nohighlight">\(\text{\textit{expr}}_{i}\)</span> one of the following
+<p><span class="math notranslate nohighlight">\(f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)\)</span> is concave if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is a concave function and for each <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> one of the following
 conditions holds:</p>
 <ul class="simple">
-<li><p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{\textit{expr}}_{i}\)</span> is
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is
 concave.</p></li>
-<li><p><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{\textit{expr}}_{i}\)</span> is convex.</p></li>
-<li><p><span class="math notranslate nohighlight">\(\text{\textit{expr}}_{i}\)</span> is affine or constant.</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is convex.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is affine or constant.</p></li>
 </ul>
-<p><span class="math notranslate nohighlight">\(f(\text{\textit{expr}}_1, \text{\textit{expr}}_2, ..., \text{\textit{expr}}_n)\)</span> is affine if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
-is an affine function and each <span class="math notranslate nohighlight">\(\text{\textit{expr}}_{i}\)</span> is affine.</p>
+<p><span class="math notranslate nohighlight">\(f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)\)</span> is affine if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is an affine function and each <span class="math notranslate nohighlight">\(\text{expr}_{i}\)</span> is affine.</p>
 <p>If none of the three rules apply, the expression
-<span class="math notranslate nohighlight">\(f(\text{\textit{expr}}_1, \text{\textit{expr}}_2, ..., \text{\textit{expr}}_n)\)</span> is marked as having unknown
+<span class="math notranslate nohighlight">\(f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)\)</span> is marked as having unknown
 curvature.</p>
 <p>Whether a function is increasing or decreasing in an argument may depend
 on the sign of the argument. For instance, <code class="docutils literal notranslate"><span class="pre">square</span></code> is increasing for

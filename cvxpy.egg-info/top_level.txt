@@ -1,3 +1,0 @@
-_cvxcore
-cvxpy
-examples
