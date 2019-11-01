@@ -143,29 +143,29 @@ Curvature rules
 DCP analysis is based on applying a general composition theorem from
 convex analysis to each (sub)expression.
 
-:math:`f(\text{\textit{expr}}_1, \text{\textit{expr}}_2, ..., \text{\textit{expr}}_n)` is convex if :math:`\text{ } f`
-is a convex function and for each :math:`\text{\textit{expr}}_{i}` one of the following
+:math:`f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)` is convex if :math:`\text{ } f`
+is a convex function and for each :math:`\text{expr}_{i}` one of the following
 conditions holds:
 
--  :math:`f` is increasing in argument :math:`i` and :math:`\text{\textit{expr}}_{i}` is convex.
--  :math:`f` is decreasing in argument :math:`i` and :math:`\text{\textit{expr}}_{i}` is
+-  :math:`f` is increasing in argument :math:`i` and :math:`\text{expr}_{i}` is convex.
+-  :math:`f` is decreasing in argument :math:`i` and :math:`\text{expr}_{i}` is
    concave.
--  :math:`text{\textit{expr}}_{i}` is affine or constant.
+-  :math:`text{expr}_{i}` is affine or constant.
 
-:math:`f(\text{\textit{expr}}_1, \text{\textit{expr}}_2, ..., \text{\textit{expr}}_n)` is concave if :math:`\text{ } f`
-is a concave function and for each :math:`\text{\textit{expr}}_{i}` one of the following
+:math:`f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)` is concave if :math:`\text{ } f`
+is a concave function and for each :math:`\text{expr}_{i}` one of the following
 conditions holds:
 
--  :math:`f` is increasing in argument :math:`i` and :math:`\text{\textit{expr}}_{i}` is
+-  :math:`f` is increasing in argument :math:`i` and :math:`\text{expr}_{i}` is
    concave.
--  :math:`f` is decreasing in argument :math:`i` and :math:`\text{\textit{expr}}_{i}` is convex.
--  :math:`\text{\textit{expr}}_{i}` is affine or constant.
+-  :math:`f` is decreasing in argument :math:`i` and :math:`\text{expr}_{i}` is convex.
+-  :math:`\text{expr}_{i}` is affine or constant.
 
-:math:`f(\text{\textit{expr}}_1, \text{\textit{expr}}_2, ..., \text{\textit{expr}}_n)` is affine if :math:`\text{ } f`
-is an affine function and each :math:`\text{\textit{expr}}_{i}` is affine.
+:math:`f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)` is affine if :math:`\text{ } f`
+is an affine function and each :math:`\text{expr}_{i}` is affine.
 
 If none of the three rules apply, the expression
-:math:`f(\text{\textit{expr}}_1, \text{\textit{expr}}_2, ..., \text{\textit{expr}}_n)` is marked as having unknown
+:math:`f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)` is marked as having unknown
 curvature.
 
 Whether a function is increasing or decreasing in an argument may depend
