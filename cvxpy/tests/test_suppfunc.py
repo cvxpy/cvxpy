@@ -17,6 +17,7 @@ limitations under the License.
 import cvxpy as cvx
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.error import SolverError
 
 
 """
@@ -52,10 +53,10 @@ class TestSupportFunctions(BaseTest):
         prob.solve(solver='ECOS')
         actual = prob.value
         expected = np.dot(a, a)
-        assert abs(actual - expected) <= 1e-8
+        assert abs(actual - expected) <= 1e-6
         actual = y.value
         expected = a
-        assert np.linalg.norm(actual - expected, ord=2) <= 1e-8
+        assert np.linalg.norm(actual - expected, ord=2) <= 1e-6
         viol = cons[0].violation()
         assert viol <= 1e-8
 
@@ -71,8 +72,8 @@ class TestSupportFunctions(BaseTest):
         prob.solve(solver='ECOS')
         actual = prob.value
         expected = a @ y + np.linalg.norm(y, ord=np.inf)
-        assert abs(actual - expected) <= 1e-8
-        assert abs(prob.objective.expr.value - prob.value) <= 1e-7
+        assert abs(actual - expected) <= 1e-6
+        assert abs(prob.objective.expr.value - prob.value) <= 1e-6
 
     def test_vector2norm(self):
         n = 3
@@ -86,8 +87,8 @@ class TestSupportFunctions(BaseTest):
         prob.solve(solver='ECOS')
         actual = prob.value
         expected = a @ y + np.linalg.norm(y, ord=2)
-        assert abs(actual - expected) <= 1e-8
-        assert abs(prob.objective.expr.value - prob.value) <= 1e-7
+        assert abs(actual - expected) <= 1e-6
+        assert abs(prob.objective.expr.value - prob.value) <= 1e-6
 
     def test_rectangular_variable(self):
         np.random.seed(2)
@@ -102,9 +103,9 @@ class TestSupportFunctions(BaseTest):
         prob.solve(solver='ECOS')
         expect = np.hstack([np.zeros(shape=(rows, 1)), a[:, [1]]])
         actual = y.value
-        assert np.linalg.norm(actual - expect, ord=2) <= 1e-8
+        assert np.linalg.norm(actual - expect, ord=2) <= 1e-6
         viol = cons[0].violation()
-        assert viol <= 1e-8
+        assert viol <= 1e-6
 
     def test_psd_dualcone(self):
         np.random.seed(5)
@@ -116,11 +117,11 @@ class TestSupportFunctions(BaseTest):
         objective = cvx.Minimize(cvx.norm(A.ravel(order='F') + Y.flatten()))
         cons = [sigma(Y) <= 0]  # Y is negative definite.
         prob = cvx.Problem(objective, cons)
-        prob.solve(solver='SCS', eps=1e-7)
+        prob.solve(solver='SCS', eps=1e-8)
         viol = cons[0].violation()
-        assert viol <= 1e-7
+        assert viol <= 1e-6
         eigs = np.linalg.eigh(Y.value)[0]
-        assert np.max(eigs) <= 1e-9
+        assert np.max(eigs) <= 1e-6
 
     def test_largest_singvalue(self):
         np.random.seed(3)
@@ -167,8 +168,8 @@ class TestSupportFunctions(BaseTest):
         epi_actual = prob.value
         direct_actual = expr.value
         expect = 0.235348211
-        assert abs(epi_actual - expect) <= 1e-7
-        assert abs(direct_actual - expect) <= 1e-7
+        assert abs(epi_actual - expect) <= 1e-6
+        assert abs(direct_actual - expect) <= 1e-6
 
     def test_basic_lmi(self):
         np.random.seed(4)
@@ -181,9 +182,21 @@ class TestSupportFunctions(BaseTest):
         cons = [Y == A]
         expr = sigma(Y)
         prob = cvx.Problem(cvx.Minimize(expr), cons)  # opt value of support func would be at X=I.
-        prob.solve(solver='SCS')
+        prob.solve(solver='SCS', eps=1e-8)
         actual1 = prob.value  # computed with epigraph
         actual2 = expr.value  # computed by evaluating support function, as a maximization problem.
-        assert abs(actual1 - actual2) <= 1e-7
+        assert abs(actual1 - actual2) <= 1e-6
         expect = np.trace(A)
         assert abs(actual1 - expect) <= 1e-4
+
+    def test_invalid_solver(self):
+        n = 3
+        x = cvx.Variable(shape=(n,))
+        sigma = cvx.suppfunc(x, [cvx.norm(x - np.random.randn(n,), 2) <= 1])
+        y_var = cvx.Variable(shape=(n,))
+        prob = cvx.Problem(cvx.Minimize(sigma(y_var)), [np.random.randn(n,) == y_var])
+        try:
+            prob.solve(solver='OSQP')
+            assert False
+        except SolverError:
+            pass
