@@ -24,10 +24,14 @@ def lazyprop(func):
     @functools.wraps(func)
     def _lazyprop(self):
         try:
+            if not hasattr(self, attr_name):
+                setattr(self, attr_name, func(self))
             return getattr(self, attr_name)
-        except AttributeError:
-            setattr(self, attr_name, func(self))
-        return getattr(self, attr_name)
+        except Exception as e:
+            msg = 'Context: attempted to get or set attribute "' + func.__name__ + '"'
+            msg += ' for an object of type ' + str(type(self)) + '.'
+            e.args = e.args + (msg,)
+            raise e
     return _lazyprop
 
 
@@ -37,9 +41,7 @@ def compute_once(func):
 
     @functools.wraps(func)
     def _compute_once(self):
-        try:
-            return getattr(self, attr_name)
-        except AttributeError:
+        if not hasattr(self, attr_name):
             setattr(self, attr_name, func(self))
         return getattr(self, attr_name)
     return _compute_once
