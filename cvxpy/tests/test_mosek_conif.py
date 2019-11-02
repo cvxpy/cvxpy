@@ -124,7 +124,7 @@ class TestMosek(BaseTest):
                 x = cvx.Variable(shape=(3, 1))
                 constraints = [cvx.sum(x) <= 1.0, cvx.sum(x) >= 0.1, x >= 0.01,
                                cvx.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
-                obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[0])
+                obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[2])
                 prob = cvx.Problem(obj, constraints)
                 prob.solve(solver=cvx.MOSEK)
                 val_mosek = prob.value
