@@ -61,7 +61,7 @@ public:
   LinOp(OperatorType type, const std::vector<int> &shape,
         const std::vector<const LinOp *> &args)
       : type_(type), shape_(shape), args_(args), sparse_(false),
-        data_has_been_set_(false) {}
+        sparse_data_(0, 0, 0, NULL, NULL, NULL), data_has_been_set_(false) {}
 
   OperatorType get_type() const { return type_; }
   bool is_constant() const {
@@ -71,7 +71,7 @@ public:
   std::vector<int> get_shape() const { return shape_; }
 
   const std::vector<const LinOp *> get_args() const { return args_; }
-  const std::vector<std::vector<int> > get_slice() const { return slice_; }
+  const std::vector<std::vector<int>> get_slice() const { return slice_; }
   void push_back_slice_vec(const std::vector<int> &slice_vec) {
     slice_.push_back(slice_vec);
   }
@@ -86,7 +86,7 @@ public:
   int get_data_ndim() const { return data_ndim_; }
   void set_data_ndim(int ndim) { data_ndim_ = ndim; }
   bool is_sparse() const { return sparse_; }
-  const Matrix &get_sparse_data() const { return sparse_data_; }
+  Eigen::Ref<const Matrix> get_sparse_data() const { return sparse_data_; }
   const Eigen::MatrixXd &get_dense_data() const { return dense_data_; }
 
   /* Initializes DENSE_DATA. MATRIX is a pointer to the data of a 2D
@@ -96,39 +96,33 @@ public:
    * order.
    *
    * NOTE: The function prototype must match the type-map in CVXCanon.i
-   * exactly to compile and run properly.
+   * exactly.
    */
   void set_dense_data(double *matrix, int rows, int cols) {
     assert(!data_has_been_set_);
-    dense_data_ = Eigen::Map<Eigen::MatrixXd>(matrix, rows, cols);
+    // TODO this is a copy; eliminate it
+    dense_data_ = Eigen::Map<const Eigen::MatrixXd>(matrix, rows, cols);
     sparse_ = false;
     data_has_been_set_ = true;
   }
 
-  /* Initializes SPARSE_DATA from a sparse matrix in COO format.
-   * DATA, ROW_IDXS, COL_IDXS are assumed to be contiguous 1D numpy arrays
-   * where (DATA[i], ROW_IDXS[i], COLS_IDXS[i]) is a (V, I, J) triplet in
-   * the matrix. ROWS and COLS should refer to the size of the matrix.
+  /* Initializes SPARSE_DATA from a sparse matrix in CSC format.
+   * DATA, INNER_INDICES, OUTER_INDEX_PTR are assumed to be contiguous 1D numpy
+   * arrays. ROWS and COLS should refer to the size of the matrix.
    *
    * NOTE: The function prototype must match the type-map in CVXCanon.i
-   * exactly to compile and run properly.
+   * exactly.
    */
-  void set_sparse_data(double *data, int data_len, double *row_idxs,
-                       int rows_len, double *col_idxs, int cols_len, int rows,
+  void set_sparse_data(double *data, int nnz, int *inner_indices, int inner_len,
+                       int *outer_index_ptr, int outer_len, int rows,
                        int cols) {
     assert(!data_has_been_set_);
     assert(rows_len == data_len && cols_len == data_len);
     sparse_ = true;
-    Matrix sparse_coeffs(rows, cols);
-    std::vector<Triplet> tripletList;
-    tripletList.reserve(data_len);
-    for (int idx = 0; idx < data_len; idx++) {
-      tripletList.push_back(
-          Triplet(int(row_idxs[idx]), int(col_idxs[idx]), data[idx]));
-    }
-    sparse_coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
-    sparse_coeffs.makeCompressed();
-    sparse_data_ = sparse_coeffs;
+    // The call to new below does _not_ dynamically allocate memory
+    // (it just specifies the location for storing the result)
+    new (&sparse_data_) Eigen::Map<const Matrix>(
+        rows, cols, nnz, outer_index_ptr, inner_indices, data);
     data_ndim_ = 2;
     data_has_been_set_ = true;
   }
@@ -140,14 +134,14 @@ private:
   std::vector<const LinOp *> args_;
   // stores slice data as (row_slice, col_slice), where slice = (start, end,
   // step_size)
-  std::vector<std::vector<int> > slice_;
+  std::vector<std::vector<int>> slice_;
   // numerical data acted upon by this linOp
   const LinOp *linOp_data_;
   int data_ndim_;
   // true iff linOp has sparse_data; at most one of sparse_data and
   // dense_data should be set
   bool sparse_;
-  Matrix sparse_data_;
+  Eigen::Map<Matrix> sparse_data_;
   Eigen::MatrixXd dense_data_;
   bool data_has_been_set_;
 };

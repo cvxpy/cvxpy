@@ -2661,45 +2661,44 @@ SWIGINTERN PyObject *SWIG_PyStaticMethod_New(PyObject *SWIGUNUSEDPARM(self), PyO
 /* -------- TYPES TABLE (BEGIN) -------- */
 
 #define SWIGTYPE_p_Eigen__MatrixT_int_Eigen__Dynamic_1_t swig_types[0]
-#define SWIGTYPE_p_Eigen__MatrixXd swig_types[1]
-#define SWIGTYPE_p_Eigen__SparseMatrixT_double_t swig_types[2]
-#define SWIGTYPE_p_Eigen__TripletT_double_t swig_types[3]
-#define SWIGTYPE_p_LinOp swig_types[4]
-#define SWIGTYPE_p_ProblemData swig_types[5]
-#define SWIGTYPE_p_allocator_type swig_types[6]
-#define SWIGTYPE_p_char swig_types[7]
-#define SWIGTYPE_p_difference_type swig_types[8]
-#define SWIGTYPE_p_double swig_types[9]
-#define SWIGTYPE_p_key_type swig_types[10]
-#define SWIGTYPE_p_mapped_type swig_types[11]
-#define SWIGTYPE_p_operatortype swig_types[12]
-#define SWIGTYPE_p_p_PyObject swig_types[13]
-#define SWIGTYPE_p_size_type swig_types[14]
-#define SWIGTYPE_p_std__allocatorT_LinOp_const_p_t swig_types[15]
-#define SWIGTYPE_p_std__allocatorT_LinOp_p_t swig_types[16]
-#define SWIGTYPE_p_std__allocatorT_double_t swig_types[17]
-#define SWIGTYPE_p_std__allocatorT_int_t swig_types[18]
-#define SWIGTYPE_p_std__allocatorT_std__pairT_int_const_int_t_t swig_types[19]
-#define SWIGTYPE_p_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t swig_types[20]
-#define SWIGTYPE_p_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t swig_types[21]
-#define SWIGTYPE_p_std__invalid_argument swig_types[22]
-#define SWIGTYPE_p_std__lessT_int_t swig_types[23]
-#define SWIGTYPE_p_std__mapT_int_Eigen__SparseMatrixT_double_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_Eigen__SparseMatrixT_double_t_t_t_t swig_types[24]
-#define SWIGTYPE_p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t swig_types[25]
-#define SWIGTYPE_p_std__mapT_int_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_t_t_t swig_types[26]
-#define SWIGTYPE_p_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t swig_types[27]
-#define SWIGTYPE_p_std__mapT_int_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t_t_t_t swig_types[28]
-#define SWIGTYPE_p_std__mapT_int_std__vectorT_std__vectorT_int_std__allocatorT_int_t_t_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_std__vectorT_int_std__allocatorT_int_t_t_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t_t_t_t_t swig_types[29]
-#define SWIGTYPE_p_std__vectorT_LinOp_const_p_std__allocatorT_LinOp_const_p_t_t swig_types[30]
-#define SWIGTYPE_p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t swig_types[31]
-#define SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t swig_types[32]
-#define SWIGTYPE_p_std__vectorT_int_std__allocatorT_int_t_t swig_types[33]
-#define SWIGTYPE_p_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t swig_types[34]
-#define SWIGTYPE_p_std__vectorT_std__vectorT_int_std__allocatorT_int_t_t_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t_t swig_types[35]
-#define SWIGTYPE_p_swig__SwigPyIterator swig_types[36]
-#define SWIGTYPE_p_value_type swig_types[37]
-static swig_type_info *swig_types[39];
-static swig_module_info swig_module = {swig_types, 38, 0, 0, 0, 0};
+#define SWIGTYPE_p_Eigen__SparseMatrixT_double_t swig_types[1]
+#define SWIGTYPE_p_Eigen__TripletT_double_t swig_types[2]
+#define SWIGTYPE_p_LinOp swig_types[3]
+#define SWIGTYPE_p_ProblemData swig_types[4]
+#define SWIGTYPE_p_allocator_type swig_types[5]
+#define SWIGTYPE_p_char swig_types[6]
+#define SWIGTYPE_p_difference_type swig_types[7]
+#define SWIGTYPE_p_double swig_types[8]
+#define SWIGTYPE_p_key_type swig_types[9]
+#define SWIGTYPE_p_mapped_type swig_types[10]
+#define SWIGTYPE_p_operatortype swig_types[11]
+#define SWIGTYPE_p_p_PyObject swig_types[12]
+#define SWIGTYPE_p_size_type swig_types[13]
+#define SWIGTYPE_p_std__allocatorT_LinOp_const_p_t swig_types[14]
+#define SWIGTYPE_p_std__allocatorT_LinOp_p_t swig_types[15]
+#define SWIGTYPE_p_std__allocatorT_double_t swig_types[16]
+#define SWIGTYPE_p_std__allocatorT_int_t swig_types[17]
+#define SWIGTYPE_p_std__allocatorT_std__pairT_int_const_int_t_t swig_types[18]
+#define SWIGTYPE_p_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t swig_types[19]
+#define SWIGTYPE_p_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t swig_types[20]
+#define SWIGTYPE_p_std__invalid_argument swig_types[21]
+#define SWIGTYPE_p_std__lessT_int_t swig_types[22]
+#define SWIGTYPE_p_std__mapT_int_Eigen__SparseMatrixT_double_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_Eigen__SparseMatrixT_double_t_t_t_t swig_types[23]
+#define SWIGTYPE_p_std__mapT_int_int_std__lessT_int_t_std__allocatorT_std__pairT_int_const_int_t_t_t swig_types[24]
+#define SWIGTYPE_p_std__mapT_int_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t_t_t_t swig_types[25]
+#define SWIGTYPE_p_std__mapT_int_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_Eigen__SparseMatrixT_double_t_std__allocatorT_Eigen__SparseMatrixT_double_t_t_t_t_t_t swig_types[26]
+#define SWIGTYPE_p_std__mapT_int_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t_t_t_t swig_types[27]
+#define SWIGTYPE_p_std__mapT_int_std__vectorT_std__vectorT_int_std__allocatorT_int_t_t_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t_t_std__lessT_int_t_std__allocatorT_std__pairT_int_const_std__vectorT_std__vectorT_int_std__allocatorT_int_t_t_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t_t_t_t_t swig_types[28]
+#define SWIGTYPE_p_std__vectorT_LinOp_const_p_std__allocatorT_LinOp_const_p_t_t swig_types[29]
+#define SWIGTYPE_p_std__vectorT_LinOp_p_std__allocatorT_LinOp_p_t_t swig_types[30]
+#define SWIGTYPE_p_std__vectorT_double_std__allocatorT_double_t_t swig_types[31]
+#define SWIGTYPE_p_std__vectorT_int_std__allocatorT_int_t_t swig_types[32]
+#define SWIGTYPE_p_std__vectorT_std__vectorT_double_std__allocatorT_double_t_t_std__allocatorT_std__vectorT_double_std__allocatorT_double_t_t_t_t swig_types[33]
+#define SWIGTYPE_p_std__vectorT_std__vectorT_int_std__allocatorT_int_t_t_std__allocatorT_std__vectorT_int_std__allocatorT_int_t_t_t_t swig_types[34]
+#define SWIGTYPE_p_swig__SwigPyIterator swig_types[35]
+#define SWIGTYPE_p_value_type swig_types[36]
+static swig_type_info *swig_types[38];
+static swig_module_info swig_module = {swig_types, 37, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -2808,10 +2807,14 @@ namespace swig {
 
 
 #ifndef SWIG_FILE_WITH_INIT
-#  define NO_IMPORT_ARRAY
+#define NO_IMPORT_ARRAY
 #endif
 #include "stdio.h"
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/arrayobject.h>
+
+
+#include <complex> 
 
 
 #include <iostream>
@@ -3354,22 +3357,52 @@ SWIG_AsVal_int (PyObject * obj, int *val)
 }
 
 
+#if NPY_API_VERSION < 0x00000007
+#define NPY_ARRAY_DEFAULT NPY_DEFAULT
+#define NPY_ARRAY_FARRAY  NPY_FARRAY
+#define NPY_FORTRANORDER  NPY_FORTRAN
+#endif
+
+
 /* Macros to extract array attributes.
  */
-#define is_array(a)            ((a) && PyArray_Check((PyArrayObject *)a))
-#define array_type(a)          (int)(PyArray_TYPE(a))
-#define array_numdims(a)       (((PyArrayObject *)a)->nd)
-#define array_dimensions(a)    (((PyArrayObject *)a)->dimensions)
-#define array_size(a,i)        (((PyArrayObject *)a)->dimensions[i])
-#define array_data(a)          (((PyArrayObject *)a)->data)
-#define array_is_contiguous(a) (PyArray_ISCONTIGUOUS(a))
-#define array_is_native(a)     (PyArray_ISNOTSWAPPED(a))
-#define array_is_fortran(a)    (PyArray_ISFORTRAN(a))
+#if NPY_API_VERSION < 0x00000007
+#define is_array(a)            ((a) && PyArray_Check((PyArrayObject*)a))
+#define array_type(a)          (int)(PyArray_TYPE((PyArrayObject*)a))
+#define array_numdims(a)       (((PyArrayObject*)a)->nd)
+#define array_dimensions(a)    (((PyArrayObject*)a)->dimensions)
+#define array_size(a,i)        (((PyArrayObject*)a)->dimensions[i])
+#define array_strides(a)       (((PyArrayObject*)a)->strides)
+#define array_stride(a,i)      (((PyArrayObject*)a)->strides[i])
+#define array_data(a)          (((PyArrayObject*)a)->data)
+#define array_descr(a)         (((PyArrayObject*)a)->descr)
+#define array_flags(a)         (((PyArrayObject*)a)->flags)
+#define array_clearflags(a,f)  (((PyArrayObject*)a)->flags) &= ~f
+#define array_enableflags(a,f) (((PyArrayObject*)a)->flags) = f
+#define array_is_fortran(a)    (PyArray_ISFORTRAN((PyArrayObject*)a))
+#else
+#define is_array(a)            ((a) && PyArray_Check(a))
+#define array_type(a)          PyArray_TYPE((PyArrayObject*)a)
+#define array_numdims(a)       PyArray_NDIM((PyArrayObject*)a)
+#define array_dimensions(a)    PyArray_DIMS((PyArrayObject*)a)
+#define array_strides(a)       PyArray_STRIDES((PyArrayObject*)a)
+#define array_stride(a,i)      PyArray_STRIDE((PyArrayObject*)a,i)
+#define array_size(a,i)        PyArray_DIM((PyArrayObject*)a,i)
+#define array_data(a)          PyArray_DATA((PyArrayObject*)a)
+#define array_descr(a)         PyArray_DESCR((PyArrayObject*)a)
+#define array_flags(a)         PyArray_FLAGS((PyArrayObject*)a)
+#define array_enableflags(a,f) PyArray_ENABLEFLAGS((PyArrayObject*)a,f)
+#define array_clearflags(a,f)  PyArray_CLEARFLAGS((PyArrayObject*)a,f)
+#define array_is_fortran(a)    (PyArray_IS_F_CONTIGUOUS((PyArrayObject*)a))
+#endif
+#define array_is_contiguous(a) (PyArray_ISCONTIGUOUS((PyArrayObject*)a))
+#define array_is_native(a)     (PyArray_ISNOTSWAPPED((PyArrayObject*)a))
 
 
   /* Given a PyObject, return a string describing its type.
    */
-  const char* pytype_string(PyObject* py_obj) {
+  const char* pytype_string(PyObject* py_obj)
+  {
     if (py_obj == NULL          ) return "C NULL value";
     if (py_obj == Py_None       ) return "Python None" ;
     if (PyCallable_Check(py_obj)) return "callable"    ;
@@ -3379,44 +3412,73 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     if (PyDict_Check(    py_obj)) return "dict"        ;
     if (PyList_Check(    py_obj)) return "list"        ;
     if (PyTuple_Check(   py_obj)) return "tuple"       ;
-    if (PyModule_Check(  py_obj)) return "module"      ;
 #if PY_MAJOR_VERSION < 3
     if (PyFile_Check(    py_obj)) return "file"        ;
+    if (PyModule_Check(  py_obj)) return "module"      ;
     if (PyInstance_Check(py_obj)) return "instance"    ;
 #endif
 
-    return "unkown type";
+    return "unknown type";
   }
 
   /* Given a NumPy typecode, return a string describing the type.
    */
-  const char* typecode_string(int typecode) {
-    static const char* type_names[25] = {"bool", "byte", "unsigned byte",
-                                   "short", "unsigned short", "int",
-                                   "unsigned int", "long", "unsigned long",
-                                   "long long", "unsigned long long",
-                                   "float", "double", "long double",
-                                   "complex float", "complex double",
-                                   "complex long double", "object",
-                                   "string", "unicode", "void", "ntypes",
-                                   "notype", "char", "unknown"};
+  const char* typecode_string(int typecode)
+  {
+    static const char* type_names[25] = {"bool",
+                                         "byte",
+                                         "unsigned byte",
+                                         "short",
+                                         "unsigned short",
+                                         "int",
+                                         "unsigned int",
+                                         "long",
+                                         "unsigned long",
+                                         "long long",
+                                         "unsigned long long",
+                                         "float",
+                                         "double",
+                                         "long double",
+                                         "complex float",
+                                         "complex double",
+                                         "complex long double",
+                                         "object",
+                                         "string",
+                                         "unicode",
+                                         "void",
+                                         "ntypes",
+                                         "notype",
+                                         "char",
+                                         "unknown"};
     return typecode < 24 ? type_names[typecode] : type_names[24];
   }
 
-  /* Make sure input has correct numpy type.  Allow character and byte
-   * to match.  Also allow int and long to match.  This is deprecated.
-   * You should use PyArray_EquivTypenums() instead.
+  /* Make sure input has correct numpy type.  This now just calls
+     PyArray_EquivTypenums().
    */
-  int type_match(int actual_type, int desired_type) {
+  int type_match(int actual_type,
+                 int desired_type)
+  {
     return PyArray_EquivTypenums(actual_type, desired_type);
   }
+
+#ifdef SWIGPY_USE_CAPSULE
+  void free_cap(PyObject * cap)
+  {
+    void* array = (void*) PyCapsule_GetPointer(cap,SWIGPY_CAPSULE_NAME);
+    if (array != NULL) free(array);
+  }
+#endif
+
+
 
 
   /* Given a PyObject pointer, cast it to a PyArrayObject pointer if
    * legal.  If not, set the python error string appropriately and
    * return NULL.
    */
-  PyArrayObject* obj_to_array_no_conversion(PyObject* input, int typecode)
+  PyArrayObject* obj_to_array_no_conversion(PyObject* input,
+                                            int        typecode)
   {
     PyArrayObject* ary = NULL;
     if (is_array(input) && (typecode == NPY_NOTYPE ||
@@ -3435,11 +3497,12 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     }
     else
     {
-      const char * desired_type = typecode_string(typecode);
-      const char * actual_type  = pytype_string(input);
+      const char* desired_type = typecode_string(typecode);
+      const char* actual_type  = pytype_string(input);
       PyErr_Format(PyExc_TypeError,
                    "Array of type '%s' required.  A '%s' was given",
-                   desired_type, actual_type);
+                   desired_type,
+                   actual_type);
       ary = NULL;
     }
     return ary;
@@ -3450,11 +3513,12 @@ SWIG_AsVal_int (PyObject * obj, int *val)
    * correct type.  On failure, the python error string will be set and
    * the routine returns NULL.
    */
-  PyArrayObject* obj_to_array_allow_conversion(PyObject* input, int typecode,
-                                               int* is_new_object)
+  PyArrayObject* obj_to_array_allow_conversion(PyObject* input,
+                                               int       typecode,
+                                               int*      is_new_object)
   {
     PyArrayObject* ary = NULL;
-    PyObject* py_obj;
+    PyObject*      py_obj;
     if (is_array(input) && (typecode == NPY_NOTYPE ||
                             PyArray_EquivTypenums(array_type(input),typecode)))
     {
@@ -3463,7 +3527,7 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     }
     else
     {
-      py_obj = PyArray_FROMANY(input, typecode, 0, 0, NPY_DEFAULT);
+      py_obj = PyArray_FROMANY(input, typecode, 0, 0, NPY_ARRAY_DEFAULT);
       /* If NULL, PyArray_FromObject will have set python error value.*/
       ary = (PyArrayObject*) py_obj;
       *is_new_object = 1;
@@ -3476,8 +3540,10 @@ SWIG_AsVal_int (PyObject * obj, int *val)
    * not contiguous, create a new PyArrayObject using the original data,
    * flag it as a new object and return the pointer.
    */
-  PyArrayObject* make_contiguous(PyArrayObject* ary, int* is_new_object,
-                                 int min_dims, int max_dims)
+  PyArrayObject* make_contiguous(PyArrayObject* ary,
+                                 int*           is_new_object,
+                                 int            min_dims,
+                                 int            max_dims)
   {
     PyArrayObject* result;
     if (array_is_contiguous(ary))
@@ -3488,9 +3554,9 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     else
     {
       result = (PyArrayObject*) PyArray_ContiguousFromObject((PyObject*)ary,
-                                                             array_type(ary),
-                                                             min_dims,
-                                                             max_dims);
+                                                              array_type(ary),
+                                                              min_dims,
+                                                              max_dims);
       *is_new_object = 1;
     }
     return result;
@@ -3502,8 +3568,8 @@ SWIG_AsVal_int (PyObject * obj, int *val)
    * PyArrayObject using the original data, flag it as a new object
    * and return the pointer.
    */
-  PyArrayObject* make_fortran(PyArrayObject* ary, int* is_new_object,
-                              int min_dims, int max_dims)
+  PyArrayObject* make_fortran(PyArrayObject* ary,
+                              int*           is_new_object)
   {
     PyArrayObject* result;
     if (array_is_fortran(ary))
@@ -3513,8 +3579,14 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     }
     else
     {
-      Py_INCREF(ary->descr);
-      result = (PyArrayObject*) PyArray_FromArray(ary, ary->descr, NPY_FORTRAN);
+      Py_INCREF(array_descr(ary));
+      result = (PyArrayObject*) PyArray_FromArray(ary,
+                                                  array_descr(ary),
+#if NPY_API_VERSION < 0x00000007
+                                                  NPY_FORTRANORDER);
+#else
+                                                  NPY_ARRAY_F_CONTIGUOUS);
+#endif
       *is_new_object = 1;
     }
     return result;
@@ -3526,13 +3598,14 @@ SWIG_AsVal_int (PyObject * obj, int *val)
    * will be set.
    */
   PyArrayObject* obj_to_array_contiguous_allow_conversion(PyObject* input,
-                                                          int typecode,
-                                                          int* is_new_object)
+                                                          int       typecode,
+                                                          int*      is_new_object)
   {
     int is_new1 = 0;
     int is_new2 = 0;
     PyArrayObject* ary2;
-    PyArrayObject* ary1 = obj_to_array_allow_conversion(input, typecode,
+    PyArrayObject* ary1 = obj_to_array_allow_conversion(input,
+                                                        typecode,
                                                         &is_new1);
     if (ary1)
     {
@@ -3553,17 +3626,18 @@ SWIG_AsVal_int (PyObject * obj, int *val)
    * will be set.
    */
   PyArrayObject* obj_to_array_fortran_allow_conversion(PyObject* input,
-                                                       int typecode,
-                                                       int* is_new_object)
+                                                       int       typecode,
+                                                       int*      is_new_object)
   {
     int is_new1 = 0;
     int is_new2 = 0;
     PyArrayObject* ary2;
-    PyArrayObject* ary1 = obj_to_array_allow_conversion(input, typecode,
+    PyArrayObject* ary1 = obj_to_array_allow_conversion(input,
+                                                        typecode,
                                                         &is_new1);
     if (ary1)
     {
-      ary2 = make_fortran(ary1, &is_new2, 0, 0);
+      ary2 = make_fortran(ary1, &is_new2);
       if (is_new1 && is_new2)
       {
         Py_DECREF(ary1);
@@ -3573,7 +3647,6 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     *is_new_object = is_new1 || is_new2;
     return ary1;
   }
-
 
 
   /* Test whether a python object is contiguous.  If array is
@@ -3587,6 +3660,22 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     {
       PyErr_SetString(PyExc_TypeError,
                       "Array must be contiguous.  A non-contiguous array was given");
+      contiguous = 0;
+    }
+    return contiguous;
+  }
+
+  /* Test whether a python object is (C_ or F_) contiguous.  If array is
+   * contiguous, return 1.  Otherwise, set the python error string and
+   * return 0.
+   */
+  int require_c_or_f_contiguous(PyArrayObject* ary)
+  {
+    int contiguous = 1;
+    if (!(array_is_contiguous(ary) || array_is_fortran(ary)))
+    {
+      PyErr_SetString(PyExc_TypeError,
+                      "Array must be contiguous (C_ or F_).  A non-contiguous array was given");
       contiguous = 0;
     }
     return contiguous;
@@ -3613,14 +3702,16 @@ SWIG_AsVal_int (PyObject * obj, int *val)
    * dimensions.  If the array has the specified number of dimensions,
    * return 1.  Otherwise, set the python error string and return 0.
    */
-  int require_dimensions(PyArrayObject* ary, int exact_dimensions)
+  int require_dimensions(PyArrayObject* ary,
+                         int            exact_dimensions)
   {
     int success = 1;
     if (array_numdims(ary) != exact_dimensions)
     {
       PyErr_Format(PyExc_TypeError,
                    "Array must have %d dimensions.  Given array has %d dimensions",
-                   exact_dimensions, array_numdims(ary));
+                   exact_dimensions,
+                   array_numdims(ary));
       success = 0;
     }
     return success;
@@ -3631,7 +3722,9 @@ SWIG_AsVal_int (PyObject * obj, int *val)
    * of dimensions, return 1.  Otherwise, set the python error string
    * and return 0.
    */
-  int require_dimensions_n(PyArrayObject* ary, int* exact_dimensions, int n)
+  int require_dimensions_n(PyArrayObject* ary,
+                           int*           exact_dimensions,
+                           int            n)
   {
     int success = 0;
     int i;
@@ -3655,7 +3748,8 @@ SWIG_AsVal_int (PyObject * obj, int *val)
       strcat(dims_str,s);
       PyErr_Format(PyExc_TypeError,
                    "Array must have %s dimensions.  Given array has %d dimensions",
-                   dims_str, array_numdims(ary));
+                   dims_str,
+                   array_numdims(ary));
     }
     return success;
   }
@@ -3664,11 +3758,13 @@ SWIG_AsVal_int (PyObject * obj, int *val)
    * array has the specified shape, return 1.  Otherwise, set the python
    * error string and return 0.
    */
-  int require_size(PyArrayObject* ary, npy_intp* size, int n)
+  int require_size(PyArrayObject* ary,
+                   npy_intp*      size,
+                   int            n)
   {
     int i;
     int success = 1;
-    int len;
+    size_t len;
     char desired_dims[255] = "[";
     char s[255];
     char actual_dims[255] = "[";
@@ -3704,31 +3800,40 @@ SWIG_AsVal_int (PyObject * obj, int *val)
       actual_dims[len-1] = ']';
       PyErr_Format(PyExc_TypeError,
                    "Array must have shape of %s.  Given array has shape of %s",
-                   desired_dims, actual_dims);
+                   desired_dims,
+                   actual_dims);
     }
     return success;
   }
 
-  /* Require the given PyArrayObject to to be FORTRAN ordered.  If the
-   * the PyArrayObject is already FORTRAN ordered, do nothing.  Else,
-   * set the FORTRAN ordering flag and recompute the strides.
+  /* Require the given PyArrayObject to to be Fortran ordered.  If the
+   * the PyArrayObject is already Fortran ordered, do nothing.  Else,
+   * set the Fortran ordering flag and recompute the strides.
    */
   int require_fortran(PyArrayObject* ary)
   {
     int success = 1;
     int nd = array_numdims(ary);
     int i;
+    npy_intp * strides = array_strides(ary);
     if (array_is_fortran(ary)) return success;
-    /* Set the FORTRAN ordered flag */
-    ary->flags = NPY_FARRAY;
+    int n_non_one = 0;
+    /* Set the Fortran ordered flag */
+    const npy_intp *dims = array_dimensions(ary);
+    for (i=0; i < nd; ++i)
+      n_non_one += (dims[i] != 1) ? 1 : 0;
+    if (n_non_one > 1)    
+      array_clearflags(ary,NPY_ARRAY_CARRAY);
+    array_enableflags(ary,NPY_ARRAY_FARRAY);
     /* Recompute the strides */
-    ary->strides[0] = ary->strides[nd-1];
+    strides[0] = strides[nd-1];
     for (i=1; i < nd; ++i)
-      ary->strides[i] = ary->strides[i-1] * array_size(ary,i-1);
+      strides[i] = strides[i-1] * array_size(ary,i-1);
     return success;
   }
 
- 
+
+
 
 namespace swig {
   template <class Type>
@@ -7204,52 +7309,6 @@ fail:
 }
 
 
-SWIGINTERN PyObject *_wrap_LinOp_get_sparse_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  LinOp *arg1 = (LinOp *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject *swig_obj[1] ;
-  Matrix *result = 0 ;
-  
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_get_sparse_data" "', argument " "1"" of type '" "LinOp const *""'"); 
-  }
-  arg1 = reinterpret_cast< LinOp * >(argp1);
-  result = (Matrix *) &((LinOp const *)arg1)->get_sparse_data();
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Eigen__SparseMatrixT_double_t, 0 |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
-SWIGINTERN PyObject *_wrap_LinOp_get_dense_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
-  PyObject *resultobj = 0;
-  LinOp *arg1 = (LinOp *) 0 ;
-  void *argp1 = 0 ;
-  int res1 = 0 ;
-  PyObject *swig_obj[1] ;
-  Eigen::MatrixXd *result = 0 ;
-  
-  if (!args) SWIG_fail;
-  swig_obj[0] = args;
-  res1 = SWIG_ConvertPtr(swig_obj[0], &argp1,SWIGTYPE_p_LinOp, 0 |  0 );
-  if (!SWIG_IsOK(res1)) {
-    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "LinOp_get_dense_data" "', argument " "1"" of type '" "LinOp const *""'"); 
-  }
-  arg1 = reinterpret_cast< LinOp * >(argp1);
-  result = (Eigen::MatrixXd *) &((LinOp const *)arg1)->get_dense_data();
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_Eigen__MatrixXd, 0 |  0 );
-  return resultobj;
-fail:
-  return NULL;
-}
-
-
 SWIGINTERN PyObject *_wrap_LinOp_set_dense_data(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   LinOp *arg1 = (LinOp *) 0 ;
@@ -7272,7 +7331,8 @@ SWIGINTERN PyObject *_wrap_LinOp_set_dense_data(PyObject *SWIGUNUSEDPARM(self), 
     npy_intp size[2] = {
       -1, -1 
     };
-    array2 = obj_to_array_fortran_allow_conversion(swig_obj[1], NPY_DOUBLE,
+    array2 = obj_to_array_fortran_allow_conversion(swig_obj[1],
+      NPY_DOUBLE,
       &is_new_object2);
     if (!array2 || !require_dimensions(array2, 2) ||
       !require_size(array2, size, 2) || !require_fortran(array2)) SWIG_fail;
@@ -7305,9 +7365,9 @@ SWIGINTERN PyObject *_wrap_LinOp_set_sparse_data(PyObject *SWIGUNUSEDPARM(self),
   LinOp *arg1 = (LinOp *) 0 ;
   double *arg2 = (double *) 0 ;
   int arg3 ;
-  double *arg4 = (double *) 0 ;
+  int *arg4 = (int *) 0 ;
   int arg5 ;
-  double *arg6 = (double *) 0 ;
+  int *arg6 = (int *) 0 ;
   int arg7 ;
   int arg8 ;
   int arg9 ;
@@ -7340,18 +7400,18 @@ SWIGINTERN PyObject *_wrap_LinOp_set_sparse_data(PyObject *SWIGUNUSEDPARM(self),
     for (i2=0; i2 < array_numdims(array2); ++i2) arg3 *= array_size(array2,i2);
   }
   {
-    array4 = obj_to_array_no_conversion(swig_obj[2], NPY_DOUBLE);
+    array4 = obj_to_array_no_conversion(swig_obj[2], NPY_INT);
     if (!array4 || !require_dimensions(array4,1) || !require_contiguous(array4)
       || !require_native(array4)) SWIG_fail;
-    arg4 = (double*) array_data(array4);
+    arg4 = (int*) array_data(array4);
     arg5 = 1;
     for (i4=0; i4 < array_numdims(array4); ++i4) arg5 *= array_size(array4,i4);
   }
   {
-    array6 = obj_to_array_no_conversion(swig_obj[3], NPY_DOUBLE);
+    array6 = obj_to_array_no_conversion(swig_obj[3], NPY_INT);
     if (!array6 || !require_dimensions(array6,1) || !require_contiguous(array6)
       || !require_native(array6)) SWIG_fail;
-    arg6 = (double*) array_data(array6);
+    arg6 = (int*) array_data(array6);
     arg7 = 1;
     for (i6=0; i6 < array_numdims(array6); ++i6) arg7 *= array_size(array6,i6);
   }
@@ -7931,7 +7991,7 @@ SWIGINTERN PyObject *_wrap_ProblemData_getV(PyObject *SWIGUNUSEDPARM(self), PyOb
   (arg1)->getV(arg2,arg3);
   resultobj = SWIG_Py_Void();
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,array2);
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
   }
   return resultobj;
 fail:
@@ -7974,7 +8034,7 @@ SWIGINTERN PyObject *_wrap_ProblemData_getI(PyObject *SWIGUNUSEDPARM(self), PyOb
   (arg1)->getI(arg2,arg3);
   resultobj = SWIG_Py_Void();
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,array2);
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
   }
   return resultobj;
 fail:
@@ -8017,7 +8077,7 @@ SWIGINTERN PyObject *_wrap_ProblemData_getJ(PyObject *SWIGUNUSEDPARM(self), PyOb
   (arg1)->getJ(arg2,arg3);
   resultobj = SWIG_Py_Void();
   {
-    resultobj = SWIG_Python_AppendOutput(resultobj,array2);
+    resultobj = SWIG_Python_AppendOutput(resultobj,(PyObject*)array2);
   }
   return resultobj;
 fail:
@@ -20398,8 +20458,6 @@ static PyMethodDef SwigMethods[] = {
 	 { "LinOp_get_data_ndim", _wrap_LinOp_get_data_ndim, METH_O, NULL},
 	 { "LinOp_set_data_ndim", _wrap_LinOp_set_data_ndim, METH_VARARGS, NULL},
 	 { "LinOp_is_sparse", _wrap_LinOp_is_sparse, METH_O, NULL},
-	 { "LinOp_get_sparse_data", _wrap_LinOp_get_sparse_data, METH_O, NULL},
-	 { "LinOp_get_dense_data", _wrap_LinOp_get_dense_data, METH_O, NULL},
 	 { "LinOp_set_dense_data", _wrap_LinOp_set_dense_data, METH_VARARGS, NULL},
 	 { "LinOp_set_sparse_data", _wrap_LinOp_set_sparse_data, METH_VARARGS, NULL},
 	 { "delete_LinOp", _wrap_delete_LinOp, METH_O, NULL},
@@ -20684,7 +20742,6 @@ static PyMethodDef SwigMethods_proxydocs[] = {
 /* -------- TYPE CONVERSION AND EQUIVALENCE RULES (BEGIN) -------- */
 
 static swig_type_info _swigt__p_Eigen__MatrixT_int_Eigen__Dynamic_1_t = {"_p_Eigen__MatrixT_int_Eigen__Dynamic_1_t", "Eigen::Matrix< int,Eigen::Dynamic,1 > *|Vector *", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_Eigen__MatrixXd = {"_p_Eigen__MatrixXd", "Eigen::MatrixXd *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_Eigen__SparseMatrixT_double_t = {"_p_Eigen__SparseMatrixT_double_t", "Matrix *|Eigen::SparseMatrix< double > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_Eigen__TripletT_double_t = {"_p_Eigen__TripletT_double_t", "Triplet *|Eigen::Triplet< double > *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_LinOp = {"_p_LinOp", "LinOp *|std::vector< LinOp * >::value_type|std::vector< LinOp const * >::value_type", 0, 0, (void*)0, 0};
@@ -20724,7 +20781,6 @@ static swig_type_info _swigt__p_value_type = {"_p_value_type", "value_type *", 0
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_Eigen__MatrixT_int_Eigen__Dynamic_1_t,
-  &_swigt__p_Eigen__MatrixXd,
   &_swigt__p_Eigen__SparseMatrixT_double_t,
   &_swigt__p_Eigen__TripletT_double_t,
   &_swigt__p_LinOp,
@@ -20764,7 +20820,6 @@ static swig_type_info *swig_type_initial[] = {
 };
 
 static swig_cast_info _swigc__p_Eigen__MatrixT_int_Eigen__Dynamic_1_t[] = {  {&_swigt__p_Eigen__MatrixT_int_Eigen__Dynamic_1_t, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_Eigen__MatrixXd[] = {  {&_swigt__p_Eigen__MatrixXd, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_Eigen__SparseMatrixT_double_t[] = {  {&_swigt__p_Eigen__SparseMatrixT_double_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_Eigen__TripletT_double_t[] = {  {&_swigt__p_Eigen__TripletT_double_t, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_LinOp[] = {  {&_swigt__p_LinOp, 0, 0, 0},{0, 0, 0, 0}};
@@ -20804,7 +20859,6 @@ static swig_cast_info _swigc__p_value_type[] = {  {&_swigt__p_value_type, 0, 0, 
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_Eigen__MatrixT_int_Eigen__Dynamic_1_t,
-  _swigc__p_Eigen__MatrixXd,
   _swigc__p_Eigen__SparseMatrixT_double_t,
   _swigc__p_Eigen__TripletT_double_t,
   _swigc__p_LinOp,

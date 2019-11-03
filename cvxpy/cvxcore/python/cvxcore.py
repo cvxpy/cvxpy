@@ -190,17 +190,11 @@ class LinOp(object):
     def is_sparse(self) -> "bool":
         return _cvxcore.LinOp_is_sparse(self)
 
-    def get_sparse_data(self) -> "Matrix const &":
-        return _cvxcore.LinOp_get_sparse_data(self)
-
-    def get_dense_data(self) -> "Eigen::MatrixXd const &":
-        return _cvxcore.LinOp_get_dense_data(self)
-
     def set_dense_data(self, matrix: "double *") -> "void":
         return _cvxcore.LinOp_set_dense_data(self, matrix)
 
-    def set_sparse_data(self, data: "double *", row_idxs: "double *", col_idxs: "double *", rows: "int", cols: "int") -> "void":
-        return _cvxcore.LinOp_set_sparse_data(self, data, row_idxs, col_idxs, rows, cols)
+    def set_sparse_data(self, data: "double *", inner_indices: "int *", outer_index_ptr: "int *", rows: "int", cols: "int") -> "void":
+        return _cvxcore.LinOp_set_sparse_data(self, data, inner_indices, outer_index_ptr, rows, cols)
     __swig_destroy__ = _cvxcore.delete_LinOp
 
 # Register LinOp in _cvxcore:

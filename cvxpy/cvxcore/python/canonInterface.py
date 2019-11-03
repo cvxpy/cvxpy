@@ -255,9 +255,11 @@ def format_matrix(matrix, shape=None, format='dense'):
             shape = (1, 1)
         elif len(shape) == 1:
             shape = shape + (1,)
+        # TODO(akshayka): This copy is unnecessary when matrix is a NumPy
+        # array, shape == matrix.shape, and matrix is fortran contiguous
         return np.reshape(matrix, shape, order='F')
     elif(format == 'sparse'):
-        return scipy.sparse.coo_matrix(matrix)
+        return scipy.sparse.csc_matrix(matrix)
     elif(format == 'scalar'):
         return np.asfortranarray([[matrix]])
     else:
@@ -306,12 +308,19 @@ def set_matrix_data(linC, linPy):
        our C++ linOp.
     """
     if get_type(linPy) == cvxcore.SPARSE_CONST:
-        coo = format_matrix(linPy.data, format='sparse')
-        linC.set_sparse_data(coo.data, coo.row.astype(float),
-                             coo.col.astype(float), coo.shape[0],
-                             coo.shape[1])
+        if not isinstance(linPy.data, scipy.sparse.csc_matrix):
+            csc = format_matrix(linPy.data, format='sparse')
+        else:
+            csc = linPy.data
+
+        if not csc.data.flags['C_CONTIGUOUS']:
+            csc.data = np.ascontiguousarray(csc.data)
+
+        linC.set_sparse_data(csc.data, csc.indices, csc.indptr,
+                             csc.shape[0], csc.shape[1])
     else:
-        linC.set_dense_data(format_matrix(linPy.data, shape=linPy.shape))
+        new_data = format_matrix(linPy.data, shape=linPy.shape)
+        linC.set_dense_data(new_data)
         linC.set_data_ndim(len(linPy.data.shape))
 
 
@@ -336,7 +345,8 @@ def set_linC_data(linC, linPy):
         slice_data = set_slice_data(linC, linPy)
     elif isinstance(linPy.data, float) or isinstance(linPy.data,
                                                    numbers.Integral):
-        linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
+        new_data = format_matrix(linPy.data, format='scalar')
+        linC.set_dense_data(new_data)
         linC.set_data_ndim(0)
     else:
         set_matrix_data(linC, linPy)

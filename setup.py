@@ -41,6 +41,7 @@ if is_platform_mac():
         if python_target < '10.9' and current_system >= '10.9':
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
+
 canon = Extension(
     '_cvxcore',
     sources=['cvxpy/cvxcore/src/cvxcore.cpp',

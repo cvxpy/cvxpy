@@ -209,18 +209,19 @@ Matrix sparse_selector(int rows, int cols, int row_sel, int col_sel) {
  * Returns: sparse Eigen matrix OUT of size ROWS * COLS by 1
  */
 
-Matrix sparse_reshape_to_vec(const Matrix &mat) {
+Matrix sparse_reshape_to_vec(Eigen::Ref<const Matrix> mat) {
   int rows = mat.rows();
   int cols = mat.cols();
   Matrix out(rows * cols, 1);
   std::vector<Triplet> tripletList;
   tripletList.reserve(rows * cols);
   for (int k = 0; k < mat.outerSize(); ++k) {
-    for (Matrix::InnerIterator it(mat, k); it; ++it) {
+    for (Eigen::Ref<const Matrix>::InnerIterator it(mat, k); it; ++it) {
       tripletList.push_back(Triplet(it.col() * rows + it.row(), 0, it.value()));
     }
   }
   out.setFromTriplets(tripletList.begin(), tripletList.end());
+  out.makeCompressed();
   return out;
 }
 

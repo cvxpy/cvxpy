@@ -32,10 +32,14 @@
 %apply (double* IN_FARRAY2, int DIM1, int DIM2) {(double* matrix, int rows, int cols)};
 
 /* Typemap for the addSparseData C++ routine in LinOp.hpp */
-%apply (double* INPLACE_ARRAY1, int DIM1) {(double *data, int data_len),
-	(double *row_idxs, int rows_len),
-	(double *col_idxs, int cols_len)};
+%apply (double* INPLACE_ARRAY1, int DIM1) {(double *data, int nnz)};
+%apply (int *INPLACE_ARRAY1, int DIM1) {
+  (int *inner_indices, int inner_len),
+  (int *outer_index_ptr, int outer_len)
+};
 
+%ignore LinOp::get_dense_data;
+%ignore LinOp::get_sparse_data;
 %include "LinOp.hpp"
 %include "Utils.hpp"
 
