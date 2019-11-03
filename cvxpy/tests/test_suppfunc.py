@@ -193,9 +193,9 @@ class TestSupportFunctions(BaseTest):
         pass
 
     def test_invalid_variable(self):
-        x = cvx.Variable(shape=(2,2), symmetric=True)
+        x = cvx.Variable(shape=(2, 2), symmetric=True)
         try:
-            sigma = cvx.suppfunc(x, [])
+            cvx.suppfunc(x, [])  # dead-store
             assert False
         except ValueError as e:
             assert 'attributes' in e.args[0]
@@ -206,7 +206,7 @@ class TestSupportFunctions(BaseTest):
         a = cvx.Parameter(shape=(3,))
         cons = [a @ x == 1]
         try:
-            sigma = cvx.suppfunc(x, cons)
+            cvx.suppfunc(x, cons)  # dead-store
             assert False
         except ValueError as e:
             assert 'Parameter' in e.args[0]
