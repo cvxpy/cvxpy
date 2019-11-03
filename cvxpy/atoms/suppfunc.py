@@ -7,15 +7,20 @@ import numpy as np
 
 class SuppFuncAtom(Atom):
 
-    def __init__(self, y, A, b, K_sels, x, cons):
+    def __init__(self, y, parent):
+        """
+        Parameters
+        ----------
+        y : cvxpy.expressions.expression.Expression
+            Must satisfy ``y.is_affine() == True``.
+
+        parent : cvxpy.transforms.suppfunc.SuppFunc
+            The object containing data for the convex set associated with this atom.
+        """
         self.id = lu.get_id()
-        eta = Variable(shape=(b.size,))
-        self.args = [Atom.cast_to_const(y), Atom.cast_to_const(eta)]
-        self._A = A
-        self._b = b
-        self._K_sels = K_sels
-        self._x = x
-        self._xcons = cons
+        self.args = [Atom.cast_to_const(y)]
+        self._parent = parent
+        self._eta = None  # store for debugging purposes
         self._shape = tuple()
         self.validate_arguments()
         pass
@@ -27,7 +32,7 @@ class SuppFuncAtom(Atom):
             raise ValueError("Arguments to SuppFuncAtom must be affine.")
 
     def variables(self):
-        varlist = self.args[0].variables() + self.args[1].variables()
+        varlist = self.args[0].variables()
         return varlist
 
     def parameters(self):
@@ -102,8 +107,11 @@ class SuppFuncAtom(Atom):
         from cvxpy.problems.problem import Problem
         from cvxpy.problems.objective import Maximize
         y_val = self.args[0].value.round(decimals=9).ravel(order='F')
-        x_flat = self._x.flatten()
-        cons = self._xcons
+        x_flat = self._parent.x.flatten()
+        cons = self._parent.constraints
+        if len(cons) == 0:
+            dummy = Variable()
+            cons = [dummy == 1]
         prob = Problem(Maximize(y_val @ x_flat), cons)
         val = prob.solve(solver='SCS', eps=1e-6)
         return val
@@ -116,7 +124,7 @@ class SuppFuncAtom(Atom):
         self.args[0].value = y
         self._value_impl()  # dead-store
         self.args[0].value = y0  # put this value back
-        gradval = self._x.value
+        gradval = self._parent.x.value
         if np.any(np.isnan(gradval)):
             # If we evaluated the support function successfully, then
             # this means the support function is not finite at this input.

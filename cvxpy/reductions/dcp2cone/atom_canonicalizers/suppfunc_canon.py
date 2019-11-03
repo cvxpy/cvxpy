@@ -1,10 +1,10 @@
-from cvxpy import hstack, SOC, sum
+from cvxpy import hstack, SOC, sum, Variable
 from cvxpy.constraints.exponential import ExpCone
 import numpy as np
 from scipy.sparse import csc_matrix
 
 
-def scspsdvec2mat(vec):
+def scs_psdvec_to_psdmat(vec):
     n = int(np.sqrt(vec.size * 2))
     rows, cols = np.triu_indices(n)
     mats = []
@@ -42,10 +42,12 @@ def selector_matrix(selector, inshape):
 
 def suppfunc_canon(expr, args):
     y = args[0].flatten()
+    parent = expr._parent
     # ^ That's the user-supplied argument to the support function.
-    A, b, K_sels = expr._A, expr._b, expr._K_sels
+    A, b, K_sels = parent.conic_repr_of_set()
     # ^ That defines the set "X" associated with this support function.
-    eta = args[1]
+    eta = Variable(shape=(b.size,))
+    expr._eta = eta
     # ^ Variable, of shape (b.size,). It's the main part of the duality
     # trick for representing the epigraph of this support function.
     n = A.shape[1]
@@ -78,7 +80,7 @@ def suppfunc_canon(expr, args):
     for psdsel in psdsels:
         selector = selector_matrix(psdsel, eta.size)
         curvec = selector @ eta
-        curmat = scspsdvec2mat(curvec)
+        curmat = scs_psdvec_to_psdmat(curvec)
         local_cons.append(curmat >> 0)
     expsel = K_sels['exp']
     if expsel.size > 0:

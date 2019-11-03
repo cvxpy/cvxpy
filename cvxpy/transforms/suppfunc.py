@@ -1,5 +1,6 @@
 from cvxpy.expressions.variable import Variable
 from cvxpy.atoms.suppfunc import SuppFuncAtom
+from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
 import numpy as np
 from scipy import sparse
 
@@ -96,6 +97,8 @@ class SuppFunc(object):
 
             S = { val : it is possible to satisfy the given constraints, when x.value = val }.
 
+        See ``https://en.wikipedia.org/wiki/Support_function`` for background on support functions.
+
         Parameters
         ----------
         x : cvxpy.Variable
@@ -106,16 +109,16 @@ class SuppFunc(object):
             Usually, these are constraints over ``x``, and some number of auxiliary
             cvxpy Variables. It is valid to supply ``constraints=[]``.
         """
-        if len(constraints) == 0:
-            dummy = Variable()
-            constraints.append(dummy == 1)
-        A, b, K = scs_coniclift(x, constraints)
-        K_sels = scs_cone_selectors(K)
-        self._A = A
-        self._b = b
-        self._K_sels = K_sels
-        self._x = x
-        self._constraints = constraints
+        if not isinstance(x, Variable):
+            raise ValueError('The first argument must be an unmodified cvxpy Variable object.')
+        if any(x.attributes[attr] for attr in CONVEX_ATTRIBUTES):
+            raise ValueError('The first argument cannot have any declared attributes.')
+        self.x = x
+        self.constraints = constraints
+        self._A = None
+        self._b = None
+        self._K_sels = None
+        self._compute_conic_repr_of_set()
         pass
 
     def __call__(self, y):
@@ -126,6 +129,21 @@ class SuppFunc(object):
 
         where S is the convex set associated with this SuppFunc object.
         """
-        sigma_at_y = SuppFuncAtom(y, self._A, self._b, self._K_sels,
-                                  self._x, self._constraints)
+        sigma_at_y = SuppFuncAtom(y, self)
         return sigma_at_y
+
+    def _compute_conic_repr_of_set(self):
+        if len(self.constraints) == 0:
+            dummy = Variable()
+            constrs = [dummy == 1]
+        else:
+            constrs = self.constraints
+        A, b, K = scs_coniclift(self.x, constrs)
+        K_sels = scs_cone_selectors(K)
+        self._A = A
+        self._b = b
+        self._K_sels = K_sels
+        pass
+
+    def conic_repr_of_set(self):
+        return self._A, self._b, self._K_sels

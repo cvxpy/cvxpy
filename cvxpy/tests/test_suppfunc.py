@@ -200,3 +200,12 @@ class TestSupportFunctions(BaseTest):
             assert False
         except SolverError:
             pass
+
+    def test_invalid_vararg(self):
+        x = cvx.Variable(shape=(2,2), symmetric=True)
+        try:
+            sigma = cvx.suppfunc(x, [])
+            assert False
+        except ValueError as e:
+            assert 'attributes' in e.args[0]
+        pass
