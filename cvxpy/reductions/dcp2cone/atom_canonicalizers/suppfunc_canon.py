@@ -4,11 +4,23 @@ import numpy as np
 from scipy.sparse import csc_matrix
 
 
-def scs_psdvec_to_psdmat(vec):
-    n = int(np.sqrt(vec.size * 2))
+def scs_psdvec_to_psdmat(vec, indices):
+    """
+    Return "V" so that "vec[indices] belongs to the SCS-standard PSD cone"
+    can be written in natural cvxpy syntax as "V >> 0".
+
+    Parameters
+    ----------
+    vec : cvxpy.expressions.expression.Expression
+        Must have ``vec.is_affine() == True``.
+    indices : ndarray
+        Contains nonnegative integers, which can index into ``vec``.
+
+    """
+    n = int(np.sqrt(indices.size * 2))
     rows, cols = np.triu_indices(n)
     mats = []
-    for i in range(vec.size):
+    for i, idx in enumerate(indices):
         r, c = rows[i], cols[i]
         mat = np.zeros(shape=(n, n))
         if r == c:
@@ -16,7 +28,7 @@ def scs_psdvec_to_psdmat(vec):
         else:
             mat[r, c] = 1 / np.sqrt(2)
             mat[c, r] = 1 / np.sqrt(2)
-        mat = vec[i] * mat
+        mat = vec[idx] * mat
         mats.append(mat)
     V = sum(mats)
     return V
@@ -24,12 +36,20 @@ def scs_psdvec_to_psdmat(vec):
 
 def selector_matrix(selector, inshape):
     """
-    :param selector: a vector of nonnegative integer indices.
-    :param inshape: an integer > np.max(selector)
+    Parameters
+    ----------
+    selector : ndarray
+        Contains nonnegative integers.
+    inshape : int
+        Must be greater than np.max(selector).
 
-    :return: A csc-format sparse matrix ``mat``, where for some cvxpy expression ``x``,
-    ``expr1 = x[selector]`` and ``expr2 = mat @ x`` are equivalent in a symbolic sense.
+    Returns
+    -------
+    A csc-format sparse matrix ``mat``, where for some cvxpy expression ``x``,
+    ``expr1 = x[selector]`` and ``expr2 = mat @ x`` are symbolically equivalent.
 
+    Notes
+    -----
     This function is necessary, because special-indexing like "x[selector]" doesn't
     have a graph_implementation function, and the usual CVXPY rewriting system to handle
     such indexing can't be relied at this point in the compilation process.
@@ -78,9 +98,7 @@ def suppfunc_canon(expr, args):
         local_cons.append(soccon)
     psdsels = K_sels['psd']
     for psdsel in psdsels:
-        selector = selector_matrix(psdsel, eta.size)
-        curvec = selector @ eta
-        curmat = scs_psdvec_to_psdmat(curvec)
+        curmat = scs_psdvec_to_psdmat(eta, psdsel)
         local_cons.append(curmat >> 0)
     expsel = K_sels['exp']
     if expsel.size > 0:
