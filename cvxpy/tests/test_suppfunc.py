@@ -20,16 +20,6 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.error import SolverError
 
 
-"""
-Known issues:
-
-The support function must be declared w.r.t. a Variable
-with no attributes. I.e., no PSD=True, no nonneg=True,
-no symmetric=True.
-
-"""
-
-
 class TestSupportFunctions(BaseTest):
     """
     Test the implementation of support function atoms.
@@ -138,7 +128,7 @@ class TestSupportFunctions(BaseTest):
         expect = np.sum(A_sv)
         assert abs(actual - expect) <= 1e-6
 
-    def test_expcone0(self):
+    def test_expcone_1(self):
         x = cvx.Variable(shape=(1,))
         tempcons = [cvx.exp(x[0]) <= np.exp(1), cvx.exp(-x[0]) <= np.exp(1)]
         sigma = cvx.suppfunc(x, tempcons)
@@ -152,7 +142,7 @@ class TestSupportFunctions(BaseTest):
         assert viol <= 1e-6
         assert abs(y.value - (-1)) <= 1e-6
 
-    def test_expcone1(self):
+    def test_expcone_2(self):
         x = cvx.Variable(shape=(3,))
         tempcons = [cvx.sum(x) <= 1.0, cvx.sum(x) >= 0.1, x >= 0.01,
                     cvx.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
@@ -198,14 +188,26 @@ class TestSupportFunctions(BaseTest):
         try:
             prob.solve(solver='OSQP')
             assert False
-        except SolverError:
-            pass
+        except SolverError as e:
+            assert 'could not be reduced to a QP' in e.args[0]
+        pass
 
-    def test_invalid_vararg(self):
+    def test_invalid_variable(self):
         x = cvx.Variable(shape=(2,2), symmetric=True)
         try:
             sigma = cvx.suppfunc(x, [])
             assert False
         except ValueError as e:
             assert 'attributes' in e.args[0]
+        pass
+
+    def test_invalid_constraint(self):
+        x = cvx.Variable(shape=(3,))
+        a = cvx.Parameter(shape=(3,))
+        cons = [a @ x == 1]
+        try:
+            sigma = cvx.suppfunc(x, cons)
+            assert False
+        except ValueError as e:
+            assert 'Parameter' in e.args[0]
         pass

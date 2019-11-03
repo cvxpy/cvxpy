@@ -113,6 +113,10 @@ class SuppFunc(object):
             raise ValueError('The first argument must be an unmodified cvxpy Variable object.')
         if any(x.attributes[attr] for attr in CONVEX_ATTRIBUTES):
             raise ValueError('The first argument cannot have any declared attributes.')
+        for con in constraints:
+            con_params = con.parameters()
+            if len(con_params) > 0:
+                raise ValueError('Convex sets described with Parameter objects are not allowed.')
         self.x = x
         self.constraints = constraints
         self._A = None
