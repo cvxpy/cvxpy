@@ -43,10 +43,9 @@ def selector_matrix(selector, inshape):
 def suppfunc_canon(expr, args):
     y = args[0].flatten()
     # ^ That's the user-supplied argument to the support function.
-    A, b = args[1], args[2]
-    K_sels = b.K_sels
+    A, b, K_sels = expr._A, expr._b, expr._K_sels
     # ^ That defines the set "X" associated with this support function.
-    eta = args[3]
+    eta = args[1]
     # ^ Variable, of shape (b.size,). It's the main part of the duality
     # trick for representing the epigraph of this support function.
     n = A.shape[1]

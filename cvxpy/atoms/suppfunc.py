@@ -10,14 +10,14 @@ class SuppFuncAtom(Atom):
     def __init__(self, y, A, b, K_sels, x, cons):
         self.id = lu.get_id()
         eta = Variable(shape=(b.size,))
-        self.args = [Atom.cast_to_const(y), Atom.cast_to_const(A), Atom.cast_to_const(b),
-                     Atom.cast_to_const(eta)]
-        horrible = self.args[2]
-        horrible.__dict__['K_sels'] = K_sels
+        self.args = [Atom.cast_to_const(y), Atom.cast_to_const(eta)]
+        self._A = A
+        self._b = b
+        self._K_sels = K_sels
         self._x = x
         self._xcons = cons
-        self.validate_arguments()
         self._shape = tuple()
+        self.validate_arguments()
         pass
 
     def validate_arguments(self):
@@ -27,14 +27,14 @@ class SuppFuncAtom(Atom):
             raise ValueError("Arguments to SuppFuncAtom must be affine.")
 
     def variables(self):
-        varlist = self.args[0].variables() + self.args[3].variables()
+        varlist = self.args[0].variables() + self.args[1].variables()
         return varlist
 
     def parameters(self):
         return []
 
     def constants(self):
-        return [self.args[1], self.args[2]]
+        return []
 
     def shape_from_args(self):
         return self._shape
