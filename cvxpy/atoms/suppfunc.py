@@ -23,7 +23,6 @@ class SuppFuncAtom(Atom):
         self._eta = None  # store for debugging purposes
         self._shape = tuple()
         self.validate_arguments()
-        pass
 
     def validate_arguments(self):
         if self.args[0].is_complex():
