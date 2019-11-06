@@ -1,4 +1,4 @@
-from cvxpy import hstack, SOC, sum, Variable
+from cvxpy import hstack, SOC, Variable
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import scs_psdvec_to_psdmat
 import numpy as np
