@@ -213,11 +213,13 @@ class MOSEK(ConicSolver):
         num_exp = len(constr_map[ExpCone])
         if num_exp > 0:
             # G * z <=_{EXP} h.
+            len_exp = 0
             for c in problem.constraints[-num_exp:]:
                 assert(isinstance(c, ExpCone))
                 inv_data['snx_slacks'].append((c.id, c.num_cones()))
-            Gs.append(A[-num_exp:])
-            hs.append(b[-num_exp:])
+                len_exp += 3 * c.num_cones()
+            Gs.append(A[-len_exp:])
+            hs.append(b[-len_exp:])
 
         # PSD constraints
         num_psd = len(constr_map[PSD])
@@ -308,7 +310,7 @@ class MOSEK(ConicSolver):
         G, h = data[s.G], data[s.H]
         dims = data[s.DIMS]
         n0 = len(c)
-        n = n0 + sum(dims[s.SOC_DIM]) + dims[s.EXP_DIM]
+        n = n0 + sum(dims[s.SOC_DIM]) + 3 * dims[s.EXP_DIM]
         psd_total_dims = sum(el ** 2 for el in dims[s.PSD_DIM])
         m = len(h)
         num_bool = len(data[s.BOOL_IDX])
@@ -340,7 +342,7 @@ class MOSEK(ConicSolver):
                             0.0,  # unused
                             np.arange(running_idx, running_idx + size_cone))
             running_idx += size_cone
-        for k in range(dims[s.EXP_DIM] // 3):
+        for k in range(dims[s.EXP_DIM]):
             task.appendcone(mosek.conetype.pexp,
                             0.0,  # unused
                             np.arange(running_idx, running_idx + 3))
@@ -378,7 +380,7 @@ class MOSEK(ConicSolver):
         task.appendcons(m)
         row, col, vals = sp.sparse.find(G)
         task.putaijlist(row.tolist(), col.tolist(), vals.tolist())
-        total_soc_exp_slacks = sum(dims[s.SOC_DIM]) + dims[s.EXP_DIM]
+        total_soc_exp_slacks = sum(dims[s.SOC_DIM]) + 3 * dims[s.EXP_DIM]
         if total_soc_exp_slacks > 0:
             i = dims[s.LEQ_DIM] + dims[s.EQ_DIM]  # constraint index in {0, ..., m - 1}
             j = len(c)  # index of the first slack variable in the block vector "x".
