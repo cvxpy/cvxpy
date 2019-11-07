@@ -68,6 +68,36 @@ def tri_to_full(lower_tri, n):
     return np.reshape(full, n*n, order="F")
 
 
+def scs_psdvec_to_psdmat(vec, indices):
+    """
+    Return "V" so that "vec[indices] belongs to the SCS-standard PSD cone"
+    can be written in natural cvxpy syntax as "V >> 0".
+
+    Parameters
+    ----------
+    vec : cvxpy.expressions.expression.Expression
+        Must have ``vec.is_affine() == True``.
+    indices : ndarray
+        Contains nonnegative integers, which can index into ``vec``.
+
+    """
+    n = int(np.sqrt(indices.size * 2))
+    rows, cols = np.triu_indices(n)
+    mats = []
+    for i, idx in enumerate(indices):
+        r, c = rows[i], cols[i]
+        mat = np.zeros(shape=(n, n))
+        if r == c:
+            mat[r, r] = 1
+        else:
+            mat[r, c] = 1 / np.sqrt(2)
+            mat[c, r] = 1 / np.sqrt(2)
+        mat = vec[idx] * mat
+        mats.append(mat)
+    V = sum(mats)
+    return V
+
+
 class SCS(ConicSolver):
     """An interface for the SCS solver.
     """

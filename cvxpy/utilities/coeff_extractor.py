@@ -177,6 +177,6 @@ class CoeffExtractor(object):
            q.shape[0] != self.x_length:
             raise RuntimeError("Resulting quadratic form does not have "
                                "appropriate dimensions")
-        if not np.isscalar(constant):
+        if not np.isscalar(constant) and constant.size > 1:
             raise RuntimeError("Constant must be a scalar")
         return P.tocsr(), q, constant

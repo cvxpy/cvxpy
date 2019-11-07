@@ -21,3 +21,4 @@ from cvxpy.transforms.indicator import indicator
 from cvxpy.transforms.scalarize import (weighted_sum,
                                         targets_and_priorities,
                                         max, log_sum_exp)
+from cvxpy.transforms.suppfunc import SuppFunc as suppfunc
