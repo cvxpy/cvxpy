@@ -76,7 +76,7 @@ class GUROBI(QpSolver):
             dual_vars = None
             if not inverse_data.is_mip:
                 y = -np.array([constraints_grb[i].Pi for i in range(m)])
-                dual_vars = {GUROBI.DUAL_VAR_ID: solution.y}
+                dual_vars = {GUROBI.DUAL_VAR_ID: y}
 
         else:
             primal_vars = None
