@@ -1,5 +1,4 @@
 import cvxpy.settings as s
-from cvxpy.reductions.solvers import utilities
 import cvxpy.interface as intf
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
