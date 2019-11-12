@@ -79,10 +79,10 @@ class DIFFCP(scs_conif.SCS):
         solver_opts['eps'] = solver_opts.get('eps', 1e-4)
         warm_start_dict = None
         if warm_start and solver_cache is not None and \
-           self.name() in solver_cache:
-               warm_start_dict = (solver_cache[self.name()]["x"],
-                                  solver_cache[self.name()]["y"],
-                                  solver_cache[self.name()]["s"])
+                self.name() in solver_cache:
+            warm_start_dict = (solver_cache[self.name()]["x"],
+                               solver_cache[self.name()]["y"],
+                               solver_cache[self.name()]["s"])
         results = diffcp.solve_and_derivative_internal(
             A, b, c, cones, verbose=verbose,
             warm_start=warm_start_dict,
