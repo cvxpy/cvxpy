@@ -75,11 +75,7 @@ class CPLEX(QpSolver):
             dual_vars = None
             if not inverse_data.is_mip:
                 y = -np.array(model.solution.get_dual_values())
-
-                dual_vars = utilities.get_dual_values(
-                    intf.DEFAULT_INTF.const_to_matrix(y),
-                    utilities.extract_dual_value,
-                    inverse_data.sorted_constraints)
+                dual_vars = {CPLEX.DUAL_VAR_ID: y}
 
         else:
             primal_vars = None
