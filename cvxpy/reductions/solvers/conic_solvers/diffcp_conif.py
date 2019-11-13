@@ -77,15 +77,15 @@ class DIFFCP(scs_conif.SCS):
         cones = scs_conif.dims_to_solver_dict(data[ConicSolver.DIMS])
         # Default to eps = 1e-4 instead of 1e-3.
         solver_opts['eps'] = solver_opts.get('eps', 1e-4)
-        warm_start_dict = None
+        warm_start_tuple = None
         if warm_start and solver_cache is not None and \
                 self.name() in solver_cache:
-            warm_start_dict = (solver_cache[self.name()]["x"],
-                               solver_cache[self.name()]["y"],
-                               solver_cache[self.name()]["s"])
+            warm_start_tuple = (solver_cache[self.name()]["x"],
+                                solver_cache[self.name()]["y"],
+                                solver_cache[self.name()]["s"])
         results = diffcp.solve_and_derivative_internal(
             A, b, c, cones, verbose=verbose,
-            warm_start=warm_start_dict,
+            warm_start=warm_start_tuple,
             raise_on_error=False,
             **solver_opts)
         if solver_cache is not None:

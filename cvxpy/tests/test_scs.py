@@ -203,11 +203,8 @@ class TestSCS(BaseTest):
         obj = cp.Minimize(cp.sum(cp.exp(x)))
         prob = cp.Problem(obj, [cp.sum(x) == 1])
         result = prob.solve(solver=cp.DIFFCP, eps=1e-4)
-        time = prob.solver_stats.solve_time
         result2 = prob.solve(solver=cp.DIFFCP, warm_start=True, eps=1e-4)
-        time2 = prob.solver_stats.solve_time
         self.assertAlmostEqual(result2, result, places=2)
-        print(time > time2)
 
     def test_psd_constraint(self):
         """Test PSD constraint.
