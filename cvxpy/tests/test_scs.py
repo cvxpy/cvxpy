@@ -196,6 +196,16 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
 
+    def test_warm_start_diffcp(self):
+        """Test warm starting in diffcp.
+        """
+        x = cp.Variable(10)
+        obj = cp.Minimize(cp.sum(cp.exp(x)))
+        prob = cp.Problem(obj, [cp.sum(x) == 1])
+        result = prob.solve(solver=cp.DIFFCP, eps=1e-4)
+        result2 = prob.solve(solver=cp.DIFFCP, warm_start=True, eps=1e-4)
+        self.assertAlmostEqual(result2, result, places=2)
+
     def test_psd_constraint(self):
         """Test PSD constraint.
         """
