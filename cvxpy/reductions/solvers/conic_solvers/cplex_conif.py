@@ -83,25 +83,30 @@ class CPLEX(SCS):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = solution['status']
+        model = solution["model"]
+        attr = {}
+        if s.SOLVE_TIME in solution:
+            attr[s.SOLVE_TIME] = solution[s.SOLVE_TIME]
+
+        status = self._get_status(model)
 
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value'] + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[CPLEX.VAR_ID]: solution['primal']}
+            opt_val = (model.solution.get_objective_value() +
+                       inverse_data[s.OFFSET])
+
+            x = np.array(model.solution.get_values())
+            primal_vars = {inverse_data[CPLEX.VAR_ID]: x}
+
             if not inverse_data['is_mip']:
-                eq_dual = utilities.get_dual_values(
-                    solution['eq_dual'],
+                y = -np.array(model.solution.get_dual_values())
+                dual_vars = utilities.get_dual_values(
+                    y,
                     utilities.extract_dual_value,
-                    inverse_data[CPLEX.EQ_CONSTR])
-                leq_dual = utilities.get_dual_values(
-                    solution['ineq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[CPLEX.NEQ_CONSTR])
-                eq_dual.update(leq_dual)
-                dual_vars = eq_dual
-            return Solution(status, opt_val, primal_vars, dual_vars, {})
+                    inverse_data[CPLEX.EQ_CONSTR] + inverse_data[CPLEX.NEQ_CONSTR])
+
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
 
@@ -210,34 +215,13 @@ class CPLEX(SCS):
         if kwargs:
             raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
 
-        solution = {}
-        start_time = model.get_time()
-        solution[s.SOLVE_TIME] = -1
+        solution = {"model": model}
         try:
+            start_time = model.get_time()
             model.solve()
             solution[s.SOLVE_TIME] = model.get_time() - start_time
-            solution["value"] = model.solution.get_objective_value()
-            solution["primal"] = np.array(model.solution.get_values(variables))
-            solution["status"] = self._get_status(model)
-
-            # Only add duals if not a MIP.
-            if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                vals = []
-                for con in cpx_constrs:
-                    assert con.index is not None
-                    if con.constr_type == _LIN:
-                        vals.append(model.solution.get_dual_values(con.index))
-                    else:
-                        assert con.constr_type == _QUAD
-                        # Quadratic constraints not queried directly.
-                        vals.append(0.0)
-                solution["y"] = -np.array(vals)
-                solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
-                solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
         except Exception:
-            if solution[s.SOLVE_TIME] < 0.0:
-                solution[s.SOLVE_TIME] = model.get_time() - start_time
-            solution["status"] = s.SOLVER_ERROR
+            pass
 
         return solution
 
