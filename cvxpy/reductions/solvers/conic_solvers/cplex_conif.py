@@ -75,6 +75,19 @@ def hide_solver_output(model):
 def _handle_solve_status(model, solstat):
     """Map CPLEX MIP solution status codes to non-MIP status codes."""
     status = model.solution.status
+
+    # With CPLEX 12.10, some benders status codes were removed.
+    if model.get_versionnumber() < 12100000:
+        unbounded_status_codes = (
+            status.MIP_unbounded,
+            status.MIP_benders_master_unbounded,
+            status.benders_master_unbounded
+        )
+    else:
+        unbounded_status_codes = (
+            status.MIP_unbounded,
+        )
+
     if solstat == status.MIP_optimal:
         return status.optimal
     elif solstat == status.MIP_infeasible:
@@ -92,9 +105,7 @@ def _handle_solve_status(model, solstat):
         return status.optimal_infeasible
     elif solstat == status.MIP_infeasible_or_unbounded:
         return status.infeasible_or_unbounded
-    elif solstat in (status.MIP_unbounded,
-                     status.MIP_benders_master_unbounded,
-                     status.benders_master_unbounded):
+    elif solstat in unbounded_status_codes:
         return status.unbounded
     elif solstat in (status.feasible_relaxed_sum,
                      status.MIP_feasible_relaxed_sum,
