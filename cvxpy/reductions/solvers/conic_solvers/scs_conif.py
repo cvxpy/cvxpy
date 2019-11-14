@@ -30,11 +30,11 @@ import scipy.sparse as sp
 # that can be supplied to scs.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        "f": cone_dims.zero,
-        "l": cone_dims.nonpos,
-        "q": cone_dims.soc,
-        "ep": cone_dims.exp,
-        "s": cone_dims.psd,
+        s.EQ_DIM: cone_dims.zero,
+        s.LEQ_DIM: cone_dims.nonpos,
+        s.SOC_DIM: cone_dims.soc,
+        s.EXP_DIM: cone_dims.exp,
+        s.PSD_DIM: cone_dims.psd,
     }
     return cones
 
