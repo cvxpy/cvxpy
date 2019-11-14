@@ -339,13 +339,16 @@ class CPLEX(SCS):
         if not verbose:
             hide_solver_output(model)
 
-        # TODO: user option to not compute duals.
+        # For CVXPY, we set the qcpduals parameter here, but the user can
+        # easily override it via the "cplex_params" solver option (see
+        # set_parameters function).
         model.parameters.preprocessing.qcpduals.set(
             model.parameters.preprocessing.qcpduals.values.force)
 
         # Set parameters
         set_parameters(model, solver_opts)
 
+        # Solve problem
         solution = {"model": model}
         try:
             start_time = model.get_time()
