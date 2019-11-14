@@ -2,7 +2,10 @@ import cvxpy.settings as s
 import cvxpy.interface as intf
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-from cvxpy.reductions.solvers.conic_solvers.cplex_conif import get_status
+from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
+    get_status,
+    hide_solver_output
+)
 import numpy as np
 
 
@@ -141,13 +144,11 @@ class CPLEX(QpSolver):
                             P.data[start:end].tolist()])
             model.objective.set_quadratic(qmat)
 
-        # Set parameters
+        # Set verbosity
         if not verbose:
-            model.set_results_stream(None)
-            model.set_log_stream(None)
-            model.set_error_stream(None)
-            model.set_warning_stream(None)
+            hide_solver_output(model)
 
+        # Set parameters
         # TODO: The code in cvxpy/problems/solvers/cplex_intf.py sets
         #       CPLEX parameters in the same way and the code is
         #       duplicated here. This should be refactored.

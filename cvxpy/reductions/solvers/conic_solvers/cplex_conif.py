@@ -34,6 +34,16 @@ _LIN, _QUAD = 0, 1
 _CpxConstr = namedtuple("_CpxConstr", ["constr_type", "index"])
 
 
+def hide_solver_output(model):
+    """Set CPLEX verbosity level (either on or off)."""
+    # By default the output will be sent to stdout. Setting the output
+    # streams to None will prevent any output from being shown.
+    model.set_results_stream(None)
+    model.set_warning_stream(None)
+    model.set_error_stream(None)
+    model.set_log_stream(None)
+
+
 def _handle_solve_status(model, solstat):
     """Map CPLEX MIP solution status codes to non-MIP status codes."""
     status = model.solution.status
@@ -299,13 +309,7 @@ class CPLEX(SCS):
 
         # Set verbosity
         if not verbose:
-            model.set_results_stream(None)
-            model.set_warning_stream(None)
-            model.set_error_stream(None)
-            model.set_log_stream(None)
-        else:
-            # By default the output will be sent to stdout.
-            pass
+            hide_solver_output(model)
 
         # TODO: user option to not compute duals.
         model.parameters.preprocessing.qcpduals.set(
