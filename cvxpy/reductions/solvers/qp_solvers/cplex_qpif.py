@@ -4,7 +4,8 @@ from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
     get_status,
-    hide_solver_output
+    hide_solver_output,
+    set_parameters
 )
 import numpy as np
 
@@ -149,26 +150,7 @@ class CPLEX(QpSolver):
             hide_solver_output(model)
 
         # Set parameters
-        # TODO: The code in cvxpy/problems/solvers/cplex_intf.py sets
-        #       CPLEX parameters in the same way and the code is
-        #       duplicated here. This should be refactored.
-        kwargs = sorted(solver_opts.keys())
-        if "cplex_params" in kwargs:
-            for param, value in solver_opts["cplex_params"].items():
-                try:
-                    eval("model.parameters.{0}.set({1})".format(param, value))
-                except AttributeError:
-                    raise ValueError(
-                        "invalid CPLEX parameter, value pair ({0}, {1})".format(
-                            param, value))
-            kwargs.remove("cplex_params")
-        if "cplex_filename" in kwargs:
-            filename = solver_opts["cplex_filename"]
-            if filename:
-                model.write(filename)
-            kwargs.remove("cplex_filename")
-        if kwargs:
-            raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
+        set_parameters(model, solver_opts)
 
         # Solve problem
         results_dict = {}

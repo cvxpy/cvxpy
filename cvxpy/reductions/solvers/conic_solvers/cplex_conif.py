@@ -34,6 +34,34 @@ _LIN, _QUAD = 0, 1
 _CpxConstr = namedtuple("_CpxConstr", ["constr_type", "index"])
 
 
+def set_parameters(model, solver_opts):
+    """Sets CPLEX parameters."""
+    # TODO: Parameter support is functional, but perhaps not ideal.
+    # The user must pass parameter names as used in the CPLEX Python
+    # API, and raw values (i.e., no enum support).
+    kwargs = sorted(solver_opts.keys())
+    if "cplex_params" in kwargs:
+        for param, value in solver_opts["cplex_params"].items():
+            try:
+                eval("model.parameters.{0}.set({1})".format(param, value))
+            except AttributeError:
+                raise ValueError(
+                    "invalid CPLEX parameter, value pair ({0}, {1})".format(
+                        param, value))
+        kwargs.remove("cplex_params")
+    if "cplex_filename" in kwargs:
+        filename = solver_opts["cplex_filename"]
+        if filename:
+            model.write(filename)
+        kwargs.remove("cplex_filename")
+    if s.BOOL_IDX in kwargs:
+        kwargs.remove(s.BOOL_IDX)
+    if s.INT_IDX in kwargs:
+        kwargs.remove(s.INT_IDX)
+    if kwargs:
+        raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
+
+
 def hide_solver_output(model):
     """Set CPLEX verbosity level (either on or off)."""
     # By default the output will be sent to stdout. Setting the output
@@ -315,30 +343,8 @@ class CPLEX(SCS):
         model.parameters.preprocessing.qcpduals.set(
             model.parameters.preprocessing.qcpduals.values.force)
 
-        # TODO: Parameter support is functional, but perhaps not ideal.
-        # The user must pass parameter names as used in the CPLEX Python
-        # API, and raw values (i.e., no enum support).
-        kwargs = sorted(solver_opts.keys())
-        if "cplex_params" in kwargs:
-            for param, value in solver_opts["cplex_params"].items():
-                try:
-                    eval("model.parameters.{0}.set({1})".format(param, value))
-                except AttributeError:
-                    raise ValueError(
-                        "invalid CPLEX parameter, value pair ({0}, {1})".format(
-                            param, value))
-            kwargs.remove("cplex_params")
-        if "cplex_filename" in kwargs:
-            filename = solver_opts["cplex_filename"]
-            if filename:
-                model.write(filename)
-            kwargs.remove("cplex_filename")
-        if s.BOOL_IDX in kwargs:
-            kwargs.remove(s.BOOL_IDX)
-        if s.INT_IDX in kwargs:
-            kwargs.remove(s.INT_IDX)
-        if kwargs:
-            raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
+        # Set parameters
+        set_parameters(model, solver_opts)
 
         solution = {"model": model}
         try:
