@@ -38,12 +38,15 @@ and use the following BibTeX citation:
 
 ::
 
-    @article{agrawal2018dgp,
-      author  = {Agrawal, Akshay and Diamond, Steven and Boyd, Stephen},
-      title   = {Disciplined Geometric Programming},
-      journal = {Optimization Letters},
+    @article{agrawal2019dgp,
+      author    = {Agrawal, Akshay and Diamond, Steven and Boyd, Stephen},
+      title     = {Disciplined Geometric Programming},
+      journal   = {Optimization Letters},
       publisher = {Springer Berlin Heidelberg},
-      year    = {2019},
+      year      = {2019},
+      volume    = {13},
+      issue     = {5},
+      pages     = {961--976},
     }
 
 If you use CVXPY's support for disciplined quasiconvex programming, please
