@@ -34,6 +34,127 @@ _LIN, _QUAD = 0, 1
 _CpxConstr = namedtuple("_CpxConstr", ["constr_type", "index"])
 
 
+def _handle_solve_status(model, solstat):
+    """Map CPLEX MIP solution status codes to non-MIP status codes."""
+    status = model.solution.status
+    if solstat == status.MIP_optimal:
+        return status.optimal
+    elif solstat == status.MIP_infeasible:
+        return status.infeasible
+    elif solstat in (status.MIP_time_limit_feasible,
+                     status.MIP_time_limit_infeasible):
+        return status.abort_time_limit
+    elif solstat in (status.MIP_dettime_limit_feasible,
+                     status.MIP_dettime_limit_infeasible):
+        return status.abort_dettime_limit
+    elif solstat in (status.MIP_abort_feasible,
+                     status.MIP_abort_infeasible):
+        return status.abort_user
+    elif solstat == status.MIP_optimal_infeasible:
+        return status.optimal_infeasible
+    elif solstat == status.MIP_infeasible_or_unbounded:
+        return status.infeasible_or_unbounded
+    elif solstat in (status.MIP_unbounded,
+                     status.MIP_benders_master_unbounded,
+                     status.benders_master_unbounded):
+        return status.unbounded
+    elif solstat in (status.feasible_relaxed_sum,
+                     status.MIP_feasible_relaxed_sum,
+                     status.optimal_relaxed_sum,
+                     status.MIP_optimal_relaxed_sum,
+                     status.feasible_relaxed_inf,
+                     status.MIP_feasible_relaxed_inf,
+                     status.optimal_relaxed_inf,
+                     status.MIP_optimal_relaxed_inf,
+                     status.feasible_relaxed_quad,
+                     status.MIP_feasible_relaxed_quad,
+                     status.optimal_relaxed_quad,
+                     status.MIP_optimal_relaxed_quad):
+        raise AssertionError(
+            "feasopt status encountered: {0}".format(solstat))
+    elif solstat in (status.conflict_feasible,
+                     status.conflict_minimal,
+                     status.conflict_abort_contradiction,
+                     status.conflict_abort_time_limit,
+                     status.conflict_abort_dettime_limit,
+                     status.conflict_abort_iteration_limit,
+                     status.conflict_abort_node_limit,
+                     status.conflict_abort_obj_limit,
+                     status.conflict_abort_memory_limit,
+                     status.conflict_abort_user):
+        raise AssertionError(
+            "conflict refiner status encountered: {0}".format(solstat))
+    elif solstat == status.relaxation_unbounded:
+        return status.relaxation_unbounded
+    elif solstat in (status.feasible,
+                     status.MIP_feasible):
+        return status.feasible
+    elif solstat == status.benders_num_best:
+        return status.num_best
+    else:
+        return solstat
+
+
+def get_status(model):
+    """Map CPLEX status to CPXPY status."""
+    pfeas = model.solution.is_primal_feasible()
+    # NOTE: dfeas is always false for a MIP.
+    dfeas = model.solution.is_dual_feasible()
+    status = model.solution.status
+    solstat = _handle_solve_status(model, model.solution.get_status())
+    if solstat in (status.node_limit_infeasible,
+                   status.fail_infeasible,
+                   status.mem_limit_infeasible,
+                   status.fail_infeasible_no_tree,
+                   status.num_best):
+        return s.SOLVER_ERROR
+    elif solstat in (status.abort_user,
+                     status.abort_iteration_limit,
+                     status.abort_time_limit,
+                     status.abort_dettime_limit,
+                     status.abort_obj_limit,
+                     status.abort_primal_obj_limit,
+                     status.abort_dual_obj_limit,
+                     status.abort_relaxed,
+                     status.first_order):
+        if pfeas:
+            return s.OPTIMAL_INACCURATE
+        else:
+            return s.SOLVER_ERROR
+    elif solstat in (status.node_limit_feasible,
+                     status.solution_limit,
+                     status.populate_solution_limit,
+                     status.fail_feasible,
+                     status.mem_limit_feasible,
+                     status.fail_feasible_no_tree,
+                     status.feasible):
+        if dfeas:
+            return s.OPTIMAL
+        else:
+            return s.OPTIMAL_INACCURATE
+    elif solstat in (status.optimal,
+                     status.optimal_tolerance,
+                     status.optimal_infeasible,
+                     status.optimal_populated,
+                     status.optimal_populated_tolerance):
+        return s.OPTIMAL
+    elif solstat in (status.infeasible,
+                     status.optimal_relaxed_sum,
+                     status.optimal_relaxed_inf,
+                     status.optimal_relaxed_quad):
+        return s.INFEASIBLE
+    elif solstat in (status.feasible_relaxed_quad,
+                     status.feasible_relaxed_inf,
+                     status.feasible_relaxed_sum):
+        return s.SOLVER_ERROR
+    elif solstat == status.infeasible_or_unbounded:
+        return s.INFEASIBLE
+    elif solstat == status.unbounded:
+        return s.UNBOUNDED
+    else:
+        return s.SOLVER_ERROR
+
+
 class CPLEX(SCS):
     """An interface for the CPLEX solver."""
 
@@ -88,7 +209,7 @@ class CPLEX(SCS):
         if s.SOLVE_TIME in solution:
             attr[s.SOLVE_TIME] = solution[s.SOLVE_TIME]
 
-        status = self._get_status(model)
+        status = get_status(model)
 
         primal_vars = None
         dual_vars = None
@@ -224,125 +345,6 @@ class CPLEX(SCS):
             pass
 
         return solution
-
-    def _handle_solve_status(self, model, solstat):
-        """Map CPLEX MIP solution status codes to non-MIP status codes."""
-        status = model.solution.status
-        if solstat == status.MIP_optimal:
-            return status.optimal
-        elif solstat == status.MIP_infeasible:
-            return status.infeasible
-        elif solstat in (status.MIP_time_limit_feasible,
-                         status.MIP_time_limit_infeasible):
-            return status.abort_time_limit
-        elif solstat in (status.MIP_dettime_limit_feasible,
-                         status.MIP_dettime_limit_infeasible):
-            return status.abort_dettime_limit
-        elif solstat in (status.MIP_abort_feasible,
-                         status.MIP_abort_infeasible):
-            return status.abort_user
-        elif solstat == status.MIP_optimal_infeasible:
-            return status.optimal_infeasible
-        elif solstat == status.MIP_infeasible_or_unbounded:
-            return status.infeasible_or_unbounded
-        elif solstat in (status.MIP_unbounded,
-                         status.MIP_benders_master_unbounded,
-                         status.benders_master_unbounded):
-            return status.unbounded
-        elif solstat in (status.feasible_relaxed_sum,
-                         status.MIP_feasible_relaxed_sum,
-                         status.optimal_relaxed_sum,
-                         status.MIP_optimal_relaxed_sum,
-                         status.feasible_relaxed_inf,
-                         status.MIP_feasible_relaxed_inf,
-                         status.optimal_relaxed_inf,
-                         status.MIP_optimal_relaxed_inf,
-                         status.feasible_relaxed_quad,
-                         status.MIP_feasible_relaxed_quad,
-                         status.optimal_relaxed_quad,
-                         status.MIP_optimal_relaxed_quad):
-            raise AssertionError(
-                "feasopt status encountered: {0}".format(solstat))
-        elif solstat in (status.conflict_feasible,
-                         status.conflict_minimal,
-                         status.conflict_abort_contradiction,
-                         status.conflict_abort_time_limit,
-                         status.conflict_abort_dettime_limit,
-                         status.conflict_abort_iteration_limit,
-                         status.conflict_abort_node_limit,
-                         status.conflict_abort_obj_limit,
-                         status.conflict_abort_memory_limit,
-                         status.conflict_abort_user):
-            raise AssertionError(
-                "conflict refiner status encountered: {0}".format(solstat))
-        elif solstat == status.relaxation_unbounded:
-            return status.relaxation_unbounded
-        elif solstat in (status.feasible,
-                         status.MIP_feasible):
-            return status.feasible
-        elif solstat == status.benders_num_best:
-            return status.num_best
-        else:
-            return solstat
-
-    def _get_status(self, model):
-        """Map CPLEX status to CPXPY status."""
-        pfeas = model.solution.is_primal_feasible()
-        # NOTE: dfeas is always false for a MIP.
-        dfeas = model.solution.is_dual_feasible()
-        status = model.solution.status
-        solstat = self._handle_solve_status(model, model.solution.get_status())
-        if solstat in (status.node_limit_infeasible,
-                       status.fail_infeasible,
-                       status.mem_limit_infeasible,
-                       status.fail_infeasible_no_tree,
-                       status.num_best):
-            return s.SOLVER_ERROR
-        elif solstat in (status.abort_user,
-                         status.abort_iteration_limit,
-                         status.abort_time_limit,
-                         status.abort_dettime_limit,
-                         status.abort_obj_limit,
-                         status.abort_primal_obj_limit,
-                         status.abort_dual_obj_limit,
-                         status.abort_relaxed,
-                         status.first_order):
-            if pfeas:
-                return s.OPTIMAL_INACCURATE
-            else:
-                return s.SOLVER_ERROR
-        elif solstat in (status.node_limit_feasible,
-                         status.solution_limit,
-                         status.populate_solution_limit,
-                         status.fail_feasible,
-                         status.mem_limit_feasible,
-                         status.fail_feasible_no_tree,
-                         status.feasible):
-            if dfeas:
-                return s.OPTIMAL
-            else:
-                return s.OPTIMAL_INACCURATE
-        elif solstat in (status.optimal,
-                         status.optimal_tolerance,
-                         status.optimal_infeasible,
-                         status.optimal_populated,
-                         status.optimal_populated_tolerance):
-            return s.OPTIMAL
-        elif solstat in (status.infeasible,
-                         status.optimal_relaxed_sum,
-                         status.optimal_relaxed_inf,
-                         status.optimal_relaxed_quad):
-            return s.INFEASIBLE
-        elif solstat in (status.feasible_relaxed_quad,
-                         status.feasible_relaxed_inf,
-                         status.feasible_relaxed_sum):
-            return s.SOLVER_ERROR
-        elif solstat == status.infeasible_or_unbounded:
-            return s.INFEASIBLE
-        elif solstat == status.unbounded:
-            return s.UNBOUNDED
-        else:
-            return s.SOLVER_ERROR
 
     def add_model_lin_constr(self, model, variables,
                              rows, ctype, mat, vec):

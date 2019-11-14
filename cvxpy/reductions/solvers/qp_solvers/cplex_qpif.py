@@ -2,6 +2,7 @@ import cvxpy.settings as s
 import cvxpy.interface as intf
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.conic_solvers.cplex_conif import get_status
 import numpy as np
 
 
@@ -25,20 +26,6 @@ class CPLEX(QpSolver):
 
     MIP_CAPABLE = True
 
-    # Map of CPLEX status to CVXPY status. #TODO: add more!
-    STATUS_MAP = {1: s.OPTIMAL,
-                  3: s.INFEASIBLE,
-                  2: s.UNBOUNDED,
-                  21: s.UNBOUNDED,
-                  22: s.INFEASIBLE,
-                  4: s.INFEASIBLE,
-                  10: s.USER_LIMIT,
-                  101: s.OPTIMAL,
-                  102: s.OPTIMAL,
-                  103: s.INFEASIBLE,
-                  107: s.USER_LIMIT,
-                  118: s.UNBOUNDED}
-
     def name(self):
         return s.CPLEX
 
@@ -56,8 +43,7 @@ class CPLEX(QpSolver):
             if not inverse_data.is_mip \
             else 0
 
-        status = self.STATUS_MAP.get(model.solution.get_status(),
-                                     s.SOLVER_ERROR)
+        status = get_status(model)
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
