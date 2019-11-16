@@ -19,7 +19,23 @@ from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 
+def _is_lp(self):
+    """Is problem a linear program?
+    """
+    for c in self.constraints:
+        if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
+            return False
+    for var in self.variables():
+        if var.is_psd() or var.is_nsd():
+            return False
+    return (self.is_dcp() and self.objective.args[0].is_pwl())
+
+
 def _solve_as_qp(problem, candidates):
+    if _is_lp(problem) and candidates['conic_solvers']:
+        # OSQP can take many iterations for LPs; use a conic solver
+        # instead
+        return False
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
 
@@ -27,6 +43,7 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
+
     Parameters
     ----------
     problem : Problem
@@ -64,7 +81,8 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
         elif problem.is_dqcp():
             append += ("\nHowever, the problem does follow DQCP rules. "
                        "Consider calling solve() with `qcp=True`.")
-        raise DCPError("Problem does not follow DCP rules. Specifically:\n" + append)
+        raise DCPError(
+            "Problem does not follow DCP rules. Specifically:\n" + append)
 
     elif gp and not problem.is_dgp():
         append = build_non_disciplined_error_msg(problem, 'DGP')
@@ -127,11 +145,11 @@ def construct_solving_chain(problem, candidates, gp=False):
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp)
 
-    # Conclude the chain with one of the following:
+    # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    # First, attempt to canonicalize the problem to a linearly constrained QP.
     if _solve_as_qp(problem, candidates):
+        # Canonicalize as a QP
         solver = sorted(candidates['qp_solvers'],
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
@@ -141,6 +159,7 @@ def construct_solving_chain(problem, candidates, gp=False):
                        solver_instance]
         return SolvingChain(reductions=reductions)
 
+    # Canonicalize as a cone program
     if not candidates['conic_solvers']:
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
