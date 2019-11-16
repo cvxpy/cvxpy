@@ -199,6 +199,11 @@ class TestSCS(BaseTest):
     def test_warm_start_diffcp(self):
         """Test warm starting in diffcp.
         """
+        try:
+            import diffcp
+            diffcp  # for flake8
+        except ImportError:
+            self.skipTest("diffcp not installed.")
         x = cp.Variable(10)
         obj = cp.Minimize(cp.sum(cp.exp(x)))
         prob = cp.Problem(obj, [cp.sum(x) == 1])
