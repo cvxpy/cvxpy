@@ -48,9 +48,9 @@ and the values of its variables like so:</p>
 <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;infeasible&quot;</span><span class="p">,</span> <span class="s2">&quot;unbounded&quot;</span><span class="p">]:</span>
     <span class="c1"># Otherwise, problem.value is inf or -inf, respectively.</span>
-    <span class="k">print</span> <span class="s2">&quot;Optimal value: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Optimal value: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
-    <span class="k">print</span> <span class="s2">&quot;Variable </span><span class="si">%s</span><span class="s2">: value </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">variable</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Variable </span><span class="si">%s</span><span class="s2">: value </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">variable</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Problems are <strong>immutable</strong>, except through the specification of
@@ -595,7 +595,8 @@ take as its first argument the problem instance to solve.</p></li>
 <dt id="cvxpy.problems.problem.Problem.solve">
 <code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the problem using the specified method.</p>
-<p>Populates the <cite>.status’, `.value</cite></p>
+<p>Populates the <cite>status’ and `value</cite> attributes on the problem object as
+a side-effect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">

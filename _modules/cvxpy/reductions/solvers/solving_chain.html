@@ -53,7 +53,23 @@
 <span class="kn">from</span> <span class="nn">cvxpy.utilities.debug_tools</span> <span class="k">import</span> <span class="n">build_non_disciplined_error_msg</span>
 
 
+<span class="k">def</span> <span class="nf">_is_lp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Is problem a linear program?</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">))</span> <span class="ow">or</span> <span class="n">c</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()):</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span> <span class="ow">or</span> <span class="n">var</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">())</span>
+
+
 <span class="k">def</span> <span class="nf">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">_is_lp</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span> <span class="ow">and</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]:</span>
+        <span class="c1"># OSQP can take many iterations for LPs; use a conic solver</span>
+        <span class="c1"># instead</span>
+        <span class="k">return</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">qp2symbolic_qp</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 
 
@@ -61,6 +77,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Builds a chain that rewrites a problem into an intermediate</span>
 <span class="sd">    representation suitable for numeric reductions.</span>
+
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    problem : Problem</span>
@@ -98,7 +115,8 @@
         <span class="k">elif</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">():</span>
             <span class="n">append</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">However, the problem does follow DQCP rules. &quot;</span>
                        <span class="s2">&quot;Consider calling solve() with `qcp=True`.&quot;</span><span class="p">)</span>
-        <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span><span class="s2">&quot;Problem does not follow DCP rules. Specifically:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">append</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">DCPError</span><span class="p">(</span>
+            <span class="s2">&quot;Problem does not follow DCP rules. Specifically:</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">append</span><span class="p">)</span>
 
     <span class="k">elif</span> <span class="n">gp</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">():</span>
         <span class="n">append</span> <span class="o">=</span> <span class="n">build_non_disciplined_error_msg</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="s1">&#39;DGP&#39;</span><span class="p">)</span>
@@ -161,11 +179,11 @@
         <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="p">[</span><span class="n">ConstantSolver</span><span class="p">()])</span>
     <span class="n">reductions</span> <span class="o">=</span> <span class="n">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">)</span>
 
-    <span class="c1"># Conclude the chain with one of the following:</span>
+    <span class="c1"># Conclude with matrix stuffing; choose one of the following paths:</span>
     <span class="c1">#   (1) QpMatrixStuffing --&gt; [a QpSolver],</span>
     <span class="c1">#   (2) ConeMatrixStuffing --&gt; [a ConicSolver]</span>
-    <span class="c1"># First, attempt to canonicalize the problem to a linearly constrained QP.</span>
     <span class="k">if</span> <span class="n">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
+        <span class="c1"># Canonicalize as a QP</span>
         <span class="n">solver</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">],</span>
                         <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">QP_SOLVERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">s</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
@@ -175,6 +193,7 @@
                        <span class="n">solver_instance</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
 
+    <span class="c1"># Canonicalize as a cone program</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]:</span>
         <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Problem could not be reduced to a QP, and no &quot;</span>
                           <span class="s2">&quot;conic solvers exist among candidate solvers &quot;</span>
