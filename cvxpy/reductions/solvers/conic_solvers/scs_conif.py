@@ -293,12 +293,21 @@ class SCS(ConicSolver):
             args["s"] = solver_cache[self.name()]["s"]
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         # Default to eps = 1e-4 instead of 1e-3.
-        solver_opts['eps'] = solver_opts.get('eps', 1e-4)
-        results = scs.solve(
-            args,
-            cones,
-            verbose=verbose,
-            **solver_opts)
+        solver_opts["eps"] = solver_opts.get("eps", 1e-4)
+
+        results = scs.solve(args, cones, verbose=verbose, **solver_opts)
+        status = self.STATUS_MAP[results["info"]["status"]]
+
+        if (status == s.OPTIMAL_INACCURATE and
+                "acceleration_lookback" not in solver_opts):
+            # anderson acceleration is sometimes unstable; retry without it
+            results = scs.solve(
+                args,
+                cones,
+                verbose=verbose,
+                acceleration_lookback=0,
+                **solver_opts)
+
         if solver_cache is not None:
             solver_cache[self.name()] = results
         return results
