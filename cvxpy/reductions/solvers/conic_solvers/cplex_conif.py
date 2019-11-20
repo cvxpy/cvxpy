@@ -54,10 +54,6 @@ def set_parameters(model, solver_opts):
         if filename:
             model.write(filename)
         kwargs.remove("cplex_filename")
-    if s.BOOL_IDX in kwargs:
-        kwargs.remove(s.BOOL_IDX)
-    if s.INT_IDX in kwargs:
-        kwargs.remove(s.INT_IDX)
     if kwargs:
         raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
 
