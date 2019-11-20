@@ -16,6 +16,7 @@ limitations under the License.
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
+import numbers
 import numpy as np
 
 
@@ -30,12 +31,17 @@ class reshape(AffAtom):
     ----------
     expr : Expression
        The expression to promote.
-    shape : tuple
+    shape : tuple or int
         The shape to promote to.
     """
 
     def __init__(self, expr, shape):
-        self._shape = shape
+        if isinstance(shape, numbers.Integral):
+            shape = (int(shape),)
+        if len(shape) > 2:
+            raise ValueError("Expressions of dimension greater than 2 "
+                             "are not supported.")
+        self._shape = tuple(shape)
         super(reshape, self).__init__(expr)
 
     def is_atom_log_log_convex(self):
