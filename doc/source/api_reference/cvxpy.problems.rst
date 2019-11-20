@@ -16,9 +16,9 @@ and the values of its variables like so:
     problem.solve()
     if problem.status not in ["infeasible", "unbounded"]:
         # Otherwise, problem.value is inf or -inf, respectively.
-        print "Optimal value: %s" % problem.value
+        print("Optimal value: %s" % problem.value)
     for variable in problem.variables():
-        print "Variable %s: value %s" % (variable.name(), variable.value)
+        print("Variable %s: value %s" % (variable.name(), variable.value))
 
 Problems are **immutable**, except through the specification of
 :class:`~cvxpy.expressions.constants.parameter.Parameter` values. This means

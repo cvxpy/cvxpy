@@ -258,7 +258,8 @@ class Problem(u.Canonical):
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
 
-        Populates the `.status', `.value`
+        Populates the `status' and `value` attributes on the problem object as
+        a side-effect.
 
         Parameters
         ----------
