@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import shape
 import unittest
 
@@ -94,3 +96,13 @@ class TestShape(unittest.TestCase):
             shape.mul_shapes((3, 5, 9), (4, 9, 2))
         self.assertEqual(str(cm.exception),
                          "Incompatible dimensions (3, 5, 9) (4, 9, 2)")
+
+    def test_reshape_with_lists(self):
+        n = 2
+        a = Variable([n, n])
+        b = Variable(n**2)
+        c = reshape(b, [n, n])
+        self.assertEqual((a + c).shape, (n, n))
+
+        d = reshape(b, (n, n))
+        self.assertEqual((a + d).shape, (n, n))
