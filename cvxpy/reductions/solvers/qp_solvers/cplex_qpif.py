@@ -2,6 +2,11 @@ import cvxpy.settings as s
 import cvxpy.interface as intf
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
+    get_status,
+    hide_solver_output,
+    set_parameters
+)
 import numpy as np
 
 
@@ -25,20 +30,6 @@ class CPLEX(QpSolver):
 
     MIP_CAPABLE = True
 
-    # Map of CPLEX status to CVXPY status. #TODO: add more!
-    STATUS_MAP = {1: s.OPTIMAL,
-                  3: s.INFEASIBLE,
-                  2: s.UNBOUNDED,
-                  21: s.UNBOUNDED,
-                  22: s.INFEASIBLE,
-                  4: s.INFEASIBLE,
-                  10: s.USER_LIMIT,
-                  101: s.OPTIMAL,
-                  102: s.OPTIMAL,
-                  103: s.INFEASIBLE,
-                  107: s.USER_LIMIT,
-                  118: s.UNBOUNDED}
-
     def name(self):
         return s.CPLEX
 
@@ -56,8 +47,7 @@ class CPLEX(QpSolver):
             if not inverse_data.is_mip \
             else 0
 
-        status = self.STATUS_MAP.get(model.solution.get_status(),
-                                     s.SOLVER_ERROR)
+        status = get_status(model)
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
@@ -155,33 +145,12 @@ class CPLEX(QpSolver):
                             P.data[start:end].tolist()])
             model.objective.set_quadratic(qmat)
 
-        # Set parameters
+        # Set verbosity
         if not verbose:
-            model.set_results_stream(None)
-            model.set_log_stream(None)
-            model.set_error_stream(None)
-            model.set_warning_stream(None)
+            hide_solver_output(model)
 
-        # TODO: The code in cvxpy/problems/solvers/cplex_intf.py sets
-        #       CPLEX parameters in the same way and the code is
-        #       duplicated here. This should be refactored.
-        kwargs = sorted(solver_opts.keys())
-        if "cplex_params" in kwargs:
-            for param, value in solver_opts["cplex_params"].items():
-                try:
-                    eval("model.parameters.{0}.set({1})".format(param, value))
-                except AttributeError:
-                    raise ValueError(
-                        "invalid CPLEX parameter, value pair ({0}, {1})".format(
-                            param, value))
-            kwargs.remove("cplex_params")
-        if "cplex_filename" in kwargs:
-            filename = solver_opts["cplex_filename"]
-            if filename:
-                model.write(filename)
-            kwargs.remove("cplex_filename")
-        if kwargs:
-            raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
+        # Set parameters
+        set_parameters(model, solver_opts)
 
         # Solve problem
         results_dict = {}
