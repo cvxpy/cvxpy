@@ -266,6 +266,10 @@ class CPLEX(SCS):
             primal_vars = {inverse_data[CPLEX.VAR_ID]: x}
 
             if not inverse_data['is_mip']:
+                # The dual values are retrieved in the order that the
+                # constraints were added in solve_via_data() below. We
+                # must be careful to map them to inverse_data[EQ_CONSTR]
+                # followed by inverse_data[NEQ_CONSTR] accordingly.
                 y = -np.array(model.solution.get_dual_values())
                 dual_vars = utilities.get_dual_values(
                     y,
