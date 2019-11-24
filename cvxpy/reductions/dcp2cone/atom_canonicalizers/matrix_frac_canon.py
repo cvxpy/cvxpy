@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import reshape, trace, bmat
+from cvxpy.atoms import reshape, trace, bmat, upper_tri
 from cvxpy.expressions.variable import Variable
 from cvxpy.constraints.psd import PSD
 
@@ -31,4 +31,8 @@ def matrix_frac_canon(expr, args):
               [X.T, T]])
     # ^ a matrix with Schur complement T - X.T*P^-1*X.
     constraints = [PSD(M)]
+    if not P.is_symmetric():
+        ut = upper_tri(P)
+        lt = upper_tri(P.T)
+        constraints.append(ut == lt)
     return trace(T), constraints
