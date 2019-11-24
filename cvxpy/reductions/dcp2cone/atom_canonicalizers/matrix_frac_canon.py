@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import reshape, trace
+from cvxpy.atoms import reshape, trace, bmat
 from cvxpy.expressions.variable import Variable
+from cvxpy.constraints.psd import PSD
 
 
 def matrix_frac_canon(expr, args):
@@ -25,16 +26,9 @@ def matrix_frac_canon(expr, args):
     if len(X.shape) == 1:
         X = reshape(X, (X.shape[0], 1))
     n, m = X.shape
-
-    # Create a matrix with Schur complement T - X.T*P^-1*X.
-    M = Variable((n+m, n+m), PSD=True)
     T = Variable((m, m), symmetric=True)
-    constraints = []
-    # Fix M using the fact that P must be affine by the DCP rules.
-    # M[0:n, 0:n] == P.
-    constraints.append(M[0:n, 0:n] == P)
-    # M[0:n, n:n+m] == X
-    constraints.append(M[0:n, n:n+m] == X)
-    # M[n:n+m, n:n+m] == T
-    constraints.append(M[n:n+m, n:n+m] == T)
+    M = bmat([[P, X],
+              [X.T, T]])
+    # ^ a matrix with Schur complement T - X.T*P^-1*X.
+    constraints = [PSD(M)]
     return trace(T), constraints
