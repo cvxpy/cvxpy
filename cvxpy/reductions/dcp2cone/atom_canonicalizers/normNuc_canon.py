@@ -16,22 +16,21 @@ limitations under the License.
 
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.expressions.variable import Variable
+from cvxpy.atoms.affine.bmat import bmat
 
 
 def normNuc_canon(expr, args):
     A = args[0]
     m, n = A.shape
-
     # Create the equivalent problem:
     #   minimize (trace(U) + trace(V))/2
     #   subject to:
     #            [U A; A.T V] is positive semidefinite
-    X = Variable((m+n, m+n), PSD=True)
     constraints = []
-
-    # Fix X using the fact that A must be affine by the DCP rules.
-    # X[0:rows,rows:rows+cols] == A
-    constraints.append(X[0:m, m:m+n] == A)
-    trace_value = 0.5 * trace(X)
-
+    U = Variable(shape=(m, m), symmetric=True)
+    V = Variable(shape=(n, n), symmetric=True)
+    X = bmat([[U, A],
+              [A.T, V]])
+    constraints.append(X >> 0)
+    trace_value = 0.5 * (trace(U) + trace(V))
     return trace_value, constraints
