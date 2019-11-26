@@ -390,13 +390,14 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `GUROBI`_    | X  | X  | X    |     |     | X   |
 +--------------+----+----+------+-----+-----+-----+
-| `MOSEK`_     | X  | X  | X    | X   | X   | X   |
+| `MOSEK`_     | X  | X  | X    | X   | X   | X*  |
 +--------------+----+----+------+-----+-----+-----+
 | `CVXOPT`_    | X  | X  | X    | X   |     |     |
 +--------------+----+----+------+-----+-----+-----+
 | `SCS`_       | X  | X  | X    | X   | X   |     |
 +--------------+----+----+------+-----+-----+-----+
 
+(*) Except mixed-integer SDP.
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
