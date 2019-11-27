@@ -16,7 +16,7 @@ limitations under the License.
 
 import numpy as np
 import scipy as sp
-from scipy.sparse import csc_matrix
+from cvxpy.reductions.solvers.utilities import expcone_order_converter_matrix
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonPos, Zero, ExpCone
 from cvxpy.reductions.solution import Solution
@@ -532,7 +532,7 @@ class MOSEK(ConicSolver):
         for con in inverse_data['constraints']:
             if isinstance(con, ExpCone):
                 cid = con.id
-                converter = MOSEK._dual_exp_converter_matrix(con.num_cones())
+                converter = expcone_order_converter_matrix(con.num_cones(), MOSEK.EXP_CONE_ORDER)
                 dual_vars[cid] = converter @ dual_vars[cid]
 
         return dual_vars
@@ -591,16 +591,3 @@ class MOSEK(ConicSolver):
                 _handle_str_param(param.strip(), value)
             else:
                 _handle_enum_param(param, value)
-
-    @staticmethod
-    def _dual_exp_converter_matrix(n_cones):
-        cols = []
-        order = np.array(MOSEK.EXP_CONE_ORDER)
-        for i in range(n_cones):
-            cur_cols = 3*i + order
-            cols.append(cur_cols)
-        cols = np.hstack(cols)
-        vals = np.ones(cols.size)
-        rows = np.arange(cols.size)
-        C = csc_matrix((vals, (rows, cols)))
-        return C

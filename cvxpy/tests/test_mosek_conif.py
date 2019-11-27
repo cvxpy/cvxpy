@@ -143,7 +143,7 @@ class TestMosek(BaseTest):
                 x_mosek = x.value.flatten().tolist()
                 duals_mosek = [np.array(c.dual_value).ravel().tolist() for c in constraints]
 
-                # Solve with ECOS. Record values (dual variables for final constraint not used).
+                # Solve with ECOS. Record values.
                 prob.solve(solver=cvx.ECOS)
                 val_ecos = prob.value
                 x_ecos = x.value.flatten().tolist()
@@ -152,7 +152,7 @@ class TestMosek(BaseTest):
                 # Verify consistency between MOSEK and ECOS
                 self.assertAlmostEqual(val_mosek, val_ecos)
                 self.assertItemsAlmostEqual(x_mosek, x_ecos, places=4)
-                for i in [0, 1, 2]:  # don't check the final constraint; ECOS is broken there.
+                for i in [0, 1, 2, 3]:
                     if isinstance(duals_mosek[i], float):
                         self.assertAlmostEqual(duals_mosek[i], duals_ecos[i], places=4)
                     else:
