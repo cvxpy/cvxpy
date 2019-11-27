@@ -80,13 +80,12 @@ class ExpCone(Constraint):
     def size(self):
         """The number of entries in the combined cones.
         """
-        # TODO use size of dual variable(s) instead.
-        return sum(self.cone_sizes())
+        return 3 * self.num_cones()
 
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return np.prod(self.args[0].shape, dtype=int)
+        return self.x.size
 
     def cone_sizes(self):
         """The dimensions of the exponential cones.
@@ -111,3 +110,14 @@ class ExpCone(Constraint):
 
     def is_dqcp(self):
         return self.is_dcp()
+
+    @property
+    def shape(self):
+        s = (3,) + self.x.shape
+        return s
+
+    def save_value(self, value):
+        value = np.reshape(value, newshape=(-1, 3))
+        self.dual_variables[0].save_value(value[:, 0])
+        self.dual_variables[1].save_value(value[:, 1])
+        self.dual_variables[2].save_value(value[:, 2])
