@@ -120,26 +120,39 @@ class TestMosek(BaseTest):
         if cvx.MOSEK in cvx.installed_solvers():
             import mosek
             if hasattr(mosek.conetype, 'pexp'):
-                # Formulate and solve the problem with CVXPY
+                # Formulate the problem
                 x = cvx.Variable(shape=(3, 1))
-                constraints = [cvx.sum(x) <= 1.0, cvx.sum(x) >= 0.1, x >= 0.01,
-                               cvx.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
+                cone_con = cvx.constraints.ExpCone(x[2], x[1], x[0])
+                constraints = [cvx.sum(x) <= 1.0,
+                               cvx.sum(x) >= 0.1,
+                               x >= 0.01,
+                               cone_con]
                 obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[2])
                 prob = cvx.Problem(obj, constraints)
+
+                # solve with MOSEK. Check feasibility and cone comp-slack. Save values for later.
                 prob.solve(solver=cvx.MOSEK)
+                for con in constraints:
+                    viol = con.violation()
+                    if isinstance(viol, np.ndarray):
+                        viol = np.linalg.norm(viol)
+                    assert viol < 1e-5
+                complementarity = cvx.scalar_product(cone_con.args, cone_con.dual_variables).value
+                assert abs(complementarity) <= 1e-7
                 val_mosek = prob.value
                 x_mosek = x.value.flatten().tolist()
                 duals_mosek = [np.array(c.dual_value).ravel().tolist() for c in constraints]
+
+                # Solve with ECOS. Record values (dual variables for final constraint not used).
                 prob.solve(solver=cvx.ECOS)
                 val_ecos = prob.value
                 x_ecos = x.value.flatten().tolist()
                 duals_ecos = [np.array(c.dual_value).ravel().tolist() for c in constraints]
 
-                # verify results
+                # Verify consistency between MOSEK and ECOS
                 self.assertAlmostEqual(val_mosek, val_ecos)
                 self.assertItemsAlmostEqual(x_mosek, x_ecos, places=4)
-                self.assertEqual(len(duals_ecos), len(duals_mosek))
-                for i in range(len(duals_mosek)):
+                for i in [0, 1, 2]:  # don't check the final constraint; ECOS is broken there.
                     if isinstance(duals_mosek[i], float):
                         self.assertAlmostEqual(duals_mosek[i], duals_ecos[i], places=4)
                     else:

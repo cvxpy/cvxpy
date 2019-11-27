@@ -16,6 +16,7 @@ limitations under the License.
 
 import numpy as np
 import scipy as sp
+from scipy.sparse import csc_matrix
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonPos, Zero, ExpCone
 from cvxpy.reductions.solution import Solution
@@ -58,17 +59,12 @@ class MOSEK(ConicSolver):
     "import_solver( ... )" or "accepts( ... )" is called.
 
     The cvxpy standard for the exponential cone is:
-        K_e = closure{(x,y,z) |  y >= z * exp(x/z), z>0}.
+        K_e = closure{(x,y,z) |  z >= y * exp(x/y), y>0}.
     Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
 
     MOSEK uses the convention:
         K_e = closure{(x,y,z) | x >= y * exp(z/y), x,y >= 0}.
-    with this convention, EXP_CONE_ORDER should be [1, 2, 0]... right?
-
-    Well for whatever reason, NO. After trying all 6 possible values for "EXP_CONE_ORDER",
-    the only one that passes units tests is EXP_CONE_ORDER = [2, 1, 0]. However "hackish",
-    trying all 6 possibilities during development is really not a problem. We recommend
-    doing the same to add exponential cone support for other solvers.
+    with this convention, EXP_CONE_ORDER should be should be [2, 1, 0].
     """
 
     def import_solver(self):
@@ -98,43 +94,6 @@ class MOSEK(ConicSolver):
                 if not arg.is_affine():
                     return False
         return True
-
-    def block_format(self, problem, constraints, exp_cone_order=None):
-        """
-        :param problem: the cvxpy Problem we are preparing for mosek.
-        :param constraints: a list of Constraint objects for which coefficient
-          and offset data ("G", "h" respectively) is needed.
-        :param exp_cone_order: a parameter that is only used when a Constraint
-           object describes membership in the exponential cone.
-
-        :return: a large matrix "coeff" and a vector of constants "offset" such
-          that every Constraint in "constraints" holds at z in R^n iff
-          "coeff * z <=_K offset", where K is a product of cones supported by
-          mosek and cvxpy (the zero cone, the nonnegative orthant,
-          the second order cone, and the exponential cone). The nature of K
-          is inferred later by accessing the data in "lengths" and "ids".
-
-        Notes:
-
-            (1) In practice, this is only called with one type of constraint at a time
-            (i.e. all linear equations, or all exponential cone membership constraints,
-            all linear inequalities, etc...).
-
-            (2) This function cannot be used with linear matrix inequalities.
-            It will throw an error if any Constraint c in constraints defines an LMI.
-        """
-        if not constraints:
-            return None, None
-        matrices, offsets, lengths, ids = [], [], [], []
-        for con in constraints:
-            coeff, offset = self.format_constr(problem, con, exp_cone_order)
-            matrices.append(coeff)
-            offsets.append(offset)
-            lengths.append(offset.size)
-            ids.append(con.id)
-        coeff = sp.sparse.vstack(matrices).tocsc()
-        offset = np.hstack(offsets)
-        return coeff, offset, lengths, ids
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -216,7 +175,7 @@ class MOSEK(ConicSolver):
             len_exp = 0
             for c in problem.constraints[-num_exp:]:
                 assert(isinstance(c, ExpCone))
-                inv_data['snx_slacks'].append((c.id, c.num_cones()))
+                inv_data['snx_slacks'].append((c.id, 3 * c.num_cones()))
                 len_exp += 3 * c.num_cones()
             Gs.append(A[-len_exp:])
             hs.append(b[-len_exp:])
@@ -487,8 +446,7 @@ class MOSEK(ConicSolver):
             if sol == mosek.soltype.itg:
                 dual_vars = None
             else:
-                dual_vars = MOSEK.recover_dual_variables(task, sol,
-                                                         inverse_data)
+                dual_vars = MOSEK.recover_dual_variables(task, sol, inverse_data)
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
@@ -500,28 +458,13 @@ class MOSEK(ConicSolver):
             dual_vars = None
 
         # Store computation time
-        attr = {}
-        attr[s.SOLVE_TIME] = task.getdouinf(mosek.dinfitem.optimizer_time)
+        attr = {s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time)}
 
         # Delete the mosek Task and Environment
         task.__exit__(None, None, None)
         env.__exit__(None, None, None)
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
-
-    @staticmethod
-    def flatten_dual_variables(dual_variables, constraints):
-        """
-        Takes a dictionary of dual variables, keyed by constraint id,
-        and concatenates the variables into a flattened array, such that
-        the nth contiguous block corresponds to dual variables in the
-        nth constraint in `constraints`
-        """
-        flattened_dual_variables = []
-        for constraint in constraints:
-            flattened_dual_variables.append(
-                np.asarray(dual_variables[constraint.id]).ravel())
-        return np.hstack(flattened_dual_variables)
 
     @staticmethod
     def recover_dual_variables(task, sol, inverse_data):
@@ -561,21 +504,21 @@ class MOSEK(ConicSolver):
         if suc_len > 0:
             suc = [0.] * suc_len
             task.getsucslice(sol, 0, suc_len, suc)
-            dual_vars.update(MOSEK.parse_dual_vars(suc, inverse_data['suc_slacks']))
+            dual_vars.update(MOSEK._parse_dual_var_block(suc, inverse_data['suc_slacks']))
 
         # Dual variables for the original equality constraints
         y_len = sum(ell for _, ell in inverse_data['y_slacks'])
         if y_len > 0:
             y = [0.] * y_len
             task.getyslice(sol, suc_len, suc_len + y_len, y)
-            dual_vars.update(MOSEK.parse_dual_vars(y, inverse_data['y_slacks']))
+            dual_vars.update(MOSEK._parse_dual_var_block(y, inverse_data['y_slacks']))
 
         # Dual variables for SOC and EXP constraints
         snx_len = sum(ell for _, ell in inverse_data['snx_slacks'])
         if snx_len > 0:
             snx = np.zeros(snx_len)
             task.getsnxslice(sol, inverse_data['n0'], inverse_data['n0'] + snx_len, snx)
-            dual_vars.update(MOSEK.parse_dual_vars(snx, inverse_data['snx_slacks']))
+            dual_vars.update(MOSEK._parse_dual_var_block(snx, inverse_data['snx_slacks']))
 
         # Dual variables for PSD constraints
         for j, (id, dim) in enumerate(inverse_data['psd_dims']):
@@ -583,10 +526,19 @@ class MOSEK(ConicSolver):
             task.getbarsj(sol, j, sj)
             dual_vars[id] = vectorized_lower_tri_to_mat(sj, dim)
 
+        # Now that all dual variables have been recovered, find those corresponding
+        # to the exponential cone, and permute the entries to reflect the CVXPY
+        # standard for the exponential cone.
+        for con in inverse_data['constraints']:
+            if isinstance(con, ExpCone):
+                cid = con.id
+                converter = MOSEK._dual_exp_converter_matrix(con.num_cones())
+                dual_vars[cid] = converter @ dual_vars[cid]
+
         return dual_vars
 
     @staticmethod
-    def parse_dual_vars(dual_var, constr_id_to_constr_dim):
+    def _parse_dual_var_block(dual_var, constr_id_to_constr_dim):
         """
         :param dual_var: a list of numbers returned by some 'get dual variable'
           function in mosek's Optimzer API.
@@ -639,3 +591,16 @@ class MOSEK(ConicSolver):
                 _handle_str_param(param.strip(), value)
             else:
                 _handle_enum_param(param, value)
+
+    @staticmethod
+    def _dual_exp_converter_matrix(n_cones):
+        cols = []
+        order = np.array(MOSEK.EXP_CONE_ORDER)
+        for i in range(n_cones):
+            cur_cols = 3*i + order
+            cols.append(cur_cols)
+        cols = np.hstack(cols)
+        vals = np.ones(cols.size)
+        rows = np.arange(cols.size)
+        C = csc_matrix((vals, (rows, cols)))
+        return C
