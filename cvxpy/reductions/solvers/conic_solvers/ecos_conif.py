@@ -124,6 +124,20 @@ class ECOS(ConicSolver):
         data[s.H] = b[len_eq:].flatten()
         return data, inv_data
 
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+        import ecos
+        cones = dims_to_solver_dict(data[ConicSolver.DIMS])
+        if data[s.A] is not None and data[s.A].nnz == 0 and np.prod(data[s.A].shape) > 0:
+            raise ValueError(
+                "ECOS cannot handle sparse data with nnz == 0; "
+                "this is a bug in ECOS, and it indicates that your problem "
+                "might have redundant constraints.")
+        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
+                              cones, data[s.A], data[s.B],
+                              verbose=verbose,
+                              **solver_opts)
+        return solution
+
     def invert(self, solution, inverse_data):
         """Returns solution to original problem, given inverse_data.
         """
@@ -141,30 +155,19 @@ class ECOS(ConicSolver):
             primal_vars = {
                 inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
             }
-            eq_dual = utilities.get_dual_values(
-                solution['y'],
-                utilities.extract_dual_value,
-                inverse_data[self.EQ_CONSTR])
-            leq_dual = utilities.get_dual_values(
-                solution['z'],
-                utilities.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR])
-            eq_dual.update(leq_dual)
-            dual_vars = eq_dual
+            dual_vars = utilities.get_dual_values(solution['z'],
+                                                  utilities.extract_dual_value,
+                                                  inverse_data[self.NEQ_CONSTR])
+            for con in inverse_data[self.NEQ_CONSTR]:
+                if isinstance(con, ExpCone):
+                    cid = con.id
+                    n_cones = con.num_cones()
+                    converter = utilities.expcone_order_converter_matrix(n_cones, ECOS.EXP_CONE_ORDER)
+                    dual_vars[cid] = converter @ dual_vars[cid]
+            eq_duals = utilities.get_dual_values(solution['y'],
+                                                 utilities.extract_dual_value,
+                                                 inverse_data[self.EQ_CONSTR])
+            dual_vars.update(eq_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
-
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        import ecos
-        cones = dims_to_solver_dict(data[ConicSolver.DIMS])
-        if data[s.A] is not None and data[s.A].nnz == 0 and np.prod(data[s.A].shape) > 0:
-            raise ValueError(
-                "ECOS cannot handle sparse data with nnz == 0; "
-                "this is a bug in ECOS, and it indicates that your problem "
-                "might have redundant constraints.")
-        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
-                              cones, data[s.A], data[s.B],
-                              verbose=verbose,
-                              **solver_opts)
-        return solution

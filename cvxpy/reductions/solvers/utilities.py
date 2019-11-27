@@ -15,6 +15,21 @@ limitations under the License.
 """
 
 import cvxpy.interface as intf
+from scipy.sparse import csc_matrix
+import numpy as np
+
+
+def expcone_order_converter_matrix(n_cones, exp_cone_order):
+    cols = []
+    order = np.array(exp_cone_order)
+    for i in range(n_cones):
+        cur_cols = 3 * i + order
+        cols.append(cur_cols)
+    cols = np.hstack(cols)
+    vals = np.ones(cols.size)
+    rows = np.arange(cols.size)
+    C = csc_matrix((vals, (rows, cols)))
+    return C
 
 
 def extract_dual_value(result_vec, offset, constraint):
