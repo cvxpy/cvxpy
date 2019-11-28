@@ -441,12 +441,16 @@ class Expression(u.Canonical):
     def __add__(self, other):
         """Expression : Sum two expressions.
         """
+        if isinstance(other, cvxtypes.constant()) and other.is_zero():
+            return self
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other
     def __radd__(self, other):
         """Expression : Sum two expressions.
         """
+        if isinstance(other, cvxtypes.constant()) and other.is_zero():
+            return self
         return other + self
 
     @_cast_other
