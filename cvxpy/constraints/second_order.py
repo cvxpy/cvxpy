@@ -41,6 +41,8 @@ class SOC(Constraint):
                 % (t.shape, X.shape, axis)
             )
         self.axis = axis
+        if len(t.shape) == 0:
+            t = t.flatten()
         super(SOC, self).__init__([t, X], constr_id)
 
     def __str__(self):
@@ -80,14 +82,15 @@ class SOC(Constraint):
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return np.prod(self.args[0].shape, dtype=int)
+        return self.args[0].size
 
     @property
     def size(self):
         """The number of entries in the combined cones.
         """
-        # TODO use size of dual variable(s) instead.
-        return sum(self.cone_sizes())
+        cone_size = 1 + self.args[1].shape[self.axis]
+        cs = cone_size * self.num_cones()
+        return cs
 
     def cone_sizes(self):
         """The dimensions of the second-order cones.
@@ -97,10 +100,8 @@ class SOC(Constraint):
         list
             A list of the sizes of the elementwise cones.
         """
-        cones = []
         cone_size = 1 + self.args[1].shape[self.axis]
-        for i in range(self.num_cones()):
-            cones.append(cone_size)
+        cones = [cone_size] * self.num_cones()
         return cones
 
     def is_dcp(self):
@@ -116,3 +117,12 @@ class SOC(Constraint):
 
     def is_dqcp(self):
         return self.is_dcp()
+
+    def save_value(self, value):
+        cone_size = 1 + self.args[1].shape[self.axis]
+        value = np.reshape(value, newshape=(-1, cone_size))
+        t = value[:, 0]
+        X = value[:, 1:]
+        X = np.reshape(X, newshape=self.args[1].shape)
+        self.dual_variables[0].save_value(t)
+        self.dual_variables[1].save_value(X)
