@@ -35,8 +35,10 @@ class TestMosek(BaseTest):
         if cvx.MOSEK in cvx.installed_solvers():
             x = cvx.Variable(shape=(3,))
             y = cvx.Variable(shape=(2,))
-            constraints = [cvx.norm(x, 2) <= y[0],
-                           cvx.norm(x, 2) <= y[1],
+            soc1 = cvx.constraints.second_order.SOC(y[0], x)
+            soc2 = cvx.constraints.second_order.SOC(y[1], x)
+            constraints = [soc1,
+                           soc2,
                            x[0] + x[1] + 3 * x[2] >= 1.0,
                            y <= 5]
             obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[2])
@@ -48,14 +50,13 @@ class TestMosek(BaseTest):
             x_ecos = x.value.tolist()
             duals_ecos = [c.dual_value for c in constraints]
             self.assertItemsAlmostEqual(x_mosek, x_ecos)
-            self.assertEqual(len(duals_ecos), len(duals_mosek))
-            for i in range(len(duals_mosek)):
+            for i in [0, 1, 2, 3]:
                 if isinstance(duals_mosek[i], float):
                     self.assertAlmostEqual(duals_mosek[i], duals_ecos[i], places=4)
                 else:
-                    self.assertItemsAlmostEqual(duals_mosek[i].tolist(),
-                                                duals_ecos[i].tolist(),
-                                                places=4)
+                    dm = cvx.atoms.deep_flatten(duals_mosek[i]).value.tolist()
+                    de = cvx.atoms.deep_flatten(duals_ecos[i]).value.tolist()
+                    self.assertItemsAlmostEqual(dm, de, places=4)
         else:
             pass
 
@@ -110,12 +111,6 @@ class TestMosek(BaseTest):
                   x[0] >= x[1] * exp(x[2] / x[1])
         and solve with MOSEK and ECOS. Ensure that MOSEK and ECOS have the same
         primal and dual solutions.
-
-        Note that the exponential cone constraint can be rewritten in terms of the
-        relative entropy cone. The correspondence is as follows:
-                x[0] >= x[1] * exp(x[2] / x[1])
-            iff
-                x[1] * log(x[1] / x[0]) + x[2] <= 0.
         """
         if cvx.MOSEK in cvx.installed_solvers():
             import mosek
