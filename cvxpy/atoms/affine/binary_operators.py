@@ -23,7 +23,7 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.expressions.expression import Expression
-from cvxpy.atoms.affine.bmat import bmat
+from cvxpy.atoms.affine.reshape import deep_flatten
 from cvxpy.atoms import conj
 from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 from cvxpy.error import DCPError
@@ -418,16 +418,8 @@ class DivExpression(BinaryOperator):
 
 
 def scalar_product(x, y):
-    if isinstance(x, np.ndarray):
-        x = Expression.cast_to_const(x)
-    if isinstance(y, np.ndarray):
-        y = Expression.cast_to_const(y)
-    if isinstance(x, list):
-        x = bmat(x)
-    if isinstance(y, list):
-        y = bmat(y)
-    if not (isinstance(x, Expression) and isinstance(y, Expression)):
-        raise RuntimeError('Unknown arguments to scalar_product.')
+    x = deep_flatten(x)
+    y = deep_flatten(y)
     prod = multiply(conj(x), y)
     res = cvxpy_sum(prod)
     return res

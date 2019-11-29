@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.expressions.expression import Expression
+from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
 import numbers
@@ -98,3 +100,24 @@ class reshape(AffAtom):
             (LinOp for objective, list of constraints)
         """
         return (lu.reshape(arg_objs[0], shape), [])
+
+
+def deep_flatten(x):
+    # base cases
+    if isinstance(x, Expression):
+        if len(x.shape) == 1:
+            return x
+        else:
+            return x.flatten()
+    elif isinstance(x, np.ndarray) or isinstance(x, (int, float)):
+        x = Expression.cast_to_const(x)
+        return x.flatten()
+    # recursion
+    if isinstance(x, list):
+        y = []
+        for x0 in x:
+            x1 = deep_flatten(x0)
+            y.append(x1)
+        y = hstack(y)
+        return y
+    raise RuntimeError('Unknown argument to deep_flatten.')
