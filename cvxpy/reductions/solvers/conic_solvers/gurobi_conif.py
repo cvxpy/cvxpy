@@ -101,7 +101,7 @@ class GUROBI(SCS):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[GUROBI.VAR_ID]: solution['primal']}
-            if not inverse_data['is_mip']:
+            if "eq_dual" in solution and not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
                     solution['eq_dual'],
                     utilities.extract_dual_value,
