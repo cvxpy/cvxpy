@@ -218,6 +218,7 @@ class Constraint(u.Canonical):
         """
         return self._chain_constraints()
 
+    # TODO(rileyjmurray): add a function to compute dual-variable violation.
     # The value of the dual variable.
     @property
     def dual_value(self):
