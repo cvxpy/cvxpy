@@ -15,7 +15,6 @@ limitations under the License.
 """
 import numpy as np
 import cvxpy as cvx
-import unittest
 
 
 class SolverTestHelper(object):

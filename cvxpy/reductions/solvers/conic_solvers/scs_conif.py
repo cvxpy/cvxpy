@@ -57,14 +57,19 @@ def tri_to_full(lower_tri, n):
     numpy.ndarray
         A 2-dimensional ndarray that is the scaled expansion of the lower
         triangular array.
+
+    Notes
+    -----
+    SCS tracks "lower triangular" indices in a way that corresponds to numpy's
+    "upper triangular" indices. So the function call below uses ``np.triu_indices``
+    in a way that looks weird, but is nevertheless correct.
     """
     full = np.zeros((n, n))
     full[np.triu_indices(n)] = lower_tri
-    full[np.tril_indices(n)] = lower_tri
-
+    full += full.T
+    full[np.diag_indices(n)] /= 2
     full[np.tril_indices(n, k=-1)] /= np.sqrt(2)
     full[np.triu_indices(n, k=1)] /= np.sqrt(2)
-
     return np.reshape(full, n*n, order="F")
 
 
@@ -80,6 +85,13 @@ def scs_psdvec_to_psdmat(vec, indices):
     indices : ndarray
         Contains nonnegative integers, which can index into ``vec``.
 
+    Notes
+    -----
+    This function is similar to ``tri_to_full``, which is also found
+    in this file. The difference is that this function works without
+    indexed assignment ``mat[i,j] = expr``. Such indexed assignment
+    cannot be used, because this function builds a cvxpy Expression,
+    rather than a numpy ndarray.
     """
     n = int(np.sqrt(indices.size * 2))
     rows, cols = np.triu_indices(n)
@@ -224,7 +236,8 @@ class SCS(ConicSolver):
             dim = constraint.shape[0]
             lower_tri_dim = dim * (dim + 1) // 2
             new_offset = offset + lower_tri_dim
-            lower_tri = result_vec[offset:new_offset]
+            indices = np.arange(offset, offset + lower_tri_dim)
+            lower_tri = result_vec[indices]
             full = tri_to_full(lower_tri, dim)
             return full, new_offset
         else:
