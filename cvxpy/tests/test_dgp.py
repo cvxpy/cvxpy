@@ -156,3 +156,7 @@ class TestDgp(BaseTest):
         self.assertTrue(geo_mean.is_log_log_affine())
         self.assertTrue(geo_mean.is_log_log_convex())
         self.assertTrue(geo_mean.is_log_log_concave())
+
+    def test_builtin_sum(self):
+        x = cvxpy.Variable(2, pos=True)
+        self.assertTrue(sum(x).is_log_log_convex())
