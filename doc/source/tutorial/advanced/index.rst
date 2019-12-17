@@ -691,6 +691,11 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     Refer to MOSEK documentation for a list of supported file formats. File format
     is chosen based on the extension.
 
+``'bfs'``
+    For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
+    instead of the interior-point solution. This assumes no specific MOSEK
+    parameters were used which prevent computing the basic solution.
+    
 `CVXOPT`_ options:
 
 ``'max_iters'``
