@@ -268,6 +268,7 @@ class MOSEK(ConicSolver):
         # parameters if applicable).
         kwargs = sorted(solver_opts.keys())
         save_file = None
+        bfs = False
         if 'mosek_params' in kwargs:
             self._handle_mosek_params(task, solver_opts['mosek_params'])
             kwargs.remove('mosek_params')
@@ -275,9 +276,17 @@ class MOSEK(ConicSolver):
             save_file = solver_opts['save_file']
             kwargs.remove('save_file')
         if 'bfs' in kwargs:
+            bfs = solver_opts['bfs']
             kwargs.remove('bfs')
         if kwargs:
             raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
+
+        # Decide whether basis identification is needed for intpnt solver
+        # This is only required if solve() was called with bfs=True
+        if bfs:
+            task.putintparam(mosek.iparam.intpnt_basis, mosek.basindtype.always)
+        else:
+            task.putintparam(mosek.iparam.intpnt_basis, mosek.basindtype.never)
 
         # Check if the cvxpy standard form has zero variables. If so,
         # return a trivial solution. This is necessary because MOSEK
