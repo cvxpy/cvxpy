@@ -162,9 +162,8 @@ class ECOS(ConicSolver):
                 if isinstance(con, ExpCone):
                     cid = con.id
                     n_cones = con.num_cones()
-                    converter = utilities.expcone_order_converter_matrix(n_cones,
-                                                                         ECOS.EXP_CONE_ORDER)
-                    dual_vars[cid] = converter @ dual_vars[cid]
+                    perm = utilities.expcone_permutor(n_cones, ECOS.EXP_CONE_ORDER)
+                    dual_vars[cid] = dual_vars[cid][perm]
             eq_duals = utilities.get_dual_values(solution['y'],
                                                  utilities.extract_dual_value,
                                                  inverse_data[self.EQ_CONSTR])
