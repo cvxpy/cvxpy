@@ -822,7 +822,7 @@ class Problem(u.Canonical):
                 v.save_value(solution.primal_vars[v.id])
             for c in self.constraints:
                 if c.id in solution.dual_vars:
-                    c.save_value(solution.dual_vars[c.id])
+                    c.save_dual_value(solution.dual_vars[c.id])
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)

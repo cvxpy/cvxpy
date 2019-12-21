@@ -118,7 +118,8 @@ class SOC(Constraint):
     def is_dqcp(self):
         return self.is_dcp()
 
-    def save_value(self, value):
+    def save_dual_value(self, value):
+        # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
         cone_size = 1 + self.args[1].shape[self.axis]
         value = np.reshape(value, newshape=(-1, cone_size))
         t = value[:, 0]

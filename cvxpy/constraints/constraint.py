@@ -219,7 +219,7 @@ class Constraint(u.Canonical):
         return self._chain_constraints()
 
     # TODO(rileyjmurray): add a function to compute dual-variable violation.
-    # The value of the dual variable.
+
     @property
     def dual_value(self):
         """NumPy.ndarray : The value of the dual variable.
@@ -230,9 +230,7 @@ class Constraint(u.Canonical):
         else:
             return dual_vals
 
-    # TODO(akshayka): Rename to save_dual_value to avoid collision with
-    # value as defined above.
-    def save_value(self, value):
+    def save_dual_value(self, value):
         """Save the value of the dual variable for the constraint's parent.
         Args:
             value: The value of the dual variable.
