@@ -212,6 +212,9 @@ def socp_2():
     return sth
 
 
+# TODO(akshaya,SteveDiamond): add vectorized SOCP test cases (with different axis options)
+
+
 def sdp_1(objective_sense):
     """
     Solve "Example 8.3" from Convex Optimization by Boyd & Vandenberghe.
@@ -265,6 +268,9 @@ def expcone_1():
     var_pairs = [(x, expect_x)]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
+
+
+# TODO(akshaya,SteveDiamond): add a vectorized exponential cone test case.
 
 
 def mi_lp_0():

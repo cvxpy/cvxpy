@@ -116,8 +116,12 @@ class ExpCone(Constraint):
         s = (3,) + self.x.shape
         return s
 
-    def save_value(self, value):
+    def save_dual_value(self, value):
+        # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
         value = np.reshape(value, newshape=(-1, 3))
-        self.dual_variables[0].save_value(value[:, 0])
-        self.dual_variables[1].save_value(value[:, 1])
-        self.dual_variables[2].save_value(value[:, 2])
+        dv0 = np.reshape(value[:, 0], newshape=self.x.shape)
+        dv1 = np.reshape(value[:, 1], newshape=self.y.shape)
+        dv2 = np.reshape(value[:, 2], newshape=self.z.shape)
+        self.dual_variables[0].save_value(dv0)
+        self.dual_variables[1].save_value(dv1)
+        self.dual_variables[2].save_value(dv2)

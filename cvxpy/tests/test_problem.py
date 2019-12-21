@@ -558,7 +558,7 @@ class TestProblem(BaseTest):
         # Infeasible problems.
         p = Problem(cp.Maximize(self.a), [self.a >= 2, self.a <= 1])
         self.a.save_value(2)
-        p.constraints[0].save_value(2)
+        p.constraints[0].save_dual_value(2)
 
         result = p.solve(solver=s.ECOS)
         self.assertEqual(result, p.value)
