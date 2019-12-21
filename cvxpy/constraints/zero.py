@@ -82,8 +82,6 @@ class Zero(Constraint):
         """
         return self.dual_variables[0].value
 
-    # TODO(akshayka): Rename to save_dual_value to avoid collision with
-    # value as defined above.
     def save_dual_value(self, value):
         """Save the value of the dual variable for the constraint's parent.
 

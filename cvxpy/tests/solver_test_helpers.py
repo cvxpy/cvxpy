@@ -433,7 +433,7 @@ class StandardTestLPs(object):
 
 
 class StandardTestSOCPs(object):
-    
+
     @staticmethod
     def test_socp_0(solver, places=4, **kwargs):
         sth = socp_0()
@@ -442,7 +442,7 @@ class StandardTestSOCPs(object):
         sth.verify_primal_values(places)
         sth.check_complementarity(places)
         pass
-    
+
     @staticmethod
     def test_socp_1(solver, places=4, **kwargs):
         sth = socp_1()
@@ -452,7 +452,7 @@ class StandardTestSOCPs(object):
         sth.check_complementarity(places)
         sth.verify_dual_values(places)
         pass
-    
+
     @staticmethod
     def test_socp_2(solver, places=4, **kwargs):
         sth = socp_2()
@@ -462,7 +462,7 @@ class StandardTestSOCPs(object):
         sth.check_complementarity(places)
         sth.verify_dual_values(places)
         pass
-    
+
     @staticmethod
     def test_mi_socp_1(solver, places=4, **kwargs):
         sth = mi_socp_1()
@@ -470,7 +470,7 @@ class StandardTestSOCPs(object):
         sth.verify_objective(places)
         sth.verify_primal_values(places)
         pass
-        
+
     @staticmethod
     def test_mi_socp_2(solver, places=4, **kwargs):
         sth = mi_socp_2()
@@ -478,10 +478,10 @@ class StandardTestSOCPs(object):
         sth.verify_objective(places)
         sth.verify_primal_values(places)
         pass
-    
-    
+
+
 class StandardTestSDPs(object):
-    
+
     @staticmethod
     def test_sdp_1min(solver, places=4, **kwargs):
         sth = sdp_1('min')
@@ -504,7 +504,7 @@ class StandardTestSDPs(object):
 
 
 class StandardTestECPs(object):
-    
+
     @staticmethod
     def test_expcone_1(solver, places=4, **kwargs):
         sth = expcone_1()

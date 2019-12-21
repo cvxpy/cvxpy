@@ -20,7 +20,8 @@ import scipy.linalg as la
 import cvxpy as cvx
 import unittest
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs, StandardTestSOCPs, StandardTestLPs
+from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs
+from cvxpy.tests.solver_test_helpers import StandardTestSOCPs, StandardTestLPs
 
 
 class TestECOS(BaseTest):
@@ -90,10 +91,10 @@ class TestECOS(BaseTest):
 
     def test_ecos_expcone_1(self):
         StandardTestECPs.test_expcone_1(solver='ECOS')
-        
+
 
 class TestSCS(BaseTest):
-    
+
     """ Unit tests for SCS. """
     def setUp(self):
         self.x = cvx.Variable(2, name='x')
@@ -540,7 +541,7 @@ class TestCBC(BaseTest):
         """Test that all the cvx.CBC solver options work.
         """
         prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)),
-                          [self.x == cvx.Variable(2, boolean=True)])
+                           [self.x == cvx.Variable(2, boolean=True)])
         if cvx.CBC in cvx.installed_solvers():
             for i in range(2):
                 # Some cut-generators seem to be buggy for now -> set to false
