@@ -565,3 +565,28 @@ class TestDqcp(base_test.BaseTest):
         problem.solve(qcp=True)
         np.testing.assert_almost_equal(x.value, 2)
         np.testing.assert_almost_equal(problem.objective.value, 7)
+
+    def test_max(self):
+        x = cp.Variable(2, pos=True)
+        obj = cp.max((1 - 2*cp.sqrt(x) + x) / x)
+        problem = cp.Problem(cp.Minimize(obj), [x[0] <= 0.5, x[1] <= 0.9])
+        self.assertTrue(problem.is_dqcp())
+        problem.solve(SOLVER, qcp=True)
+        self.assertAlmostEqual(problem.objective.value, 0.1715, places=3)
+
+    def test_min(self):
+        x = cp.Variable(2)
+        expr = cp.min(cp.ceil(x))
+        problem = cp.Problem(cp.Maximize(expr),
+                             [x[0] >= 11.9, x[0] <= 15.8, x[1] >= 17.4])
+        self.assertTrue(problem.is_dqcp())
+        problem.solve(SOLVER, qcp=True)
+        self.assertAlmostEqual(problem.objective.value, 16.0)
+        self.assertLess(x[0].value, 16.0)
+        self.assertGreater(x[0].value, 14.9)
+        self.assertGreater(x[1].value, 17.3)
+
+    def test_sum_of_qccv_not_dqcp(self):
+        t = cp.Variable(5, pos=True)
+        expr = cp.sum(cp.square(t) / t)
+        self.assertFalse(expr.is_dqcp())
