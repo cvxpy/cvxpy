@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy import problems
+from cvxpy.atoms.max import max as max_atom
+from cvxpy.atoms.min import min as min_atom
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.constraints import Inequality
@@ -167,7 +169,7 @@ class Dqcp2Dcp(Canonicalization):
                 if lhs.is_incr(idx):
                     return self._canonicalize_constraint(expr <= rhs)
                 return self._canonicalize_constraint(expr >= rhs)
-            elif isinstance(lhs, maximum):
+            elif isinstance(lhs, (maximum, max_atom)):
                 # Lower maximum.
                 return [c for arg in lhs.args
                         for c in self._canonicalize_constraint(arg <= rhs)]
@@ -188,7 +190,7 @@ class Dqcp2Dcp(Canonicalization):
             if rhs.is_incr(idx):
                 return self._canonicalize_constraint(lhs <= expr)
             return self._canonicalize_constraint(lhs >= expr)
-        elif isinstance(rhs, minimum):
+        elif isinstance(rhs, (minimum, min_atom)):
             # Lower minimum.
             return [c for arg in rhs.args
                     for c in self._canonicalize_constraint(lhs <= arg)]
