@@ -244,19 +244,29 @@ class Atom(Expression):
         return [i for i, arg in enumerate(self.args) if not arg.is_constant()]
 
     @perf.compute_once
+    def _is_real(self):
+        # returns true if this atom is a real function:
+        #   the atom must have exactly one argument that is not a constant
+        #   that argument must be a scalar
+        #   the output must be a scalar
+        non_const = self._non_const_idx()
+        return (self.is_scalar() and len(non_const) == 1 and
+                self.args[non_const[0]].is_scalar())
+
+    @perf.compute_once
     def is_quasiconvex(self):
         """Is the expression quaisconvex?
         """
+        from cvxpy.atoms.max import max as max_atom
         # Verifies the DQCP composition rule.
         if self.is_convex():
             return True
-        if type(self) == cvxtypes.maximum():
+        if type(self) in (cvxtypes.maximum(), max_atom):
             return all(arg.is_quasiconvex() for arg in self.args)
         non_const = self._non_const_idx()
-        if self.is_scalar() and len(non_const) == 1 and self.is_incr(non_const[0]):
-            # TODO(akshayka): Accommodate vector atoms if people want it.
+        if self._is_real() and self.is_incr(non_const[0]):
             return self.args[non_const[0]].is_quasiconvex()
-        if self.is_scalar() and len(non_const) == 1 and self.is_decr(non_const[0]):
+        if self._is_real() and self.is_decr(non_const[0]):
             return self.args[non_const[0]].is_quasiconcave()
         if self.is_atom_quasiconvex():
             for idx, arg in enumerate(self.args):
@@ -271,15 +281,16 @@ class Atom(Expression):
     def is_quasiconcave(self):
         """Is the expression quasiconcave?
         """
+        from cvxpy.atoms.min import min as min_atom
         # Verifies the DQCP composition rule.
         if self.is_concave():
             return True
-        if type(self) == cvxtypes.minimum():
+        if type(self) in (cvxtypes.minimum(), min_atom):
             return all(arg.is_quasiconcave() for arg in self.args)
         non_const = self._non_const_idx()
-        if self.is_scalar() and len(non_const) == 1 and self.is_incr(non_const[0]):
+        if self._is_real() and self.is_incr(non_const[0]):
             return self.args[non_const[0]].is_quasiconcave()
-        if self.is_scalar() and len(non_const) == 1 and self.is_decr(non_const[0]):
+        if self._is_real() and self.is_decr(non_const[0]):
             return self.args[non_const[0]].is_quasiconvex()
         if self.is_atom_quasiconcave():
             for idx, arg in enumerate(self.args):
