@@ -121,9 +121,9 @@ CVXPY is a community project, built from the contributions of many
 researchers and engineers.
 
 CVXPY is developed and maintained by [Steven
-Diamond](http://web.stanford.edu/~stevend2/) and [Akshay
-Agrawal](https://akshayagrawal.com), with many others contributing
+Diamond](http://web.stanford.edu/~stevend2/), [Akshay
+Agrawal](https://akshayagrawal.com), and [Riley Murray](https://rileyjmurray.wordpress.com/), with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
-Riley Murray, Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.
