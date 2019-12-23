@@ -520,6 +520,12 @@ class TestCVXOPT(BaseTest):
     def test_cvxopt_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver='CVXOPT')
 
+    def test_cvxopt_sdp_1(self):
+        # minimization
+        StandardTestSDPs.test_sdp_1min(solver='CVXOPT')
+        # maximization
+        StandardTestSDPs.test_sdp_1max(solver='CVXOPT')
+
 
 @unittest.skipUnless('CBC' in cvx.installed_solvers(), 'CBC is not installed.')
 class TestCBC(BaseTest):
