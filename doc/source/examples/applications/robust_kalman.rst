@@ -226,7 +226,7 @@ Problem Data
 
 We generate the data for the vehicle tracking problem. We'll have
 :math:`N=1000`, :math:`w_t` a standard Gaussian, and :math:`v_t` a
-standard Guassian, except :math:`20\%` of the points will be outliers
+standard Gaussian, except :math:`20\%` of the points will be outliers
 with :math:`\sigma = 20`.
 
 Below, we set the problem parameters and define the matrices :math:`A`,

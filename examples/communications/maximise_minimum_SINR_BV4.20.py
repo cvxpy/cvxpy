@@ -151,7 +151,7 @@ if __name__=='__main__':
   print(maxmin_sinr.__doc__)
   # print all arrays to have 3 significant figures after the decimal place
   np.set_printoptions(precision=3)
-  # in this case we will use a gain matrix with a signal weight of 0.6 and an inteference weight of 0.1
+  # in this case we will use a gain matrix with a signal weight of 0.6 and an interference weight of 0.1
   G = np.array([[0.6,0.1,0.1,0.1,0.1],
                 [0.1,0.6,0.1,0.1,0.1],
                 [0.1,0.1,0.6,0.1,0.1],

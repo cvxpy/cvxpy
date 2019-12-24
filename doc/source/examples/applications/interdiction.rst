@@ -69,7 +69,7 @@ that path. That is,
    P(c, \mathcal{P}) = \log \left( \prod_{j \in \mathcal{P}} p_j \right) = \sum_{j \in \mathcal{P}} \log(p_j) = \sum_{j \in \mathcal{P}} c_j.
 
 Define :math:`P(c, \mathcal{P}) = -\infty` if :math:`\mathcal{P}` is not
-a valid path from source to sink. We do this to implicity encode the
+a valid path from source to sink. We do this to implicitly encode the
 constraint that the smuggler's path must be valid.
 
 Min/max game

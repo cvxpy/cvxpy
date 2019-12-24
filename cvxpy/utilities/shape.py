@@ -73,9 +73,9 @@ def mul_shapes_promote(lh_shape, rh_shape):
     Parameters
     ----------
     lh_shape : tuple
-        The left-hand shape of a multiplciation operation.
+        The left-hand shape of a multiplication operation.
     rh_shape : tuple
-        The right-hand shape of a multiplciation operation.
+        The right-hand shape of a multiplication operation.
 
     Returns
     -------
@@ -120,9 +120,9 @@ def mul_shapes(lh_shape, rh_shape):
     Parameters
     ----------
     lh_shape : tuple
-        The left-hand shape of a multiplciation operation.
+        The left-hand shape of a multiplication operation.
     rh_shape :  tuple
-        The right-hand shape of a multiplciation operation.
+        The right-hand shape of a multiplication operation.
 
     Returns
     -------

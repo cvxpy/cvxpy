@@ -44,7 +44,7 @@ class TestProblem(unittest.TestCase):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
-    # Overriden method to handle lists and lower accuracy.
+    # Overridden method to handle lists and lower accuracy.
     def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF):
         try:
             a = list(a)

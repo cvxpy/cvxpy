@@ -25,7 +25,7 @@ class TestVars(unittest.TestCase):
     def setUp(self):
         pass
 
-    # Overriden method to handle lists and lower accuracy.
+    # Overridden method to handle lists and lower accuracy.
     def assertAlmostEqual(self, a, b):
         try:
             a = list(a)

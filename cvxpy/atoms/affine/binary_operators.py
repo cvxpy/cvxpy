@@ -76,7 +76,7 @@ class BinaryOperator(AffAtom):
 
 
 def matmul(lh_exp, rh_exp):
-    """Matrix multipliction."""
+    """Matrix multiplication."""
     return MulExpression(lh_exp, rh_exp)
 
 

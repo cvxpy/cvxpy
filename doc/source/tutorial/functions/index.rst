@@ -33,7 +33,7 @@ More generally, ``expr[i:j:k]`` selects every kth
 element of ``expr``, starting at ``i`` and ending at ``j-1``.
 If ``expr`` is a matrix, then ``expr[i:j:k]`` selects rows,
 while ``expr[i:j:k, r:s:t]`` selects both rows and columns.
-Indexing drops dimensions while slicing preserves dimenions.
+Indexing drops dimensions while slicing preserves dimensions.
 For example,
 
 .. code:: python

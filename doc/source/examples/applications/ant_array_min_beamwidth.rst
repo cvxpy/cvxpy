@@ -189,7 +189,7 @@ Solve using bisection algorithm
         #
     
         # As of this writing (2014/05/14) cvxpy does not do complex valued math,
-        # so the real and complex values must be stored seperately as reals
+        # so the real and complex values must be stored separately as reals
         # and operated on as follows:
         #     Let any vector or matrix be represented as a+bj, or A+Bj.
         #     Vectors are stored [a; b] and matrices as [A -B; B A]:
