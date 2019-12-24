@@ -121,7 +121,7 @@ nosetests test_dgp.py:TestDgp.test_product
 
 Please make sure that your change doesn't cause any of the unit tests to fail.
 
-`nosetests` supresses stdout by default. To see stdout, pass the `-s` flag
+`nosetests` suppresses stdout by default. To see stdout, pass the `-s` flag
 to `nosetests`.
 
 ## Benchmarks

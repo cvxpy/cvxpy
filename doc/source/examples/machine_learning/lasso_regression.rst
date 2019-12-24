@@ -4,7 +4,7 @@ Machine Learning: Lasso Regression
 
 Lasso regression is, like ridge regression, a **shrinkage** method. It
 differs from ridge regression in its choice of penalty: lasso imposes an
-:math:`\ell_1` **penalty** on the paramters :math:`\beta`. That is,
+:math:`\ell_1` **penalty** on the parameters :math:`\beta`. That is,
 lasso finds an assignment to :math:`\beta` that minimizes the function
 
 .. math:: f(\beta) = \|X\beta - Y\|_2^2 + \lambda \|\beta\|_1,

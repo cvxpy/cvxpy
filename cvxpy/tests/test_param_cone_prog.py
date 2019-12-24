@@ -23,11 +23,11 @@ import numpy as np
 
 
 class TestParamConeProg(BaseTest):
-    # Overriden method to assume lower accuracy.
+    # Overridden method to assume lower accuracy.
     def assertItemsAlmostEqual(self, a, b, places=2):
         super(TestParamConeProg, self).assertItemsAlmostEqual(a, b, places=places)
 
-    # Overriden method to assume lower accuracy.
+    # Overridden method to assume lower accuracy.
     def assertAlmostEqual(self, a, b, places=2):
         super(TestParamConeProg, self).assertAlmostEqual(a, b, places=places)
 

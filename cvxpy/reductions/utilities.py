@@ -54,7 +54,7 @@ def are_args_affine(constraints):
 def group_constraints(constraints):
     """Organize the constraints into a dictionary keyed by constraint names.
 
-    Paramters
+    Parameters
     ---------
     constraints : list of constraints
 

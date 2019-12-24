@@ -31,11 +31,11 @@ class TestSCS(BaseTest):
         self.B = cvx.Variable((2, 2), name='B')
         self.C = cvx.Variable((3, 2), name='C')
 
-    # Overriden method to assume lower accuracy.
+    # Overridden method to assume lower accuracy.
     def assertItemsAlmostEqual(self, a, b, places=2):
         super(TestSCS, self).assertItemsAlmostEqual(a, b, places=places)
 
-    # Overriden method to assume lower accuracy.
+    # Overridden method to assume lower accuracy.
     def assertAlmostEqual(self, a, b, places=2):
         super(TestSCS, self).assertAlmostEqual(a, b, places=places)
 

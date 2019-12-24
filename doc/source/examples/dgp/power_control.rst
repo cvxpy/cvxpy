@@ -11,7 +11,7 @@ example library (Almir Mutapcic).*
 
 This example formulates and solves a power control problem for
 communication systems, in which the goal is to minimize the total
-transmitter power across n trasmitters, each trasmitting positive power
+transmitter power across n transmitters, each trasmitting positive power
 levels :math:`P_1`, :math:`P_2`, :math:`\ldots`, :math:`P_n` to
 :math:`n` receivers, labeled :math:`1, \ldots, n`, with receiver
 :math:`i` receiving signal from transmitter :math:`i`.
