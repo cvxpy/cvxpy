@@ -1023,8 +1023,8 @@ class TestSolvers(BaseTest):
     def test_installed_solvers(self):
         """Test the list of installed solvers.
         """
-        from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC, SOLVER_MAP_QP,
-                                                      INSTALLED_SOLVERS)
+        from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
+
         prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:

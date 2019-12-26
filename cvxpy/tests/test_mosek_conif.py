@@ -17,6 +17,7 @@ limitations under the License.
 import cvxpy as cvx
 import numpy as np
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
 class TestMosek(BaseTest):
@@ -32,7 +33,7 @@ class TestMosek(BaseTest):
                  y <= 5
         and solve with MOSEK and ECOS. Compare MOSEK and ECOS primal and dual solutions.
         """
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             x = cvx.Variable(shape=(3,))
             y = cvx.Variable(shape=(2,))
             constraints = [cvx.norm(x, 2) <= y[0],
@@ -67,7 +68,7 @@ class TestMosek(BaseTest):
         belongs to the correct cone (i.e. the dual variable is itself PSD), and (3) that
         complementary slackness holds with the PSD primal variable and its dual variable.
         """
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             # This is an example from Convex Optimization by B&V.
             # Example 8.3 (page 408 in the 19th printing).
             rho = cvx.Variable(shape=(4, 4))
@@ -117,7 +118,7 @@ class TestMosek(BaseTest):
             iff
                 x[1] * log(x[1] / x[0]) + x[2] <= 0.
         """
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             import mosek
             if hasattr(mosek.conetype, 'pexp'):
                 # Formulate and solve the problem with CVXPY
@@ -157,7 +158,7 @@ class TestMosek(BaseTest):
                  y <= 5, y integer.
         and solve with MOSEK.
         """
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             x = cvx.Variable(shape=(3,))
             y = cvx.Variable(shape=(2,), integer=True)
             constraints = [cvx.norm(x, 2) <= y[0],
@@ -172,7 +173,7 @@ class TestMosek(BaseTest):
             pass
 
     def test_mosek_LP_solution_selection(self):
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             # Problem from
             # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
             x = cvx.Variable(shape=(2,))

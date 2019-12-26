@@ -16,6 +16,7 @@ limitations under the License.
 
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
 class TestNonOptimal(BaseTest):
@@ -31,7 +32,7 @@ class TestNonOptimal(BaseTest):
         p_unb = cp.Problem(obj, constraints)
         p_inf = cp.Problem(cp.Minimize(x1), [0 <= x1, x1 <= -1])
         for solver in [cp.ECOS, cp.CVXOPT, cp.SCS]:
-            if cp.CVXOPT in cp.installed_solvers():
+            if cp.CVXOPT in INSTALLED_SOLVERS:
                 print(solver)
                 p_unb.solve(solver=solver)
                 self.assertEqual(p_unb.status, cp.UNBOUNDED)
@@ -48,7 +49,7 @@ class TestNonOptimal(BaseTest):
                            x <= 0])
         p_unb = cp.Problem(cp.Minimize(cp.sum(x)), [x <= 1])
         for solver in [cp.ECOS, cp.CVXOPT, cp.SCS]:
-            if cp.CVXOPT in cp.installed_solvers():
+            if cp.CVXOPT in INSTALLED_SOLVERS:
                 print(solver)
                 p_inf.solve(solver=solver)
                 self.assertEqual(p_inf.status, cp.INFEASIBLE)

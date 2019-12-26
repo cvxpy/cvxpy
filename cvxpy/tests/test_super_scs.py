@@ -16,6 +16,7 @@ limitations under the License.
 
 import cvxpy as cvx
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 import math
 import numpy as np
 import scipy.linalg as la
@@ -40,7 +41,7 @@ class TestSCS(BaseTest):
         super(TestSCS, self).assertAlmostEqual(a, b, places=places)
 
     def test_log_problem(self):
-        if cvx.SUPER_SCS in cvx.installed_solvers():
+        if cvx.SUPER_SCS in INSTALLED_SOLVERS:
             # Log in objective.
             obj = cvx.Maximize(cvx.sum(cvx.log(self.x)))
             constr = [self.x <= [1, math.e]]
@@ -60,7 +61,7 @@ class TestSCS(BaseTest):
     def test_sigma_max(self):
         """Test sigma_max.
         """
-        if cvx.SUPER_SCS in cvx.installed_solvers():
+        if cvx.SUPER_SCS in INSTALLED_SOLVERS:
             const = cvx.Constant([[1, 2, 3], [4, 5, 6]])
             constr = [self.C == const]
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.C, 2)), constr)
@@ -71,7 +72,7 @@ class TestSCS(BaseTest):
     def test_sdp_var(self):
         """Test sdp var.
         """
-        if cvx.SUPER_SCS in cvx.installed_solvers():
+        if cvx.SUPER_SCS in INSTALLED_SOLVERS:
             const = cvx.Constant([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
             X = cvx.Variable((3, 3), PSD=True)
             prob = cvx.Problem(cvx.Minimize(0), [X == const])
@@ -81,7 +82,7 @@ class TestSCS(BaseTest):
     def test_cplx_mats(self):
         """Test complex matrices.
         """
-        if cvx.SUPER_SCS in cvx.installed_solvers():
+        if cvx.SUPER_SCS in INSTALLED_SOLVERS:
             # Complex-valued matrix
             K = np.array(np.random.rand(2, 2) + 1j * np.random.rand(2, 2))
             n1 = la.svdvals(K).sum()  # trace norm of K
@@ -107,7 +108,7 @@ class TestSCS(BaseTest):
     def test_entr(self):
         """Test a problem with entr.
         """
-        if cvx.SUPER_SCS in cvx.installed_solvers():
+        if cvx.SUPER_SCS in INSTALLED_SOLVERS:
             for n in [5, 10, 25]:
                 print(n)
                 x = cvx.Variable(n)
@@ -119,7 +120,7 @@ class TestSCS(BaseTest):
     def test_exp(self):
         """Test a problem with exp.
         """
-        if cvx.SUPER_SCS in cvx.installed_solvers():
+        if cvx.SUPER_SCS in INSTALLED_SOLVERS:
             for n in [5, 10, 25]:
                 print(n)
                 x = cvx.Variable(n)
@@ -131,7 +132,7 @@ class TestSCS(BaseTest):
     def test_log(self):
         """Test a problem with log.
         """
-        if cvx.SUPER_SCS in cvx.installed_solvers():
+        if cvx.SUPER_SCS in INSTALLED_SOLVERS:
             for n in [5, 10, 25]:
                 print(n)
                 x = cvx.Variable(n)
@@ -143,7 +144,7 @@ class TestSCS(BaseTest):
     def test_warm_start(self):
         """Test warm starting.
         """
-        if cvx.SUPER_SCS in cvx.installed_solvers():
+        if cvx.SUPER_SCS in INSTALLED_SOLVERS:
             x = cvx.Variable(10)
             obj = cvx.Minimize(cvx.sum(cvx.exp(x)))
             prob = cvx.Problem(obj, [cvx.sum(x) == 1])

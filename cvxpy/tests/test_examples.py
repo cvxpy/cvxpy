@@ -19,6 +19,7 @@ import cvxpy as cvx
 import cvxpy.interface as intf
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 import numpy as np
 import unittest
 
@@ -289,7 +290,7 @@ class TestExamples(BaseTest):
         self.assertAlmostEqual(prob.value, 6)
 
         # Solve with CVXOPT.
-        if cvx.CVXOPT in cvx.installed_solvers():
+        if cvx.CVXOPT in INSTALLED_SOLVERS:
             prob.solve(solver=cvx.CVXOPT)
             print("optimal value with CVXOPT:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
@@ -299,13 +300,13 @@ class TestExamples(BaseTest):
         print("optimal value with SCS:", prob.value)
         self.assertAlmostEqual(prob.value, 6, places=2)
 
-        if cvx.CPLEX in cvx.installed_solvers():
+        if cvx.CPLEX in INSTALLED_SOLVERS:
             # Solve with CPLEX.
             prob.solve(solver=cvx.CPLEX)
             print("optimal value with CPLEX:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
-        if cvx.GLPK in cvx.installed_solvers():
+        if cvx.GLPK in INSTALLED_SOLVERS:
             # Solve with GLPK.
             prob.solve(solver=cvx.GLPK)
             print("optimal value with GLPK:", prob.value)
@@ -316,13 +317,13 @@ class TestExamples(BaseTest):
             print("optimal value with GLPK_MI:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
-        if cvx.GUROBI in cvx.installed_solvers():
+        if cvx.GUROBI in INSTALLED_SOLVERS:
             # Solve with Gurobi.
             prob.solve(solver=cvx.GUROBI)
             print("optimal value with GUROBI:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
-        print(cvx.installed_solvers())
+        print(INSTALLED_SOLVERS)
 
     def test_log_det(self):
         # Generate data
@@ -619,7 +620,7 @@ class TestExamples(BaseTest):
         data, chain, inverse = prob.get_problem_data(cvx.ECOS_BB)
 
         # Get CVXOPT arguments.
-        if cvx.CVXOPT in cvx.installed_solvers():
+        if cvx.CVXOPT in INSTALLED_SOLVERS:
             data, chain, inverse = prob.get_problem_data(cvx.CVXOPT)
 
         # Get SCS arguments.

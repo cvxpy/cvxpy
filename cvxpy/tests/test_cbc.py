@@ -16,6 +16,7 @@ limitations under the License.
 
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
 class TestSolvers(BaseTest):
@@ -37,7 +38,7 @@ class TestSolvers(BaseTest):
     def test_lp(self):
         """Tests basic LPs. (from test_elemental.py)
         """
-        if cp.CBC in cp.installed_solvers():
+        if cp.CBC in INSTALLED_SOLVERS:
             prob = cp.Problem(cp.Minimize(0), [self.x == 2])
             prob.solve(verbose=False, solver=cp.CBC)
             self.assertAlmostEqual(prob.value, 0)
@@ -52,7 +53,7 @@ class TestSolvers(BaseTest):
         """Test a basic LP. (from test_solver.py::test_cvxopt_glpk)
         """
         # Either the problem is solved or cp.CBC is not installed.
-        if cp.CBC in cp.installed_solvers():
+        if cp.CBC in INSTALLED_SOLVERS:
             prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)), [self.x == 0])
             prob.solve(verbose=False, solver=cp.CBC)
             self.assertAlmostEqual(prob.value, 0)
@@ -79,7 +80,7 @@ class TestSolvers(BaseTest):
         """Test a basic MILP with cp.CBC. (from test_solver.py::test_cvxopt_glpk_mi)
         """
         # Either the problem is solved or cp.CBC is not installed.
-        if cp.CBC in cp.installed_solvers():
+        if cp.CBC in INSTALLED_SOLVERS:
             bool_var = cp.Variable(boolean=True)
             int_var = cp.Variable(integer=True)
             prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)),
@@ -114,7 +115,7 @@ class TestSolvers(BaseTest):
         """Test a hard knapsack problem with cp.CBC.
         """
         # Either the problem is solved or cp.CBC is not installed.
-        if cp.CBC in cp.installed_solvers():
+        if cp.CBC in INSTALLED_SOLVERS:
             # Instance "knapPI_1_50_1000_1" from "http://www.diku.dk/~pisinger/genhard.c"
             n = 50
             c = 995
@@ -151,7 +152,7 @@ class TestSolvers(BaseTest):
     def test_options(self):
         """Test that all the cp.CBC solver options work.
         """
-        if cp.CBC in cp.installed_solvers():
+        if cp.CBC in INSTALLED_SOLVERS:
             prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)),
                               [self.x == cp.Variable(2, boolean=True)])
             for i in range(2):
