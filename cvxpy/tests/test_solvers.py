@@ -16,6 +16,7 @@ limitations under the License.
 
 import cvxpy as cvx
 import numpy as np
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 import unittest
 
@@ -99,7 +100,7 @@ class TestSolvers(BaseTest):
         # number of iterative refinement steps when solving KKT equations
         # (default: 0 if the problem has no second-order cone
         #  or matrix inequality constraints; 1 otherwise).
-        if cvx.CVXOPT in cvx.installed_solvers():
+        if cvx.CVXOPT in INSTALLED_SOLVERS:
             EPS = 1e-7
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             for i in range(2):
@@ -113,7 +114,7 @@ class TestSolvers(BaseTest):
         """Test a basic LP with GLPK.
         """
         # Either the problem is solved or GLPK is not installed.
-        if cvx.GLPK in cvx.installed_solvers():
+        if cvx.GLPK in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.GLPK)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -140,7 +141,7 @@ class TestSolvers(BaseTest):
         """Test a basic MILP with GLPK.
         """
         # Either the problem is solved or GLPK is not installed.
-        if cvx.GLPK_MI in cvx.installed_solvers():
+        if cvx.GLPK_MI in INSTALLED_SOLVERS:
             bool_var = cvx.Variable(boolean=True)
             int_var = cvx.Variable(integer=True)
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0),
@@ -174,7 +175,7 @@ class TestSolvers(BaseTest):
     def test_cplex(self):
         """Test a basic LP with CPLEX.
         """
-        if cvx.CPLEX in cvx.installed_solvers():
+        if cvx.CPLEX in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1), [self.x == 0])
             prob.solve(solver=cvx.CPLEX)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -234,7 +235,7 @@ class TestSolvers(BaseTest):
     def test_cplex_socp(self):
         """Test a basic SOCP with CPLEX.
         """
-        if cvx.CPLEX in cvx.installed_solvers():
+        if cvx.CPLEX in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.CPLEX)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -294,7 +295,7 @@ class TestSolvers(BaseTest):
     def test_cplex_dual(self):
         """Make sure CPLEX's dual result matches other solvers
         """
-        if cvx.CPLEX in cvx.installed_solvers():
+        if cvx.CPLEX in INSTALLED_SOLVERS:
             constraints = [self.x == 0]
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
             prob.solve(solver=cvx.CPLEX)
@@ -327,8 +328,7 @@ class TestSolvers(BaseTest):
         """Make sure that warm starting CPLEX behaves as expected
            Note: This only checks output, not whether or not CPLEX is warm starting internally
         """
-        if cvx.CPLEX in cvx.installed_solvers():
-            import numpy as np
+        if cvx.CPLEX in INSTALLED_SOLVERS:
 
             A = cvx.Parameter((2, 2))
             b = cvx.Parameter(2)
@@ -392,7 +392,7 @@ class TestSolvers(BaseTest):
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.CPLEX)
 
     def test_cplex_params(self):
-        if cvx.CPLEX in cvx.installed_solvers():
+        if cvx.CPLEX in INSTALLED_SOLVERS:
             import numpy.random as rnd
 
             n = 10
@@ -428,7 +428,7 @@ class TestSolvers(BaseTest):
     def test_cvxopt_dual(self):
         """Make sure CVXOPT's dual result matches other solvers
         """
-        if cvx.CVXOPT in cvx.installed_solvers():
+        if cvx.CVXOPT in INSTALLED_SOLVERS:
             constraints = [self.x == 0]
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
             prob.solve(solver=cvx.CVXOPT)
@@ -456,7 +456,7 @@ class TestSolvers(BaseTest):
     def test_gurobi(self):
         """Test a basic LP with Gurobi.
         """
-        if cvx.GUROBI in cvx.installed_solvers():
+        if cvx.GUROBI in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.GUROBI)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -516,7 +516,7 @@ class TestSolvers(BaseTest):
     def test_gurobi_socp(self):
         """Test a basic SOCP with Gurobi.
         """
-        if cvx.GUROBI in cvx.installed_solvers():
+        if cvx.GUROBI in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.GUROBI)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -576,7 +576,7 @@ class TestSolvers(BaseTest):
     def test_gurobi_dual(self):
         """Make sure Gurobi's dual result matches other solvers
         """
-        if cvx.GUROBI in cvx.installed_solvers():
+        if cvx.GUROBI in INSTALLED_SOLVERS:
             constraints = [self.x == 0]
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
             prob.solve(solver=cvx.GUROBI)
@@ -609,7 +609,7 @@ class TestSolvers(BaseTest):
     def test_mosek(self):
         """Test a basic LP with Mosek.
         """
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.MOSEK)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -642,7 +642,7 @@ class TestSolvers(BaseTest):
     def test_mosek_socp(self):
         """Test a basic SOCP with Mosek.
         """
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.MOSEK)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -675,7 +675,7 @@ class TestSolvers(BaseTest):
     def test_mosek_dual(self):
         """Make sure Mosek's dual result matches other solvers
         """
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             constraints = [self.x == 0]
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
             prob.solve(solver=cvx.MOSEK)
@@ -707,7 +707,7 @@ class TestSolvers(BaseTest):
         """Make sure Mosek's dual result matches other solvers
         """
         # TODO: should work with PSD (>>, <<).
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             # Test optimality gap for equilibration.
             n = 3
             Art = np.random.randn(n, n)
@@ -726,7 +726,7 @@ class TestSolvers(BaseTest):
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cvx.MOSEK)
 
     def test_mosek_params(self):
-        if cvx.MOSEK in cvx.installed_solvers():
+        if cvx.MOSEK in INSTALLED_SOLVERS:
             import numpy.random as rnd
             import mosek
 
@@ -761,8 +761,7 @@ class TestSolvers(BaseTest):
         """Make sure that warm starting Gurobi behaves as expected
            Note: This only checks output, not whether or not Gurobi is warm starting internally
         """
-        if cvx.GUROBI in cvx.installed_solvers():
-            import numpy as np
+        if cvx.GUROBI in INSTALLED_SOLVERS:
 
             A = cvx.Parameter((2, 2))
             b = cvx.Parameter(2)
@@ -828,7 +827,7 @@ class TestSolvers(BaseTest):
     def test_xpress(self):
         """Test a basic LP with Xpress.
         """
-        if cvx.XPRESS in cvx.installed_solvers():
+        if cvx.XPRESS in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.XPRESS)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -861,7 +860,7 @@ class TestSolvers(BaseTest):
     def test_xpress_socp(self):
         """Test a basic SOCP with Xpress.
         """
-        if cvx.XPRESS in cvx.installed_solvers():
+        if cvx.XPRESS in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.XPRESS)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -894,7 +893,7 @@ class TestSolvers(BaseTest):
     def test_xpress_dual(self):
         """Make sure Xpress' dual result matches other solvers
         """
-        if cvx.XPRESS in cvx.installed_solvers():
+        if cvx.XPRESS in INSTALLED_SOLVERS:
             constraints = [self.x == 0]
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
             prob.solve(solver=cvx.XPRESS)
@@ -926,7 +925,7 @@ class TestSolvers(BaseTest):
     def test_nag(self):
         """Test a basic LP with NAG.
         """
-        if cvx.NAG in cvx.installed_solvers():
+        if cvx.NAG in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.NAG)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -959,7 +958,7 @@ class TestSolvers(BaseTest):
     def test_nag_socp(self):
         """Test a basic SOCP with NAG.
         """
-        if cvx.NAG in cvx.installed_solvers():
+        if cvx.NAG in INSTALLED_SOLVERS:
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 2) + 1.0), [self.x == 0])
             prob.solve(solver=cvx.NAG)
             self.assertAlmostEqual(prob.value, 1.0)
@@ -992,7 +991,7 @@ class TestSolvers(BaseTest):
     def test_nag_dual(self):
         """Make sure NAG's dual result matches other solvers
         """
-        if cvx.NAG in cvx.installed_solvers():
+        if cvx.NAG in INSTALLED_SOLVERS:
             constraints = [self.x == 0]
             prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1)))
             prob.solve(solver=cvx.NAG)
