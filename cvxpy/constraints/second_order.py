@@ -89,8 +89,7 @@ class SOC(Constraint):
         """The number of entries in the combined cones.
         """
         cone_size = 1 + self.args[1].shape[self.axis]
-        cs = cone_size * self.num_cones()
-        return cs
+        return cone_size * self.num_cones()
 
     def cone_sizes(self):
         """The dimensions of the second-order cones.
@@ -101,8 +100,7 @@ class SOC(Constraint):
             A list of the sizes of the elementwise cones.
         """
         cone_size = 1 + self.args[1].shape[self.axis]
-        cones = [cone_size] * self.num_cones()
-        return cones
+        return [cone_size] * self.num_cones()
 
     def is_dcp(self):
         """An SOC constraint is DCP if each of its arguments is affine.

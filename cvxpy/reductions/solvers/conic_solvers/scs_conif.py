@@ -236,8 +236,7 @@ class SCS(ConicSolver):
             dim = constraint.shape[0]
             lower_tri_dim = dim * (dim + 1) // 2
             new_offset = offset + lower_tri_dim
-            indices = np.arange(offset, offset + lower_tri_dim)
-            lower_tri = result_vec[indices]
+            lower_tri = result_vec[offset:new_offset]
             full = tri_to_full(lower_tri, dim)
             return full, new_offset
         else:

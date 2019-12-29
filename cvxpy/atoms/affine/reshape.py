@@ -120,4 +120,6 @@ def deep_flatten(x):
             y.append(x1)
         y = hstack(y)
         return y
-    raise RuntimeError('Unknown argument to deep_flatten.')
+    msg = 'The input to deep_flatten must be an Expression, a NumPy array, an int'\
+          + ' or float, or a nested list thereof. Received input of type %s' % type(x)
+    raise ValueError(msg)

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
-import cvxpy as cvx
+import cvxpy as cp
 
 
 class SolverTestHelper(object):
@@ -22,7 +22,7 @@ class SolverTestHelper(object):
     def __init__(self, obj_pair, var_pairs, con_pairs):
         self.objective = obj_pair[0]
         self.constraints = [c for c, _ in con_pairs]
-        self.prob = cvx.Problem(self.objective, self.constraints)
+        self.prob = cp.Problem(self.objective, self.constraints)
         self.variables = [x for x, _ in var_pairs]
 
         self.expect_val = obj_pair[1]
@@ -43,44 +43,41 @@ class SolverTestHelper(object):
             if isinstance(viol, np.ndarray):
                 viol = np.linalg.norm(viol, ord=2)
             assert viol <= 10**(-places)
-        pass
 
     def check_dual_domains(self, places):
         # A full "dual feasibility" check would involve checking a stationary Lagrangian.
         # No such test is planned here.
         for con in self.constraints:
-            if isinstance(con, cvx.constraints.PSD):
+            if isinstance(con, cp.constraints.PSD):
                 dv = con.dual_value
                 eigs = np.linalg.eigvalsh(dv)
                 assert np.all(eigs >= -10**(-places))
-            elif isinstance(con, cvx.constraints.ExpCone):
+            elif isinstance(con, cp.constraints.ExpCone):
                 raise NotImplementedError()
-            elif isinstance(con, cvx.constraints.SOC):
+            elif isinstance(con, cp.constraints.SOC):
                 raise NotImplementedError()
-            elif isinstance(con, cvx.constraints.Inequality):
+            elif isinstance(con, cp.constraints.Inequality):
                 dv = con.dual_value
                 assert np.all(dv >= -10**(-places))
             # for equality constraints, there is nothing to check
-        pass
 
     def check_complementarity(self, places):
         for con in self.constraints:
-            if isinstance(con, cvx.constraints.PSD):
+            if isinstance(con, cp.constraints.PSD):
                 dv = con.dual_value
                 pv = con.args[0].value
-                comp = cvx.scalar_product(pv, dv).value
-            elif isinstance(con, (cvx.constraints.ExpCone,
-                                  cvx.constraints.SOC,
-                                  cvx.constraints.NonPos,
-                                  cvx.constraints.Zero)):
-                comp = cvx.scalar_product(con.args, con.dual_value).value
-            elif isinstance(con, (cvx.constraints.Inequality,
-                                  cvx.constraints.Equality)):
-                comp = cvx.scalar_product(con.expr, con.dual_value).value
+                comp = cp.scalar_product(pv, dv).value
+            elif isinstance(con, (cp.constraints.ExpCone,
+                                  cp.constraints.SOC,
+                                  cp.constraints.NonPos,
+                                  cp.constraints.Zero)):
+                comp = cp.scalar_product(con.args, con.dual_value).value
+            elif isinstance(con, (cp.constraints.Inequality,
+                                  cp.constraints.Equality)):
+                comp = cp.scalar_product(con.expr, con.dual_value).value
             else:
-                raise RuntimeError('Unknown constraint type.')
+                raise ValueError('Unknown constraint type %s.' % type(con))
             assert abs(comp) <= 10**(-places)
-        pass
 
     def verify_objective(self, places):
         actual = self.prob.value
@@ -94,7 +91,6 @@ class SolverTestHelper(object):
             expect = self.expect_prim_vars[idx]
             if expect is not None:
                 assert np.allclose(actual, expect, rtol=0, atol=10**(-places))
-        pass
 
     def verify_dual_values(self, places):
         for idx in range(len(self.constraints)):
@@ -108,13 +104,12 @@ class SolverTestHelper(object):
                         assert np.allclose(act, exp, rtol=0, atol=10**(-places))
                 else:
                     assert np.allclose(actual, expect, rtol=0, atol=10**(-places))
-        pass
 
 
 def lp_0():
-    x = cvx.Variable(shape=(2,))
+    x = cp.Variable(shape=(2,))
     con_pairs = [(x == 0, None)]
-    obj_pair = (cvx.Minimize(cvx.norm(x, 1) + 1.0), 1)
+    obj_pair = (cp.Minimize(cp.norm(x, 1) + 1.0), 1)
     var_pairs = [(x, np.array([0, 0]))]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
@@ -123,8 +118,8 @@ def lp_0():
 def lp_1():
     # Example from
     # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
-    x = cvx.Variable(shape=(2,), name='x')
-    objective = cvx.Minimize(-4 * x[0] - 5 * x[1])
+    x = cp.Variable(shape=(2,), name='x')
+    objective = cp.Minimize(-4 * x[0] - 5 * x[1])
     constraints = [2 * x[0] + x[1] <= 3,
                    x[0] + 2 * x[1] <= 3,
                    x[0] >= 0,
@@ -140,8 +135,8 @@ def lp_1():
 
 
 def lp_2():
-    x = cvx.Variable(shape=(2,), name='x')
-    objective = cvx.Minimize(x[0] + 0.5 * x[1])
+    x = cp.Variable(shape=(2,), name='x')
+    objective = cp.Minimize(x[0] + 0.5 * x[1])
     constraints = [x[0] >= -100, x[0] <= -10, x[1] == 1]
     con_pairs = [(constraints[0], 1),
                  (constraints[1], 0),
@@ -153,8 +148,8 @@ def lp_2():
 
 
 def socp_0():
-    x = cvx.Variable(shape=(2,))
-    obj_pair = (cvx.Minimize(cvx.norm(x, 2) + 1), 1)
+    x = cp.Variable(shape=(2,))
+    obj_pair = (cp.Minimize(cp.norm(x, 2) + 1), 1)
     con_pairs = [(x == 0, None)]
     var_pairs = [(x, np.array([0, 0]))]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -168,13 +163,13 @@ def socp_1():
          x[0] + x[1] + 3*x[2] >= 1.0
          y <= 5
     """
-    x = cvx.Variable(shape=(3,))
-    y = cvx.Variable()
-    soc = cvx.constraints.second_order.SOC(y, x)
+    x = cp.Variable(shape=(3,))
+    y = cp.Variable()
+    soc = cp.constraints.second_order.SOC(y, x)
     constraints = [soc,
                    x[0] + x[1] + 3 * x[2] >= 1.0,
                    y <= 5]
-    obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[2])
+    obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
     expect_x = np.array([-3.874621860638774, -2.129788233677883, 2.33480343377204])
     expect_x = np.round(expect_x, decimals=5)
     expect_y = 5
@@ -196,8 +191,8 @@ def socp_2():
     An (unnecessarily) SOCP-based reformulation of LP_1.
     Doesn't use SOC objects.
     """
-    x = cvx.Variable(shape=(2,), name='x')
-    objective = cvx.Minimize(-4 * x[0] - 5 * x[1])
+    x = cp.Variable(shape=(2,), name='x')
+    objective = cp.Minimize(-4 * x[0] - 5 * x[1])
     constraints = [2 * x[0] + x[1] <= 3,
                    (x[0] + 2 * x[1])**2 <= 3**2,
                    x[0] >= 0,
@@ -223,7 +218,7 @@ def sdp_1(objective_sense):
     belongs to the correct cone (i.e. the dual variable is itself PSD), and (3) that
     complementary slackness holds with the PSD primal variable and its dual variable.
     """
-    rho = cvx.Variable(shape=(4, 4), symmetric=True)
+    rho = cp.Variable(shape=(4, 4), symmetric=True)
     constraints = [0.6 <= rho[0, 1], rho[0, 1] <= 0.9,
                    0.8 <= rho[0, 2], rho[0, 2] <= 0.9,
                    0.5 <= rho[1, 3], rho[1, 3] <= 0.7,
@@ -231,10 +226,10 @@ def sdp_1(objective_sense):
                    rho[0, 0] == 1, rho[1, 1] == 1, rho[2, 2] == 1, rho[3, 3] == 1,
                    rho >> 0]
     if objective_sense == 'min':
-        obj = cvx.Minimize(rho[0, 3])
+        obj = cp.Minimize(rho[0, 3])
         obj_pair = (obj, -0.39)
     elif objective_sense == 'max':
-        obj = cvx.Maximize(rho[0, 3])
+        obj = cp.Maximize(rho[0, 3])
         obj_pair = (obj, 0.23)
     else:
         raise RuntimeError('Unknown objective_sense.')
@@ -251,13 +246,13 @@ def expcone_1():
           x >= 0
           x[0] >= x[1] * exp(x[2] / x[1])
     """
-    x = cvx.Variable(shape=(3, 1))
-    cone_con = cvx.constraints.ExpCone(x[2], x[1], x[0])
-    constraints = [cvx.sum(x) <= 1.0,
-                   cvx.sum(x) >= 0.1,
+    x = cp.Variable(shape=(3, 1))
+    cone_con = cp.constraints.ExpCone(x[2], x[1], x[0])
+    constraints = [cp.sum(x) <= 1.0,
+                   cp.sum(x) >= 0.1,
                    x >= 0,
                    cone_con]
-    obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[2])
+    obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
     obj_pair = (obj, 0.23534820622420757)
     expect_exp = [np.array([-1.35348213]), np.array([-0.35348211]), np.array([0.64651792])]
     con_pairs = [(constraints[0], 0),
@@ -274,11 +269,11 @@ def expcone_1():
 
 
 def mi_lp_0():
-    x = cvx.Variable(shape=(2,))
-    bool_var = cvx.Variable(boolean=True)
+    x = cp.Variable(shape=(2,))
+    bool_var = cp.Variable(boolean=True)
     con_pairs = [(x == bool_var, None),
                  (bool_var == 0, None)]
-    obj_pair = (cvx.Minimize(cvx.norm(x, 1) + 1.0), 1)
+    obj_pair = (cp.Minimize(cp.norm(x, 1) + 1.0), 1)
     var_pairs = [(x, np.array([0, 0])),
                  (bool_var, 0)]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
@@ -286,10 +281,10 @@ def mi_lp_0():
 
 
 def mi_lp_1():
-    x = cvx.Variable(2, name='x')
-    boolvar = cvx.Variable(boolean=True)
-    intvar = cvx.Variable(integer=True)
-    objective = cvx.Minimize(-4 * x[0] - 5 * x[1])
+    x = cp.Variable(2, name='x')
+    boolvar = cp.Variable(boolean=True)
+    intvar = cp.Variable(integer=True)
+    objective = cp.Minimize(-4 * x[0] - 5 * x[1])
     constraints = [2 * x[0] + x[1] <= intvar,
                    x[0] + 2 * x[1] <= 3 * boolvar,
                    x >= 0,
@@ -326,9 +321,9 @@ def mi_lp_2():
               [43, 81, 972, 0], [44, 943, 895, 0], [45, 58, 213, 0],
               [46, 303, 748, 0], [47, 764, 487, 0], [48, 536, 923, 0],
               [49, 724, 29, 1], [50, 789, 674, 0]]  # index, p / w / x
-    X = cvx.Variable(n, boolean=True)
-    objective = cvx.Maximize(cvx.sum(cvx.multiply([i[1] for i in coeffs], X)))
-    constraints = [cvx.sum(cvx.multiply([i[2] for i in coeffs], X)) <= c]
+    X = cp.Variable(n, boolean=True)
+    objective = cp.Maximize(cp.sum(cp.multiply([i[1] for i in coeffs], X)))
+    constraints = [cp.sum(cp.multiply([i[2] for i in coeffs], X)) <= c]
     obj_pair = (objective, z)
     con_pairs = [(constraints[0], None)]
     var_pairs = [(X, None)]
@@ -346,13 +341,13 @@ def mi_socp_1():
              y <= 5, y integer.
     and solve with MOSEK.
     """
-    x = cvx.Variable(shape=(3,))
-    y = cvx.Variable(shape=(2,), integer=True)
-    constraints = [cvx.norm(x, 2) <= y[0],
-                   cvx.norm(x, 2) <= y[1],
+    x = cp.Variable(shape=(3,))
+    y = cp.Variable(shape=(2,), integer=True)
+    constraints = [cp.norm(x, 2) <= y[0],
+                   cp.norm(x, 2) <= y[1],
                    x[0] + x[1] + 3 * x[2] >= 0.1,
                    y <= 5]
-    obj = cvx.Minimize(3 * x[0] + 2 * x[1] + x[2] + y[0] + 2 * y[1])
+    obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2] + y[0] + 2 * y[1])
     obj_pair = (obj, 0.21363997604807272)
     var_pairs = [(x, np.array([-0.78510265, -0.43565177,  0.44025147])),
                  (y, np.array([1, 1]))]
@@ -366,10 +361,10 @@ def mi_socp_2():
     An (unnecessarily) SOCP-based reformulation of MI_LP_1.
     Doesn't use SOC objects.
     """
-    x = cvx.Variable(shape=(2,))
-    bool_var = cvx.Variable(boolean=True)
-    int_var = cvx.Variable(integer=True)
-    objective = cvx.Minimize(-4 * x[0] - 5 * x[1])
+    x = cp.Variable(shape=(2,))
+    bool_var = cp.Variable(boolean=True)
+    int_var = cp.Variable(integer=True)
+    objective = cp.Minimize(-4 * x[0] - 5 * x[1])
     constraints = [2 * x[0] + x[1] <= int_var,
                    (x[0] + 2 * x[1]) ** 2 <= 9 * bool_var,
                    x >= 0,
@@ -441,7 +436,6 @@ class StandardTestSOCPs(object):
         sth.verify_objective(places)
         sth.verify_primal_values(places)
         sth.check_complementarity(places)
-        pass
 
     @staticmethod
     def test_socp_1(solver, places=4, **kwargs):
@@ -451,7 +445,6 @@ class StandardTestSOCPs(object):
         sth.verify_primal_values(places)
         sth.check_complementarity(places)
         sth.verify_dual_values(places)
-        pass
 
     @staticmethod
     def test_socp_2(solver, places=4, **kwargs):
@@ -461,7 +454,6 @@ class StandardTestSOCPs(object):
         sth.verify_primal_values(places)
         sth.check_complementarity(places)
         sth.verify_dual_values(places)
-        pass
 
     @staticmethod
     def test_mi_socp_1(solver, places=4, **kwargs):
@@ -469,7 +461,6 @@ class StandardTestSOCPs(object):
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
-        pass
 
     @staticmethod
     def test_mi_socp_2(solver, places=4, **kwargs):
@@ -477,7 +468,6 @@ class StandardTestSOCPs(object):
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
-        pass
 
 
 class StandardTestSDPs(object):
@@ -490,7 +480,6 @@ class StandardTestSDPs(object):
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
-        pass
 
     @staticmethod
     def test_sdp_1max(solver, places=4, **kwargs):
@@ -500,7 +489,6 @@ class StandardTestSDPs(object):
         sth.check_primal_feasibility(places)
         sth.check_complementarity(places)
         sth.check_dual_domains(places)
-        pass
 
 
 class StandardTestECPs(object):
@@ -512,4 +500,3 @@ class StandardTestECPs(object):
         sth.verify_objective(places)
         sth.verify_dual_values(places)
         sth.verify_primal_values(places)
-        pass
