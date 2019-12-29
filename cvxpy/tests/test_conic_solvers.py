@@ -23,7 +23,7 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs
 from cvxpy.tests.solver_test_helpers import StandardTestSOCPs, StandardTestLPs
 
-raise ValueError('Unknown constraint type %s.' % type(con))
+
 class TestECOS(BaseTest):
 
     def setUp(self):
