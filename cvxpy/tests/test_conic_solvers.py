@@ -23,7 +23,7 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs
 from cvxpy.tests.solver_test_helpers import StandardTestSOCPs, StandardTestLPs
 
-
+raise ValueError('Unknown constraint type %s.' % type(con))
 class TestECOS(BaseTest):
 
     def setUp(self):
@@ -334,7 +334,7 @@ class TestMosek(unittest.TestCase):
         # default settings
         StandardTestLPs.test_lp_1(solver='MOSEK')
         # require a basic feasible solution
-        StandardTestLPs.test_lp_1(solver='MOSEK', places=7, bfs=True)
+        StandardTestLPs.test_lp_1(solver='MOSEK', places=6, bfs=True)
 
     def test_mosek_lp_2(self):
         StandardTestLPs.test_lp_2(solver='MOSEK')

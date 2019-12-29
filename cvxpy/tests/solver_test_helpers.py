@@ -15,6 +15,7 @@ limitations under the License.
 """
 import numpy as np
 import cvxpy as cp
+from cvxpy.tests.base_test import BaseTest
 
 
 class SolverTestHelper(object):
@@ -32,36 +33,55 @@ class SolverTestHelper(object):
     def solve(self, solver, **kwargs):
         self.prob.solve(solver=solver, **kwargs)
 
-    def check_objective(self, places=4):
+    def check_objective(self, places):
+        test_case = BaseTest()
         actual = self.prob.objective.value
         expect = self.prob.value
-        assert abs(actual - expect) <= 10**(-places)
+        test_case.assertAlmostEqual(actual, expect, places)
 
     def check_primal_feasibility(self, places):
+        test_case = BaseTest()
         for con in self.constraints:
             viol = con.violation()
             if isinstance(viol, np.ndarray):
                 viol = np.linalg.norm(viol, ord=2)
-            assert viol <= 10**(-places)
+            test_case.assertAlmostEqual(viol, 0, places)
 
     def check_dual_domains(self, places):
         # A full "dual feasibility" check would involve checking a stationary Lagrangian.
         # No such test is planned here.
+        test_case = BaseTest()
         for con in self.constraints:
             if isinstance(con, cp.constraints.PSD):
+                # TODO: move this to PSD.dual_violation
                 dv = con.dual_value
                 eigs = np.linalg.eigvalsh(dv)
-                assert np.all(eigs >= -10**(-places))
+                min_eig = np.min(eigs)
+                test_case.assertGreaterEqual(min_eig, -(10**(-places)))
             elif isinstance(con, cp.constraints.ExpCone):
+                # TODO: implement this (preferably with ExpCone.dual_violation)
                 raise NotImplementedError()
             elif isinstance(con, cp.constraints.SOC):
+                # TODO: implement this (preferably with SOC.dual_violation)
                 raise NotImplementedError()
             elif isinstance(con, cp.constraints.Inequality):
+                # TODO: move this to Inequality.dual_violation
                 dv = con.dual_value
-                assert np.all(dv >= -10**(-places))
-            # for equality constraints, there is nothing to check
+                min_dv = np.min(dv)
+                test_case.assertGreaterEqual(min_dv, -(10**(-places)))
+            elif isinstance(con, (cp.constraints.Equality, cp.constraints.Zero)):
+                dv = con.dual_value
+                test_case.assertIsNotNone(dv)
+                if isinstance(dv, np.ndarray):
+                    contents = dv.dtype
+                    test_case.assertEqual(contents, float)
+                else:
+                    test_case.assertIsInstance(dv, float)
+            else:
+                raise ValueError('Unknown constraint type %s.' % type(con))
 
     def check_complementarity(self, places):
+        test_case = BaseTest()
         for con in self.constraints:
             if isinstance(con, cp.constraints.PSD):
                 dv = con.dual_value
@@ -77,22 +97,25 @@ class SolverTestHelper(object):
                 comp = cp.scalar_product(con.expr, con.dual_value).value
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
-            assert abs(comp) <= 10**(-places)
+            test_case.assertAlmostEqual(comp, 0, places)
 
     def verify_objective(self, places):
+        test_case = BaseTest()
         actual = self.prob.value
         expect = self.expect_val
         if expect is not None:
-            assert abs(actual - expect) < 10**(-places)
+            test_case.assertAlmostEqual(actual, expect, places)
 
     def verify_primal_values(self, places):
+        test_case = BaseTest()
         for idx in range(len(self.variables)):
             actual = self.variables[idx].value
             expect = self.expect_prim_vars[idx]
             if expect is not None:
-                assert np.allclose(actual, expect, rtol=0, atol=10**(-places))
+                test_case.assertItemsAlmostEqual(actual, expect, places)
 
     def verify_dual_values(self, places):
+        test_case = BaseTest()
         for idx in range(len(self.constraints)):
             actual = self.constraints[idx].dual_value
             expect = self.expect_dual_vars[idx]
@@ -101,9 +124,9 @@ class SolverTestHelper(object):
                     for i in range(len(actual)):
                         act = actual[i]
                         exp = expect[i]
-                        assert np.allclose(act, exp, rtol=0, atol=10**(-places))
+                        test_case.assertItemsAlmostEqual(act, exp, places)
                 else:
-                    assert np.allclose(actual, expect, rtol=0, atol=10**(-places))
+                    test_case.assertItemsAlmostEqual(actual, expect, places)
 
 
 def lp_0():
