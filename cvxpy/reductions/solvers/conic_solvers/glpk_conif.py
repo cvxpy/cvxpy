@@ -48,7 +48,7 @@ class GLPK(CVXOPT):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
-        data, inv_data = super(CVXOPT, self).apply(problem)
+        data, inv_data = super(GLPK, self).apply(problem)
         # Convert A, b, G, h, c to CVXOPT matrices.
         if data[s.A] is not None:
             data[s.A] = intf.sparse2cvxopt(data[s.A])
