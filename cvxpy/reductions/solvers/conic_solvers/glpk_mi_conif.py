@@ -18,6 +18,7 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers import GLPK
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solution import Solution, failure_solution
 
 
 class GLPK_MI(GLPK):
@@ -94,3 +95,15 @@ class GLPK_MI(GLPK):
             solution[s.VALUE] = primal_val
 
         return solution
+
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+        status = solution['status']
+
+        if status in s.SOLUTION_PRESENT:
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            return Solution(status, opt_val, primal_vars, None, {})
+        else:
+            return failure_solution(status)
