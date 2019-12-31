@@ -170,6 +170,27 @@ def lp_2():
     return sth
 
 
+def lp_3():
+    # an unbounded problem
+    x = cp.Variable(5)
+    objective = (cp.Minimize(cp.sum(x)), -np.inf)
+    var_pairs = [(x, None)]
+    con_pairs = [(x <= 1, None)]
+    sth = SolverTestHelper(objective, var_pairs, con_pairs)
+    return sth
+
+
+def lp_4():
+    # an infeasible problem
+    x = cp.Variable(5)
+    objective = (cp.Minimize(cp.sum(x)), np.inf)
+    var_pairs = [(x, None)]
+    con_pairs = [(x <= 0, None),
+                 (x >= 1, None)]
+    sth = SolverTestHelper(objective, var_pairs, con_pairs)
+    return sth
+
+
 def socp_0():
     x = cp.Variable(shape=(2,))
     obj_pair = (cp.Minimize(cp.norm(x, 2) + 1), 1)
@@ -430,6 +451,18 @@ class StandardTestLPs(object):
         sth.verify_objective(places)
         sth.verify_primal_values(places)
         sth.verify_dual_values(places)
+
+    @staticmethod
+    def test_lp_3(solver, places=4, **kwargs):
+        sth = lp_3()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+
+    @staticmethod
+    def test_lp_4(solver, places=4, **kwargs):
+        sth = lp_4()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
 
     @staticmethod
     def test_mi_lp_0(solver, places=4, **kwargs):

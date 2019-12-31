@@ -22,6 +22,7 @@ import unittest
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs
 from cvxpy.tests.solver_test_helpers import StandardTestSOCPs, StandardTestLPs
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 
 
 class TestECOS(BaseTest):
@@ -79,6 +80,12 @@ class TestECOS(BaseTest):
 
     def test_ecos_lp_2(self):
         StandardTestLPs.test_lp_2(solver='ECOS')
+
+    def test_ecos_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='ECOS')
+
+    def test_ecos_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='ECOS')
 
     def test_ecos_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='ECOS')
@@ -314,6 +321,12 @@ class TestSCS(BaseTest):
         eigs = np.linalg.eig(s + s.T)[0]
         self.assertEqual(np.all(eigs >= 0), True)
 
+    def test_scs_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='SCS')
+
+    def test_scs_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='SCS')
+
     def test_scs_socp_1(self):
         StandardTestSOCPs.test_socp_1(solver='SCS')
 
@@ -324,7 +337,7 @@ class TestSCS(BaseTest):
         StandardTestECPs.test_expcone_1(solver='SCS')
 
 
-@unittest.skipUnless('MOSEK' in cp.installed_solvers(), 'MOSEK is not installed.')
+@unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
 class TestMosek(unittest.TestCase):
 
     def test_mosek_lp_0(self):
@@ -338,6 +351,12 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_lp_2(self):
         StandardTestLPs.test_lp_2(solver='MOSEK')
+
+    def test_mosek_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='MOSEK')
+
+    def test_mosek_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='MOSEK')
 
     def test_mosek_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='MOSEK')
@@ -373,7 +392,7 @@ class TestMosek(unittest.TestCase):
         StandardTestSOCPs.test_mi_socp_2(solver='MOSEK')
 
     def test_mosek_params(self):
-        if cp.MOSEK in cp.installed_solvers():
+        if cp.MOSEK in INSTALLED_SOLVERS:
             import mosek
             n = 10
             m = 4
@@ -403,7 +422,7 @@ class TestMosek(unittest.TestCase):
             problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
 
-@unittest.skipUnless('SUPER_SCS' in cp.installed_solvers(), 'SUPER_SCS is not installed.')
+@unittest.skipUnless('SUPER_SCS' in INSTALLED_SOLVERS, 'SUPER_SCS is not installed.')
 class TestSuperSCS(BaseTest):
 
     def setUp(self):
@@ -431,6 +450,12 @@ class TestSuperSCS(BaseTest):
     def test_super_scs_lp_2(self):
         StandardTestLPs.test_lp_2(solver='SUPER_SCS')
 
+    def test_super_scs_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='SUPER_SCS')
+
+    def test_super_scs_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='SUPER_SCS')
+
     def test_super_scs_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='SUPER_SCS')
 
@@ -450,7 +475,7 @@ class TestSuperSCS(BaseTest):
         StandardTestECPs.test_expcone_1(solver='SUPER_SCS')
 
     def test_warm_start(self):
-        if cp.SUPER_SCS in cp.installed_solvers():
+        if cp.SUPER_SCS in INSTALLED_SOLVERS:
             x = cp.Variable(10)
             obj = cp.Minimize(cp.sum(cp.exp(x)))
             prob = cp.Problem(obj, [cp.sum(x) == 1])
@@ -459,7 +484,7 @@ class TestSuperSCS(BaseTest):
             self.assertAlmostEqual(result2, result, places=2)
 
 
-@unittest.skipUnless('CVXOPT' in cp.installed_solvers(), 'CVXOPT is not installed.')
+@unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
 class TestCVXOPT(BaseTest):
 
     def setUp(self):
@@ -491,7 +516,7 @@ class TestCVXOPT(BaseTest):
         # number of iterative refinement steps when solving KKT equations
         # (default: 0 if the problem has no second-order cone
         #  or matrix inequality constraints; 1 otherwise).
-        if cp.CVXOPT in cp.installed_solvers():
+        if cp.CVXOPT in INSTALLED_SOLVERS:
             EPS = 1e-7
             prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
             for i in range(2):
@@ -510,6 +535,15 @@ class TestCVXOPT(BaseTest):
     def test_cvxopt_lp_2(self):
         StandardTestLPs.test_lp_2(solver='CVXOPT')
 
+    def test_cvxopt_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='CVXOPT')
+
+    def test_cvxopt_lp_4(self):
+        # default settings
+        StandardTestLPs.test_lp_4(solver='CVXOPT')
+        # without a CVXPY-based presolve
+        StandardTestLPs.test_lp_4(solver='CVXOPT', kktsolver='robust')
+
     def test_cvxopt_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='CVXOPT')
 
@@ -526,7 +560,7 @@ class TestCVXOPT(BaseTest):
         StandardTestSDPs.test_sdp_1max(solver='CVXOPT')
 
 
-@unittest.skipUnless('CBC' in cp.installed_solvers(), 'CBC is not installed.')
+@unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 class TestCBC(BaseTest):
 
     def setUp(self):
@@ -547,7 +581,7 @@ class TestCBC(BaseTest):
         """
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)),
                           [self.x == cp.Variable(2, boolean=True)])
-        if cp.CBC in cp.installed_solvers():
+        if cp.CBC in INSTALLED_SOLVERS:
             for i in range(2):
                 # Some cut-generators seem to be buggy for now -> set to false
                 # prob.solve(solver=cvx.CBC, verbose=True, GomoryCuts=True, MIRCuts=True,
@@ -572,6 +606,12 @@ class TestCBC(BaseTest):
     def test_cbc_lp_2(self):
         StandardTestLPs.test_lp_2(solver='CBC')
 
+    def test_cbc_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='CBC')
+
+    def test_cbc_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='CBC')
+
     def test_cbc_mi_lp_0(self):
         StandardTestLPs.test_mi_lp_0(solver='CBC')
 
@@ -582,7 +622,7 @@ class TestCBC(BaseTest):
         StandardTestLPs.test_mi_lp_2(solver='CBC')
 
 
-@unittest.skipUnless('GLPK' in cp.installed_solvers(), 'GLPK is not installed.')
+@unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
 
     def test_glpk_lp_0(self):
@@ -594,6 +634,12 @@ class TestGLPK(unittest.TestCase):
     def test_glpk_lp_2(self):
         StandardTestLPs.test_lp_2(solver='GLPK')
 
+    def test_glpk_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='GLPK')
+
+    def test_glpk_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='GLPK')
+
     def test_glpk_mi_lp_0(self):
         StandardTestLPs.test_mi_lp_0(solver='GLPK_MI')
 
@@ -604,7 +650,7 @@ class TestGLPK(unittest.TestCase):
         StandardTestLPs.test_mi_lp_2(solver='GLPK_MI')
 
 
-@unittest.skipUnless('CPLEX' in cp.installed_solvers(), 'CPLEX is not installed.')
+@unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
 class TestCPLEX(BaseTest):
     """ Unit tests for solver specific behavior. """
 
@@ -625,7 +671,7 @@ class TestCPLEX(BaseTest):
         """Make sure that warm starting CPLEX behaves as expected
            Note: This only checks output, not whether or not CPLEX is warm starting internally
         """
-        if cp.CPLEX in cp.installed_solvers():
+        if cp.CPLEX in INSTALLED_SOLVERS:
 
             A = cp.Parameter((2, 2))
             b = cp.Parameter(2)
@@ -689,7 +735,7 @@ class TestCPLEX(BaseTest):
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.CPLEX)
 
     def test_cplex_params(self):
-        if cp.CPLEX in cp.installed_solvers():
+        if cp.CPLEX in INSTALLED_SOLVERS:
             n, m = 10, 4
             A = np.random.randn(m, n)
             x = np.random.randn(n)
@@ -728,6 +774,12 @@ class TestCPLEX(BaseTest):
     def test_cplex_lp_2(self):
         StandardTestLPs.test_lp_2(solver='CPLEX')
 
+    def test_cplex_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='CPLEX')
+
+    def test_cplex_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='CPLEX')
+
     def test_cplex_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='CPLEX')
 
@@ -753,7 +805,7 @@ class TestCPLEX(BaseTest):
         StandardTestSOCPs.test_mi_socp_2(solver='CPLEX')
 
 
-@unittest.skipUnless('GUROBI' in cp.installed_solvers(), 'GUROBI is not installed.')
+@unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
 class TestGUROBI(BaseTest):
     """ Unit tests for solver specific behavior. """
 
@@ -774,7 +826,7 @@ class TestGUROBI(BaseTest):
         """Make sure that warm starting Gurobi behaves as expected
            Note: This only checks output, not whether or not Gurobi is warm starting internally
         """
-        if cp.GUROBI in cp.installed_solvers():
+        if cp.GUROBI in INSTALLED_SOLVERS:
             import numpy as np
 
             A = cp.Parameter((2, 2))
@@ -847,6 +899,12 @@ class TestGUROBI(BaseTest):
     def test_gurobi_lp_2(self):
         StandardTestLPs.test_lp_2(solver='GUROBI')
 
+    def test_gurobi_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='GUROBI')
+
+    def test_gurobi_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='GUROBI')
+
     def test_gurobi_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='GUROBI')
 
@@ -872,7 +930,7 @@ class TestGUROBI(BaseTest):
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
 
 
-@unittest.skipUnless('XPRESS' in cp.installed_solvers(), 'EXPRESS is not installed.')
+@unittest.skipUnless('XPRESS' in INSTALLED_SOLVERS, 'EXPRESS is not installed.')
 class TestXPRESS(unittest.TestCase):
 
     def test_xpress_lp_0(self):
@@ -883,6 +941,12 @@ class TestXPRESS(unittest.TestCase):
 
     def test_xpress_lp_2(self):
         StandardTestLPs.test_lp_2(solver='XPRESS')
+
+    def test_xpress_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='XPRESS')
+
+    def test_xpress_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='XPRESS')
 
     def test_xpress_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='XPRESS')
@@ -909,7 +973,7 @@ class TestXPRESS(unittest.TestCase):
         StandardTestSOCPs.test_mi_socp_2(solver='XPRESS')
 
 
-@unittest.skipUnless('NAG' in cp.installed_solvers(), 'NAG is not installed.')
+@unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
 class TestNAG(unittest.TestCase):
 
     def test_nag_lp_0(self):
@@ -920,6 +984,12 @@ class TestNAG(unittest.TestCase):
 
     def test_nag_lp_2(self):
         StandardTestLPs.test_lp_2(solver='NAG')
+
+    def test_nag_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='NAG')
+
+    def test_nag_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='NAG')
 
     def test_nag_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='NAG')
