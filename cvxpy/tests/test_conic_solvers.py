@@ -582,6 +582,28 @@ class TestCBC(BaseTest):
         StandardTestLPs.test_mi_lp_2(solver='CBC')
 
 
+@unittest.skipUnless('GLPK' in cp.installed_solvers(), 'GLPK is not installed.')
+class TestGLPK(unittest.TestCase):
+
+    def test_glpk_lp_0(self):
+        StandardTestLPs.test_lp_0(solver='GLPK')
+
+    def test_glpk_lp_1(self):
+        StandardTestLPs.test_lp_1(solver='GLPK')
+
+    def test_glpk_lp_2(self):
+        StandardTestLPs.test_lp_2(solver='GLPK')
+
+    def test_glpk_mi_lp_0(self):
+        StandardTestLPs.test_mi_lp_0(solver='GLPK_MI')
+
+    def test_glpk_mi_lp_1(self):
+        StandardTestLPs.test_mi_lp_1(solver='GLPK_MI')
+
+    def test_glpk_mi_lp_2(self):
+        StandardTestLPs.test_mi_lp_2(solver='GLPK_MI')
+
+
 @unittest.skipUnless('CPLEX' in cp.installed_solvers(), 'CPLEX is not installed.')
 class TestCPLEX(BaseTest):
     """ Unit tests for solver specific behavior. """
