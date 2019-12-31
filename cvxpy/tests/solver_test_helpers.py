@@ -354,6 +354,9 @@ def mi_lp_2():
     return sth
 
 
+# TODO: Add test-cases for infeasible and unbounded mixed-integer-linear programs.
+
+
 def mi_socp_1():
     """
     Formulate the following mixed-integer SOCP with cvxpy

@@ -19,6 +19,7 @@ import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 
 
 class GLPK(CVXOPT):
@@ -71,12 +72,21 @@ class GLPK(CVXOPT):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            eq_dual = utilities.get_dual_values(
+                solution[s.EQ_DUAL],
+                utilities.extract_dual_value,
+                inverse_data[self.EQ_CONSTR])
+            leq_dual = utilities.get_dual_values(
+                solution[s.INEQ_DUAL],
+                utilities.extract_dual_value,
+                inverse_data[self.NEQ_CONSTR])
+            eq_dual.update(leq_dual)
+            dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
             return failure_solution(status)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        import cvxopt
         import cvxopt.solvers
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
