@@ -120,8 +120,14 @@ class CVXOPT(ECOS):
         data[s.B] = b[:len_eq].flatten()
         if data[s.B].shape[0] == 0:
             data[s.B] = None
-        data[s.G] = -A[len_eq:]
-        data[s.H] = b[len_eq:].flatten()
+        if len_eq > A.shape[1]:
+            # Then the given optimization problem has no conic constraints.
+            # This is certainly a degenerate case, but we'll handle it downstream.
+            data[s.G] = sp.csc_matrix((1, A.shape[1]))
+            data[s.H] = np.array([0])
+        else:
+            data[s.G] = -A[len_eq:]
+            data[s.H] = b[len_eq:].flatten()
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -129,8 +135,6 @@ class CVXOPT(ECOS):
         """
         status = solution['status']
 
-        primal_vars = None
-        dual_vars = None
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
@@ -149,7 +153,6 @@ class CVXOPT(ECOS):
             return failure_solution(status)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        import cvxopt
         import cvxopt.solvers
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
