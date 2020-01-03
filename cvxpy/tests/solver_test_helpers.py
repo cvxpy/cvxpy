@@ -29,35 +29,54 @@ class SolverTestHelper(object):
         self.expect_val = obj_pair[1]
         self.expect_dual_vars = [dv for _, dv in con_pairs]
         self.expect_prim_vars = [pv for _, pv in var_pairs]
+        self.tester = BaseTest()
 
     def solve(self, solver, **kwargs):
         self.prob.solve(solver=solver, **kwargs)
 
-    def check_objective(self, places):
-        test_case = BaseTest()
-        actual = self.prob.objective.value
-        expect = self.prob.value
-        test_case.assertAlmostEqual(actual, expect, places)
-
     def check_primal_feasibility(self, places):
-        test_case = BaseTest()
-        for con in self.constraints:
+        all_cons = [c for c in self.constraints]  # shallow copy
+        for x in self.prob.variables():
+            attrs = x.attributes
+            if attrs['nonneg'] or attrs['pos']:
+                all_cons.append(x >= 0)
+            elif attrs['nonpos'] or attrs['neg']:
+                all_cons.append(x <= 0)
+            elif attrs['imag']:
+                all_cons.append(x + cp.conj(x) == 0)
+            elif attrs['symmetric']:
+                all_cons.append(x == x.T)
+            elif attrs['diag']:
+                all_cons.append(x - cp.diag(cp.diag(x)) == 0)
+            elif attrs['PSD']:
+                all_cons.append(x >> 0)
+            elif attrs['NSD']:
+                all_cons.append(x << 0)
+            elif attrs['hermitian']:
+                all_cons.append(x == cp.conj(x.T))
+            elif attrs['boolean'] or attrs['integer']:
+                round_val = np.round(x.value)
+                all_cons.append(x == round_val)
+        for con in all_cons:
             viol = con.violation()
             if isinstance(viol, np.ndarray):
                 viol = np.linalg.norm(viol, ord=2)
-            test_case.assertAlmostEqual(viol, 0, places)
+            self.tester.assertAlmostEqual(viol, 0, places)
 
     def check_dual_domains(self, places):
         # A full "dual feasibility" check would involve checking a stationary Lagrangian.
         # No such test is planned here.
-        test_case = BaseTest()
+        #
+        # TODO: once dual variables are stored for attributes
+        #   (e.g. X = Variable(shape=(n,n), PSD=True)), check
+        #   domains for dual variables of the attribute constraint.
         for con in self.constraints:
             if isinstance(con, cp.constraints.PSD):
                 # TODO: move this to PSD.dual_violation
                 dv = con.dual_value
                 eigs = np.linalg.eigvalsh(dv)
                 min_eig = np.min(eigs)
-                test_case.assertGreaterEqual(min_eig, -(10**(-places)))
+                self.tester.assertGreaterEqual(min_eig, -(10**(-places)))
             elif isinstance(con, cp.constraints.ExpCone):
                 # TODO: implement this (preferably with ExpCone.dual_violation)
                 raise NotImplementedError()
@@ -68,20 +87,23 @@ class SolverTestHelper(object):
                 # TODO: move this to Inequality.dual_violation
                 dv = con.dual_value
                 min_dv = np.min(dv)
-                test_case.assertGreaterEqual(min_dv, -(10**(-places)))
+                self.tester.assertGreaterEqual(min_dv, -(10**(-places)))
             elif isinstance(con, (cp.constraints.Equality, cp.constraints.Zero)):
                 dv = con.dual_value
-                test_case.assertIsNotNone(dv)
+                self.tester.assertIsNotNone(dv)
                 if isinstance(dv, np.ndarray):
                     contents = dv.dtype
-                    test_case.assertEqual(contents, float)
+                    self.tester.assertEqual(contents, float)
                 else:
-                    test_case.assertIsInstance(dv, float)
+                    self.tester.assertIsInstance(dv, float)
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
 
     def check_complementarity(self, places):
-        test_case = BaseTest()
+        # TODO: once dual variables are stored for attributes
+        #   (e.g. X = Variable(shape=(n,n), PSD=True)), check
+        #   complementarity against the dual variable of the
+        #   attribute constraint.
         for con in self.constraints:
             if isinstance(con, cp.constraints.PSD):
                 dv = con.dual_value
@@ -97,25 +119,22 @@ class SolverTestHelper(object):
                 comp = cp.scalar_product(con.expr, con.dual_value).value
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
-            test_case.assertAlmostEqual(comp, 0, places)
+            self.tester.assertAlmostEqual(comp, 0, places)
 
     def verify_objective(self, places):
-        test_case = BaseTest()
         actual = self.prob.value
         expect = self.expect_val
         if expect is not None:
-            test_case.assertAlmostEqual(actual, expect, places)
+            self.tester.assertAlmostEqual(actual, expect, places)
 
     def verify_primal_values(self, places):
-        test_case = BaseTest()
         for idx in range(len(self.variables)):
             actual = self.variables[idx].value
             expect = self.expect_prim_vars[idx]
             if expect is not None:
-                test_case.assertItemsAlmostEqual(actual, expect, places)
+                self.tester.assertItemsAlmostEqual(actual, expect, places)
 
     def verify_dual_values(self, places):
-        test_case = BaseTest()
         for idx in range(len(self.constraints)):
             actual = self.constraints[idx].dual_value
             expect = self.expect_dual_vars[idx]
@@ -124,9 +143,9 @@ class SolverTestHelper(object):
                     for i in range(len(actual)):
                         act = actual[i]
                         exp = expect[i]
-                        test_case.assertItemsAlmostEqual(act, exp, places)
+                        self.tester.assertItemsAlmostEqual(act, exp, places)
                 else:
-                    test_case.assertItemsAlmostEqual(actual, expect, places)
+                    self.tester.assertItemsAlmostEqual(actual, expect, places)
 
 
 def lp_0():
@@ -251,7 +270,7 @@ def socp_2():
     return sth
 
 
-# TODO(akshaya,SteveDiamond): add vectorized SOCP test cases (with different axis options)
+# TODO: add vectorized SOCP test cases (with different axis options)
 
 
 def sdp_1(objective_sense):
@@ -309,7 +328,7 @@ def expcone_1():
     return sth
 
 
-# TODO(akshaya,SteveDiamond): add a vectorized exponential cone test case.
+# TODO: add a vectorized exponential cone test case.
 
 
 def mi_lp_0():
@@ -375,7 +394,8 @@ def mi_lp_2():
     return sth
 
 
-# TODO: Add test-cases for infeasible and unbounded mixed-integer-linear programs.
+# TODO: Add a test-case for an infeasible integer-linear program
+#  (infeasible only due integrality constraints).
 
 
 def mi_socp_1():
