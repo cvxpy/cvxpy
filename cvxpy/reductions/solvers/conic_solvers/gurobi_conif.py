@@ -265,7 +265,7 @@ class GUROBI(SCS):
         import gurobipy
         constr = []
         expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        for (i, j), c in mat.items():
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
@@ -307,7 +307,7 @@ class GUROBI(SCS):
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
         expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        for (i, j), c in mat.items():
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
