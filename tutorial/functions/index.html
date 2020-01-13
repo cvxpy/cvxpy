@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Atomic Functions &#8212; CVXPY 1.1.0a1 documentation</title>
+    <title>Atomic Functions &#8212; CVXPY 1.1.0a2 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -59,7 +59,7 @@ More generally, <code class="docutils literal notranslate"><span class="pre">exp
 element of <code class="docutils literal notranslate"><span class="pre">expr</span></code>, starting at <code class="docutils literal notranslate"><span class="pre">i</span></code> and ending at <code class="docutils literal notranslate"><span class="pre">j-1</span></code>.
 If <code class="docutils literal notranslate"><span class="pre">expr</span></code> is a matrix, then <code class="docutils literal notranslate"><span class="pre">expr[i:j:k]</span></code> selects rows,
 while <code class="docutils literal notranslate"><span class="pre">expr[i:j:k,</span> <span class="pre">r:s:t]</span></code> selects both rows and columns.
-Indexing drops dimensions while slicing preserves dimenions.
+Indexing drops dimensions while slicing preserves dimensions.
 For example,</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="s2">&quot;0 dimensional&quot;</span><span class="p">,</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -872,7 +872,7 @@ Formally, <span class="math notranslate nohighlight">\(X'_{ij} = \mathbf{vec}(X)
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

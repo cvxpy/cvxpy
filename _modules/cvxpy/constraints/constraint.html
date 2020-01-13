@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.constraints.constraint &#8212; CVXPY 1.1.0a1 documentation</title>
+    <title>cvxpy.constraints.constraint &#8212; CVXPY 1.1.0a2 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -252,7 +252,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_chain_constraints</span><span class="p">()</span>
 
-    <span class="c1"># The value of the dual variable.</span>
+    <span class="c1"># TODO(rileyjmurray): add a function to compute dual-variable violation.</span>
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">dual_value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;NumPy.ndarray : The value of the dual variable.</span>
@@ -263,9 +264,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">dual_vals</span>
 
-    <span class="c1"># TODO(akshayka): Rename to save_dual_value to avoid collision with</span>
-    <span class="c1"># value as defined above.</span>
-    <span class="k">def</span> <span class="nf">save_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">save_dual_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Save the value of the dual variable for the constraint&#39;s parent.</span>
 <span class="sd">        Args:</span>
 <span class="sd">            value: The value of the dual variable.</span>
@@ -349,7 +348,7 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

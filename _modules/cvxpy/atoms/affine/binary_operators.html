@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.atoms.affine.binary_operators &#8212; CVXPY 1.1.0a1 documentation</title>
+    <title>cvxpy.atoms.affine.binary_operators &#8212; CVXPY 1.1.0a2 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -55,6 +55,9 @@
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.affine_atom</span> <span class="k">import</span> <span class="n">AffAtom</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.add_expr</span> <span class="k">import</span> <span class="n">AddExpression</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.promote</span> <span class="k">import</span> <span class="n">promote</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.sum</span> <span class="k">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">cvxpy_sum</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.reshape</span> <span class="k">import</span> <span class="n">deep_flatten</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="k">import</span> <span class="n">conj</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.constants.parameter</span> <span class="k">import</span> <span class="n">is_param_affine</span><span class="p">,</span> <span class="n">is_param_free</span>
 <span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="k">import</span> <span class="n">DCPError</span>
 <span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
@@ -110,7 +113,7 @@
 
 
 <div class="viewcode-block" id="matmul"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.matmul">[docs]</a><span class="k">def</span> <span class="nf">matmul</span><span class="p">(</span><span class="n">lh_exp</span><span class="p">,</span> <span class="n">rh_exp</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Matrix multipliction.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Matrix multiplication.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">MulExpression</span><span class="p">(</span><span class="n">lh_exp</span><span class="p">,</span> <span class="n">rh_exp</span><span class="p">)</span></div>
 
 
@@ -445,6 +448,38 @@
 <span class="sd">            (LinOp for objective, list of constraints)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">div_expr</span><span class="p">(</span><span class="n">arg_objs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">arg_objs</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="p">[])</span></div>
+
+
+<span class="k">def</span> <span class="nf">scalar_product</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the standard inner product (or &quot;scalar product&quot;) of (x,y).</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : Expression, int, float, NumPy ndarray, or nested list thereof.</span>
+<span class="sd">        The conjugate-linear argument to the inner product.</span>
+<span class="sd">    y : Expression, int, float, NumPy ndarray, or nested list thereof.</span>
+<span class="sd">        The linear argument to the inner product.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    expr : Expression</span>
+<span class="sd">        The standard inner product of (x,y), conjugate-linear in x.</span>
+<span class="sd">        We always have ``expr.shape == ()``.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The arguments ``x`` and ``y`` can be nested lists; these lists</span>
+<span class="sd">    will be flattened independently of one another.</span>
+
+<span class="sd">    For example, if ``x = [[a],[b]]`` and  ``y = [c, d]`` (with ``a,b,c,d``</span>
+<span class="sd">    real scalars), then this function returns an Expression representing</span>
+<span class="sd">    ``a * c + b * d``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">deep_flatten</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">deep_flatten</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="n">prod</span> <span class="o">=</span> <span class="n">multiply</span><span class="p">(</span><span class="n">conj</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">y</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cvxpy_sum</span><span class="p">(</span><span class="n">prod</span><span class="p">)</span>
 </pre></div>
 
           </div>
@@ -523,7 +558,7 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.0a1 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.0a2 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -856,7 +856,7 @@
                 <span class="n">v</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
             <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">id</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">:</span>
-                    <span class="n">c</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
+                    <span class="n">c</span><span class="o">.</span><span class="n">save_dual_value</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">id</span><span class="p">])</span>
         <span class="k">elif</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">INF_OR_UNB</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
                 <span class="n">v</span><span class="o">.</span><span class="n">save_value</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
@@ -1133,7 +1133,7 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

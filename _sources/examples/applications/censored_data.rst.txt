@@ -150,7 +150,7 @@ how this new regression does.
 We can see that the fit for the uncensored portion is now vastly
 improved. Even the fit for the censored data is now relatively unbiased
 i.e. the fitted values (red points) are now centered around the
-uncensored obsevations (cyan points).
+uncensored observations (cyan points).
 
 The one glaring issue with this arrangement is that we are now
 predicting many observations to be *below* :math:`D` (orange) even

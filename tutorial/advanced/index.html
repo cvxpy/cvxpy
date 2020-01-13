@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Advanced Features &#8212; CVXPY 1.1.0a1 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.1.0a2 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -76,7 +76,7 @@
 For example, <code class="docutils literal notranslate"><span class="pre">Variable(nonneg=True)</span></code> is a scalar variable constrained to be nonnegative.
 Similarly, <code class="docutils literal notranslate"><span class="pre">Parameter(nonpos=True)</span></code> is a scalar parameter constrained to be nonpositive.
 The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Leaf</span></code></a> (the parent class
-of <code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> and
+of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and
 <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>) is given below.</p>
 <dl class="function">
 <dt id="Leaf">
@@ -237,7 +237,7 @@ All constraints are defined for complex expressions.</p>
 <div class="section" id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
 <p>Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.  For example, the <code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code> transform converts a list of constraints into an
+beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
 expression representing the convex function that takes value 0 when the
 constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -400,15 +400,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="http://libelemental.org/">Elemental</a></p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -416,7 +408,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb">ECOS_BB</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -424,7 +416,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td><p>X</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="http://www.gurobi.com/">GUROBI</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="http://www.gurobi.com/">GUROBI</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -432,7 +424,15 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://www.mosek.com/">MOSEK</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.mosek.com/">MOSEK</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X*</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -440,15 +440,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a></p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td><p>X</p></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="row-even"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -458,6 +450,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 </tr>
 </tbody>
 </table>
+<p>(*) Except mixed-integer SDP.</p>
 <p>Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as</p>
 <blockquote>
 <div><p><span class="math notranslate nohighlight">\(\{(x,y,z) \mid y &gt; 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}\)</span>.</p>
@@ -507,10 +500,6 @@ The table below shows the types of problems the supported solvers can handle.</p
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">MOSEK</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="s2">&quot;optimal value with MOSEK:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
-<span class="c1"># Solve with Elemental.</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">ELEMENTAL</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;optimal value with Elemental:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-
 <span class="c1"># Solve with CBC.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CBC</span><span class="p">)</span>
 <span class="k">print</span><span class="p">(</span><span class="s2">&quot;optimal value with CBC:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
@@ -533,7 +522,6 @@ The table below shows the types of problems the supported solvers can handle.</p
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GLPK_MI</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GUROBI</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">MOSEK</span><span class="p">:</span> <span class="mf">6.0</span>
-<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">Elemental</span><span class="p">:</span> <span class="mf">6.0000044085242727</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CBC</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CPLEX</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">NAG</span><span class="p">:</span> <span class="mf">6.000000003182365</span>
@@ -586,7 +574,7 @@ the problem object records the optimal value, the values of the primal and dual 
 and several solver statistics.
 We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the <code class="docutils literal notranslate"><span class="pre">problem.solver_stats</span></code> attribute,
-which returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code> object.
+which returns a <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code></a> object.
 For example, <code class="docutils literal notranslate"><span class="pre">problem.solver_stats.solve_time</span></code> gives the time it took the solver to solve the problem.</p>
 </div>
 <div class="section" id="warm-start">
@@ -716,6 +704,10 @@ also supported.</p>
 Refer to MOSEK documentation for a list of supported file formats. File format
 is chosen based on the extension.</p>
 </dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'bfs'</span></code></dt><dd><p>For a linear problem, if <code class="docutils literal notranslate"><span class="pre">bfs=True</span></code>, then the basic solution will be retrieved
+instead of the interior-point solution. This assumes no specific MOSEK
+parameters were used which prevent computing the basic solution.</p>
+</dd>
 </dl>
 <p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a> options:</p>
 <dl class="simple">
@@ -796,7 +788,7 @@ It is slower, but more robust.</p>
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
 <p>If you are interested in getting the standard form that CVXPY produces for a
 problem, you can use the <code class="docutils literal notranslate"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
-a <code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code> passes a
+a <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code></a> passes a
 low-level representation that is compatible with the targeted solver to a
 solver, which solves the problem. This method returns that low-level
 representation, along with a <code class="docutils literal notranslate"><span class="pre">SolvingChain</span></code> and metadata for unpacking
@@ -1122,7 +1114,7 @@ solves of a DPP problem.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.transforms.scalarize &#8212; CVXPY 1.1.0a1 documentation</title>
+    <title>cvxpy.transforms.scalarize &#8212; CVXPY 1.1.0a2 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -129,7 +129,7 @@
 <span class="sd">      A Minimize objective.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">num_objs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objectives</span><span class="p">)</span>
-    <span class="n">expr</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">max_elemwise</span><span class="p">([(</span><span class="n">objectives</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_objs</span><span class="p">)])</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">objectives</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_objs</span><span class="p">)])</span>
     <span class="k">return</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 
 
@@ -232,7 +232,7 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

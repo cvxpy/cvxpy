@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.expressions.expression &#8212; CVXPY 1.1.0a1 documentation</title>
+    <title>cvxpy.expressions.expression &#8212; CVXPY 1.1.0a2 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -475,12 +475,16 @@
     <span class="k">def</span> <span class="nf">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Expression : Sum two expressions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">constant</span><span class="p">())</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_zero</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span>
         <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">add_expr</span><span class="p">()([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="Expression.__radd__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__radd__">[docs]</a>    <span class="nd">@_cast_other</span>
     <span class="k">def</span> <span class="nf">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Expression : Sum two expressions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">constant</span><span class="p">())</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_zero</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span>
         <span class="k">return</span> <span class="n">other</span> <span class="o">+</span> <span class="bp">self</span></div>
 
 <div class="viewcode-block" id="Expression.__sub__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__sub__">[docs]</a>    <span class="nd">@_cast_other</span>
@@ -699,7 +703,7 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
