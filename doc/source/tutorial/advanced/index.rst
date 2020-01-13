@@ -382,8 +382,6 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `NAG`_       | X  | X  | X    |     |     |     |
 +--------------+----+----+------+-----+-----+-----+
-| `Elemental`_ | X  | X  | X    |     |     |     |
-+--------------+----+----+------+-----+-----+-----+
 | `ECOS`_      | X  | X  | X    |     | X   |     |
 +--------------+----+----+------+-----+-----+-----+
 | `ECOS_BB`_   | X  | X  | X    |     | X   | X   |
@@ -453,10 +451,6 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.MOSEK)
     print("optimal value with MOSEK:", prob.value)
 
-    # Solve with Elemental.
-    prob.solve(solver=cp.ELEMENTAL)
-    print("optimal value with Elemental:", prob.value)
-
     # Solve with CBC.
     prob.solve(solver=cp.CBC)
     print("optimal value with CBC:", prob.value)
@@ -479,7 +473,6 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
     optimal value with MOSEK: 6.0
-    optimal value with Elemental: 6.0000044085242727
     optimal value with CBC: 6.0
     optimal value with CPLEX: 6.0
     optimal value with NAG: 6.000000003182365
@@ -1056,7 +1049,6 @@ solves of a DPP problem.
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
-.. _Elemental: http://libelemental.org/
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
