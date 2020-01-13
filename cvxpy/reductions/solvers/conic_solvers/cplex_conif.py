@@ -192,9 +192,8 @@ def get_status(model):
                      status.feasible_relaxed_inf,
                      status.feasible_relaxed_sum):
         return s.SOLVER_ERROR
-    elif solstat == status.infeasible_or_unbounded:
-        return s.INFEASIBLE
-    elif solstat == status.unbounded:
+    elif solstat in (status.unbounded,
+                     status.infeasible_or_unbounded):
         return s.UNBOUNDED
     else:
         return s.SOLVER_ERROR

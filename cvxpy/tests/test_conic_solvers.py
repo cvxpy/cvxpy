@@ -784,7 +784,7 @@ class TestCPLEX(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='CPLEX')
 
     def test_cplex_socp_1(self):
-        StandardTestSOCPs.test_socp_1(solver='CPLEX')
+        StandardTestSOCPs.test_socp_1(solver='CPLEX', places=3)
 
     def test_cplex_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver='CPLEX')
@@ -799,7 +799,7 @@ class TestCPLEX(BaseTest):
         StandardTestLPs.test_mi_lp_2(solver='CPLEX')
 
     def test_cplex_mi_socp_1(self):
-        StandardTestSOCPs.test_mi_socp_1(solver='CPLEX')
+        StandardTestSOCPs.test_mi_socp_1(solver='CPLEX', places=3)
 
     def test_cplex_mi_socp_2(self):
         StandardTestSOCPs.test_mi_socp_2(solver='CPLEX')
@@ -924,7 +924,7 @@ class TestGUROBI(BaseTest):
         StandardTestLPs.test_mi_lp_2(solver='GUROBI')
 
     def test_gurobi_mi_socp_1(self):
-        StandardTestSOCPs.test_mi_socp_1(solver='GUROBI')
+        StandardTestSOCPs.test_mi_socp_1(solver='GUROBI', places=3)
 
     def test_gurobi_mi_socp_2(self):
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
