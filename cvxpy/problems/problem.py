@@ -279,12 +279,27 @@ class Problem(u.Canonical):
             perturbations to the variables by calling `.derivative()`. When
             True, the solver must be SCS, and gp, qcp must be false; a DPPError is
             thrown when problem is not DPP.
-        solver_specific_opts : dict, optional
-            A dict of options that will be passed to the specific solver.
-            In general, these options will override any default settings
-            imposed by cvxpy.
         method : function, optional
             A custom solve method to use.
+        kwargs : keywords, optional
+            Additional solver specific arguments. See Notes below.
+
+        Notes
+        ------
+        CVXPY interfaces with a wide range of solvers; the algorithms used by these solvers
+        have parameters relating to stopping criteria, and strategies to improve solution quality.
+
+        There is no one choice of parameters which is perfect for every problem. If you are not
+        getting satisfactory results from a solver, you can try changing its parameters. The
+        exact way this is done depends on the specific solver. Here are some examples:
+
+            prob.solve(solver='ECOS', abstol=1e-6)
+            prob.solve(solver='OSQP', max_iter=10000).
+            mydict = {"MSK_DPAR_INTPNT_CO_TOL_NEAR_REL":  10}
+            prob.solve(solver='MOSEK', mosek_params=mydict).
+
+        You should refer to CVXPY's web documentation for details on how to pass solver
+        parameters.
 
         Returns
         -------
