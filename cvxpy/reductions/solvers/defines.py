@@ -78,11 +78,11 @@ def installed_solvers():
     """
     installed = []
     # Check conic solvers
-    for name, solver in SOLVER_MAP_CONIC.items():
+    for name, solver in list(SOLVER_MAP_CONIC.items()):
         if solver.is_installed():
             installed.append(name)
     # Check QP solvers
-    for name, solver in SOLVER_MAP_QP.items():
+    for name, solver in list(SOLVER_MAP_QP.items()):
         if solver.is_installed():
             installed.append(name)
 

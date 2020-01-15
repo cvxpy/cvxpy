@@ -111,8 +111,7 @@ class Problem(u.Canonical):
     @property
     def status(self):
         """str : The status from the last time the problem was solved; one
-                 of optimal, infeasible, or unbounded (with or without
-                 suffix inaccurate).
+                 of optimal, infeasible, or unbounded.
         """
         return self._status
 

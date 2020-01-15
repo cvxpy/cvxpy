@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division
+
 
 import warnings
 
@@ -211,10 +211,11 @@ def quad_form(x, P):
     """ Alias for :math:`x^T P x`.
 
     """
-    x, P = map(Expression.cast_to_const, (x, P))
+    x, P = list(map(Expression.cast_to_const, (x, P)))
     # Check dimensions.
     if not P.ndim == 2 or P.shape[0] != P.shape[1] or max(x.shape, (1,))[0] != P.shape[0]:
         raise Exception("Invalid dimensions for arguments.")
+    # P cannot be a parameter.
     if x.is_constant():
         return x.H @ P @ x
     elif P.is_constant():

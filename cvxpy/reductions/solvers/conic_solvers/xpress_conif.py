@@ -141,7 +141,7 @@ class XPRESS(SCS):
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import xpress
 
-        if 'no_qp_reduction' in solver_opts.keys() and solver_opts['no_qp_reduction'] is True:
+        if 'no_qp_reduction' in list(solver_opts.keys()) and solver_opts['no_qp_reduction'] is True:
             self.translate_back_QP_ = True
 
         c = data[s.C]  # objective coefficients
@@ -321,11 +321,11 @@ class XPRESS(SCS):
             self.prob_.controls.lplog = 0
             self.prob_.controls.outputlog = 0
 
-        if 'solver_opts' in solver_opts.keys():
+        if 'solver_opts' in list(solver_opts.keys()):
             self.prob_.setControl(solver_opts['solver_opts'])
 
-        self.prob_.setControl({i: solver_opts[i] for i in solver_opts.keys()
-                               if i in xpress.controls.__dict__.keys()})
+        self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
+                               if i in list(xpress.controls.__dict__.keys())})
 
         # Solve
         self.prob_.solve()
@@ -368,7 +368,7 @@ class XPRESS(SCS):
 
             origrow = []
             for iRow in row:
-                if iRow.name in transf2Orig.keys():
+                if iRow.name in list(transf2Orig.keys()):
                     name = transf2Orig[iRow.name]
                 else:
                     name = iRow.name

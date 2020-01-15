@@ -48,10 +48,8 @@ def extract_mip_idx(variables):
     return boolean_idx, integer_idx
 
 
-class MatrixStuffing(Reduction):
+class MatrixStuffing(Reduction, metaclass=abc.ABCMeta):
     """Stuffs a problem into a standard form for a family of solvers."""
-
-    __metaclass__ = abc.ABCMeta
 
     def apply(self, problem):
         """Returns a stuffed problem.

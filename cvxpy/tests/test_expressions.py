@@ -663,8 +663,8 @@ class TestExpressions(BaseTest):
 
         with self.assertRaises(Exception) as cm:
             (self.x/[2, 2, 3])
-        print(cm.exception)
-        self.assertRegexpMatches(str(cm.exception),
+        print((cm.exception))
+        self.assertRegex(str(cm.exception),
                                  "Incompatible shapes for division.*")
 
         c = Constant([3.0, 4.0, 12.0])

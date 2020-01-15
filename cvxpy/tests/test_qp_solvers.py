@@ -114,7 +114,7 @@ class TestQp(BaseTest):
         constr = []
         constr += [abs(u[1] - u[0]) <= 100]
         prob = Problem(Minimize(sum_squares(u)), constr)
-        print("The problem is QP: ", prob.is_qp())
+        print(("The problem is QP: ", prob.is_qp()))
         self.assertEqual(prob.is_qp(), True)
         result = prob.solve(solver=solver)
         self.assertAlmostEqual(result, 0)
@@ -245,7 +245,7 @@ class TestQp(BaseTest):
         x_data = np.random.rand(n) * 5
         x_data_expanded = np.vstack([np.power(x_data, i)
                                      for i in range(1, 4)])
-        print(x_data_expanded.shape, true_coeffs.shape)
+        print((x_data_expanded.shape, true_coeffs.shape))
         y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n)
 
         quadratic = self.offset + x_data * self.slope + \
