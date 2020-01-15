@@ -19,6 +19,7 @@ from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import scalar_value
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.utilities import scopes
 
 
 class Objective(u.Canonical):
@@ -146,6 +147,10 @@ class Minimize(Objective):
         """
         return self.args[0].is_convex()
 
+    def is_dpp(self):
+        with scopes.dpp_scope():
+            return self.args[0].is_convex()
+
     def is_dgp(self):
         """The objective must be log-log convex.
         """
@@ -201,6 +206,12 @@ class Maximize(Objective):
         """The objective must be concave.
         """
         return self.args[0].is_concave()
+
+    def is_dpp(self):
+        """The objective must be concave.
+        """
+        with scopes.dpp_scope():
+            return self.args[0].is_concave()
 
     def is_dgp(self):
         """The objective must be log-log concave.

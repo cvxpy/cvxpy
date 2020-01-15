@@ -25,7 +25,7 @@ class TestVars(unittest.TestCase):
     def setUp(self):
         pass
 
-    # Overriden method to handle lists and lower accuracy.
+    # Overridden method to handle lists and lower accuracy.
     def assertAlmostEqual(self, a, b):
         try:
             a = list(a)
@@ -41,8 +41,8 @@ class TestVars(unittest.TestCase):
         p = Problem(Minimize(sum(1-x) + sum(x)), [x == Boolean(5,4)])
         result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
-        for i in xrange(x.size[0]):
-            for j in xrange(x.size[1]):
+        for i in range(x.size[0]):
+            for j in range(x.size[1]):
                 v = x.value[i, j]
                 self.assertAlmostEqual(v*(1-v), 0)
 
@@ -59,8 +59,8 @@ class TestVars(unittest.TestCase):
                     [x == Choose(5,4,k=4)])
         result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
-        for i in xrange(x.size[0]):
-            for j in xrange(x.size[1]):
+        for i in range(x.size[0]):
+            for j in range(x.size[1]):
                 v = x.value[i, j]
                 self.assertAlmostEqual(v*(1-v), 0)
         self.assertAlmostEqual(x.value.sum(), 4)
@@ -84,8 +84,8 @@ class TestVars(unittest.TestCase):
                     [x == c, x == b])
         result = p.solve(method="admm", solver=CVXOPT)
         self.assertAlmostEqual(result, 20)
-        for i in xrange(x.size[0]):
-            for j in xrange(x.size[1]):
+        for i in range(x.size[0]):
+            for j in range(x.size[1]):
                 v = x.value[i, j]
                 self.assertAlmostEqual(v*(1-v), 0)
 

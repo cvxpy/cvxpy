@@ -15,31 +15,10 @@ limitations under the License.
 """
 
 import abc
-from collections import defaultdict
-
 from cvxpy.reductions.reduction import Reduction
 
 
-def group_constraints(constraints):
-    """Organize the constraints into a dictionary keyed by constraint names.
-
-    Paramters
-    ---------
-    constraints : list of constraints
-
-    Returns
-    -------
-    dict
-        A dict keyed by constraint types where dict[cone_type] maps to a list
-        of exactly those constraints that are of type cone_type.
-    """
-    constr_map = defaultdict(list)
-    for c in constraints:
-        constr_map[type(c)].append(c)
-    return constr_map
-
-
-class Solver(Reduction, metaclass=abc.ABCMeta):
+class Solver(Reduction):
     """Generic interface for a solver that uses reduction semantics
     """
 
@@ -48,6 +27,7 @@ class Solver(Reduction, metaclass=abc.ABCMeta):
 
     # Keys for inverse data.
     VAR_ID = 'var_id'
+    DUAL_VAR_ID = 'dual_var_id'
     EQ_CONSTR = 'eq_constr'
     NEQ_CONSTR = 'other_constr'
 

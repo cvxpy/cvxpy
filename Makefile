@@ -3,7 +3,7 @@
 
 # You can set these variables from the command line.
 GH_PAGES_SOURCES_DOC = doc/source doc/sphinxext doc/themes doc/Makefile
-GH_PAGES_SOURCES = source sphinxext themes Makefile
+GH_PAGES_SOURCES = cvxpy dev_notes.html source sphinxext themes Makefile
 SPHINXOPTS	  =
 SPHINXBUILD   = sphinx-build
 PAPER		  =
@@ -41,7 +41,7 @@ help:
 	@echo "  doctest	to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf $(BUILDDIR)/*
+	-rm -rf *.so $(BUILDDIR)/*
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html
@@ -155,24 +155,22 @@ doctest:
 		  "results in $(BUILDDIR)/doctest/output.txt."
 
 gh-pages:
-	git checkout 0.4
+	git checkout master
 	cd doc && make html
 	rm -rf /tmp/cvxpy_docs/*
 	mkdir -p /tmp/cvxpy_docs/
-	mv doc/build/html /tmp/cvxpy_docs/0.4.11
-	cd doc && make clean
+	mv doc/build/html/* /tmp/cvxpy_docs/
+	make clean
 	git checkout gh-pages
 	mv CNAME /tmp/cvxpy_docs/CNAME
 	git rm -r .
-	git checkout master $(GH_PAGES_SOURCES_DOC)
-	git reset HEAD
-	cp -r doc/* .
-	make html
-	rsync -a build/html/ ./
-	rm -r versions/0.4.11
-	mv /tmp/cvxpy_docs/0.4.11 versions/
-	mv /tmp/cvxpy_docs/CNAME CNAME
+	mv /tmp/cvxpy_docs/* .
 	touch .nojekyll
 	rm -rf $(GH_PAGES_SOURCES) build doc
 	git add -A
 	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
+
+develop:
+	rm -f *.so
+	python setup.py clean --all
+	python setup.py develop

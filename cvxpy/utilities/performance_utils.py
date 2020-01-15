@@ -15,14 +15,20 @@ limitations under the License.
 """
 import functools
 
+from cvxpy.utilities import scopes
+
 
 def lazyprop(func):
     """Wraps a property so it is lazily evaluated."""
-    attr_name = '_lazy_' + func.__name__
 
     @property
     @functools.wraps(func)
     def _lazyprop(self):
+        if scopes.dpp_scope_active():
+            attr_name = '_lazy_dpp_' + func.__name__
+        else:
+            attr_name = '_lazy_' + func.__name__
+
         try:
             return getattr(self, attr_name)
         except AttributeError:
@@ -33,13 +39,17 @@ def lazyprop(func):
 
 def compute_once(func):
     """Computes a method exactly once and caches the result."""
-    attr_name = '_compute_once_' + func.__name__
 
     @functools.wraps(func)
-    def _compute_once(self):
+    def _compute_once(self, *args, **kwargs):
+        if scopes.dpp_scope_active():
+            attr_name = '_compute_once_dpp_' + func.__name__
+        else:
+            attr_name = '_compute_once_' + func.__name__
+
         try:
             return getattr(self, attr_name)
         except AttributeError:
-            setattr(self, attr_name, func(self))
+            setattr(self, attr_name, func(self, *args, **kwargs))
         return getattr(self, attr_name)
     return _compute_once

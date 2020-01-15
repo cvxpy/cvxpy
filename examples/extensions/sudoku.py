@@ -49,20 +49,20 @@ known =[(0,6), (0,7), (1,4), (1,5), (1,8), (2,0), (2,2), (2,7), (2,8),
 
 def row(x,r):
     m, n = x.size
-    for i in xrange(m):
-        for j in xrange(n):
+    for i in range(m):
+        for j in range(n):
             if i == r: yield x[i,j]
 
 def col(x,c):
     m, n = x.size
-    for i in xrange(m):
-        for j in xrange(n):
+    for i in range(m):
+        for j in range(n):
             if j == c: yield x[i,j]
 
 def block(x,b):
     m, n = x.size
-    for i in xrange(m):
-        for j in xrange(n):
+    for i in range(m):
+        for j in range(n):
             # 0 block is r = 0,1, c = 0,1
             # 1 block is r = 0,1, c = 2,3
             # 2 block is r = 2,3, c = 0,1
@@ -94,4 +94,4 @@ A = np.zeros((n, n))
 for i, num in enumerate(numbers):
     A += i * num.value
 
-print np.sum(A - solution)
+print(np.sum(A - solution))

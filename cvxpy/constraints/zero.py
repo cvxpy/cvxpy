@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.constraints.constraint import Constraint
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
@@ -76,19 +75,6 @@ class Zero(Constraint):
             return None
         return np.abs(self.expr.value)
 
-    def canonicalize(self):
-        """Returns the graph implementation of the object.
-
-        Marks the top level constraint as the dual_holder,
-        so the dual value will be saved to the EqConstraint.
-
-        Returns:
-            A tuple of (affine expression, [constraints]).
-        """
-        obj, constraints = self.args[0].canonical_form
-        dual_holder = lu.create_eq(obj, constr_id=self.id)
-        return (None, constraints + [dual_holder])
-
     # The value of the dual variable.
     @property
     def dual_value(self):
@@ -96,9 +82,7 @@ class Zero(Constraint):
         """
         return self.dual_variables[0].value
 
-    # TODO(akshayka): Rename to save_dual_value to avoid collision with
-    # value as defined above.
-    def save_value(self, value):
+    def save_dual_value(self, value):
         """Save the value of the dual variable for the constraint's parent.
 
         Args:
@@ -149,6 +133,9 @@ class Equality(Constraint):
         """An equality constraint is DCP if its argument is affine."""
         return self.expr.is_affine()
 
+    def is_dpp(self):
+        return self.is_dcp() and self.expr.is_dpp()
+
     def is_dgp(self):
         return (self.args[0].is_log_log_affine() and
                 self.args[1].is_log_log_affine())
@@ -174,7 +161,7 @@ class Equality(Constraint):
         """
         return self.dual_variables[0].value
 
-    def save_value(self, value):
+    def save_dual_value(self, value):
         """Save the value of the dual variable for the constraint's parent.
 
         Args:

@@ -46,7 +46,7 @@ P0 = cvxopt.normal(n, n)
 eye = cvxopt.spmatrix(1.0, range(n), range(n))
 P0 = P0.T * P0 + eps * eye
 
-print P0
+print(P0)
 
 P1 = cvxopt.normal(n, n)
 P1 = P1.T*P1
@@ -81,7 +81,7 @@ primal_result = p.solve()
 if p.status is OPTIMAL:
     # Note that since our data is random, we may need to run this program multiple times to get a feasible primal
     # When feasible, we can print out the following values
-    print x.value # solution
+    print (x.value) # solution
     lam1 = constraints[0].dual_value
     lam2 = constraints[1].dual_value
     lam3 = constraints[2].dual_value
@@ -93,5 +93,5 @@ if p.status is OPTIMAL:
     dual_result = -0.5*q_lam.T*P_lam*q_lam + r_lam
     # ISSUE: dual result is matrix for some reason
 
-    print 'Our duality gap is:'
+    print ('Our duality gap is:')
     print (primal_result - dual_result)

@@ -1,14 +1,119 @@
-from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
-from cvxpy.constraints import ExpCone, PSD, SOC
-from cvxpy.error import SolverError
-from cvxpy.reductions import (Chain, ConeMatrixStuffing, EvalParams,
+import warnings
+
+
+from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
+from cvxpy.constraints import ExpCone, PSD, SOC, \
+                              NonPos, Inequality, Equality, Zero
+from cvxpy.error import DCPError, DGPError, SolverError
+from cvxpy.problems.objective import Maximize
+from cvxpy.reductions import (Chain, Dcp2Cone,
+                              FlipObjective, Dgp2Dcp, Qp2SymbolicQp,
+                              CvxAttr2Constr, Complex2Real,
+                              ConeMatrixStuffing, EvalParams,
                               QpMatrixStuffing)
+from cvxpy.reductions.complex2real import complex2real
+from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 
-def construct_solving_chain(problem, candidates):
+def _is_lp(self):
+    """Is problem a linear program?
+    """
+    for c in self.constraints:
+        if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
+            return False
+    for var in self.variables():
+        if var.is_psd() or var.is_nsd():
+            return False
+    return (self.is_dcp() and self.objective.args[0].is_pwl())
+
+
+def _solve_as_qp(problem, candidates):
+    if _is_lp(problem) and candidates['conic_solvers']:
+        # OSQP can take many iterations for LPs; use a conic solver
+        # instead
+        return False
+    return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
+
+
+def _reductions_for_problem_class(problem, candidates, gp=False):
+    """
+    Builds a chain that rewrites a problem into an intermediate
+    representation suitable for numeric reductions.
+
+    Parameters
+    ----------
+    problem : Problem
+        The problem for which to build a chain.
+    candidates : dict
+        Dictionary of candidate solvers divided in qp_solvers
+        and conic_solvers.
+    gp : bool
+        If True, the problem is parsed as a Disciplined Geometric Program
+        instead of as a Disciplined Convex Program.
+    Returns
+    -------
+    list of Reduction objects
+        A list of reductions that can be used to convert the problem to an
+        intermediate form.
+    Raises
+    ------
+    DCPError
+        Raised if the problem is not DCP and `gp` is False.
+    DGPError
+        Raised if the problem is not DGP and `gp` is True.
+    """
+    reductions = []
+    # TODO Handle boolean constraints.
+    if complex2real.accepts(problem):
+        reductions += [Complex2Real()]
+    if gp:
+        reductions += [Dgp2Dcp()]
+
+    if not gp and not problem.is_dcp():
+        append = build_non_disciplined_error_msg(problem, 'DCP')
+        if problem.is_dgp():
+            append += ("\nHowever, the problem does follow DGP rules. "
+                       "Consider calling solve() with `gp=True`.")
+        elif problem.is_dqcp():
+            append += ("\nHowever, the problem does follow DQCP rules. "
+                       "Consider calling solve() with `qcp=True`.")
+        raise DCPError(
+            "Problem does not follow DCP rules. Specifically:\n" + append)
+
+    elif gp and not problem.is_dgp():
+        append = build_non_disciplined_error_msg(problem, 'DGP')
+        if problem.is_dcp():
+            append += ("\nHowever, the problem does follow DCP rules. "
+                       "Consider calling solve() with `gp=False`.")
+        elif problem.is_dqcp():
+            append += ("\nHowever, the problem does follow DQCP rules. "
+                       "Consider calling solve() with `qcp=True`.")
+        raise DGPError("Problem does not follow DGP rules." + append)
+
+    # Dcp2Cone and Qp2SymbolicQp require problems to minimize their objectives.
+    if type(problem.objective) == Maximize:
+        reductions += [FlipObjective()]
+
+    if _solve_as_qp(problem, candidates):
+        reductions += [CvxAttr2Constr(),
+                       Qp2SymbolicQp()]
+    else:
+        # Canonicalize it to conic problem.
+        if not candidates['conic_solvers']:
+            raise SolverError("Problem could not be reduced to a QP, and no "
+                              "conic solvers exist among candidate solvers "
+                              "(%s)." % candidates)
+        else:
+            reductions += [Dcp2Cone(),
+                           CvxAttr2Constr()]
+    return reductions
+
+
+def construct_solving_chain(problem, candidates, gp=False):
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -21,6 +126,9 @@ def construct_solving_chain(problem, candidates):
     candidates : dict
         Dictionary of candidate solvers divided in qp_solvers
         and conic_solvers.
+    gp : bool
+        If True, the problem is parsed as a Disciplined Geometric Program
+        instead of as a Disciplined Convex Program.
 
     Returns
     -------
@@ -33,30 +141,38 @@ def construct_solving_chain(problem, candidates):
         Raised if no suitable solver exists among the installed solvers, or
         if the target solver is not installed.
     """
-    reductions = []
-    if problem.parameters():
-        reductions += [EvalParams()]
     if len(problem.variables()) == 0:
-        reductions += [ConstantSolver()]
-        return SolvingChain(reductions=reductions)
+        return SolvingChain(reductions=[ConstantSolver()])
+    reductions = _reductions_for_problem_class(problem, candidates, gp)
 
-    # Conclude the chain with one of the following:
+    # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-
-    # First, attempt to canonicalize the problem to a linearly constrained QP.
-    if candidates['qp_solvers'] and QpMatrixStuffing.accepts(problem):
+    if _solve_as_qp(problem, candidates):
+        # Canonicalize as a QP
         solver = sorted(candidates['qp_solvers'],
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
+        # TODO remove when QPs can handle parameters.
+        reductions += [EvalParams()]
         reductions += [QpMatrixStuffing(),
                        solver_instance]
         return SolvingChain(reductions=reductions)
 
+    # Canonicalize as a cone program
     if not candidates['conic_solvers']:
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)
+
+    if not problem.is_dpp():
+        warnings.warn(
+            "You are solving a parameterized problem that is not DPP. "
+            "Because the problem is not DPP, subsequent solves will not be "
+            "faster than the first one.")
+        reductions += [EvalParams()]
+    elif any(param.is_complex() for param in problem.parameters()):
+        reductions += [EvalParams()]
 
     # Our choice of solver depends upon which atoms are present in the
     # problem. The types of atoms to check for are SOC atoms, PSD atoms,
@@ -69,6 +185,11 @@ def construct_solving_chain(problem, candidates):
     if (any(atom in EXP_ATOMS for atom in atoms)
             or any(type(c) == ExpCone for c in problem.constraints)):
         cones.append(ExpCone)
+    if (any(atom in NONPOS_ATOMS for atom in atoms)
+            or any(type(c) in [Inequality, NonPos] for c in problem.constraints)):
+        cones.append(NonPos)
+    if (any(type(c) in [Equality, Zero] for c in problem.constraints)):
+        cones.append(Zero)
     if (any(atom in PSD_ATOMS for atom in atoms)
             or any(type(c) == PSD for c in problem.constraints)
             or any(v.is_psd() or v.is_nsd()

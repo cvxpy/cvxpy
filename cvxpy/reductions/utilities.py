@@ -18,6 +18,7 @@ from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.zero import Zero
 from cvxpy.constraints.nonpos import NonPos
+from collections import defaultdict
 import numpy as np
 import scipy.sparse as sp
 
@@ -48,3 +49,22 @@ def special_index_canon(expr, args):
 def are_args_affine(constraints):
     return all(arg.is_affine() for constr in constraints
                for arg in constr.args)
+
+
+def group_constraints(constraints):
+    """Organize the constraints into a dictionary keyed by constraint names.
+
+    Parameters
+    ---------
+    constraints : list of constraints
+
+    Returns
+    -------
+    dict
+        A dict keyed by constraint types where dict[cone_type] maps to a list
+        of exactly those constraints that are of type cone_type.
+    """
+    constr_map = defaultdict(list)
+    for c in constraints:
+        constr_map[type(c)].append(c)
+    return constr_map

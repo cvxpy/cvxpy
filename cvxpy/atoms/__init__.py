@@ -60,10 +60,10 @@ from cvxpy.atoms.affine.diff import diff
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.imag import imag
 from cvxpy.atoms.affine.kron import kron
-from cvxpy.atoms.affine.binary_operators import multiply, matmul
+from cvxpy.atoms.affine.binary_operators import multiply, matmul, scalar_product
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.real import real
-from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.reshape import reshape, deep_flatten
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.trace import trace
 from cvxpy.atoms.affine.upper_tri import upper_tri
@@ -94,6 +94,7 @@ from cvxpy.atoms.elementwise.square import square
 SOC_ATOMS = [
     geo_mean,
     pnorm,
+    Pnorm,
     QuadForm,
     quad_over_lin,
     power,
@@ -117,4 +118,9 @@ PSD_ATOMS = [
     MatrixFrac,
     normNuc,
     sigma_max,
+]
+
+NONPOS_ATOMS = [
+    norm1,
+    abs
 ]

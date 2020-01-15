@@ -33,7 +33,7 @@ class BaseTest(unittest.TestCase):
         for i in range(len(a)):
             self.assertAlmostEqual(a[i], b[i], places)
 
-    # Overriden method to assume lower accuracy.
+    # Overridden method to assume lower accuracy.
     def assertAlmostEqual(self, a, b, places=5):
         super(BaseTest, self).assertAlmostEqual(a, b, places=places)
 

@@ -50,7 +50,7 @@ for i in range(VARIABLES*CLAUSES_PER_VARIABLE):
         if result:
             break
     clauses.append( (clause_vars, negated) )
-print "Generated %d clauses." % len(clauses)
+print("Generated %d clauses." % len(clauses))
 
 # The 3-SAT variables.
 vars = [Boolean() for i in range(VARIABLES)]
@@ -72,10 +72,10 @@ best_rho = 0
 for i in range(MAX_ITER):
     p = Problem(Minimize(0), constraints)
     rho = random.random()
-    print rho
+    print(rho)
     result = p.solve(method="admm", rho=rho,
                      iterations=2, solver=ECOS)
-    print result
+    print(result)
 
     # Store the result.
     values = [vars[i].value for i in range(VARIABLES)]
@@ -98,4 +98,4 @@ for i in range(MAX_ITER):
     if best_match == len(clauses): break
 
 percent_satisfied = 100*best_match/len(clauses)
-print "%s%% of the clauses were satisfied." % percent_satisfied
+print("%s%% of the clauses were satisfied." % percent_satisfied)

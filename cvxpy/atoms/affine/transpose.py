@@ -66,8 +66,7 @@ class transpose(AffAtom):
         """
         return [self.axes]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Create a new variable equal to the argument transposed.
 
         Parameters
@@ -85,5 +84,5 @@ class transpose(AffAtom):
             (LinOp for objective, list of constraints)
         """
         # TODO(akshakya): This will need to be updated when we add support
-        # for >2D ararys.
+        # for >2D arrays.
         return (lu.transpose(arg_objs[0]), [])

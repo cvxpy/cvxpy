@@ -80,13 +80,12 @@ class ExpCone(Constraint):
     def size(self):
         """The number of entries in the combined cones.
         """
-        # TODO use size of dual variable(s) instead.
-        return sum(self.cone_sizes())
+        return 3 * self.num_cones()
 
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return np.prod(self.args[0].shape, dtype=int)
+        return self.x.size
 
     def cone_sizes(self):
         """The dimensions of the exponential cones.
@@ -103,18 +102,26 @@ class ExpCone(Constraint):
         """
         return all(arg.is_affine() for arg in self.args)
 
+    def is_dpp(self):
+        return self.is_dcp() and all(arg.is_dpp() for arg in self.args)
+
     def is_dgp(self):
         return False
 
     def is_dqcp(self):
         return self.is_dcp()
 
-    def canonicalize(self):
-        """Canonicalizes by converting expressions to LinOps.
-        """
-        arg_objs = []
-        arg_constr = []
-        for arg in self.args:
-            arg_objs.append(arg.canonical_form[0])
-            arg_constr + arg.canonical_form[1]
-        return 0, [ExpCone(*arg_objs)] + arg_constr
+    @property
+    def shape(self):
+        s = (3,) + self.x.shape
+        return s
+
+    def save_dual_value(self, value):
+        # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
+        value = np.reshape(value, newshape=(-1, 3))
+        dv0 = np.reshape(value[:, 0], newshape=self.x.shape)
+        dv1 = np.reshape(value[:, 1], newshape=self.y.shape)
+        dv2 = np.reshape(value[:, 2], newshape=self.z.shape)
+        self.dual_variables[0].save_value(dv0)
+        self.dual_variables[1].save_value(dv1)
+        self.dual_variables[2].save_value(dv2)

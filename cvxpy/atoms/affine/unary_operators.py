@@ -71,8 +71,7 @@ class NegExpression(UnaryOperator):
         """
         return self.args[0].is_hermitian()
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Negate the affine objective.
 
         Parameters

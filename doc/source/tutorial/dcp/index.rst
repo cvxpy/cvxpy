@@ -143,29 +143,29 @@ Curvature rules
 DCP analysis is based on applying a general composition theorem from
 convex analysis to each (sub)expression.
 
-:math:`f(expr_1, expr_2, ..., expr_n)` is convex if :math:`\text{ } f`
-is a convex function and for each :math:`expr_{i}` one of the following
+:math:`f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)` is convex if :math:`\text{ } f`
+is a convex function and for each :math:`\text{expr}_{i}` one of the following
 conditions holds:
 
--  :math:`f` is increasing in argument :math:`i` and :math:`expr_{i}` is convex.
--  :math:`f` is decreasing in argument :math:`i` and :math:`expr_{i}` is
+-  :math:`f` is increasing in argument :math:`i` and :math:`\text{expr}_{i}` is convex.
+-  :math:`f` is decreasing in argument :math:`i` and :math:`\text{expr}_{i}` is
    concave.
--  :math:`expr_{i}` is affine or constant.
+-  :math:`\text{expr}_{i}` is affine or constant.
 
-:math:`f(expr_1, expr_2, ..., expr_n)` is concave if :math:`\text{ } f`
-is a concave function and for each :math:`expr_{i}` one of the following
+:math:`f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)` is concave if :math:`\text{ } f`
+is a concave function and for each :math:`\text{expr}_{i}` one of the following
 conditions holds:
 
--  :math:`f` is increasing in argument :math:`i` and :math:`expr_{i}` is
+-  :math:`f` is increasing in argument :math:`i` and :math:`\text{expr}_{i}` is
    concave.
--  :math:`f` is decreasing in argument :math:`i` and :math:`expr_{i}` is convex.
--  :math:`expr_{i}` is affine or constant.
+-  :math:`f` is decreasing in argument :math:`i` and :math:`\text{expr}_{i}` is convex.
+-  :math:`\text{expr}_{i}` is affine or constant.
 
-:math:`f(expr_1, expr_2, ..., expr_n)` is affine if :math:`\text{ } f`
-is an affine function and each :math:`expr_{i}` is affine.
+:math:`f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)` is affine if :math:`\text{ } f`
+is an affine function and each :math:`\text{expr}_{i}` is affine.
 
 If none of the three rules apply, the expression
-:math:`f(expr_1, expr_2, ..., expr_n)` is marked as having unknown
+:math:`f(\text{expr}_1, \text{expr}_2, ..., \text{expr}_n)` is marked as having unknown
 curvature.
 
 Whether a function is increasing or decreasing in an argument may depend
@@ -242,7 +242,7 @@ convex.
 
 In fact, ``sqrt(1 + square(x))`` is a convex function of ``x``, but the
 DCP rules are not able to verify convexity. If the expression is written
-as ``norm(vstack(1, x), 2)``, the L2 norm of the vector :math:`[1,x]`,
+as ``norm(hstack(1, x), 2)``, the L2 norm of the vector :math:`[1,x]`,
 which has the same value as ``sqrt(1 + square(x))``, then it will be
 certified as convex using the DCP rules.
 

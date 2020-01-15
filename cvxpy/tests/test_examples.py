@@ -29,7 +29,7 @@ class TestExamples(BaseTest):
     # Find the largest Euclidean ball in the polyhedron.
     def test_chebyshev_center(self):
         # The goal is to find the largest Euclidean ball (i.e. its center and
-        # radius) that lies in a polyhedron described by linear inequalites in this
+        # radius) that lies in a polyhedron described by linear inequalities in this
         # fashion: P = {x : a_i'*x <= b_i, i=1,...,m} where x is in R^2
 
         # Generate the input data

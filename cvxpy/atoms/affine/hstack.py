@@ -67,8 +67,7 @@ class Hstack(AffAtom):
                     if i != 1 and arg.shape[i] != model[i]:
                         raise error
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Stack the expressions horizontally.
 
         Parameters

@@ -39,4 +39,4 @@ for i in range(T):
 obj = sum(s.cost for s in stages)
 constraints = [stages[-1].x == x_final]
 map(constraints.append, (s.constraint for s in stages))
-print Problem(Minimize(obj), constraints).solve()
+print(Problem(Minimize(obj), constraints).solve())

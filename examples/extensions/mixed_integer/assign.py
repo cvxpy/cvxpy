@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from boolean import Boolean
+from .boolean import Boolean
 import cvxpy.lin_ops.lin_utils as lu
 from munkres import Munkres
 import numpy as np

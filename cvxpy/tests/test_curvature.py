@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 from cvxpy import log
-from cvxpy import Constant, Variable, Parameter
+from cvxpy import Constant, Variable
 from cvxpy.settings import UNKNOWN, QUASILINEAR
 from nose.tools import assert_equals
 
@@ -33,7 +33,7 @@ class TestCurvature(object):
         self.pos = Constant(1)
         self.neg = Constant(-1)
         self.zero = Constant(0)
-        self.unknown_sign = Parameter()
+        self.unknown_sign = self.pos + self.neg
 
     def test_add(self):
         assert_equals((self.const + self.cvx).curvature, self.cvx.curvature)

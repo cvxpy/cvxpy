@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from noncvx_variable import NonCvxVariable
+from .noncvx_variable import NonCvxVariable
 import cvxpy.interface.matrix_utilities as intf
 from itertools import product
 
@@ -27,7 +27,7 @@ class Card(NonCvxVariable):
 
     # All values except k-largest (by magnitude) set to zero.
     def _round(self, matrix):
-        indices = product(xrange(self.size[0]), xrange(self.size[1]))
+        indices = product(range(self.size[0]), range(self.size[1]))
         v_ind = sorted(indices, key=lambda ind: -abs(matrix[ind]))
         for ind in v_ind[self.k:]:
            matrix[ind] = 0
@@ -37,7 +37,7 @@ class Card(NonCvxVariable):
     # zeros in the matrix.
     def _fix(self, matrix):
         constraints = []
-        rows,cols = intf.size(matrix)
+        rows,cols = intf.shape(matrix)
         for i in range(rows):
             for j in range(cols):
                 if matrix[i, j] == 0:

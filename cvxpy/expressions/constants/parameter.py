@@ -13,10 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.utilities import scopes
+
+
+def is_param_affine(expr):
+    """Returns true if expression is parameters-affine (and variable-free)"""
+    with scopes.dpp_scope():
+        return not expr.variables() and expr.is_affine()
+
+
+def is_param_free(expr):
+    """Returns true if expression is not parametrized."""
+    return not expr.parameters()
 
 
 class Parameter(Leaf):
@@ -30,25 +41,33 @@ class Parameter(Leaf):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, shape=(), name=None, value=None, **kwargs):
-        self.id = lu.get_id()
+    def __init__(self, shape=(), name=None, value=None, id=None, **kwargs):
+        if id is None:
+            self.id = lu.get_id()
+        else:
+            self.id = id
         if name is None:
             self._name = "%s%d" % (s.PARAM_PREFIX, self.id)
         else:
             self._name = name
         # Initialize with value if provided.
         self._value = None
+        self.delta = None
+        self.gradient = None
         super(Parameter, self).__init__(shape, value, **kwargs)
+        self._is_constant = True
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self.shape, self._name, self.value, self.attributes]
+        return [self.shape, self._name, self.value, self.id, self.attributes]
 
     def name(self):
         return self._name
 
     def is_constant(self):
+        if scopes.dpp_scope_active():
+            return False
         return True
 
     # Getter and setter for parameter value.
@@ -84,7 +103,7 @@ class Parameter(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_param(self, self.shape)
+        obj = lu.create_param(self.shape, self.id)
         return (obj, [])
 
     def __repr__(self):

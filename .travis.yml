@@ -4,10 +4,6 @@ os:
   - linux
 env:
   matrix:
-    - DISTRIB="conda" PYTHON_VERSION="2.7" CVXOPT="true"
-      NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
-      COVERAGE="false"
-      DEPLOY_PYPI_SOURCE="False"
     - DISTRIB="conda" PYTHON_VERSION="3.5" CVXOPT="true"
       NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
@@ -21,6 +17,9 @@ env:
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
 sudo: required
+before_install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CC=g++ ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CXX=g++; fi
 install: source continuous_integration/Travis/install_dependencies.sh
 script:
   - bash continuous_integration/Travis/test_script.sh

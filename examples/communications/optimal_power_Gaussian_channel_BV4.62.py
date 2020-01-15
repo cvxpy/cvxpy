@@ -25,7 +25,7 @@ import cvxpy as cvx
 Input parameters   
   n: number of receivers
   a_val: Positive bit rate coefficient for each receiver
-  b_val: Positive signal to noise ratio cofficient for each receiver
+  b_val: Positive signal to noise ratio coefficient for each receiver
   P_tot: Total power available to all channels
   W_tot: Total bandwidth available to all channels
 '''

@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.atoms import *
+from cvxpy.atoms.suppfunc import SuppFuncAtom
+from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
 from cvxpy.atoms.affine.index import special_index
 from cvxpy.transforms.indicator import indicator
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.cumsum_canon import *
@@ -38,6 +40,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.pnorm_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.sigma_max_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_form_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.suppfunc_canon import suppfunc_canon
 
 from cvxpy.reductions.utilities import special_index_canon
 
@@ -77,4 +80,5 @@ CANON_METHODS = {
     power : power_canon,
     indicator : indicator_canon,
     special_index : special_index_canon,
+    SuppFuncAtom : suppfunc_canon
 }

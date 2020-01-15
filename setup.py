@@ -50,27 +50,28 @@ canon = Extension(
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
                   'cvxpy/cvxcore/include/Eigen'],
+    extra_compile_args=['-O3'],
 )
 
 
 setup(
     name='cvxpy',
-    version='1.0.25',
+    version='1.1.0a2',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
-    author_email='stevend2@stanford.edu, echu508@stanford.edu, boyd@stanford.edu',
+    author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
+                 'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=[canon],
     packages=find_packages(exclude=["cvxpy.performance_tests"]),
     url='http://github.com/cvxgrp/cvxpy/',
     license='Apache License, Version 2.0',
     zip_safe=False,
-    description='A domain-specific language for modeling convex optimization problems in Python.',
+    description='A domain-specific language for modeling convex optimization '
+                'problems in Python.',
     install_requires=["osqp >= 0.4.1",
                       "ecos >= 2",
                       "scs >= 1.1.3",
-                      "multiprocess",
                       "numpy >= 1.15",
                       "scipy >= 1.1.0"],
     setup_requires=["numpy >= 1.15"],
-    use_2to3=True,
 )

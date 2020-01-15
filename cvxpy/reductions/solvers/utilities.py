@@ -15,6 +15,14 @@ limitations under the License.
 """
 
 import cvxpy.interface as intf
+import numpy as np
+
+
+def expcone_permutor(n_cones, exp_cone_order):
+    order = np.tile(np.array(exp_cone_order), n_cones)  # e.g. [1,0,2, 1,0,2, 1,0,2,...
+    offsets = 3 * np.repeat(np.arange(n_cones), 3)  # [0,0,0, 3,3,3, 6,6,6, ...
+    perm = order + offsets
+    return perm
 
 
 def extract_dual_value(result_vec, offset, constraint):

@@ -16,8 +16,8 @@ limitations under the License.
 
 from cvxpy.atoms.affine.diag import diag_mat, diag_vec
 from cvxpy.atoms.affine.sum import sum
-from cvxpy.atoms.affine.transpose import transpose
-from cvxpy.atoms.affine.upper_tri import upper_tri
+from cvxpy.atoms.affine.bmat import bmat
+from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
@@ -64,28 +64,14 @@ def log_det_canon(expr, args):
     """
     A = args[0]  # n by n matrix.
     n, _ = A.shape
-    # Require that X and A are PSD.
-    X = Variable((2*n, 2*n), PSD=True)
-    constraints = [PSD(A)]
-
-    # Fix Z as upper triangular
-    # TODO represent Z as upper tri vector.
-    Z = Variable((n, n))
-    Z_lower_tri = upper_tri(transpose(Z))
-    constraints.append(Z_lower_tri == 0)
-
-    # Fix diag(D) = diag(Z): D[i, i] = Z[i, i]
-    D = Variable(n)
-    constraints.append(D == diag_mat(Z))
-    # Fix X using the fact that A must be affine by the DCP rules.
-    # X[0:n, 0:n] == D
-    constraints.append(X[0:n, 0:n] == diag_vec(D))
-    # X[0:n, n:2*n] == Z,
-    constraints.append(X[0:n, n:2*n] == Z)
-    # X[n:2*n, n:2*n] == A
-    constraints.append(X[n:2*n, n:2*n] == A)
-    # Add the objective sum(log(D[i, i])
-    log_expr = log(D)
+    z = Variable(shape=(n*(n+1)//2,))
+    Z = vec_to_upper_tri(z, strict=False)
+    d = diag_mat(Z)  # a vector
+    D = diag_vec(d)  # a matrix
+    X = bmat([[D, Z],
+              [Z.T, A]])
+    constraints = [PSD(X)]
+    log_expr = log(d)
     obj, constr = log_canon(log_expr, log_expr.args)
     constraints += constr
     return sum(obj), constraints

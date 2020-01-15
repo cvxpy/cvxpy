@@ -447,5 +447,12 @@ class Leaf(expression.Expression, metaclass=abc.ABCMeta):
         """
         return True
 
+    def is_dpp(self, context='CP'):
+        """The expression is a disciplined parameterized expression.
+
+           context: cone program (CP) or quadratic program (QP)
+        """
+        return True
+
     def atoms(self):
         return []
