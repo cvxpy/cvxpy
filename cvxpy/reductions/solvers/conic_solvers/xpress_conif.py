@@ -37,7 +37,7 @@ def makeMstart(A, n, ifCol):
 
 
 class XPRESS(SCS):
-    """An interface for the Gurobi solver.
+    """An interface for the Xpress solver.
     """
     # Main member of this class: an Xpress problem. Marked with a
     # trailing "_" to denote a member
@@ -76,7 +76,7 @@ class XPRESS(SCS):
         self.version = xpress.getversion()
 
     def accepts(self, problem):
-        """Can Gurobi solve the problem?
+        """Can Xpress solve the problem?
         """
         # TODO check if is matrix stuffed.
         if not problem.objective.args[0].is_affine():
