@@ -22,6 +22,8 @@ class Solver(Reduction):
     """Generic interface for a solver that uses reduction semantics
     """
 
+    __metaclass__ = abc.ABCMeta
+
     # Solver capabilities.
     MIP_CAPABLE = False
 

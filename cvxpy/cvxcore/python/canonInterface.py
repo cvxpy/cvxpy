@@ -162,8 +162,34 @@ def get_matrix_and_offset_from_unparameterized_tensor(problem_data_tensor,
         problem_data_tensor, None, var_length)
 
 
-    # Loading the variable offsets from our Python map into a C++ map
-    for id, col in list(id_to_col.items()):
+def get_problem_matrix(linOps,
+                       var_length,
+                       id_to_col,
+                       param_to_size,
+                       param_to_col,
+                       constr_length):
+    """
+    Builds a sparse representation of the problem data.
+
+    Parameters
+    ----------
+        linOps: A list of python linOp trees representing an affine expression
+        var_length: The total length of the variables.
+        id_to_col: A map from variable id to column offset.
+        param_to_size: A map from parameter id to parameter size.
+        param_to_col: A map from parameter id to column in tensor.
+        constr_length: Summed sizes of constraints input.
+
+    Returns
+    -------
+        A sparse (CSC) matrix with constr_length * (var_length + 1) rows and
+        param_size + 1 columns (where param_size is the length of the
+        parameter vector).
+    """
+    lin_vec = cvxcore.ConstLinOpVector()
+
+    id_to_col_C = cvxcore.IntIntMap()
+    for id, col in id_to_col.items():
         id_to_col_C[int(id)] = int(col)
 
     param_to_size_C = cvxcore.IntIntMap()

@@ -13,8 +13,9 @@ def benchmark(func, iters=1, name=None):
         start = time.time()
         func()
         vals.append(time.time() - start)
-    print(("{:s}: avg={:.3e} s , std={:.3e} s ({:d} iterations)".format(
-        func.__name__, np.mean(vals), np.std(vals), iters)))
+    name = func.__name__ if name is None else name
+    print("{:s}: avg={:.3e} s , std={:.3e} s ({:d} iterations)".format(
+        name, np.mean(vals), np.std(vals), iters))
 
 
 class TestBenchmarks(BaseTest):
