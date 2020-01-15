@@ -74,7 +74,7 @@ class TestSemidefiniteVariable(BaseTest):
                            cvx.square(self.X[1, 1] - 4))
         p = cvx.Problem(obj, [])
         result = p.solve()
-        print(self.X.value)
+        print((self.X.value))
         self.assertAlmostEqual(result, 0)
 
         self.assertAlmostEqual(self.X.value[0, 0], 1, places=2)

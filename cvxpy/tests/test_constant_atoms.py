@@ -67,10 +67,6 @@ atoms = [
             Constant([[-5, 2], [-8, 3]])),
         (lambda x: cp.cumsum(x, axis=0), (2, 2), [[[-5, 2], [-3, 1]]],
             Constant([[-5, -3], [-3, -2]])),
-        (lambda x: cp.cummax(x, axis=1), (2, 2), [[[-5, 2], [-3, 1]]],
-            Constant([[-5, 2], [-3, 2]])),
-        (lambda x: cp.cummax(x, axis=0), (2, 2), [[[-5, 2], [-3, 1]]],
-            Constant([[-5, 2], [-3, 1]])),
         (cp.diag, (2,), [[[-5, 2], [-3, 1]]], Constant([-5, 1])),
         (cp.diag, (2, 2), [[-5, 1]], Constant([[-5, 0], [0, 1]])),
         (cp.exp, (2, 2), [[[1, 0], [2, -1]]],
@@ -296,9 +292,9 @@ def run_atom(atom, problem, obj_val, solver, verbose=False):
     assert problem.is_dcp()
     print(problem)
     if verbose:
-        print(problem.objective)
-        print(problem.constraints)
-        print("solver", solver)
+        print((problem.objective))
+        print((problem.constraints))
+        print(("solver", solver))
     if check_solver(problem, solver) and \
             not (atom, solver) in KNOWN_SOLVER_ERRORS:
         tolerance = SOLVER_TO_TOL[solver]
@@ -326,9 +322,9 @@ def get_indices(size):
     if len(size) == 0:
         return tuple()
     elif len(size) == 1:
-        return range(size[0])
+        return list(range(size[0]))
     else:
-        return itertools.product(range(size[0]), range(size[1]))
+        return itertools.product(list(range(size[0])), list(range(size[1])))
 
 
 def test_constant_atoms():

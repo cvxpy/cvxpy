@@ -39,11 +39,9 @@ def group_constraints(constraints):
     return constr_map
 
 
-class Solver(Reduction):
+class Solver(Reduction, metaclass=abc.ABCMeta):
     """Generic interface for a solver that uses reduction semantics
     """
-
-    __metaclass__ = abc.ABCMeta
 
     # Solver capabilities.
     MIP_CAPABLE = False

@@ -76,7 +76,7 @@ def vec_to_dict(vector, var_offsets, var_sizes):
         A map of variable id to variable value.
     """
     val_dict = {}
-    for id_, offset in var_offsets.items():
+    for id_, offset in list(var_offsets.items()):
         size = var_sizes[id_]
         value = np.zeros(size)
         offset = var_offsets[id_]
@@ -103,7 +103,7 @@ def dict_to_vec(val_dict, var_offsets, var_sizes, vec_len):
     """
     # TODO take in vector.
     vector = np.zeros(vec_len)
-    for id_, value in val_dict.items():
+    for id_, value in list(val_dict.items()):
         size = var_sizes[id_]
         offset = var_offsets[id_]
         for col in range(size[1]):

@@ -224,8 +224,8 @@ class TestInterfaces(BaseTest):
         data = np.array([1j, -1j])
         A = sp.csr_matrix((data, (row, col)), shape=(2, 2))
         mat = interface.const_to_matrix(A)
-        self.assertEquals(mat[0, 1], 1j)
-        self.assertEquals(mat[1, 0], -1j)
+        self.assertEqual(mat[0, 1], 1j)
+        self.assertEqual(mat[1, 0], -1j)
 
     def test_conversion_between_intf(self):
         """Test conversion between every pair of interfaces.

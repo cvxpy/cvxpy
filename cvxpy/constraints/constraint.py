@@ -21,7 +21,7 @@ import abc
 import numpy as np
 
 
-class Constraint(u.Canonical):
+class Constraint(u.Canonical, metaclass=abc.ABCMeta):
     """The base class for constraints.
 
     A constraint is an equality, inequality, or more generally a generalized
@@ -35,8 +35,6 @@ class Constraint(u.Canonical):
     constr_id : int
         A unique id for the constraint.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, args, constr_id=None):
         # TODO cast constants.
@@ -190,7 +188,7 @@ class Constraint(u.Canonical):
         """
         return [self.id]
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Raises an exception when called.
 
         Python 2 version.

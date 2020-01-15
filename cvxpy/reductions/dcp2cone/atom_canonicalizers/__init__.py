@@ -17,6 +17,7 @@ limitations under the License.
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.index import special_index
 from cvxpy.transforms.indicator import indicator
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.cumsum_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.geo_mean_canon import *
@@ -40,15 +41,12 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
 
 from cvxpy.reductions.utilities import special_index_canon
 
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
-    abs_canon, cummax_canon, cumsum_canon, maximum_canon,
-    max_canon, minimum_canon, min_canon, norm1_canon,
-    norm_inf_canon, sum_largest_canon
-)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (abs_canon,
+    maximum_canon, max_canon, minimum_canon, min_canon, norm1_canon,
+    norm_inf_canon, sum_largest_canon)
 
 # TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 CANON_METHODS = {
-    cummax : cummax_canon,
     cumsum : cumsum_canon,
     geo_mean : geo_mean_canon,
     lambda_max : lambda_max_canon,

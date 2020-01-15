@@ -179,7 +179,7 @@ class TestSCS(BaseTest):
         result2 = prob.solve(solver=cvx.SCS, warm_start=True, eps=1e-4)
         time2 = prob.solver_stats.solve_time
         self.assertAlmostEqual(result2, result, places=2)
-        print(time > time2)
+        print((time > time2))
 
     def test_psd_constraint(self):
         """Test PSD constraint.
@@ -190,9 +190,9 @@ class TestSCS(BaseTest):
         prob = cvx.Problem(obj, const)
         r = prob.solve(solver=cvx.SCS)
         s = s.value
-        print(const[0].residual)
-        print("value", r)
-        print("s", s)
-        print("eigs", np.linalg.eig(s + s.T)[0])
+        print((const[0].residual))
+        print(("value", r))
+        print(("s", s))
+        print(("eigs", np.linalg.eig(s + s.T)[0]))
         eigs = np.linalg.eig(s + s.T)[0]
         self.assertEqual(np.all(eigs >= 0), True)

@@ -54,10 +54,8 @@ def extract_mip_idx(variables):
     return boolean_idx, integer_idx
 
 
-class MatrixStuffing(Reduction):
+class MatrixStuffing(Reduction, metaclass=abc.ABCMeta):
     """Stuffs a problem into a standard form for a family of solvers."""
-
-    __metaclass__ = abc.ABCMeta
 
     def apply(self, problem):
         """Returns a stuffed problem.
@@ -137,14 +135,14 @@ class MatrixStuffing(Reduction):
 
         # Split vectorized variable into components.
         x_opt = list(solution.primal_vars.values())[0]
-        for var_id, offset in var_map.items():
+        for var_id, offset in list(var_map.items()):
             shape = inverse_data.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
             primal_vars[var_id] = np.reshape(x_opt[offset:offset+size], shape,
                                              order='F')
         # Remap dual variables if dual exists (problem is convex).
         if solution.dual_vars is not None:
-            for old_con, new_con in con_map.items():
+            for old_con, new_con in list(con_map.items()):
                 con_obj = inverse_data.id2cons[old_con]
                 shape = con_obj.shape
                 # TODO rationalize Exponential.

@@ -127,7 +127,7 @@ class CvxAttr2Constr(Reduction):
 
         id2new_var, id2old_var, cons_id_map = inverse_data
         pvars = {}
-        for id, var in id2old_var.items():
+        for id, var in list(id2old_var.items()):
             new_var = id2new_var[id]
             # Need to map from constrained to symmetric variable.
             if new_var.id in solution.primal_vars:
@@ -144,7 +144,7 @@ class CvxAttr2Constr(Reduction):
                     pvars[id] = var.project(solution.primal_vars[new_var.id])
 
         dvars = {orig_id: solution.dual_vars[vid]
-                 for orig_id, vid in cons_id_map.items()
+                 for orig_id, vid in list(cons_id_map.items())
                  if vid in solution.dual_vars}
         return Solution(solution.status, solution.opt_val, pvars,
                         dvars, solution.attr)

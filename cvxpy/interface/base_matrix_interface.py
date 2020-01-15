@@ -19,12 +19,11 @@ import abc
 import numpy as np
 
 
-class BaseMatrixInterface(object):
+class BaseMatrixInterface(object, metaclass=abc.ABCMeta):
     """
     An interface between constants' internal values
     and the target matrix used internally.
     """
-    __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
     def const_to_matrix(self, value, convert_scalars=False):

@@ -37,7 +37,7 @@ import ecos
 import warnings
 PY2 = sys.version_info < (3, 0)
 if sys.version_info < (3, 0):
-    from cStringIO import StringIO
+    from io import StringIO
 else:
     from io import StringIO
 
@@ -920,7 +920,7 @@ class TestProblem(BaseTest):
         if sys.version_info > (3,):
             my_long = int
         else:
-            my_long = long  # noqa: F821
+            my_long = int  # noqa: F821
         # Test with long indices.
         cost = self.x[0:my_long(2)][0]
         p = Problem(cp.Minimize(cost), [self.x == 1])
@@ -1396,15 +1396,6 @@ class TestProblem(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, -0.0001)
 
-    def test_cummax(self):
-        """Test problems with cummax.
-        """
-        tt = cp.Variable(5)
-        prob = cp.Problem(cp.Maximize(cp.sum(tt)),
-                          [cp.cummax(tt, 0) <= numpy.array([1, 2, 3, 4, 5])])
-        result = prob.solve()
-        self.assertAlmostEqual(result, 15)
-
     def test_vec(self):
         """Tests problems with vec.
         """
@@ -1722,7 +1713,7 @@ class TestProblem(BaseTest):
         objective = cp.Minimize(cp.norm(q, 1))
         problem = cp.Problem(objective)
         problem.solve()
-        print(q.value)
+        print((q.value))
 
     def test_neg_slice(self):
         """Test bug with negative slice.

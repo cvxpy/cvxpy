@@ -170,13 +170,13 @@ class GUROBI(SCS):
         model.update()
 
         eq_constrs = self.add_model_lin_constr(model, variables,
-                                               range(dims[s.EQ_DIM]),
+                                               list(range(dims[s.EQ_DIM])),
                                                gurobipy.GRB.EQUAL,
                                                A, b)
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
         ineq_constrs = self.add_model_lin_constr(model, variables,
-                                                 range(leq_start, leq_end),
+                                                 list(range(leq_start, leq_end)),
                                                  gurobipy.GRB.LESS_EQUAL,
                                                  A, b)
         soc_start = leq_end
@@ -185,7 +185,7 @@ class GUROBI(SCS):
         for constr_len in dims[s.SOC_DIM]:
             soc_end = soc_start + constr_len
             soc_constr, new_leq, new_vars = self.add_model_soc_constr(
-                model, variables, range(soc_start, soc_end),
+                model, variables, list(range(soc_start, soc_end)),
                 A, b
             )
             soc_constrs.append(soc_constr)
@@ -202,7 +202,7 @@ class GUROBI(SCS):
         # TODO user option to not compute duals.
         model.setParam("QCPDual", True)
 
-        for key, value in solver_opts.items():
+        for key, value in list(solver_opts.items()):
             model.setParam(key, value)
 
         solution = {}
@@ -265,7 +265,7 @@ class GUROBI(SCS):
         import gurobipy
         constr = []
         expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        for (i, j), c in mat.items():
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
@@ -307,7 +307,7 @@ class GUROBI(SCS):
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
         expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        for (i, j), c in mat.items():
             v = variables[j]
             try:
                 expr_list[i].append((c, v))

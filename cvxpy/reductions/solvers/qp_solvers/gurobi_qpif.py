@@ -176,7 +176,7 @@ class GUROBI(QpSolver):
         model.setParam("OutputFlag", verbose)
         model.setParam("QCPDual", True)
 
-        for key, value in solver_opts.items():
+        for key, value in list(solver_opts.items()):
             model.setParam(key, value)
 
         # Update model

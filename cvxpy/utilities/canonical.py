@@ -19,12 +19,10 @@ from cvxpy.utilities import performance_utils as pu
 from cvxpy.utilities.deterministic import unique_list
 
 
-class Canonical(object):
+class Canonical(object, metaclass=abc.ABCMeta):
     """
     An interface for objects that can be canonicalized.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     @property
     def expr(self):

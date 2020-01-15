@@ -48,7 +48,7 @@ def tv(value, *args):
     # L2 norm for matrices.
     else:
         rows, cols = value.shape
-        args = map(Expression.cast_to_const, args)
+        args = list(map(Expression.cast_to_const, args))
         values = [value] + list(args)
         diffs = []
         for mat in values:

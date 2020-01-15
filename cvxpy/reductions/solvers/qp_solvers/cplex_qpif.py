@@ -172,7 +172,7 @@ class CPLEX(QpSolver):
         #       duplicated here. This should be refactored.
         kwargs = sorted(solver_opts.keys())
         if "cplex_params" in kwargs:
-            for param, value in solver_opts["cplex_params"].items():
+            for param, value in list(solver_opts["cplex_params"].items()):
                 try:
                     eval("model.parameters.{0}.set({1})".format(param, value))
                 except AttributeError:

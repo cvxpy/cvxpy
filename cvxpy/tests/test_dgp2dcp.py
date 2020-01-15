@@ -313,7 +313,7 @@ class TestDgp2Dcp(BaseTest):
 
     def test_solving_non_dgp_problem_raises_error(self):
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegexp(error.DGPError, r"Problem does not follow DGP "
+        with self.assertRaisesRegex(error.DGPError, r"Problem does not follow DGP "
                                      "rules(?s)*.*However, the problem does follow DCP rules.*"):
             problem.solve(gp=True)
         problem.solve()
@@ -324,7 +324,7 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
         )
-        with self.assertRaisesRegexp(error.DCPError, r"Problem does not follow DCP "
+        with self.assertRaisesRegex(error.DCPError, r"Problem does not follow DCP "
                                      "rules(?s)*.*However, the problem does follow DGP rules.*"):
             problem.solve()
         problem.solve(gp=True)
@@ -334,12 +334,12 @@ class TestDgp2Dcp(BaseTest):
     def test_solving_non_dcp_problems_raises_detailed_error(self):
         x = cvxpy.Variable(3)
         problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(x) - cvxpy.sum_squares(x)))
-        with self.assertRaisesRegexp(error.DCPError, r"The objective is not DCP"):
+        with self.assertRaisesRegex(error.DCPError, r"The objective is not DCP"):
             problem.solve()
 
         x = cvxpy.Variable(name='x')
         problem = cvxpy.Problem(cvxpy.Minimize(x), [x * x <= 5])
-        with self.assertRaisesRegexp(error.DCPError, r"The following constraints are not DCP"):
+        with self.assertRaisesRegex(error.DCPError, r"The following constraints are not DCP"):
             problem.solve()
 
     def test_add_canon(self):

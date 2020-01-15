@@ -1027,7 +1027,7 @@ class TestSolvers(BaseTest):
         from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC, SOLVER_MAP_QP,
                                                       INSTALLED_SOLVERS)
         prob = cvx.Problem(cvx.Minimize(cvx.norm(self.x, 1) + 1.0), [self.x == 0])
-        for solver in SOLVER_MAP_CONIC.keys():
+        for solver in list(SOLVER_MAP_CONIC.keys()):
             if solver in INSTALLED_SOLVERS:
                 prob.solve(solver=solver)
                 self.assertAlmostEqual(prob.value, 1.0)
@@ -1037,7 +1037,7 @@ class TestSolvers(BaseTest):
                     prob.solve(solver=solver)
                 self.assertEqual(str(cm.exception), "The solver %s is not installed." % solver)
 
-        for solver in SOLVER_MAP_QP.keys():
+        for solver in list(SOLVER_MAP_QP.keys()):
             if solver in INSTALLED_SOLVERS:
                 prob.solve(solver=solver)
                 self.assertItemsAlmostEqual(self.x.value, [0, 0])

@@ -50,8 +50,8 @@ class Dgp2Dcp(Canonicalization):
     >>> dcp_probem.solve()
     >>>
     >>> dgp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
-    >>> print(dgp_problem.value)
-    >>> print(dgp_problem.variables())
+    >>> print((dgp_problem.value))
+    >>> print((dgp_problem.variables()))
     """
     def __init__(self, problem=None):
         # Canonicalization of DGP is stateful; canon_methods created
@@ -84,8 +84,9 @@ class Dgp2Dcp(Canonicalization):
         solution = super(Dgp2Dcp, self).invert(solution, inverse_data)
         if solution.status == settings.SOLVER_ERROR:
             return solution
-        for vid, value in solution.primal_vars.items():
+        for vid, value in list(solution.primal_vars.items()):
             solution.primal_vars[vid] = np.exp(value)
         # f(x) = e^{F(u)}.
         solution.opt_val = np.exp(solution.opt_val)
         return solution
+

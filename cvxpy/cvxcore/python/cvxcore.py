@@ -3,19 +3,13 @@
 #
 # Do not make changes to this file unless you know what you are doing--modify
 # the SWIG interface file instead.
-from sys import version_info as _swig_python_version_info
-if _swig_python_version_info >= (2, 7, 0):
-    def swig_import_helper():
-        import importlib
-        pkg = __name__.rpartition('.')[0]
-        mname = '.'.join((pkg, '_cvxcore')).lstrip('.')
-        try:
-            return importlib.import_module(mname)
-        except ImportError:
-            return importlib.import_module('_cvxcore')
-    _cvxcore = swig_import_helper()
-    del swig_import_helper
-elif _swig_python_version_info >= (2, 6, 0):
+
+
+
+
+
+from sys import version_info
+if version_info >= (2, 6, 0):
     def swig_import_helper():
         from os.path import dirname
         import imp
@@ -25,18 +19,17 @@ elif _swig_python_version_info >= (2, 6, 0):
         except ImportError:
             import _cvxcore
             return _cvxcore
-        try:
-            _mod = imp.load_module('_cvxcore', fp, pathname, description)
-        finally:
-            if fp is not None:
+        if fp is not None:
+            try:
+                _mod = imp.load_module('_cvxcore', fp, pathname, description)
+            finally:
                 fp.close()
-        return _mod
+            return _mod
     _cvxcore = swig_import_helper()
     del swig_import_helper
 else:
     import _cvxcore
-del _swig_python_version_info
-
+del version_info
 try:
     _swig_property = property
 except NameError:
@@ -127,7 +120,7 @@ class SwigPyIterator(_object):
     def copy(self):
         return _cvxcore.SwigPyIterator_copy(self)
 
-    def next(self):
+    def __next__(self):
         return _cvxcore.SwigPyIterator_next(self)
 
     def __next__(self):
@@ -360,7 +353,7 @@ class IntVector(_object):
     def __iter__(self):
         return self.iterator()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return _cvxcore.IntVector___nonzero__(self)
 
     def __bool__(self):
@@ -473,7 +466,7 @@ class DoubleVector(_object):
     def __iter__(self):
         return self.iterator()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return _cvxcore.DoubleVector___nonzero__(self)
 
     def __bool__(self):
@@ -586,7 +579,7 @@ class IntVector2D(_object):
     def __iter__(self):
         return self.iterator()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return _cvxcore.IntVector2D___nonzero__(self)
 
     def __bool__(self):
@@ -699,7 +692,7 @@ class DoubleVector2D(_object):
     def __iter__(self):
         return self.iterator()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return _cvxcore.DoubleVector2D___nonzero__(self)
 
     def __bool__(self):
@@ -812,7 +805,7 @@ class IntIntMap(_object):
     def __iter__(self):
         return self.iterator()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return _cvxcore.IntIntMap___nonzero__(self)
 
     def __bool__(self):
@@ -927,7 +920,7 @@ class LinOpVector(_object):
     def __iter__(self):
         return self.iterator()
 
-    def __nonzero__(self):
+    def __bool__(self):
         return _cvxcore.LinOpVector___nonzero__(self)
 
     def __bool__(self):

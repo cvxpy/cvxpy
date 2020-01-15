@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division
+
 
 import operator
 
@@ -148,7 +148,7 @@ class CoeffExtractor(object):
 
         # Sort variables corresponding to their starting indices, in ascending
         # order.
-        offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
+        offsets = sorted(list(self.id_map.items()), key=operator.itemgetter(1))
 
         # Concatenate quadratic matrices and vectors
         P = sp.csr_matrix((0, 0))

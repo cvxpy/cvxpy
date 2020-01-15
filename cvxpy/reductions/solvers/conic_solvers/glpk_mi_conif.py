@@ -62,7 +62,7 @@ class GLPK_MI(GLPK):
         # Rename max_iters to maxiters.
         if "max_iters" in solver_opts:
             solver_opts["maxiters"] = solver_opts["max_iters"]
-        for key, value in solver_opts.items():
+        for key, value in list(solver_opts.items()):
             cvxopt.glpk.options[key] = value
 
         try:

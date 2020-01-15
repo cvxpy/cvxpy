@@ -43,7 +43,7 @@ def get_problem_matrix(linOps, id_to_col=None, constr_offsets=None):
         id_to_col = {}
 
     # Loading the variable offsets from our Python map into a C++ map
-    for id, col in id_to_col.items():
+    for id, col in list(id_to_col.items()):
         id_to_col_C[int(id)] = int(col)
 
     # This array keeps variables data in scope after build_lin_op_tree returns

@@ -47,14 +47,12 @@ def _cast_other(binary_op):
     return cast_op
 
 
-class Expression(u.Canonical):
+class Expression(u.Canonical, metaclass=abc.ABCMeta):
     """A mathematical expression in a convex optimization problem.
 
     Overloads many operators to allow for convenient creation of compound
     expressions (e.g., the sum of two expressions) and constraints.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     # Handles arithmetic operator overloading with Numpy.
     __array_priority__ = 100
