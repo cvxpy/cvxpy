@@ -329,7 +329,7 @@ class CPLEX(SCS):
         cpx_constrs += [_CpxConstr(_LIN, x)
                         for x in self.add_model_lin_constr(
                                 model, variables,
-                                list(range(dims[s.EQ_DIM])),
+                                range(dims[s.EQ_DIM]),
                                 'E', A, b)]
 
         # Add inequality (<=) constraints
@@ -338,7 +338,7 @@ class CPLEX(SCS):
         cpx_constrs += [_CpxConstr(_LIN, x)
                         for x in self.add_model_lin_constr(
                                 model, variables,
-                                list(range(leq_start, leq_end)),
+                                range(leq_start, leq_end),
                                 'L', A, b)]
 
         # Add SOC constraints
@@ -346,7 +346,7 @@ class CPLEX(SCS):
         for constr_len in dims[s.SOC_DIM]:
             soc_end = soc_start + constr_len
             soc_constr, new_leq, new_vars = self.add_model_soc_constr(
-                model, variables, list(range(soc_start, soc_end)), A, b)
+                model, variables, range(soc_start, soc_end), A, b)
             cpx_constrs.append(_CpxConstr(_QUAD, soc_constr))
             cpx_constrs += [_CpxConstr(_LIN, x) for x in new_leq]
             variables += new_vars
