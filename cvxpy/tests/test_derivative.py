@@ -213,7 +213,7 @@ class TestBackward(BaseTest):
         k = 2
         x = cp.Parameter(4)
         y = cp.Variable(4)
-        obj = -x * y - cp.sum(cp.entr(y)) - cp.sum(cp.entr(1. - y))
+        obj = -x @ y - cp.sum(cp.entr(y)) - cp.sum(cp.entr(1. - y))
         cons = [cp.sum(y) == k]
         problem = cp.Problem(cp.Minimize(obj), cons)
 

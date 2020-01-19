@@ -108,7 +108,7 @@ class TestExpressions(BaseTest):
         q = np.ones((5, 1))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            s = x.T @ P*x + q.T @ x
+            s = x.T @ P @ x + q.T @ x
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
@@ -171,7 +171,7 @@ class TestExpressions(BaseTest):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            s = x*y
+            s = x @ y
 
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
