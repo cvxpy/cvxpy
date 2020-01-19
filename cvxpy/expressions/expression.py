@@ -48,11 +48,11 @@ def _cast_other(binary_op):
 
 
 __STAR_MATMUL_WARNING__ = """
-\nThis use of ``*`` has resulted in matrix multiplication.
-\nUsing ``*`` for matrix multiplication has been deprecated since CVXPY 1.1.
-\n\tUse ``*`` for matrix-scalar and vector-scalar multiplication.
-\n\tUse ``@`` for matrix-matrix and matrix-vector multiplication.
-\n\tUse ``multiply`` for elementwise multiplication.
+This use of ``*`` has resulted in matrix multiplication.
+Using ``*`` for matrix multiplication has been deprecated since CVXPY 1.1.
+    Use ``*`` for matrix-scalar and vector-scalar multiplication.
+    Use ``@`` for matrix-matrix and matrix-vector multiplication.
+    Use ``multiply`` for elementwise multiplication.
 """
 
 
