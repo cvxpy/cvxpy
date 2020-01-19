@@ -60,7 +60,7 @@ class QpMatrixStuffing(MatrixStuffing):
         # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(extractor.x_length, boolean=boolean, integer=integer)
-        new_obj = QuadForm(x, P) + q.T*x
+        new_obj = QuadForm(x, P) + q.T @ x
 
         return new_obj, x, r
 
@@ -96,7 +96,7 @@ class QpMatrixStuffing(MatrixStuffing):
             for arg in con.args:
                 A = Afull[offset:offset+arg.size, :]
                 b = bfull[offset:offset+arg.size]
-                arg_list.append(reshape(A*new_var + b, arg.shape))
+                arg_list.append(reshape(A @ new_var + b, arg.shape))
                 offset += arg.size
             new_constraint = con.copy(arg_list)
             new_cons.append(new_constraint)

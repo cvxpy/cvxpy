@@ -40,7 +40,7 @@ class TestGrad(BaseTest):
     def test_affine_prod(self):
         """Test gradient for affine_prod
         """
-        expr = self.C * self.A
+        expr = self.C @ self.A
         self.C.value = np.array([[1, -2], [3, 4], [-1, -3]])
         self.A.value = np.array([[3, 2], [-5, 1]])
 
@@ -297,7 +297,7 @@ class TestGrad(BaseTest):
         self.assertAlmostEqual(lin_expr.value, expr.value)
 
         # Convex.
-        expr = (self.A)**2 + 5
+        expr = self.A**2 + 5
 
         with self.assertRaises(Exception) as cm:
             linearize(expr)
@@ -307,7 +307,7 @@ class TestGrad(BaseTest):
         self.A.value = [[1, 2], [3, 4]]
         lin_expr = linearize(expr)
         manual = expr.value + 2*cp.reshape(
-            cp.diag(cp.vec(self.A)).value*cp.vec(self.A - self.A.value),
+            cp.diag(cp.vec(self.A)).value @ cp.vec(self.A - self.A.value),
             (2, 2)
         )
         self.assertItemsAlmostEqual(lin_expr.value, expr.value)
@@ -319,7 +319,7 @@ class TestGrad(BaseTest):
         expr = cp.log(self.x)/2
         self.x.value = [1, 2]
         lin_expr = linearize(expr)
-        manual = expr.value + cp.diag(0.5*self.x**-1).value*(self.x - self.x.value)
+        manual = expr.value + cp.diag(0.5*self.x**-1).value @ (self.x - self.x.value)
         self.assertItemsAlmostEqual(lin_expr.value, expr.value)
         self.x.value = [3, 4.4]
         assert (lin_expr.value >= expr.value).all()

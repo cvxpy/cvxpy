@@ -229,8 +229,8 @@ class PartialProblem(Expression):
             lagr = self.args[0].objective.args[0]
             for constr in self.args[0].constraints:
                 # TODO: better way to get constraint expressions.
-                lagr_multiplier = self.cast_to_const(sign*constr.dual_value)
-                prod = lagr_multiplier.T*constr.expr
+                lagr_multiplier = self.cast_to_const(sign * constr.dual_value)
+                prod = lagr_multiplier.T @ constr.expr
                 if prod.is_scalar():
                     lagr += sum(prod)
                 else:

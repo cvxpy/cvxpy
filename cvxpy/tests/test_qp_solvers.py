@@ -135,7 +135,7 @@ class TestQp(BaseTest):
     def square_affine(self, solver):
         A = np.random.randn(10, 2)
         b = np.random.randn(10)
-        p = Problem(Minimize(sum_squares(A*self.x - b)))
+        p = Problem(Minimize(sum_squares(A @ self.x - b)))
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(),
@@ -148,7 +148,7 @@ class TestQp(BaseTest):
         z = np.random.randn(5)
         P = A.T.dot(A)
         q = -2*P.dot(z)
-        p = Problem(Minimize(QuadForm(self.w, P) + q.T*self.w))
+        p = Problem(Minimize(QuadForm(self.w, P) + q.T @ self.w))
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, var.value, places=4)
@@ -158,7 +158,7 @@ class TestQp(BaseTest):
         A = np.maximum(A, 0)
         b = np.random.randn(5)
         b = np.maximum(b, 0)
-        p = Problem(Minimize(sum(self.x)), [self.x >= 0, A*self.x <= b])
+        p = Problem(Minimize(sum(self.x)), [self.x >= 0, A @ self.x <= b])
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
@@ -168,7 +168,7 @@ class TestQp(BaseTest):
         A = np.maximum(A, 0)
         b = np.random.randn(5)
         b = np.maximum(b, 0)
-        p = Problem(Maximize(-sum(self.x)), [self.x >= 0, A*self.x <= b])
+        p = Problem(Maximize(-sum(self.x)), [self.x >= 0, A @ self.x <= b])
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
@@ -176,7 +176,7 @@ class TestQp(BaseTest):
     def norm_2(self, solver):
         A = np.random.randn(10, 5)
         b = np.random.randn(10)
-        p = Problem(Minimize(norm(A*self.w - b, 2)))
+        p = Problem(Minimize(norm(A @ self.w - b, 2)))
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(), var.value,
@@ -185,7 +185,7 @@ class TestQp(BaseTest):
     def mat_norm_2(self, solver):
         A = np.random.randn(5, 3)
         B = np.random.randn(5, 2)
-        p = Problem(Minimize(norm(A*self.C - B, 2)))
+        p = Problem(Minimize(norm(A @ self.C - B, 2)))
         s = self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(lstsq(A, B)[0],
@@ -197,7 +197,7 @@ class TestQp(BaseTest):
         z = np.random.randn(5)
         P = A.T.dot(A)
         q = -2*P.dot(z)
-        p = Problem(Minimize(QuadForm(self.w, P) + q.T*self.w))
+        p = Problem(Minimize(QuadForm(self.w, P) + q.T @ self.w))
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, var.value, places=4)
@@ -207,7 +207,7 @@ class TestQp(BaseTest):
         q = np.array([[-22], [-14.5], [13]])
         r = 1
         y_star = np.array([[1], [0.5], [-1]])
-        p = Problem(Minimize(0.5*QuadForm(self.y, P) + q.T*self.y + r),
+        p = Problem(Minimize(0.5*QuadForm(self.y, P) + q.T @ self.y + r),
                     [self.y >= -1, self.y <= 1])
         self.solve_QP(p, solver)
         for var in p.variables():
@@ -248,7 +248,7 @@ class TestQp(BaseTest):
         print(x_data_expanded.shape, true_coeffs.shape)
         y_data = x_data_expanded.T.dot(true_coeffs) + 0.5 * np.random.rand(n)
 
-        quadratic = self.offset + x_data*self.slope + \
+        quadratic = self.offset + x_data * self.slope + \
             self.quadratic_coeff*np.power(x_data, 2)
         residuals = quadratic.T - y_data
         fit_error = sum_squares(residuals)
@@ -272,7 +272,7 @@ class TestQp(BaseTest):
         # Add constraints on our variables
         for i in range(T - 1):
             constraints += [self.position[:, i + 1] == self.position[:, i] +
-                            h*self.velocity[:, i]]
+                            h * self.velocity[:, i]]
             acceleration = self.force[:, i]/mass + g - \
                 drag * self.velocity[:, i]
             constraints += [self.velocity[:, i + 1] == self.velocity[:, i] +
@@ -297,7 +297,7 @@ class TestQp(BaseTest):
         A = sp.rand(m, n, density)
         b = np.random.randn(m)
 
-        p = Problem(Minimize(sum_squares(A*self.xs - b)), [self.xs == 0])
+        p = Problem(Minimize(sum_squares(A @ self.xs - b)), [self.xs == 0])
         self.solve_QP(p, solver)
         self.assertAlmostEqual(b.T.dot(b), p.value, places=4)
 
@@ -309,7 +309,7 @@ class TestQp(BaseTest):
 
         A = np.ones((k, n))
         b = np.ones((k))
-        obj = sum_squares(A*self.xsr - b) + \
+        obj = sum_squares(A @ self.xsr - b) + \
             eta*sum_squares(self.xsr[:-1]-self.xsr[1:])
         p = Problem(Minimize(obj), [])
         self.solve_QP(p, solver)
@@ -339,7 +339,7 @@ class TestQp(BaseTest):
 
         # Solve the Huber regression problem
         x = Variable(n)
-        objective = sum(huber(A * x - b))
+        objective = sum(huber(A @ x - b))
 
         # Solve problem with QP
         p = Problem(Minimize(objective))
@@ -359,8 +359,8 @@ class TestQp(BaseTest):
         G = np.random.randn(r, n)
         h = np.random.randn(r)
 
-        obj1 = .1 * sum((A*self.xef - b) ** 2)
-        cons = [G*self.xef == h]
+        obj1 = .1 * sum((A @ self.xef - b) ** 2)
+        cons = [G @ self.xef == h]
 
         p1 = Problem(Minimize(obj1), cons)
         self.solve_QP(p1, solver)
@@ -381,8 +381,8 @@ class TestQp(BaseTest):
         q = -2*np.dot(A.T, b)
         r = np.dot(b.T, b)
 
-        obj2 = .1*(QuadForm(self.xef, P)+q.T*self.xef+r)
-        cons = [G*self.xef == h]
+        obj2 = .1*(QuadForm(self.xef, P)+q.T @ self.xef+r)
+        cons = [G @ self.xef == h]
 
         p2 = Problem(Minimize(obj2), cons)
         self.solve_QP(p2, solver)
@@ -404,8 +404,8 @@ class TestQp(BaseTest):
         r = np.dot(b.T, b)
         Pinv = np.linalg.inv(P)
 
-        obj3 = .1 * (matrix_frac(self.xef, Pinv)+q.T*self.xef+r)
-        cons = [G*self.xef == h]
+        obj3 = .1 * (matrix_frac(self.xef, Pinv)+q.T @ self.xef+r)
+        cons = [G @ self.xef == h]
 
         p3 = Problem(Minimize(obj3), cons)
         self.solve_QP(p3, solver)
@@ -422,7 +422,7 @@ class TestQp(BaseTest):
 
         # Construct the problem.
         x = Variable(n)
-        prob = Problem(Minimize(sum_squares(A*x - b)))
+        prob = Problem(Minimize(sum_squares(A @ x - b)))
 
         b.value = np.random.randn(m)
         result = prob.solve(warm_start=False)
