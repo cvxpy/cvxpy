@@ -555,7 +555,7 @@ The code below shows how warm start can accelerate solving a sequence of related
 
     # Construct the problem.
     x = cp.Variable(n)
-    prob = cp.Problem(cp.Minimize(cp.sum_squares(A*x - b)),
+    prob = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)),
                        [x >= 0])
 
     b.value = numpy.random.randn(m)
@@ -1009,7 +1009,7 @@ solves of a DPP problem.
     gamma = cp.Parameter(nonneg=True)
 
     x = cp.Variable(m)
-    error = cp.sum_squares(A*x - b)
+    error = cp.sum_squares(A @ x - b)
     obj = cp.Minimize(error + gamma*cp.norm(x, 1))
     problem = cp.Problem(obj)
     assert problem.is_dpp()

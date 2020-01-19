@@ -15,7 +15,7 @@ Expressions
 
 Expressions in CVXPY are formed from variables, parameters, numerical
 constants such as Python floats and Numpy matrices, the standard
-arithmetic operators ``+, -, *, /``, and a library of
+arithmetic operators ``+, -, *, /, @``, and a library of
 :ref:`functions <functions>`. Here are some examples of CVXPY expressions:
 
 .. code:: python
@@ -55,7 +55,7 @@ are the same as for NumPy ndarrays (except some broadcasting is banned).
     print("size of X:", X.size)
     print("number of dimensions:", X.ndim)
     print("dimensions of sum(X):", cp.sum(X).shape)
-    print("dimensions of A*X:", (A*X).shape)
+    print("dimensions of A @ X:", (A @ X).shape)
 
     # ValueError raised for invalid dimensions.
     try:
@@ -69,7 +69,7 @@ are the same as for NumPy ndarrays (except some broadcasting is banned).
     size of X: 20
     number of dimensions: 2
     dimensions of sum(X): ()
-    dimensions of A*X: (3, 4)
+    dimensions of A @ X: (3, 4)
     Cannot broadcast dimensions (3, 5) (5, 4)
 
 CVXPY uses DCP analysis to determine the sign and curvature of each expression.

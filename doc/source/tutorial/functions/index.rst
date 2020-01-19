@@ -10,18 +10,19 @@ the :ref:`DCP rules <dcp>` to mark expressions with a sign and curvature.
 Operators
 ---------
 
-The infix operators ``+, -, *, /`` are treated as functions. ``+`` and
-``-`` are affine functions. The expression ``expr1*expr2`` is affine in
+The infix operators ``+, -, *, /, @`` are treated as functions. The operators ``+`` and
+``-`` are always affine functions. The expression ``expr1*expr2`` is affine in
 CVXPY when one of the expressions is constant, and ``expr1/expr2`` is affine
 when ``expr2`` is a scalar constant.
 
-Note that in CVXPY, ``expr1 * expr2`` denotes matrix multiplication
-when ``expr1`` and ``expr2`` are matrices; if you're running Python 3,
-you can alternatively use the ``@`` operator for matrix multiplication.
-Regardless of your Python version, you can also use the function
-:ref:`matmul` to multiply
-two matrices. To multiply two arrays or matrices elementwise, use
-:ref:`multiply`.
+Historically, CVXPY has used ``expr1 * expr2`` to denote matrix multiplication.
+Starting with Python 3.5, users could also write ``expr1 @ expr2`` for
+matrix multiplication. As of CVXPY version 1.1, we are adopting a new standard:
+
+* ``@`` should be used for matrix-matrix and matrix-vector multiplication,
+* ``*`` should be matrix-scalar and vector-scalar multiplication
+
+Elementwise multiplication can be applied with the :ref:`multiply` function.
 
 
 Indexing and slicing

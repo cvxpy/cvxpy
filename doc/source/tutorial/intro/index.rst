@@ -167,7 +167,7 @@ vectors, or matrices, meaning they are 0, 1, or 2 dimensional.
 
 You can use your numeric library of choice to construct matrix and
 vector constants. For instance, if ``x`` is a CVXPY Variable in the
-expression ``A*x + b``, ``A`` and ``b`` could be Numpy ndarrays, SciPy
+expression ``A @ x + b``, ``A`` and ``b`` could be Numpy ndarrays, SciPy
 sparse matrices, etc. ``A`` and ``b`` could even be different types.
 
 Currently the following types may be used as constants:
@@ -194,7 +194,7 @@ Here's an example of a CVXPY problem with vectors and matrices:
 
     # Construct the problem.
     x = cp.Variable(n)
-    objective = cp.Minimize(cp.sum_squares(A*x - b))
+    objective = cp.Minimize(cp.sum_squares(A @ x - b))
     constraints = [0 <= x, x <= 1]
     prob = cp.Problem(objective, constraints)
 
@@ -280,7 +280,7 @@ computes a trade-off curve for a LASSO problem.
 
     # Construct the problem.
     x = cp.Variable(m)
-    error = cp.sum_squares(A*x - b)
+    error = cp.sum_squares(A @ x - b)
     obj = cp.Minimize(error + gamma*cp.norm(x, 1))
     prob = cp.Problem(obj)
 
