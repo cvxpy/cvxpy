@@ -76,18 +76,18 @@ In the following code, we solve a SOCP with CVXPY.
         A.append(np.random.randn(n_i, n))
         b.append(np.random.randn(n_i))
         c.append(np.random.randn(n))
-        d.append(np.linalg.norm(A[i]@x0 + b, 2) - c[i].T@x0)
+        d.append(np.linalg.norm(A[i] @ x0 + b, 2) - c[i].T @ x0)
     F = np.random.randn(p, n)
-    g = F@x0
+    g = F @ x0
     
     # Define and solve the CVXPY problem.
     x = cp.Variable(n)
     # We use cp.SOC(t, x) to create the SOC constraint ||x||_2 <= t.
     soc_constraints = [
-          cp.SOC(c[i].T@x + d[i], A[i]@x + b[i]) for i in range(m)
+          cp.SOC(c[i].T @ x + d[i], A[i] @ x + b[i]) for i in range(m)
     ]
     prob = cp.Problem(cp.Minimize(f.T@x),
-                      soc_constraints + [F@x == g])
+                      soc_constraints + [F @ x == g])
     prob.solve()
     
     # Print result.

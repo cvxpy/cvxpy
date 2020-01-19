@@ -32,7 +32,7 @@ b = numpy.random.randn(m)
 
 # Construct the problem.
 x = cp.Variable(n)
-objective = cp.Minimize(cp.sum_squares(A*x - b))
+objective = cp.Minimize(cp.sum_squares(A @ x - b))
 constraints = [0 <= x, x <= 1]
 prob = cp.Problem(objective, constraints)
 
@@ -63,7 +63,7 @@ pip install cvxpy
 
 CVXPY has the following dependencies:
 
-- Python 2.7, 3.4, 3.5, 3.6, or 3.7.
+- Python 3.5, 3.6, or 3.7.
 - multiprocess
 - OSQP
 - ECOS >= 2
@@ -74,7 +74,7 @@ CVXPY has the following dependencies:
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).
 
-**Python 2.7 end of life**: The CVXPY development team plans to stop supporting Python 2 later this year, starting with the release of CVXPY 1.1.
+**Python 2.7 end of life**: The CVXPY development team will stop supporting python 2.7 and python 3.4, starting when CVXPY version 1.1 is released.
 
 ## Getting started
 To get started with CVXPY, check out the following:

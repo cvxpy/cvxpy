@@ -61,7 +61,7 @@ We next formulate the optimization problem using CVXPY.
     import cvxpy as cp
     beta = cp.Variable((n,1))
     v = cp.Variable()
-    loss = cp.sum(cp.pos(1 - cp.multiply(Y, X*beta - v)))
+    loss = cp.sum(cp.pos(1 - cp.multiply(Y, X @ beta - v)))
     reg = cp.norm(beta, 1)
     lambd = cp.Parameter(nonneg=True)
     prob = cp.Problem(cp.Minimize(loss/m + lambd*reg))

@@ -53,13 +53,13 @@ In the following code, we solve a linear program with CVXPY.
     s0 = np.maximum(s0, 0)
     x0 = np.random.randn(n)
     A = np.random.randn(m, n)
-    b = A@x0 + s0
-    c = -A.T@lamb0
+    b = A @ x0 + s0
+    c = -A.T @ lamb0
     
     # Define and solve the CVXPY problem.
     x = cp.Variable(n)
     prob = cp.Problem(cp.Minimize(c.T@x),
-                     [A@x <= b])
+                     [A @ x <= b])
     prob.solve()
     
     # Print result.
