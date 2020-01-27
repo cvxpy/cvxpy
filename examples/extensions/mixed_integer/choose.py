@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from boolean import Boolean
+from .boolean import Boolean
 import cvxopt
 import numpy as np
 from itertools import product
@@ -32,7 +32,7 @@ class Choose(Boolean):
 
     # The k-largest values are set to 1. The remainder are set to 0.
     def _round(self, matrix):
-        indices = product(xrange(self.size[0]), xrange(self.size[1]))
+        indices = product(range(self.size[0]), range(self.size[1]))
         v_ind = sorted(indices, key=lambda ind: -matrix[ind])
         for ind in v_ind[0:self.k]:
             matrix[ind] = 1

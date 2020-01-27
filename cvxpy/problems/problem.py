@@ -19,29 +19,41 @@ from cvxpy import error
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
+from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
-from cvxpy.reductions.solvers.intermediate_chain import construct_intermediate_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.deterministic import unique_list
 import cvxpy.utilities.performance_utils as perf
-
-# TODO(akshayka): This is a hack. Fix this if possible.
-# Only need to import cvxpy.transform.get_separable_problems, but this creates
-# a circular import (cvxpy.transforms imports Problem). Hence we need to import
-# cvxpy here.
-import cvxpy  # noqa
 from cvxpy.constraints import Equality, Inequality, NonPos, Zero
 import cvxpy.utilities as u
+
 from collections import namedtuple
-import multiprocess as multiprocessing
+import numpy as np
 
 
 SolveResult = namedtuple(
     'SolveResult',
     ['opt_value', 'status', 'primal_values', 'dual_values'])
+
+
+class Cache(object):
+    def __init__(self):
+        self.key = None
+        self.solving_chain = None
+        self.param_cone_prog = None
+        self.inverse_data = None
+
+    def invalidate(self):
+        self.key = None
+        self.solving_chain = None
+        self.param_cone_prog = None
+        self.inverse_data = None
+
+    def make_key(self, solver, gp):
+        return (solver, gp)
 
 
 class Problem(u.Canonical):
@@ -73,19 +85,13 @@ class Problem(u.Canonical):
         self._value = None
         self._status = None
         self._solution = None
-        # The intermediate and solving chains to canonicalize and solve the problem
-        self._intermediate_chain = None
-        self._solving_chain = None
-        self._cached_chain_key = None
-        # List of separable (sub)problems
-        self._separable_problems = None
+        self._cache = Cache()
+        self._solver_cache = {}
         # Information about the shape of the problem and its constituent parts
         self._size_metrics = None
         # Benchmarks reported by the solver:
         self._solver_stats = None
         self.args = [self._objective, self._constraints]
-        # Cache for warm start.
-        self._solver_cache = {}
 
     @property
     def value(self):
@@ -100,7 +106,8 @@ class Problem(u.Canonical):
     @property
     def status(self):
         """str : The status from the last time the problem was solved; one
-                 of optimal, infeasible, or unbounded.
+                 of optimal, infeasible, or unbounded (with or without
+                 suffix inaccurate).
         """
         return self._status
 
@@ -135,6 +142,13 @@ class Problem(u.Canonical):
         """
         return all(
           expr.is_dcp() for expr in self.constraints + [self.objective])
+
+    @perf.compute_once
+    def is_dpp(self):
+        """Does the problem satisfy DPP rules?
+        """
+        return all(
+          expr.is_dpp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
     def is_dgp(self):
@@ -244,7 +258,8 @@ class Problem(u.Canonical):
     def solve(self, *args, **kwargs):
         """Solves the problem using the specified method.
 
-        Populates the `.status', `.value`
+        Populates the :code:`status` and :code:`value` attributes on the
+        problem object as a side-effect.
 
         Parameters
         ----------
@@ -258,12 +273,33 @@ class Problem(u.Canonical):
         qcp : bool, optional
             If True, parses the problem as a disciplined quasiconvex program
             instead of a disciplined convex program.
-        solver_specific_opts : dict, optional
-            A dict of options that will be passed to the specific solver.
-            In general, these options will override any default settings
-            imposed by cvxpy.
+        requires_grad : bool, optional
+            Makes it possible to compute gradients with respect to
+            parameters by calling `.backward()` after solving, or to compute
+            perturbations to the variables by calling `.derivative()`. When
+            True, the solver must be SCS, and gp, qcp must be false; a DPPError is
+            thrown when problem is not DPP.
         method : function, optional
             A custom solve method to use.
+        kwargs : keywords, optional
+            Additional solver specific arguments. See Notes below.
+
+        Notes
+        ------
+        CVXPY interfaces with a wide range of solvers; the algorithms used by these solvers
+        have parameters relating to stopping criteria, and strategies to improve solution quality.
+
+        There is no one choice of parameters which is perfect for every problem. If you are not
+        getting satisfactory results from a solver, you can try changing its parameters. The
+        exact way this is done depends on the specific solver. Here are some examples:
+
+            prob.solve(solver='ECOS', abstol=1e-6)
+            prob.solve(solver='OSQP', max_iter=10000).
+            mydict = {"MSK_DPAR_INTPNT_CO_TOL_NEAR_REL":  10}
+            prob.solve(solver='MOSEK', mosek_params=mydict).
+
+        You should refer to CVXPY's web documentation for details on how to pass solver
+        parameters.
 
         Returns
         -------
@@ -305,10 +341,9 @@ class Problem(u.Canonical):
     def get_problem_data(self, solver, gp=False):
         """Returns the problem data used in the call to the solver.
 
-        When a problem is solved, CVXPY creates a chain of reductions combining
-        an intermediate reduction chain :class:`~cvxpy.reductions.chain.Chain`
-        and a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`.
-        This object compiles it to some low-level representation that is
+        When a problem is solved, CVXPY creates a chain of reductions enclosed
+        in a :class:`~cvxpy.reductions.solvers.solving_chain.SolvingChain`,
+        and compiles it to some low-level representation that is
         compatible with the targeted solver. This method returns that low-level
         representation.
 
@@ -324,42 +359,44 @@ class Problem(u.Canonical):
         to recover a solution to the original problem.
 
         For example:
-        ```python
-        objective = ...
-        constraints = ...
-        problem = cp.Problem(objective, constraints)
-        data, chain, inverse_data = problem.get_problem_data(cp.SCS)
-        # calls SCS using `data`
-        soln = chain.solve_via_data(problem, data)
-        # unpacks the solution returned by SCS into `problem`
-        problem.unpack_results(soln, chain, inverse_data)
-        ```
+
+        ::
+
+            objective = ...
+            constraints = ...
+            problem = cp.Problem(objective, constraints)
+            data, chain, inverse_data = problem.get_problem_data(cp.SCS)
+            # calls SCS using `data`
+            soln = chain.solve_via_data(problem, data)
+            # unpacks the solution returned by SCS into `problem`
+            problem.unpack_results(soln, chain, inverse_data)
 
         Alternatively, the `data` dictionary returned by this method
         contains enough information to bypass CVXPY and call the solver
         directly.
 
         For example:
-        ```
-        problem = cp.Problem(objective, constraints)
-        data, _, _ = problem.get_problem_data(cp.SCS)
 
-        import scs
-        probdata = {
-          'A': data['A'],
-          'b': data['b'],
-          'c': data['c'],
-        }
-        cone_dims = data['dims']
-        cones = {
-            "f": cone_dims.zero,
-            "l": cone_dims.nonpos,
-            "q": cone_dims.soc,
-            "ep": cone_dims.exp,
-            "s": cone_dims.psd,
-        }
-        soln = scs.solve(data, cones)
-        ```
+        ::
+
+            problem = cp.Problem(objective, constraints)
+            data, _, _ = problem.get_problem_data(cp.SCS)
+
+            import scs
+            probdata = {
+              'A': data['A'],
+              'b': data['b'],
+              'c': data['c'],
+            }
+            cone_dims = data['dims']
+            cones = {
+                "f": cone_dims.zero,
+                "l": cone_dims.nonpos,
+                "q": cone_dims.soc,
+                "ep": cone_dims.exp,
+                "s": cone_dims.psd,
+            }
+            soln = scs.solve(data, cones)
 
         The structure of the data dict that CVXPY returns depends on the
         solver. For details, consult the solver interfaces in
@@ -382,16 +419,35 @@ class Problem(u.Canonical):
         list
             The inverse data generated by the chain.
         """
-        self._construct_chains(solver=solver, gp=gp)
+        key = self._cache.make_key(solver, gp)
+        if key != self._cache.key:
+            self._cache.invalidate()
+            solving_chain = self._construct_chain(solver=solver, gp=gp)
+            self._cache.key = key
+            self._cache.solving_chain = solving_chain
+            self._solver_cache = {}
+        else:
+            solving_chain = self._cache.solving_chain
 
-        data, solving_inverse_data = \
-            self._solving_chain.apply(self._intermediate_problem)
-
-        full_chain = \
-            self._solving_chain.prepend(self._intermediate_chain)
-        inverse_data = self._intermediate_inverse_data + solving_inverse_data
-
-        return data, full_chain, inverse_data
+        if self._cache.param_cone_prog is not None:
+            # fast path, bypasses application of reductions
+            data, solver_inverse_data = solving_chain.solver.apply(
+                self._cache.param_cone_prog)
+            inverse_data = self._cache.inverse_data + [solver_inverse_data]
+        else:
+            data, inverse_data = solving_chain.apply(self)
+            safe_to_cache = (
+                isinstance(data, dict)
+                and s.PARAM_PROB in data
+                and not any(isinstance(reduction, EvalParams)
+                            for reduction in solving_chain.reductions)
+            )
+            if safe_to_cache:
+                self._cache.param_cone_prog = data[s.PARAM_PROB]
+                # the last datum in inverse_data corresponds to the solver,
+                # so we shouldn't cache it
+                self._cache.inverse_data = inverse_data[:-1]
+        return data, solving_chain, inverse_data
 
     def _find_candidate_solvers(self,
                                 solver=None,
@@ -468,15 +524,14 @@ class Problem(u.Canonical):
 
         return candidates
 
-    def _construct_chains(self, solver=None, gp=False):
+    def _construct_chain(self, solver=None, gp=False):
         """
         Construct the chains required to reformulate and solve the problem.
 
         In particular, this function
 
-        #. finds the candidate solvers
-        #. constructs the intermediate chain suitable for numeric reductions.
-        #. constructs the solving chain that performs the
+        # finds the candidate solvers
+        # constructs the solving chain that performs the
            numeric reductions and solves the problem.
 
         Parameters
@@ -486,34 +541,25 @@ class Problem(u.Canonical):
         gp : bool, optional
             If True, the problem is parsed as a Disciplined Geometric Program
             instead of as a Disciplined Convex Program.
+
+        Returns
+        -------
+        A solving chain
         """
+        candidate_solvers = self._find_candidate_solvers(solver=solver, gp=gp)
+        return construct_solving_chain(self, candidate_solvers, gp=gp)
 
-        chain_key = (solver, gp)
-
-        if chain_key != self._cached_chain_key:
-            try:
-                candidate_solvers = self._find_candidate_solvers(solver=solver,
-                                                                 gp=gp)
-
-                self._intermediate_chain = \
-                    construct_intermediate_chain(self, candidate_solvers, gp=gp)
-                self._intermediate_problem, self._intermediate_inverse_data = \
-                    self._intermediate_chain.apply(self)
-
-                self._solving_chain = \
-                    construct_solving_chain(self._intermediate_problem,
-                                            candidate_solvers)
-
-                self._cached_chain_key = chain_key
-
-            except Exception as e:
-                raise e
+    def _invalidate_cache(self):
+        self._cache_key = None
+        self._solving_chain = None
+        self._param_cone_prog = None
+        self._inverse_data = None
 
     def _solve(self,
                solver=None,
                warm_start=True,
                verbose=False,
-               parallel=False, gp=False, qcp=False, **kwargs):
+               gp=False, qcp=False, requires_grad=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -527,12 +573,16 @@ class Problem(u.Canonical):
             Should the previous solver result be used to warm start?
         verbose : bool, optional
             Overrides the default of hiding solver output.
-        parallel : bool, optional
-            If problem is separable, solve in parallel.
         gp : bool, optional
             If True, parses the problem as a disciplined geometric program.
         qcp : bool, optional
             If True, parses the problem as a disciplined quasiconvex program.
+        requires_grad : bool, optional
+            Makes it possible to compute gradients with respect to
+            parameters by calling `.backward()` after solving, or to compute
+            perturbations to the variables by calling `.derivative()`. When
+            True, the solver must be SCS, and gp, qcp must be False;
+            a DPPError is thrown when problem is not DPP.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -544,109 +594,223 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
-        if gp and qcp:
-            raise ValueError("At most one of `gp` and `qcp` can be True.")
-        if qcp and not self.is_dcp():
-            if not self.is_dqcp():
-                raise error.DQCPError("The problem is not DQCP.")
-            reductions = [dqcp2dcp.Dqcp2Dcp()]
-            if type(self.objective) == Maximize:
-                reductions = [FlipObjective()] + reductions
-            chain = Chain(problem=self, reductions=reductions)
-            soln = bisection.bisect(
-                chain.reduce(), solver=solver, verbose=verbose, **kwargs)
-            self.unpack(chain.retrieve(soln))
-            return self.value
-        if parallel:
-            from cvxpy.transforms.separable_problems import get_separable_problems
-            self._separable_problems = (get_separable_problems(self))
-            if len(self._separable_problems) > 1:
-                return self._parallel_solve(
-                    solver, warm_start, verbose, **kwargs)
+        for parameter in self.parameters():
+            if parameter.value is None:
+                raise error.ParameterError(
+                    "A Parameter (whose name is '%s') does not have a value "
+                    "associated with it; all Parameter objects must have "
+                    "values before solving a problem." % parameter.name())
 
-        self._construct_chains(solver=solver, gp=gp)
-        data, solving_inverse_data = self._solving_chain.apply(
-            self._intermediate_problem)
-        solution = self._solving_chain.solve_via_data(
+        if requires_grad:
+            if not self.is_dpp():
+                raise error.DPPError("Problem is not DPP (when requires_grad "
+                                     "is True, problem must be DPP).")
+            elif gp:
+                raise ValueError("Cannot compute gradients of DGP problems.")
+            elif qcp:
+                raise ValueError("Cannot compute gradients of DQCP problems.")
+            elif solver is not None and solver not in [s.SCS, s.DIFFCP]:
+                raise ValueError("When requires_grad is True, the only "
+                                 "supported solver is SCS "
+                                 "(received %s)." % solver)
+            elif s.DIFFCP not in slv_def.INSTALLED_SOLVERS:
+                raise ImportError(
+                    "The Python package diffcp must be installed to "
+                    "differentiate through problems. Please follow the "
+                    "installation instructions at "
+                    "https://github.com/cvxgrp/diffcp")
+            else:
+                solver = s.DIFFCP
+        else:
+            if gp and qcp:
+                raise ValueError("At most one of `gp` and `qcp` can be True.")
+            if qcp and not self.is_dcp():
+                if not self.is_dqcp():
+                    raise error.DQCPError("The problem is not DQCP.")
+                reductions = [dqcp2dcp.Dqcp2Dcp()]
+                if type(self.objective) == Maximize:
+                    reductions = [FlipObjective()] + reductions
+                chain = Chain(problem=self, reductions=reductions)
+                soln = bisection.bisect(
+                    chain.reduce(), solver=solver, verbose=verbose, **kwargs)
+                self.unpack(chain.retrieve(soln))
+                return self.value
+
+        data, solving_chain, inverse_data = self.get_problem_data(solver, gp)
+        solution = solving_chain.solve_via_data(
             self, data, warm_start, verbose, kwargs)
-        full_chain = self._solving_chain.prepend(self._intermediate_chain)
-        inverse_data = self._intermediate_inverse_data + solving_inverse_data
-        self.unpack_results(solution, full_chain, inverse_data)
+        self.unpack_results(solution, solving_chain, inverse_data)
         return self.value
 
-    def _parallel_solve(self,
-                        solver=None,
-                        warm_start=False,
-                        verbose=False, **kwargs):
-        """Solves a DCP compliant optimization problem in parallel.
+    def backward(self):
+        """Compute the gradient of a solution with respect to parameters.
 
-        Saves the values of primal and dual variables in the variable
-        and constraint objects, respectively.
+        This method differentiates through the solution map of the problem,
+        to obtain the gradient of a solution with respect to the parameters.
+        In other words, it calculates the sensitivities of the parameters
+        with respect to perturbations in the optimal variable values.
 
-        Parameters
-        ----------
-        solver : str, optional
-            The solver to use. Defaults to ECOS.
-        warm_start : bool, optional
-            Should the previous solver result be used to warm start?
-        verbose : bool, optional
-            Overrides the default of hiding solver output.
-        kwargs : dict, optional
-            A dict of options that will be passed to the specific solver.
-            In general, these options will override any default settings
-            imposed by cvxpy.
+        .backward() populates the .gradient attribute of each parameter as a
+        side-effect. It can only be called after calling .solve() with
+        `requires_grad=True`.
 
-        Returns
-        -------
-        float
-            The optimal value for the problem, or a string indicating
-            why the problem could not be solved.
+        Below is a simple example:
+
+        ::
+
+            import cvxpy as cp
+            import numpy as np
+
+            p = cp.Parameter()
+            x = cp.Variable()
+            quadratic = cp.square(x - 2 * p)
+            problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+            p.value = 3.0
+            problem.solve(requires_grad=True, eps=1e-10)
+            # .backward() populates the .gradient attribute of the parameters
+            problem.backward()
+            # Because x* = 2 * p, dx*/dp = 2
+            np.testing.assert_allclose(p.gradient, 2.0)
+
+        In the above example, the gradient could easily be computed by hand;
+        however, .backward() can be used to differentiate through any DCP
+        program (that is also DPP-compliant).
+
+        This method uses the chain rule to evaluate the gradients of a
+        scalar-valued function of the variables with respect to the parameters.
+        For example, let x be a variable and p a parameter; x and p might be
+        scalars, vectors, or matrices. Let f be a scalar-valued function, with
+        z = f(x). Then this method computes dz/dp = (dz/dx) (dx/p). dz/dx
+        is chosen to be the all ones vector by default, corresponding to
+        choosing f to be the sum function. You can specify a custom value for
+        dz/dx by setting the .gradient attribute on your variables. For example,
+
+        ::
+
+            import cvxpy as cp
+            import numpy as np
+
+
+            b = cp.Parameter()
+            x = cp.Variable()
+            quadratic = cp.square(x - 2 * b)
+            problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+            b.value = 3.
+            problem.solve(requires_grad=True, eps=1e-10)
+            x.gradient = 4.
+            problem.backward()
+            # dz/dp = dz/dx dx/dp = 4. * 2. == 8.
+            np.testing.assert_allclose(b.gradient, 8.)
+
+        The .gradient attribute on a variable can also be interpreted as a
+        perturbation to its optimal value.
+
+        Raises
+        ------
+            ValueError
+                if solve was not called with `requires_grad=True`
+            SolverError
+                if the problem is infeasible or unbounded
         """
-        def _solve_problem(problem):
-            """Solve a problem and then return the optimal value, status,
-            primal values, and dual values.
-            """
-            opt_value = problem.solve(solver=solver,
-                                      warm_start=warm_start,
-                                      verbose=verbose,
-                                      parallel=False, **kwargs)
-            status = problem.status
-            primal_values = [var.value for var in problem.variables()]
-            dual_values = [constr.dual_value for constr in problem.constraints]
-            return SolveResult(opt_value, status, primal_values, dual_values)
+        if s.DIFFCP not in self._solver_cache:
+            raise ValueError("backward can only be called after calling "
+                             "solve with `requires_grad=True`")
+        elif self.status not in s.SOLUTION_PRESENT:
+            raise error.SolverError("Backpropagating through "
+                                    "infeasible/unbounded problems is not "
+                                    "yet supported. Please file an issue on "
+                                    "Github if you need this feature.")
 
-        pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-        solve_results = pool.map(_solve_problem, self._separable_problems)
-        pool.close()
-        pool.join()
-        statuses = {solve_result.status for solve_result in solve_results}
-        # Check if at least one subproblem is infeasible or inaccurate
-        for status in s.INF_OR_UNB:
-            if status in statuses:
-                self._handle_no_solution(status)
-                break
-        else:
-            for subproblem, solve_result in zip(self._separable_problems,
-                                                solve_results):
-                for var, primal_value in zip(subproblem.variables(),
-                                             solve_result.primal_values):
-                    var.save_value(primal_value)
-                for constr, dual_value in zip(subproblem.constraints,
-                                              solve_results):
-                    constr.save_value(dual_value)
-            self._value = sum(solve_result.opt_value
-                              for solve_result in solve_results)
-            if s.OPTIMAL_INACCURATE in statuses:
-                self._status = s.OPTIMAL_INACCURATE
+        # TODO(akshayka): Backpropagate through dual variables as well.
+        backward_cache = self._solver_cache[s.DIFFCP]
+        DT = backward_cache["DT"]
+        zeros = np.zeros(backward_cache["s"].shape)
+        del_vars = {}
+        for variable in self.variables():
+            if variable.gradient is None:
+                del_vars[variable.id] = np.ones(variable.shape)
             else:
-                self._status = s.OPTIMAL
-        return self._value
+                del_vars[variable.id] = np.asarray(variable.gradient,
+                                                   dtype=np.float64)
+        dx = self._cache.param_cone_prog.split_adjoint(del_vars)
+        dA, db, dc = DT(dx, zeros, zeros)
+        dparams = self._cache.param_cone_prog.apply_param_jac(dc, -dA, db)
+        for parameter in self.parameters():
+            parameter.gradient = dparams[parameter.id]
+
+    def derivative(self):
+        """Apply the derivative of the solution map to perturbations in the parameters
+
+        This method applies the derivative of the solution map to perturbations
+        in the parameters, to obtain perturbations in the optimal values of the
+        variables. In other words, it tells you how the optimal values of the
+        variables would be changed.
+
+        You can specify perturbations in a parameter by setting its .delta
+        attribute (if unspecified, the perturbation defaults to 0). This method
+        populates the .delta attribute of the variables as a side-effect.
+
+        This method can only be called after calling .solve() with
+        `requires_grad=True`.
+
+        Below is a simple example:
+
+        ::
+
+            import cvxpy as cp
+            import numpy as np
+
+            p = cp.Parameter()
+            x = cp.Variable()
+            quadratic = cp.square(x - 2 * p)
+            problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
+            p.value = 3.0
+            problem.solve(requires_grad=True, eps=1e-10)
+            # .derivative() populates the .gradient attribute of the parameters
+            problem.backward()
+            p.delta = 1e-3
+            # Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3
+            np.testing.assert_allclose(p.gradient, 2e-3)
+
+        Raises
+        ------
+            ValueError
+                if solve was not called with `requires_grad=True`
+            SolverError
+                if the problem is infeasible or unbounded
+        """
+        if s.DIFFCP not in self._solver_cache:
+            raise ValueError("derivative can only be called after calling "
+                             "solve with `requires_grad=True`")
+        elif self.status not in s.SOLUTION_PRESENT:
+            raise ValueError("Differentiating through infeasible/unbounded "
+                             "problems is not yet supported. Please file an "
+                             "issue on Github if you need this feature.")
+        # TODO(akshayka): Forward differentiate dual variables as well
+        backward_cache = self._solver_cache[s.DIFFCP]
+        param_cone_prog = self._cache.param_cone_prog
+        D = backward_cache["D"]
+        param_deltas = {}
+        for parameter in self.parameters():
+            if parameter.delta is None:
+                param_deltas[parameter.id] = np.zeros(parameter.shape)
+            else:
+                param_deltas[parameter.id] = np.asarray(parameter.delta,
+                                                        dtype=np.float64)
+        dc, _, dA, db = param_cone_prog.apply_parameters(param_deltas,
+                                                         zero_offset=True)
+        dx, _, _ = D(-dA, db, dc)
+        dvars = param_cone_prog.split_solution(
+            dx, [v.id for v in self.variables()])
+        for variable in self.variables():
+            variable.delta = dvars[variable.id]
 
     def _clear_solution(self):
         for v in self.variables():
             v.save_value(None)
         for c in self.constraints:
-            c.save_value(None)
+            for dv in c.dual_variables:
+                dv.save_value(None)
         self._value = None
         self._status = None
         self._solution = None
@@ -673,14 +837,13 @@ class Problem(u.Canonical):
                 v.save_value(solution.primal_vars[v.id])
             for c in self.constraints:
                 if c.id in solution.dual_vars:
-                    c.save_value(solution.dual_vars[c.id])
+                    c.save_dual_value(solution.dual_vars[c.id])
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)
             for constr in self.constraints:
-                constr.save_value(None)
-        elif solution.status in s.ERROR:
-            return
+                for dv in constr.dual_variables:
+                    dv.save_value(None)
         else:
             raise ValueError("Cannot unpack invalid solution: %s" % solution)
 
@@ -775,6 +938,9 @@ class Problem(u.Canonical):
         if not isinstance(other, (int, float)):
             return NotImplemented
         return Problem(self.objective * (1.0 / other), self.constraints)
+
+    def is_constant(self):
+        return False
 
     __truediv__ = __div__
 

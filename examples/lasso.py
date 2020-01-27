@@ -47,4 +47,4 @@ par_x = pool.map(get_x, gammas)
 
 for v1,v2 in zip(x_values, par_x):
     if np.linalg.norm(v1 - v2) > 1e-5:
-        print "error"
+        print("error")

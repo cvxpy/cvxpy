@@ -11,6 +11,8 @@ python -c "import numpy; print('numpy %s' % numpy.__version__)"
 python -c "import scipy; print('scipy %s' % scipy.__version__)"
 python setup.py install
 python -c "import cvxpy; print(cvxpy.installed_solvers())"
+python $(dirname ${BASH_SOURCE[0]})/../osqp_version.py
+
 if [[ "$COVERAGE" == "true" ]]; then
     export WITH_COVERAGE="--with-coverage"
 else

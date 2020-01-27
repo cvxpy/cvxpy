@@ -19,11 +19,11 @@ import scipy.sparse as sp
 
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.affine.reshape import reshape as reshape_atom
 from cvxpy.atoms.quad_form import QuadForm
 from cvxpy.constraints import NonPos, Zero
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions import InverseData
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.utilities import are_args_affine
 import cvxpy.settings as s
@@ -38,6 +38,31 @@ def is_stuffed_qp_objective(objective):
             and type(expr.args[0]) == QuadForm
             and type(expr.args[1]) == MulExpression
             and expr.args[1].is_affine())
+
+
+def get_coeff_offset(expr):
+    """Return the coefficient A and offset b in A*x + b.
+    Args:
+      expr: A CVXPY expression.
+    Returns:
+      (SciPy COO sparse matrix, NumPy 1D array)
+    """
+    # May be a reshape as root.
+    if type(expr) == reshape_atom:
+        expr = expr.args[0]
+    # Convert data to float64.
+    if len(expr.args[0].args) == 0:
+        # expr is c.T*x
+        offset = 0
+        coeff = expr.args[0].value.astype(np.float64)
+    else:
+        # expr is c.T*x + d
+        offset = expr.args[1].value.ravel().astype(np.float64)
+        coeff = expr.args[0].args[0].value.astype(np.float64)
+    # Convert scalars to sparse matrices.
+    if np.isscalar(coeff):
+        coeff = sp.coo_matrix(([coeff], ([0], [0])), shape=(1, 1))
+    return (coeff, offset)
 
 
 class QpSolver(Solver):
@@ -73,11 +98,9 @@ class QpSolver(Solver):
         # Get number of variables
         n = problem.size_metrics.num_scalar_variables
 
-        # TODO(akshayka): This dependence on ConicSolver is hacky; something
-        # should change here.
         eq_cons = [c for c in problem.constraints if type(c) == Zero]
         if eq_cons:
-            eq_coeffs = list(zip(*[ConicSolver.get_coeff_offset(con.expr)
+            eq_coeffs = list(zip(*[get_coeff_offset(con.expr)
                                    for con in eq_cons]))
             A = sp.vstack(eq_coeffs[0])
             b = - np.concatenate(eq_coeffs[1])
@@ -86,7 +109,7 @@ class QpSolver(Solver):
 
         ineq_cons = [c for c in problem.constraints if type(c) == NonPos]
         if ineq_cons:
-            ineq_coeffs = list(zip(*[ConicSolver.get_coeff_offset(con.expr)
+            ineq_coeffs = list(zip(*[get_coeff_offset(con.expr)
                                      for con in ineq_cons]))
             F = sp.vstack(ineq_coeffs[0])
             g = - np.concatenate(ineq_coeffs[1])

@@ -30,10 +30,16 @@ class CBC(SCS):
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
-    # Map of GLPK MIP status to CVXPY status.
+    # Map of CBC status to CVXPY status.
     STATUS_MAP_MIP = {'solution': s.OPTIMAL,
                       'relaxation infeasible': s.INFEASIBLE,
-                      'stopped on user event': s.SOLVER_ERROR}
+                      'stopped on user event': s.SOLVER_ERROR,
+                      'stopped on nodes': s.OPTIMAL_INACCURATE,
+                      'stopped on gap': s.OPTIMAL_INACCURATE,
+                      'stopped on time': s.OPTIMAL_INACCURATE,
+                      'stopped on solutions': s.OPTIMAL_INACCURATE,
+                      'linear relaxation unbounded': s.UNBOUNDED,
+                      'unset': s.UNBOUNDED}
 
     STATUS_MAP_LP = {'optimal': s.OPTIMAL,
                      'primal infeasible': s.INFEASIBLE,
@@ -75,7 +81,7 @@ class CBC(SCS):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(CBC, self).apply(problem)
-        variables = problem.variables()[0]
+        variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
 

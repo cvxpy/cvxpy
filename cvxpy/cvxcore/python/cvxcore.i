@@ -1,17 +1,16 @@
-//    This file is part of cvxcore.
+//   Copyright 2017 Steven Diamond
 //
-//    cvxcore is free software: you can redistribute it and/or modify
-//    it under the terms of the GNU General Public License as published by
-//    the Free Software Foundation, either version 3 of the License, or
-//    (at your option) any later version.
+//   Licensed under the Apache License, Version 2.0 (the "License");
+//   you may not use this file except in compliance with the License.
+//   You may obtain a copy of the License at
 //
-//    cvxcore is distributed in the hope that it will be useful,
-//    but WITHOUT ANY WARRANTY; without even the implied warranty of
-//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//    GNU General Public License for more details.
+//       http://www.apache.org/licenses/LICENSE-2.0
 //
-//    You should have received a copy of the GNU General Public License
-//    along with cvxcore.  If not, see <http://www.gnu.org/licenses/>.
+//   Unless required by applicable law or agreed to in writing, software
+//   distributed under the License is distributed on an "AS IS" BASIS,
+//   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+//   See the License for the specific language governing permissions and
+//   limitations under the License.
 
 %module cvxcore
 
@@ -38,8 +37,9 @@
 	(double *col_idxs, int cols_len)};
 
 %include "LinOp.hpp"
+%include "Utils.hpp"
 
-/* Typemap for the getV, getI, getJ, and getConstVec C++ routines in 
+/* Typemap for the getV, getI, getJ, and getConstVec C++ routines in
 	 problemData.hpp */
 %apply (double* ARGOUT_ARRAY1, int DIM1) {(double* values, int num_values)}
 %include "ProblemData.hpp"
@@ -52,8 +52,16 @@ namespace std {
    %template(DoubleVector2D) vector< vector<double> >;
    %template(IntIntMap) map<int, int>;
    %template(LinOpVector) vector< LinOp * >;
+   %template(ConstLinOpVector) vector< const LinOp * >;
 }
 
 /* Wrapper for entry point into CVXCanon Library */
-ProblemData build_matrix(std::vector< LinOp* > constraints, std::map<int, int> id_to_col);
-ProblemData build_matrix(std::vector< LinOp* > constraints, std::map<int, int> id_to_col, std::vector<int> constr_offsets);
+ProblemData build_matrix(std::vector< const LinOp* > constraints,
+                         int var_length,
+                         std::map<int, int> id_to_col,
+                         std::map<int, int> param_to_size);
+ProblemData build_matrix(std::vector< const LinOp* > constraints,
+                         int var_length,
+                         std::map<int, int> id_to_col,
+                         std::map<int, int> param_to_size,
+                         std::vector<int> constr_offsets);

@@ -9,7 +9,7 @@ FAQ
 
 Where can I get help with CVXPY?
 --------------------------------
-You can post questions about how to use CVXPY on the `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_.
+You can post questions about how to use CVXPY on StackOverflow or on the `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_.
 If you've found a bug in CVXPY or have a feature request,
 create an issue on the `CVXPY Github issue tracker <https://github.com/cvxgrp/cvxpy/issues>`_.
 
@@ -69,11 +69,6 @@ functions on CVXPY expressions.
 It is not possible for CVXPY to correctly handle these use cases,
 so CVXPY throws an (admittedly cryptic) exception.
 
-What do I do if I get "RuntimeError: maximum recursion depth exceeded"?
-------------------------------------------------------------------------
-See `this thread <https://groups.google.com/forum/#!topic/cvxpy/btQuh4FsQ-I>`_
-on the mailing list.
-
 Can I use NumPy functions on CVXPY objects?
 -------------------------------------------
 No, you can only use CVXPY functions on CVXPY objects.
@@ -82,17 +77,7 @@ it will probably fail in a confusing way.
 
 Can I use SciPy sparse matrices with CVXPY?
 -------------------------------------------
-Yes, though you need to be careful.
-SciPy sparse matrices do not support operator overloading to the extent needed by CVXPY.
-(See `this Github issue <https://github.com/scipy/scipy/issues/4819>`__ for details.)
-You can wrap a SciPy sparse matrix as a CVXPY constant, however, and then use it normally with CVXPY:
-
-.. code:: python
-
-  # Wrap the SciPy sparse matrix A as a CVXPY constant.
-  A = Constant(A)
-  # Use A normally in CVXPY expressions.
-  expr = A*x
+Yes, they are fully supported.
 
 How do I constrain a CVXPY matrix expression to be positive semidefinite?
 ------------------------------------------------------------------------------
@@ -105,13 +90,6 @@ See :ref:`Advanced Features <advanced>`.
 How do I create a variable that has multiple special properties, such as boolean and symmetric?
 ---------------------------------------------------------------------------------------------------
 Create one variable with each desired property, and then set them all equal by adding equality constraints.
-`CVXPY 1.0 <https://github.com/cvxgrp/cvxpy/issues/199>`_ will have a more elegant solution.
-
-How do I create complex variables?
-----------------------------------
-You must represent complex variables using real variables,
-as described in `this Github issue <https://github.com/cvxgrp/cvxpy/issues/191>`__.
-We hope to add complex variables soon.
 
 How do I create variables with more than 2 dimensions?
 ------------------------------------------------------
@@ -127,7 +105,7 @@ every row a_i of A). Consult this `IPython notebook <https://github.com/cvxgrp/c
 --------------------
 How does CVXPY work?
 --------------------
-The algorithms and data structures used by CVXPY are discussed in `this paper <http://arxiv.org/abs/1506.00760>`_.
+The fundamental concepts behind CVXPY are discussed in `this paper <http://arxiv.org/abs/1506.0076>`_.
 
 How do I cite CVXPY?
 --------------------

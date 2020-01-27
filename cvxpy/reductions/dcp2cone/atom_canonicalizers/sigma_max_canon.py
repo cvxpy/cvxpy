@@ -13,29 +13,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
+from cvxpy.atoms.affine.bmat import bmat
+from cvxpy.constraints.psd import PSD
 import scipy.sparse as sp
+import numpy as np
 
 
 def sigma_max_canon(expr, args):
     A = args[0]
     n, m = A.shape
-    X = Variable((n+m, n+m), PSD=True)
-
     shape = expr.shape
+    if not np.prod(shape) == 1:
+        raise RuntimeError('Invalid shape of expr in sigma_max canonicalization.')
     t = Variable(shape)
-    constraints = []
-
-    # Fix X using the fact that A must be affine by the DCP rules.
-    # X[0:n, 0:n] == I_n*t
-    constraints.append(X[0:n, 0:n] == Constant(sp.eye(n)) * t)
-
-    # X[0:n, n:n+m] == A
-    constraints.append(X[0:n, n:n+m] == A)
-
-    # X[n:n+m, n:n+m] == I_m*t
-    constraints.append(X[n:n+m, n:n+m] == Constant(sp.eye(m)) * t)
-
+    tI_n = sp.eye(n) * t
+    tI_m = sp.eye(m) * t
+    X = bmat([[tI_n, A],
+              [A.T, tI_m]])
+    constraints = [PSD(X)]
     return t, constraints

@@ -75,10 +75,10 @@ def main():
 
 		iters = iters + 1
 
- 	pool.close()
- 	pool.join()
-	
-	print x
+	pool.close()
+	pool.join()
+
+	print(x)
 
 if __name__ == '__main__':
 	main()

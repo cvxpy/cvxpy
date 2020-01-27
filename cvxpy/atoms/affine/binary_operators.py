@@ -21,6 +21,10 @@ import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
+from cvxpy.atoms.affine.sum import sum as cvxpy_sum
+from cvxpy.atoms.affine.reshape import deep_flatten
+from cvxpy.atoms import conj
+from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
@@ -75,7 +79,7 @@ class BinaryOperator(AffAtom):
 
 
 def matmul(lh_exp, rh_exp):
-    """Matrix multipliction."""
+    """Matrix multiplication."""
     return MulExpression(lh_exp, rh_exp)
 
 
@@ -116,7 +120,24 @@ class MulExpression(BinaryOperator):
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
-        return self.args[0].is_constant() or self.args[1].is_constant()
+        if u.scopes.dpp_scope_active():
+            # This branch applies curvature rules for DPP.
+            #
+            # Because a DPP scope is active, parameters will be
+            # treated as affine (like variables, not constants) by curvature
+            # analysis methods.
+            #
+            # Like under DCP, a product x * y is convex if x or y is constant.
+            # If neither x nor y is constant, then the product is DPP
+            # if one of the expressions is affine in its parameters and the
+            # other is parameter-free.
+            x = self.args[0]
+            y = self.args[1]
+            return ((x.is_constant() or y.is_constant()) or
+                    (is_param_affine(x) and is_param_free(y)) or
+                    (is_param_affine(y) and is_param_free(x)))
+        else:
+            return self.args[0].is_constant() or self.args[1].is_constant()
 
     def is_atom_concave(self):
         """If the multiplication atom is convex, then it is affine.
@@ -177,8 +198,7 @@ class MulExpression(BinaryOperator):
 
         return [DX, DY]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Multiply the linear expressions.
 
         Parameters
@@ -198,9 +218,9 @@ class MulExpression(BinaryOperator):
         # Promote shapes for compatibility with CVXCanon
         lhs = arg_objs[0]
         rhs = arg_objs[1]
-        if lu.is_const(lhs):
+        if self.args[0].is_constant():
             return (lu.mul_expr(lhs, rhs, shape), [])
-        elif lu.is_const(rhs):
+        elif self.args[1].is_constant():
             return (lu.rmul_expr(lhs, rhs, shape), [])
         else:
             raise DCPError("Product of two non-constant expressions is not "
@@ -269,8 +289,7 @@ class multiply(MulExpression):
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Multiply the expressions elementwise.
 
         Parameters
@@ -290,16 +309,16 @@ class multiply(MulExpression):
         # promote if necessary.
         lhs = arg_objs[0]
         rhs = arg_objs[1]
-        if lu.is_const(lhs):
+        if self.args[0].is_constant():
             return (lu.multiply(lhs, rhs), [])
-        elif lu.is_const(rhs):
+        elif self.args[1].is_constant():
             return (lu.multiply(rhs, lhs), [])
         else:
             raise DCPError("Product of two non-constant expressions is not "
                            "DCP.")
 
 
-class DivExpression(multiply):
+class DivExpression(BinaryOperator):
     """Division by scalar.
 
     Can be created by using the / operator of expression.
@@ -307,6 +326,15 @@ class DivExpression(multiply):
 
     OP_NAME = "/"
     OP_FUNC = np.divide
+
+    def __init__(self, lh_expr, rh_expr):
+        lh_expr = DivExpression.cast_to_const(lh_expr)
+        rh_expr = DivExpression.cast_to_const(rh_expr)
+        if lh_expr.is_scalar() and not rh_expr.is_scalar():
+            lh_expr = promote(lh_expr, rh_expr.shape)
+        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
+            rh_expr = promote(rh_expr, lh_expr.shape)
+        super(DivExpression, self).__init__(lh_expr, rh_expr)
 
     def numeric(self, values):
         """Divides numerator by denominator.
@@ -368,8 +396,7 @@ class DivExpression(multiply):
         else:
             return self.args[0].is_nonneg()
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Multiply the linear expressions.
 
         Parameters
@@ -387,3 +414,35 @@ class DivExpression(multiply):
             (LinOp for objective, list of constraints)
         """
         return (lu.div_expr(arg_objs[0], arg_objs[1]), [])
+
+
+def scalar_product(x, y):
+    """
+    Return the standard inner product (or "scalar product") of (x,y).
+
+    Parameters
+    ----------
+    x : Expression, int, float, NumPy ndarray, or nested list thereof.
+        The conjugate-linear argument to the inner product.
+    y : Expression, int, float, NumPy ndarray, or nested list thereof.
+        The linear argument to the inner product.
+
+    Returns
+    -------
+    expr : Expression
+        The standard inner product of (x,y), conjugate-linear in x.
+        We always have ``expr.shape == ()``.
+
+    Notes
+    -----
+    The arguments ``x`` and ``y`` can be nested lists; these lists
+    will be flattened independently of one another.
+
+    For example, if ``x = [[a],[b]]`` and  ``y = [c, d]`` (with ``a,b,c,d``
+    real scalars), then this function returns an Expression representing
+    ``a * c + b * d``.
+    """
+    x = deep_flatten(x)
+    y = deep_flatten(y)
+    prod = multiply(conj(x), y)
+    return cvxpy_sum(prod)

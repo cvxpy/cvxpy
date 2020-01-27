@@ -74,7 +74,10 @@ class Variable(Leaf):
         else:
             raise TypeError("Variable name %s must be a string." % name)
 
+        self._variable_with_attributes = None
         self._value = None
+        self.delta = None
+        self.gradient = None
         super(Variable, self).__init__(shape, **kwargs)
 
     def name(self):
@@ -109,6 +112,19 @@ class Variable(Leaf):
         """
         obj = lu.create_var(self.shape, self.id)
         return (obj, [])
+
+    def attributes_were_lowered(self):
+        """True iff variable generated when lowering a variable with attributes.
+        """
+        return self._variable_with_attributes is not None
+
+    def set_variable_of_provenance(self, variable):
+        assert variable.attributes
+        self._variable_with_attributes = variable
+
+    def variable_of_provenance(self):
+        """Returns a variable with attributes from which this variable was generated."""
+        return self._variable_with_attributes
 
     def __repr__(self):
         """String to recreate the object.

@@ -49,7 +49,7 @@ A = cvxopt.matrix([ -2, 7, 1,
 					-1, 4, -4,
 					1, 5, 5,
 					2, -5, -1 ], (m,n))
-					
+
 b = cvxopt.matrix([-4, 3, 9, 0, -11, 5], (m,1))
 d = cvxopt.matrix([-10, -13, -27, -10, -7, 14], (m,1))
 epsilon = Parameter()
@@ -71,10 +71,10 @@ e_values = np.linspace(-1,1,41)
 # x_values = [get_p(value) for value in e_values]
 
 # Solve in parallel
-print 'Computing p*(epsilon) for -1 <= epsilon <= 1 ...'
+print('Computing p*(epsilon) for -1 <= epsilon <= 1 ...')
 pool = Pool(processes = 4)
 p_values = pool.map(get_p, e_values)
-print 'Done!'
+print('Done!')
 
 # Plots
 plot(e_values, p_values)

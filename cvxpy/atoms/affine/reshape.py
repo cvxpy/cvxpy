@@ -14,8 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.expressions.expression import Expression
+from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
+import numbers
 import numpy as np
 
 
@@ -30,12 +33,17 @@ class reshape(AffAtom):
     ----------
     expr : Expression
        The expression to promote.
-    shape : tuple
+    shape : tuple or int
         The shape to promote to.
     """
 
     def __init__(self, expr, shape):
-        self._shape = shape
+        if isinstance(shape, numbers.Integral):
+            shape = (int(shape),)
+        if len(shape) > 2:
+            raise ValueError("Expressions of dimension greater than 2 "
+                             "are not supported.")
+        self._shape = tuple(shape)
         super(reshape, self).__init__(expr)
 
     def is_atom_log_log_convex(self):
@@ -74,8 +82,7 @@ class reshape(AffAtom):
         """
         return [self._shape]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Convolve two vectors.
 
         Parameters
@@ -93,3 +100,26 @@ class reshape(AffAtom):
             (LinOp for objective, list of constraints)
         """
         return (lu.reshape(arg_objs[0], shape), [])
+
+
+def deep_flatten(x):
+    # base cases
+    if isinstance(x, Expression):
+        if len(x.shape) == 1:
+            return x
+        else:
+            return x.flatten()
+    elif isinstance(x, np.ndarray) or isinstance(x, (int, float)):
+        x = Expression.cast_to_const(x)
+        return x.flatten()
+    # recursion
+    if isinstance(x, list):
+        y = []
+        for x0 in x:
+            x1 = deep_flatten(x0)
+            y.append(x1)
+        y = hstack(y)
+        return y
+    msg = 'The input to deep_flatten must be an Expression, a NumPy array, an int'\
+          + ' or float, or a nested list thereof. Received input of type %s' % type(x)
+    raise ValueError(msg)

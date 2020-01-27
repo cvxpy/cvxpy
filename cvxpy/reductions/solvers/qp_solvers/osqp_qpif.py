@@ -1,5 +1,4 @@
 import cvxpy.settings as s
-from cvxpy.reductions.solvers import utilities
 import cvxpy.interface as intf
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -40,10 +39,7 @@ class OSQP(QpSolver):
                 list(inverse_data.id_map.keys())[0]:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
             }
-            dual_vars = utilities.get_dual_values(
-                intf.DEFAULT_INTF.const_to_matrix(solution.y),
-                utilities.extract_dual_value,
-                inverse_data.sorted_constraints)
+            dual_vars = {OSQP.DUAL_VAR_ID: solution.y}
             attr[s.NUM_ITERS] = solution.info.iter
         else:
             primal_vars = None

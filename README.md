@@ -64,7 +64,6 @@ pip install cvxpy
 CVXPY has the following dependencies:
 
 - Python 2.7, 3.4, 3.5, 3.6, or 3.7.
-- six
 - multiprocess
 - OSQP
 - ECOS >= 2
@@ -73,7 +72,7 @@ CVXPY has the following dependencies:
 - SciPy >= 1.1.0
 
 For detailed instructions, see the [installation
-guide](http://www.cvxpy.org/en/latest/install/index.html).
+guide](https://www.cvxpy.org/install/index.html).
 
 **Python 2.7 end of life**: The CVXPY development team plans to stop supporting Python 2 later this year, starting with the release of CVXPY 1.1.
 
@@ -122,9 +121,9 @@ CVXPY is a community project, built from the contributions of many
 researchers and engineers.
 
 CVXPY is developed and maintained by [Steven
-Diamond](http://web.stanford.edu/~stevend2/) and [Akshay
-Agrawal](https://akshayagrawal.com), with many others contributing
+Diamond](http://web.stanford.edu/~stevend2/), [Akshay
+Agrawal](https://akshayagrawal.com), and [Riley Murray](https://rileyjmurray.wordpress.com/), with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
-Riley Murray, Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.

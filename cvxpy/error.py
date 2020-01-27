@@ -44,6 +44,12 @@ class DCPError(Exception):
     pass
 
 
+class DPPError(Exception):
+    """Error thrown for DPP violations.
+    """
+    pass
+
+
 class DGPError(Exception):
     """Error thrown for DGP violations.
     """

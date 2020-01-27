@@ -22,6 +22,7 @@ from cvxpy.constraints import Equality, Inequality, Zero, NonPos, PSD, SOC
 from cvxpy.reductions.complex2real.atom_canonicalizers import (
     CANON_METHODS as elim_cplx_methods)
 from cvxpy.reductions import utilities
+import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.settings as s
 
 
@@ -38,6 +39,12 @@ class Complex2Real(Reduction):
 
     def apply(self, problem):
         inverse_data = InverseData(problem)
+        real2imag = {var.id: lu.get_id() for var in problem.variables()
+                     if var.is_complex()}
+        constr_dict = {cons.id: lu.get_id() for cons in problem.constraints
+                       if cons.is_complex()}
+        real2imag.update(constr_dict)
+        inverse_data.real2imag = real2imag
 
         leaf_map = {}
         real_obj, imag_obj = self.canonicalize_tree(
@@ -84,8 +91,12 @@ class Complex2Real(Reduction):
                         pvars[vid] = solution.primal_vars[vid]
                 elif var.is_complex():
                     imag_id = inverse_data.real2imag[vid]
-                    pvars[vid] = solution.primal_vars[vid] + \
-                        1j*solution.primal_vars[imag_id]
+                    # Imaginary part may have been lost.
+                    if imag_id in solution.primal_vars:
+                        pvars[vid] = solution.primal_vars[vid] + \
+                            1j*solution.primal_vars[imag_id]
+                    else:
+                        pvars[vid] = solution.primal_vars[vid]
             for cid, cons in inverse_data.id2cons.items():
                 if cons.is_real():
                     dvars[vid] = solution.dual_vars[cid]
@@ -95,8 +106,11 @@ class Complex2Real(Reduction):
                 # For equality and inequality constraints.
                 elif isinstance(cons, (Equality, Zero, NonPos)) and cons.is_complex():
                     imag_id = inverse_data.real2imag[cid]
-                    dvars[cid] = solution.dual_vars[cid] + \
-                        1j*solution.dual_vars[imag_id]
+                    if imag_id in solution.dual_vars:
+                        dvars[cid] = solution.dual_vars[cid] + \
+                            1j*solution.dual_vars[imag_id]
+                    else:
+                        dvars[cid] = solution.dual_vars[cid]
                 elif isinstance(cons, SOC) and cons.is_complex():
                     # TODO add dual variables for complex SOC.
                     pass

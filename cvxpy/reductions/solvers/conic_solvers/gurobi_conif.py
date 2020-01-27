@@ -84,7 +84,7 @@ class GUROBI(SCS):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(GUROBI, self).apply(problem)
-        variables = problem.variables()[0]
+        variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
@@ -101,7 +101,7 @@ class GUROBI(SCS):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[GUROBI.VAR_ID]: solution['primal']}
-            if not inverse_data['is_mip']:
+            if "eq_dual" in solution and not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
                     solution['eq_dual'],
                     utilities.extract_dual_value,
@@ -265,7 +265,7 @@ class GUROBI(SCS):
         import gurobipy
         constr = []
         expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        for (i, j), c in mat.items():
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
@@ -307,7 +307,7 @@ class GUROBI(SCS):
         import gurobipy
         # Assume first expression (i.e. t) is nonzero.
         expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.iteritems():
+        for (i, j), c in mat.items():
             v = variables[j]
             try:
                 expr_list[i].append((c, v))

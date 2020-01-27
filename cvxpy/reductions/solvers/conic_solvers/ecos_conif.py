@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .conic_solver import ConeDims, ConicSolver
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, NonPos, Zero
+from cvxpy.constraints import NonPos, SOC, ExpCone, Zero
 import cvxpy.interface as intf
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.solver import group_constraints
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConeDims, ConicSolver
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.utilities import group_constraints
+import numpy as np
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
@@ -89,26 +90,53 @@ class ECOS(ConicSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
-        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(
-            problem.objective.args[0])
-        data[s.C] = data[s.C].ravel()
-        inv_data[s.OFFSET] = data[s.OFFSET][0]
+        inv_data = {self.VAR_ID: problem.x.id}
 
+        # Format constraints
+        #
+        # ECOS requires constraints to be specified in the following order:
+        # 1. zero cone
+        # 2. non-negative orthant
+        # 3. soc
+        # 4. exponential
         constr_map = group_constraints(problem.constraints)
         data[ConicSolver.DIMS] = ConeDims(constr_map)
-
+        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
+        len_eq = sum([c.size for c in constr_map[Zero]])
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        data[s.A], data[s.B] = self.group_coeff_offset(
-            problem, constr_map[Zero], ECOS.EXP_CONE_ORDER)
-
-        # Order and group nonlinear constraints.
         neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
         inv_data[self.NEQ_CONSTR] = neq_constr
-        data[s.G], data[s.H] = self.group_coeff_offset(
-            problem, neq_constr, ECOS.EXP_CONE_ORDER)
 
+        if not problem.formatted:
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
+
+        c, d, A, b = problem.apply_parameters()
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A[:len_eq]
+        if data[s.A].shape[0] == 0:
+            data[s.A] = None
+        data[s.B] = b[:len_eq].flatten()
+        if data[s.B].shape[0] == 0:
+            data[s.B] = None
+        data[s.G] = -A[len_eq:]
+        data[s.H] = b[len_eq:].flatten()
         return data, inv_data
+
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+        import ecos
+        cones = dims_to_solver_dict(data[ConicSolver.DIMS])
+        if data[s.A] is not None and data[s.A].nnz == 0 and np.prod(data[s.A].shape) > 0:
+            raise ValueError(
+                "ECOS cannot handle sparse data with nnz == 0; "
+                "this is a bug in ECOS, and it indicates that your problem "
+                "might have redundant constraints.")
+        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
+                              cones, data[s.A], data[s.B],
+                              verbose=verbose,
+                              **solver_opts)
+        return solution
 
     def invert(self, solution, inverse_data):
         """Returns solution to original problem, given inverse_data.
@@ -127,25 +155,19 @@ class ECOS(ConicSolver):
             primal_vars = {
                 inverse_data[self.VAR_ID]: intf.DEFAULT_INTF.const_to_matrix(solution['x'])
             }
-            eq_dual = utilities.get_dual_values(
-                solution['y'],
-                utilities.extract_dual_value,
-                inverse_data[self.EQ_CONSTR])
-            leq_dual = utilities.get_dual_values(
-                solution['z'],
-                utilities.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR])
-            eq_dual.update(leq_dual)
-            dual_vars = eq_dual
+            dual_vars = utilities.get_dual_values(solution['z'],
+                                                  utilities.extract_dual_value,
+                                                  inverse_data[self.NEQ_CONSTR])
+            for con in inverse_data[self.NEQ_CONSTR]:
+                if isinstance(con, ExpCone):
+                    cid = con.id
+                    n_cones = con.num_cones()
+                    perm = utilities.expcone_permutor(n_cones, ECOS.EXP_CONE_ORDER)
+                    dual_vars[cid] = dual_vars[cid][perm]
+            eq_duals = utilities.get_dual_values(solution['y'],
+                                                 utilities.extract_dual_value,
+                                                 inverse_data[self.EQ_CONSTR])
+            dual_vars.update(eq_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
             return failure_solution(status)
-
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        import ecos
-        cones = dims_to_solver_dict(data[ConicSolver.DIMS])
-        solution = ecos.solve(data[s.C], data[s.G], data[s.H],
-                              cones, data[s.A], data[s.B],
-                              verbose=verbose,
-                              **solver_opts)
-        return solution

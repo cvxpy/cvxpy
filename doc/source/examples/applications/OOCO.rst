@@ -13,15 +13,15 @@ incidence matrix ``A``. ``A[i, j]`` is +1 if edge ``j`` enters node
 ``i``, -1 if edge ``j`` leaves node ``i``, and 0 otherwise. The source
 and sink are the last two edges. The problem becomes
 
-.. code:: 
+.. code:: python
 
     # A is the incidence matrix. 
     # c is a vector of edge capacities.
-    flows = Variable(shape=(E-2,1))
+    flows = Variable(E-2)
     source = Variable()
     sink = Variable()
     p = Problem(Maximize(source),
-                  [A*vstack(flows,source,sink) == 0,
+                  [A*hstack([flows,source,sink]) == 0,
                    0 <= flows,
                    flows <= c])
 
@@ -29,7 +29,7 @@ The more natural way to frame the max-flow problem is not in terms of
 incidence matrices, however, but in terms of the properties of edges and
 nodes. We can write an ``Edge`` class to capture these properties.
 
-.. code:: 
+.. code:: python
 
     class Edge(object):
         """ An undirected, capacity limited edge. """
@@ -53,7 +53,7 @@ structure is also stored locally, by calling
 
 We also define a ``Node`` class:
 
-.. code:: 
+.. code:: python
 
     class Node(object):
         """ A node with accumulation. """
@@ -71,7 +71,7 @@ Nodes with a variable as their accumulation target.
 Suppose ``nodes`` is a list of all the nodes, ``edges`` is a list of all
 the edges, and ``sink`` is the sink node. The problem becomes:
 
-.. code:: 
+.. code:: python
 
     constraints = []
     for obj in nodes + edges:

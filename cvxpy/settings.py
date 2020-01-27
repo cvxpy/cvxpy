@@ -57,11 +57,11 @@ CPLEX = "CPLEX"
 ECOS = "ECOS"
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
+DIFFCP = "DIFFCP"
 SUPER_SCS = "SUPER_SCS"
 GUROBI = "GUROBI"
 OSQP = "OSQP"
 CPLEX = "CPLEX"
-ELEMENTAL = "ELEMENTAL"
 MOSEK = "MOSEK"
 XPRESS = "XPRESS"
 NAG = "NAG"
@@ -73,7 +73,10 @@ SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
 XPRESS_IIS = "XPRESS_IIS"
 XPRESS_TROW = "XPRESS_TROW"
 
-# Parallel (meta) solver
+# Parameterized problem.
+PARAM_PROB = "param_prob"
+
+# Parallel (meta) solver.
 PARALLEL = "parallel"
 
 # Robust CVXOPT LDL KKT solver.

@@ -16,9 +16,9 @@ and the values of its variables like so:
     problem.solve()
     if problem.status not in ["infeasible", "unbounded"]:
         # Otherwise, problem.value is inf or -inf, respectively.
-        print "Optimal value: %s" % problem.value
+        print("Optimal value: %s" % problem.value)
     for variable in problem.variables():
-        print "Variable %s: value %s" % (variable.name(), variable.value)
+        print("Variable %s: value %s" % (variable.name(), variable.value))
 
 Problems are **immutable**, except through the specification of
 :class:`~cvxpy.expressions.constants.parameter.Parameter` values. This means
@@ -81,10 +81,10 @@ SolverStats
 Problem
 -------
 .. autoclass:: cvxpy.problems.problem.Problem
-    :members: value, status, objective, constraints, is_dcp, is_dgp, is_qp,
-              variables, parameters, constants, atoms, size_metrics,
-              solver_stats, solve, register_solve, get_problem_data,
-              unpack_results,
+    :members: value, status, objective, constraints, is_dcp, is_dgp, is_dqcp,
+              is_qp, is_dpp, variables, parameters, constants,
+              backward, derivative, atoms, size_metrics, solver_stats, solve,
+              register_solve, get_problem_data, unpack_results
     :undoc-members:
     :show-inheritance:
 

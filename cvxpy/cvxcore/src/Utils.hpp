@@ -17,17 +17,25 @@
 #ifndef UTILS_H
 #define UTILS_H
 
-#include "../include/Eigen/Sparse"
 #include "../include/Eigen/Core"
+#include "../include/Eigen/Sparse"
 
-#define NULL_MATRIX Eigen::SparseMatrix<double>(0,0)
+#define NULL_MATRIX Eigen::SparseMatrix<double>(0, 0)
 
 typedef Eigen::Matrix<int, Eigen::Dynamic, 1> Vector;
 typedef Eigen::SparseMatrix<double> Matrix;
 typedef std::map<int, Matrix> CoeffMap;
 typedef Eigen::Triplet<double> Triplet;
+typedef std::map<int, std::map<int, std::vector<Matrix> > > Tensor;
+typedef std::map<int, std::vector<Matrix> > DictMat;
+
+/* ID for all things of CONSTANT_TYPE */
+static const int CONSTANT_ID = -1;
 
 int vecprod(const std::vector<int> &vec);
 int vecprod_before(const std::vector<int> &vec, int end);
+Tensor tensor_mul(const Tensor &lh_ten, const Tensor &rh_ten);
+void acc_tensor(Tensor &lh_ten, const Tensor &rh_ten);
+Matrix diagonalize(const Matrix &mat);
 
 #endif

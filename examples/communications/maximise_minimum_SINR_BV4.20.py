@@ -37,7 +37,7 @@ def maxmin_sinr(G,P_max,P_received,sigma,Group,Group_max,detail=False,epsilon = 
   '''
 Boyd and Vandenberghe, Convex Optimization, exercise 4.20 page 196
 Power assignment in a wireless communication system.
-  
+
 We consider n transmitters with powers p1,...,pn ≥ 0, transmitting to
 n receivers. These powers are the optimization variables in the problem.
 We let G ∈ ℝ(n*n) denote the matrix of path gains from the
@@ -151,7 +151,7 @@ if __name__=='__main__':
   print(maxmin_sinr.__doc__)
   # print all arrays to have 3 significant figures after the decimal place
   np.set_printoptions(precision=3)
-  # in this case we will use a gain matrix with a signal weight of 0.6 and an inteference weight of 0.1
+  # in this case we will use a gain matrix with a signal weight of 0.6 and an interference weight of 0.1
   G = np.array([[0.6,0.1,0.1,0.1,0.1],
                 [0.1,0.6,0.1,0.1,0.1],
                 [0.1,0.1,0.6,0.1,0.1],

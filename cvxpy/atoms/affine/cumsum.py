@@ -112,8 +112,7 @@ class cumsum(AffAtom, AxisAtom):
         """
         return [self.axis]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Cumulative sum via difference matrix.
 
         Parameters
@@ -131,7 +130,7 @@ class cumsum(AffAtom, AxisAtom):
             (LinOp for objective, list of constraints)
         """
         # Implicit O(n) definition:
-        # X = Y[:1,:] - Y[1:,:]
+        # X = Y[1:,:] - Y[:-1, :]
         Y = lu.create_var(shape)
         axis = data[0]
         dim = shape[axis]

@@ -74,8 +74,6 @@ Install from source
 CVXPY has the following dependencies:
 
 * Python 2.7, 3.4, 3.5, 3.6, or 3.7.
-* `six <https://pythonhosted.org/six/>`_
-* `multiprocess`_
 * `OSQP`_
 * `ECOS`_ >= 2
 * `SCS`_ >= 1.1.3
@@ -84,8 +82,8 @@ CVXPY has the following dependencies:
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
-CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_, six, and
-`multiprocess`_. `NumPy`_ and `SciPy`_ will need to be installed manually,
+CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_. `NumPy`_ and
+`SciPy`_ will need to be installed manually,
 as will `Swig`_ . Once you’ve installed these dependencies:
 
 1. Clone the `CVXPY git repository`_.
@@ -173,7 +171,6 @@ See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installati
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
-.. _multiprocess: https://github.com/uqfoundation/multiprocess/
 .. _CVXOPT: http://cvxopt.org/
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos

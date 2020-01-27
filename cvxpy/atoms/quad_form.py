@@ -57,12 +57,14 @@ class QuadForm(Atom):
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return self.args[1].is_psd()
+        P = self.args[1]
+        return P.is_constant() and P.is_psd()
 
     def is_atom_concave(self):
         """Is the atom concave?
         """
-        return self.args[1].is_nsd()
+        P = self.args[1]
+        return P.is_constant() and P.is_nsd()
 
     def is_atom_log_log_convex(self):
         """Is the atom log-log convex?
@@ -213,10 +215,11 @@ def quad_form(x, P):
     # Check dimensions.
     if not P.ndim == 2 or P.shape[0] != P.shape[1] or max(x.shape, (1,))[0] != P.shape[0]:
         raise Exception("Invalid dimensions for arguments.")
-    # P cannot be a parameter.
     if x.is_constant():
         return x.H * P * x
     elif P.is_constant():
         return QuadForm(x, P)
     else:
-        raise Exception("At least one argument to quad_form must be constant.")
+        raise Exception(
+            "At least one argument to quad_form must be non-variable."
+        )

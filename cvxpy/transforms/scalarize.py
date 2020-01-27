@@ -95,7 +95,7 @@ def max(objectives, weights):
       A Minimize objective.
     """
     num_objs = len(objectives)
-    expr = atoms.max_elemwise([(objectives[i]*weights[i]).args[0] for i in range(num_objs)])
+    expr = atoms.maximum(*[(objectives[i]*weights[i]).args[0] for i in range(num_objs)])
     return Minimize(expr)
 
 

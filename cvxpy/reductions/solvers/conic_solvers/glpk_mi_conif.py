@@ -18,6 +18,7 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers import GLPK
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solution import Solution, failure_solution
 
 
 class GLPK_MI(GLPK):
@@ -42,7 +43,7 @@ class GLPK_MI(GLPK):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(GLPK_MI, self).apply(problem)
-        var = problem.variables()[0]
+        var = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in var.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
         return data, inv_data
@@ -91,6 +92,18 @@ class GLPK_MI(GLPK):
             # No dual variables.
             solution[s.PRIMAL] = intf.cvxopt2dense(results_dict['x'])
             primal_val = (data[s.C].T*results_dict['x'])[0]
-            solution[s.VALUE] = primal_val + data[s.OFFSET]
+            solution[s.VALUE] = primal_val
 
         return solution
+
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+        status = solution['status']
+
+        if status in s.SOLUTION_PRESENT:
+            opt_val = solution['value'] + inverse_data[s.OFFSET]
+            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            return Solution(status, opt_val, primal_vars, None, {})
+        else:
+            return failure_solution(status)

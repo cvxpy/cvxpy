@@ -67,6 +67,10 @@ atoms = [
             Constant([[-5, 2], [-8, 3]])),
         (lambda x: cp.cumsum(x, axis=0), (2, 2), [[[-5, 2], [-3, 1]]],
             Constant([[-5, -3], [-3, -2]])),
+        (lambda x: cp.cummax(x, axis=1), (2, 2), [[[-5, 2], [-3, 1]]],
+            Constant([[-5, 2], [-3, 2]])),
+        (lambda x: cp.cummax(x, axis=0), (2, 2), [[[-5, 2], [-3, 1]]],
+            Constant([[-5, 2], [-3, 1]])),
         (cp.diag, (2,), [[[-5, 2], [-3, 1]]], Constant([-5, 1])),
         (cp.diag, (2, 2), [[-5, 1]], Constant([[-5, 0], [0, 1]])),
         (cp.exp, (2, 2), [[[1, 0], [2, -1]]],
@@ -278,7 +282,7 @@ def check_solver(prob, solver_name):
         if solver_name == ROBUST_CVXOPT:
             solver_name = CVXOPT
 
-        prob._construct_chains(solver=solver_name)
+        prob._construct_chain(solver=solver_name)
 
         return True
     except SolverError:

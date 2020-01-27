@@ -56,7 +56,7 @@ class ECOS_BB(ECOS):
         data, inv_data = super(ECOS_BB, self).apply(problem)
         # Because the problem variable is single dimensional, every
         # boolean/integer index has length one.
-        var = problem.variables()[0]
+        var = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in var.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]

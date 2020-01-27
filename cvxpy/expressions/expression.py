@@ -115,7 +115,6 @@ class Expression(u.Canonical):
         return self
 
     # Curvature properties.
-
     @property
     def curvature(self):
         """str : The curvature of the expression.
@@ -154,25 +153,24 @@ class Expression(u.Canonical):
             curvature_str = s.UNKNOWN
         return curvature_str
 
+    @perf.compute_once
     def is_constant(self):
         """Is the expression constant?
         """
-        try:
-            return self.__is_constant
-        except AttributeError:
-            self.__is_constant = 0 in self.shape or all(
-                arg.is_constant() for arg in self.args)
-            return self.__is_constant
+        return 0 in self.shape or all(
+            arg.is_constant() for arg in self.args)
 
+    @abc.abstractmethod
+    def is_dpp(self):
+        """The expression is a disciplined parameterized expression.
+        """
+        return NotImplemented
+
+    @perf.compute_once
     def is_affine(self):
         """Is the expression affine?
         """
-        try:
-            return self.__is_affine
-        except AttributeError:
-            self.__is_affine = self.is_constant() or (
-                               self.is_convex() and self.is_concave())
-            return self.__is_affine
+        return self.is_constant() or (self.is_convex() and self.is_concave())
 
     @abc.abstractmethod
     def is_convex(self):
@@ -212,13 +210,8 @@ class Expression(u.Canonical):
     def is_log_log_affine(self):
         """Is the expression affine?
         """
-        try:
-            return self.__is_log_log_affine
-        except AttributeError:
-            self.__is_log_log_affine = (self.is_log_log_constant()) or (
-                                       self.is_log_log_convex() and
-                                       self.is_log_log_concave())
-            return self.__is_log_log_affine
+        return (self.is_log_log_constant()
+                or (self.is_log_log_convex() and self.is_log_log_concave()))
 
     @abc.abstractmethod
     def is_log_log_convex(self):
@@ -318,14 +311,11 @@ class Expression(u.Canonical):
             sign_str = s.UNKNOWN
         return sign_str
 
+    @perf.compute_once
     def is_zero(self):
         """Is the expression all zero?
         """
-        try:
-            return self.__is_zero
-        except AttributeError:
-            self.__is_zero = self.is_nonneg() and self.is_nonpos()
-            return self.__is_zero
+        return self.is_nonneg() and self.is_nonpos()
 
     @abc.abstractmethod
     def is_nonneg(self):
@@ -451,12 +441,16 @@ class Expression(u.Canonical):
     def __add__(self, other):
         """Expression : Sum two expressions.
         """
+        if isinstance(other, cvxtypes.constant()) and other.is_zero():
+            return self
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other
     def __radd__(self, other):
         """Expression : Sum two expressions.
         """
+        if isinstance(other, cvxtypes.constant()) and other.is_zero():
+            return self
         return other + self
 
     @_cast_other

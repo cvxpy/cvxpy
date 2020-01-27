@@ -58,6 +58,30 @@ def attributes_present(variables, attr_map):
                                              in variables)]
 
 
+def recover_value_for_variable(variable, lowered_value, project=True):
+    if variable.attributes['diag']:
+        return sp.diags(lowered_value.flatten())
+    elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
+        n = variable.shape[0]
+        value = np.zeros(variable.shape)
+        idxs = np.triu_indices(n)
+        value[idxs] = lowered_value.flatten()
+        return value + value.T - np.diag(value.diagonal())
+    elif project:
+        return variable.project(lowered_value)
+    else:
+        return lowered_value
+
+
+def lower_value(variable, value):
+    if attributes_present([variable], SYMMETRIC_ATTRIBUTES):
+        return value[np.triu_indices(variable.shape[0])]
+    elif variable.attributes['diag']:
+        return np.diag(value)
+    else:
+        return value
+
+
 class CvxAttr2Constr(Reduction):
     """Expand convex variable attributes into constraints."""
 
@@ -86,17 +110,20 @@ class CvxAttr2Constr(Reduction):
                 if attributes_present([var], SYMMETRIC_ATTRIBUTES):
                     n = var.shape[0]
                     shape = (n*(n+1)//2, 1)
-                    upper_tri = Variable(shape, **new_attr)
+                    upper_tri = Variable(shape, var_id=var.id, **new_attr)
+                    upper_tri.set_variable_of_provenance(var)
                     id2new_var[var.id] = upper_tri
                     fill_coeff = Constant(upper_tri_to_full(n))
                     full_mat = fill_coeff*upper_tri
                     obj = reshape(full_mat, (n, n))
                 elif var.attributes['diag']:
-                    diag_var = Variable(var.shape[0], **new_attr)
+                    diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
+                    diag_var.set_variable_of_provenance(var)
                     id2new_var[var.id] = diag_var
                     obj = diag(diag_var)
                 elif new_var:
-                    obj = Variable(var.shape, **new_attr)
+                    obj = Variable(var.shape, var_id=var.id, **new_attr)
+                    obj.set_variable_of_provenance(var)
                     id2new_var[var.id] = obj
                 else:
                     obj = var
@@ -129,22 +156,12 @@ class CvxAttr2Constr(Reduction):
         pvars = {}
         for id, var in id2old_var.items():
             new_var = id2new_var[id]
-            # Need to map from constrained to symmetric variable.
             if new_var.id in solution.primal_vars:
-                if var.attributes['diag']:
-                    pvars[id] = sp.diags(solution.primal_vars[new_var.id].flatten())
-                elif attributes_present([var], SYMMETRIC_ATTRIBUTES):
-                    n = var.shape[0]
-                    value = np.zeros(var.shape)
-                    idxs = np.triu_indices(n)
-                    value[idxs] = solution.primal_vars[new_var.id].flatten()
-                    value += value.T - np.diag(value.diagonal())
-                    pvars[id] = value
-                else:
-                    pvars[id] = var.project(solution.primal_vars[new_var.id])
+                pvars[id] = recover_value_for_variable(
+                    var, solution.primal_vars[new_var.id])
 
         dvars = {orig_id: solution.dual_vars[vid]
                  for orig_id, vid in cons_id_map.items()
                  if vid in solution.dual_vars}
-        return Solution(solution.status, solution.opt_val, pvars,
-                        dvars, solution.attr)
+        return Solution(solution.status, solution.opt_val, pvars, dvars,
+                        solution.attr)

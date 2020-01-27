@@ -59,8 +59,7 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Sum the linear expression's entries.
 
         Parameters

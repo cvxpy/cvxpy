@@ -35,7 +35,7 @@ from cvxpy import *
 # (a figure is generated)
 #
 # The goal is to find the largest Euclidean ball (i.e. its center and
-# radius) that lies in a polyhedron described by linear inequalites in this
+# radius) that lies in a polyhedron described by linear inequalities in this
 # fashion: P = { x : a_i'*x <= b_i, i=1,...,m } where x is in R^2
 
 # Create the problem
@@ -66,8 +66,8 @@ p = Problem(objective, constraints)
 # The optimal objective is returned by p.solve().
 result = p.solve()
 # The optimal value
-print radius.value
-print center.value
+print(radius.value)
+print(center.value)
 # Convert to 1D array.
 center_val = np.asarray(center.value[:,0])
 

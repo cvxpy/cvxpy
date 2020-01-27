@@ -79,8 +79,7 @@ class index(AffAtom):
         """
         return [self.key, self._orig_key]
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Index/slice into the expression.
 
         Parameters
@@ -167,3 +166,33 @@ class special_index(AffAtom):
         lowered = reshape(
           identity[select_vec]*vec(self.args[0]), self._shape)
         return lowered.grad
+
+    def graph_implementation(self, arg_objs, shape, data=None):
+        """Index/slice into the expression.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        shape : tuple
+            The shape of the resulting expression.
+        data : tuple
+            A tuple of slices.
+
+        Returns
+        -------
+        tuple
+            (LinOp, [constraints])
+        """
+        select_mat = self._select_mat
+        final_shape = self._select_mat.shape
+        select_vec = np.reshape(select_mat, select_mat.size, order='F')
+        # Select the chosen entries from expr.
+        arg = arg_objs[0]
+        identity = sp.eye(self.args[0].size).tocsc()
+        vec_arg = lu.reshape(arg, (self.args[0].size,))
+        mul_mat = identity[select_vec]
+        mul_const = lu.create_const(mul_mat, mul_mat.shape, sparse=True)
+        mul_expr = lu.mul_expr(mul_const, vec_arg, (mul_mat.shape[0],))
+        obj = lu.reshape(mul_expr, final_shape)
+        return (obj, [])

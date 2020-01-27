@@ -101,8 +101,7 @@ class AddExpression(AffAtom):
         copy.__init__(args)
         return copy
 
-    @staticmethod
-    def graph_implementation(arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape, data=None):
         """Sum the linear expressions.
 
         Parameters

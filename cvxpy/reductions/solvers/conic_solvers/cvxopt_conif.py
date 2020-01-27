@@ -19,12 +19,12 @@ import cvxpy.settings as s
 from cvxpy.constraints import Zero, NonPos, SOC, PSD
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.solver import group_constraints
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConicSolver,
                                                                  ConeDims)
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.kktsolver import get_kktsolver
+from cvxpy.reductions.utilities import group_constraints
 import scipy.sparse as sp
 import scipy
 import numpy as np
@@ -97,25 +97,37 @@ class CVXOPT(ECOS):
             (dict of arguments needed for the solver, inverse data)
         """
         data = {}
-        inv_data = {self.VAR_ID: problem.variables()[0].id}
-        data[s.C], data[s.OFFSET] = ConicSolver.get_coeff_offset(
-            problem.objective.args[0])
-        data[s.C] = data[s.C].ravel()
-        inv_data[s.OFFSET] = data[s.OFFSET][0]
+        inv_data = {self.VAR_ID: problem.x.id}
 
         constr_map = group_constraints(problem.constraints)
         data[ConicSolver.DIMS] = ConeDims(constr_map)
-
+        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
+        len_eq = sum([c.size for c in constr_map[Zero]])
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        data[s.A], data[s.B] = self.group_coeff_offset(
-            problem, constr_map[Zero], ECOS.EXP_CONE_ORDER)
-
-        # Order and group nonlinear constraints.
         neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[PSD]
         inv_data[self.NEQ_CONSTR] = neq_constr
-        data[s.G], data[s.H] = self.group_coeff_offset(
-            problem, neq_constr, ECOS.EXP_CONE_ORDER)
 
+        if not problem.formatted:
+            problem = self.format_constraints(problem, ECOS.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
+
+        c, d, A, b = problem.apply_parameters()
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A[:len_eq]
+        if data[s.A].shape[0] == 0:
+            data[s.A] = None
+        data[s.B] = b[:len_eq].flatten()
+        if data[s.B].shape[0] == 0:
+            data[s.B] = None
+        if len_eq > A.shape[1]:
+            # Then the given optimization problem has no conic constraints.
+            # This is certainly a degenerate case, but we'll handle it downstream.
+            data[s.G] = sp.csc_matrix((1, A.shape[1]))
+            data[s.H] = np.array([0])
+        else:
+            data[s.G] = -A[len_eq:]
+            data[s.H] = b[len_eq:].flatten()
         return data, inv_data
 
     def invert(self, solution, inverse_data):
@@ -123,8 +135,6 @@ class CVXOPT(ECOS):
         """
         status = solution['status']
 
-        primal_vars = None
-        dual_vars = None
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
@@ -143,7 +153,6 @@ class CVXOPT(ECOS):
             return failure_solution(status)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        import cvxopt
         import cvxopt.solvers
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
@@ -209,7 +218,7 @@ class CVXOPT(ECOS):
         solution[s.STATUS] = status
         if solution[s.STATUS] in s.SOLUTION_PRESENT:
             primal_val = results_dict['primal objective']
-            solution[s.VALUE] = primal_val + data[s.OFFSET]
+            solution[s.VALUE] = primal_val
             solution[s.PRIMAL] = results_dict['x']
             solution[s.EQ_DUAL] = results_dict['y']
             solution[s.INEQ_DUAL] = results_dict['z']

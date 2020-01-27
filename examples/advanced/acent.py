@@ -51,8 +51,8 @@ x, obj = acent(A,b)
 cvxopt_x = x
 
 if isinstance(status, (float, int)):
-    print "difference in solution:", sum((cvxopt_x - cvxpy_x)**2)
-    print "difference in objective:", abs(obj - status)
+    print("difference in solution:", sum((cvxopt_x - cvxpy_x)**2))
+    print("difference in objective:", abs(obj - status))
 else:
-    print "Generated infeasible problem"
-    print "  ", status
+    print("Generated infeasible problem")
+    print("  ", status)

@@ -18,11 +18,12 @@ limitations under the License.
 from cvxpy import utilities as u
 from cvxpy import interface as intf
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants import Constant, CallbackParam
+from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities import performance_utils as perf
+from cvxpy.utilities import scopes
 import abc
 import numpy as np
 
@@ -196,6 +197,15 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
+    def is_dpp(self, context='CP'):
+        """The expression is a disciplined parameterized expression.
+
+           context: cone program (CP) or quadratic program (QP)
+        """
+        with scopes.dpp_scope():
+            return self.is_dcp()
+
+    @perf.compute_once
     def is_log_log_convex(self):
         """Is the expression log-log convex?
         """
@@ -234,19 +244,29 @@ class Atom(Expression):
         return [i for i, arg in enumerate(self.args) if not arg.is_constant()]
 
     @perf.compute_once
+    def _is_real(self):
+        # returns true if this atom is a real function:
+        #   the atom must have exactly one argument that is not a constant
+        #   that argument must be a scalar
+        #   the output must be a scalar
+        non_const = self._non_const_idx()
+        return (self.is_scalar() and len(non_const) == 1 and
+                self.args[non_const[0]].is_scalar())
+
+    @perf.compute_once
     def is_quasiconvex(self):
         """Is the expression quaisconvex?
         """
+        from cvxpy.atoms.max import max as max_atom
         # Verifies the DQCP composition rule.
         if self.is_convex():
             return True
-        if type(self) == cvxtypes.maximum():
+        if type(self) in (cvxtypes.maximum(), max_atom):
             return all(arg.is_quasiconvex() for arg in self.args)
         non_const = self._non_const_idx()
-        if self.is_scalar() and len(non_const) == 1 and self.is_incr(non_const[0]):
-            # TODO(akshayka): Accommodate vector atoms if people want it.
+        if self._is_real() and self.is_incr(non_const[0]):
             return self.args[non_const[0]].is_quasiconvex()
-        if self.is_scalar() and len(non_const) == 1 and self.is_decr(non_const[0]):
+        if self._is_real() and self.is_decr(non_const[0]):
             return self.args[non_const[0]].is_quasiconcave()
         if self.is_atom_quasiconvex():
             for idx, arg in enumerate(self.args):
@@ -261,15 +281,16 @@ class Atom(Expression):
     def is_quasiconcave(self):
         """Is the expression quasiconcave?
         """
+        from cvxpy.atoms.min import min as min_atom
         # Verifies the DQCP composition rule.
         if self.is_concave():
             return True
-        if type(self) == cvxtypes.minimum():
+        if type(self) in (cvxtypes.minimum(), min_atom):
             return all(arg.is_quasiconcave() for arg in self.args)
         non_const = self._non_const_idx()
-        if self.is_scalar() and len(non_const) == 1 and self.is_incr(non_const[0]):
+        if self._is_real() and self.is_incr(non_const[0]):
             return self.args[non_const[0]].is_quasiconcave()
-        if self.is_scalar() and len(non_const) == 1 and self.is_decr(non_const[0]):
+        if self._is_real() and self.is_decr(non_const[0]):
             return self.args[non_const[0]].is_quasiconvex()
         if self.is_atom_quasiconcave():
             for idx, arg in enumerate(self.args):
@@ -284,14 +305,9 @@ class Atom(Expression):
         """Represent the atom as an affine objective and conic constraints.
         """
         # Constant atoms are treated as a leaf.
-        if self.is_constant():
-            # Parameterized expressions are evaluated later.
-            if self.parameters():
-                param = CallbackParam(lambda: self.value, self.shape)
-                return param.canonical_form
+        if self.is_constant() and not self.parameters():
             # Non-parameterized expressions are evaluated immediately.
-            else:
-                return Constant(self.value).canonical_form
+            return Constant(self.value).canonical_form
         else:
             arg_objs = []
             constraints = []
@@ -335,10 +351,6 @@ class Atom(Expression):
         # shapes with 0's dropped in presolve.
         if 0 in self.shape:
             result = np.array([])
-        # Catch the case when the expression is known to be
-        # zero through DCP analysis.
-        elif self.is_zero():
-            result = intf.DEFAULT_INTF.zeros(self.shape)
         else:
             arg_values = []
             for arg in self.args:
