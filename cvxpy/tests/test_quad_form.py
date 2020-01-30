@@ -20,6 +20,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 import scipy.sparse as sp
 import cvxpy
+from cvxpy.settings import EIGVAL_TOL
 import warnings
 
 from cvxpy.tests.base_test import BaseTest
@@ -132,6 +133,30 @@ class TestNonOptimal(BaseTest):
             prob.solve()
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
+
+    def test_psd_exactly_tolerance(self):
+        """Test that PSD check when eigenvalue is exactly -EIGVAL_TOL
+        """
+        P = np.array([[-EIGVAL_TOL, 0], [0, 10]])
+        x = cvxpy.Variable(2)
+        # Forming quad_form is okay
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cost = cvxpy.quad_form(x, P)
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
+        prob.solve()
+
+    def test_nsd_exactly_tolerance(self):
+        """Test that NSD check when eigenvalue is exactly EIGVAL_TOL
+        """
+        P = np.array([[EIGVAL_TOL, 0], [0, -10]])
+        x = cvxpy.Variable(2)
+        # Forming quad_form is okay
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cost = cvxpy.quad_form(x, P)
+        prob = cvxpy.Problem(cvxpy.Maximize(cost), [x == [1, 2]])
+        prob.solve()
 
     def test_obj_eval(self):
         """Test case where objective evaluation differs from result.
