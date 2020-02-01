@@ -137,7 +137,7 @@ class TestComplex(BaseTest):
         assert not expr.is_imag()
 
         A = np.ones((2, 2))
-        expr = A*y*A
+        expr = (A*A)*y
         assert expr.is_complex()
         assert expr.is_imag()
 
@@ -475,7 +475,7 @@ class TestComplex(BaseTest):
         rho = cvx.Variable((2, 2), complex=True)
         Id = np.identity(2)
         obj = cvx.Maximize(0)
-        cons = [A*rho == Id]
+        cons = [A @ rho == Id]
         prob = cvx.Problem(obj, cons)
         prob.solve()
         rho_sparse = rho.value
@@ -485,7 +485,7 @@ class TestComplex(BaseTest):
         rho = cvx.Variable((2, 2), complex=True)
         Id = np.identity(2)
         obj = cvx.Maximize(0)
-        cons = [A.toarray()*rho == Id]
+        cons = [A.toarray() @ rho == Id]
         prob = cvx.Problem(obj, cons)
         prob.solve()
         self.assertItemsAlmostEqual(rho.value, rho_sparse)

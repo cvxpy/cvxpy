@@ -205,12 +205,12 @@ class TestExpressions(BaseTest):
         c = Constant([1, 2])
         self.assertEqual(c.shape, (2,))
         A = Constant([[1, 1], [1, 1]])
-        exp = c.T*A*c
+        exp = c.T @ A @ c
         self.assertEqual(exp.sign, s.NONNEG)
-        self.assertEqual((c.T*c).sign, s.NONNEG)
+        self.assertEqual((c.T @ c).sign, s.NONNEG)
         exp = c.T.T
         self.assertEqual(exp.sign, s.NONNEG)
-        exp = c.T*self.A
+        exp = c.T @ self.A
         self.assertEqual(exp.sign, s.UNKNOWN)
 
         # Test repr.
@@ -222,8 +222,8 @@ class TestExpressions(BaseTest):
         c = np.array([1, 2])
         p = Parameter(2)
         p.value = [1, 1]
-        self.assertEqual((c*p).value, 3)
-        self.assertEqual((c*self.x).shape, tuple())
+        self.assertEqual((c @ p).value, 3)
+        self.assertEqual((c @ self.x).shape, tuple())
 
     # Test Parameter class on good inputs.
     def test_parameters_successes(self):
@@ -548,9 +548,9 @@ class TestExpressions(BaseTest):
     def test_mul_expression(self):
         # Vectors
         c = Constant([[2], [2]])
-        exp = c*self.x
+        exp = c @ self.x
         self.assertEqual(exp.curvature, s.AFFINE)
-        self.assertEqual((c[0]*self.x).sign, s.UNKNOWN)
+        self.assertEqual((c[0] @ self.x).sign, s.UNKNOWN)
         # self.assertEqual(exp.canonical_form[0].shape, (1, 1))
         # self.assertEqual(exp.canonical_form[1], [])
         # self.assertEqual(exp.name(), c.name() + " * " + self.x.name())
@@ -558,27 +558,27 @@ class TestExpressions(BaseTest):
 
         # Incompatible dimensions
         with self.assertRaises(ValueError):
-            ([2, 2, 3]*self.x)
+            ([2, 2, 3] @ self.x)
 
         # Matrices: Incompatible dimensions
         with self.assertRaises(ValueError):
-            Constant([[2, 1], [2, 2]]) * self.C
+            Constant([[2, 1], [2, 2]]) @ self.C
 
         # Affine times affine is okay
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            q = self.A * self.B
+            q = self.A @ self.B
             self.assertTrue(q.is_quadratic())
 
         # Constant expressions
         T = Constant([[1, 2, 3], [3, 5, 5]])
-        exp = (T + T) * self.B
+        exp = (T + T) @ self.B
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (3, 2))
 
         # Expression that would break sign multiplication without promotion.
         c = Constant([[2], [2], [-2]])
-        exp = [[1], [2]] + c*self.C
+        exp = [[1], [2]] + c @ self.C
         self.assertEqual(exp.sign, s.UNKNOWN)
 
     def test_matmul_expression(self):
@@ -828,13 +828,13 @@ class TestExpressions(BaseTest):
         self.assertEqual(exp.shape, tuple())
 
         c = Constant([[1, 2], [3, 4]])
-        exp = (c*self.x)[1]
+        exp = (c @ self.x)[1]
         # self.assertEqual(exp.name(), "[[2], [4]] * x[0:,0]")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, tuple())
 
         c = Constant([[1, 2], [3, 4]])
-        exp = (c*self.a)[1, 0:1]
+        exp = (c * self.a)[1, 0:1]
         # self.assertEqual(exp.name(), "2 * a")
         self.assertEqual(exp.curvature, s.AFFINE)
         self.assertEqual(exp.shape, (1,))
@@ -1080,7 +1080,7 @@ class TestExpressions(BaseTest):
         A = np.ones((2, 3))
         b = np.ones(2)
 
-        expr = A * self.y - b
+        expr = A @ self.y - b
         self.assertEqual(expr.is_pwl(), True)
 
         expr = cp.maximum(1, 3 * self.y)

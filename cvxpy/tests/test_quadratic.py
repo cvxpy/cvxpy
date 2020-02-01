@@ -39,7 +39,7 @@ class TestExpressions(BaseTest):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            s = power(x.T*y, 0)
+            s = power(x.T @ y, 0)
             self.assertTrue(s.is_constant())
             self.assertTrue(s.is_affine())
             self.assertTrue(s.is_quadratic())
@@ -70,7 +70,7 @@ class TestExpressions(BaseTest):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            s = x.T*y
+            s = x.T @ y
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
@@ -95,7 +95,7 @@ class TestExpressions(BaseTest):
     def test_matrix_frac(self):
         x = Variable(5)
         M = np.eye(5)
-        P = M.T*M
+        P = M.T @ M
         s = cp.matrix_frac(x, P)
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
@@ -108,7 +108,7 @@ class TestExpressions(BaseTest):
         q = np.ones((5, 1))
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            s = x.T*P*x + q.T*x
+            s = x.T @ P @ x + q.T @ x
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())
         self.assertTrue(s.is_quadratic())
@@ -120,7 +120,7 @@ class TestExpressions(BaseTest):
         Q = np.ones((4, 7))
         M = np.ones((3, 7))
 
-        y = P*X*Q + M
+        y = P @ X @ Q + M
         self.assertFalse(y.is_constant())
         self.assertTrue(y.is_affine())
         self.assertTrue(y.is_quadratic())
@@ -171,7 +171,7 @@ class TestExpressions(BaseTest):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            s = x*y
+            s = x @ y
 
         self.assertFalse(s.is_constant())
         self.assertFalse(s.is_affine())

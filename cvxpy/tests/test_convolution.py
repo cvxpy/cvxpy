@@ -68,19 +68,19 @@ class TestConvolution(BaseTest):
                                               var_offsets, var_sizes,
                                               x_length)
         vec = np.array(range(1, x_length+1))
-        # A*vec
+        # A @ vec
         result = np.zeros(A.shape[0])
         Amul(vec, result)
-        self.assertItemsAlmostEqual(A*vec, result)
+        self.assertItemsAlmostEqual(A @ vec, result)
         Amul(vec, result)
-        self.assertItemsAlmostEqual(2*A*vec, result)
-        # A.T*vec
+        self.assertItemsAlmostEqual(2*A @ vec, result)
+        # A.T @ vec
         vec = np.array(range(A.shape[0]))
         result = np.zeros(A.shape[1])
         ATmul(vec, result)
-        self.assertItemsAlmostEqual(A.T*vec, result)
+        self.assertItemsAlmostEqual(A.T @ vec, result)
         ATmul(vec, result)
-        self.assertItemsAlmostEqual(2*A.T*vec, result)
+        self.assertItemsAlmostEqual(2*A.T @ vec, result)
 
     def mat_from_func(self, func, rows, cols):
         """Convert a multiplier function to a matrix.

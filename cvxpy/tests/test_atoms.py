@@ -411,7 +411,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.sum(Variable((2, 1)), keepdims=True).shape, (1, 1))
         # Mixed curvature.
         mat = np.array([[1, -1]])
-        self.assertEqual(cp.sum(mat*cp.square(Variable(2))).curvature, s.UNKNOWN)
+        self.assertEqual(cp.sum(mat @ cp.square(Variable(2))).curvature, s.UNKNOWN)
 
         # Test with axis argument.
         self.assertEqual(cp.sum(Variable(2), axis=0).shape, tuple())

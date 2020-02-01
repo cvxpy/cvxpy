@@ -164,7 +164,7 @@ class special_index(AffAtom):
           self._select_mat, self._select_mat.size, order='F')
         identity = sp.eye(self.args[0].size).tocsc()
         lowered = reshape(
-          identity[select_vec]*vec(self.args[0]), self._shape)
+          identity[select_vec] @ vec(self.args[0]), self._shape)
         return lowered.grad
 
     def graph_implementation(self, arg_objs, shape, data=None):

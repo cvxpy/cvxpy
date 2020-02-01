@@ -63,18 +63,18 @@ In the following code, we solve a quadratic program with CVXPY.
     p = 5
     np.random.seed(1)
     P = np.random.randn(n, n)
-    P = P.T@P
+    P = P.T @ P
     q = np.random.randn(n)
     G = np.random.randn(m, n)
-    h = G@np.random.randn(n)
+    h = G @ np.random.randn(n)
     A = np.random.randn(p, n)
     b = np.random.randn(p)
     
     # Define and solve the CVXPY problem.
     x = cp.Variable(n)
-    prob = cp.Problem(cp.Minimize((1/2)*cp.quad_form(x, P) + q.T@x),
-                     [G@x <= h,
-                      A@x == b])
+    prob = cp.Problem(cp.Minimize((1/2)*cp.quad_form(x, P) + q.T @ x),
+                     [G @ x <= h,
+                      A @ x == b])
     prob.solve()
     
     # Print result.

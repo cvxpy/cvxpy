@@ -164,8 +164,8 @@ class TestNonOptimal(BaseTest):
         x = cvxpy.Variable((2, 1))
         A = np.array([[1.0]])
         B = np.array([[1.0, 1.0]]).T
-        obj0 = -B.T * x
-        obj1 = cvxpy.quad_form(B.T * x, A)
+        obj0 = -B.T @ x
+        obj1 = cvxpy.quad_form(B.T @ x, A)
         prob = cvxpy.Problem(cvxpy.Minimize(obj0 + obj1))
         prob.solve()
         self.assertAlmostEqual(prob.value, prob.objective.value)
@@ -180,9 +180,9 @@ class TestNonOptimal(BaseTest):
         laplacian_matrix = np.ones((2, 2))
         design_matrix = cvxpy.Constant(M)
         objective = cvxpy.Minimize(
-            cvxpy.sum_squares(design_matrix * c - data_norm) +
+            cvxpy.sum_squares(design_matrix @ c - data_norm) +
             lopt * cvxpy.quad_form(c, laplacian_matrix)
         )
-        constraints = [(M[0] * c) == 1]  # (K * c) >= -0.1]
+        constraints = [(M[0] @ c) == 1]  # (K * c) >= -0.1]
         prob = cvxpy.Problem(objective, constraints)
         prob.solve()

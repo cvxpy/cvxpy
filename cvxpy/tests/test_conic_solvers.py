@@ -403,7 +403,7 @@ class TestMosek(unittest.TestCase):
             # Solve a simple basis pursuit problem for testing purposes.
             z = cp.Variable(n)
             objective = cp.Minimize(cp.norm1(z))
-            constraints = [A * z == y]
+            constraints = [A @ z == y]
             problem = cp.Problem(objective, constraints)
 
             invalid_mosek_params = {
@@ -686,7 +686,7 @@ class TestCPLEX(BaseTest):
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
             constraints = [self.x[0] <= h[0],
                            self.x[1] <= h[1],
-                           A * self.x == b]
+                           A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.CPLEX, warm_start=True)
             self.assertEqual(result, 3)
@@ -744,7 +744,7 @@ class TestCPLEX(BaseTest):
             # Solve a simple basis pursuit problem for testing purposes.
             z = cp.Variable(n)
             objective = cp.Minimize(cp.norm1(z))
-            constraints = [A * z == y]
+            constraints = [A @ z == y]
             problem = cp.Problem(objective, constraints)
 
             invalid_cplex_params = {
@@ -842,7 +842,7 @@ class TestGUROBI(BaseTest):
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
             constraints = [self.x[0] <= h[0],
                            self.x[1] <= h[1],
-                           A * self.x == b]
+                           A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
             self.assertEqual(result, 3)
