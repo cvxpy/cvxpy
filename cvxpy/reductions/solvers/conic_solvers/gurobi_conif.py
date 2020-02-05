@@ -37,7 +37,7 @@ class GUROBI(SCS):
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
-                  4: s.SOLVER_ERROR, # Triggers reoptimize.
+                  4: s.SOLVER_ERROR,  # Triggers reoptimize.
                   5: s.UNBOUNDED,
                   6: s.SOLVER_ERROR,
                   7: s.SOLVER_ERROR,
