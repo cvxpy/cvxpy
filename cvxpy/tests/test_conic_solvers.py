@@ -784,7 +784,7 @@ class TestCPLEX(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='CPLEX')
 
     def test_cplex_socp_1(self):
-        StandardTestSOCPs.test_socp_1(solver='CPLEX', places=3)
+        StandardTestSOCPs.test_socp_1(solver='CPLEX')
 
     def test_cplex_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver='CPLEX')
