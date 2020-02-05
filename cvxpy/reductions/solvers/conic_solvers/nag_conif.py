@@ -1,9 +1,11 @@
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, NonPos, Zero
-from .conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
+                                                                 ConicSolver)
+from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.utilities import group_constraints
 import scipy as sp
 import numpy as np
-from cvxpy.reductions.solution import Solution
 
 
 class NAG(ConicSolver):
@@ -34,20 +36,6 @@ class NAG(ConicSolver):
         """
         return s.NAG
 
-    def block_format(self, problem, constraints, exp_cone_order=None):
-        if not constraints:
-            return None, None
-        matrices, offsets, lengths, ids = [], [], [], []
-        for con in constraints:
-            coeff, offset = self.format_constr(problem, con, exp_cone_order)
-            matrices.append(coeff)
-            offsets.append(offset)
-            lengths.append(offset.size)
-            ids.append(con.id)
-        coeff = sp.sparse.vstack(matrices).tocsc()
-        offset = np.hstack(offsets)
-        return coeff, offset, lengths, ids
-
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -58,41 +46,59 @@ class NAG(ConicSolver):
         """
         data = dict()
         inv_data = dict()
-        inv_data[self.VAR_ID] = problem.variables()[0].id
-        c, constant = ConicSolver.get_coeff_offset(problem.objective.args[0])
+        inv_data[self.VAR_ID] = problem.x.id
+
+        c, d, A, b = problem.apply_parameters()
+        print(c, d, A.todense(), b)
         data[s.C] = c.ravel()
-        data[s.OBJ_OFFSET] = constant[0]
-        inv_data[s.OBJ_OFFSET] = constant[0]
+        data[s.OBJ_OFFSET] = d
+        inv_data[s.OBJ_OFFSET] = d
         inv_data['lin_dim'] = []
         inv_data['soc_dim'] = []
         Gs = list()
         hs = list()
-        data[s.DIMS] = {s.SOC_DIM: [], s.LEQ_DIM: 0, s.EQ_DIM: 0}
+
+        # A matrix is in following order:
+        # 1. zero cone
+        # 2. non-negative orthant
+        # 3. soc
+        constr_map = group_constraints(problem.constraints)
+        data[ConicSolver.DIMS] = ConeDims(constr_map)
+        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
+        len_eq = sum([c.size for c in constr_map[Zero]])
+        len_leq = sum([c.size for c in constr_map[NonPos]])
+        len_soc = sum([c.size for c in constr_map[SOC]])
 
         # Linear inequalities
         leq_constr = [ci for ci in problem.constraints if type(ci) == NonPos]
         if len(leq_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, leq_constr)  # G, h : G * z <= h
-            data[s.DIMS][s.LEQ_DIM] = sum(lengths)
+            lengths = [con.size for con in leq_constr]
+            ids = [c.id for c in leq_constr]
             inv_data['lin_dim'] = [(ids[k], lengths[k]) for k in range(len(lengths))]
+            G = A[len_eq:len_eq+len_leq]
+            h = -b[len_eq:len_eq+len_leq].flatten()
             Gs.append(G)
             hs.append(h)
 
         # Linear equations
         eq_constr = [ci for ci in problem.constraints if type(ci) == Zero]
         if len(eq_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, eq_constr)  # G, h : G * z == h.
-            data[s.DIMS][s.EQ_DIM] = sum(lengths)
+            lengths = [con.size for con in eq_constr]
+            ids = [c.id for c in eq_constr]
             inv_data['lin_dim'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
+            G = A[:len_eq]
+            h = -b[:len_eq].flatten()
             Gs.append(G)
             hs.append(h)
 
         # Second order cones
         soc_constr = [ci for ci in problem.constraints if type(ci) == SOC]
-        data[s.DIMS][s.SOC_DIM] = [dim for ci in soc_constr for dim in ci.cone_sizes()]
         if len(soc_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, soc_constr)  # G * z <=_{soc} h.
+            lengths = [con.size for con in soc_constr]
+            ids = [c.id for c in soc_constr]
             inv_data['soc_dim'] = [(ids[k], lengths[k]) for k in range(len(lengths))]
+            G = A[len_eq+len_leq:]
+            h = -b[len_eq+len_leq:].flatten()
             Gs.append(G)
             hs.append(h)
 
@@ -233,6 +239,7 @@ class NAG(ConicSolver):
                 sln = opt.handle_solve_socp_ipm(handle, x=x, u=u, uc=uc, io_manager=iom)
             elif soc_dim == 0:
                 sln = opt.handle_solve_lp_ipm(handle, x=x, u=u, io_manager=iom)
+            print(sln)
         except (utils.NagValueError, utils.NagAlgorithmicWarning,
                 utils.NagAlgorithmicMajorWarning) as exc:
             status = exc.errno
