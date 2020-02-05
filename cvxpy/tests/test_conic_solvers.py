@@ -973,34 +973,6 @@ class TestXPRESS(unittest.TestCase):
         StandardTestSOCPs.test_mi_socp_2(solver='XPRESS')
 
 
-@unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
-class TestNAG(unittest.TestCase):
-
-    def test_nag_lp_0(self):
-        StandardTestLPs.test_lp_0(solver='NAG')
-
-    def test_nag_lp_1(self):
-        StandardTestLPs.test_lp_1(solver='NAG')
-
-    def test_nag_lp_2(self):
-        StandardTestLPs.test_lp_2(solver='NAG')
-
-    def test_nag_lp_3(self):
-        StandardTestLPs.test_lp_3(solver='NAG')
-
-    def test_nag_lp_4(self):
-        StandardTestLPs.test_lp_4(solver='NAG')
-
-    def test_nag_socp_0(self):
-        StandardTestSOCPs.test_socp_0(solver='NAG')
-
-    def test_nag_socp_1(self):
-        StandardTestSOCPs.test_socp_1(solver='NAG')
-
-    def test_nag_socp_2(self):
-        StandardTestSOCPs.test_socp_2(solver='NAG')
-
-
 class TestAllSolvers(BaseTest):
 
     def setUp(self):
