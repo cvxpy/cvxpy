@@ -43,6 +43,7 @@ class CBC(SCS):
 
     STATUS_MAP_LP = {'optimal': s.OPTIMAL,
                      'primal infeasible': s.INFEASIBLE,
+                     'dual infeasible': s.UNBOUNDED,
                      'stopped due to errors': s.SOLVER_ERROR,
                      'stopped by event handler (virtual int '
                      'ClpEventHandler::event())': s.SOLVER_ERROR}

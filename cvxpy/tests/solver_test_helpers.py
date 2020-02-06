@@ -449,28 +449,31 @@ def mi_socp_2():
 class StandardTestLPs(object):
 
     @staticmethod
-    def test_lp_0(solver, places=4, **kwargs):
+    def test_lp_0(solver, places=4, duals=True, **kwargs):
         sth = lp_0()
         sth.solve(solver, **kwargs)
         sth.verify_primal_values(places)
         sth.verify_objective(places)
-        sth.check_complementarity(places)
+        if duals:
+            sth.check_complementarity(places)
 
     @staticmethod
-    def test_lp_1(solver, places=4, **kwargs):
+    def test_lp_1(solver, places=4, duals=True, **kwargs):
         sth = lp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
-        sth.verify_dual_values(places)
+        if duals:
+            sth.verify_dual_values(places)
 
     @staticmethod
-    def test_lp_2(solver, places=4, **kwargs):
+    def test_lp_2(solver, places=4, duals=True, **kwargs):
         sth = lp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
-        sth.verify_dual_values(places)
+        if duals:
+            sth.verify_dual_values(places)
 
     @staticmethod
     def test_lp_3(solver, places=4, **kwargs):

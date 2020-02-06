@@ -598,13 +598,13 @@ class TestCBC(BaseTest):
                 self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.CBC)
 
     def test_cbc_lp_0(self):
-        StandardTestLPs.test_lp_0(solver='CBC')
+        StandardTestLPs.test_lp_0(solver='CBC', duals=False)
 
     def test_cbc_lp_1(self):
-        StandardTestLPs.test_lp_1(solver='CBC')
+        StandardTestLPs.test_lp_1(solver='CBC', duals=False)
 
     def test_cbc_lp_2(self):
-        StandardTestLPs.test_lp_2(solver='CBC')
+        StandardTestLPs.test_lp_2(solver='CBC', duals=False)
 
     def test_cbc_lp_3(self):
         StandardTestLPs.test_lp_3(solver='CBC')
