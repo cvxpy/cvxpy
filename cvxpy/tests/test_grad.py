@@ -704,9 +704,9 @@ class TestGrad(BaseTest):
 
             # Optimize over a.
             fix_prob = Problem(obj, [self.x + self.a >= [5, 8], self.x == 0])
-            fix_prob.solve()
+            fix_prob.solve(solver=cp.ECOS)
             dual_val = fix_prob.constraints[0].dual_variables[0].value
-            expr = partial_optimize(prob, opt_vars=[self.a])
+            expr = partial_optimize(prob, opt_vars=[self.a], solver=cp.ECOS)
             self.x.value = [0, 0]
             grad = expr.grad
             self.assertItemsAlmostEqual(grad[self.x].toarray(), dual_val)

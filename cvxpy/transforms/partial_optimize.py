@@ -23,7 +23,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.atoms import trace, sum
 
 
-def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
+def partial_optimize(prob, opt_vars=None, dont_opt_vars=None, solver=None):
     """Partially optimizes the given problem over the specified variables.
 
     Either opt_vars or dont_opt_vars must be given.
@@ -49,6 +49,8 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
         The variables to optimize over.
     dont_opt_vars : list, optional
         The variables to not optimize over.
+    solver : str, optional
+        The default solver to use for value and grad.
 
     Returns
     -------
@@ -85,7 +87,7 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None):
     new_constrs = [con.tree_copy(id_to_new_var)
                    for con in prob.constraints]
     new_var_prob = Problem(new_obj, new_constrs)
-    return PartialProblem(new_var_prob, opt_vars, dont_opt_vars)
+    return PartialProblem(new_var_prob, opt_vars, dont_opt_vars, solver)
 
 
 class PartialProblem(Expression):
@@ -99,16 +101,17 @@ class PartialProblem(Expression):
         The variables to not optimize over.
     """
 
-    def __init__(self, prob, opt_vars, dont_opt_vars):
+    def __init__(self, prob, opt_vars, dont_opt_vars, solver):
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
+        self.solver = solver
         self.args = [prob]
         super(PartialProblem, self).__init__()
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self.opt_vars, self.dont_opt_vars]
+        return [self.opt_vars, self.dont_opt_vars, self.solver]
 
     def is_constant(self):
         return len(self.args[0].variables()) == 0
@@ -221,7 +224,7 @@ class PartialProblem(Expression):
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective,
                        fix_vars + self.args[0].constraints)
-        prob.solve(verbose=True)
+        prob.solve(solver=self.solver)
         # Compute gradient.
         if prob.status in s.SOLUTION_PRESENT:
             sign = self.is_convex() - self.is_concave()
@@ -268,7 +271,7 @@ class PartialProblem(Expression):
             else:
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
-        result = prob.solve()
+        result = prob.solve(solver=self.solver)
         # Restore the original values to the variables.
         for var in self.variables():
             var.value = old_vals[var.id]
