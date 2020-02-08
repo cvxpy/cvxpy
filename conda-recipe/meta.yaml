@@ -11,29 +11,26 @@ build:
 
 requirements:
   build:
+    - python
     - setuptools
-    - python >= 3.5
-    - osqp
-    - ecos >=2
-    - scs >=1.1.3
-    - numpy >=1.14
+    - numpy >=1.15
     - scipy >=1.1
     - libgcc # [not win]
-    - lapack
-    - mkl
 
   run:
-    - python >= 3.5
-    - osqp
+    - python
+    - osqp >=0.4.1
     - ecos >=2
     - scs >=1.1.3
-    - numpy >=1.9
+    - numpy >=1.15
     - scipy >=1.1
-    - libgcc # [not win]
     - lapack
     - mkl
 
 test:
+  requires:
+    - nose
+
   # Python imports
   imports:
     - cvxpy
@@ -67,6 +64,9 @@ test:
     - cvxpy.transforms
     - cvxpy.utilities
     - cvxpy.cvxcore.python
+
+  commands:
+    - nosetests cvxpy
 
 about:
   home: http://github.com/cvxgrp/cvxpy/
