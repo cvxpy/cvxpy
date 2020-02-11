@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Second-order cone program &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>Second-order cone program &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -69,47 +69,47 @@ changing <span class="math notranslate nohighlight">\(d_i\)</span> would change 
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>In the following code, we solve a SOCP with CVXPY.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
-<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span># Import packages.
+import cvxpy as cp
+import numpy as np
 
-<span class="c1"># Generate a random feasible SOCP.</span>
-<span class="n">m</span> <span class="o">=</span> <span class="mi">3</span>
-<span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">p</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">n_i</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">A</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">b</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">c</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">d</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
-    <span class="n">A</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n_i</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
-    <span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n_i</span><span class="p">))</span>
-    <span class="n">c</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
-    <span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="nd">@x0</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="nd">@x0</span><span class="p">)</span>
-<span class="n">F</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
-<span class="n">g</span> <span class="o">=</span> <span class="n">F</span><span class="nd">@x0</span>
+# Generate a random feasible SOCP.
+m = 3
+n = 10
+p = 5
+n_i = 5
+np.random.seed(2)
+f = np.random.randn(n)
+A = []
+b = []
+c = []
+d = []
+x0 = np.random.randn(n)
+for i in range(m):
+    A.append(np.random.randn(n_i, n))
+    b.append(np.random.randn(n_i))
+    c.append(np.random.randn(n))
+    d.append(np.linalg.norm(A[i] @ x0 + b, 2) - c[i].T @ x0)
+F = np.random.randn(p, n)
+g = F @ x0
 
-<span class="c1"># Define and solve the CVXPY problem.</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="c1"># We use cp.SOC(t, x) to create the SOC constraint ||x||_2 &lt;= t.</span>
-<span class="n">soc_constraints</span> <span class="o">=</span> <span class="p">[</span>
-      <span class="n">cp</span><span class="o">.</span><span class="n">SOC</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="nd">@x</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="nd">@x</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-<span class="p">]</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">T</span><span class="nd">@x</span><span class="p">),</span>
-                  <span class="n">soc_constraints</span> <span class="o">+</span> <span class="p">[</span><span class="n">F</span><span class="nd">@x</span> <span class="o">==</span> <span class="n">g</span><span class="p">])</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+# Define and solve the CVXPY problem.
+x = cp.Variable(n)
+# We use cp.SOC(t, x) to create the SOC constraint ||x||_2 &lt;= t.
+soc_constraints = [
+      cp.SOC(c[i].T @ x + d[i], A[i] @ x + b[i]) for i in range(m)
+]
+prob = cp.Problem(cp.Minimize(f.T@x),
+                  soc_constraints + [F @ x == g])
+prob.solve()
 
-<span class="c1"># Print result.</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;The optimal value is&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;A solution x is&quot;</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
-    <span class="k">print</span><span class="p">(</span><span class="s2">&quot;SOC constraint </span><span class="si">%i</span><span class="s2"> dual variable solution&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">soc_constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
+# Print result.
+print(&quot;The optimal value is&quot;, prob.value)
+print(&quot;A solution x is&quot;)
+print(x.value)
+for i in range(m):
+    print(&quot;SOC constraint %i dual variable solution&quot; % i)
+    print(soc_constraints[i].dual_value)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="o">-</span><span class="mf">9.582695716265503</span>

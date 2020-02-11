@@ -60,7 +60,7 @@ with CVXPY.
 
     # Construct a CVXPY problem
     x = cp.Variable(n, integer=True)
-    objective = cp.Minimize(cp.sum_squares(A@x - b))
+    objective = cp.Minimize(cp.sum_squares(A @ x - b))
     prob = cp.Problem(objective)
     prob.solve()
 

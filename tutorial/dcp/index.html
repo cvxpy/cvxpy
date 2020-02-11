@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Disciplined Convex Programming &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>Disciplined Convex Programming &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -43,7 +43,7 @@ more interactive introduction to DCP.</p>
 <h2>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h2>
 <p>Expressions in CVXPY are formed from variables, parameters, numerical
 constants such as Python floats and Numpy matrices, the standard
-arithmetic operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code>, and a library of
+arithmetic operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/,</span> <span class="pre">&#64;</span></code>, and a library of
 <a class="reference internal" href="../functions/index.html#functions"><span class="std std-ref">functions</span></a>. Here are some examples of CVXPY expressions:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
 
@@ -66,30 +66,30 @@ expression is used in a way that doesn’t make sense given its
 dimensions, for example adding matrices of different size.
 The semantics for how shapes behave under arithmetic operations
 are the same as for NumPy ndarrays (except some broadcasting is banned).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>import numpy
 
-<span class="n">X</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
-<span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+X = cp.Variable((5, 4))
+A = numpy.ones((3, 5))
 
-<span class="c1"># Use expr.shape to get the dimensions.</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;dimensions of X:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;size of X:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;number of dimensions:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;dimensions of sum(X):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;dimensions of A*X:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span><span class="o">*</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+# Use expr.shape to get the dimensions.
+print(&quot;dimensions of X:&quot;, X.shape)
+print(&quot;size of X:&quot;, X.size)
+print(&quot;number of dimensions:&quot;, X.ndim)
+print(&quot;dimensions of sum(X):&quot;, cp.sum(X).shape)
+print(&quot;dimensions of A @ X:&quot;, (A @ X).shape)
 
-<span class="c1"># ValueError raised for invalid dimensions.</span>
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">A</span> <span class="o">+</span> <span class="n">X</span>
-<span class="k">except</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+# ValueError raised for invalid dimensions.
+try:
+    A + X
+except ValueError, e:
+    print(e)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dimensions</span> <span class="n">of</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">size</span> <span class="n">of</span> <span class="n">X</span><span class="p">:</span> <span class="mi">20</span>
 <span class="n">number</span> <span class="n">of</span> <span class="n">dimensions</span><span class="p">:</span> <span class="mi">2</span>
 <span class="n">dimensions</span> <span class="n">of</span> <span class="nb">sum</span><span class="p">(</span><span class="n">X</span><span class="p">):</span> <span class="p">()</span>
-<span class="n">dimensions</span> <span class="n">of</span> <span class="n">A</span><span class="o">*</span><span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="n">dimensions</span> <span class="n">of</span> <span class="n">A</span> <span class="o">@</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 <span class="n">Cannot</span> <span class="n">broadcast</span> <span class="n">dimensions</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
 </pre></div>
 </div>

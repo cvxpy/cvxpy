@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Atomic Functions &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>Atomic Functions &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -40,17 +40,18 @@ to CVXPY expressions. CVXPY uses the function information in this section and
 the <a class="reference internal" href="../dcp/index.html#dcp"><span class="std std-ref">DCP rules</span></a> to mark expressions with a sign and curvature.</p>
 <div class="section" id="operators">
 <h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
-<p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code> are treated as functions. <code class="docutils literal notranslate"><span class="pre">+</span></code> and
-<code class="docutils literal notranslate"><span class="pre">-</span></code> are affine functions. The expression <code class="docutils literal notranslate"><span class="pre">expr1*expr2</span></code> is affine in
+<p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/,</span> <span class="pre">&#64;</span></code> are treated as functions. The operators <code class="docutils literal notranslate"><span class="pre">+</span></code> and
+<code class="docutils literal notranslate"><span class="pre">-</span></code> are always affine functions. The expression <code class="docutils literal notranslate"><span class="pre">expr1*expr2</span></code> is affine in
 CVXPY when one of the expressions is constant, and <code class="docutils literal notranslate"><span class="pre">expr1/expr2</span></code> is affine
 when <code class="docutils literal notranslate"><span class="pre">expr2</span></code> is a scalar constant.</p>
-<p>Note that in CVXPY, <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">*</span> <span class="pre">expr2</span></code> denotes matrix multiplication
-when <code class="docutils literal notranslate"><span class="pre">expr1</span></code> and <code class="docutils literal notranslate"><span class="pre">expr2</span></code> are matrices; if you’re running Python 3,
-you can alternatively use the <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> operator for matrix multiplication.
-Regardless of your Python version, you can also use the function
-<a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul</span></a> to multiply
-two matrices. To multiply two arrays or matrices elementwise, use
-<a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply</span></a>.</p>
+<p>Historically, CVXPY has used <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">*</span> <span class="pre">expr2</span></code> to denote matrix multiplication.
+Starting with Python 3.5, users could also write <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">&#64;</span> <span class="pre">expr2</span></code> for
+matrix multiplication. As of CVXPY version 1.1, we are adopting a new standard:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&#64;</span></code> should be used for matrix-matrix and matrix-vector multiplication,</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code> should be matrix-scalar and vector-scalar multiplication</p></li>
+</ul>
+<p>Elementwise multiplication can be applied with the <a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply</span></a> function.</p>
 <div class="section" id="indexing-and-slicing">
 <h3>Indexing and slicing<a class="headerlink" href="#indexing-and-slicing" title="Permalink to this headline">¶</a></h3>
 <p>Indexing in CVXPY follows exactly the same semantics as <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html">NumPy ndarrays</a>.

@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Optimal parade route &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>Optimal parade route &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -37,8 +37,8 @@
 <div class="section" id="topic-references">
 <h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><p><cite>Iterated weighted :math:</cite>ell_1`
-heuristic &lt;<a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf</a>&gt;`__</p></li>
+<li><p>Iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span>
+heuristic: <a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">slides</a></p></li>
 </ul>
 </div>
 <div class="section" id="problem-statement">
@@ -63,7 +63,8 @@ the points in the route.</p>
 <div class="section" id="optimization-formulation">
 <h1>Optimization formulation<a class="headerlink" href="#optimization-formulation" title="Permalink to this headline">¶</a></h1>
 <p>We can formulate this as the optimization problem</p>
-<p>\[ ]</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll} \mbox{maximize} &amp; t \\ \mbox{subject to} &amp; t \leq Ax\\ &amp; 0 \leq x \leq 1 \\ &amp; \mathbf{1}^Tx = k, \end{array}\end{split}\]</div>
 <p>This problem is nonconvex and, in general, NP-hard due to the Boolean
 decision variable.</p>
 </div>
@@ -71,12 +72,12 @@ decision variable.</p>
 <h1>Relaxation<a class="headerlink" href="#relaxation" title="Permalink to this headline">¶</a></h1>
 <p>We can try to approach the problem with convex optimization by first
 forming the convex relaxation</p>
-<p>\[ ] by constraining <span class="math notranslate nohighlight">\(x \in [0,1]^n\)</span>.</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll} \mbox{maximize} &amp; t - w^Tx\\ \mbox{subject to} &amp; t \leq Ax\\ &amp; 0 \leq x \leq 1 \\ &amp; \mathbf{1}^Tx = k, \end{array}\end{split}\]</div>
+<p>by constraining <span class="math notranslate nohighlight">\(x \in [0,1]^n\)</span>.</p>
 <p>In general, the solution to this problem, <span class="math notranslate nohighlight">\(x^\star\)</span>, will have
 fractional values. As we want a Boolean allocation, we can use an
-<cite>iterated weighted :math:</cite>ell_1`
-heuristic &lt;<a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf</a>&gt;`__
-to try to recover a Boolean solution.</p>
+iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span> heuristic to try to recover a Boolean solution.</p>
 </div>
 <div class="section" id="iterated-weighted-ell-1-heuristic">
 <h1>Iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span> heuristic<a class="headerlink" href="#iterated-weighted-ell-1-heuristic" title="Permalink to this headline">¶</a></h1>
@@ -90,7 +91,16 @@ notes</a>.</p>
 <p>The algorithm consists of initializing <span class="math notranslate nohighlight">\(w = 0\)</span> and repeating the
 two steps</p>
 <ol class="arabic simple">
-<li><p>\[ ]</p></li>
+<li></li>
+</ol>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{maximize} &amp; t  - w^Tx\\
+\mbox{subject to} &amp; t \leq Ax\\
+&amp; 0 \leq x \leq 1 \\
+&amp; \mathbf{1}^Tx = k,
+\end{array}\end{split}\]</div>
+<ol class="arabic simple" start="2">
 <li><p>Let <span class="math notranslate nohighlight">\(w_i = \alpha/(\tau + x_i) \forall i\)</span></p></li>
 </ol>
 <p>until we reach a Boolean solution. Here, <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\tau\)</span>

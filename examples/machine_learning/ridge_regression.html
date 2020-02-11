@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Machine Learning: Ridge Regression &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>Machine Learning: Ridge Regression &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -62,17 +62,17 @@ CVXPY, how to evaluate the model, and how to tune the hyper-parameter
 <h2>Writing the objective function<a class="headerlink" href="#writing-the-objective-function" title="Permalink to this headline">¶</a></h2>
 <p>We can decompose the <strong>objective function</strong> as the sum of a <strong>least
 squares loss function</strong> and an <span class="math notranslate nohighlight">\(\ell_2\)</span> <strong>regularizer</strong>.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span> <span class="o">-</span> <span class="n">Y</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>def loss_fn(X, Y, beta):
+    return cp.pnorm(X @ beta - Y, p=2)**2
 
-<span class="k">def</span> <span class="nf">regularizer</span><span class="p">(</span><span class="n">beta</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">cp</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span><span class="n">beta</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
+def regularizer(beta):
+    return cp.pnorm(beta, p=2)**2
 
-<span class="k">def</span> <span class="nf">objective_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">,</span> <span class="n">lambd</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span> <span class="o">+</span> <span class="n">lambd</span> <span class="o">*</span> <span class="n">regularizer</span><span class="p">(</span><span class="n">beta</span><span class="p">)</span>
+def objective_fn(X, Y, beta, lambd):
+    return loss_fn(X, Y, beta) + lambd * regularizer(beta)
 
-<span class="k">def</span> <span class="nf">mse</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">):</span>
-    <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
+def mse(X, Y, beta):
+    return (1.0 / X.shape[0]) * loss_fn(X, Y, beta).value
 </pre></div>
 </div>
 </div>

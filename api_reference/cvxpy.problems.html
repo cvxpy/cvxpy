@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Problems &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>Problems &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -611,21 +611,35 @@ parameters by calling <cite>.backward()</cite> after solving, or to compute
 perturbations to the variables by calling <cite>.derivative()</cite>. When
 True, the solver must be SCS, and gp, qcp must be false; a DPPError is
 thrown when problem is not DPP.</p></li>
-<li><p><strong>solver_specific_opts</strong> (<em>dict</em><em>, </em><em>optional</em>) – A dict of options that will be passed to the specific solver.
-In general, these options will override any default settings
-imposed by cvxpy.</p></li>
 <li><p><strong>method</strong> (<em>function</em><em>, </em><em>optional</em>) – A custom solve method to use.</p></li>
+<li><p><strong>kwargs</strong> (<em>keywords</em><em>, </em><em>optional</em>) – Additional solver specific arguments. See Notes below.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>The optimal value for the problem, or a string indicating
+</dl>
+<p class="rubric">Notes</p>
+<p>CVXPY interfaces with a wide range of solvers; the algorithms used by these solvers
+have parameters relating to stopping criteria, and strategies to improve solution quality.</p>
+<p>There is no one choice of parameters which is perfect for every problem. If you are not
+getting satisfactory results from a solver, you can try changing its parameters. The
+exact way this is done depends on the specific solver. Here are some examples:</p>
+<blockquote>
+<div><p>prob.solve(solver=’ECOS’, abstol=1e-6)
+prob.solve(solver=’OSQP’, max_iter=10000).
+mydict = {“MSK_DPAR_INTPNT_CO_TOL_NEAR_REL”:  10}
+prob.solve(solver=’MOSEK’, mosek_params=mydict).</p>
+</div></blockquote>
+<p>You should refer to CVXPY’s web documentation for details on how to pass solver
+parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The optimal value for the problem, or a string indicating
 why the problem could not be solved.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>float</p>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>float</p>
 </dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><ul class="simple">
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><ul class="simple">
 <li><p><strong>cvxpy.error.DCPError</strong> – Raised if the problem is not DCP and <cite>gp</cite> is False.</p></li>
 <li><p><strong>cvxpy.error.DGPError</strong> – Raised if the problem is not DGP and <cite>gp</cite> is True.</p></li>
 <li><p><strong>cvxpy.error.SolverError</strong> – Raised if no suitable solver exists among the installed solvers,

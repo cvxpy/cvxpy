@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -313,12 +313,27 @@
 <span class="sd">            perturbations to the variables by calling `.derivative()`. When</span>
 <span class="sd">            True, the solver must be SCS, and gp, qcp must be false; a DPPError is</span>
 <span class="sd">            thrown when problem is not DPP.</span>
-<span class="sd">        solver_specific_opts : dict, optional</span>
-<span class="sd">            A dict of options that will be passed to the specific solver.</span>
-<span class="sd">            In general, these options will override any default settings</span>
-<span class="sd">            imposed by cvxpy.</span>
 <span class="sd">        method : function, optional</span>
 <span class="sd">            A custom solve method to use.</span>
+<span class="sd">        kwargs : keywords, optional</span>
+<span class="sd">            Additional solver specific arguments. See Notes below.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        ------</span>
+<span class="sd">        CVXPY interfaces with a wide range of solvers; the algorithms used by these solvers</span>
+<span class="sd">        have parameters relating to stopping criteria, and strategies to improve solution quality.</span>
+
+<span class="sd">        There is no one choice of parameters which is perfect for every problem. If you are not</span>
+<span class="sd">        getting satisfactory results from a solver, you can try changing its parameters. The</span>
+<span class="sd">        exact way this is done depends on the specific solver. Here are some examples:</span>
+
+<span class="sd">            prob.solve(solver=&#39;ECOS&#39;, abstol=1e-6)</span>
+<span class="sd">            prob.solve(solver=&#39;OSQP&#39;, max_iter=10000).</span>
+<span class="sd">            mydict = {&quot;MSK_DPAR_INTPNT_CO_TOL_NEAR_REL&quot;:  10}</span>
+<span class="sd">            prob.solve(solver=&#39;MOSEK&#39;, mosek_params=mydict).</span>
+
+<span class="sd">        You should refer to CVXPY&#39;s web documentation for details on how to pass solver</span>
+<span class="sd">        parameters.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>

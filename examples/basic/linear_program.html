@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Linear program &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>Linear program &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -60,34 +60,34 @@ would change the optimal value.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>In the following code, we solve a linear program with CVXPY.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
-<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span># Import packages.
+import cvxpy as cp
+import numpy as np
 
-<span class="c1"># Generate a random non-trivial linear program.</span>
-<span class="n">m</span> <span class="o">=</span> <span class="mi">15</span>
-<span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">s0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-<span class="n">lamb0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="o">-</span><span class="n">s0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">s0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">s0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">A</span><span class="nd">@x0</span> <span class="o">+</span> <span class="n">s0</span>
-<span class="n">c</span> <span class="o">=</span> <span class="o">-</span><span class="n">A</span><span class="o">.</span><span class="n">T</span><span class="nd">@lamb0</span>
+# Generate a random non-trivial linear program.
+m = 15
+n = 10
+np.random.seed(1)
+s0 = np.random.randn(m)
+lamb0 = np.maximum(-s0, 0)
+s0 = np.maximum(s0, 0)
+x0 = np.random.randn(n)
+A = np.random.randn(m, n)
+b = A @ x0 + s0
+c = -A.T @ lamb0
 
-<span class="c1"># Define and solve the CVXPY problem.</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
-<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">T</span><span class="nd">@x</span><span class="p">),</span>
-                 <span class="p">[</span><span class="n">A</span><span class="nd">@x</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">])</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+# Define and solve the CVXPY problem.
+x = cp.Variable(n)
+prob = cp.Problem(cp.Minimize(c.T@x),
+                 [A @ x &lt;= b])
+prob.solve()
 
-<span class="c1"># Print result.</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">The optimal value is&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;A solution x is&quot;</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;A dual solution is&quot;</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
+# Print result.
+print(&quot;\nThe optimal value is&quot;, prob.value)
+print(&quot;A solution x is&quot;)
+print(x.value)
+print(&quot;A dual solution is&quot;)
+print(prob.constraints[0].dual_value)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="o">-</span><span class="mf">15.220912604467838</span>

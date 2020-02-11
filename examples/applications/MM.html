@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Method of multipliers &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>Method of multipliers &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -35,6 +35,11 @@
 <h1>Method of multipliers<a class="headerlink" href="#method-of-multipliers" title="Permalink to this headline">¶</a></h1>
 <p>The method of multipliers is an algorithm for solving convex
 optimization problems. Suppose we have a problem of the form</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize} &amp; f(x)\\
+\mbox{subject to} &amp; Ax = b,
+\end{array}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(f\)</span> is convex, <span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span> is the
 optimization variable, and <span class="math notranslate nohighlight">\(A \in \mathbf{R}^{m \times n}\)</span> and
 <span class="math notranslate nohighlight">\(b \in \mathbf{R}^m\)</span> are problem data.</p>
@@ -48,6 +53,11 @@ Lagrangian</p>
 optimal value of the original problem.</p>
 <p>We maximize the dual function using gradient ascent. Each step of
 gradient ascent reduces to the <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> updates</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{lll}
+x^{k+1} &amp; := &amp; \mathop{\rm argmin}_{x}\left(f(x) + (y^k)^T(Ax - b) + (\rho/2)\left\|Ax-b\right\|^2_2 \right) \\
+y^{k+1} &amp; := &amp; y^{k} + \rho(Ax^{k+1}-b)
+\end{array}\end{split}\]</div>
 <p>The following CVXPY script implements the method of multipliers and uses
 it to solve an optimization problem.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>

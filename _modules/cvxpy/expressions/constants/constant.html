@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.expressions.constants.constant &#8212; CVXPY 1.1.0a2 documentation</title>
+    <title>cvxpy.expressions.constants.constant &#8212; CVXPY 1.1.0a3 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -54,6 +54,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="k">import</span> <span class="n">EIGVAL_TOL</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="k">import</span> <span class="n">performance_utils</span> <span class="k">as</span> <span class="n">perf</span>
 <span class="kn">from</span> <span class="nn">scipy.sparse.linalg</span> <span class="k">import</span> <span class="n">eigsh</span>
+<span class="kn">from</span> <span class="nn">scipy.sparse.linalg.eigen.arpack.arpack</span> <span class="k">import</span> <span class="n">ArpackError</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
@@ -236,9 +237,27 @@
 
         <span class="c1"># Compute bottom eigenvalue if absent.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">=</span> <span class="n">eigsh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                                     <span class="n">which</span><span class="o">=</span><span class="s1">&#39;SA&#39;</span><span class="p">,</span>
-                                     <span class="n">return_eigenvectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">SA_eigsh</span><span class="p">(</span><span class="n">sigma</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">eigsh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                             <span class="n">which</span><span class="o">=</span><span class="s1">&#39;SA&#39;</span><span class="p">,</span>
+                             <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                             <span class="n">return_eigenvectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># Run eigsh in shift-invert mode since we are</span>
+            <span class="c1"># interested in finding very small (in magnitude)</span>
+            <span class="c1"># eigenvalues</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">=</span> <span class="n">SA_eigsh</span><span class="p">(</span><span class="o">-</span><span class="n">EIGVAL_TOL</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ArpackError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">=</span> <span class="n">SA_eigsh</span><span class="p">(</span>
+                    <span class="o">-</span><span class="n">EIGVAL_TOL</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span><span class="p">):</span>
+                    <span class="c1"># self._bottom_eig will be NaN if self.value has an</span>
+                    <span class="c1"># eigenvalue which is exactly EIGVAL_TOL</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">=</span> <span class="n">SA_eigsh</span><span class="p">(</span>
+                        <span class="o">-</span><span class="n">EIGVAL_TOL</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">EIGVAL_TOL</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
@@ -259,9 +278,27 @@
 
         <span class="c1"># Compute top eigenvalue if absent.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">=</span> <span class="n">eigsh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                                  <span class="n">which</span><span class="o">=</span><span class="s1">&#39;LA&#39;</span><span class="p">,</span>
-                                  <span class="n">return_eigenvectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">LA_eigsh</span><span class="p">(</span><span class="n">sigma</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">eigsh</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                             <span class="n">which</span><span class="o">=</span><span class="s1">&#39;LA&#39;</span><span class="p">,</span>
+                             <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span>
+                             <span class="n">return_eigenvectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="c1"># Run eigsh in shift-invert mode since we are</span>
+            <span class="c1"># interested in finding very small (in magnitude)</span>
+            <span class="c1"># eigenvalues</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">=</span> <span class="n">LA_eigsh</span><span class="p">(</span><span class="n">EIGVAL_TOL</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">ArpackError</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">=</span> <span class="n">LA_eigsh</span><span class="p">(</span>
+                    <span class="n">EIGVAL_TOL</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span><span class="p">):</span>
+                    <span class="c1"># self._top_eig will be NaN if self.value has an</span>
+                    <span class="c1"># eigenvalue which is exactly EIGVAL_TOL</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">=</span> <span class="n">LA_eigsh</span><span class="p">(</span>
+                        <span class="n">EIGVAL_TOL</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">&lt;=</span> <span class="n">EIGVAL_TOL</span></div>
 </pre></div>
 
