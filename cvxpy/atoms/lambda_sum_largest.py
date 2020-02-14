@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from scipy import linalg as LA
+import numpy as np
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.sum_largest import sum_largest
 
