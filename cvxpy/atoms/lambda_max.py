@@ -64,9 +64,6 @@ class lambda_max(Atom):
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
             raise ValueError("The argument '%s' to lambda_max must resolve to a square matrix."
                              % self.args[0].name())
-        if not self.args[0].is_symmetric():
-            raise ValueError("The argument '%s' to lambda_max must be symmetric."
-                             % self.args[0].name())
 
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
@@ -97,3 +94,11 @@ class lambda_max(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return False
+
+    @property
+    def value(self):
+        if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
+        if any([p.value is None for p in self.parameters()]):
+            return None
+        return self._value_impl()
