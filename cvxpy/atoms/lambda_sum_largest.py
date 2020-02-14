@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from scipy import linalg as LA
+import numpy as np
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.sum_largest import sum_largest
 
@@ -34,6 +35,8 @@ class lambda_sum_largest(lambda_max):
         X = self.args[0]
         if not X.ndim == 2 or X.shape[0] != X.shape[1]:
             raise ValueError("First argument must be a square matrix.")
+        if not np.allclose(X.value, X.value.T, rtol=1e-03, atol=1e-04):
+            raise ValueError("First argument must be a symmetric matrix.")
         elif int(self.k) != self.k or self.k <= 0:
             raise ValueError("Second argument must be a positive integer.")
 
