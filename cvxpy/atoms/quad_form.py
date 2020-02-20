@@ -217,7 +217,7 @@ def quad_form(x, P):
         raise Exception("Invalid dimensions for arguments.")
     # P cannot be a parameter.
     if x.is_constant():
-        return x.H * P * x
+        return x.H @ P @ x
     elif P.is_constant():
         return QuadForm(x, P)
     else:

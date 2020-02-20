@@ -61,9 +61,9 @@ In the following code, we solve a SDP with CVXPY.
     # The operator >> denotes matrix inequality.
     constraints = [X >> 0]
     constraints += [
-        cp.trace(A[i]@X) == b[i] for i in range(p)
+        cp.trace(A[i] @ X) == b[i] for i in range(p)
     ]
-    prob = cp.Problem(cp.Minimize(cp.trace(C@X)),
+    prob = cp.Problem(cp.Minimize(cp.trace(C @ X)),
                       constraints)
     prob.solve()
     

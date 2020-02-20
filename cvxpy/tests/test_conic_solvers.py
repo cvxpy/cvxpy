@@ -403,7 +403,7 @@ class TestMosek(unittest.TestCase):
             # Solve a simple basis pursuit problem for testing purposes.
             z = cp.Variable(n)
             objective = cp.Minimize(cp.norm1(z))
-            constraints = [A * z == y]
+            constraints = [A @ z == y]
             problem = cp.Problem(objective, constraints)
 
             invalid_mosek_params = {
@@ -598,13 +598,13 @@ class TestCBC(BaseTest):
                 self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.CBC)
 
     def test_cbc_lp_0(self):
-        StandardTestLPs.test_lp_0(solver='CBC')
+        StandardTestLPs.test_lp_0(solver='CBC', duals=False)
 
     def test_cbc_lp_1(self):
-        StandardTestLPs.test_lp_1(solver='CBC')
+        StandardTestLPs.test_lp_1(solver='CBC', duals=False)
 
     def test_cbc_lp_2(self):
-        StandardTestLPs.test_lp_2(solver='CBC')
+        StandardTestLPs.test_lp_2(solver='CBC', duals=False)
 
     def test_cbc_lp_3(self):
         StandardTestLPs.test_lp_3(solver='CBC')
@@ -686,7 +686,7 @@ class TestCPLEX(BaseTest):
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
             constraints = [self.x[0] <= h[0],
                            self.x[1] <= h[1],
-                           A * self.x == b]
+                           A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.CPLEX, warm_start=True)
             self.assertEqual(result, 3)
@@ -744,7 +744,7 @@ class TestCPLEX(BaseTest):
             # Solve a simple basis pursuit problem for testing purposes.
             z = cp.Variable(n)
             objective = cp.Minimize(cp.norm1(z))
-            constraints = [A * z == y]
+            constraints = [A @ z == y]
             problem = cp.Problem(objective, constraints)
 
             invalid_cplex_params = {
@@ -784,7 +784,7 @@ class TestCPLEX(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='CPLEX')
 
     def test_cplex_socp_1(self):
-        StandardTestSOCPs.test_socp_1(solver='CPLEX', places=3)
+        StandardTestSOCPs.test_socp_1(solver='CPLEX')
 
     def test_cplex_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver='CPLEX')
@@ -842,7 +842,7 @@ class TestGUROBI(BaseTest):
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
             constraints = [self.x[0] <= h[0],
                            self.x[1] <= h[1],
-                           A * self.x == b]
+                           A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
             self.assertEqual(result, 3)
@@ -971,34 +971,6 @@ class TestXPRESS(unittest.TestCase):
 
     def test_xpress_mi_socp_2(self):
         StandardTestSOCPs.test_mi_socp_2(solver='XPRESS')
-
-
-@unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
-class TestNAG(unittest.TestCase):
-
-    def test_nag_lp_0(self):
-        StandardTestLPs.test_lp_0(solver='NAG')
-
-    def test_nag_lp_1(self):
-        StandardTestLPs.test_lp_1(solver='NAG')
-
-    def test_nag_lp_2(self):
-        StandardTestLPs.test_lp_2(solver='NAG')
-
-    def test_nag_lp_3(self):
-        StandardTestLPs.test_lp_3(solver='NAG')
-
-    def test_nag_lp_4(self):
-        StandardTestLPs.test_lp_4(solver='NAG')
-
-    def test_nag_socp_0(self):
-        StandardTestSOCPs.test_socp_0(solver='NAG')
-
-    def test_nag_socp_1(self):
-        StandardTestSOCPs.test_socp_1(solver='NAG')
-
-    def test_nag_socp_2(self):
-        StandardTestSOCPs.test_socp_2(solver='NAG')
 
 
 class TestAllSolvers(BaseTest):

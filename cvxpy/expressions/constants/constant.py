@@ -20,6 +20,7 @@ import cvxpy.interface as intf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
 from scipy.sparse.linalg import eigsh
+from scipy.sparse.linalg.eigen.arpack.arpack import ArpackError
 import numpy as np
 
 
@@ -202,9 +203,27 @@ class Constant(Leaf):
 
         # Compute bottom eigenvalue if absent.
         if self._bottom_eig is None:
-            self._bottom_eig = eigsh(self.value, k=1,
-                                     which='SA',
-                                     return_eigenvectors=False)
+            def SA_eigsh(sigma):
+                return eigsh(self.value, k=1,
+                             which='SA',
+                             sigma=sigma,
+                             return_eigenvectors=False)
+
+            # Run eigsh in shift-invert mode since we are
+            # interested in finding very small (in magnitude)
+            # eigenvalues
+            try:
+                self._bottom_eig = SA_eigsh(-EIGVAL_TOL)
+            except ArpackError:
+                self._bottom_eig = SA_eigsh(
+                    -EIGVAL_TOL + np.finfo(self.value.dtype).eps)
+            else:
+                if np.isnan(self._bottom_eig):
+                    # self._bottom_eig will be NaN if self.value has an
+                    # eigenvalue which is exactly EIGVAL_TOL
+                    self._bottom_eig = SA_eigsh(
+                        -EIGVAL_TOL + np.finfo(self.value.dtype).eps)
+
         return self._bottom_eig >= -EIGVAL_TOL
 
     @perf.compute_once
@@ -225,7 +244,25 @@ class Constant(Leaf):
 
         # Compute top eigenvalue if absent.
         if self._top_eig is None:
-            self._top_eig = eigsh(self.value, k=1,
-                                  which='LA',
-                                  return_eigenvectors=False)
+            def LA_eigsh(sigma):
+                return eigsh(self.value, k=1,
+                             which='LA',
+                             sigma=sigma,
+                             return_eigenvectors=False)
+
+            # Run eigsh in shift-invert mode since we are
+            # interested in finding very small (in magnitude)
+            # eigenvalues
+            try:
+                self._top_eig = LA_eigsh(EIGVAL_TOL)
+            except ArpackError:
+                self._top_eig = LA_eigsh(
+                    EIGVAL_TOL - np.finfo(self.value.dtype).eps)
+            else:
+                if np.isnan(self._top_eig):
+                    # self._top_eig will be NaN if self.value has an
+                    # eigenvalue which is exactly EIGVAL_TOL
+                    self._top_eig = LA_eigsh(
+                        EIGVAL_TOL - np.finfo(self.value.dtype).eps)
+
         return self._top_eig <= EIGVAL_TOL

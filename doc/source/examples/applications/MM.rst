@@ -5,7 +5,7 @@ Method of multipliers
 The method of multipliers is an algorithm for solving convex
 optimization problems. Suppose we have a problem of the form
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
    \mbox{minimize} & f(x)\\
@@ -29,8 +29,8 @@ optimal value of the original problem.
 We maximize the dual function using gradient ascent. Each step of
 gradient ascent reduces to the :math:`x` and :math:`y` updates
 
-.. raw:: latex
-
+.. math::
+   
    \begin{array}{lll}
    x^{k+1} & := & \mathop{\rm argmin}_{x}\left(f(x) + (y^k)^T(Ax - b) + (\rho/2)\left\|Ax-b\right\|^2_2 \right) \\
    y^{k+1} & := & y^{k} + \rho(Ax^{k+1}-b)

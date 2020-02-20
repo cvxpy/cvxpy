@@ -21,7 +21,7 @@ can be solved using CVXPY.
     import numpy as np
     import matplotlib.pyplot as plt
 
-Our goal is to minimize the function
+Our goal is to maximize the function
 
 .. math:: \frac{\sqrt{x}}{\exp(x)}.
 

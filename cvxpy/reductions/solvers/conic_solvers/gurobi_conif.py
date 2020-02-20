@@ -37,8 +37,8 @@ class GUROBI(SCS):
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
+                  4: s.SOLVER_ERROR,  # Triggers reoptimize.
                   5: s.UNBOUNDED,
-                  4: s.SOLVER_ERROR,
                   6: s.SOLVER_ERROR,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
@@ -208,6 +208,10 @@ class GUROBI(SCS):
         solution = {}
         try:
             model.optimize()
+            # Reoptimize if INF_OR_UNBD, to get definitive answer.
+            if model.Status == 4:
+                model.setParam("DualReductions", 0)
+                model.optimize()
             solution["value"] = model.ObjVal
             solution["primal"] = np.array([v.X for v in variables])
 

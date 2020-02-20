@@ -33,7 +33,7 @@ squares loss function** and an :math:`\ell_1` **regularizer**.
 .. code:: python
 
     def loss_fn(X, Y, beta):
-        return cp.norm2(cp.matmul(X, beta) - Y)**2
+        return cp.norm2(X @ beta - Y)**2
     
     def regularizer(beta):
         return cp.norm1(beta)

@@ -117,7 +117,7 @@ class TestProblem(BaseTest):
         """
         c1 = numpy.random.randn(1, 2)
         c2 = numpy.random.randn(2)
-        p = Problem(cp.Minimize(c1*self.x), [self.x >= c2])
+        p = Problem(cp.Minimize(c1 @ self.x), [self.x >= c2])
         constants_ = p.constants()
         ref = [c1, c2]
         self.assertEqual(len(ref), len(constants_))
@@ -395,11 +395,11 @@ class TestProblem(BaseTest):
         beq = numpy.random.randn(2)
         F = numpy.random.randn(2, 3)
         g = numpy.random.randn(2)
-        obj = cp.sum_squares(A*self.y - b)
-        qpwa_obj = 3*cp.sum_squares(-cp.abs(A*self.y)) +\
-            cp.quad_over_lin(cp.maximum(cp.abs(A*self.y), [3., 3., 3., 3.]), 2.)
-        not_qpwa_obj = 3*cp.sum_squares(cp.abs(A*self.y)) +\
-            cp.quad_over_lin(cp.minimum(cp.abs(A*self.y), [3., 3., 3., 3.]), 2.)
+        obj = cp.sum_squares(A @ self.y - b)
+        qpwa_obj = 3*cp.sum_squares(-cp.abs(A @ self.y)) +\
+            cp.quad_over_lin(cp.maximum(cp.abs(A @ self.y), [3., 3., 3., 3.]), 2.)
+        not_qpwa_obj = 3*cp.sum_squares(cp.abs(A @ self.y)) +\
+            cp.quad_over_lin(cp.minimum(cp.abs(A @ self.y), [3., 3., 3., 3.]), 2.)
 
         p = Problem(cp.Minimize(obj), [])
         self.assertEqual(p.is_qp(), True)
@@ -411,23 +411,23 @@ class TestProblem(BaseTest):
         self.assertEqual(p.is_qp(), False)
 
         p = Problem(cp.Minimize(obj),
-                    [Aeq * self.y == beq, F * self.y <= g])
+                    [Aeq @ self.y == beq, F @ self.y <= g])
         self.assertEqual(p.is_qp(), True)
 
         p = Problem(cp.Minimize(qpwa_obj),
-                    [Aeq * self.y == beq, F * self.y <= g])
+                    [Aeq @ self.y == beq, F @ self.y <= g])
         self.assertEqual(p.is_qp(), True)
 
         p = Problem(cp.Minimize(obj), [cp.maximum(1, 3 * self.y) <= 200,
                                        cp.abs(2 * self.y) <= 100,
                                        cp.norm(2 * self.y, 1) <= 1000,
-                                       Aeq * self.y == beq])
+                                       Aeq @ self.y == beq])
         self.assertEqual(p.is_qp(), True)
 
         p = Problem(cp.Minimize(qpwa_obj), [cp.maximum(1, 3 * self.y) <= 200,
                                             cp.abs(2 * self.y) <= 100,
                                             cp.norm(2 * self.y, 1) <= 1000,
-                                            Aeq * self.y == beq])
+                                            Aeq @ self.y == beq])
         self.assertEqual(p.is_qp(), True)
 
         p = Problem(cp.Minimize(obj), [cp.maximum(1, 3 * self.y ** 2) <= 200])
@@ -578,21 +578,21 @@ class TestProblem(BaseTest):
     # Test vector LP problems.
     def test_vector_lp(self):
         c = Constant(numpy.array([[1, 2]]).T).value
-        p = Problem(cp.Minimize(c.T*self.x), [self.x[:, None] >= c])
+        p = Problem(cp.Minimize(c.T @ self.x), [self.x[:, None] >= c])
         result = p.solve()
         self.assertAlmostEqual(result, 5)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
         A = Constant(numpy.array([[3, 5], [1, 2]]).T).value
         Imat = Constant([[1, 0], [0, 1]])
-        p = Problem(cp.Minimize(c.T*self.x + self.a),
-                    [A*self.x >= [-1, 1],
-                     4*Imat*self.z == self.x,
+        p = Problem(cp.Minimize(c.T @ self.x + self.a),
+                    [A @ self.x >= [-1, 1],
+                     4*Imat @ self.z == self.x,
                      self.z >= [2, 2],
                      self.a >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 26, places=3)
-        obj = (c.T*self.x + self.a).value[0]
+        obj = (c.T @ self.x + self.a).value[0]
         self.assertAlmostEqual(obj, result)
         self.assertItemsAlmostEqual(self.x.value, [8, 8], places=3)
         self.assertItemsAlmostEqual(self.z.value, [2, 2], places=3)
@@ -615,13 +615,13 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.A.value, T)
 
         T = Constant(numpy.ones((2, 3))*2).value
-        p = Problem(cp.Minimize(1), [self.A >= T*self.C,
+        p = Problem(cp.Minimize(1), [self.A >= T @ self.C,
                                      self.A == self.B, self.C == T.T])
         result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.A.value, self.B.value)
         self.assertItemsAlmostEqual(self.C.value, T)
-        assert (self.A.value >= (T*self.C).value).all()
+        assert (self.A.value >= (T @ self.C).value).all()
 
         # Test variables are dense.
         self.assertEqual(type(self.A.value), intf.DEFAULT_INTF.TARGET_MATRIX)
@@ -642,7 +642,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(self.a.value, 4)
 
         # Promotion must happen before the multiplication.
-        p = Problem(cp.Minimize([[1], [1]]*(self.x + self.a + 1)),
+        p = Problem(cp.Minimize([[1], [1]] @ (self.x + self.a + 1)),
                     [self.a + self.x >= [1, 2]])
         result = p.solve()
         self.assertAlmostEqual(result, 5)
@@ -650,7 +650,7 @@ class TestProblem(BaseTest):
     # Test parameter promotion.
     def test_parameter_promotion(self):
         a = Parameter()
-        exp = [[1, 2], [3, 4]]*a
+        exp = [[1, 2], [3, 4]] * a
         a.value = 2
         assert not (exp.value - 2*numpy.array([[1, 2], [3, 4]]).T).any()
 
@@ -837,7 +837,7 @@ class TestProblem(BaseTest):
                     acc = 5
                 p = Problem(cp.Minimize(cp.norm1(self.x + self.z)),
                             [self.x >= [2, 3],
-                            [[1, 2], [3, 4]]*self.z == [-1, -4],
+                            [[1, 2], [3, 4]] @ self.z == [-1, -4],
                             cp.pnorm(self.x + self.z, p=2) <= 100])
                 result = p.solve(solver=solver)
                 self.assertAlmostEqual(result, 4, places=acc)
@@ -850,7 +850,7 @@ class TestProblem(BaseTest):
 
                 T = numpy.ones((2, 3))*2
                 p = Problem(cp.Minimize(1),
-                            [self.A >= T*self.C,
+                            [self.A >= T @ self.C,
                              self.A == self.B,
                              self.C == T.T])
                 result = p.solve(solver=solver)
@@ -884,7 +884,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.A.value, [1, -2, -3, 4])
 
         # Indexing arithmetic expressions.
-        expr = [[1, 2], [3, 4]]*self.z + self.x
+        expr = [[1, 2], [3, 4]] @ self.z + self.x
         p = Problem(cp.Minimize(expr[1]), [self.x == self.z, self.z == [1, 2]])
         result = p.solve()
         self.assertAlmostEqual(result, 12)
@@ -941,9 +941,9 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.C.value[0:2, :], [1, 2, 1, 2])
         self.assertItemsAlmostEqual(self.A.value, [2, 2, 1, 1])
 
-        p = Problem(cp.Maximize([[3], [4]]*(self.C[0:2, :] + self.A)[:, 0]),
+        p = Problem(cp.Maximize([[3], [4]] @ (self.C[0:2, :] + self.A)[:, 0]),
                     [self.C[1:3, :] <= 2, self.C[0, :] == 1,
-                     [[1], [2]]*(self.A + self.B)[:, 0] == 3, (self.A + self.B)[:, 1] == 2,
+                     [[1], [2]] @ (self.A + self.B)[:, 0] == 3, (self.A + self.B)[:, 1] == 2,
                      self.B == 1, 3*self.A[:, 0] <= 3])
         result = p.solve()
         self.assertAlmostEqual(result, 12)
@@ -974,14 +974,14 @@ class TestProblem(BaseTest):
         y = Variable((3, 1), name='y')
 
         c = numpy.ones((1, 5))
-        p = Problem(cp.Minimize(c * cp.vstack([x, y])),
+        p = Problem(cp.Minimize(c @ cp.vstack([x, y])),
                     [x == [[1, 2]],
                      y == [[3, 4, 5]]])
         result = p.solve()
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
-        p = Problem(cp.Minimize(c * cp.vstack([x, x])),
+        p = Problem(cp.Minimize(c @ cp.vstack([x, x])),
                     [x == [[1, 2]]])
         result = p.solve()
         self.assertAlmostEqual(result, 6)
@@ -994,14 +994,14 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, -4)
 
         c = numpy.ones((1, 2))
-        p = Problem(cp.Minimize(cp.sum(cp.vstack([c*self.A, c*self.B]))),
+        p = Problem(cp.Minimize(cp.sum(cp.vstack([c @ self.A, c @ self.B]))),
                     [self.A >= 2,
                      self.B == -2])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
         c = numpy.array([[1, -1]]).T
-        p = Problem(cp.Minimize(c.T * cp.vstack([cp.square(a), cp.sqrt(b)])),
+        p = Problem(cp.Minimize(c.T @ cp.vstack([cp.square(a), cp.sqrt(b)])),
                     [a == 2,
                      b == 16])
         with self.assertRaises(Exception) as cm:
@@ -1018,14 +1018,14 @@ class TestProblem(BaseTest):
         y = Variable((3, 1), name='y')
 
         c = numpy.ones((1, 5))
-        p = Problem(cp.Minimize(c * cp.hstack([x.T, y.T]).T),
+        p = Problem(cp.Minimize(c @ cp.hstack([x.T, y.T]).T),
                     [x == [[1, 2]],
                      y == [[3, 4, 5]]])
         result = p.solve()
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
-        p = Problem(cp.Minimize(c * cp.hstack([x.T, x.T]).T),
+        p = Problem(cp.Minimize(c @ cp.hstack([x.T, x.T]).T),
                     [x == [[1, 2]]])
         result = p.solve()
         self.assertAlmostEqual(result, 6)
@@ -1046,7 +1046,7 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 13)
 
         c = numpy.array([[1, -1]]).T
-        p = Problem(cp.Minimize(c.T * cp.hstack([cp.square(a).T, cp.sqrt(b).T]).T),
+        p = Problem(cp.Minimize(c.T @ cp.hstack([cp.square(a).T, cp.sqrt(b).T]).T),
                     [a == 2,
                      b == 16])
         with self.assertRaises(Exception) as cm:
@@ -1070,7 +1070,7 @@ class TestProblem(BaseTest):
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
         p = Problem(cp.Minimize(cp.sum(self.C)),
-                    [numpy.array([[1, 1]])*self.C.T >= numpy.array([[0, 1, 2]])])
+                    [numpy.array([[1, 1]]) @ self.C.T >= numpy.array([[0, 1, 2]])])
         result = p.solve()
         value = self.C.value
 
@@ -1114,7 +1114,7 @@ class TestProblem(BaseTest):
         """Test multiplication on the left by a non-constant.
         """
         c = numpy.array([[1, 2]]).T
-        p = Problem(cp.Minimize(c.T*self.A*c), [self.A >= 2])
+        p = Problem(cp.Minimize(c.T @ self.A @ c), [self.A >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 18)
 
@@ -1122,11 +1122,11 @@ class TestProblem(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 4)
 
-        p = Problem(cp.Minimize(self.x.T*c), [self.x >= 2])
+        p = Problem(cp.Minimize(self.x.T @ c), [self.x >= 2])
         result = p.solve()
         self.assertAlmostEqual(result, 6)
 
-        p = Problem(cp.Minimize((self.x.T + self.z.T)*c),
+        p = Problem(cp.Minimize((self.x.T + self.z.T) @ c),
                     [self.x >= 2, self.z >= 1])
         result = p.solve()
         self.assertAlmostEqual(result, 9)
@@ -1134,7 +1134,7 @@ class TestProblem(BaseTest):
         # TODO segfaults in Python 3
         A = numpy.ones((5, 10))
         x = Variable(5)
-        p = cp.Problem(cp.Minimize(cp.sum(x*A)), [x >= 0])
+        p = cp.Problem(cp.Minimize(cp.sum(x @ A)), [x >= 0])
         result = p.solve()
         self.assertAlmostEqual(result, 0)
 
@@ -1333,7 +1333,7 @@ class TestProblem(BaseTest):
         vec = numpy.array([[1, 2, 3, 4]]).T
         vec_mat = numpy.array([[1, 2], [3, 4]]).T
         expr = cp.reshape(x, (2, 2))
-        obj = cp.Minimize(cp.sum(mat*expr))
+        obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [x[:, None] == vec])
         result = prob.solve()
         self.assertAlmostEqual(result, numpy.sum(mat.dot(vec_mat)))
@@ -1341,7 +1341,7 @@ class TestProblem(BaseTest):
         # Test on matrix to vector.
         c = [1, 2, 3, 4]
         expr = cp.reshape(self.A, (4, 1))
-        obj = cp.Minimize(expr.T*c)
+        obj = cp.Minimize(expr.T @ c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
         result = prob.solve()
@@ -1353,7 +1353,7 @@ class TestProblem(BaseTest):
         expr = cp.reshape(self.C, (2, 3))
         mat = numpy.array([[1, -1], [2, -2]])
         C_mat = numpy.array([[1, 4], [2, 5], [3, 6]])
-        obj = cp.Minimize(cp.sum(mat*expr))
+        obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [self.C == C_mat])
         result = prob.solve()
         reshaped = numpy.reshape(C_mat, (2, 3), 'F')
@@ -1362,15 +1362,15 @@ class TestProblem(BaseTest):
 
         # Test promoted expressions.
         c = numpy.array([[1, -1], [2, -2]]).T
-        expr = cp.reshape(c*self.a, (1, 4))
-        obj = cp.Minimize(expr*[1, 2, 3, 4])
+        expr = cp.reshape(c * self.a, (1, 4))
+        obj = cp.Minimize(expr @ [1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
         result = prob.solve()
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
 
-        expr = cp.reshape(c*self.a, (4, 1))
-        obj = cp.Minimize(expr.T*[1, 2, 3, 4])
+        expr = cp.reshape(c * self.a, (4, 1))
+        obj = cp.Minimize(expr.T @ [1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
         result = prob.solve()
         self.assertAlmostEqual(result, -6)
@@ -1390,7 +1390,7 @@ class TestProblem(BaseTest):
         """
         c = [1, 2, 3, 4]
         expr = cp.vec(self.A)
-        obj = cp.Minimize(expr.T*c)
+        obj = cp.Minimize(expr.T @ c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
         result = prob.solve()
@@ -1626,7 +1626,7 @@ class TestProblem(BaseTest):
         # todo: add -1, .5, .3, -2.3 and testing positivity constraints
 
         for p in (1, 1.6, 1.3, 2, 1.99, 3, 3.7, np.inf):
-            prob = Problem(cp.Minimize(cp.pnorm(x, p=p)), [x.T*a >= 1])
+            prob = Problem(cp.Minimize(cp.pnorm(x, p=p)), [x.T @ a >= 1])
             prob.solve(verbose=True)
 
             # formula is true for any a >= 0 with p > 1
@@ -1681,7 +1681,7 @@ class TestProblem(BaseTest):
         theta = Variable(J)
 
         delta = 1e-3
-        loglambda = rvec*theta  # rvec: TxJ regressor matrix, theta: (Jx1) cp variable
+        loglambda = rvec @ theta  # rvec: TxJ regressor matrix, theta: (Jx1) cp variable
         a = cp.multiply(dy[0:T], loglambda)  # size(Tx1)
         b1 = cp.exp(loglambda)
         b2 = cp.multiply(delta, b1)
@@ -1781,11 +1781,11 @@ class TestProblem(BaseTest):
         D_sparse = sp.coo_matrix(D_dense)
 
         def make_problem(D):
-            obj = cp.Minimize(0.5 * cp.quad_form(a, P) - a.T * q)
+            obj = cp.Minimize(0.5 * cp.quad_form(a, P) - a.T @ q)
             assert obj.is_dcp()
 
             alpha = cp.Parameter(nonneg=True, value=2)
-            constraints = [a >= 0., -alpha <= D.T * a, D.T * a <= alpha]
+            constraints = [a >= 0., -alpha <= D.T @ a, D.T @ a <= alpha]
 
             prob = cp.Problem(obj, constraints)
             prob.solve(solver=cp.settings.ECOS)
@@ -1801,7 +1801,7 @@ class TestProblem(BaseTest):
         np.testing.assert_almost_equal(expected_coef, coef_dense)
 
         make_problem(D_sparse)
-        coef_sparse = a.value.T * D_sparse
+        coef_sparse = a.value.T @ D_sparse
         np.testing.assert_almost_equal(expected_coef, coef_sparse)
 
     def test_special_index(self):

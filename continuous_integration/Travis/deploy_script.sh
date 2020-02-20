@@ -4,7 +4,8 @@ source activate testenv
 conda config --add channels cvxgrp
 conda config --add channels conda-forge
 conda config --add channels oxfordcontrol
-conda install --yes requests twine readme_renderer
+conda install --yes requests twine
+pip install readme_renderer  # conda channels don't have a py3.5 version
 
 # We chose a somewhat arbitrary build configuration (a specially marked OSX configuration)
 # to be the designated uploader of source distributions.

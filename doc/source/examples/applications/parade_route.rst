@@ -5,8 +5,8 @@ Optimal parade route
 Topic references
 ================
 
--  `Iterated weighted :math:`\ell_1`
-   heuristic <http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf>`__
+-  Iterated weighted :math:`\ell_1`
+   heuristic: `slides <http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf>`__
 
 Problem statement
 =================
@@ -35,7 +35,9 @@ Optimization formulation
 
 We can formulate this as the optimization problem
 
-\\[ ]
+.. math::
+   
+   \begin{array}{ll} \mbox{maximize} & t \\ \mbox{subject to} & t \leq Ax\\ & 0 \leq x \leq 1 \\ & \mathbf{1}^Tx = k, \end{array}
 
 This problem is nonconvex and, in general, NP-hard due to the Boolean
 decision variable.
@@ -46,13 +48,15 @@ Relaxation
 We can try to approach the problem with convex optimization by first
 forming the convex relaxation
 
-\\[ ] by constraining :math:`x \in [0,1]^n`.
+.. math::
+   
+   \begin{array}{ll} \mbox{maximize} & t - w^Tx\\ \mbox{subject to} & t \leq Ax\\ & 0 \leq x \leq 1 \\ & \mathbf{1}^Tx = k, \end{array}
+
+by constraining :math:`x \in [0,1]^n`.
 
 In general, the solution to this problem, :math:`x^\star`, will have
 fractional values. As we want a Boolean allocation, we can use an
-`iterated weighted :math:`\ell_1`
-heuristic <http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf>`__
-to try to recover a Boolean solution.
+iterated weighted :math:`\ell_1` heuristic to try to recover a Boolean solution.
 
 Iterated weighted :math:`\ell_1` heuristic
 ==========================================
@@ -68,7 +72,17 @@ notes <http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf>`__.
 The algorithm consists of initializing :math:`w = 0` and repeating the
 two steps
 
-1. \\[ ]
+1.
+
+.. math::
+
+   \begin{array}{ll}
+   \mbox{maximize} & t  - w^Tx\\
+   \mbox{subject to} & t \leq Ax\\
+   & 0 \leq x \leq 1 \\
+   & \mathbf{1}^Tx = k,
+   \end{array}
+   
 2. Let :math:`w_i = \alpha/(\tau + x_i) \forall i`
 
 until we reach a Boolean solution. Here, :math:`\alpha` and :math:`\tau`
