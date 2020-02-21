@@ -387,7 +387,7 @@ class XPRESS(SCS):
         return solution
 
 
-def get_status_maps(self):
+def get_status_maps():
     """Create status maps from Xpress to CVXPY
     """
 

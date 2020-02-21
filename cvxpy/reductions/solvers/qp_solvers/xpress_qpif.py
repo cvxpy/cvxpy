@@ -23,8 +23,11 @@ class XPRESS(QpSolver):
         return s.XPRESS
 
     def import_solver(self):
-        import xpress
-        xpress
+
+        try:
+            import xpress
+        except:
+            raise
 
     def invert(self, results, inverse_data):
         model = results["model"]
@@ -38,7 +41,7 @@ class XPRESS(QpSolver):
 
         status_map_lp, status_map_mip = get_status_maps()
 
-        if self.is_mip(data):
+        if 'mip_' in results['status']:
             status = status_map_mip[results['status']]
         else:
             status = status_map_lp[results['status']]
@@ -76,18 +79,18 @@ class XPRESS(QpSolver):
 
         # Objective function: 1/2 x' P x + q'x
 
-        Q = data[s.P].tocoo()       # objective quadratic coefficients
-        q = data[s.Q]               # objective linear coefficient (size n_var)
+        Q = data[s.P]          # objective quadratic coefficients
+        q = data[s.Q]          # objective linear coefficient (size n_var)
 
         # Equations, Ax = b
 
-        A = data[s.A]               # linear coefficient matrix
-        b = data[s.B]               # rhs
+        A = data[s.A]          # linear coefficient matrix
+        b = data[s.B]          # rhs
 
         # Inequalities, Fx <= g
 
-        F = data[s.F]               # linear coefficient matrix
-        g = data[s.G]               # rhs
+        F = data[s.F]          # linear coefficient matrix
+        g = data[s.G]          # rhs
 
         n_var = data['n_var']
         n_eq = data['n_eq']
@@ -142,6 +145,8 @@ class XPRESS(QpSolver):
         # itself, then, just remove all lower-triangular elements.
         Q += Q.transpose()
 
+        Q = Q.tocoo()
+
         mqcol1 = Q.row  [Q.row <= Q.col]
         mqcol2 = Q.col  [Q.row <= Q.col]
         dqe    = Q.data [Q.row <= Q.col]
@@ -152,7 +157,7 @@ class XPRESS(QpSolver):
 
         self.prob_.loadproblem (probname='CVXPY_xpress_qp',
                                 qrtypes=['E']*n_eq + ['L']*n_ineq,
-                                rhs=b + g,
+                                rhs=list(b) + list(g),
                                 range=None,
                                 obj=q,
                                 mstart=mstart,
@@ -162,7 +167,7 @@ class XPRESS(QpSolver):
                                 dmatval=dmatval,
                                 # variable bounds
                                 dlb=[-xp.infinity]*n_var,
-                                dub=[xp.infinity]*nvar,
+                                dub=[xp.infinity]*n_var,
                                 # quadratic objective (only upper triangle)
                                 mqcol1=mqcol1,
                                 mqcol2=mqcol2,
