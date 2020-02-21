@@ -9,24 +9,12 @@ from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
 )
 import numpy as np
 
-
-def constrain_xpress_infty(v):
-    '''
-    Limit values of vector v between +/- infinity as
-    defined in the XPRESS package
-    '''
-    import xpress as xp
-    n = len(v)
-
-    for i in range(n):
-        if v[i] >= xp.infinity:
-            v[i] = xp.infinity
-        if v[i] <= -xp.infinity:
-            v[i] = -xp.infinity
+from .conic_solvers.xpress_conif import makeMstart
 
 
 class XPRESS(QpSolver):
-    """QP interface for the XPRESS solver"""
+
+    """Quadratic interface for the FICO Xpress solver"""
 
     MIP_CAPABLE = True
 
@@ -43,7 +31,7 @@ class XPRESS(QpSolver):
         if "cputime" in results:
             attr[s.SOLVE_TIME] = results["cputime"]
         attr[s.NUM_ITERS] = \
-            int(model.solution.progress.get_num_barrier_iterations()) \
+            int(model.attributes.bariter) \
             if not inverse_data.is_mip \
             else 0
 
@@ -51,10 +39,10 @@ class XPRESS(QpSolver):
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
-            opt_val = model.solution.get_objective_value()
+            opt_val = model.getObjVal()
 
             # Get solution
-            x = np.array(model.solution.get_values())
+            x = np.array(model.getSolution())
             primal_vars = {
                 list(inverse_data.id_map.keys())[0]:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
@@ -63,7 +51,7 @@ class XPRESS(QpSolver):
             # Only add duals if not a MIP.
             dual_vars = None
             if not inverse_data.is_mip:
-                y = -np.array(model.solution.get_dual_values())
+                y = -np.array(model.getDual())
                 dual_vars = {XPRESS.DUAL_VAR_ID: y}
 
         else:
@@ -75,14 +63,27 @@ class XPRESS(QpSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
+
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+
         import xpress as xp
-        P = data[s.P].tocsr()       # Convert matrix to csr format
-        q = data[s.Q]
-        A = data[s.A].tocsr()       # Convert A matrix to csr format
-        b = data[s.B]
-        F = data[s.F].tocsr()       # Convert F matrix to csr format
-        g = data[s.G]
+
+        import pdb
+        pdb.set_trace()
+
+        P = data[s.P].tocsr()       # objective quadratic coefficients
+        q = data[s.Q]               # objective linear coefficient (size n_var)
+
+        # Equations, Ax = b
+
+        A = data[s.A].tocsr()       # linear coefficient matrix
+        b = data[s.B]               # rhs
+
+        # Inequalities, Fx <= g
+
+        F = data[s.F].tocsr()       # linear coefficient matrix
+        g = data[s.G]               # rhs
+
         n_var = data['n_var']
         n_eq = data['n_eq']
         n_ineq = data['n_ineq']
@@ -93,9 +94,6 @@ class XPRESS(QpSolver):
 
         # Define XPRESS problem
         model = xp.problem()
-
-        # Minimize problem
-        model.objective.set_sense(model.objective.sense.minimize)
 
         # Add variables and linear objective
         var_idx = list(model.variables.add(obj=q,
