@@ -113,6 +113,7 @@ class XPRESS(SCS):
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
+        return data, inv_data
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
@@ -146,9 +147,6 @@ class XPRESS(SCS):
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
 
         import xpress as xp
-
-        import pdb
-        pdb.set_trace()
 
         c = data[s.C]  # objective coefficients
 
