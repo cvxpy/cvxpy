@@ -175,16 +175,19 @@ class XPRESS(SCS):
         varnames = ['x_{0:05d}'. format(i) for i in range(len(c))]
         linRownames = ['lc_{0:05d}'.format(i) for i in range(len(b))]
 
-        self.prob_.loadproblem("CVXproblem",
-                               ['E'] * nrowsEQ + ['L'] * nrowsLEQ,  # qrtypes
-                               None,                                # range
-                               c,                                   # obj coeff
-                               mstart,                              # mstart
-                               None,                                # mnel
-                               A.indices,                           # row indices
-                               A.data,                              # coefficients
-                               [-xp.infinity] * len(c),         # lower bound
-                               [xp.infinity] * len(c),          # upper bound
+        self.prob_.loadproblem(probname="CVX_xpress_conic",
+                               # constraint types
+                               qrtypes=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
+                               rhs=b,                                       # rhs
+                               range=None,                                  # range
+                               obj=c,                                       # obj coeff
+                               mstart=mstart,                               # mstart
+                               mnel=None,                                   # mnel (unused)
+                               # linear coefficients
+                               mrwind=A.indices,                           # row indices
+                               dmatval=A.data,                              # coefficients
+                               dlb=[-xp.infinity] * len(c),         # lower bound
+                               dub=[xp.infinity] * len(c),          # upper bound
                                colnames=varnames,                   # column names
                                rownames=linRownames)                # row    names
 
