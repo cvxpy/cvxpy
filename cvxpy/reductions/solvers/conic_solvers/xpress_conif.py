@@ -36,10 +36,6 @@ def makeMstart(A, n, ifCol=1):
 class XPRESS(SCS):
     """An interface for the Xpress solver.
     """
-    # Main member of this class: an Xpress problem. Marked with a
-    # trailing "_" to denote a member
-    prob_ = None
-    translate_back_QP_ = False
     solvecount = 0
     version = -1
 
@@ -61,16 +57,25 @@ class XPRESS(SCS):
                   12: s.SOLVER_ERROR,
                   13: s.SOLVER_ERROR}
 
+
+    def __init__(self):
+        # Main member of this class: an Xpress problem. Marked with a
+        # trailing "_" to denote a member
+        self.prob_ = None
+
+
     def name(self):
         """The name of the solver.
         """
         return s.XPRESS
+
 
     def import_solver(self):
         """Imports the solver.
         """
         import xpress
         self.version = xpress.getversion()
+
 
     def accepts(self, problem):
         """Can Xpress solve the problem?
@@ -85,6 +90,7 @@ class XPRESS(SCS):
                 if not arg.is_affine():
                     return False
         return True
+
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -106,6 +112,7 @@ class XPRESS(SCS):
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
@@ -135,15 +142,13 @@ class XPRESS(SCS):
         other[s.XPRESS_TROW] = solution[s.XPRESS_TROW]
         return Solution(status, opt_val, primal_vars, dual_vars, other)
 
+
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
 
         import xpress as xp
 
         import pdb
         pdb.set_trace()
-
-        if 'no_qp_reduction' in solver_opts.keys() and solver_opts['no_qp_reduction'] is True:
-            self.translate_back_QP_ = True
 
         c = data[s.C]  # objective coefficients
 
@@ -212,91 +217,48 @@ class XPRESS(SCS):
             b = data[s.B][currow: currow + k]
             currow += k
 
-            if self.translate_back_QP_:
 
-                # Conic problem passed by CVXPY is translated back
-                # into a QP problem. The problem is passed to us
-                # as follows:
-                #
-                # min c'x
-                # s.t. Ax <>= b
-                #      y[i] = P[i]' * x + b[i]
-                #      ||y[i][1:]||_2 <= y[i][0]
-                #
-                # where P[i] is a matrix, b[i] is a vector. Get
-                # rid of the y variables by explicitly rewriting
-                # the conic constraint as quadratic:
-                #
-                # y[i][1:]' * y[i][1:] <= y[i][0]^2
-                #
-                # and hence
-                #
-                # (P[i][1:]' * x + b[i][1:])^2 <= (P[i][0]' * x + b[i][0])^2
-
-                Plhs = A[1:]
-                Prhs = A[0]
-
-                indRowL, indColL = Plhs.nonzero()
-                indRowR, indColR = Prhs.nonzero()
-
-                coeL = Plhs.data
-                coeR = Prhs.data
-
-                lhs = list(b[1:])
-                rhs = b[0]
-
-                for i in range(len(coeL)):
-                    lhs[indRowL[i]] -= coeL[i] * x[indColL[i]]
-
-                for i in range(len(coeR)):
-                    rhs -= coeR[i] * x[indColR[i]]
-
-                self.prob_.addConstraint(xp.Sum([lhs[i]**2 for i in range(len(lhs))])
-                                         <= rhs**2)
-
-            else:
-
-                # Create new (cone) variables and add them to the problem
-                conevar = np.array([xp.var(name='cX{0:d}_{1:d}'.format(iCone, i),
+            # Create new (cone) variables and add them to the problem
+            conevar = np.array([xp.var(name='cX{0:d}_{1:d}'.format(iCone, i),
                                                lb=-xp.infinity if i > 0 else 0)
                                     for i in range(k)])
 
-                self.prob_.addVariable(conevar)
+            self.prob_.addVariable(conevar)
 
-                initrow = self.prob_.attributes.rows
+            initrow = self.prob_.attributes.rows
 
-                mstart = makeMstart(A, k, 0)
+            mstart = makeMstart(A, k, 0)
 
-                trNames = ['linT_qc{0:d}_{1:d}'.format(iCone, i) for i in range(k)]
+            trNames = ['linT_qc{0:d}_{1:d}'.format(iCone, i) for i in range(k)]
 
-                # Linear transformation for cone variables <--> original variables
-                self.prob_.addrows(['E'] * k,        # qrtypes
-                                   b,                # rhs
-                                   mstart,           # mstart
-                                   A.indices,        # ind
-                                   A.data,           # dmatval
-                                   names=trNames)  # row names
+            # Linear transformation for cone variables <--> original variables
+            self.prob_.addrows(['E'] * k,        # qrtypes
+                               b,                # rhs
+                               mstart,           # mstart
+                               A.indices,        # ind
+                               A.data,           # dmatval
+                               names=trNames)  # row names
 
-                self.prob_.chgmcoef([initrow + i for i in range(k)],
-                                    conevar, [1] * k)
+            self.prob_.chgmcoef([initrow + i for i in range(k)],
+                                conevar, [1] * k)
 
-                conename = 'cone_qc{0:d}'.format(iCone)
-                # Real cone on the cone variables (if k == 1 there's no
-                # need for this constraint as y**2 >= 0 is redundant)
-                if k > 1:
-                    self.prob_.addConstraint(
-                        xp.constraint(constraint=xp.Sum
-                                          (conevar[i]**2 for i in range(1, k))
-                                          <= conevar[0] ** 2,
-                                          name=conename))
+            conename = 'cone_qc{0:d}'.format(iCone)
+            # Real cone on the cone variables (if k == 1 there's no
+            # need for this constraint as y**2 >= 0 is redundant)
+            if k > 1:
+                self.prob_.addConstraint(
+                    xp.constraint(constraint=xp.Sum
+                                  (conevar[i]**2 for i in range(1, k))
+                                  <= conevar[0] ** 2,
+                                  name=conename))
 
-                auxInd = list(set(A.indices) & auxVars)
+            auxInd = list(set(A.indices) & auxVars)
 
-                if len(auxInd) > 0:
-                    group = varGroups[varnames[auxInd[0]]]
-                    for i in trNames:
-                        transf2Orig[i] = group
-                    transf2Orig[conename] = group
+            if len(auxInd) > 0:
+                group = varGroups[varnames[auxInd[0]]]
+                for i in trNames:
+                    transf2Orig[i] = group
+                transf2Orig[conename] = group
 
             iCone += 1
 
@@ -338,7 +300,7 @@ class XPRESS(SCS):
             'obj_value': self.prob_.getObjVal(),
         }
 
-        status_map_lp, status_map_mip = self.get_status_maps()
+        status_map_lp, status_map_mip = get_status_maps()
 
         if self.is_mip(data):
             status = status_map_mip[results_dict['status']]
@@ -459,9 +421,3 @@ def get_status_maps(self):
     }
 
     return (status_map_lp, status_map_mip)
-
-
-
-def get_status(model):
-    lpmap, mipmap = get_status_maps()
-    return lpmap[model.prob_.getProbStatus()]

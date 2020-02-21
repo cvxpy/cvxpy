@@ -3,14 +3,11 @@ import cvxpy.interface as intf
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
-    get_status,
-    #hide_solver_output,
-    # set_parameters
+    makeMstart,
+    get_status_maps
 )
-import numpy as np
 
-# method to get initial indices of each column
-from ..conic_solvers.xpress_conif import makeMstart
+import numpy as np
 
 
 class XPRESS(QpSolver):
@@ -39,7 +36,12 @@ class XPRESS(QpSolver):
             if not inverse_data.is_mip \
             else 0
 
-        status = get_status(model)
+        status_map_lp, status_map_mip = get_status_maps()
+
+        if self.is_mip(data):
+            status = status_map_mip[results['status']]
+        else:
+            status = status_map_lp[results['status']]
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
@@ -92,9 +94,6 @@ class XPRESS(QpSolver):
         n_ineq = data['n_ineq']
 
         self.prob_ = xp.problem()
-
-        # setControl() accepts 'option':value dictionaries
-        self.prob_.setControl(solver_opts)
 
         # qp_solver has the following format:
         #
@@ -175,9 +174,27 @@ class XPRESS(QpSolver):
                                 colnames=colnames,
                                 rownames=rownames)
 
-        # Set verbosity
-        if not verbose:
+        # Set options
+        #
+        # The parameter solver_opts is a dictionary that contains only
+        # one key, 'solver_opt', and its value is a dictionary
+        # {'control': value}, matching perfectly the format used by
+        # the Xpress Python interface.
+
+        if verbose:
+            self.prob_.controls.miplog = 2
+            self.prob_.controls.lplog = 1
+            self.prob_.controls.outputlog = 1
+        else:
+            self.prob_.controls.miplog = 0
+            self.prob_.controls.lplog = 0
             self.prob_.controls.outputlog = 0
+
+        if 'solver_opts' in list(solver_opts.keys()):
+            self.prob_.setControl(solver_opts['solver_opts'])
+
+        self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
+                               if i in list(xp.controls.__dict__.keys())})
 
         # Solve problem
         results_dict = {}
