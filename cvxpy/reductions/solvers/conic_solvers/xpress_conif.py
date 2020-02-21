@@ -423,39 +423,44 @@ class XPRESS(SCS):
 
         return solution
 
-    def get_status_maps(self):
 
-        """
-        Create status maps from Xpress to CVXPY
-        """
+def get_status_maps(self):
+    """Create status maps from Xpress to CVXPY
+    """
 
-        import xpress
+    import xpress
 
-        # Map of Xpress' LP status to CVXPY status.
-        status_map_lp = {
+    # Map of Xpress' LP status to CVXPY status.
+    status_map_lp = {
 
-            xpress.lp_unstarted:       s.SOLVER_ERROR,
-            xpress.lp_optimal:         s.OPTIMAL,
-            xpress.lp_infeas:          s.INFEASIBLE,
-            xpress.lp_cutoff:          s.OPTIMAL_INACCURATE,
-            xpress.lp_unfinished:      s.OPTIMAL_INACCURATE,
-            xpress.lp_unbounded:       s.UNBOUNDED,
-            xpress.lp_cutoff_in_dual:  s.OPTIMAL_INACCURATE,
-            xpress.lp_unsolved:        s.OPTIMAL_INACCURATE,
-            xpress.lp_nonconvex:       s.SOLVER_ERROR
-        }
+        xpress.lp_unstarted:       s.SOLVER_ERROR,
+        xpress.lp_optimal:         s.OPTIMAL,
+        xpress.lp_infeas:          s.INFEASIBLE,
+        xpress.lp_cutoff:          s.OPTIMAL_INACCURATE,
+        xpress.lp_unfinished:      s.OPTIMAL_INACCURATE,
+        xpress.lp_unbounded:       s.UNBOUNDED,
+        xpress.lp_cutoff_in_dual:  s.OPTIMAL_INACCURATE,
+        xpress.lp_unsolved:        s.OPTIMAL_INACCURATE,
+        xpress.lp_nonconvex:       s.SOLVER_ERROR
+    }
 
-        # Same map, for MIPs
-        status_map_mip = {
+    # Same map, for MIPs
+    status_map_mip = {
 
-            xpress.mip_not_loaded:     s.SOLVER_ERROR,
-            xpress.mip_lp_not_optimal: s.SOLVER_ERROR,
-            xpress.mip_lp_optimal:     s.SOLVER_ERROR,
-            xpress.mip_no_sol_found:   s.SOLVER_ERROR,
-            xpress.mip_solution:       s.OPTIMAL_INACCURATE,
-            xpress.mip_infeas:         s.INFEASIBLE,
-            xpress.mip_optimal:        s.OPTIMAL,
-            xpress.mip_unbounded:      s.UNBOUNDED
-        }
+        xpress.mip_not_loaded:     s.SOLVER_ERROR,
+        xpress.mip_lp_not_optimal: s.SOLVER_ERROR,
+        xpress.mip_lp_optimal:     s.SOLVER_ERROR,
+        xpress.mip_no_sol_found:   s.SOLVER_ERROR,
+        xpress.mip_solution:       s.OPTIMAL_INACCURATE,
+        xpress.mip_infeas:         s.INFEASIBLE,
+        xpress.mip_optimal:        s.OPTIMAL,
+        xpress.mip_unbounded:      s.UNBOUNDED
+    }
 
-        return (status_map_lp, status_map_mip)
+    return (status_map_lp, status_map_mip)
+
+
+
+def get_status(model):
+    lpmap, mipmap = get_status_maps()
+    return lpmap[model.prob_.getProbStatus()]
