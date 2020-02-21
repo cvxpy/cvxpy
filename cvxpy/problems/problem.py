@@ -766,11 +766,11 @@ class Problem(u.Canonical):
             problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
             p.value = 3.0
             problem.solve(requires_grad=True, eps=1e-10)
-            # .derivative() populates the .gradient attribute of the parameters
-            problem.backward()
+            # .derivative() populates the .delta attribute of the variables
+            problem.derivative()
             p.delta = 1e-3
             # Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3
-            np.testing.assert_allclose(p.gradient, 2e-3)
+            np.testing.assert_allclose(x.delta, 2e-3)
 
         Raises
         ------
