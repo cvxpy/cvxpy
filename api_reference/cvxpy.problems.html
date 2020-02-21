@@ -415,11 +415,11 @@ populates the .delta attribute of the variables as a side-effect.</p>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">quadratic</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">])</span>
 <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">3.0</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
-<span class="c1"># .derivative() populates the .gradient attribute of the parameters</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="c1"># .derivative() populates the .delta attribute of the variables</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">derivative</span><span class="p">()</span>
 <span class="n">p</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-3</span>
 <span class="c1"># Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3</span>
-<span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">gradient</span><span class="p">,</span> <span class="mf">2e-3</span><span class="p">)</span>
+<span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="mf">2e-3</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="field-list simple">
@@ -817,7 +817,7 @@ and invoking the solver on the resulting data.</p></li>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
