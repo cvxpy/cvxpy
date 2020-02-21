@@ -155,7 +155,7 @@ class XPRESS(QpSolver):
         rownames = ['eq_{0:09d}'.format(i) for i in range(n_eq)] + \
             ['ineq_{0:09d}'.format(i) for i in range(n_ineq)] 
 
-        self.prob_.loadproblem (probname='CVXPY_xpress_qp',
+        self.prob_.loadproblem (probname='CVX_xpress_qp',
                                 qrtypes=['E']*n_eq + ['L']*n_ineq,
                                 rhs=list(b) + list(g),
                                 range=None,

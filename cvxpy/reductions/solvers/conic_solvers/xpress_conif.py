@@ -303,7 +303,7 @@ class XPRESS(SCS):
 
         status_map_lp, status_map_mip = get_status_maps()
 
-        if self.is_mip(data):
+        if 'mip_' in self.prob_.getProbStatusString():
             status = status_map_mip[results_dict['status']]
         else:
             status = status_map_lp[results_dict['status']]
