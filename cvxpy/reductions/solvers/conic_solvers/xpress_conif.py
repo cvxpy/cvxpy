@@ -367,7 +367,7 @@ class XPRESS(SCS):
             vartypes = []
             self.prob_.getcoltype(vartypes, 0, len(data[s.C]) - 1)
 
-        status_map_lp, status_map_mip = self.get_status_maps()
+        status_map_lp, status_map_mip = get_status_maps()
 
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
             solution[s.STATUS] = status_map_mip[results_dict['status']]
