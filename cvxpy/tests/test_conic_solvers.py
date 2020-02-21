@@ -930,7 +930,7 @@ class TestGUROBI(BaseTest):
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
 
 
-@unittest.skipUnless('XPRESS' in INSTALLED_SOLVERS, 'EXPRESS is not installed.')
+@unittest.skipUnless('XPRESS' in INSTALLED_SOLVERS, 'XPRESS is not installed.')
 class TestXPRESS(unittest.TestCase):
 
     def test_xpress_lp_0(self):

@@ -21,7 +21,7 @@ from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.defines \
     import INSTALLED_SOLVERS
 
-MIP_SOLVERS = [cvx.ECOS_BB, cvx.GUROBI, cvx.MOSEK]
+MIP_SOLVERS = [cvx.ECOS_BB, cvx.GUROBI, cvx.MOSEK, cvx.XPRESS]
 
 
 class TestMIPVariable(BaseTest):
