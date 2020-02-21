@@ -41,7 +41,7 @@ class XPRESS(QpSolver):
 
         status_map_lp, status_map_mip = get_status_maps()
 
-        if 'mip_' in results['status']:
+        if 'mip_' in results['model'].getProbStatusString():
             status = status_map_mip[results['status']]
         else:
             status = status_map_lp[results['status']]
@@ -202,13 +202,15 @@ class XPRESS(QpSolver):
                                if i in list(xp.controls.__dict__.keys())})
 
         # Solve problem
-        results_dict = {}
+        results_dict = {"model": self.prob_}
         try:
             self.prob_.solve()
             results_dict["cputime"] = self.prob_.attributes.time
         except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
+        else:
+            results_dict['status'] = self.prob_.getProbStatus()
+            results_dict['obj_value'] = self.prob_.getObjVal()
 
-        results_dict["model"] = self.prob_
 
         return results_dict
