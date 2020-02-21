@@ -24,15 +24,12 @@ from cvxpy.reductions.solvers import utilities
 import numpy as np
 
 
-def makeMstart(A, n, ifCol):
-
-    # Construct mstart using nonzero column indices in A
+def makeMstart(A, n, ifCol=1):
     mstart = np.bincount(A.nonzero()[ifCol])
     mstart = np.concatenate((np.array([0], dtype=np.int64),
                              mstart,
                              np.array([0] * (n - len(mstart)), dtype=np.int64)))
     mstart = np.cumsum(mstart)
-
     return mstart
 
 
