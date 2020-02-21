@@ -4,8 +4,8 @@ from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
     get_status,
-    hide_solver_output,
-    set_parameters
+    #hide_solver_output,
+    # set_parameters
 )
 import numpy as np
 
@@ -146,11 +146,11 @@ class XPRESS(QpSolver):
             model.objective.set_quadratic(qmat)
 
         # Set verbosity
-        if not verbose:
-            hide_solver_output(model)
+        #if not verbose:
+        #    hide_solver_output(model)
 
         # Set parameters
-        set_parameters(model, solver_opts)
+        # set_parameters(model, solver_opts)
 
         # Solve problem
         results_dict = {}
