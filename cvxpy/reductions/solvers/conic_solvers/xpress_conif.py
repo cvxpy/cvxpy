@@ -139,7 +139,11 @@ class XPRESS(SCS):
         return Solution(status, opt_val, primal_vars, dual_vars, other)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
-        import xpress
+
+        import xpress as xp
+
+        import pdb
+        pdb.set_trace()
 
         if 'no_qp_reduction' in solver_opts.keys() and solver_opts['no_qp_reduction'] is True:
             self.translate_back_QP_ = True
@@ -157,7 +161,7 @@ class XPRESS(SCS):
         A = data[s.A][:nrows]  # coefficient matrix
 
         # Problem
-        self.prob_ = xpress.problem()
+        self.prob_ = xp.problem()
 
         mstart = makeMstart(A, len(c), 1)
 
@@ -179,8 +183,8 @@ class XPRESS(SCS):
                                None,                                # mnel
                                A.indices,                           # row indices
                                A.data,                              # coefficients
-                               [-xpress.infinity] * len(c),         # lower bound
-                               [xpress.infinity] * len(c),          # upper bound
+                               [-xp.infinity] * len(c),         # lower bound
+                               [xp.infinity] * len(c),          # upper bound
                                colnames=varnames,                   # column names
                                rownames=linRownames)                # row    names
 
@@ -250,14 +254,14 @@ class XPRESS(SCS):
                 for i in range(len(coeR)):
                     rhs -= coeR[i] * x[indColR[i]]
 
-                self.prob_.addConstraint(xpress.Sum([lhs[i]**2 for i in range(len(lhs))])
+                self.prob_.addConstraint(xp.Sum([lhs[i]**2 for i in range(len(lhs))])
                                          <= rhs**2)
 
             else:
 
                 # Create new (cone) variables and add them to the problem
-                conevar = np.array([xpress.var(name='cX{0:d}_{1:d}'.format(iCone, i),
-                                               lb=-xpress.infinity if i > 0 else 0)
+                conevar = np.array([xp.var(name='cX{0:d}_{1:d}'.format(iCone, i),
+                                               lb=-xp.infinity if i > 0 else 0)
                                     for i in range(k)])
 
                 self.prob_.addVariable(conevar)
@@ -284,7 +288,7 @@ class XPRESS(SCS):
                 # need for this constraint as y**2 >= 0 is redundant)
                 if k > 1:
                     self.prob_.addConstraint(
-                        xpress.constraint(constraint=xpress.Sum
+                        xp.constraint(constraint=xp.Sum
                                           (conevar[i]**2 for i in range(1, k))
                                           <= conevar[0] ** 2,
                                           name=conename))
@@ -300,7 +304,7 @@ class XPRESS(SCS):
             iCone += 1
 
         # Objective. Minimize is by default both here and in CVXOPT
-        self.prob_.setObjective(xpress.Sum(c[i] * x[i] for i in range(len(c))))
+        self.prob_.setObjective(xp.Sum(c[i] * x[i] for i in range(len(c))))
 
         # End of the conditional (warm-start vs. no warm-start) code,
         # set options, solve, and report.
@@ -324,8 +328,8 @@ class XPRESS(SCS):
         if 'solver_opts' in solver_opts.keys():
             self.prob_.setControl(solver_opts['solver_opts'])
 
-        self.prob_.setControl({i: solver_opts[i] for i in solver_opts.keys()
-                               if i in xpress.controls.__dict__.keys()})
+        self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
+                               if i in list(xp.controls.__dict__.keys())})
 
         # Solve
         self.prob_.solve()
@@ -428,33 +432,33 @@ def get_status_maps(self):
     """Create status maps from Xpress to CVXPY
     """
 
-    import xpress
+    import xpress as xp
 
     # Map of Xpress' LP status to CVXPY status.
     status_map_lp = {
 
-        xpress.lp_unstarted:       s.SOLVER_ERROR,
-        xpress.lp_optimal:         s.OPTIMAL,
-        xpress.lp_infeas:          s.INFEASIBLE,
-        xpress.lp_cutoff:          s.OPTIMAL_INACCURATE,
-        xpress.lp_unfinished:      s.OPTIMAL_INACCURATE,
-        xpress.lp_unbounded:       s.UNBOUNDED,
-        xpress.lp_cutoff_in_dual:  s.OPTIMAL_INACCURATE,
-        xpress.lp_unsolved:        s.OPTIMAL_INACCURATE,
-        xpress.lp_nonconvex:       s.SOLVER_ERROR
+        xp.lp_unstarted:       s.SOLVER_ERROR,
+        xp.lp_optimal:         s.OPTIMAL,
+        xp.lp_infeas:          s.INFEASIBLE,
+        xp.lp_cutoff:          s.OPTIMAL_INACCURATE,
+        xp.lp_unfinished:      s.OPTIMAL_INACCURATE,
+        xp.lp_unbounded:       s.UNBOUNDED,
+        xp.lp_cutoff_in_dual:  s.OPTIMAL_INACCURATE,
+        xp.lp_unsolved:        s.OPTIMAL_INACCURATE,
+        xp.lp_nonconvex:       s.SOLVER_ERROR
     }
 
     # Same map, for MIPs
     status_map_mip = {
 
-        xpress.mip_not_loaded:     s.SOLVER_ERROR,
-        xpress.mip_lp_not_optimal: s.SOLVER_ERROR,
-        xpress.mip_lp_optimal:     s.SOLVER_ERROR,
-        xpress.mip_no_sol_found:   s.SOLVER_ERROR,
-        xpress.mip_solution:       s.OPTIMAL_INACCURATE,
-        xpress.mip_infeas:         s.INFEASIBLE,
-        xpress.mip_optimal:        s.OPTIMAL,
-        xpress.mip_unbounded:      s.UNBOUNDED
+        xp.mip_not_loaded:     s.SOLVER_ERROR,
+        xp.mip_lp_not_optimal: s.SOLVER_ERROR,
+        xp.mip_lp_optimal:     s.SOLVER_ERROR,
+        xp.mip_no_sol_found:   s.SOLVER_ERROR,
+        xp.mip_solution:       s.OPTIMAL_INACCURATE,
+        xp.mip_infeas:         s.INFEASIBLE,
+        xp.mip_optimal:        s.OPTIMAL,
+        xp.mip_unbounded:      s.UNBOUNDED
     }
 
     return (status_map_lp, status_map_mip)
