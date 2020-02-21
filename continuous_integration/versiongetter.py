@@ -12,6 +12,8 @@ def update_pypi_source(server):
         versions = [
             v for v in releases.keys() if 'sdist' in [rel['packagetype'] for rel in
                                                       releases[v]]]
+        # remove all pre-releases from versions
+        versions = [v for v in versions if 'a' not in v and 'b' not in v]
         versions.sort(key=LooseVersion)
         remote_version = versions[-1]
         import cvxpy
@@ -98,6 +100,8 @@ def update_pypi_wheel(python_version, operating_system, server):
             for fn in filenames:
                 if py_ver in fn and operating_system in fn:
                     relevant_versions.append(version)
+        # remove all pre-releases from versions
+        relevant_versions = [v for v in relevant_versions if 'a' not in v and 'b' not in v]
         relevant_versions.sort(key=LooseVersion)
         most_recent_remote = relevant_versions[-1]
         import cvxpy
