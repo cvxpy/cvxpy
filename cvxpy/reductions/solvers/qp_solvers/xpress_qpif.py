@@ -145,6 +145,8 @@ class XPRESS(QpSolver):
         # itself, then, just remove all lower-triangular elements.
         Q += Q.transpose()
 
+        Q /= 2
+
         Q = Q.tocoo()
 
         mqcol1 = Q.row  [Q.row <= Q.col]
