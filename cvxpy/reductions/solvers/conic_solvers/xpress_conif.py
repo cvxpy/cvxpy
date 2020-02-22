@@ -123,13 +123,19 @@ class XPRESS(SCS):
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution[s.VALUE] + inverse_data[s.OFFSET]
+            opt_val = self.prob_.getObjVal()
             primal_vars = {inverse_data[XPRESS.VAR_ID]: solution['primal']}
             if not inverse_data['is_mip']:
-                dual_vars = utilities.get_dual_values(
-                    solution[s.EQ_DUAL],
+                eq_dual = utilities.get_dual_values(
+                    solution['eq_dual'],
                     utilities.extract_dual_value,
-                    inverse_data[s.EQ_CONSTR])
+                    inverse_data[XPRESS.EQ_CONSTR])
+                leq_dual = utilities.get_dual_values(
+                    solution['ineq_dual'],
+                    utilities.extract_dual_value,
+                    inverse_data[XPRESS.NEQ_CONSTR])
+                eq_dual.update(leq_dual)
+                dual_vars = eq_dual
         else:
             if status == s.INFEASIBLE:
                 opt_val = np.inf
@@ -380,7 +386,8 @@ class XPRESS(SCS):
             solution[s.VALUE] = results_dict['obj_value']
 
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                solution[s.EQ_DUAL] = [-v for v in results_dict['y']]
+                solution[s.EQ_DUAL] = results_dict['y'][0:dims[s.EQ_DIM]]
+                solution[s.INEQ_DUAL] = results_dict['y'][dims[s.EQ_DIM]:]
 
         solution[s.XPRESS_IIS] = results_dict[s.XPRESS_IIS]
         solution[s.XPRESS_TROW] = results_dict[s.XPRESS_TROW]
