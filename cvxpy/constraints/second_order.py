@@ -35,7 +35,8 @@ class SOC(Constraint):
             raise ValueError("Invalid first argument.")
         # Check t has one entry per cone.
         if (len(X.shape) <= 1 and t.size > 1) or \
-           (len(X.shape) == 2 and t.size != X.shape[1-axis]):
+           (len(X.shape) == 2 and t.size != X.shape[1-axis]) or \
+           (len(X.shape) == 1 and axis == 1):
             raise ValueError(
                 "Argument dimensions %s and %s, with axis=%i, are incompatible."
                 % (t.shape, X.shape, axis)
@@ -117,11 +118,11 @@ class SOC(Constraint):
         return self.is_dcp()
 
     def save_dual_value(self, value):
-        # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
         cone_size = 1 + self.args[1].shape[self.axis]
         value = np.reshape(value, newshape=(-1, cone_size))
         t = value[:, 0]
         X = value[:, 1:]
-        X = np.reshape(X, newshape=self.args[1].shape)
+        if self.axis == 0:
+            X = X.T
         self.dual_variables[0].save_value(t)
         self.dual_variables[1].save_value(X)
