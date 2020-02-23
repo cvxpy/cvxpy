@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import cvxtypes
 import numpy as np
 
 
@@ -31,6 +32,7 @@ class SOC(Constraint):
     """
 
     def __init__(self, t, X, axis=0, constr_id=None):
+        t = cvxtypes.expression().cast_to_const(t)
         if len(t.shape) >= 2 or not t.is_real():
             raise ValueError("Invalid first argument.")
         # Check t has one entry per cone.

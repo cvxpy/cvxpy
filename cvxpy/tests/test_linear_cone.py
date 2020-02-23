@@ -259,9 +259,6 @@ class TestLinearCone(BaseTest):
                                             var.value, places=1)
 
             # More complex.
-            # TODO CVXOPT fails here.
-            if solver.name() == 'CVXOPT':
-                return
             p = Problem(Minimize(self.b), [exp(self.a/2 + self.c) <= self.b+5,
                                            self.a >= 1, self.c >= 5])
             pmod = Problem(Minimize(self.b), [ExpCone(self.a/2 + self.c, Constant(1), self.b+5),
