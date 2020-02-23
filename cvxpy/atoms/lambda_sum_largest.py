@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from scipy import linalg as LA
+import numpy as np
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.sum_largest import sum_largest
 
@@ -62,3 +63,11 @@ class lambda_sum_largest(lambda_max):
             A list of SciPy CSC sparse matrices or None.
         """
         return NotImplemented
+
+    @property
+    def value(self):
+        if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
+        if any([p.value is None for p in self.parameters()]):
+            return None
+        return self._value_impl()

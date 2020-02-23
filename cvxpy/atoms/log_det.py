@@ -42,8 +42,8 @@ class log_det(Atom):
 
     # Any argument shape is valid.
     def validate_arguments(self):
-        shape = self.args[0].shape
-        if len(shape) == 1 or shape[0] != shape[1]:
+        X = self.args[0]
+        if len(X.shape) == 1 or X.shape[0] != X.shape[1]:
             raise TypeError("The argument to log_det must be a square matrix.")
 
     def shape_from_args(self):
@@ -101,3 +101,11 @@ class log_det(Atom):
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >> 0]
+
+    @property
+    def value(self):
+        if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
+            raise ValueError("Input matrix was not Hermitian/symmetric.")
+        if any([p.value is None for p in self.parameters()]):
+            return None
+        return self._value_impl()
