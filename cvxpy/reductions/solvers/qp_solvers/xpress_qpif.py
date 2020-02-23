@@ -144,9 +144,7 @@ class XPRESS(QpSolver):
         # for the upper triangle. We just make it symmetric and twice
         # itself, then, just remove all lower-triangular elements.
         Q += Q.transpose()
-
         Q /= 2
-
         Q = Q.tocoo()
 
         mqcol1 = Q.row  [Q.row <= Q.col]
