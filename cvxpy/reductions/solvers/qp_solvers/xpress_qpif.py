@@ -29,6 +29,31 @@ class XPRESS(QpSolver):
         except:
             raise
 
+
+    def apply(self, problem):
+        """Returns a new problem and data for inverting the new solution.
+
+        Returns
+        -------
+        tuple
+            (dict of arguments needed for the solver, inverse data)
+        """
+        """Returns a new problem and data for inverting the new solution.
+
+        Returns
+        -------
+        tuple
+            (dict of arguments needed for the solver, inverse data)
+        """
+        data, inv_data = super(XPRESS, self).apply(problem)
+        variables = problem.x
+        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
+        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+
+        return data, inv_data
+
+
     def invert(self, results, inverse_data):
         model = results["model"]
         attr = {}
@@ -155,6 +180,15 @@ class XPRESS(QpSolver):
         rownames = ['eq_{0:09d}'.format(i) for i in range(n_eq)] + \
             ['ineq_{0:09d}'.format(i) for i in range(n_ineq)] 
 
+        if verbose:
+            self.prob_.controls.miplog = 2
+            self.prob_.controls.lplog = 1
+            self.prob_.controls.outputlog = 1
+        else:
+            self.prob_.controls.miplog = 0
+            self.prob_.controls.lplog = 0
+            self.prob_.controls.outputlog = 0
+
         self.prob_.loadproblem (probname='CVX_xpress_qp',
                                 qrtypes=['E']*n_eq + ['L']*n_ineq,
                                 rhs=list(b) + list(g),
@@ -185,15 +219,6 @@ class XPRESS(QpSolver):
         # one key, 'solver_opt', and its value is a dictionary
         # {'control': value}, matching perfectly the format used by
         # the Xpress Python interface.
-
-        if verbose:
-            self.prob_.controls.miplog = 2
-            self.prob_.controls.lplog = 1
-            self.prob_.controls.outputlog = 1
-        else:
-            self.prob_.controls.miplog = 0
-            self.prob_.controls.lplog = 0
-            self.prob_.controls.outputlog = 0
 
         # Set options if compatible with Xpress problem control names
         self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
