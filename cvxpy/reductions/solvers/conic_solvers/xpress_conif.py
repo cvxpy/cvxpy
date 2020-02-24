@@ -367,11 +367,7 @@ class XPRESS(SCS):
         solution = {}
 
         if results_dict["status"] != s.SOLVER_ERROR:
-
             self.prob_ = results_dict['problem']
-
-            vartypes = []
-            self.prob_.getcoltype(vartypes, 0, len(data[s.C]) - 1)
 
         status_map_lp, status_map_mip = get_status_maps()
 
