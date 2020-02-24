@@ -31,4 +31,4 @@ deploy:
   provider: script
   script: bash continuous_integration/Travis/deploy_script.sh
   on:
-    branch: 1.0.26
+    branch: 1.0.27
