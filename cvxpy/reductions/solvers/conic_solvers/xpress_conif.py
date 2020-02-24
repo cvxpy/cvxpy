@@ -278,9 +278,6 @@ class XPRESS(SCS):
 
             iCone += 1
 
-        # Objective. Minimize is by default both here and in CVXOPT
-        self.prob_.setObjective(xp.Sum(c[i] * x[i] for i in range(len(c))))
-
         # End of the conditional (warm-start vs. no warm-start) code,
         # set options, solve, and report.
 
