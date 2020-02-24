@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.constraints import Equality, Zero
 from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions import (Chain, Dcp2Cone,
@@ -19,6 +20,25 @@ from cvxpy.reductions import (Chain, Dcp2Cone,
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
+
+
+def _is_lp(self):
+    """Is problem a linear program?
+    """
+    for c in self.constraints:
+        if not (isinstance(c, (Equality, Zero)) or c.args[0].is_pwl()):
+            return False
+    for var in self.variables():
+        if var.is_psd() or var.is_nsd():
+            return False
+    return (self.is_dcp() and self.objective.args[0].is_pwl())
+
+
+def _solve_as_qp(problem, candidates):
+    if _is_lp(problem) and candidates['conic_solvers']:
+        # OSQP can take many iterations for LPs; use a conic solver instead
+        return False
+    return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
 
 def construct_intermediate_chain(problem, candidates, gp=False):
@@ -84,16 +104,13 @@ def construct_intermediate_chain(problem, candidates, gp=False):
         reductions += [FlipObjective()]
 
     # First, attempt to canonicalize the problem to a linearly constrained QP.
-    if candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem):
-        reductions += [CvxAttr2Constr(),
-                       Qp2SymbolicQp()]
-        return Chain(reductions=reductions)
-
-    # Canonicalize it to conic problem.
-    if not candidates['conic_solvers']:
-        raise SolverError("Problem could not be reduced to a QP, and no "
-                          "conic solvers exist among candidate solvers "
-                          "(%s)." % candidates)
-    reductions += [Dcp2Cone(),
-                   CvxAttr2Constr()]
+    if _solve_as_qp(problem, candidates):
+        reductions += [CvxAttr2Constr(), Qp2SymbolicQp()]
+    else:
+        # Canonicalize it to conic problem.
+        if not candidates['conic_solvers']:
+            raise SolverError("Problem could not be reduced to a QP, and no "
+                              "conic solvers exist among candidate solvers "
+                              "(%s)." % candidates)
+        reductions += [Dcp2Cone(), CvxAttr2Constr()]
     return Chain(reductions=reductions)
