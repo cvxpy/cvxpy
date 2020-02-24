@@ -114,6 +114,7 @@ class XPRESS(SCS):
 
         return data, inv_data
 
+
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -179,6 +180,15 @@ class XPRESS(SCS):
 
         varnames = ['x_{0:05d}'. format(i) for i in range(len(c))]
         linRownames = ['lc_{0:05d}'.format(i) for i in range(len(b))]
+
+        if verbose:
+            self.prob_.controls.miplog = 2
+            self.prob_.controls.lplog = 1
+            self.prob_.controls.outputlog = 1
+        else:
+            self.prob_.controls.miplog = 0
+            self.prob_.controls.lplog = 0
+            self.prob_.controls.outputlog = 0
 
         self.prob_.loadproblem(probname="CVX_xpress_conic",
                                # constraint types
@@ -281,16 +291,7 @@ class XPRESS(SCS):
         # {'control': value}, matching perfectly the format used by
         # the Xpress Python interface.
 
-        if verbose:
-            self.prob_.controls.miplog = 2
-            self.prob_.controls.lplog = 1
-            self.prob_.controls.outputlog = 1
-        else:
-            self.prob_.controls.miplog = 0
-            self.prob_.controls.lplog = 0
-            self.prob_.controls.outputlog = 0
-
-        if 'solver_opts' in solver_opts.keys():
+        if 'solver_opts' in list(solver_opts.keys()):
             self.prob_.setControl(solver_opts['solver_opts'])
 
         self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
