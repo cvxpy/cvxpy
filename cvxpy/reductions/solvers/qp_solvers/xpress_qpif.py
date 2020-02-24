@@ -210,7 +210,7 @@ class XPRESS(QpSolver):
             results_dict['status'] = self.prob_.getProbStatus()
             results_dict['obj_value'] = self.prob_.getObjVal()
             try:
-                results_dict[s.PRIMAL] = self.prob_.getSolution()
+                results_dict[s.PRIMAL] = np.array(self.prob_.getSolution())
             except:
                 pass
 
