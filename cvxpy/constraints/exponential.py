@@ -16,6 +16,7 @@ limitations under the License.
 """
 
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import cvxtypes
 import numpy as np
 
 
@@ -49,9 +50,10 @@ class ExpCone(Constraint):
     """
 
     def __init__(self, x, y, z, constr_id=None):
-        self.x = x
-        self.y = y
-        self.z = z
+        Expression = cvxtypes.expression()
+        self.x = Expression.cast_to_const(x)
+        self.y = Expression.cast_to_const(y)
+        self.z = Expression.cast_to_const(z)
         super(ExpCone, self).__init__([self.x, self.y, self.z],
                                       constr_id)
 
