@@ -195,9 +195,7 @@ class XPRESS(QpSolver):
             self.prob_.controls.lplog = 0
             self.prob_.controls.outputlog = 0
 
-        if 'solver_opts' in list(solver_opts.keys()):
-            self.prob_.setControl(solver_opts['solver_opts'])
-
+        # Set options if compatible with Xpress problem control names
         self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
                                if i in list(xp.controls.__dict__.keys())})
 
@@ -211,6 +209,9 @@ class XPRESS(QpSolver):
         else:
             results_dict['status'] = self.prob_.getProbStatus()
             results_dict['obj_value'] = self.prob_.getObjVal()
-
+            try:
+                results_dict[s.PRIMAL] = self.prob_.getSolution()
+            except:
+                pass
 
         return results_dict
