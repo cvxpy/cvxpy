@@ -46,10 +46,6 @@ class XPRESS(QpSolver):
             (dict of arguments needed for the solver, inverse data)
         """
         data, inv_data = super(XPRESS, self).apply(problem)
-        variables = problem.x
-        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
-        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
-        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data
 
@@ -73,7 +69,7 @@ class XPRESS(QpSolver):
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
-            opt_val = model.getObjVal() + inverse_data[s.OFFSET]
+            opt_val = model.getObjVal()
 
             # Get solution
             x = np.array(model.getSolution())
