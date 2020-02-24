@@ -63,7 +63,6 @@ class XPRESS(SCS):
         # trailing "_" to denote a member
         self.prob_ = None
 
-
     def name(self):
         """The name of the solver.
         """
@@ -123,7 +122,7 @@ class XPRESS(SCS):
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = self.prob_.getObjVal()
+            opt_val = self.prob_.getObjVal() + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[XPRESS.VAR_ID]: solution['primal']}
             if not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
@@ -365,9 +364,6 @@ class XPRESS(SCS):
 
         # Generate solution.
         solution = {}
-
-        if results_dict["status"] != s.SOLVER_ERROR:
-            self.prob_ = results_dict['problem']
 
         status_map_lp, status_map_mip = get_status_maps()
 
