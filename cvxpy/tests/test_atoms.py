@@ -656,6 +656,11 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Second argument must be a positive integer.")
 
+        with self.assertRaises(ValueError) as cm:
+            cp.lambda_sum_largest([[1, 2], [3, 4]], 2).value
+        self.assertEqual(str(cm.exception),
+                         "Input matrix was not Hermitian/symmetric.")
+
         # Test copy with args=None
         atom = cp.sum_largest(self.x, 2)
         copy = atom.copy()
@@ -998,3 +1003,16 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.value, 0.0)
         x.value = 2
         self.assertEqual(expr.value, np.inf)
+
+    def test_log_det(self):
+        # test malformed input
+        with self.assertRaises(ValueError) as cm:
+            cp.log_det([[1, 2], [3, 4]]).value
+        self.assertEqual(str(cm.exception),
+                         "Input matrix was not Hermitian/symmetric.")
+
+    def test_lambda_max(self):
+        with self.assertRaises(ValueError) as cm:
+            cp.lambda_max([[1, 2], [3, 4]]).value
+        self.assertEqual(str(cm.exception),
+                         "Input matrix was not Hermitian/symmetric.")
