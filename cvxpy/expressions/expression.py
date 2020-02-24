@@ -47,7 +47,16 @@ def _cast_other(binary_op):
     return cast_op
 
 
-class Expression(u.Canonical, metaclass=abc.ABCMeta):
+__STAR_MATMUL_WARNING__ = """
+This use of ``*`` has resulted in matrix multiplication.
+Using ``*`` for matrix multiplication has been deprecated since CVXPY 1.1.
+    Use ``*`` for matrix-scalar and vector-scalar multiplication.
+    Use ``@`` for matrix-matrix and matrix-vector multiplication.
+    Use ``multiply`` for elementwise multiplication.
+"""
+
+
+class Expression(u.Canonical):
     """A mathematical expression in a convex optimization problem.
 
     Overloads many operators to allow for convenient creation of compound
@@ -467,16 +476,31 @@ class Expression(u.Canonical, metaclass=abc.ABCMeta):
     def __mul__(self, other):
         """Expression : The product of two expressions.
         """
-        if self.shape == () or other.shape == () or \
-           (self.shape[-1] != other.shape[0] and
-           (self.is_scalar() or other.is_scalar())):
-            return cvxtypes.multiply_expr()(self, other)
-        elif self.is_constant() or other.is_constant():
-            return cvxtypes.mul_expr()(self, other)
+        if self.shape == () or other.shape == ():
+            # Use one argument to apply a scaling to the remaining argument.
+            # We accomplish this with elementwise multiplication, which
+            # casts the scalar argument to match the size of the remaining
+            # argument.
+            return cvxtypes.elmul_expr()(self, other)
+        elif self.shape[-1] != other.shape[0] and \
+                (self.is_scalar() or other.is_scalar()):
+            # If matmul was intended, this gives a dimension mismatch. We
+            # interpret the ``is_scalar`` results as implying that the user
+            # simply wants to apply a scaling.
+            return cvxtypes.elmul_expr()(self, other)
         else:
-            if error.warnings_enabled():
-                warnings.warn("Forming a nonconvex expression.")
-            return cvxtypes.mul_expr()(self, other)
+            # The only reasonable interpretation is that the user intends
+            # to apply matmul. There might be a dimension mismatch, but we
+            # don't check for that here.
+            if not (self.is_constant() or other.is_constant()):
+                if error.warnings_enabled():
+                    warnings.warn("Forming a nonconvex expression.")
+            # Because we want to discourage using ``*`` to call matmul, we
+            # raise a warning to the user.
+            warnings.resetwarnings()
+            warnings.warn(__STAR_MATMUL_WARNING__, DeprecationWarning)
+            warnings.resetwarnings()
+            return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
     def __matmul__(self, other):
@@ -484,7 +508,7 @@ class Expression(u.Canonical, metaclass=abc.ABCMeta):
         """
         if self.shape == () or other.shape == ():
             raise ValueError("Scalar operands are not allowed, use '*' instead")
-        return self.__mul__(other)
+        return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
     def __truediv__(self, other):
@@ -526,7 +550,9 @@ class Expression(u.Canonical, metaclass=abc.ABCMeta):
     def __rmatmul__(self, other):
         """Expression : Called for matrix @ Expression.
         """
-        return other.__matmul__(self)
+        if self.shape == () or other.shape == ():
+            raise ValueError("Scalar operands are not allowed, use '*' instead")
+        return cvxtypes.matmul_expr()(other, self)
 
     def __neg__(self):
         """Expression : The negation of the expression.

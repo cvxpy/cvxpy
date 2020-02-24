@@ -20,6 +20,7 @@ import numpy as np
 from numpy.testing import assert_allclose, assert_equal
 import scipy.sparse as sp
 import cvxpy
+from cvxpy.settings import EIGVAL_TOL
 import warnings
 
 from cvxpy.tests.base_test import BaseTest
@@ -133,14 +134,38 @@ class TestNonOptimal(BaseTest):
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
 
+    def test_psd_exactly_tolerance(self):
+        """Test that PSD check when eigenvalue is exactly -EIGVAL_TOL
+        """
+        P = np.array([[-EIGVAL_TOL, 0], [0, 10]])
+        x = cvxpy.Variable(2)
+        # Forming quad_form is okay
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cost = cvxpy.quad_form(x, P)
+        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
+        prob.solve()
+
+    def test_nsd_exactly_tolerance(self):
+        """Test that NSD check when eigenvalue is exactly EIGVAL_TOL
+        """
+        P = np.array([[EIGVAL_TOL, 0], [0, -10]])
+        x = cvxpy.Variable(2)
+        # Forming quad_form is okay
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            cost = cvxpy.quad_form(x, P)
+        prob = cvxpy.Problem(cvxpy.Maximize(cost), [x == [1, 2]])
+        prob.solve()
+
     def test_obj_eval(self):
         """Test case where objective evaluation differs from result.
         """
         x = cvxpy.Variable((2, 1))
         A = np.array([[1.0]])
         B = np.array([[1.0, 1.0]]).T
-        obj0 = -B.T * x
-        obj1 = cvxpy.quad_form(B.T * x, A)
+        obj0 = -B.T @ x
+        obj1 = cvxpy.quad_form(B.T @ x, A)
         prob = cvxpy.Problem(cvxpy.Minimize(obj0 + obj1))
         prob.solve()
         self.assertAlmostEqual(prob.value, prob.objective.value)
@@ -155,9 +180,9 @@ class TestNonOptimal(BaseTest):
         laplacian_matrix = np.ones((2, 2))
         design_matrix = cvxpy.Constant(M)
         objective = cvxpy.Minimize(
-            cvxpy.sum_squares(design_matrix * c - data_norm) +
+            cvxpy.sum_squares(design_matrix @ c - data_norm) +
             lopt * cvxpy.quad_form(c, laplacian_matrix)
         )
-        constraints = [(M[0] * c) == 1]  # (K * c) >= -0.1]
+        constraints = [(M[0] @ c) == 1]  # (K * c) >= -0.1]
         prob = cvxpy.Problem(objective, constraints)
         prob.solve()

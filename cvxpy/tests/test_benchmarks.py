@@ -57,7 +57,7 @@ class TestBenchmarks(BaseTest):
                         known[i, j, k] = 1
 
         def tv_inpainting():
-            Ucorr = known*Uorig
+            Ucorr = known * Uorig  # This is elementwise mult on numpy arrays.
             variables = []
             constraints = []
             for i in range(colors):
@@ -78,7 +78,7 @@ class TestBenchmarks(BaseTest):
 
         def least_squares():
             x = cp.Variable(n)
-            cost = cp.sum_squares(A*x - b)
+            cost = cp.sum_squares(A @ x - b)
             cp.Problem(cp.Minimize(cost)).get_problem_data(cp.OSQP)
         benchmark(least_squares, iters=1)
 
@@ -109,7 +109,7 @@ class TestBenchmarks(BaseTest):
         b = np.random.randn(m)
 
         x = cp.Variable(n)
-        cost = cp.sum(A*x)
+        cost = cp.sum(A @ x)
 
         constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
         constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])
@@ -133,7 +133,7 @@ class TestBenchmarks(BaseTest):
         b.value = np.random.randn(m)
 
         x = cp.Variable(n)
-        cost = cp.sum(A*x)
+        cost = cp.sum(A @ x)
 
         constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
         constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])
@@ -153,7 +153,7 @@ class TestBenchmarks(BaseTest):
         b = np.random.randn(m)
 
         x = cp.Variable(n)
-        cost = cp.sum(A*x)
+        cost = cp.sum(A @ x)
 
         constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
         constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])
@@ -176,7 +176,7 @@ class TestBenchmarks(BaseTest):
         b.value = np.random.randn(m)
 
         x = cp.Variable(n)
-        cost = cp.sum(A*x)
+        cost = cp.sum(A @ x)
 
         constraints = [C[i] * x[i] <= b[i] for i in range(m // 2)]
         constraints.extend([C[i] * x[m // 2 + i] == b[m // 2 + i] for i in range(m // 2)])

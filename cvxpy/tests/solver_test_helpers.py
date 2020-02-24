@@ -252,16 +252,16 @@ def socp_1():
 def socp_2():
     """
     An (unnecessarily) SOCP-based reformulation of LP_1.
-    Doesn't use SOC objects.
     """
     x = cp.Variable(shape=(2,), name='x')
     objective = cp.Minimize(-4 * x[0] - 5 * x[1])
+    expr = cp.reshape(x[0] + 2 * x[1], (1, 1))
     constraints = [2 * x[0] + x[1] <= 3,
-                   (x[0] + 2 * x[1])**2 <= 3**2,
+                   cp.constraints.SOC(cp.Constant([3]), expr),
                    x[0] >= 0,
                    x[1] >= 0]
     con_pairs = [(constraints[0], 1),
-                 (constraints[1], 1.0/3.0),
+                 (constraints[1], [np.array([2.]), np.array([[-2.]])]),
                  (constraints[2], 0),
                  (constraints[3], 0)]
     var_pairs = [(x, np.array([1, 1]))]
@@ -270,7 +270,38 @@ def socp_2():
     return sth
 
 
-# TODO: add vectorized SOCP test cases (with different axis options)
+def socp_3(axis):
+    x = cp.Variable(shape=(2,))
+    c = np.array([-1, 2])
+    root2 = np.sqrt(2)
+    u = np.array([[1 / root2, -1 / root2], [1 / root2, 1 / root2]])
+    mat1 = np.diag([root2, 1 / root2]) @ u.T
+    mat2 = np.diag([1, 1])
+    mat3 = np.diag([0.2, 1.8])
+
+    X = cp.vstack([mat1 @ x, mat2 @ x, mat3 @ x])  # stack these as rows
+    t = cp.Constant(np.ones(3, ))
+    objective = cp.Minimize(c @ x)
+    if axis == 0:
+        con = cp.constraints.SOC(t, X.T, axis=0)
+        con_expect = [
+            np.array([0, 1.16454469e+00, 7.67560451e-01]),
+            np.array([[0, -9.74311819e-01, -1.28440860e-01],
+                      [0, 6.37872081e-01, 7.56737724e-01]])
+        ]
+    else:
+        con = cp.constraints.SOC(t, X, axis=1)
+        con_expect = [
+            np.array([0, 1.16454469e+00, 7.67560451e-01]),
+            np.array([[0, 0],
+                      [-9.74311819e-01, 6.37872081e-01],
+                      [-1.28440860e-01, 7.56737724e-01]])
+        ]
+    obj_pair = (objective, -1.932105)
+    con_pairs = [(con, con_expect)]
+    var_pairs = [(x, np.array([0.83666003, -0.54772256]))]
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
 
 
 def sdp_1(objective_sense):
@@ -328,7 +359,37 @@ def expcone_1():
     return sth
 
 
-# TODO: add a vectorized exponential cone test case.
+def expcone_socp_1():
+    """
+    A random risk-parity portfolio optimization problem.
+    """
+    sigma = np.array([[1.83, 1.79, 3.22],
+                      [1.79, 2.18, 3.18],
+                      [3.22, 3.18, 8.69]])
+    L = np.linalg.cholesky(sigma)
+    c = 0.75
+    t = cp.Variable(name='t')
+    x = cp.Variable(shape=(3,), name='x')
+    s = cp.Variable(shape=(3,), name='s')
+    e = cp.Constant(np.ones(3, ))
+    objective = cp.Minimize(t - c * e @ s)
+    con1 = cp.norm(L.T @ x, p=2) <= t
+    con2 = cp.constraints.ExpCone(s, e, x)
+    # SolverTestHelper data
+    obj_pair = (objective, 4.0751197)
+    var_pairs = [
+        (x, np.array([0.576079, 0.54315, 0.28037])),
+        (s, np.array([-0.55150, -0.61036, -1.27161])),
+    ]
+    con_pairs = [
+        (con1, 1.0),
+        (con2, [np.array([-0.75, -0.75, -0.75]),
+                np.array([-1.16363, -1.20777, -1.70371]),
+                np.array([1.30190, 1.38082, 2.67496])]
+         )
+    ]
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
 
 
 def mi_lp_0():
@@ -449,28 +510,31 @@ def mi_socp_2():
 class StandardTestLPs(object):
 
     @staticmethod
-    def test_lp_0(solver, places=4, **kwargs):
+    def test_lp_0(solver, places=4, duals=True, **kwargs):
         sth = lp_0()
         sth.solve(solver, **kwargs)
         sth.verify_primal_values(places)
         sth.verify_objective(places)
-        sth.check_complementarity(places)
+        if duals:
+            sth.check_complementarity(places)
 
     @staticmethod
-    def test_lp_1(solver, places=4, **kwargs):
+    def test_lp_1(solver, places=4, duals=True, **kwargs):
         sth = lp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
-        sth.verify_dual_values(places)
+        if duals:
+            sth.verify_dual_values(places)
 
     @staticmethod
-    def test_lp_2(solver, places=4, **kwargs):
+    def test_lp_2(solver, places=4, duals=True, **kwargs):
         sth = lp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
-        sth.verify_dual_values(places)
+        if duals:
+            sth.verify_dual_values(places)
 
     @staticmethod
     def test_lp_3(solver, places=4, **kwargs):
@@ -535,6 +599,24 @@ class StandardTestSOCPs(object):
         sth.verify_dual_values(places)
 
     @staticmethod
+    def test_socp_3ax0(solver, places=3, **kwargs):
+        sth = socp_3(axis=0)
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        sth.check_complementarity(places)
+        sth.verify_dual_values(places)
+
+    @staticmethod
+    def test_socp_3ax1(solver, places=3, **kwargs):
+        sth = socp_3(axis=1)
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        sth.check_complementarity(places)
+        sth.verify_dual_values(places)
+
+    @staticmethod
     def test_mi_socp_1(solver, places=4, **kwargs):
         sth = mi_socp_1()
         sth.solve(solver, **kwargs)
@@ -575,6 +657,17 @@ class StandardTestECPs(object):
     @staticmethod
     def test_expcone_1(solver, places=4, **kwargs):
         sth = expcone_1()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_dual_values(places)
+        sth.verify_primal_values(places)
+
+
+class StandardTestMixedCPs(object):
+
+    @staticmethod
+    def test_exp_soc_1(solver, places=3, **kwargs):
+        sth = expcone_socp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_dual_values(places)

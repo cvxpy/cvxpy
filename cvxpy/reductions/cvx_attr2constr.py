@@ -114,7 +114,7 @@ class CvxAttr2Constr(Reduction):
                     upper_tri.set_variable_of_provenance(var)
                     id2new_var[var.id] = upper_tri
                     fill_coeff = Constant(upper_tri_to_full(n))
-                    full_mat = fill_coeff*upper_tri
+                    full_mat = fill_coeff @ upper_tri
                     obj = reshape(full_mat, (n, n))
                 elif var.attributes['diag']:
                     diag_var = Variable(var.shape[0], var_id=var.id, **new_attr)
