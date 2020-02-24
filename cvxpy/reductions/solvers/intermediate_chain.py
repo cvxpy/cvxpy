@@ -57,6 +57,9 @@ def construct_intermediate_chain(problem, candidates, gp=False):
         If True, the problem is parsed as a Disciplined Geometric Program
         instead of as a Disciplined Convex Program.
 
+    This function modifies the candidates dict, removing solvers that
+    can no longer be applied.
+
     Returns
     -------
     Chain
@@ -105,9 +108,11 @@ def construct_intermediate_chain(problem, candidates, gp=False):
 
     # First, attempt to canonicalize the problem to a linearly constrained QP.
     if _solve_as_qp(problem, candidates):
+        candidates['conic_solvers'] = []
         reductions += [CvxAttr2Constr(), Qp2SymbolicQp()]
     else:
         # Canonicalize it to conic problem.
+        candidates['qp_solvers'] = []
         if not candidates['conic_solvers']:
             raise SolverError("Problem could not be reduced to a QP, and no "
                               "conic solvers exist among candidate solvers "

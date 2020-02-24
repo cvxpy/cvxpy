@@ -1800,3 +1800,8 @@ class TestProblem(BaseTest):
         result = new_prob.solve()
         self.assertAlmostEqual(result, 5.0)
         self.assertAlmostEqual(new_prob.variables()[0].value, 1.0)
+
+    def test_ecos_default_for_lp(self):
+        prob = cp.Problem(cp.Minimize(2*self.a + 3), [self.a >= 1])
+        prob.solve()
+        self.assertEqual(prob.solver_stats.solver_name, 'ECOS')
