@@ -48,7 +48,7 @@ class XPRESS(QpSolver):
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
-            opt_val = model.getObjVal()
+            opt_val = model.getObjVal() + inverse_data[s.OFFSET]
 
             # Get solution
             x = np.array(model.getSolution())
