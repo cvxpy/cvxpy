@@ -152,7 +152,7 @@ class XPRESS(QpSolver):
                 mrwind[mstart[i]:mstart[i] + nElemA] = A.indices[mstartA[i]:mstartA[i+1]]
                 dmatval[mstart[i]:mstart[i] + nElemA] = A.data[mstartA[i]:mstartA[i+1]]
             if nElemF:
-                mrwind[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = F.indices[mstartF[i]:mstartF[i+1]]
+                mrwind[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = n_eq + F.indices[mstartF[i]:mstartF[i+1]]
                 dmatval[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = F.data[mstartF[i]:mstartF[i+1]]
 
             mstart[i] = mstartA[i] + mstartF[i]
