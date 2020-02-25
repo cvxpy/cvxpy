@@ -288,9 +288,6 @@ class XPRESS(SCS):
         # {'control': value}, matching perfectly the format used by
         # the Xpress Python interface.
 
-        if 'solver_opts' in list(solver_opts.keys()):
-            self.prob_.setControl(solver_opts['solver_opts'])
-
         self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
                                if i in list(xp.controls.__dict__.keys())})
 
