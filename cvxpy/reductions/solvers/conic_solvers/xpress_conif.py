@@ -318,7 +318,7 @@ class XPRESS(SCS):
         if status in s.SOLUTION_PRESENT:
             results_dict['x'] = self.prob_.getSolution()
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
-                results_dict['y'] = self.prob_.getDual()
+                results_dict['y'] = - np.array(self.prob_.getDual())
 
         elif status == s.INFEASIBLE:
 
