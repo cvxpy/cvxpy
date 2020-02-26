@@ -392,6 +392,8 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `SCS`_       | X  | X  | X    | X   | X   |     |
 +--------------+----+----+------+-----+-----+-----+
+| `XPRESS`_    | X  | X  | X    |     |     | X   |
++--------------+----+----+------+-----+-----+-----+
 
 (*) Except mixed-integer SDP.
 
@@ -457,6 +459,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.CPLEX)
     print "optimal value with CPLEX:", prob.value
 
+    # Solve with XPRESS
+    prob.solve(solver=cp.XPRESS)
+    print "optimal value with XPRESS:", prob.value
+
 ::
 
     optimal value with OSQP: 6.0
@@ -470,6 +476,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with MOSEK: 6.0
     optimal value with CBC: 6.0
     optimal value with CPLEX: 6.0
+    optimal value with XPRESS: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -479,7 +486,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'XPRESS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1041,3 +1048,4 @@ solves of a DPP problem.
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
+.. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
