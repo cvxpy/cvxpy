@@ -103,6 +103,8 @@ class GUROBI(QpSolver):
 
         # Create a new model
         model = grb.Model()
+        # Pass through verbosity
+        model.setParam("OutputFlag", verbose)
 
         # Add variables
         vtypes = {}
@@ -185,10 +187,8 @@ class GUROBI(QpSolver):
             model.setObjective(obj)  # Set objective
         model.update()
 
-        # Set verbosity and other parameters
-        model.setParam("OutputFlag", verbose)
+        # Set parameters
         model.setParam("QCPDual", True)
-
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
