@@ -103,6 +103,8 @@ class GUROBI(QpSolver):
 
         # Create a new model
         model = grb.Model()
+        # Pass through verbosity
+        model.setParam("OutputFlag", verbose)
 
         # Add variables
         vtypes = {}
@@ -128,6 +130,7 @@ class GUROBI(QpSolver):
             elif hasattr(model, '_v811_addMConstrs'):
                 # We can pass all of A @ x == b at once, API only for Gurobi
                 # v811
+                A.eliminate_zeros()  # Work around bug in gurobipy v811
                 sense = np.repeat(grb.GRB.EQUAL, A.shape[0])
                 model._v811_addMConstrs(A, sense, b)
             else:
@@ -150,6 +153,7 @@ class GUROBI(QpSolver):
             elif hasattr(model, '_v811_addMConstrs'):
                 # We can pass all of F @ x <= g at once, API only for Gurobi
                 # v811.
+                F.eliminate_zeros()  # Work around bug in gurobipy v811
                 sense = np.repeat(grb.GRB.LESS_EQUAL, F.shape[0])
                 model._v811_addMConstrs(F, sense, g)
             else:
@@ -183,10 +187,8 @@ class GUROBI(QpSolver):
             model.setObjective(obj)  # Set objective
         model.update()
 
-        # Set verbosity and other parameters
-        model.setParam("OutputFlag", verbose)
+        # Set parameters
         model.setParam("QCPDual", True)
-
         for key, value in solver_opts.items():
             model.setParam(key, value)
 

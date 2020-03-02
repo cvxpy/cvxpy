@@ -149,6 +149,9 @@ class GUROBI(SCS):
         n = c.shape[0]
 
         model = gurobipy.Model()
+        # Pass through verbosity
+        model.setParam("OutputFlag", verbose)
+
         variables = []
         for i in range(n):
             # Set variable type.
@@ -193,15 +196,12 @@ class GUROBI(SCS):
             variables += new_vars
             soc_start += constr_len
 
-        gur_constrs = eq_constrs + ineq_constrs + \
-            soc_constrs + new_leq_constrs
+        gur_constrs = eq_constrs + ineq_constrs + new_leq_constrs + soc_constrs
         model.update()
 
-        # Set verbosity and other parameters
-        model.setParam("OutputFlag", verbose)
+        # Set parameters
         # TODO user option to not compute duals.
         model.setParam("QCPDual", True)
-
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
