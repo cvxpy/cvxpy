@@ -130,7 +130,7 @@ class GUROBI(QpSolver):
             elif hasattr(model, '_v811_addMConstrs'):
                 # We can pass all of A @ x == b at once, API only for Gurobi
                 # v811
-                A.eliminate_zeros() # Work around bug in gurobipy v811
+                A.eliminate_zeros()  # Work around bug in gurobipy v811
                 sense = np.repeat(grb.GRB.EQUAL, A.shape[0])
                 model._v811_addMConstrs(A, sense, b)
             else:
@@ -153,7 +153,7 @@ class GUROBI(QpSolver):
             elif hasattr(model, '_v811_addMConstrs'):
                 # We can pass all of F @ x <= g at once, API only for Gurobi
                 # v811.
-                F.eliminate_zeros() # Work around bug in gurobipy v811
+                F.eliminate_zeros()  # Work around bug in gurobipy v811
                 sense = np.repeat(grb.GRB.LESS_EQUAL, F.shape[0])
                 model._v811_addMConstrs(F, sense, g)
             else:
