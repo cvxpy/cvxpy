@@ -31,6 +31,15 @@ from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 
 
+
+# TODO: Implement parametric quadratic program
+class ParamQuadProg(object):
+    """Represents a parameterized quadratic program"""
+    pass
+
+
+
+
 class QpMatrixStuffing(MatrixStuffing):
     """Fills in numeric values for this problem instance.
 
