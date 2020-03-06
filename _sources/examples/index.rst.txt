@@ -113,3 +113,4 @@ Disciplined Quasiconvex Programming
 -----------------------------------
 - :doc:`Concave fractional function <dqcp/concave_fractional_function>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/concave_fractional_function.ipynb>`_
 - :doc:`Minimum-length least squares <dqcp/minimum_length_least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/minimum_length_least_squares.ipynb>`_
+- :doc:`Hypersonic shape design <dqcp/hypersonic_shape_design>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/hypersonic_shape_design.ipynb>`_
