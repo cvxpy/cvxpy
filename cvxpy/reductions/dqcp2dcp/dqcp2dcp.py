@@ -138,7 +138,6 @@ class Dqcp2Dcp(Canonicalization):
         if isinstance(constr, Inequality):
             lhs_val = np.array(lhs.value)
             rhs_val = np.array(rhs.value)
-            expr = (lhs_val == -np.inf)
             if np.all(lhs_val == -np.inf) or np.all(rhs_val == np.inf):
                 # constraint is redundant
                 return [None]
