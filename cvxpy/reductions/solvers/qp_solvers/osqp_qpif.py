@@ -36,7 +36,7 @@ class OSQP(QpSolver):
         if status in s.SOLUTION_PRESENT:
             opt_val = solution.info.obj_val
             primal_vars = {
-                list(inverse_data.id_map.keys())[0]:
+                OSQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
             }
             dual_vars = {OSQP.DUAL_VAR_ID: solution.y}

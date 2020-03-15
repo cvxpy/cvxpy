@@ -93,6 +93,17 @@ class ParamQuadProg(object):
             self.param_id_to_size,
             param_value,
             zero_offset=zero_offset)
+
+        # TODO special code to handle P in canonInterface.
+        if param_vec is None:
+            tensor_application = self.P
+        else:
+            if sp.issparse(self.P):
+                param_vec = sp.csc_matrix(param_vec[:, None])
+            tensor_application = self.P @ param_vec
+        P = tensor_application.reshape(
+            (self.x.size, self.x.size), order='F').tocsc()
+
         q, d = canonInterface.get_matrix_and_offset_from_tensor(
             self.q, param_vec, self.x.size)
         q = q.toarray().flatten()
@@ -102,7 +113,7 @@ class ParamQuadProg(object):
         A, b = canonInterface.get_matrix_and_offset_from_tensor(
             self.A, param_vec, self.x.size,
             nonzero_rows=self._A_mapping_nonzero)
-        return q, d, A, np.atleast_1d(b)
+        return P, q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delP, delq, delA, delb, active_params=None):
         """Multiplies by Jacobian of parameter mapping.
@@ -274,10 +285,5 @@ class QpMatrixStuffing(MatrixStuffing):
                 )
                 offset += constr.size
 
-        # Add constant part
-        if inverse_data.minimize:
-            opt_val += inverse_data.r
-        else:
-            opt_val -= inverse_data.r
         return Solution(solution.status, opt_val, primal_vars, dual_vars,
                         solution.attr)

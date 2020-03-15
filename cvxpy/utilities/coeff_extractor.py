@@ -102,6 +102,7 @@ class CoeffExtractor(object):
         extractor = CoeffExtractor(affine_inverse_data)
         param_coeffs = extractor.affine(affine_problem.objective.expr)
 
+        # TODO how to figure out length of parameter vector/map in global parameter map?
         coeff_list = []
         constant = param_coeffs[-1, :]
         for p in range(param_coeffs.shape[1]):
@@ -191,7 +192,7 @@ class CoeffExtractor(object):
                 raise RuntimeError("Constant must be a scalar")
 
             P_size = P.shape[0]*P.shape[1]
-            P_list.append(P.reshape((P_size, 1)))
+            P_list.append(P.reshape((P_size, 1), order='F'))
             q_list.append(q)
 
         # Stitch together Ps and qs and constant.

@@ -73,29 +73,26 @@ class QpSolver(Solver):
         """
         problem, data, inv_data = self._prepare_data_and_inv_data(problem)
 
-        P, q, d, A, b = problem.apply_parameters()
+        P, q, d, AF, bg = problem.apply_parameters()
         inv_data[s.OFFSET] = d
         # quadratic part of objective is x.T * P * x but solvers expect
         # 0.5*x.T * P * x.
         P = 2*P
 
         # Get number of variables
-        n = x.size
+        n = problem.x.size
+        len_eq = data[QpSolver.DIMS].zero
+        len_leq = data[QpSolver.DIMS].nonpos
 
-        if eq_cons:
-            eq_coeffs = list(zip(*[get_coeff_offset(con.expr)
-                                   for con in eq_cons]))
-            A = sp.vstack(eq_coeffs[0])
-            b = - np.concatenate(eq_coeffs[1])
+        if len_eq > 0:
+            A = AF[:len_eq, :]
+            b = -bg[:len_eq]
         else:
             A, b = sp.csr_matrix((0, n)), -np.array([])
 
-        ineq_cons = [c for c in problem.constraints if type(c) == NonPos]
-        if ineq_cons:
-            ineq_coeffs = list(zip(*[get_coeff_offset(con.expr)
-                                     for con in ineq_cons]))
-            F = sp.vstack(ineq_coeffs[0])
-            g = - np.concatenate(ineq_coeffs[1])
+        if len_leq > 0:
+            F = AF[len_eq:, :]
+            g = -bg[len_eq:]
         else:
             F, g = sp.csr_matrix((0, n)), -np.array([])
 
@@ -113,4 +110,4 @@ class QpSolver(Solver):
         data['n_eq'] = A.shape[0]
         data['n_ineq'] = F.shape[0]
 
-        return data, inverse_data
+        return data, inv_data
