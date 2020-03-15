@@ -100,44 +100,50 @@ class CoeffExtractor(object):
         affine_id_map = affine_inverse_data.id_map
         affine_var_shapes = affine_inverse_data.var_shapes
         extractor = CoeffExtractor(affine_inverse_data)
-        coeffs = extractor.affine(affine_problem.objective.expr)
-        c = coeffs[:-1].A.flatten()
-        b = coeffs[-1, 0]
+        param_coeffs = extractor.affine(affine_problem.objective.expr)
 
-        # Combine affine data with quadforms.
-        coeffs = {}
-        for var in affine_problem.variables():
-            if var.id in quad_forms:
-                var_id = var.id
-                orig_id = quad_forms[var_id][2].args[0].id
-                var_offset = affine_id_map[var_id][0]
-                var_size = affine_id_map[var_id][1]
-                if quad_forms[var_id][2].P.value is not None:
-                    c_part = c[var_offset:var_offset+var_size]
-                    P = quad_forms[var_id][2].P.value
-                    if sp.issparse(P):
-                        P = P.toarray()
-                    # NB: this is _not_ matrix multiplication
-                    P = c_part * P
+        coeff_list = []
+        constant = param_coeffs[-1, :]
+        for p in range(param_coeffs.shape[1]):
+            c = param_coeffs[:-1, p].A.flatten()
+
+            # Combine affine data with quadforms.
+            coeffs = {}
+            for var in affine_problem.variables():
+                if var.id in quad_forms:
+                    var_id = var.id
+                    orig_id = quad_forms[var_id][2].args[0].id
+                    var_offset = affine_id_map[var_id][0]
+                    var_size = affine_id_map[var_id][1]
+                    if quad_forms[var_id][2].P.value is not None:
+                        c_part = c[var_offset:var_offset+var_size]
+                        P = quad_forms[var_id][2].P.value
+                        if sp.issparse(P):
+                            P = P.toarray()
+                        # NB: this is _not_ matrix multiplication
+                        # Each column of P is multiplied by
+                        # a scalar value of c, or c is a scalar.
+                        P = c_part * P
+                    else:
+                        P = sp.diags(c[var_offset:var_offset+var_size])
+                    if orig_id in coeffs:
+                        coeffs[orig_id]['P'] += P
+                    else:
+                        coeffs[orig_id] = dict()
+                        coeffs[orig_id]['P'] = P
+                        coeffs[orig_id]['q'] = np.zeros(P.shape[0])
                 else:
-                    P = sp.diags(c[var_offset:var_offset+var_size])
-                if orig_id in coeffs:
-                    coeffs[orig_id]['P'] += P
-                else:
-                    coeffs[orig_id] = dict()
-                    coeffs[orig_id]['P'] = P
-                    coeffs[orig_id]['q'] = np.zeros(P.shape[0])
-            else:
-                var_offset = affine_id_map[var.id][0]
-                var_size = np.prod(affine_var_shapes[var.id], dtype=int)
-                if var.id in coeffs:
-                    coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] += c[var_offset:var_offset+var_size]
-                else:
-                    coeffs[var.id] = dict()
-                    coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] = c[var_offset:var_offset+var_size]
-        return coeffs, b
+                    var_offset = affine_id_map[var.id][0]
+                    var_size = np.prod(affine_var_shapes[var.id], dtype=int)
+                    if var.id in coeffs:
+                        coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
+                        coeffs[var.id]['q'] += c[var_offset:var_offset+var_size]
+                    else:
+                        coeffs[var.id] = dict()
+                        coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
+                        coeffs[var.id]['q'] = c[var_offset:var_offset+var_size]
+            coeff_list.append(coeffs)
+        return coeff_list, constant
 
     def quad_form(self, expr):
         """Extract quadratic, linear constant parts of a quadratic objective.
@@ -151,8 +157,8 @@ class CoeffExtractor(object):
 
         # Calculate affine parts and combine them with quadratic forms to get
         # the coefficients.
-        coeffs, constant = self.extract_quadratic_coeffs(root.args[0],
-                                                         quad_forms)
+        coeff_list, constant = self.extract_quadratic_coeffs(root.args[0],
+                                                             quad_forms)
         # Restore expression.
         restore_quad_forms(root.args[0], quad_forms)
 
@@ -160,23 +166,37 @@ class CoeffExtractor(object):
         # order.
         offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
 
-        # Concatenate quadratic matrices and vectors
-        P = sp.csr_matrix((0, 0))
-        q = np.zeros(0)
-        for var_id, offset in offsets:
-            if var_id in coeffs:
-                P = sp.block_diag([P, coeffs[var_id]['P']])
-                q = np.concatenate([q, coeffs[var_id]['q']])
-            else:
-                shape = self.var_shapes[var_id]
-                size = np.prod(shape, dtype=int)
-                P = sp.block_diag([P, sp.csr_matrix((size, size))])
-                q = np.concatenate([q, np.zeros(size)])
+        # Get P and q for each parameter.
+        P_list = []
+        q_list = []
+        for coeffs in coeff_list:
+            # Concatenate quadratic matrices and vectors
+            P = sp.csr_matrix((0, 0))
+            q = np.zeros(0)
+            for var_id, offset in offsets:
+                if var_id in coeffs:
+                    P = sp.block_diag([P, coeffs[var_id]['P']])
+                    q = np.concatenate([q, coeffs[var_id]['q']])
+                else:
+                    shape = self.var_shapes[var_id]
+                    size = np.prod(shape, dtype=int)
+                    P = sp.block_diag([P, sp.csr_matrix((size, size))])
+                    q = np.concatenate([q, np.zeros(size)])
 
-        if (P.shape[0] != P.shape[1] and P.shape[1] != self.x_length) or \
-           q.shape[0] != self.x_length:
-            raise RuntimeError("Resulting quadratic form does not have "
-                               "appropriate dimensions")
-        if not np.isscalar(constant) and constant.size > 1:
-            raise RuntimeError("Constant must be a scalar")
-        return P.tocsr(), q, constant
+            if (P.shape[0] != P.shape[1] and P.shape[1] != self.x_length) or \
+                    q.shape[0] != self.x_length:
+                raise RuntimeError("Resulting quadratic form does not have "
+                                   "appropriate dimensions")
+            if not np.isscalar(constant) and constant.size > 1:
+                raise RuntimeError("Constant must be a scalar")
+
+            P_size = P.shape[0]*P.shape[1]
+            P_list.append(P.reshape((P_size, 1)))
+            q_list.append(q)
+
+        # Stitch together Ps and qs and constant.
+        P = sp.hstack(P_list)
+        # Stack q with constant offset as last row.
+        q = np.stack(q_list, axis=1)
+        q = sp.vstack([q, constant])
+        return P, q
