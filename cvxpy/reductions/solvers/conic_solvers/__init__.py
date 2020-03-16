@@ -26,3 +26,4 @@ from .mosek_conif import MOSEK
 from .scs_conif import SCS
 from .super_scs_conif import SuperSCS
 from .xpress_conif import XPRESS
+from .nag_conif import NAG

@@ -380,6 +380,8 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `CPLEX`_     | X  | X  | X    |     |     | X   |
 +--------------+----+----+------+-----+-----+-----+
+| `NAG`_       | X  | X  | X    |     |     |     |
++--------------+----+----+------+-----+-----+-----+
 | `ECOS`_      | X  | X  | X    |     | X   |     |
 +--------------+----+----+------+-----+-----+-----+
 | `ECOS_BB`_   | X  | X  | X    |     | X   | X   |
@@ -457,6 +459,9 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.CPLEX)
     print "optimal value with CPLEX:", prob.value
 
+    # Solve with NAG.
+    prob.solve(solver=cp.NAG)
+    print "optimal value with NAG:", prob.value
 ::
 
     optimal value with OSQP: 6.0
@@ -470,6 +475,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with MOSEK: 6.0
     optimal value with CBC: 6.0
     optimal value with CPLEX: 6.0
+    optimal value with NAG: 6.000000003182365
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -479,7 +485,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -572,7 +578,7 @@ warm start would only be a good initial point.
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `OSQP`_, `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -770,6 +776,11 @@ The following cut-generators are available:
 
 ``'cplex_filename'``
     a string specifying the filename to which the problem will be written. For example, use "model.lp", "model.sav", or "model.mps" to export to the LP, SAV, and MPS formats, respectively.
+
+`NAG`_ options:
+
+``'nag_params'``
+    a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value . 
 
 Getting the standard form
 -------------------------
@@ -1041,3 +1052,4 @@ solves of a DPP problem.
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
+.. _NAG: https://www.nag.co.uk/nag-library-python/
