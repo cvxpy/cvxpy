@@ -52,10 +52,6 @@ class QpSolver(Solver):
         constr_map = group_constraints(problem.constraints)
         data[QpSolver.DIMS] = ConeDims(constr_map)
         inv_data[QpSolver.DIMS] = data[QpSolver.DIMS]
-        zero_constr = constr_map[Zero]
-        neq_constr = constr_map[NonPos]
-        inv_data[QpSolver.EQ_CONSTR] = zero_constr
-        inv_data[QpSolver.NEQ_CONSTR] = neq_constr
 
         # Add information about integer variables
         inv_data[QpSolver.IS_MIP] = problem.is_mixed_integer()

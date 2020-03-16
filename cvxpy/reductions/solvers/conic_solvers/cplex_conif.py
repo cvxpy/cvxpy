@@ -444,10 +444,9 @@ class CPLEX(SCS):
             # Ignore empty constraints.
             if ind:
                 lin_expr_list.append((ind, val))
-                lin_rhs.append(vec[i])
             else:
                 lin_expr_list.append(None)
-                lin_rhs.append(0.0)
+            lin_rhs.append(vec[i])
 
         # Make a variable and equality constraint for each term.
         soc_vars, is_first = [], True

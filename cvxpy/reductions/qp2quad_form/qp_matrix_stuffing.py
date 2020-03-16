@@ -236,7 +236,7 @@ class QpMatrixStuffing(MatrixStuffing):
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
-        expr_list = [arg for c in cons for arg in c.args]
+        expr_list = [arg for c in ordered_cons for arg in c.args]
         params_to_Ab = extractor.affine(expr_list)
 
         inverse_data.minimize = type(problem.objective) == Minimize
