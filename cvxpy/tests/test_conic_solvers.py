@@ -1018,6 +1018,7 @@ class TestXPRESS(unittest.TestCase):
     def test_xpress_mi_socp_2(self):
         StandardTestSOCPs.test_mi_socp_2(solver='XPRESS')
 
+
 @unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
 class TestNAG(unittest.TestCase):
 
@@ -1050,6 +1051,7 @@ class TestNAG(unittest.TestCase):
         StandardTestSOCPs.test_socp_3ax0(solver='NAG')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='NAG')
+
 
 class TestAllSolvers(BaseTest):
 

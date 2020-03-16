@@ -75,7 +75,6 @@ class NAG(ConicSolver):
         """
         data = dict()
         inv_data = dict()
-        
         inv_data[self.VAR_ID] = problem.x.id
         constr_map = group_constraints(problem.constraints)
         data[s.DIMS] = ConeDims(constr_map)
@@ -91,7 +90,6 @@ class NAG(ConicSolver):
         inv_data['soc_dim'] = []
         Gs = list()
         hs = list()
-        
         # Linear inequalities
         num_linear_eq = len(constr_map[Zero])
         num_linear_leq = len(constr_map[NonPos])
@@ -107,7 +105,7 @@ class NAG(ConicSolver):
         # Linear equations
         if num_linear_eq > 0:
             for con in problem.constraints[:num_linear_eq]:
-                inv_data['lin_dim'].append((con.id,con.size))
+                inv_data['lin_dim'].append((con.id, con.size))
             Gs.append(A[:eq_dim])
             hs.append(b[:eq_dim])
 
