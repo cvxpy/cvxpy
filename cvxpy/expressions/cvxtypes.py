@@ -67,12 +67,12 @@ def minimize():
     return objective.Minimize
 
 
-def mul_expr():
+def matmul_expr():
     from cvxpy.atoms.affine import binary_operators
     return binary_operators.MulExpression
 
 
-def multiply_expr():
+def elmul_expr():
     from cvxpy.atoms.affine import binary_operators
     return binary_operators.multiply
 

@@ -198,8 +198,8 @@ class TestBackward(BaseTest):
         F = cp.Parameter((p, n))
         g = cp.Parameter(p)
         obj = cp.Maximize(cp.sum(cp.entr(x)) - cp.sum_squares(x))
-        constraints = [A * x == b,
-                       F * x <= g]
+        constraints = [A @ x == b,
+                       F @ x <= g]
         problem = cp.Problem(obj, constraints)
         A.value = A_np
         b.value = b_np
@@ -213,7 +213,7 @@ class TestBackward(BaseTest):
         k = 2
         x = cp.Parameter(4)
         y = cp.Variable(4)
-        obj = -x * y - cp.sum(cp.entr(y)) - cp.sum(cp.entr(1. - y))
+        obj = -x @ y - cp.sum(cp.entr(y)) - cp.sum(cp.entr(1. - y))
         cons = [cp.sum(y) == k]
         problem = cp.Problem(cp.Minimize(obj), cons)
 

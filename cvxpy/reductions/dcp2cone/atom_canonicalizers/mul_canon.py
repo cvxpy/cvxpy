@@ -33,7 +33,7 @@ def mul_canon(expr, args):
 
     if lhs_affine:
         t = Variable(rhs.shape)
-        return lhs * t, [t == rhs]
+        return lhs @ t, [t == rhs]
     else:
         t = Variable(lhs.shape)
-        return t * rhs, [t == lhs]
+        return t @ rhs, [t == lhs]

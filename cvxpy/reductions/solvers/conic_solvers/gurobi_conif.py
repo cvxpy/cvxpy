@@ -37,8 +37,8 @@ class GUROBI(SCS):
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
+                  4: s.SOLVER_ERROR,  # Triggers reoptimize.
                   5: s.UNBOUNDED,
-                  4: s.SOLVER_ERROR,
                   6: s.SOLVER_ERROR,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
@@ -149,6 +149,9 @@ class GUROBI(SCS):
         n = c.shape[0]
 
         model = gurobipy.Model()
+        # Pass through verbosity
+        model.setParam("OutputFlag", verbose)
+
         variables = []
         for i in range(n):
             # Set variable type.
@@ -193,21 +196,22 @@ class GUROBI(SCS):
             variables += new_vars
             soc_start += constr_len
 
-        gur_constrs = eq_constrs + ineq_constrs + \
-            soc_constrs + new_leq_constrs
+        gur_constrs = eq_constrs + ineq_constrs + new_leq_constrs + soc_constrs
         model.update()
 
-        # Set verbosity and other parameters
-        model.setParam("OutputFlag", verbose)
+        # Set parameters
         # TODO user option to not compute duals.
         model.setParam("QCPDual", True)
-
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
         solution = {}
         try:
             model.optimize()
+            # Reoptimize if INF_OR_UNBD, to get definitive answer.
+            if model.Status == 4:
+                model.setParam("DualReductions", 0)
+                model.optimize()
             solution["value"] = model.ObjVal
             solution["primal"] = np.array([v.X for v in variables])
 

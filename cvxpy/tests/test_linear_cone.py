@@ -134,7 +134,7 @@ class TestLinearCone(BaseTest):
     def test_vector_lp(self):
         for solver in self.solvers:
             c = Constant(numpy.array([1, 2]))
-            p = Problem(Minimize(c.T*self.x), [self.x >= c])
+            p = Problem(Minimize(c.T @ self.x), [self.x >= c])
             result = p.solve(solver.name())
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             p_new = ConeMatrixStuffing().apply(p)
@@ -155,9 +155,9 @@ class TestLinearCone(BaseTest):
 
             A = Constant(numpy.array([[3, 5], [1, 2]]).T).value
             Imat = Constant([[1, 0], [0, 1]])
-            p = Problem(Minimize(c.T*self.x + self.a),
-                        [A*self.x >= [-1, 1],
-                         4*Imat*self.z == self.x,
+            p = Problem(Minimize(c.T @ self.x + self.a),
+                        [A @ self.x >= [-1, 1],
+                         4*Imat @ self.z == self.x,
                          self.z >= [2, 2],
                          self.a >= 2])
             self.assertTrue(ConeMatrixStuffing().accepts(p))
@@ -189,7 +189,7 @@ class TestLinearCone(BaseTest):
                                             var.value)
 
             T = Constant(numpy.ones((2, 3))*2).value
-            p = Problem(Minimize(1), [self.A >= T*self.C,
+            p = Problem(Minimize(1), [self.A >= T @ self.C,
                                       self.A == self.B, self.C == T.T])
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             result = p.solve(solver.name())
@@ -259,9 +259,6 @@ class TestLinearCone(BaseTest):
                                             var.value, places=1)
 
             # More complex.
-            # TODO CVXOPT fails here.
-            if solver.name() == 'CVXOPT':
-                return
             p = Problem(Minimize(self.b), [exp(self.a/2 + self.c) <= self.b+5,
                                            self.a >= 1, self.c >= 5])
             pmod = Problem(Minimize(self.b), [ExpCone(self.a/2 + self.c, Constant(1), self.b+5),

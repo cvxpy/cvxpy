@@ -99,7 +99,7 @@ class MulExpression(BinaryOperator):
         The right-hand side of the multiplication.
     """
 
-    OP_NAME = "*"
+    OP_NAME = "@"
     OP_FUNC = op.mul
 
     def numeric(self, values):

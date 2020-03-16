@@ -23,7 +23,8 @@ cd continuous_integration
 $UPDATE_PYPI = python -c "import versiongetter as vg; print(vg.update_pypi_wheel('$env:PYTHON_VERSION','win','$env:PYPI_API_ENDPOINT'))"
 cd ..
 If ($UPDATE_PYPI -eq "True") {
-    conda install --yes twine wheel readme_renderer
+    conda install --yes twine wheel
+    pip install readme_renderer  # conda doesn't have a py3.5 version
     python setup.py bdist_wheel
     twine upload --repository-url $env:PYPI_SERVER dist/* -u $env:PYPI_USER -p $env:PYPI_PASSWORD
 }
