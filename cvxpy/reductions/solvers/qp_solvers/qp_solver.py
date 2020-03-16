@@ -111,6 +111,5 @@ class QpSolver(Solver):
         data['n_var'] = n
         data['n_eq'] = A.shape[0]
         data['n_ineq'] = F.shape[0]
-        print(data)
 
         return data, inv_data
