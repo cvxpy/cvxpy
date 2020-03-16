@@ -1,9 +1,26 @@
+"""
+Copyright, the CVXPY authors
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, NonPos, Zero
-from .conic_solver import ConicSolver
+from .conic_solver import ConeDims, ConicSolver
 import scipy as sp
 import numpy as np
 from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.utilities import group_constraints
 
 
 class NAG(ConicSolver):
@@ -34,19 +51,19 @@ class NAG(ConicSolver):
         """
         return s.NAG
 
-    def block_format(self, problem, constraints, exp_cone_order=None):
-        if not constraints:
-            return None, None
-        matrices, offsets, lengths, ids = [], [], [], []
-        for con in constraints:
-            coeff, offset = self.format_constr(problem, con, exp_cone_order)
-            matrices.append(coeff)
-            offsets.append(offset)
-            lengths.append(offset.size)
-            ids.append(con.id)
-        coeff = sp.sparse.vstack(matrices).tocsc()
-        offset = np.hstack(offsets)
-        return coeff, offset, lengths, ids
+    def accepts(self, problem):
+        """Can NAG solve the problem?
+        """
+        # TODO check if is matrix stuffed.
+        if not problem.objective.args[0].is_affine():
+            return False
+        for constr in problem.constraints:
+            if type(constr) not in self.SUPPORTED_CONSTRAINTS:
+                return False
+            for arg in constr.args:
+                if not arg.is_affine():
+                    return False
+        return True
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -58,44 +75,52 @@ class NAG(ConicSolver):
         """
         data = dict()
         inv_data = dict()
-        inv_data[self.VAR_ID] = problem.variables()[0].id
-        c, constant = ConicSolver.get_coeff_offset(problem.objective.args[0])
+        
+        inv_data[self.VAR_ID] = problem.x.id
+        constr_map = group_constraints(problem.constraints)
+        data[s.DIMS] = ConeDims(constr_map)
+        if not problem.formatted:
+            problem = self.format_constraints(problem,
+                                              exp_cone_order=None)
+        c, d, A, b = problem.apply_parameters()
+        A = -A
         data[s.C] = c.ravel()
-        data[s.OBJ_OFFSET] = constant[0]
-        inv_data[s.OBJ_OFFSET] = constant[0]
+        data[s.OBJ_OFFSET] = float(d)
+        inv_data[s.OBJ_OFFSET] = float(d)
         inv_data['lin_dim'] = []
         inv_data['soc_dim'] = []
         Gs = list()
         hs = list()
-        data[s.DIMS] = {s.SOC_DIM: [], s.LEQ_DIM: 0, s.EQ_DIM: 0}
-
+        
         # Linear inequalities
-        leq_constr = [ci for ci in problem.constraints if type(ci) == NonPos]
-        if len(leq_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, leq_constr)  # G, h : G * z <= h
-            data[s.DIMS][s.LEQ_DIM] = sum(lengths)
-            inv_data['lin_dim'] = [(ids[k], lengths[k]) for k in range(len(lengths))]
-            Gs.append(G)
-            hs.append(h)
-
+        num_linear_eq = len(constr_map[Zero])
+        num_linear_leq = len(constr_map[NonPos])
+        leq_dim = data[s.DIMS][s.LEQ_DIM]
+        eq_dim = data[s.DIMS][s.EQ_DIM]
+        if num_linear_leq > 0:
+            offset = num_linear_eq
+            for con in problem.constraints[offset:offset + num_linear_leq]:
+                inv_data['lin_dim'].append((con.id, con.size))
+            row_offset = eq_dim
+            Gs.append(A[row_offset:row_offset + leq_dim])
+            hs.append(b[row_offset:row_offset + leq_dim])
         # Linear equations
-        eq_constr = [ci for ci in problem.constraints if type(ci) == Zero]
-        if len(eq_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, eq_constr)  # G, h : G * z == h.
-            data[s.DIMS][s.EQ_DIM] = sum(lengths)
-            inv_data['lin_dim'] += [(ids[k], lengths[k]) for k in range(len(lengths))]
-            Gs.append(G)
-            hs.append(h)
+        if num_linear_eq > 0:
+            for con in problem.constraints[:num_linear_eq]:
+                inv_data['lin_dim'].append((con.id,con.size))
+            Gs.append(A[:eq_dim])
+            hs.append(b[:eq_dim])
 
         # Second order cones
-        soc_constr = [ci for ci in problem.constraints if type(ci) == SOC]
-        data[s.DIMS][s.SOC_DIM] = [dim for ci in soc_constr for dim in ci.cone_sizes()]
-        if len(soc_constr) > 0:
-            G, h, lengths, ids = self.block_format(problem, soc_constr)  # G * z <=_{soc} h.
-            inv_data['soc_dim'] = [(ids[k], lengths[k]) for k in range(len(lengths))]
-            Gs.append(G)
-            hs.append(h)
-
+        num_soc = len(constr_map[SOC])
+        soc_dim = sum(data[s.DIMS][s.SOC_DIM])
+        if num_soc > 0:
+            offset = num_linear_eq + num_linear_leq
+            for con in problem.constraints[offset:offset + num_soc]:
+                inv_data['soc_dim'].append((con.id, con.size))
+            row_offset = leq_dim + eq_dim
+            Gs.append(A[row_offset:row_offset + soc_dim])
+            hs.append(b[row_offset:row_offset + soc_dim])
         data['nvar'] = len(c) + sum(data[s.DIMS][s.SOC_DIM])
         inv_data['nr'] = len(c)
         if Gs:
@@ -106,7 +131,6 @@ class NAG(ConicSolver):
             data[s.H] = np.hstack(tuple(hs))
         else:
             data[s.H] = np.array([])
-
         return (data, inv_data)
 
     def invert(self, solution, inverse_data):
@@ -151,7 +175,15 @@ class NAG(ConicSolver):
                     else:
                         dual_vars[id] = np.array(sln.uc[idx:(idx + dim)])
                     idx += dim
-
+        else:
+            if status == s.INFEASIBLE:
+                opt_val = np.inf
+            elif status == s.UNBOUNDED:
+                opt_val = -np.inf
+            else:
+                opt_val = None
+            primal_vars = None
+            dual_vars = None
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
@@ -168,14 +200,12 @@ class NAG(ConicSolver):
         nleq = dims[s.LEQ_DIM]
         neq = dims[s.EQ_DIM]
         m = len(h)
-
         # declare the NAG problem handle
         handle = opt.handle_init(nvar)
 
         # define the linear objective
         cvec = np.concatenate((c, np.zeros(soc_dim)))
         opt.handle_set_linobj(handle, cvec)
-
         # define linear constraints
         rows, cols, vals = sp.sparse.find(G)
         lb = np.zeros(m)
@@ -237,7 +267,6 @@ class NAG(ConicSolver):
                 utils.NagAlgorithmicMajorWarning) as exc:
             status = exc.errno
             sln = exc.return_data
-
         # Destroy the handle:
         opt.handle_free(handle)
 
