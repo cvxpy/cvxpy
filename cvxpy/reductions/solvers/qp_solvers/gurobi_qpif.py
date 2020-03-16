@@ -63,7 +63,7 @@ class GUROBI(QpSolver):
         status = self.STATUS_MAP.get(model.Status, s.SOLVER_ERROR)
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = model.objVal
+            opt_val = model.objVal + inverse_data[s.OFFSET]
             x = np.array([x_grb[i].X for i in range(n)])
 
             primal_vars = {

@@ -51,7 +51,8 @@ class CPLEX(QpSolver):
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
-            opt_val = model.solution.get_objective_value()
+            opt_val = model.solution.get_objective_value() + \
+                inverse_data[s.OFFSET]
 
             # Get solution
             x = np.array(model.solution.get_values())

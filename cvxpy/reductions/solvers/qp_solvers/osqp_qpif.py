@@ -34,7 +34,7 @@ class OSQP(QpSolver):
         status = self.STATUS_MAP.get(solution.info.status_val, s.SOLVER_ERROR)
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution.info.obj_val
+            opt_val = solution.info.obj_val + inverse_data[s.OFFSET]
             primal_vars = {
                 OSQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
