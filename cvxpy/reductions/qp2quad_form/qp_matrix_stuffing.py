@@ -99,8 +99,9 @@ class ParamQuadProg(object):
             tensor_application = self.P
         else:
             if sp.issparse(self.P):
-                param_vec = sp.csc_matrix(param_vec[:, None])
-            tensor_application = self.P @ param_vec
+                tensor_application = self.P @ sp.csc_matrix(param_vec[:, None])
+            else:
+                tensor_application = self.P @ param_vec
         P = tensor_application.reshape(
             (self.x.size, self.x.size), order='F').tocsc()
 

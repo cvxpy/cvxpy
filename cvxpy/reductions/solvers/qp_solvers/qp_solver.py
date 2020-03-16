@@ -35,6 +35,8 @@ class QpSolver(Solver):
     # For such solvers, REQUIRES_CONSTR should be set to True.
     REQUIRES_CONSTR = False
 
+    IS_MIP = "IS_MIP"
+
     def accepts(self, problem):
         return (isinstance(problem, ParamQuadProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
@@ -56,7 +58,7 @@ class QpSolver(Solver):
         inv_data[QpSolver.NEQ_CONSTR] = neq_constr
 
         # Add information about integer variables
-        inv_data['MIP'] = problem.is_mixed_integer()
+        inv_data[QpSolver.IS_MIP] = problem.is_mixed_integer()
 
         data[s.PARAM_PROB] = problem
         return problem, data, inv_data

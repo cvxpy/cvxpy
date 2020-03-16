@@ -22,13 +22,11 @@ import operator
 import numpy as np
 import scipy.sparse as sp
 
-import cvxpy
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import (replace_quad_forms,
                                                 restore_quad_forms)
 from cvxpy.lin_ops.lin_op import LinOp, NO_OP
-from cvxpy.problems.objective import Minimize
 
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
@@ -95,12 +93,15 @@ class CoeffExtractor(object):
         """
         assert affine_expr.is_dpp()
         # Extract affine data.
-        affine_problem = cvxpy.Problem(Minimize(affine_expr), [])
-        affine_inverse_data = InverseData(affine_problem)
-        affine_id_map = affine_inverse_data.id_map
-        affine_var_shapes = affine_inverse_data.var_shapes
-        extractor = CoeffExtractor(affine_inverse_data)
-        param_coeffs = extractor.affine(affine_problem.objective.expr)
+        affine_id_map, affine_offsets, x_length, affine_var_shapes = \
+            InverseData.get_var_offsets(affine_expr.variables())
+        op_list = [affine_expr.canonical_form[0]]
+        param_coeffs = canonInterface.get_problem_matrix(op_list,
+                                                         x_length,
+                                                         affine_offsets,
+                                                         self.param_to_size,
+                                                         self.param_id_map,
+                                                         affine_expr.size)
 
         # TODO how to figure out length of parameter vector/map in global parameter map?
         coeff_list = []
@@ -110,7 +111,7 @@ class CoeffExtractor(object):
 
             # Combine affine data with quadforms.
             coeffs = {}
-            for var in affine_problem.variables():
+            for var in affine_expr.variables():
                 if var.id in quad_forms:
                     var_id = var.id
                     orig_id = quad_forms[var_id][2].args[0].id

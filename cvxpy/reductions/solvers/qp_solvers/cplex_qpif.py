@@ -44,7 +44,7 @@ class CPLEX(QpSolver):
             attr[s.SOLVE_TIME] = results["cputime"]
         attr[s.NUM_ITERS] = \
             int(model.solution.progress.get_num_barrier_iterations()) \
-            if not inverse_data.is_mip \
+            if not inverse_data[CPLEX.IS_MIP] \
             else 0
 
         status = get_status(model)
@@ -56,13 +56,13 @@ class CPLEX(QpSolver):
             # Get solution
             x = np.array(model.solution.get_values())
             primal_vars = {
-                list(inverse_data.id_map.keys())[0]:
+                CPLEX.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 
             # Only add duals if not a MIP.
             dual_vars = None
-            if not inverse_data.is_mip:
+            if not inverse_data[CPLEX.IS_MIP]:
                 y = -np.array(model.solution.get_dual_values())
                 dual_vars = {CPLEX.DUAL_VAR_ID: y}
 
