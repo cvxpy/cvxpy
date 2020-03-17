@@ -73,9 +73,6 @@ class QpSolver(Solver):
 
         P, q, d, AF, bg = problem.apply_parameters()
         inv_data[s.OFFSET] = d
-        # quadratic part of objective is x.T * P * x but solvers expect
-        # 0.5*x.T * P * x.
-        P = 2*P
 
         # Get number of variables
         n = problem.x.size

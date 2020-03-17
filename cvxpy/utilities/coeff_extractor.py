@@ -103,7 +103,7 @@ class CoeffExtractor(object):
                                                          self.param_id_map,
                                                          affine_expr.size)
 
-        # TODO how to figure out length of parameter vector/map in global parameter map?
+        # TODO vectorize this code.
         coeff_list = []
         constant = param_coeffs[-1, :]
         for p in range(param_coeffs.shape[1]):

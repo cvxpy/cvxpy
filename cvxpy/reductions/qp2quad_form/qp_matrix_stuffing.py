@@ -203,9 +203,11 @@ class QpMatrixStuffing(MatrixStuffing):
                 and problem.is_dpp())
 
     def stuffed_objective(self, problem, extractor):
-        # extract to x.T * P * x + q.T * x + r
+        # extract to 0.5 * x.T * P * x + q.T * x + r
         expr = problem.objective.expr.copy()
         P, q = extractor.quad_form(expr)
+        # Handle 0.5 factor.
+        P = 2*P
 
         # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
