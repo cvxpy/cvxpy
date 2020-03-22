@@ -509,6 +509,18 @@ class Problem(u.Canonical):
                 candidates['qp_solvers'] = []  # No QP solvers allowed
 
         if self.is_mixed_integer():
+            if len(slv_def.INSTALLED_MI_SOLVERS) == 0:
+                msg = """
+                    
+                    CVXPY needs additional software (a `mixed-integer solver`) to handle this model.
+                    The web documentation
+                        https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs
+                    reviews open-source and commercial options for mixed-integer solvers.
+                    
+                    Quick fix: if you install the python package CVXOPT (pip install cvxopt),
+                    then CVXPY can use the open-source mixed-integer solver `GLPK`.
+                """
+                raise error.SolverError(msg)
             candidates['qp_solvers'] = [
                 s for s in candidates['qp_solvers']
                 if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
