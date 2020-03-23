@@ -18,12 +18,7 @@ import cvxpy as cp
 import numpy as np
 import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.reductions.solvers.defines \
-    import INSTALLED_SOLVERS
-
-MIP_SOLVERS = [cp.CBC, cp.GLPK_MI, cp.CPLEX,
-               cp.XPRESS, cp.GUROBI, cp.MOSEK]
-MIP_SOLVERS = [solver for solver in MIP_SOLVERS if solver in INSTALLED_SOLVERS]
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as MIP_SOLVERS
 
 
 @unittest.skipUnless(len(MIP_SOLVERS) > 0, 'No mixed-integer solver is installed.')

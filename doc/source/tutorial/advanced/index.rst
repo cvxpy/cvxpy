@@ -416,7 +416,8 @@ Here EXP refers to problems with exponential cone constraints. The exponential c
 Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
 converts the problem into standard form.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ can both handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
+By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
+`SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 

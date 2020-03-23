@@ -78,7 +78,7 @@ class GLPK_MI(GLPK):
             results_dict["status"] = results_tup[0]
             results_dict["x"] = results_tup[1]
         # Catch exceptions in CVXOPT and convert them to solver errors.
-        except ValueError as err:
+        except ValueError:
             results_dict = {"status": "unknown"}
 
         # Restore original cvxopt solver options.
