@@ -642,13 +642,13 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     maximum number of iterations (default: 100).
 
 ``'abstol'``
-    absolute accuracy (default: 1e-7).
+    absolute accuracy (default: 1e-8).
 
 ``'reltol'``
-    relative accuracy (default: 1e-6).
+    relative accuracy (default: 1e-8).
 
 ``'feastol'``
-    tolerance for feasibility conditions (default: 1e-7).
+    tolerance for feasibility conditions (default: 1e-8).
 
 ``'abstol_inacc'``
     absolute accuracy for inaccurate solution (default: 5e-5).
