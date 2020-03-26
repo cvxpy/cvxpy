@@ -217,6 +217,12 @@ in academia (both students and faculty), as well as trial versions to those outs
 CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
 online registration, and it's limited to problems at with most 1000 variables and 1000 constraints.
 
+.. note::
+   If you develop an open-source mixed-integer solver with a permissive license such
+   as Apache 2.0, and you're interested in incorporating your solver into CVXPY's default installation,
+   please reach out to us at our `GitHub issues <https://github.com/cvxgrp/cvxpy/issues>`_. We are
+   particularly interested in incorporating a simple mixed-integer SOCP solver (CVXPY previously
+   used ECOS_BB for this purpose, but dropped that solver due to recurring correctness issues).
 
 Complex valued expressions
 --------------------------
