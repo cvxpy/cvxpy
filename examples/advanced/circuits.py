@@ -15,13 +15,13 @@ limitations under the License.
 """
 
 # An object oriented model of a circuit.
-from cvxpy import *
+import cvxpy as cp
 import abc
 
 class Node(object):
     """ A node connecting devices. """
     def __init__(self):
-        self.voltage = Variable()
+        self.voltage = cp.Variable()
         self.current_flows = []
 
     # The current entering a node equals the current leaving the node.
@@ -59,7 +59,7 @@ class Device(object):
 class Resistor(Device):
     """ A resistor with V = R*I. """
     def __init__(self, pos_node, neg_node, resistance):
-        self._current = Variable()
+        self._current = cp.Variable()
         self.resistance = resistance
         super(Resistor, self).__init__(pos_node, neg_node)
 
@@ -72,7 +72,7 @@ class Resistor(Device):
 class VoltageSource(Device):
     """ A constant source of voltage. """
     def __init__(self, pos_node, neg_node, voltage):
-        self._current = Variable()
+        self._current = cp.Variable()
         self._voltage = voltage
         super(VoltageSource, self).__init__(pos_node, neg_node)
 
@@ -86,7 +86,7 @@ class CurrentSource(Device):
     """ A constant source of current. """
     def __init__(self, pos_node, neg_node, current):
         self._current = current
-        self._voltage = Variable()
+        self._voltage = cp.Variable()
         super(CurrentSource, self).__init__(pos_node, neg_node)
 
     def voltage(self):
@@ -111,6 +111,6 @@ devices.append( Resistor(nodes[1], nodes[2], 1) )
 constraints = []
 for obj in nodes + devices:
     constraints += obj.constraints()
-Problem(Minimize(0), constraints).solve()
+cp.Problem(cp.Minimize(0), constraints).solve()
 for node in nodes:
     print(node.voltage.value)
