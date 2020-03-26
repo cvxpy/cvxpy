@@ -575,11 +575,11 @@ The code below shows how warm start can accelerate solving a sequence of related
 
     b.value = numpy.random.randn(m)
     prob.solve()
-    print("First solve time:", prob.solve_time)
+    print("First solve time:", prob.solver_stats.solve_time)
 
     b.value = numpy.random.randn(m)
     prob.solve(warm_start=True)
-    print("Second solve time:", prob.solve_time)
+    print("Second solve time:", prob.solver_stats.solve_time)
 
 ::
 
