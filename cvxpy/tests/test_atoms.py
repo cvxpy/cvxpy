@@ -19,9 +19,11 @@ import cvxpy.settings as s
 from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Parameter, Constant
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 import numpy as np
 from cvxpy import Problem, Minimize
 from cvxpy.tests.base_test import BaseTest
+import unittest
 import scipy.sparse as sp
 
 
@@ -862,6 +864,7 @@ class TestAtoms(BaseTest):
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
+    @unittest.skipUnless(len(INSTALLED_MI_SOLVERS) > 0, 'No mixed-integer solver is installed.')
     def test_partial_optimize_special_var(self):
         x, y = Variable(boolean=True), Variable(integer=True)
 
