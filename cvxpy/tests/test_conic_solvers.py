@@ -741,7 +741,13 @@ class TestCPLEX(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='CPLEX')
 
     def test_cplex_socp_1(self):
-        StandardTestSOCPs.test_socp_1(solver='CPLEX', places=2)
+        # Parameters are set due to a minor dual-variable related
+        # presolve bug in CPLEX, which will be fixed in the next
+        # CPLEX release.
+        StandardTestSOCPs.test_socp_1(solver='CPLEX', places=2,
+                                      cplex_params={
+                                          "preprocessing.presolve": 0,
+                                          "preprocessing.reduce": 2})
 
     def test_cplex_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver='CPLEX')
