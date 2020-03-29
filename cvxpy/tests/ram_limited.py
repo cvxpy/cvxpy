@@ -35,7 +35,7 @@ def issue826():
     # constraint matrix) to have at most 2^(32)-1 nonzero entries.
     #
     # This test is for checking that #826 is resolved.
-    n = 1
+    n = 2**3
     m = int(2 ** 32 / n) + 1
 
     vals = np.arange(m*n, dtype=np.double) / 1000.0
@@ -50,11 +50,17 @@ def issue826():
     diff = vals - vals_canon
     err = np.abs(diff)
     tester.assertLessEqual(err, 1e-3)
+    print('\t issue826 test finished')
 
 
 if __name__ == '__main__':
-    for arg in sys.argv[1:]:
-        if arg == 'issue826':
-            issue826()
-        else:
-            print('Unknown argument:\n\t' + arg)
+    if len(sys.argv) > 1:
+        for arg in sys.argv[1:]:
+            if arg == 'issue826':
+                print('Start issue826 test')
+                issue826()
+            else:
+                print('Unknown argument:\n\t' + arg)
+    else:
+        print('Start issue826 test')
+        issue826()
