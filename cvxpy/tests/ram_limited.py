@@ -35,12 +35,12 @@ def issue826():
     # constraint matrix) to have at most 2^(32)-1 nonzero entries.
     #
     # This test is for checking that #826 is resolved.
-    n = 2**3
+    n = 2**8
     m = int(2 ** 32 / n) + 1
 
     vals = np.arange(m*n, dtype=np.double) / 1000.0
-    A = vals.reshape(m, n)
-    x = cp.Variable(shape=(n,))
+    A = vals.reshape(n, m)
+    x = cp.Variable(shape=(m,))
     cons = [A @ x >= 0]
     prob = cp.Problem(cp.Maximize(0), cons)
     data = prob.get_problem_data(solver='SCS')
