@@ -500,7 +500,7 @@ class Expression(u.Canonical):
             # Because we want to discourage using ``*`` to call matmul, we
             # raise a warning to the user.
             warnings.resetwarnings()
-            warnings.warn(__STAR_MATMUL_WARNING__, DeprecationWarning)
+            warnings.warn(__STAR_MATMUL_WARNING__, UserWarning)
             warnings.resetwarnings()
             return cvxtypes.matmul_expr()(self, other)
 
