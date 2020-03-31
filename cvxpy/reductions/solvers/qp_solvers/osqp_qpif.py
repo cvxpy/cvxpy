@@ -44,9 +44,9 @@ class OSQP(QpSolver):
         data['n_eq'] = data[QpSolver.DIMS].zero
         data['n_ineq'] = data[QpSolver.DIMS].nonpos
 
-        data[s.P] = sp.csc_matrix(P)
+        data[s.P] = P
         data[s.Q] = q
-        data[s.A] = sp.csc_matrix(A)
+        data[s.A] = A
         data[s.B] = -b
 
         return data, inv_data

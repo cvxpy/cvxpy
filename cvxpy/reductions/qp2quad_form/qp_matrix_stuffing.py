@@ -18,7 +18,7 @@ from cvxpy.cvxcore.python import canonInterface
 from cvxpy.constraints import NonPos, Zero, Equality, Inequality
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions import Solution, InverseData, cvx_attr2constr
+from cvxpy.reductions import Solution, InverseData
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import (are_args_affine,
@@ -31,7 +31,6 @@ import numpy as np
 import scipy.sparse as sp
 
 
-# TODO: Implement parametric quadratic program
 class ParamQuadProg(object):
     """Represents a parameterized quadratic program.
 
@@ -124,61 +123,17 @@ class ParamQuadProg(object):
         Returns:
             A dictionary param.id -> dparam
         """
-        if active_params is None:
-            active_params = {p.id for p in self.parameters}
-
-        del_param_vec = delq @ self.q[:-1]
-        flatdelA = delA.reshape((np.prod(delA.shape), 1), order='F')
-        delAb = sp.vstack([flatdelA, sp.csc_matrix(delb[:, None])])
-        del_param_vec += np.squeeze((delAb.T @ self.A).A)
-        del_param_vec = np.squeeze(del_param_vec)
-
-        param_id_to_delta_param = {}
-        for param_id, col in self.param_id_to_col.items():
-            if param_id in active_params:
-                param = self.id_to_param[param_id]
-                delta = del_param_vec[col:col + param.size]
-                param_id_to_delta_param[param_id] = np.reshape(
-                    delta, param.shape, order='F')
-        return param_id_to_delta_param
+        raise NotImplementedError
 
     def split_solution(self, sltn, active_vars=None):
         """Splits the solution into individual variables.
         """
-        if active_vars is None:
-            active_vars = [v.id for v in self.variables]
-        # var id to solution.
-        sltn_dict = {}
-        for var_id, col in self.var_id_to_col.items():
-            if var_id in active_vars:
-                var = self.id_to_var[var_id]
-                value = sltn[col:var.size+col]
-                if var.attributes_were_lowered():
-                    orig_var = var.variable_of_provenance()
-                    value = cvx_attr2constr.recover_value_for_variable(
-                        orig_var, value, project=False)
-                    sltn_dict[orig_var.id] = np.reshape(
-                        value, orig_var.shape, order='F')
-                else:
-                    sltn_dict[var_id] = np.reshape(
-                        value, var.shape, order='F')
-        return sltn_dict
+        raise NotImplementedError
 
     def split_adjoint(self, del_vars=None):
         """Adjoint of split_solution.
         """
-        var_vec = np.zeros(self.x.size)
-        for var_id, delta in del_vars.items():
-            var = self.id_to_var[var_id]
-            col = self.var_id_to_col[var_id]
-            if var.attributes_were_lowered():
-                orig_var = var.variable_of_provenance()
-                if cvx_attr2constr.attributes_present(
-                        [orig_var], cvx_attr2constr.SYMMETRIC_ATTRIBUTES):
-                    delta = delta + delta.T - np.diag(np.diag(delta))
-                delta = cvx_attr2constr.lower_value(orig_var, delta)
-            var_vec[col:col + var.size] = delta.flatten(order='F')
-        return var_vec
+        raise NotImplementedError
 
 
 class QpMatrixStuffing(MatrixStuffing):
@@ -205,15 +160,15 @@ class QpMatrixStuffing(MatrixStuffing):
     def stuffed_objective(self, problem, extractor):
         # extract to 0.5 * x.T * P * x + q.T * x + r
         expr = problem.objective.expr.copy()
-        P, q = extractor.quad_form(expr)
+        params_to_P, params_to_q = extractor.quad_form(expr)
         # Handle 0.5 factor.
-        P = 2*P
+        params_to_P = 2*params_to_P
 
         # concatenate all variables in one vector
         boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(extractor.x_length, boolean=boolean, integer=integer)
 
-        return P, q, x
+        return params_to_P, params_to_q, x
 
     def apply(self, problem):
         """See docstring for MatrixStuffing.apply"""

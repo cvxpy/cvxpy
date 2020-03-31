@@ -92,7 +92,14 @@ class CoeffExtractor(object):
             Affine expressions can be anything.
         """
         assert affine_expr.is_dpp()
-        # Extract affine data.
+        # Here we take the problem objective, replace all the SymbolicQuadForm
+        # atoms with variables of the same dimensions.
+        # We then apply the canonInterface to reduce the "affine head"
+        # of the expression tree to a coefficient vector c and constant offset d.
+        # Because the expression is parameterized, we extend that to a matrix
+        # [c1 c2 ...]
+        # [d1 d2 ...]
+        # where ci,di are the vector and constant for the ith parameter.
         affine_id_map, affine_offsets, x_length, affine_var_shapes = \
             InverseData.get_var_offsets(affine_expr.variables())
         op_list = [affine_expr.canonical_form[0]]
@@ -104,30 +111,41 @@ class CoeffExtractor(object):
                                                          affine_expr.size)
 
         # TODO vectorize this code.
+        # Iterates over every entry of the parameters vector,
+        # and obtains the Pi and qi for that entry i.
+        # These are then combined into matrices [P1.flatten(), P2.flatten(), ...]
+        # and [q1, q2, ...]
         coeff_list = []
         constant = param_coeffs[-1, :]
         for p in range(param_coeffs.shape[1]):
             c = param_coeffs[:-1, p].A.flatten()
 
-            # Combine affine data with quadforms.
+            # coeffs stores the P and q for each quad_form,
+            # as well as for true variable nodes in the objective.
             coeffs = {}
+            # The goal of this loop is to appropriately multiply
+            # the matrix P of each quadratic term by the coefficients
+            # in param_coeffs. Later we combine all the quadratic terms
+            # to form a single matrix P.
             for var in affine_expr.variables():
+                # quad_forms maps the ids of the SymbolicQuadForm atoms
+                # in the objective to (modified parent node of quad form,
+                #                      argument index of quad form,
+                #                      quad form atom)
                 if var.id in quad_forms:
                     var_id = var.id
                     orig_id = quad_forms[var_id][2].args[0].id
                     var_offset = affine_id_map[var_id][0]
                     var_size = affine_id_map[var_id][1]
+                    c_part = c[var_offset:var_offset+var_size]
                     if quad_forms[var_id][2].P.value is not None:
-                        c_part = c[var_offset:var_offset+var_size]
                         P = quad_forms[var_id][2].P.value
-                        if sp.issparse(P):
-                            P = P.toarray()
-                        # NB: this is _not_ matrix multiplication
-                        # Each column of P is multiplied by
-                        # a scalar value of c, or c is a scalar.
-                        P = c_part * P
+                        if c_part.size == 1:
+                            P = c_part[0] * P
+                        else:
+                            P = P @ sp.diags(c_part)
                     else:
-                        P = sp.diags(c[var_offset:var_offset+var_size])
+                        P = sp.diags(c_part)
                     if orig_id in coeffs:
                         coeffs[orig_id]['P'] += P
                     else:
@@ -195,6 +213,13 @@ class CoeffExtractor(object):
             P_size = P.shape[0]*P.shape[1]
             P_list.append(P.reshape((P_size, 1), order='F'))
             q_list.append(q)
+
+        # Here we assemble the Ps and qs into matrices
+        # that we multiply by a parameter vector to get P, q
+        # i.e. [P1.flatten(), P2.flatten(), ...]
+        #      [q1, q2, ...]
+        # where Pi, qi are coefficients for the ith entry of
+        # the parameter vector.
 
         # Stitch together Ps and qs and constant.
         P = sp.hstack(P_list)
