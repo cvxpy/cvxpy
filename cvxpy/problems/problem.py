@@ -43,13 +43,13 @@ class Cache(object):
     def __init__(self):
         self.key = None
         self.solving_chain = None
-        self.param_cone_prog = None
+        self.param_prog = None
         self.inverse_data = None
 
     def invalidate(self):
         self.key = None
         self.solving_chain = None
-        self.param_cone_prog = None
+        self.param_prog = None
         self.inverse_data = None
 
     def make_key(self, solver, gp):
@@ -429,10 +429,10 @@ class Problem(u.Canonical):
         else:
             solving_chain = self._cache.solving_chain
 
-        if self._cache.param_cone_prog is not None:
+        if self._cache.param_prog is not None:
             # fast path, bypasses application of reductions
             data, solver_inverse_data = solving_chain.solver.apply(
-                self._cache.param_cone_prog)
+                self._cache.param_prog)
             inverse_data = self._cache.inverse_data + [solver_inverse_data]
         else:
             data, inverse_data = solving_chain.apply(self)
@@ -443,7 +443,7 @@ class Problem(u.Canonical):
                             for reduction in solving_chain.reductions)
             )
             if safe_to_cache:
-                self._cache.param_cone_prog = data[s.PARAM_PROB]
+                self._cache.param_prog = data[s.PARAM_PROB]
                 # the last datum in inverse_data corresponds to the solver,
                 # so we shouldn't cache it
                 self._cache.inverse_data = inverse_data[:-1]
@@ -552,7 +552,7 @@ class Problem(u.Canonical):
     def _invalidate_cache(self):
         self._cache_key = None
         self._solving_chain = None
-        self._param_cone_prog = None
+        self._param_prog = None
         self._inverse_data = None
 
     def _solve(self,
@@ -732,9 +732,9 @@ class Problem(u.Canonical):
             else:
                 del_vars[variable.id] = np.asarray(variable.gradient,
                                                    dtype=np.float64)
-        dx = self._cache.param_cone_prog.split_adjoint(del_vars)
+        dx = self._cache.param_prog.split_adjoint(del_vars)
         dA, db, dc = DT(dx, zeros, zeros)
-        dparams = self._cache.param_cone_prog.apply_param_jac(dc, -dA, db)
+        dparams = self._cache.param_prog.apply_param_jac(dc, -dA, db)
         for parameter in self.parameters():
             parameter.gradient = dparams[parameter.id]
 
@@ -788,7 +788,7 @@ class Problem(u.Canonical):
                              "issue on Github if you need this feature.")
         # TODO(akshayka): Forward differentiate dual variables as well
         backward_cache = self._solver_cache[s.DIFFCP]
-        param_cone_prog = self._cache.param_cone_prog
+        param_prog = self._cache.param_prog
         D = backward_cache["D"]
         param_deltas = {}
         for parameter in self.parameters():
@@ -797,10 +797,10 @@ class Problem(u.Canonical):
             else:
                 param_deltas[parameter.id] = np.asarray(parameter.delta,
                                                         dtype=np.float64)
-        dc, _, dA, db = param_cone_prog.apply_parameters(param_deltas,
+        dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                          zero_offset=True)
         dx, _, _ = D(-dA, db, dc)
-        dvars = param_cone_prog.split_solution(
+        dvars = param_prog.split_solution(
             dx, [v.id for v in self.variables()])
         for variable in self.variables():
             variable.delta = dvars[variable.id]
