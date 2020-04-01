@@ -526,7 +526,7 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum_squares(h)),
                                 [cvxpy.multiply(w, h) >= 10,
                                 cvxpy.sum(w) <= 10])
-        problem.solve(SOLVER, gp=True)
+        problem.solve(gp=True)
         np.testing.assert_almost_equal(problem.value, 8)
         np.testing.assert_almost_equal(h.value, np.array([2, 2]))
         np.testing.assert_almost_equal(w.value, np.array([5, 5]))
