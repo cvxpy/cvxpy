@@ -543,6 +543,18 @@
                 <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># No QP solvers allowed</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_MI_SOLVERS</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+
+<span class="s2">                    CVXPY needs additional software (a `mixed-integer solver`) to handle this model.</span>
+<span class="s2">                    The web documentation</span>
+<span class="s2">                        https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs</span>
+<span class="s2">                    reviews open-source and commercial options for mixed-integer solvers.</span>
+
+<span class="s2">                    Quick fix: if you install the python package CVXOPT (pip install cvxopt),</span>
+<span class="s2">                    then CVXPY can use the open-source mixed-integer solver `GLPK`.</span>
+<span class="s2">                &quot;&quot;&quot;</span>
+                <span class="k">raise</span> <span class="n">error</span><span class="o">.</span><span class="n">SolverError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
             <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">MIP_CAPABLE</span><span class="p">]</span>

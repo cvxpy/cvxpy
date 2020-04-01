@@ -534,7 +534,7 @@
             <span class="c1"># Because we want to discourage using ``*`` to call matmul, we</span>
             <span class="c1"># raise a warning to the user.</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">resetwarnings</span><span class="p">()</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">__STAR_MATMUL_WARNING__</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">__STAR_MATMUL_WARNING__</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">resetwarnings</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">matmul_expr</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
 

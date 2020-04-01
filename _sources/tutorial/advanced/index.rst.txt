@@ -203,6 +203,26 @@ You can construct mixed-integer programs by creating variables with the attribut
     # expr2 must be integer valued.
     constr2 = (expr2 == Z)
 
+CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
+For licencing reasons, CVXPY does not install any of these solvers by default.
+
+CVXPY supports open source mixed-integer solvers GLPK_MI_ and CBC_. The CVXOPT_ python package
+provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running ``pip install cvxopt`` in
+your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.
+
+If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
+model, then you will need to use a commercial solver such as CPLEX_, GUROBI_, MOSEK_, or NAG_.
+Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK provide free licenses to those
+in academia (both students and faculty), as well as trial versions to those outside academia.
+CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
+online registration, and it's limited to problems at with most 1000 variables and 1000 constraints.
+
+.. note::
+   If you develop an open-source mixed-integer solver with a permissive license such
+   as Apache 2.0, and you're interested in incorporating your solver into CVXPY's default installation,
+   please reach out to us at our `GitHub issues <https://github.com/cvxgrp/cvxpy/issues>`_. We are
+   particularly interested in incorporating a simple mixed-integer SOCP solver (CVXPY previously
+   used ECOS_BB for this purpose, but dropped that solver due to recurring correctness issues).
 
 Complex valued expressions
 --------------------------
@@ -363,7 +383,7 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `OSQP`_, and `SCS`_.
+CVXPY is distributed with the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
@@ -380,9 +400,9 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `CPLEX`_     | X  | X  | X    |     |     | X   |
 +--------------+----+----+------+-----+-----+-----+
-| `ECOS`_      | X  | X  | X    |     | X   |     |
+| `NAG`_       | X  | X  | X    |     |     |     |
 +--------------+----+----+------+-----+-----+-----+
-| `ECOS_BB`_   | X  | X  | X    |     | X   | X   |
+| `ECOS`_      | X  | X  | X    |     | X   |     |
 +--------------+----+----+------+-----+-----+-----+
 | `GUROBI`_    | X  | X  | X    |     |     | X   |
 +--------------+----+----+------+-----+-----+-----+
@@ -399,9 +419,11 @@ Here EXP refers to problems with exponential cone constraints. The exponential c
 
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
-You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.
+Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
+converts the problem into standard form.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ can both handle all problems (except mixed-integer programs). `ECOS_BB`_ is called for mixed-integer LPs and SOCPs. If the problem is a QP, CVXPY will use `OSQP`_.
+By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
+`SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 
@@ -420,10 +442,6 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with ECOS.
     prob.solve(solver=cp.ECOS)
     print("optimal value with ECOS:", prob.value)
-
-    # Solve with ECOS_BB.
-    prob.solve(solver=cp.ECOS_BB)
-    print("optimal value with ECOS_BB:", prob.value)
 
     # Solve with CVXOPT.
     prob.solve(solver=cp.CVXOPT)
@@ -457,11 +475,13 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.CPLEX)
     print "optimal value with CPLEX:", prob.value
 
+    # Solve with NAG.
+    prob.solve(solver=cp.NAG)
+    print "optimal value with NAG:", prob.value
 ::
 
     optimal value with OSQP: 6.0
     optimal value with ECOS: 5.99999999551
-    optimal value with ECOS_BB: 5.99999999551
     optimal value with CVXOPT: 6.00000000512
     optimal value with SCS: 6.00046055789
     optimal value with GLPK: 6.0
@@ -470,6 +490,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with MOSEK: 6.0
     optimal value with CBC: 6.0
     optimal value with CPLEX: 6.0
+    optimal value with NAG: 6.000000003182365
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -479,7 +500,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -554,11 +575,11 @@ The code below shows how warm start can accelerate solving a sequence of related
 
     b.value = numpy.random.randn(m)
     prob.solve()
-    print("First solve time:", prob.solve_time)
+    print("First solve time:", prob.solver_stats.solve_time)
 
     b.value = numpy.random.randn(m)
     prob.solve(warm_start=True)
-    print("Second solve time:", prob.solve_time)
+    print("Second solve time:", prob.solver_stats.solve_time)
 
 ::
 
@@ -572,7 +593,7 @@ warm start would only be a good initial point.
 Setting solver options
 ^^^^^^^^^^^^^^^^^^^^^^
 
-The `OSQP`_, `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -636,13 +657,13 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     maximum number of iterations (default: 100).
 
 ``'abstol'``
-    absolute accuracy (default: 1e-7).
+    absolute accuracy (default: 1e-8).
 
 ``'reltol'``
-    relative accuracy (default: 1e-6).
+    relative accuracy (default: 1e-8).
 
 ``'feastol'``
-    tolerance for feasibility conditions (default: 1e-7).
+    tolerance for feasibility conditions (default: 1e-8).
 
 ``'abstol_inacc'``
     absolute accuracy for inaccurate solution (default: 5e-5).
@@ -652,17 +673,6 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
 
 ``'feastol_inacc'``
     tolerance for feasibility condition for inaccurate solution (default: 1e-4).
-
-`ECOS_BB`_ options:
-
-``'mi_max_iters'``
-    maximum number of branch and bound iterations (default: 1000)
-
-``'mi_abs_eps'``
-    absolute tolerance between upper and lower bounds (default: 1e-6)
-
-``'mi_rel_eps'``
-    relative tolerance, (U-L)/L, between upper and lower bounds (default: 1e-3)
 
 `MOSEK`_ options:
 
@@ -770,6 +780,11 @@ The following cut-generators are available:
 
 ``'cplex_filename'``
     a string specifying the filename to which the problem will be written. For example, use "model.lp", "model.sav", or "model.mps" to export to the LP, SAV, and MPS formats, respectively.
+
+`NAG`_ options:
+
+``'nag_params'``
+    a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value . 
 
 Getting the standard form
 -------------------------
@@ -1032,12 +1047,13 @@ solves of a DPP problem.
 .. _OSQP: https://osqp.org/
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
-.. _ECOS_BB: https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
+.. _XPRESS: https://www.fico.com/en/products/fico-xpress-solver
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
+.. _NAG: https://www.nag.co.uk/nag-library-python/

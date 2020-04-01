@@ -40,7 +40,7 @@ Programming</a>.”</p>
 example library (Almir Mutapcic).</em></p>
 <p>This example formulates and solves a power control problem for
 communication systems, in which the goal is to minimize the total
-transmitter power across n transmitters, each trasmitting positive power
+transmitter power across n trasmitters, each trasmitting positive power
 levels <span class="math notranslate nohighlight">\(P_1\)</span>, <span class="math notranslate nohighlight">\(P_2\)</span>, <span class="math notranslate nohighlight">\(\ldots\)</span>, <span class="math notranslate nohighlight">\(P_n\)</span> to
 <span class="math notranslate nohighlight">\(n\)</span> receivers, labeled <span class="math notranslate nohighlight">\(1, \ldots, n\)</span>, with receiver
 <span class="math notranslate nohighlight">\(i\)</span> receiving signal from transmitter <span class="math notranslate nohighlight">\(i\)</span>.</p>
@@ -71,7 +71,7 @@ problem</p>
 <span class="n">sigma</span> <span class="o">=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># noise power at the receiver i</span>
 <span class="n">p_min</span> <span class="o">=</span> <span class="mf">0.1</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># minimum power at the transmitter i</span>
 <span class="n">p_max</span> <span class="o">=</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>    <span class="c1"># maximum power at the transmitter i</span>
-<span class="n">sinr_min</span> <span class="o">=</span> <span class="mf">0.1</span>            <span class="c1"># threshold SINR for each receiver</span>
+<span class="n">sinr_min</span> <span class="o">=</span> <span class="mf">0.2</span>            <span class="c1"># threshold SINR for each receiver</span>
 
 <span class="c1"># Path gain matrix</span>
 <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
@@ -108,13 +108,25 @@ problem</p>
 <span class="n">problem</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.9868421072460272</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.9615384629119621</span>
 </pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">array</span><span class="p">([</span><span class="mf">0.1944079</span> <span class="p">,</span> <span class="mf">0.18453947</span><span class="p">,</span> <span class="mf">0.21907895</span><span class="p">,</span> <span class="mf">0.19934211</span><span class="p">,</span> <span class="mf">0.18947368</span><span class="p">])</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">array</span><span class="p">([</span><span class="mf">0.18653846</span><span class="p">,</span> <span class="mf">0.16730769</span><span class="p">,</span> <span class="mf">0.23461538</span><span class="p">,</span> <span class="mf">0.19615385</span><span class="p">,</span> <span class="mf">0.17692308</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">inverse_sinr</span><span class="o">.</span><span class="n">value</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">array</span><span class="p">([</span><span class="mf">5.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">,</span> <span class="mf">5.</span><span class="p">])</span>
+</pre></div>
+</div>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">sinr_min</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">5.0</span>
 </pre></div>
 </div>
 </div>
