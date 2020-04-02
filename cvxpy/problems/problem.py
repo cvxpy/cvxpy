@@ -798,7 +798,7 @@ class Problem(u.Canonical):
                 param_deltas[parameter.id] = np.asarray(parameter.delta,
                                                         dtype=np.float64)
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
-                                                         zero_offset=True)
+                                                    zero_offset=True)
         dx, _, _ = D(-dA, db, dc)
         dvars = param_prog.split_solution(
             dx, [v.id for v in self.variables()])
