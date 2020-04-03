@@ -18,6 +18,7 @@ from cvxpy.cvxcore.python import canonInterface
 from cvxpy.constraints import NonPos, Zero, Equality, Inequality
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
+from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import Solution, InverseData
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
@@ -31,7 +32,7 @@ import numpy as np
 import scipy.sparse as sp
 
 
-class ParamQuadProg(object):
+class ParamQuadProg(ParamProb):
     """Represents a parameterized quadratic program.
 
     minimize   x'Px  + q^Tx + d
@@ -69,6 +70,7 @@ class ParamQuadProg(object):
         self.formatted = formatted
 
     def is_mixed_integer(self):
+        """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
