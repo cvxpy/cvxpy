@@ -27,6 +27,30 @@ class OSQP(QpSolver):
         import osqp
         osqp
 
+    def apply(self, problem):
+        """
+        Construct QP problem data stored in a dictionary.
+        The QP has the following form
+
+            minimize      1/2 x' P x + q' x
+            subject to    A x =  b
+                          F x <= g
+
+        """
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+
+        P, q, d, A, b = problem.apply_parameters()
+        inv_data[s.OFFSET] = d
+        data['n_eq'] = data[QpSolver.DIMS].zero
+        data['n_ineq'] = data[QpSolver.DIMS].nonpos
+
+        data[s.P] = P
+        data[s.Q] = q
+        data[s.A] = A
+        data[s.B] = -b
+
+        return data, inv_data
+
     def invert(self, solution, inverse_data):
         attr = {s.SOLVE_TIME: solution.info.run_time}
 
@@ -34,9 +58,9 @@ class OSQP(QpSolver):
         status = self.STATUS_MAP.get(solution.info.status_val, s.SOLVER_ERROR)
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution.info.obj_val
+            opt_val = solution.info.obj_val + inverse_data[s.OFFSET]
             primal_vars = {
-                list(inverse_data.id_map.keys())[0]:
+                OSQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
             }
             dual_vars = {OSQP.DUAL_VAR_ID: solution.y}
@@ -54,11 +78,11 @@ class OSQP(QpSolver):
         import osqp
         P = data[s.P]
         q = data[s.Q]
-        A = sp.vstack([data[s.A], data[s.F]]).tocsc()
-        data['full_A'] = A
-        uA = np.concatenate((data[s.B], data[s.G]))
+        A = data[s.A]
+        uA = data[s.B]
         data['u'] = uA
-        lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
+        lA = np.concatenate([data[s.B][:data['n_eq']],
+                             -np.inf*np.ones(data['n_ineq'])])
         data['l'] = lA
 
         # Overwrite defaults eps_abs=eps_rel=1e-3, max_iter=4000
@@ -72,9 +96,9 @@ class OSQP(QpSolver):
             same_pattern = (P.shape == old_data[s.P].shape and
                             all(P.indptr == old_data[s.P].indptr) and
                             all(P.indices == old_data[s.P].indices)) and \
-                           (A.shape == old_data['full_A'].shape and
-                            all(A.indptr == old_data['full_A'].indptr) and
-                            all(A.indices == old_data['full_A'].indices))
+                           (A.shape == old_data[s.A].shape and
+                            all(A.indptr == old_data[s.A].indptr) and
+                            all(A.indices == old_data[s.A].indices))
         else:
             same_pattern = False
 
@@ -89,7 +113,7 @@ class OSQP(QpSolver):
                 P_triu = sp.triu(P).tocsc()
                 new_args['Px'] = P_triu.data
                 factorizing = True
-            if any(A.data != old_data['full_A'].data):
+            if any(A.data != old_data[s.A].data):
                 new_args['Ax'] = A.data
                 factorizing = True
 

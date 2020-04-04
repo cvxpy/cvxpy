@@ -63,17 +63,17 @@ class GUROBI(QpSolver):
         status = self.STATUS_MAP.get(model.Status, s.SOLVER_ERROR)
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = model.objVal
+            opt_val = model.objVal + inverse_data[s.OFFSET]
             x = np.array([x_grb[i].X for i in range(n)])
 
             primal_vars = {
-                list(inverse_data.id_map.keys())[0]:
+                GUROBI.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 
             # Only add duals if not a MIP.
             dual_vars = None
-            if not inverse_data.is_mip:
+            if not inverse_data[GUROBI.IS_MIP]:
                 y = -np.array([constraints_grb[i].Pi for i in range(m)])
                 dual_vars = {GUROBI.DUAL_VAR_ID: y}
 

@@ -22,8 +22,8 @@ class InverseData(object):
 
     def __init__(self, problem):
         varis = problem.variables()
-        self.id_map, self.var_offsets, self.x_length, self.var_shapes = (
-                                                self.get_var_offsets(varis))
+        self.id_map, self.var_offsets, self.x_length, self.var_shapes = \
+            InverseData.get_var_offsets(varis)
 
         self.param_shapes = {}
         # Always start with CONSTANT_ID.
@@ -42,7 +42,8 @@ class InverseData(object):
         self.cons_id_map = dict()
         self.constraints = None
 
-    def get_var_offsets(self, variables):
+    @staticmethod
+    def get_var_offsets(variables):
         var_shapes = {}
         var_offsets = {}
         id_map = {}

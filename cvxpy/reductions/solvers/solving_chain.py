@@ -145,6 +145,15 @@ def construct_solving_chain(problem, candidates, gp=False):
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp)
 
+    if not problem.is_dpp():
+        warnings.warn(
+            "You are solving a parameterized problem that is not DPP. "
+            "Because the problem is not DPP, subsequent solves will not be "
+            "faster than the first one.")
+        reductions += [EvalParams()]
+    elif any(param.is_complex() for param in problem.parameters()):
+        reductions += [EvalParams()]
+
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
@@ -153,8 +162,6 @@ def construct_solving_chain(problem, candidates, gp=False):
         solver = sorted(candidates['qp_solvers'],
                         key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
-        # TODO remove when QPs can handle parameters.
-        reductions += [EvalParams()]
         reductions += [QpMatrixStuffing(),
                        solver_instance]
         return SolvingChain(reductions=reductions)
@@ -164,15 +171,6 @@ def construct_solving_chain(problem, candidates, gp=False):
         raise SolverError("Problem could not be reduced to a QP, and no "
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)
-
-    if not problem.is_dpp():
-        warnings.warn(
-            "You are solving a parameterized problem that is not DPP. "
-            "Because the problem is not DPP, subsequent solves will not be "
-            "faster than the first one.")
-        reductions += [EvalParams()]
-    elif any(param.is_complex() for param in problem.parameters()):
-        reductions += [EvalParams()]
 
     # Our choice of solver depends upon which atoms are present in the
     # problem. The types of atoms to check for are SOC atoms, PSD atoms,
