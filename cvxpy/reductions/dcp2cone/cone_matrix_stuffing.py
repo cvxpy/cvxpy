@@ -19,6 +19,7 @@ from cvxpy.constraints import (Equality, ExpCone, Inequality,
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
+from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import (are_args_affine,
@@ -32,7 +33,7 @@ import scipy.sparse as sp
 
 
 # TODO(akshayka): unit tests
-class ParamConeProg(object):
+class ParamConeProg(ParamProb):
     """Represents a parameterized cone program
 
     minimize   c'x  + d
@@ -69,6 +70,7 @@ class ParamConeProg(object):
         self.formatted = formatted
 
     def is_mixed_integer(self):
+        """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 

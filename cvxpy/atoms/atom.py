@@ -197,10 +197,8 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
-    def is_dpp(self, context='CP'):
+    def is_dpp(self):
         """The expression is a disciplined parameterized expression.
-
-           context: cone program (CP) or quadratic program (QP)
         """
         with scopes.dpp_scope():
             return self.is_dcp()
