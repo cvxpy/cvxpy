@@ -83,7 +83,6 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
                        "Consider calling solve() with `qcp=True`.")
         raise DCPError(
             "Problem does not follow DCP rules. Specifically:\n" + append)
-
     elif gp and not problem.is_dgp():
         append = build_non_disciplined_error_msg(problem, 'DGP')
         if problem.is_dcp():
@@ -99,8 +98,7 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
         reductions += [FlipObjective()]
 
     if _solve_as_qp(problem, candidates):
-        reductions += [CvxAttr2Constr(),
-                       Qp2SymbolicQp()]
+        reductions += [CvxAttr2Constr(), Qp2SymbolicQp()]
     else:
         # Canonicalize it to conic problem.
         if not candidates['conic_solvers']:
@@ -108,8 +106,7 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
                               "conic solvers exist among candidate solvers "
                               "(%s)." % candidates)
         else:
-            reductions += [Dcp2Cone(),
-                           CvxAttr2Constr()]
+            reductions += [Dcp2Cone(), CvxAttr2Constr()]
     return reductions
 
 
@@ -145,11 +142,19 @@ def construct_solving_chain(problem, candidates, gp=False):
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp)
 
-    if not problem.is_dpp():
+    if gp:
+        # Log-log convex programs need a specialized DPP ruleset (so that
+        # the corresponding DCP program ends up being DPP), which we do not yet
+        # have; for now, just evaluate the parameters.
+        reductions += [EvalParams()]
+    elif not problem.is_dpp():
         warnings.warn(
             "You are solving a parameterized problem that is not DPP. "
             "Because the problem is not DPP, subsequent solves will not be "
-            "faster than the first one.")
+            "faster than the first one. For more information, see the "
+            "documentation on Discplined Parametrized Programming, at\n"
+            "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
+            "disciplined-parametrized-programming")
         reductions += [EvalParams()]
     elif any(param.is_complex() for param in problem.parameters()):
         reductions += [EvalParams()]
