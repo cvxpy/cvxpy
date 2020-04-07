@@ -21,6 +21,6 @@ import numpy as np
 
 def parameter_canon(expr, args):
     del args
-    param = Parameter(expr.shape, name=expr.name)
+    param = Parameter(expr.shape, name=expr.name())
     param.value = np.log(expr.value)
     return param, []
