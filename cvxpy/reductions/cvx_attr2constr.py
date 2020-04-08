@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.reductions import Reduction, Solution
 from cvxpy.atoms import diag, reshape
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable, upper_tri_to_full
+from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solution import Solution
 import numpy as np
 import scipy.sparse as sp
 

@@ -17,13 +17,15 @@ limitations under the License.
 import abc
 import numpy as np
 
+from cvxpy.atoms import reshape
 from cvxpy.constraints import Equality, ExpCone, Inequality, SOC
 from cvxpy.expressions import cvxtypes
 import cvxpy.settings as s
-from cvxpy.reductions import Reduction, Solution, InverseData
+from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.utilities import lower_equality, lower_inequality
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
-from cvxpy.atoms import reshape
 from cvxpy import problems
 from cvxpy.problems.objective import Minimize
 

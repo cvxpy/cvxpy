@@ -1,8 +1,10 @@
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC
 from cvxpy.error import SolverError
-from cvxpy.reductions import (Chain, ConeMatrixStuffing, EvalParams,
-                              QpMatrixStuffing)
+from cvxpy.reductions.chain import Chain
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
+from cvxpy.reductions.eval_params import EvalParams
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import defines as slv_def

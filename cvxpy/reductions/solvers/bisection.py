@@ -17,7 +17,7 @@ import cvxpy.settings as s
 import cvxpy.error as error
 import cvxpy.problems as problems
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions import solution as solution_module
+import cvxpy.reductions.solution as solution_module
 
 
 def _lower_problem(problem):
