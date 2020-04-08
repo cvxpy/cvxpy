@@ -25,6 +25,12 @@ def is_param_affine(expr):
         return not expr.variables() and expr.is_affine()
 
 
+def is_param_log_log_affine(expr):
+    """Returns true if expression is parameters-affine (and variable-free)"""
+    with scopes.dpp_scope():
+        return not expr.variables() and expr.is_log_log_affine()
+
+
 def is_param_free(expr):
     """Returns true if expression is not parametrized."""
     return not expr.parameters()

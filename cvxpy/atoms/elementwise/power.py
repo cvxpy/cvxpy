@@ -16,7 +16,7 @@ limitations under the License.
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants.parameter import is_param_free
+from cvxpy.expressions.constants.parameter import is_param_free, is_param_log_log_affine
 from cvxpy.utilities.power_tools import is_power2
 import cvxpy.utilities as u
 import numpy as np
@@ -161,8 +161,13 @@ class power(Elementwise):
             # either a Constant or a Parameter.
             x = self.args[0]
             p = self.p
-            return is_param_free(x) and (
-                _is_const(self.p) or isinstance(p, cvxtypes.parameter()))
+            if is_param_free(x) and (
+                    _is_const(self.p) or isinstance(p, cvxtypes.parameter())):
+                return True
+            elif is_param_log_log_affine(x) and not isinstance(p, cvxtypes.parameter()):
+                return True
+            else:
+                return False
         else:
             return True
 

@@ -56,6 +56,9 @@ class Cache(object):
     def make_key(self, solver, gp):
         return (solver, gp)
 
+    def gp(self):
+        return self.key is not None and self.key[1]
+
 
 class Problem(u.Canonical):
     """A convex optimization problem.
@@ -289,9 +292,9 @@ class Problem(u.Canonical):
             instead of a disciplined convex program.
         requires_grad : bool, optional
             Makes it possible to compute gradients with respect to
-            parameters by calling `.backward()` after solving, or to compute
-            perturbations to the variables by calling `.derivative()`. When
-            True, the solver must be SCS, and gp, qcp must be false; a DPPError is
+            Parameters by calling `.backward()` after solving, or to compute
+            perturbations to the variables by calling `.derivative()`.
+            When True, the solver must be SCS and qcp must be false; a DPPError
             thrown when problem is not DPP.
         enforce_dpp : bool, optional
             When True, a DPPError will be thrown when trying to solve a non-DPP
@@ -304,10 +307,10 @@ class Problem(u.Canonical):
         Notes
         ------
         CVXPY interfaces with a wide range of solvers; the algorithms used by these solvers
-        have parameters relating to stopping criteria, and strategies to improve solution quality.
+        have arguments relating to stopping criteria, and strategies to improve solution quality.
 
-        There is no one choice of parameters which is perfect for every problem. If you are not
-        getting satisfactory results from a solver, you can try changing its parameters. The
+        There is no one choice of arguments which is perfect for every problem. If you are not
+        getting satisfactory results from a solver, you can try changing its arguments. The
         exact way this is done depends on the specific solver. Here are some examples:
 
             prob.solve(solver='ECOS', abstol=1e-6)
@@ -316,7 +319,7 @@ class Problem(u.Canonical):
             prob.solve(solver='MOSEK', mosek_params=mydict).
 
         You should refer to CVXPY's web documentation for details on how to pass solver
-        parameters.
+        solver arguments.
 
         Returns
         -------
@@ -453,12 +456,7 @@ class Problem(u.Canonical):
         if self._cache.param_prog is not None:
             # fast path, bypasses application of reductions
             if gp:
-                dgp2dcp = None
-                for reduction in self._cache.solving_chain.reductions:
-                    if isinstance(reduction, Dgp2Dcp):
-                        dgp2dcp = reduction
-                        break
-                assert dgp2dcp is not None
+                dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
                 # Parameters in the param cone prog are the logs
                 # of parameters in the original problem (with one exception:
                 # parameters appearing as exponents (in power atoms) are
@@ -633,8 +631,8 @@ class Problem(u.Canonical):
             Makes it possible to compute gradients with respect to
             parameters by calling `.backward()` after solving, or to compute
             perturbations to the variables by calling `.derivative()`. When
-            True, the solver must be SCS, and gp, qcp must be False;
-            a DPPError is thrown when problem is not DPP.
+            True, the solver must be SCS, and dqcp must be False.
+            A DPPError is thrown when problem is not DPP.
         enforce_dpp : bool, optional
             When True, a DPPError will be thrown when trying to solve a non-DPP
             problem (instead of just a warning). Defaults to False.
@@ -657,14 +655,12 @@ class Problem(u.Canonical):
                     "values before solving a problem." % parameter.name())
 
         if requires_grad:
-            # TODO(akshayka): Implement derivative/backward for DGP.
-            if not self.is_dpp():
+            dpp_context = 'dgp' if gp else 'dcp'
+            if qcp:
+                raise ValueError("Cannot compute gradients of DQCP problems.")
+            elif not self.is_dpp(dpp_context):
                 raise error.DPPError("Problem is not DPP (when requires_grad "
                                      "is True, problem must be DPP).")
-            elif gp:
-                raise ValueError("Cannot compute gradients of DGP problems.")
-            elif qcp:
-                raise ValueError("Cannot compute gradients of DQCP problems.")
             elif solver is not None and solver not in [s.SCS, s.DIFFCP]:
                 raise ValueError("When requires_grad is True, the only "
                                  "supported solver is SCS "
@@ -783,17 +779,36 @@ class Problem(u.Canonical):
         DT = backward_cache["DT"]
         zeros = np.zeros(backward_cache["s"].shape)
         del_vars = {}
+
+        gp = self._cache.gp()
         for variable in self.variables():
             if variable.gradient is None:
                 del_vars[variable.id] = np.ones(variable.shape)
             else:
                 del_vars[variable.id] = np.asarray(variable.gradient,
                                                    dtype=np.float64)
+            if gp:
+                # x_gp = exp(x_cone_program),
+                # dx_gp/d x_cone_program = exp(x_cone_program) = x_gp
+                del_vars[variable.id] *= variable.value
+
         dx = self._cache.param_prog.split_adjoint(del_vars)
         dA, db, dc = DT(dx, zeros, zeros)
         dparams = self._cache.param_prog.apply_param_jac(dc, -dA, db)
-        for parameter in self.parameters():
-            parameter.gradient = dparams[parameter.id]
+
+        if not gp:
+            for param in self.parameters():
+                param.gradient = dparams[param.id]
+        else:
+            dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
+            old_params_to_new_params = dgp2dcp.canon_methods._parameters
+            for param in self.parameters():
+                grad = 0.0 if param.id not in dparams else dparams[param.id]
+                if param in old_params_to_new_params:
+                    new_param = old_params_to_new_params[param]
+                    # new_param.value == log(param), apply chain rule
+                    grad += (1.0 / param.value) * dparams[new_param.id]
+                param.gradient = grad
 
     def derivative(self):
         """Apply the derivative of the solution map to perturbations in the parameters
@@ -848,12 +863,31 @@ class Problem(u.Canonical):
         param_prog = self._cache.param_prog
         D = backward_cache["D"]
         param_deltas = {}
-        for parameter in self.parameters():
-            if parameter.delta is None:
-                param_deltas[parameter.id] = np.zeros(parameter.shape)
-            else:
-                param_deltas[parameter.id] = np.asarray(parameter.delta,
+
+        gp = self._cache.gp()
+        if gp:
+            dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
+
+        for param in self.parameters():
+            if param.delta is None:
+                param_deltas[param.id] = np.zeros(param.shape)
+            elif gp:
+                if param in dgp2dcp.canon_methods._parameters:
+                    new_param_id = dgp2dcp.canon_methods._parameters[param].id
+                else:
+                    new_param_id = param.id
+                param_deltas[new_param_id] = (
+                    1.0/param.value * np.asarray(param.delta,
+                                                 dtype=np.float64))
+                if param.id in param_prog.param_id_to_col:
+                    # here, param generated a new parameter and also
+                    # passed through to the param cone prog unchanged (
+                    # because it was an exponent of a power)
+                    param_deltas[param.id] = np.asarray(param.delta,
                                                         dtype=np.float64)
+            else:
+                param_deltas[param.id] = np.asarray(param.delta,
+                                                    dtype=np.float64)
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         dx, _, _ = D(-dA, db, dc)
@@ -861,6 +895,10 @@ class Problem(u.Canonical):
             dx, [v.id for v in self.variables()])
         for variable in self.variables():
             variable.delta = dvars[variable.id]
+            if gp:
+                # x_gp = exp(x_cone_program),
+                # dx_gp/d x_cone_program = exp(x_cone_program) = x_gp
+                variable.delta *= variable.value
 
     def _clear_solution(self):
         for v in self.variables():

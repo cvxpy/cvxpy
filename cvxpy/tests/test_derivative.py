@@ -5,13 +5,13 @@ from cvxpy.tests.base_test import BaseTest
 import numpy as np
 
 
-def perturbcheck(problem, delta=1e-5, atol=1e-8, eps=1e-10):
+def perturbcheck(problem, gp=False, delta=1e-5, atol=1e-8, eps=1e-10):
     """Checks the analytical derivative against a numerical computation."""
     np.random.seed(0)
     # Compute perturbations analytically
     for param in problem.parameters():
         param.delta = delta * np.random.randn(*param.shape)
-    problem.solve(requires_grad=True, eps=eps)
+    problem.solve(gp=gp, requires_grad=True, eps=eps)
     problem.derivative()
     variable_values = [v.value for v in problem.variables()]
     deltas = [v.delta for v in problem.variables()]
@@ -21,7 +21,7 @@ def perturbcheck(problem, delta=1e-5, atol=1e-8, eps=1e-10):
     for param in problem.parameters():
         old_values[param] = param.value
         param.value += param.delta
-    problem.solve(cp.SCS, eps=eps)
+    problem.solve(cp.SCS, gp=gp, eps=eps)
     num_deltas = [
         v.value - old_value for (v, old_value)
         in zip(problem.variables(), variable_values)]
@@ -33,7 +33,7 @@ def perturbcheck(problem, delta=1e-5, atol=1e-8, eps=1e-10):
         param.value = old_values[param]
 
 
-def gradcheck(problem, delta=1e-5, atol=1e-5, eps=1e-10):
+def gradcheck(problem, gp=False, delta=1e-5, atol=1e-5, eps=1e-10):
     """Checks the analytical adjoint derivative against a numerical computation."""
     size = sum(p.size for p in problem.parameters())
     values = np.zeros(size)
@@ -47,11 +47,11 @@ def gradcheck(problem, delta=1e-5, atol=1e-5, eps=1e-10):
     for i in range(values.size):
         old = values[i]
         values[i] = old + 0.5 * delta
-        problem.solve(cp.SCS, eps=eps)
+        problem.solve(cp.SCS, gp=gp, eps=eps)
         left_solns = [x.value for x in problem.variables()]
 
         values[i] = old - 0.5 * delta
-        problem.solve(cp.SCS, eps=eps)
+        problem.solve(cp.SCS, gp=gp, eps=eps)
         right_solns = [x.value for x in problem.variables()]
 
         numgrad[i] = (np.sum(left_solns) - np.sum(right_solns)) / delta
@@ -67,7 +67,7 @@ def gradcheck(problem, delta=1e-5, atol=1e-5, eps=1e-10):
     for x in problem.variables():
         old_gradients[x] = x.gradient
         x.gradient = None
-    problem.solve(requires_grad=True, eps=eps)
+    problem.solve(requires_grad=True, gp=gp, eps=eps)
     problem.backward()
 
     for param, numgrad in zip(problem.parameters(), numgrads):
@@ -310,3 +310,123 @@ class TestBackward(BaseTest):
         data, _, _ = problem.get_problem_data(cp.DIFFCP)
         A = data[s.A]
         self.assertIn(0.0, A.data)
+
+
+class TestBackwardDgp(BaseTest):
+    """Test problem.backward() and problem.derivative()."""
+    def setUp(self):
+        try:
+            import diffcp
+            diffcp  # for flake8
+        except ImportError:
+            self.skipTest("diffcp not installed.")
+
+    def test_one_minus_analytic(self):
+        # construct a problem with solution
+        # x^\star(\alpha) = 1 - \alpha^2, and derivative
+        # x^\star'(\alpha) = -2\alpha
+        alpha = cp.Parameter(pos=True)
+        x = cp.Variable(pos=True)
+        objective = cp.Maximize(x)
+        constr = [cp.one_minus_pos(x) >= alpha**2]
+        problem = cp.Problem(objective, constr)
+
+        alpha.value = 0.4
+        alpha.delta = 1e-5
+        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        self.assertAlmostEqual(x.value, 1 - 0.4**2)
+        problem.backward()
+        problem.derivative()
+        self.assertAlmostEqual(alpha.gradient, -2*0.4)
+        self.assertAlmostEqual(x.delta, -2*0.4*1e-5)
+
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
+
+        alpha.value = 0.5
+        alpha.delta = 1e-5
+        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        problem.backward()
+        problem.derivative()
+        self.assertAlmostEqual(x.value, 1 - 0.5**2)
+        self.assertAlmostEqual(alpha.gradient, -2*0.5)
+        self.assertAlmostEqual(x.delta, -2*0.5*1e-5)
+
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
+
+    def test_analytic_param_in_exponent(self):
+        # construct a problem with solution
+        # x^\star(\alpha) = 1 - 2^alpha, and derivative
+        # x^\star'(\alpha) = -log(2) * 2^\alpha
+        base = 2.0
+        alpha = cp.Parameter()
+        x = cp.Variable(pos=True)
+        objective = cp.Maximize(x)
+        constr = [cp.one_minus_pos(x) >= cp.Constant(base)**alpha]
+        problem = cp.Problem(objective, constr)
+
+        alpha.value = -1.0
+        alpha.delta = 1e-5
+        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        self.assertAlmostEqual(x.value, 1 - base**(-1.0))
+        problem.backward()
+        problem.derivative()
+        self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(-1.0))
+        self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
+
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
+
+        alpha.value = -1.2
+        alpha.delta = 1e-5
+        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        self.assertAlmostEqual(x.value, 1 - base**(-1.2))
+        problem.backward()
+        problem.derivative()
+        self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(-1.2))
+        self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
+
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
+
+    def test_param_used_twice(self):
+        # construct a problem with solution
+        # x^\star(\alpha) = 1 - \alpha^2 - alpha^3, and derivative
+        # x^\star'(\alpha) = -2\alpha - 3\alpha^2
+        alpha = cp.Parameter(pos=True)
+        x = cp.Variable(pos=True)
+        objective = cp.Maximize(x)
+        constr = [cp.one_minus_pos(x) >= alpha**2 + alpha**3]
+        problem = cp.Problem(objective, constr)
+
+        alpha.value = 0.4
+        alpha.delta = 1e-5
+        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        self.assertAlmostEqual(x.value, 1 - 0.4**2 - 0.4**3)
+        problem.backward()
+        problem.derivative()
+        self.assertAlmostEqual(alpha.gradient, -2*0.4 - 3*0.4**2)
+        self.assertAlmostEqual(x.delta, alpha.gradient*1e-5)
+
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
+
+    def test_param_used_in_exponent_and_elsewhere(self):
+        # construct a problem with solution
+        # x^\star(\alpha) = 1 - 0.3^alpha - alpha^2, and derivative
+        # x^\star'(\alpha) = -log(0.3) * 0.2^\alpha - 2*alpha
+        base = 0.3
+        alpha = cp.Parameter(pos=True, value=0.5)
+        x = cp.Variable(pos=True)
+        objective = cp.Maximize(x)
+        constr = [cp.one_minus_pos(x) >= cp.Constant(base)**alpha + alpha**2]
+        problem = cp.Problem(objective, constr)
+
+        alpha.delta = 1e-5
+        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        self.assertAlmostEqual(x.value, 1 - base**(0.5) - 0.5**2)
+        problem.backward()
+        problem.derivative()
+        self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(0.5) - 2*0.5)
+        self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
