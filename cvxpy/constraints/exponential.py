@@ -104,8 +104,13 @@ class ExpCone(Constraint):
         """
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dpp(self):
-        return self.is_dcp() and all(arg.is_dpp() for arg in self.args)
+    def is_dpp(self, context='dcp'):
+        if context.lower() == 'dcp':
+            return self.is_dcp() and all(arg.is_dpp(context) for arg in self.args)
+        elif context.lower() == 'dgp':
+            return self.is_dcp() and all(arg.is_dpp(context) for arg in self.args)
+        else:
+            raise ValueError('Unsupported context ', context)
 
     def is_dgp(self):
         return False

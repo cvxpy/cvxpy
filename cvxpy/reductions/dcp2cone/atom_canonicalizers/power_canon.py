@@ -16,14 +16,33 @@ limitations under the License.
 
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-from cvxpy.utilities.power_tools import gm_constrs
+from cvxpy.utilities.power_tools import (gm_constrs, pow_mid, pow_high,
+                                         pow_neg)
 import numpy as np
 
 
 def power_canon(expr, args):
     x = args[0]
-    p = expr.p
-    w = expr.w
+    p_orig = expr._p_orig
+    max_denom = expr.max_denom
+
+    p, w = None, None
+    # compute a rational approximation to p
+    # how we convert p to a rational depends on the branch of the function
+    if p_orig > 1:
+        p, w = pow_high(p_orig, max_denom)
+    elif 0 < p_orig < 1:
+        p, w = pow_mid(p_orig, max_denom)
+    elif p_orig < 0:
+        p, w = pow_neg(p_orig, max_denom)
+
+    if p_orig == 1 or p == 1:
+        # in case p is a fraction equivalent to 1
+        p = 1
+        w = None
+    if p_orig == 0 or p == 0:
+        p = 0
+        w = None
 
     if p == 1:
         return x, []

@@ -1,3 +1,5 @@
+import warnings
+
 import cvxpy
 from cvxpy.atoms.affine.add_expr import AddExpression
 import cvxpy.error as error
@@ -5,6 +7,7 @@ import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
 from cvxpy.reductions import solution
 from cvxpy.settings import SOLVER_ERROR
 from cvxpy.tests.base_test import BaseTest
+
 import numpy as np
 
 
@@ -610,3 +613,445 @@ class TestDgp2Dcp(BaseTest):
         prob.solve(gp=True)
         sltn = np.exp(np.linalg.solve(A, np.log(b)))
         self.assertItemsAlmostEqual(x.value, sltn)
+
+class TestDgpUnderDpp(BaseTest):
+    def test_basic_equality_constraint(self):
+        alpha = cvxpy.Parameter(pos=True, value=1.0)
+        x = cvxpy.Variable(pos=True)
+        dgp = cvxpy.Problem(cvxpy.Minimize(x), [x == alpha])
+
+        self.assertTrue(dgp.objective.is_dpp('dgp'))
+        self.assertTrue(dgp.constraints[0].is_dpp('dgp'))
+        self.assertTrue(dgp.is_dpp('dgp'))
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+
+        dcp = dgp2dcp.reduce()
+        self.assertTrue(dcp.is_dpp())
+
+        dgp.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        alpha.value = 2.0
+        dgp.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 2.0)
+
+    def test_nested_power_not_dpp(self):
+        alpha = cvxpy.Parameter(value=1.0)
+        x = cvxpy.Variable(pos=True)
+
+        pow1 = x**alpha
+        self.assertTrue(pow1.is_dpp('dgp'))
+
+        pow2 = pow1**alpha
+        self.assertFalse(pow2.is_dpp('dgp'))
+
+    def test_non_dpp_problem_raises_error(self):
+        alpha = cvxpy.Parameter(pos=True, value=1.0)
+        beta = cvxpy.Parameter(value=1.0)
+        x = cvxpy.Variable(pos=True)
+        dgp = cvxpy.Problem(cvxpy.Minimize(x**(alpha*beta)), [x == alpha])
+        self.assertTrue(dgp.objective.is_dgp())
+        self.assertFalse(dgp.objective.is_dpp('dgp'))
+
+        with self.assertRaises(error.DPPError):
+            dgp.solve(gp=True, enforce_dpp=True)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            dgp.solve(gp=True, enforce_dpp=False)
+            self.assertAlmostEqual(x.value, 1.0)
+
+    def test_basic_monomial(self):
+        alpha = cvxpy.Parameter(pos=True, value=1.0)
+        beta = cvxpy.Parameter(pos=True, value=2.0)
+        x = cvxpy.Variable(pos=True)
+        monomial = alpha*beta*x
+        problem = cvxpy.Problem(cvxpy.Minimize(monomial), [x == alpha])
+
+        self.assertTrue(problem.is_dgp())
+        self.assertTrue(problem.is_dpp('dgp'))
+        self.assertFalse(problem.is_dpp('dcp'))
+
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(problem.value, 2.0)
+
+        alpha.value = 3.0
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 3.0)
+        # 3 * 2 * 3 == 18
+        self.assertAlmostEqual(problem.value, 18.0)
+
+    def test_basic_posynomial(self):
+        alpha = cvxpy.Parameter(pos=True, value=1.0)
+        beta = cvxpy.Parameter(pos=True, value=2.0)
+        kappa = cvxpy.Parameter(pos=True, value=3.0)
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+
+        monomial_one = alpha*beta*x
+        monomial_two = beta*kappa*x*y
+        posynomial = monomial_one + monomial_two
+        problem = cvxpy.Problem(cvxpy.Minimize(posynomial),
+                                [x == alpha, y == beta])
+
+        self.assertTrue(problem.is_dgp())
+        self.assertTrue(problem.is_dpp('dgp'))
+        self.assertFalse(problem.is_dpp('dcp'))
+
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 2.0)
+        # 1*2*1 + 2*3*1*2 == 2 + 12 == 14
+        self.assertAlmostEqual(problem.value, 14.0, places=3)
+
+        alpha.value = 4.0
+        beta.value = 5.0
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 4.0)
+        self.assertAlmostEqual(y.value, 5.0)
+        # 4*5*4 + 5*3*4*5 == 80 + 300 == 380
+        self.assertAlmostEqual(problem.value, 380.0, places=3)
+
+    def test_basic_gp(self):
+        x, y, z = cvxpy.Variable((3,), pos=True)
+        a = cvxpy.Parameter(pos=True, value=2.0)
+        b = cvxpy.Parameter(pos=True, value=1.0)
+        constraints = [a*x*y + a*x*z + a*y*z <= b, x >= a*y]
+        problem = cvxpy.Problem(cvxpy.Minimize(1/(x*y*z)), constraints)
+        self.assertTrue(problem.is_dpp('dgp'))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(15.59, problem.value, places=2)
+
+    def test_maximum(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+
+        alpha = cvxpy.Parameter(value=0.5)
+        beta = cvxpy.Parameter(pos=True, value=3.0)
+        kappa = cvxpy.Parameter(pos=True, value=1.0)
+        tau = cvxpy.Parameter(pos=True, value=4.0)
+
+        prod1 = x*y**alpha
+        prod2 = beta * x*y**alpha
+        obj = cvxpy.Minimize(cvxpy.maximum(prod1, prod2))
+        constr = [x == kappa, y == tau]
+
+        problem = cvxpy.Problem(obj, constr)
+        self.assertTrue(problem.is_dpp('dgp'))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        # max(1*2, 3*1*2) = 6
+        self.assertAlmostEqual(problem.value, 6.0, places=4)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+        alpha.value = 2
+        beta.value = 0.5
+        kappa.value = 2.0  # x
+        tau.value = 3.0    # y
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        # max(2*9, 0.5*2*9) == 18
+        self.assertAlmostEqual(problem.value, 18.0, places=4)
+        self.assertAlmostEqual(x.value, 2.0)
+        self.assertAlmostEqual(y.value, 3.0)
+
+    def test_max(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+
+        alpha = cvxpy.Parameter(value=0.5)
+        beta = cvxpy.Parameter(pos=True, value=3.0)
+        kappa = cvxpy.Parameter(pos=True, value=1.0)
+        tau = cvxpy.Parameter(pos=True, value=4.0)
+
+        prod1 = x*y**alpha
+        prod2 = beta * x*y**alpha
+        obj = cvxpy.Minimize(cvxpy.max(cvxpy.hstack([prod1, prod2])))
+        constr = [x == kappa, y == tau]
+
+        problem = cvxpy.Problem(obj, constr)
+        self.assertTrue(problem.is_dpp('dgp'))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        # max(1*2, 3*1*2) = 6
+        self.assertAlmostEqual(problem.value, 6.0, places=4)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+        alpha.value = 2
+        beta.value = 0.5
+        kappa.value = 2.0  # x
+        tau.value = 3.0    # y
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        # max(2*9, 0.5*2*9) == 18
+        self.assertAlmostEqual(problem.value, 18.0, places=4)
+        self.assertAlmostEqual(x.value, 2.0)
+        self.assertAlmostEqual(y.value, 3.0)
+
+    def test_param_in_exponent_and_elsewhere(self):
+        alpha = cvxpy.Parameter(pos=True, value=1.0, name='alpha')
+        x = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(x**alpha), [x == alpha])
+
+        self.assertTrue(problem.is_dpp('dgp'))
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 1.0)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        # re-solve (which goes through a separate code path)
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 1.0)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        alpha.value = 3.0
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 27.0)
+        self.assertAlmostEqual(x.value, 3.0)
+
+    def test_minimum(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+
+        alpha = cvxpy.Parameter(pos=True, value=1.0, name='alpha')
+        beta = cvxpy.Parameter(pos=True, value=3.0, name='beta')
+        prod1 = x * y**alpha
+        prod2 = beta * x * y**alpha
+        posy = prod1 + prod2
+        obj = cvxpy.Maximize(cvxpy.minimum(prod1, prod2, 1/posy))
+        constr = [x == alpha, y == 4.0]
+
+        dgp = cvxpy.Problem(obj, constr)
+        dgp.solve(SOLVER, gp=True, enforce_dpp=True)
+        # prod1 = 1*4, prod2 = 3*4 = 12, 1/posy = 1/(3 +12)
+        self.assertAlmostEqual(dgp.value, 1.0 / (4.0 + 12.0))
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+        alpha.value = 2.0
+        # prod1 = 2*16, prod2 = 3*2*16 = 96, 1/posy = 1/(32 +96)
+        dgp.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(dgp.value, 1.0 / (32.0 + 96.0))
+        self.assertAlmostEqual(x.value, 2.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+    def test_min(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+
+        alpha = cvxpy.Parameter(pos=True, value=1.0, name='alpha')
+        beta = cvxpy.Parameter(pos=True, value=3.0, name='beta')
+        prod1 = x * y**alpha
+        prod2 = beta * x * y**alpha
+        posy = prod1 + prod2
+        obj = cvxpy.Maximize(cvxpy.min(cvxpy.hstack([prod1, prod2, 1/posy])))
+        constr = [x == alpha, y == 4.0]
+
+        dgp = cvxpy.Problem(obj, constr)
+        dgp.solve(SOLVER, gp=True, enforce_dpp=True)
+        # prod1 = 1*4, prod2 = 3*4 = 12, 1/posy = 1/(3 +12)
+        self.assertAlmostEqual(dgp.value, 1.0 / (4.0 + 12.0))
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+        alpha.value = 2.0
+        # prod1 = 2*16, prod2 = 3*2*16 = 96, 1/posy = 1/(32 +96)
+        dgp.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(dgp.value, 1.0 / (32.0 + 96.0))
+        self.assertAlmostEqual(x.value, 2.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+    def test_div(self):
+        alpha = cvxpy.Parameter(pos=True, value=3.0)
+        beta = cvxpy.Parameter(pos=True, value=1.0)
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+
+        p = cvxpy.Problem(cvxpy.Minimize(x * y), [y/alpha <= x, y >= beta])
+        self.assertAlmostEqual(p.solve(SOLVER, gp=True, enforce_dpp=True),
+                               1.0 / 3.0)
+        self.assertAlmostEqual(x.value, 1.0 / 3.0)
+        self.assertAlmostEqual(y.value, 1.0)
+
+        beta.value = 2.0
+        p = cvxpy.Problem(cvxpy.Minimize(x * y), [y/alpha <= x, y >= beta])
+        self.assertAlmostEqual(p.solve(SOLVER, gp=True, enforce_dpp=True),
+                               4.0 / 3.0)
+        self.assertAlmostEqual(x.value, 2.0 / 3.0)
+        self.assertAlmostEqual(y.value, 2.0)
+
+    def test_one_minus_pos(self):
+        x = cvxpy.Variable(pos=True)
+        obj = cvxpy.Maximize(x)
+        alpha = cvxpy.Parameter(pos=True, value=0.1)
+        constr = [cvxpy.one_minus_pos(alpha + x) >= 0.4]
+        problem = cvxpy.Problem(obj, constr)
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 0.5)
+        self.assertAlmostEqual(x.value, 0.5)
+
+        alpha.value = 0.4
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 0.2)
+        self.assertAlmostEqual(x.value, 0.2)
+
+    def test_pf_matrix_completion(self):
+        X = cvxpy.Variable((3, 3), pos=True)
+        obj = cvxpy.Minimize(cvxpy.pf_eigenvalue(X))
+        known_indices = tuple(zip(*[[0, 0], [0, 2], [1, 1], [2, 0], [2, 1]]))
+        known_values = np.array([1.0, 1.9, 0.8, 3.2, 5.9])
+        constr = [
+          X[known_indices] == known_values,
+          X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == 1.0,
+        ]
+        problem = cvxpy.Problem(obj, constr)
+        # smoke test.
+        problem.solve(SOLVER, gp=True)
+        optimal_value = problem.value
+
+        param = cvxpy.Parameter(shape=known_values.shape, pos=True,
+                                value=0.5*known_values)
+        constr = [
+          X[known_indices] == param,
+          X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == 1.0,
+        ]
+        problem = cvxpy.Problem(obj, constr)
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+
+        # now change param to point to known_value, and check we recover
+        # the correct optimal value
+        param.value = known_values
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, optimal_value)
+
+    def test_rank_one_nmf(self):
+        X = cvxpy.Variable((3, 3), pos=True)
+        x = cvxpy.Variable((3,), pos=True)
+        y = cvxpy.Variable((3,), pos=True)
+        xy = cvxpy.vstack([x[0] * y, x[1] * y, x[2] * y])
+        R = cvxpy.maximum(
+          cvxpy.multiply(X, (xy) ** (-1.0)),
+          cvxpy.multiply(X ** (-1.0), xy))
+        objective = cvxpy.sum(R)
+        constraints = [
+          X[0, 0] == 1.0,
+          X[0, 2] == 1.9,
+          X[1, 1] == 0.8,
+          X[2, 0] == 3.2,
+          X[2, 1] == 5.9,
+          x[0] * x[1] * x[2] == 1.0,
+        ]
+        # smoke test.
+        prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
+        prob.solve(SOLVER, gp=True)
+        optimal_value = prob.value
+
+        param = cvxpy.Parameter(value=-2.0)
+        R = cvxpy.maximum(
+          cvxpy.multiply(X, (xy) ** (param)),
+          cvxpy.multiply(X ** (param), xy))
+        objective = cvxpy.sum(R)
+        prob = cvxpy.Problem(cvxpy.Minimize(objective), constraints)
+        prob.solve(SOLVER, gp=True, enforce_dpp=True)
+
+        # now change param to point to known_value, and check we recover the
+        # correct optimal value
+        param.value = -1.0
+        prob.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(prob.value, optimal_value)
+
+    def test_documentation_prob(self):
+        x = cvxpy.Variable(pos=True)
+        y = cvxpy.Variable(pos=True)
+        z = cvxpy.Variable(pos=True)
+
+        objective_fn = x * y * z
+        constraints = [
+          4 * x * y * z + 2 * x * z <= 10, x <= 2*y, y <= 2*x, z >= 1]
+        problem = cvxpy.Problem(cvxpy.Maximize(objective_fn), constraints)
+        # Smoke test.
+        problem.solve(SOLVER, gp=True)
+
+    def test_sum_scalar(self):
+        alpha = cvxpy.Parameter(pos=True, value=1.0)
+        w = cvxpy.Variable(pos=True)
+        h = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(h),
+                                [w*h >= 8, cvxpy.sum(alpha + w) <= 5])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 2)
+        self.assertAlmostEqual(h.value, 2)
+        self.assertAlmostEqual(w.value, 4)
+
+        alpha.value = 4.0
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 8)
+        self.assertAlmostEqual(h.value, 8)
+        self.assertAlmostEqual(w.value, 1)
+
+    def test_sum_vector(self):
+        alpha = cvxpy.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
+        w = cvxpy.Variable(2, pos=True)
+        h = cvxpy.Variable(2, pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(h)),
+                                [cvxpy.multiply(w, h) >= 20,
+                                cvxpy.sum(alpha + w) <= 10])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 10)
+        np.testing.assert_almost_equal(h.value, np.array([5, 5]))
+        np.testing.assert_almost_equal(w.value, np.array([4, 4]))
+
+        alpha.value = [4.0, 4.0]
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 40)
+        np.testing.assert_almost_equal(h.value, np.array([20, 20]), decimal=3)
+        np.testing.assert_almost_equal(w.value, np.array([1, 1]), decimal=3)
+
+    def test_sum_squares_vector(self):
+        alpha = cvxpy.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
+        w = cvxpy.Variable(2, pos=True)
+        h = cvxpy.Variable(2, pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum_squares(alpha + h)),
+                                [cvxpy.multiply(w, h) >= 20,
+                                cvxpy.sum(alpha + w) <= 10])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(w.value, np.array([4, 4]))
+        np.testing.assert_almost_equal(h.value, np.array([5, 5]))
+        self.assertAlmostEqual(problem.value, 6**2 + 6**2)
+
+        alpha.value = [4.0, 4.0]
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(w.value, np.array([1, 1]), decimal=3)
+        np.testing.assert_almost_equal(h.value, np.array([20, 20]), decimal=3)
+        np.testing.assert_almost_equal(problem.value, 24**2 + 24**2, decimal=3)
+
+    def test_sum_matrix(self):
+        w = cvxpy.Variable((2, 2), pos=True)
+        h = cvxpy.Variable((2, 2), pos=True)
+        alpha = cvxpy.Parameter(pos=True, value=1.0)
+        problem = cvxpy.Problem(cvxpy.Minimize(alpha*cvxpy.sum(h)),
+                                [cvxpy.multiply(w, h) >= 10,
+                                cvxpy.sum(w) <= 20])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 8)
+        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]))
+        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]))
+
+        alpha.value = 2.0
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 16)
+
+        w = cvxpy.Variable((2, 2), pos=True)
+        h = cvxpy.Parameter((2, 2), pos=True)
+        h.value = np.ones((2, 2))
+        alpha = cvxpy.Parameter(pos=True, value=1.0)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(h)), [w == h])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 4.0)
+
+        h.value = 2.0 * np.ones((2, 2))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 8.0)
+
+        h.value = 3.0 * np.ones((2, 2))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 12.0)
+>>>>>>> [DGP] DPP for DGP, all tests passing.

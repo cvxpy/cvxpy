@@ -197,11 +197,24 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
-    def is_dpp(self):
-        """The expression is a disciplined parameterized expression.
-        """
+    def _is_dpp_dcp(self):
         with scopes.dpp_scope():
             return self.is_dcp()
+
+    @perf.compute_once
+    def _is_dpp_dgp(self):
+        with scopes.dpp_scope():
+            return self.is_dgp()
+
+    def is_dpp(self, context='dcp'):
+        """The expression is a disciplined parameterized expression.
+        """
+        if context.lower() == 'dcp':
+            return self._is_dpp_dcp()
+        elif context.lower() == 'dgp':
+            return self._is_dpp_dgp()
+        else:
+            raise ValueError('Unsupported context ', context)
 
     @perf.compute_once
     def is_log_log_convex(self):

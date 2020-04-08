@@ -147,9 +147,14 @@ class Minimize(Objective):
         """
         return self.args[0].is_convex()
 
-    def is_dpp(self):
+    def is_dpp(self, context='dcp'):
         with scopes.dpp_scope():
-            return self.args[0].is_convex()
+            if context.lower() == 'dcp':
+                return self.args[0].is_convex()
+            elif context.lower() == 'dgp':
+                return self.args[0].is_log_log_convex()
+            else:
+                raise ValueError("Unsupported context ", context)
 
     def is_dgp(self):
         """The objective must be log-log convex.
@@ -207,11 +212,16 @@ class Maximize(Objective):
         """
         return self.args[0].is_concave()
 
-    def is_dpp(self):
+    def is_dpp(self, context='dcp'):
         """The objective must be concave.
         """
         with scopes.dpp_scope():
-            return self.args[0].is_concave()
+            if context.lower() == 'dcp':
+                return self.args[0].is_concave()
+            elif context.lower() == 'dgp':
+                return self.args[0].is_log_log_concave()
+            else:
+                raise ValueError("Unsupported context ", context)
 
     def is_dgp(self):
         """The objective must be log-log concave.

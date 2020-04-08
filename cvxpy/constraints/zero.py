@@ -133,12 +133,19 @@ class Equality(Constraint):
         """An equality constraint is DCP if its argument is affine."""
         return self.expr.is_affine()
 
-    def is_dpp(self):
-        return self.is_dcp() and self.expr.is_dpp()
-
     def is_dgp(self):
         return (self.args[0].is_log_log_affine() and
                 self.args[1].is_log_log_affine())
+
+    def is_dpp(self, context='dcp'):
+        if context.lower() == 'dcp':
+            return self.is_dcp() and self.expr.is_dpp(context)
+        elif context.lower() == 'dgp':
+            return self.is_dgp() and (
+                self.args[0].is_dpp(context) and
+                self.args[1].is_dpp(context))
+        else:
+            raise ValueError("Unsupported context", context)
 
     def is_dqcp(self):
         return self.is_dcp()

@@ -61,11 +61,16 @@ class PSD(Constraint):
         """
         return self.args[0].is_affine()
 
-    def is_dpp(self):
-        return self.is_dcp() and self.args[0].is_dpp()
-
     def is_dgp(self):
         return False
+
+    def is_dpp(self, context='dcp'):
+        if context.lower() == 'dcp':
+            return self.is_dcp() and self.args[0].is_dpp(context)
+        elif context.lower() == 'dgp':
+            return False
+        else:
+            raise ValueError("Unsupported context ", context)
 
     def is_dqcp(self):
         return self.is_dcp()

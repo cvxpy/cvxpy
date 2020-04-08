@@ -170,7 +170,7 @@ class Expression(u.Canonical):
             arg.is_constant() for arg in self.args)
 
     @abc.abstractmethod
-    def is_dpp(self):
+    def is_dpp(self, context='dcp'):
         """The expression is a disciplined parameterized expression.
         """
         return NotImplemented

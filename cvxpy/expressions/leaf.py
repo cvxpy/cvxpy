@@ -449,10 +449,10 @@ class Leaf(expression.Expression):
         """
         return True
 
-    def is_dpp(self, context='CP'):
+    def is_dpp(self, context='dcp'):
         """The expression is a disciplined parameterized expression.
 
-           context: cone program (CP) or quadratic program (QP)
+           context: dcp or dgp
         """
         return True
 

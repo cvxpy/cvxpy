@@ -18,6 +18,7 @@ import cvxpy.settings as s
 from cvxpy import error
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.chain import Chain
+from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
@@ -144,11 +145,24 @@ class Problem(u.Canonical):
           expr.is_dcp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dpp(self):
+    def _is_dpp_dcp(self):
+        return all(
+          expr.is_dpp('dcp') for expr in self.constraints + [self.objective])
+
+    @perf.compute_once
+    def _is_dpp_dgp(self):
+        return all(
+          expr.is_dpp('dgp') for expr in self.constraints + [self.objective])
+
+    def is_dpp(self, context='dcp'):
         """Does the problem satisfy DPP rules?
         """
-        return all(
-          expr.is_dpp() for expr in self.constraints + [self.objective])
+        if context.lower() == 'dcp':
+            return self._is_dpp_dcp()
+        elif context.lower() == 'dgp':
+            return self._is_dpp_dgp()
+        else:
+            raise ValueError("Unsupported context ", context)
 
     @perf.compute_once
     def is_dgp(self):
@@ -279,6 +293,9 @@ class Problem(u.Canonical):
             perturbations to the variables by calling `.derivative()`. When
             True, the solver must be SCS, and gp, qcp must be false; a DPPError is
             thrown when problem is not DPP.
+        enforce_dpp : bool, optional
+            When True, a DPPError will be thrown when trying to solve a non-DPP
+            problem (instead of just a warning). Defaults to False.
         method : function, optional
             A custom solve method to use.
         kwargs : keywords, optional
@@ -338,7 +355,7 @@ class Problem(u.Canonical):
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
-    def get_problem_data(self, solver, gp=False):
+    def get_problem_data(self, solver, gp=False, enforce_dpp=False):
         """Returns the problem data used in the call to the solver.
 
         When a problem is solved, CVXPY creates a chain of reductions enclosed
@@ -409,6 +426,9 @@ class Problem(u.Canonical):
         gp : bool, optional
             If True, then parses the problem as a disciplined geometric program
             instead of a disciplined convex program.
+        enforce_dpp : bool, optional
+            When True, a DPPError will be thrown when trying to parse a non-DPP
+            problem (instead of just a warning). Defaults to False.
 
         Returns
         -------
@@ -422,7 +442,8 @@ class Problem(u.Canonical):
         key = self._cache.make_key(solver, gp)
         if key != self._cache.key:
             self._cache.invalidate()
-            solving_chain = self._construct_chain(solver=solver, gp=gp)
+            solving_chain = self._construct_chain(
+                solver=solver, gp=gp, enforce_dpp=enforce_dpp)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
@@ -431,6 +452,22 @@ class Problem(u.Canonical):
 
         if self._cache.param_prog is not None:
             # fast path, bypasses application of reductions
+            if gp:
+                dgp2dcp = None
+                for reduction in self._cache.solving_chain.reductions:
+                    if isinstance(reduction, Dgp2Dcp):
+                        dgp2dcp = reduction
+                        break
+                assert dgp2dcp is not None
+                # Parameters in the param cone prog are the logs
+                # of parameters in the original problem (with one exception:
+                # parameters appearing as exponents (in power atoms) are
+                # unchanged).
+                old_params_to_new_params = dgp2dcp.canon_methods._parameters
+                for param in self.parameters():
+                    if param in old_params_to_new_params:
+                        old_params_to_new_params[param].value = np.log(
+                            param.value)
             data, solver_inverse_data = solving_chain.solver.apply(
                 self._cache.param_prog)
             inverse_data = self._cache.inverse_data + [solver_inverse_data]
@@ -536,7 +573,7 @@ class Problem(u.Canonical):
 
         return candidates
 
-    def _construct_chain(self, solver=None, gp=False):
+    def _construct_chain(self, solver=None, gp=False, enforce_dpp=False):
         """
         Construct the chains required to reformulate and solve the problem.
 
@@ -553,13 +590,16 @@ class Problem(u.Canonical):
         gp : bool, optional
             If True, the problem is parsed as a Disciplined Geometric Program
             instead of as a Disciplined Convex Program.
+        enforce_dpp : bool, optional
+            Whether to error on DPP violations.
 
         Returns
         -------
         A solving chain
         """
         candidate_solvers = self._find_candidate_solvers(solver=solver, gp=gp)
-        return construct_solving_chain(self, candidate_solvers, gp=gp)
+        return construct_solving_chain(self, candidate_solvers, gp=gp,
+                                       enforce_dpp=enforce_dpp)
 
     def _invalidate_cache(self):
         self._cache_key = None
@@ -571,7 +611,7 @@ class Problem(u.Canonical):
                solver=None,
                warm_start=True,
                verbose=False,
-               gp=False, qcp=False, requires_grad=False, **kwargs):
+               gp=False, qcp=False, requires_grad=False, enforce_dpp=False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -595,6 +635,9 @@ class Problem(u.Canonical):
             perturbations to the variables by calling `.derivative()`. When
             True, the solver must be SCS, and gp, qcp must be False;
             a DPPError is thrown when problem is not DPP.
+        enforce_dpp : bool, optional
+            When True, a DPPError will be thrown when trying to solve a non-DPP
+            problem (instead of just a warning). Defaults to False.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -614,6 +657,7 @@ class Problem(u.Canonical):
                     "values before solving a problem." % parameter.name())
 
         if requires_grad:
+            # TODO(akshayka): Implement derivative/backward for DGP.
             if not self.is_dpp():
                 raise error.DPPError("Problem is not DPP (when requires_grad "
                                      "is True, problem must be DPP).")
@@ -648,7 +692,8 @@ class Problem(u.Canonical):
                 self.unpack(chain.retrieve(soln))
                 return self.value
 
-        data, solving_chain, inverse_data = self.get_problem_data(solver, gp)
+        data, solving_chain, inverse_data = self.get_problem_data(
+            solver, gp, enforce_dpp)
         solution = solving_chain.solve_via_data(
             self, data, warm_start, verbose, kwargs)
         self.unpack_results(solution, solving_chain, inverse_data)
