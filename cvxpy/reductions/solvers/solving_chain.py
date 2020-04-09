@@ -6,13 +6,16 @@ from cvxpy.constraints import ExpCone, PSD, SOC, \
                               NonPos, Inequality, Equality, Zero
 from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
-from cvxpy.reductions import (Chain, Dcp2Cone,
-                              FlipObjective, Dgp2Dcp, Qp2SymbolicQp,
-                              CvxAttr2Constr, Complex2Real,
-                              ConeMatrixStuffing, EvalParams,
-                              QpMatrixStuffing)
+from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
+from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
+from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
+from cvxpy.reductions.eval_params import EvalParams
+from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import defines as slv_def
@@ -69,7 +72,7 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
     reductions = []
     # TODO Handle boolean constraints.
     if complex2real.accepts(problem):
-        reductions += [Complex2Real()]
+        reductions += [complex2real.Complex2Real()]
     if gp:
         reductions += [Dgp2Dcp()]
 
@@ -98,7 +101,7 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
         reductions += [FlipObjective()]
 
     if _solve_as_qp(problem, candidates):
-        reductions += [CvxAttr2Constr(), Qp2SymbolicQp()]
+        reductions += [CvxAttr2Constr(), qp2symbolic_qp.Qp2SymbolicQp()]
     else:
         # Canonicalize it to conic problem.
         if not candidates['conic_solvers']:
