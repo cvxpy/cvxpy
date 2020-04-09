@@ -17,7 +17,7 @@ import cvxpy.settings as s
 import cvxpy.error as error
 import cvxpy.problems as problems
 from cvxpy.problems.objective import Minimize
-import cvxpy.reductions.solution as solution_module
+from cvxpy.reductions.solution import failure_solution
 
 
 def _lower_problem(problem):
@@ -168,7 +168,7 @@ def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
     if _infeasible(lowered_feas):
         if verbose:
             print("Problem is infeasible.")
-        return solution_module.failure_solution(s.INFEASIBLE)
+        return failure_solution(s.INFEASIBLE)
 
     if low is None or high is None:
         if verbose:
