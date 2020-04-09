@@ -17,7 +17,9 @@ limitations under the License.
 from cvxpy import problems
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.expression import Expression
-from cvxpy.reductions import InverseData, Reduction, Solution
+from cvxpy.reductions.inverse_data import InverseData
+from cvxpy.reductions.reduction import Reduction
+from cvxpy.reductions.solution import Solution
 
 
 class Canonicalization(Reduction):
