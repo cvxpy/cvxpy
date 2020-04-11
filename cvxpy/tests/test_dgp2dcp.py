@@ -647,9 +647,8 @@ class TestDgpUnderDpp(BaseTest):
 
     def test_non_dpp_problem_raises_error(self):
         alpha = cvxpy.Parameter(pos=True, value=1.0)
-        beta = cvxpy.Parameter(value=1.0)
         x = cvxpy.Variable(pos=True)
-        dgp = cvxpy.Problem(cvxpy.Minimize(x**(alpha*beta)), [x == alpha])
+        dgp = cvxpy.Problem(cvxpy.Minimize((alpha*x)**(alpha)), [x == alpha])
         self.assertTrue(dgp.objective.is_dgp())
         self.assertFalse(dgp.objective.is_dpp('dgp'))
 

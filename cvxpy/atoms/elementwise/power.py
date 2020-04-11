@@ -5,7 +5,6 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -16,7 +15,6 @@ limitations under the License.
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.expressions import cvxtypes
-from cvxpy.expressions.constants.parameter import is_param_free, is_param_log_log_affine
 from cvxpy.utilities.power_tools import is_power2
 import cvxpy.utilities as u
 import numpy as np
@@ -97,14 +95,15 @@ class power(Elementwise):
     def __init__(self, x, p, max_denom=1024):
         self._p_orig = p
         self.p = cvxtypes.expression().cast_to_const(p)
-        if not self.p.is_constant():
-            raise ValueError("Argument `p` to power must be a constant.")
+        if not (isinstance(self.p, cvxtypes.constant()) or
+                isinstance(self.p, cvxtypes.parameter())):
+            raise ValueError("The exponent `p` must be either a Constant or "
+                             "a Parameter; received ", type(p))
         self.max_denom = max_denom
         super(power, self).__init__(x)
 
     @Elementwise.numpy_numeric
-    def numeric(self, values):
-        return np.power(values[0], float(self.p.value))
+    def numeric(self, values): return np.power(values[0], float(self.p.value))
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -119,12 +118,17 @@ class power(Elementwise):
     def is_atom_convex(self):
         """Is the atom convex?
         """
+        # Parametrized powers are not allowed for DCP (curvature analysis
+        # depends on the value of the power, not just the sign).
+        #
         # p == 0 is affine here.
         return _is_const(self.p) and (self.p.value <= 0 or self.p.value >= 1)
 
     def is_atom_concave(self):
         """Is the atom concave?
         """
+        # Parametrized powers are not allowed for DCP.
+        #
         # p == 0 is affine here.
         return _is_const(self.p) and 0 <= self.p.value <= 1
 
@@ -157,17 +161,14 @@ class power(Elementwise):
             # analysis methods.
             #
             # A power x^p is log-log convex (actually, affine) as long as
-            # the argument x does not have parameters, and the exponent is
-            # either a Constant or a Parameter.
+            # at least one of x and p do not contain parameters.
+            #
+            # Note by construction (see __init__, p is either a Constant or
+            # a Parameter, ie, either isinstance(p, Constant) or isinstance(p,
+            # Parameter)).
             x = self.args[0]
             p = self.p
-            if is_param_free(x) and (
-                    _is_const(self.p) or isinstance(p, cvxtypes.parameter())):
-                return True
-            elif is_param_log_log_affine(x) and not isinstance(p, cvxtypes.parameter()):
-                return True
-            else:
-                return False
+            return not (x.parameters() and p.parameters())
         else:
             return True
 
