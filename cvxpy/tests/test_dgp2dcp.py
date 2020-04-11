@@ -434,10 +434,22 @@ class TestDgp2Dcp(BaseTest):
     def test_paper_example_eye_minus_inv(self):
         X = cvxpy.Variable((2, 2), pos=True)
         obj = cvxpy.Minimize(cvxpy.trace(cvxpy.eye_minus_inv(X)))
-        constr = [cvxpy.geo_mean(cvxpy.diag(X)) == 0.1]
+        constr = [cvxpy.geo_mean(cvxpy.diag(X)) == 0.1,
+                  cvxpy.geo_mean(cvxpy.hstack([X[0, 1], X[1, 0]])) == 0.1]
         problem = cvxpy.Problem(obj, constr)
-        # smoke test.
         problem.solve(gp=True, solver="ECOS")
+        np.testing.assert_almost_equal(X.value, 0.1*np.ones((2, 2)), decimal=3)
+        self.assertAlmostEqual(problem.value, 2.25)
+
+    def test_simpler_eye_minus_inv(self):
+        X = cvxpy.Variable((2, 2), pos=True)
+        obj = cvxpy.Minimize(cvxpy.trace(cvxpy.eye_minus_inv(X)))
+        constr = [cvxpy.diag(X) == 0.1,
+                  cvxpy.hstack([X[0, 1], X[1, 0]]) == 0.1]
+        problem = cvxpy.Problem(obj, constr)
+        problem.solve(gp=True, solver="ECOS")
+        np.testing.assert_almost_equal(X.value, 0.1*np.ones((2, 2)), decimal=3)
+        self.assertAlmostEqual(problem.value, 2.25)
 
     def test_paper_example_exp_log(self):
         x = cvxpy.Variable(pos=True)
