@@ -5,11 +5,11 @@ from cvxpy.tests.base_test import BaseTest
 import numpy as np
 
 
-def perturbcheck(problem, gp=False, delta=1e-5, atol=1e-8, eps=1e-10):
+def perturbcheck(problem, gp=False, delta=1e-5, atol=1e-8, eps=1e-10, **kwargs):
     """Checks the analytical derivative against a numerical computation."""
     np.random.seed(0)
     if not problem.parameters():
-        problem.solve(gp=gp, requires_grad=True, eps=eps)
+        problem.solve(gp=gp, requires_grad=True, eps=eps, **kwargs)
         problem.derivative()
         for variable in problem.variables():
             np.testing.assert_equal(variable.delta, 0.0)
@@ -17,7 +17,7 @@ def perturbcheck(problem, gp=False, delta=1e-5, atol=1e-8, eps=1e-10):
     # Compute perturbations analytically
     for param in problem.parameters():
         param.delta = delta * np.random.randn(*param.shape)
-    problem.solve(gp=gp, requires_grad=True, eps=eps)
+    problem.solve(gp=gp, requires_grad=True, eps=eps, **kwargs)
     problem.derivative()
     variable_values = [v.value for v in problem.variables()]
     deltas = [v.delta for v in problem.variables()]
@@ -27,7 +27,7 @@ def perturbcheck(problem, gp=False, delta=1e-5, atol=1e-8, eps=1e-10):
     for param in problem.parameters():
         old_values[param] = param.value
         param.value += param.delta
-    problem.solve(cp.SCS, gp=gp, eps=eps)
+    problem.solve(cp.SCS, gp=gp, eps=eps, **kwargs)
     num_deltas = [
         v.value - old_value for (v, old_value)
         in zip(problem.variables(), variable_values)]
@@ -39,7 +39,7 @@ def perturbcheck(problem, gp=False, delta=1e-5, atol=1e-8, eps=1e-10):
         param.value = old_values[param]
 
 
-def gradcheck(problem, gp=False, delta=1e-5, atol=1e-5, eps=1e-10):
+def gradcheck(problem, gp=False, delta=1e-5, atol=1e-5, eps=1e-10, **kwargs):
     """Checks the analytical adjoint derivative against a numerical computation."""
     size = sum(p.size for p in problem.parameters())
     values = np.zeros(size)
@@ -53,12 +53,12 @@ def gradcheck(problem, gp=False, delta=1e-5, atol=1e-5, eps=1e-10):
     for i in range(values.size):
         old = values[i]
         values[i] = old + 0.5 * delta
-        problem.solve(cp.SCS, gp=gp, eps=eps)
-        left_solns = [x.value for x in problem.variables()]
+        problem.solve(cp.SCS, gp=gp, eps=eps, **kwargs)
+        left_solns = np.concatenate([x.value.flatten() for x in problem.variables()])
 
         values[i] = old - 0.5 * delta
-        problem.solve(cp.SCS, gp=gp, eps=eps)
-        right_solns = [x.value for x in problem.variables()]
+        problem.solve(cp.SCS, gp=gp, eps=eps, **kwargs)
+        right_solns = np.concatenate([x.value.flatten() for x in problem.variables()])
 
         numgrad[i] = (np.sum(left_solns) - np.sum(right_solns)) / delta
         values[i] = old
@@ -73,7 +73,7 @@ def gradcheck(problem, gp=False, delta=1e-5, atol=1e-5, eps=1e-10):
     for x in problem.variables():
         old_gradients[x] = x.gradient
         x.gradient = None
-    problem.solve(requires_grad=True, gp=gp, eps=eps)
+    problem.solve(requires_grad=True, gp=gp, eps=eps, **kwargs)
     problem.backward()
 
     for param, numgrad in zip(problem.parameters(), numgrads):
@@ -508,3 +508,108 @@ class TestBackwardDgp(BaseTest):
         problem = cp.Problem(obj, constr)
         gradcheck(problem, gp=True, atol=1e-3)
         perturbcheck(problem, gp=True, atol=1e-3)
+
+    def test_matrix_constraint(self):
+        X = cp.Variable((2, 2), pos=True)
+        a = cp.Parameter(pos=True, value=0.1)
+        obj = cp.Minimize(cp.geo_mean(cp.vec(X)))
+        constr = [cp.diag(X) == a,
+                  cp.hstack([X[0, 1], X[1, 0]]) == 2*a]
+        problem = cp.Problem(obj, constr)
+        gradcheck(problem, gp=True)
+        perturbcheck(problem, gp=True)
+
+    def test_paper_example_exp_log(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        a = cp.Parameter(pos=True, value=0.2)
+        b = cp.Parameter(pos=True, value=0.3)
+        obj = cp.Minimize(x * y)
+        constr = [cp.exp(a*y/x) <= cp.log(b*y)]
+        problem = cp.Problem(obj, constr)
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
+
+    def test_matrix_completion(self):
+        X = cp.Variable((3, 3), pos=True)
+        # TODO(akshayka): pf matrix completion not differentiable ...?
+        # I could believe that ... or a bug?
+        obj = cp.Minimize(cp.sum(X))
+        known_indices = tuple(zip(*[[0, 0], [0, 2], [1, 1], [2, 0], [2, 1]]))
+        known_values = np.array([1.0, 1.9, 0.8, 3.2, 5.9])
+        param = cp.Parameter(shape=known_values.shape, pos=True,
+                             value=known_values)
+        beta = cp.Parameter(pos=True, value=1.0)
+        constr = [
+          X[known_indices] == param,
+          X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == beta,
+        ]
+        problem = cp.Problem(obj, constr)
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-4)
+
+    def test_rank_one_nmf(self):
+        X = cp.Variable((3, 3), pos=True)
+        x = cp.Variable((3,), pos=True)
+        y = cp.Variable((3,), pos=True)
+        xy = cp.vstack([x[0] * y, x[1] * y, x[2] * y])
+        a = cp.Parameter(value=-1.0)
+        b = cp.Parameter(pos=True, shape=(6,),
+                         value=np.array([1.0, 1.9, 0.8, 3.2, 5.9, 1.0]))
+        R = cp.maximum(
+          cp.multiply(X, (xy) ** (a)),
+          cp.multiply(X ** (a), xy))
+        objective = cp.sum(R)
+        constraints = [
+          X[0, 0] == b[0],
+          X[0, 2] == b[1],
+          X[1, 1] == b[2],
+          X[2, 0] == b[3],
+          X[2, 1] == b[4],
+          x[0] * x[1] * x[2] == b[5],
+        ]
+        problem = cp.Problem(cp.Minimize(objective), constraints)
+        # SCS struggles to solves this problem (solved/inaccurate, unless
+        # max_iters is very high like 10000)
+        gradcheck(problem, gp=True, atol=1e-2)
+        perturbcheck(problem, gp=True, atol=1e-2)
+
+    def test_documentation_prob(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable(pos=True)
+        a = cp.Parameter(pos=True, value=4.0)
+        b = cp.Parameter(pos=True, value=2.0)
+        c = cp.Parameter(pos=True, value=10.0)
+        d = cp.Parameter(pos=True, value=1.0)
+
+        objective_fn = x * y * z
+        constraints = [
+          a * x * y * z + b * x * z <= c, x <= b*y, y <= b*x, z >= d]
+        problem = cp.Problem(cp.Maximize(objective_fn), constraints)
+        gradcheck(problem, gp=True, atol=1e-2)
+        perturbcheck(problem, gp=True, atol=1e-2)
+
+    def test_sum_squares_vector(self):
+        alpha = cp.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
+        beta = cp.Parameter(pos=True, value=20)
+        kappa = cp.Parameter(pos=True, value=10)
+        w = cp.Variable(2, pos=True)
+        h = cp.Variable(2, pos=True)
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(alpha + h)),
+                             [cp.multiply(w, h) >= beta,
+                              cp.sum(alpha + w) <= kappa])
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
+
+    def test_sum_matrix(self):
+        w = cp.Variable((2, 2), pos=True)
+        h = cp.Variable((2, 2), pos=True)
+        alpha = cp.Parameter(pos=True, value=1.0)
+        beta = cp.Parameter(pos=True, value=20)
+        kappa = cp.Parameter(pos=True, value=10)
+        problem = cp.Problem(cp.Minimize(alpha*cp.sum(h)),
+                             [cp.multiply(w, h) >= beta,
+                              cp.sum(w) <= kappa])
+        gradcheck(problem, gp=True, atol=1e-2)
+        perturbcheck(problem, gp=True, atol=1e-2)

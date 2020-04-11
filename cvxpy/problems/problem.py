@@ -794,6 +794,11 @@ class Problem(u.Canonical):
             dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
             old_params_to_new_params = dgp2dcp.canon_methods._parameters
             for param in self.parameters():
+                # Note: if param is an exponent of a power atom, then
+                # the parameter passes through unchanged to the Dcp program;
+                # if the param is also used elsewhere (not as an exponent), then
+                # param will also be in old_params_to_new_params. Therefore,
+                # param.gradient = dparams[param.id] (or 0) + 1/param*dparams[new_param.id]
                 grad = 0.0 if param.id not in dparams else dparams[param.id]
                 if param in old_params_to_new_params:
                     new_param = old_params_to_new_params[param]

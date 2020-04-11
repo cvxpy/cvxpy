@@ -648,13 +648,17 @@ class TestDgp(BaseTest):
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
         z = cp.Variable(pos=True)
+        a = cp.Parameter(pos=True, value=4.0)
+        b = cp.Parameter(pos=True, value=2.0)
+        c = cp.Parameter(pos=True, value=10.0)
+        d = cp.Parameter(pos=True, value=1.0)
 
         objective_fn = x * y * z
         constraints = [
-          4 * x * y * z + 2 * x * z <= 10, x <= 2*y, y <= 2*x, z >= 1]
+          a * x * y * z + b * x * z <= c, x <= b*y, y <= b*x, z >= d]
         problem = cp.Problem(cp.Maximize(objective_fn), constraints)
         # Smoke test.
-        problem.solve(SOLVER, gp=True)
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
 
     def test_sum_scalar(self):
         alpha = cp.Parameter(pos=True, value=1.0)
