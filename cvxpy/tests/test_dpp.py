@@ -1,10 +1,16 @@
+import warnings
+
 import cvxpy as cp
+import cvxpy.error as error
 from cvxpy.tests.base_test import BaseTest
 
 import numpy as np
 
 
-class TestDpp(BaseTest):
+SOLVER = cp.ECOS
+
+
+class TestDcp(BaseTest):
     def test_multiply_scalar_params_not_dpp(self):
         x = cp.Parameter()
         product = x * x
@@ -236,3 +242,501 @@ class TestDpp(BaseTest):
                        slack == y - z]
         problem = cp.Problem(objective, constraints)
         self.assertTrue(problem.is_dpp())
+
+
+class TestDgp(BaseTest):
+    def test_basic_equality_constraint(self):
+        alpha = cp.Parameter(pos=True, value=1.0)
+        x = cp.Variable(pos=True)
+        dgp = cp.Problem(cp.Minimize(x), [x == alpha])
+
+        self.assertTrue(dgp.objective.is_dgp(dpp=True))
+        self.assertTrue(dgp.constraints[0].is_dgp(dpp=True))
+        self.assertTrue(dgp.is_dgp(dpp=True))
+        dgp2dcp = cp.reductions.Dgp2Dcp(dgp)
+
+        dcp = dgp2dcp.reduce()
+        self.assertTrue(dcp.is_dpp())
+
+        dgp.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        alpha.value = 2.0
+        dgp.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 2.0)
+
+    def test_basic_inequality_constraint(self):
+        alpha = cp.Parameter(pos=True, value=1.0)
+        x = cp.Variable(pos=True)
+        constraint = [x + alpha <= x]
+        self.assertTrue(constraint[0].is_dgp(dpp=True))
+        self.assertTrue(cp.Problem(cp.Minimize(1), constraint).is_dgp(dpp=True))
+
+    def test_nonlla_equality_constraint_not_dpp(self):
+        alpha = cp.Parameter(pos=True, value=1.0)
+        x = cp.Variable(pos=True)
+        constraint = [x == x + alpha]
+        self.assertFalse(constraint[0].is_dgp(dpp=True))
+        self.assertFalse(cp.Problem(cp.Minimize(1), constraint).is_dgp(dpp=True))
+
+    def test_nonllcvx_inequality_constraint_not_dpp(self):
+        alpha = cp.Parameter(pos=True, value=1.0)
+        x = cp.Variable(pos=True)
+        constraint = [x <= x + alpha]
+        self.assertFalse(constraint[0].is_dgp(dpp=True))
+        self.assertFalse(cp.Problem(cp.Minimize(1), constraint).is_dgp(dpp=True))
+
+    def test_param_monomial_is_dpp(self):
+        alpha = cp.Parameter(pos=True)
+        beta = cp.Parameter(pos=True)
+        kappa = cp.Parameter(pos=True)
+
+        monomial = alpha**1.2 * beta**0.5 * kappa**3 * kappa**2
+        self.assertTrue(monomial.is_dgp(dpp=True))
+
+    def test_param_posynomial_is_dpp(self):
+        alpha = cp.Parameter(pos=True)
+        beta = cp.Parameter(pos=True)
+        kappa = cp.Parameter(pos=True)
+
+        monomial = alpha**1.2 * beta**0.5 * kappa**3 * kappa**2
+        posynomial = monomial + alpha**2 * beta**3
+        self.assertTrue(posynomial.is_dgp(dpp=True))
+
+    def test_mixed_monomial_is_dpp(self):
+        alpha = cp.Parameter(pos=True)
+        beta = cp.Variable(pos=True)
+        kappa = cp.Parameter(pos=True)
+        tau = cp.Variable(pos=True)
+
+        monomial = alpha**1.2 * beta**0.5 * kappa**3 * kappa**2 * tau
+        self.assertTrue(monomial.is_dgp(dpp=True))
+
+    def test_mixed_posynomial_is_dpp(self):
+        alpha = cp.Parameter(pos=True)
+        beta = cp.Variable(pos=True)
+        kappa = cp.Parameter(pos=True)
+        tau = cp.Variable(pos=True)
+
+        monomial = alpha**1.2 * beta**0.5 * kappa**3 * kappa**2 * tau
+        posynomial = (monomial + monomial)**3
+        self.assertTrue(posynomial.is_dgp(dpp=True))
+
+    def test_nested_power_not_dpp(self):
+        alpha = cp.Parameter(value=1.0)
+        x = cp.Variable(pos=True)
+
+        pow1 = x**alpha
+        self.assertTrue(pow1.is_dgp(dpp=True))
+
+        pow2 = pow1**alpha
+        self.assertFalse(pow2.is_dgp(dpp=True))
+
+    def test_non_dpp_problem_raises_error(self):
+        alpha = cp.Parameter(pos=True, value=1.0)
+        x = cp.Variable(pos=True)
+        dgp = cp.Problem(cp.Minimize((alpha*x)**(alpha)), [x == alpha])
+        self.assertTrue(dgp.objective.is_dgp())
+        self.assertFalse(dgp.objective.is_dgp(dpp=True))
+
+        with self.assertRaises(error.DPPError):
+            dgp.solve(gp=True, enforce_dpp=True)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            dgp.solve(gp=True, enforce_dpp=False)
+            self.assertAlmostEqual(x.value, 1.0)
+
+    def test_basic_monomial(self):
+        alpha = cp.Parameter(pos=True, value=1.0)
+        beta = cp.Parameter(pos=True, value=2.0)
+        x = cp.Variable(pos=True)
+        monomial = alpha*beta*x
+        problem = cp.Problem(cp.Minimize(monomial), [x == alpha])
+
+        self.assertTrue(problem.is_dgp())
+        self.assertTrue(problem.is_dgp(dpp=True))
+        self.assertFalse(problem.is_dpp('dcp'))
+
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(problem.value, 2.0)
+
+        alpha.value = 3.0
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 3.0)
+        # 3 * 2 * 3 == 18
+        self.assertAlmostEqual(problem.value, 18.0)
+
+    def test_basic_posynomial(self):
+        alpha = cp.Parameter(pos=True, value=1.0)
+        beta = cp.Parameter(pos=True, value=2.0)
+        kappa = cp.Parameter(pos=True, value=3.0)
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+
+        monomial_one = alpha*beta*x
+        monomial_two = beta*kappa*x*y
+        posynomial = monomial_one + monomial_two
+        problem = cp.Problem(cp.Minimize(posynomial),
+                             [x == alpha, y == beta])
+
+        self.assertTrue(problem.is_dgp())
+        self.assertTrue(problem.is_dgp(dpp=True))
+        self.assertFalse(problem.is_dpp('dcp'))
+
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 2.0)
+        # 1*2*1 + 2*3*1*2 == 2 + 12 == 14
+        self.assertAlmostEqual(problem.value, 14.0, places=3)
+
+        alpha.value = 4.0
+        beta.value = 5.0
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(x.value, 4.0)
+        self.assertAlmostEqual(y.value, 5.0)
+        # 4*5*4 + 5*3*4*5 == 80 + 300 == 380
+        self.assertAlmostEqual(problem.value, 380.0, places=3)
+
+    def test_basic_gp(self):
+        x, y, z = cp.Variable((3,), pos=True)
+        a = cp.Parameter(pos=True, value=2.0)
+        b = cp.Parameter(pos=True, value=1.0)
+        constraints = [a*x*y + a*x*z + a*y*z <= b, x >= a*y]
+        problem = cp.Problem(cp.Minimize(1/(x*y*z)), constraints)
+        self.assertTrue(problem.is_dgp(dpp=True))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(15.59, problem.value, places=2)
+
+    def test_maximum(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+
+        alpha = cp.Parameter(value=0.5)
+        beta = cp.Parameter(pos=True, value=3.0)
+        kappa = cp.Parameter(pos=True, value=1.0)
+        tau = cp.Parameter(pos=True, value=4.0)
+
+        prod1 = x*y**alpha
+        prod2 = beta * x*y**alpha
+        obj = cp.Minimize(cp.maximum(prod1, prod2))
+        constr = [x == kappa, y == tau]
+
+        problem = cp.Problem(obj, constr)
+        self.assertTrue(problem.is_dgp(dpp=True))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        # max(1*2, 3*1*2) = 6
+        self.assertAlmostEqual(problem.value, 6.0, places=4)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+        alpha.value = 2
+        beta.value = 0.5
+        kappa.value = 2.0  # x
+        tau.value = 3.0    # y
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        # max(2*9, 0.5*2*9) == 18
+        self.assertAlmostEqual(problem.value, 18.0, places=4)
+        self.assertAlmostEqual(x.value, 2.0)
+        self.assertAlmostEqual(y.value, 3.0)
+
+    def test_max(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+
+        alpha = cp.Parameter(value=0.5)
+        beta = cp.Parameter(pos=True, value=3.0)
+        kappa = cp.Parameter(pos=True, value=1.0)
+        tau = cp.Parameter(pos=True, value=4.0)
+
+        prod1 = x*y**alpha
+        prod2 = beta * x*y**alpha
+        obj = cp.Minimize(cp.max(cp.hstack([prod1, prod2])))
+        constr = [x == kappa, y == tau]
+
+        problem = cp.Problem(obj, constr)
+        self.assertTrue(problem.is_dgp(dpp=True))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        # max(1*2, 3*1*2) = 6
+        self.assertAlmostEqual(problem.value, 6.0, places=4)
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+        alpha.value = 2
+        beta.value = 0.5
+        kappa.value = 2.0  # x
+        tau.value = 3.0    # y
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        # max(2*9, 0.5*2*9) == 18
+        self.assertAlmostEqual(problem.value, 18.0, places=4)
+        self.assertAlmostEqual(x.value, 2.0)
+        self.assertAlmostEqual(y.value, 3.0)
+
+    def test_param_in_exponent_and_elsewhere(self):
+        alpha = cp.Parameter(pos=True, value=1.0, name='alpha')
+        x = cp.Variable(pos=True)
+        problem = cp.Problem(cp.Minimize(x**alpha), [x == alpha])
+
+        self.assertTrue(problem.is_dgp(dpp=True))
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 1.0)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        # re-solve (which goes through a separate code path)
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 1.0)
+        self.assertAlmostEqual(x.value, 1.0)
+
+        alpha.value = 3.0
+        problem.solve(gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 27.0)
+        self.assertAlmostEqual(x.value, 3.0)
+
+    def test_minimum(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+
+        alpha = cp.Parameter(pos=True, value=1.0, name='alpha')
+        beta = cp.Parameter(pos=True, value=3.0, name='beta')
+        prod1 = x * y**alpha
+        prod2 = beta * x * y**alpha
+        posy = prod1 + prod2
+        obj = cp.Maximize(cp.minimum(prod1, prod2, 1/posy))
+        constr = [x == alpha, y == 4.0]
+
+        dgp = cp.Problem(obj, constr)
+        dgp.solve(SOLVER, gp=True, enforce_dpp=True)
+        # prod1 = 1*4, prod2 = 3*4 = 12, 1/posy = 1/(3 +12)
+        self.assertAlmostEqual(dgp.value, 1.0 / (4.0 + 12.0))
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+        alpha.value = 2.0
+        # prod1 = 2*16, prod2 = 3*2*16 = 96, 1/posy = 1/(32 +96)
+        dgp.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(dgp.value, 1.0 / (32.0 + 96.0))
+        self.assertAlmostEqual(x.value, 2.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+    def test_min(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+
+        alpha = cp.Parameter(pos=True, value=1.0, name='alpha')
+        beta = cp.Parameter(pos=True, value=3.0, name='beta')
+        prod1 = x * y**alpha
+        prod2 = beta * x * y**alpha
+        posy = prod1 + prod2
+        obj = cp.Maximize(cp.min(cp.hstack([prod1, prod2, 1/posy])))
+        constr = [x == alpha, y == 4.0]
+
+        dgp = cp.Problem(obj, constr)
+        dgp.solve(SOLVER, gp=True, enforce_dpp=True)
+        # prod1 = 1*4, prod2 = 3*4 = 12, 1/posy = 1/(3 +12)
+        self.assertAlmostEqual(dgp.value, 1.0 / (4.0 + 12.0))
+        self.assertAlmostEqual(x.value, 1.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+        alpha.value = 2.0
+        # prod1 = 2*16, prod2 = 3*2*16 = 96, 1/posy = 1/(32 +96)
+        dgp.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(dgp.value, 1.0 / (32.0 + 96.0))
+        self.assertAlmostEqual(x.value, 2.0)
+        self.assertAlmostEqual(y.value, 4.0)
+
+    def test_div(self):
+        alpha = cp.Parameter(pos=True, value=3.0)
+        beta = cp.Parameter(pos=True, value=1.0)
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+
+        p = cp.Problem(cp.Minimize(x * y), [y/alpha <= x, y >= beta])
+        self.assertAlmostEqual(p.solve(SOLVER, gp=True, enforce_dpp=True),
+                               1.0 / 3.0)
+        self.assertAlmostEqual(x.value, 1.0 / 3.0)
+        self.assertAlmostEqual(y.value, 1.0)
+
+        beta.value = 2.0
+        p = cp.Problem(cp.Minimize(x * y), [y/alpha <= x, y >= beta])
+        self.assertAlmostEqual(p.solve(SOLVER, gp=True, enforce_dpp=True),
+                               4.0 / 3.0)
+        self.assertAlmostEqual(x.value, 2.0 / 3.0)
+        self.assertAlmostEqual(y.value, 2.0)
+
+    def test_one_minus_pos(self):
+        x = cp.Variable(pos=True)
+        obj = cp.Maximize(x)
+        alpha = cp.Parameter(pos=True, value=0.1)
+        constr = [cp.one_minus_pos(alpha + x) >= 0.4]
+        problem = cp.Problem(obj, constr)
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 0.5)
+        self.assertAlmostEqual(x.value, 0.5)
+
+        alpha.value = 0.4
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 0.2)
+        self.assertAlmostEqual(x.value, 0.2)
+
+    def test_pf_matrix_completion(self):
+        X = cp.Variable((3, 3), pos=True)
+        obj = cp.Minimize(cp.pf_eigenvalue(X))
+        known_indices = tuple(zip(*[[0, 0], [0, 2], [1, 1], [2, 0], [2, 1]]))
+        known_values = np.array([1.0, 1.9, 0.8, 3.2, 5.9])
+        constr = [
+          X[known_indices] == known_values,
+          X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == 1.0,
+        ]
+        problem = cp.Problem(obj, constr)
+        # smoke test.
+        problem.solve(SOLVER, gp=True)
+        optimal_value = problem.value
+
+        param = cp.Parameter(shape=known_values.shape, pos=True,
+                             value=0.5*known_values)
+        constr = [
+          X[known_indices] == param,
+          X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == 1.0,
+        ]
+        problem = cp.Problem(obj, constr)
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+
+        # now change param to point to known_value, and check we recover
+        # the correct optimal value
+        param.value = known_values
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, optimal_value)
+
+    def test_rank_one_nmf(self):
+        X = cp.Variable((3, 3), pos=True)
+        x = cp.Variable((3,), pos=True)
+        y = cp.Variable((3,), pos=True)
+        xy = cp.vstack([x[0] * y, x[1] * y, x[2] * y])
+        R = cp.maximum(
+          cp.multiply(X, (xy) ** (-1.0)),
+          cp.multiply(X ** (-1.0), xy))
+        objective = cp.sum(R)
+        constraints = [
+          X[0, 0] == 1.0,
+          X[0, 2] == 1.9,
+          X[1, 1] == 0.8,
+          X[2, 0] == 3.2,
+          X[2, 1] == 5.9,
+          x[0] * x[1] * x[2] == 1.0,
+        ]
+        # smoke test.
+        prob = cp.Problem(cp.Minimize(objective), constraints)
+        prob.solve(SOLVER, gp=True)
+        optimal_value = prob.value
+
+        param = cp.Parameter(value=-2.0)
+        R = cp.maximum(
+          cp.multiply(X, (xy) ** (param)),
+          cp.multiply(X ** (param), xy))
+        objective = cp.sum(R)
+        prob = cp.Problem(cp.Minimize(objective), constraints)
+        prob.solve(SOLVER, gp=True, enforce_dpp=True)
+
+        # now change param to point to known_value, and check we recover the
+        # correct optimal value
+        param.value = -1.0
+        prob.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(prob.value, optimal_value)
+
+    def test_documentation_prob(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable(pos=True)
+
+        objective_fn = x * y * z
+        constraints = [
+          4 * x * y * z + 2 * x * z <= 10, x <= 2*y, y <= 2*x, z >= 1]
+        problem = cp.Problem(cp.Maximize(objective_fn), constraints)
+        # Smoke test.
+        problem.solve(SOLVER, gp=True)
+
+    def test_sum_scalar(self):
+        alpha = cp.Parameter(pos=True, value=1.0)
+        w = cp.Variable(pos=True)
+        h = cp.Variable(pos=True)
+        problem = cp.Problem(cp.Minimize(h),
+                             [w*h >= 8, cp.sum(alpha + w) <= 5])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 2)
+        self.assertAlmostEqual(h.value, 2)
+        self.assertAlmostEqual(w.value, 4)
+
+        alpha.value = 4.0
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 8)
+        self.assertAlmostEqual(h.value, 8)
+        self.assertAlmostEqual(w.value, 1)
+
+    def test_sum_vector(self):
+        alpha = cp.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
+        w = cp.Variable(2, pos=True)
+        h = cp.Variable(2, pos=True)
+        problem = cp.Problem(cp.Minimize(cp.sum(h)),
+                             [cp.multiply(w, h) >= 20,
+                              cp.sum(alpha + w) <= 10])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 10)
+        np.testing.assert_almost_equal(h.value, np.array([5, 5]))
+        np.testing.assert_almost_equal(w.value, np.array([4, 4]))
+
+        alpha.value = [4.0, 4.0]
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        self.assertAlmostEqual(problem.value, 40)
+        np.testing.assert_almost_equal(h.value, np.array([20, 20]), decimal=3)
+        np.testing.assert_almost_equal(w.value, np.array([1, 1]), decimal=3)
+
+    def test_sum_squares_vector(self):
+        alpha = cp.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
+        w = cp.Variable(2, pos=True)
+        h = cp.Variable(2, pos=True)
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(alpha + h)),
+                             [cp.multiply(w, h) >= 20,
+                              cp.sum(alpha + w) <= 10])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(w.value, np.array([4, 4]))
+        np.testing.assert_almost_equal(h.value, np.array([5, 5]))
+        self.assertAlmostEqual(problem.value, 6**2 + 6**2)
+
+        alpha.value = [4.0, 4.0]
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(w.value, np.array([1, 1]), decimal=3)
+        np.testing.assert_almost_equal(h.value, np.array([20, 20]), decimal=3)
+        np.testing.assert_almost_equal(problem.value, 24**2 + 24**2, decimal=3)
+
+    def test_sum_matrix(self):
+        w = cp.Variable((2, 2), pos=True)
+        h = cp.Variable((2, 2), pos=True)
+        alpha = cp.Parameter(pos=True, value=1.0)
+        problem = cp.Problem(cp.Minimize(alpha*cp.sum(h)),
+                             [cp.multiply(w, h) >= 10,
+                              cp.sum(w) <= 20])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 8)
+        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]))
+        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]))
+
+        alpha.value = 2.0
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 16)
+
+        w = cp.Variable((2, 2), pos=True)
+        h = cp.Parameter((2, 2), pos=True)
+        h.value = np.ones((2, 2))
+        alpha = cp.Parameter(pos=True, value=1.0)
+        problem = cp.Problem(cp.Minimize(cp.sum(h)), [w == h])
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 4.0)
+
+        h.value = 2.0 * np.ones((2, 2))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 8.0)
+
+        h.value = 3.0 * np.ones((2, 2))
+        problem.solve(SOLVER, gp=True, enforce_dpp=True)
+        np.testing.assert_almost_equal(problem.value, 12.0)

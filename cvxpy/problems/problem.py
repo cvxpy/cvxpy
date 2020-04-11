@@ -859,26 +859,28 @@ class Problem(u.Canonical):
         if gp:
             dgp2dcp = self._cache.solving_chain.get(Dgp2Dcp)
 
+        if not self.parameters():
+            for variable in self.variables():
+                variable.delta = np.zeros(variable.shape)
+            return
+
         for param in self.parameters():
-            if param.delta is None:
-                param_deltas[param.id] = np.zeros(param.shape)
-            elif gp:
+            delta = param.delta if param.delta is not None else np.zeros(param.shape)
+            if gp:
                 if param in dgp2dcp.canon_methods._parameters:
                     new_param_id = dgp2dcp.canon_methods._parameters[param].id
                 else:
                     new_param_id = param.id
                 param_deltas[new_param_id] = (
-                    1.0/param.value * np.asarray(param.delta,
-                                                 dtype=np.float64))
+                    1.0/param.value * np.asarray(delta, dtype=np.float64))
                 if param.id in param_prog.param_id_to_col:
                     # here, param generated a new parameter and also
-                    # passed through to the param cone prog unchanged (
-                    # because it was an exponent of a power)
-                    param_deltas[param.id] = np.asarray(param.delta,
+                    # passed through to the param cone prog unchanged
+                    # (because it was an exponent of a power)
+                    param_deltas[param.id] = np.asarray(delta,
                                                         dtype=np.float64)
             else:
-                param_deltas[param.id] = np.asarray(param.delta,
-                                                    dtype=np.float64)
+                param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
         dx, _, _ = D(-dA, db, dc)

@@ -250,8 +250,7 @@ class power(Elementwise):
         """Is the composition non-decreasing in argument idx?
         """
         if not _is_const(self.p):
-            # Cannot reason about monotonicity of parametrized power.
-            return False
+            return self.p.is_nonneg() and self.args[idx].is_nonneg()
 
         p = self.p_rational
         if 0 <= p <= 1:
@@ -268,8 +267,7 @@ class power(Elementwise):
         """Is the composition non-increasing in argument idx?
         """
         if not _is_const(self.p):
-            # Cannot reason about monotonicity of parametrized power.
-            return False
+            return self.p.is_nonpos() and self.args[idx].is_nonneg()
 
         p = self.p_rational
         if p <= 0:

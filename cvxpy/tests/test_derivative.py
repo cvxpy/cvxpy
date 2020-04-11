@@ -8,6 +8,12 @@ import numpy as np
 def perturbcheck(problem, gp=False, delta=1e-5, atol=1e-8, eps=1e-10):
     """Checks the analytical derivative against a numerical computation."""
     np.random.seed(0)
+    if not problem.parameters():
+        problem.solve(gp=gp, requires_grad=True, eps=eps)
+        problem.derivative()
+        for variable in problem.variables():
+            np.testing.assert_equal(variable.delta, 0.0)
+
     # Compute perturbations analytically
     for param in problem.parameters():
         param.delta = delta * np.random.randn(*param.shape)
@@ -430,3 +436,75 @@ class TestBackwardDgp(BaseTest):
         problem.derivative()
         self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(0.5) - 2*0.5)
         self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
+
+    def test_basic_gp(self):
+        x, y, z = cp.Variable((3,), pos=True)
+        a = cp.Parameter(pos=True, value=2.0)
+        b = cp.Parameter(pos=True, value=1.0)
+        constraints = [a*x*y + a*x*z + a*y*z <= b, x >= a*y]
+        problem = cp.Problem(cp.Minimize(1/(x*y*z)), constraints)
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
+
+    def test_maximum(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        a = cp.Parameter(value=0.5)
+        b = cp.Parameter(pos=True, value=3.0)
+        c = cp.Parameter(pos=True, value=1.0)
+        d = cp.Parameter(pos=True, value=4.0)
+
+        prod1 = x * y**a
+        prod2 = b * x * y**a
+        obj = cp.Minimize(cp.maximum(prod1, prod2))
+        constr = [x == c, y == d]
+        problem = cp.Problem(obj, constr)
+        gradcheck(problem, gp=True, atol=1e-4)
+        perturbcheck(problem, gp=True)
+
+    def test_max(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        a = cp.Parameter(value=0.5)
+        b = cp.Parameter(pos=True, value=1.5)
+        c = cp.Parameter(pos=True, value=3.0)
+        d = cp.Parameter(pos=True, value=1.0)
+
+        prod1 = b * x * y**a
+        prod2 = c * x * y**b
+        obj = cp.Minimize(cp.max(cp.hstack([prod1, prod2])))
+        constr = [x == d, y == b]
+        problem = cp.Problem(obj, constr)
+        gradcheck(problem, gp=True)
+        perturbcheck(problem, gp=True)
+
+    def test_div(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        a = cp.Parameter(pos=True, value=3)
+        b = cp.Parameter(pos=True, value=1)
+        problem = cp.Problem(cp.Minimize(x * y), [y/a <= x, y >= b])
+        gradcheck(problem, gp=True)
+        perturbcheck(problem, gp=True)
+
+    def test_one_minus_pos(self):
+        x = cp.Variable(pos=True)
+        a = cp.Parameter(pos=True, value=3)
+        b = cp.Parameter(pos=True, value=0.1)
+        obj = cp.Maximize(x)
+        constr = [cp.one_minus_pos(a*x) >= a*b]
+        problem = cp.Problem(obj, constr)
+        gradcheck(problem, gp=True, atol=1e-4)
+        perturbcheck(problem, gp=True, atol=1e-4)
+
+    def test_paper_example_one_minus_pos(self):
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        a = cp.Parameter(pos=True, value=2)
+        b = cp.Parameter(pos=True, value=1)
+        c = cp.Parameter(pos=True, value=3)
+        obj = cp.Minimize(x * y)
+        constr = [(y * cp.one_minus_pos(x / y)) ** a >= b, x >= y/c]
+        problem = cp.Problem(obj, constr)
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
