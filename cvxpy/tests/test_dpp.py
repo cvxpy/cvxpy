@@ -67,6 +67,22 @@ class TestDpp(BaseTest):
         self.assertTrue(product.is_dcp())
         self.assertTrue(product.is_dpp())
 
+    def test_nonlinear_equality_not_dpp(self):
+        x = cp.Variable()
+        a = cp.Parameter()
+        constraint = [x == cp.norm(a)]
+        self.assertFalse(constraint[0].is_dcp(dpp=True))
+        problem = cp.Problem(cp.Minimize(0), constraint)
+        self.assertFalse(problem.is_dcp(dpp=True))
+
+    def test_nonconvex_inequality_not_dpp(self):
+        x = cp.Variable()
+        a = cp.Parameter()
+        constraint = [x <= cp.norm(a)]
+        self.assertFalse(constraint[0].is_dcp(dpp=True))
+        problem = cp.Problem(cp.Minimize(0), constraint)
+        self.assertFalse(problem.is_dcp(dpp=True))
+
     def test_solve_multiply_param_plus_var_times_const(self):
         x = cp.Parameter()
         y = cp.Variable()
