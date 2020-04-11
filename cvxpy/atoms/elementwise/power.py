@@ -15,7 +15,8 @@ limitations under the License.
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.expressions import cvxtypes
-from cvxpy.utilities.power_tools import is_power2
+from cvxpy.utilities.power_tools import (is_power2, pow_mid,
+                                         pow_high, pow_neg)
 import cvxpy.utilities as u
 import numpy as np
 import scipy.sparse as sp
@@ -30,6 +31,10 @@ class power(Elementwise):
 
     If ``expr`` is a CVXPY expression, then ``expr**p``
     is equivalent to ``power(expr, p)``.
+
+    For DCP problems, the exponent `p` must be a numeric constant. For DGP
+    problems, `p` can also be a scalar Parameter.
+
 
     Specifically, the atom is given by the cases
 
@@ -47,10 +52,12 @@ class power(Elementwise):
           +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}.
         \end{array}
 
+
     .. note::
 
-        Generally, ``p`` cannot be represented exactly, so a rational,
-        i.e., fractional, **approximation** must be made.
+        For DCP problems, ``p`` cannot be represented exactly, so a rational,
+        i.e., fractional, **approximation** must be made. (No such approximation
+        is made for DGP problems.)
 
         Internally, ``power`` computes a rational approximation
         to ``p`` with a denominator up to ``max_denom``.
@@ -59,6 +66,28 @@ class power(Elementwise):
         When ``p`` is an ``int`` or ``Fraction`` object, the approximation
         is usually **exact**.
 
+    .. note::
+
+        The final domain, sign, monotonicity, and curvature of the ``power`` atom
+        are determined by the rational approximation to ``p``, **not** the input parameter ``p``.
+
+        For example,
+
+        >>> from cvxpy import Variable, power
+        >>> x = Variable()
+        >>> g = power(x, 1.001)
+        >>> g.p
+        Fraction(1001, 1000)
+        >>> g
+        Expression(CONVEX, POSITIVE, (1, 1))
+        results in a convex atom with implicit constraint :math:`x \geq 0`, while
+        >>> g = power(x, 1.0001)
+        >>> g.p
+        1
+        >>> g
+        Expression(AFFINE, UNKNOWN, (1, 1))
+
+        results in an affine atom with no constraint on ``x``.
 
     - When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
       of the function with full domain,
@@ -100,10 +129,45 @@ class power(Elementwise):
             raise ValueError("The exponent `p` must be either a Constant or "
                              "a Parameter; received ", type(p))
         self.max_denom = max_denom
+
+        self.p_rational = None
+        if isinstance(self.p, cvxtypes.constant()):
+            # Compute a rational approximation to p, for DCP (DGP doesn't need
+            # an approximation).
+
+            if not isinstance(self._p_orig, cvxtypes.expression()):
+                # converting to a CVXPY Constant loses the dtype (eg, int),
+                # so fetch the original exponent when possible
+                p = self._p_orig
+            else:
+                p = self.p.value
+            # how we convert p to a rational depends on the branch of the function
+            if p > 1:
+                p, w = pow_high(p, max_denom)
+            elif 0 < p < 1:
+                p, w = pow_mid(p, max_denom)
+            elif p < 0:
+                p, w = pow_neg(p, max_denom)
+
+            # note: if, after making the rational approximation, p ends up
+            # being 0 or 1, we default to using the 0 or 1 behavior of the
+            # atom, which affects the curvature, domain, etc... maybe
+            # unexpected behavior to the user if they put in 1.00001?
+            if p == 1:
+                # in case p is a fraction equivalent to 1
+                p = 1
+                w = None
+            if p == 0:
+                p = 0
+                w = None
+
+            self.p_rational, self.w = p, w
+            self.approx_error = float(abs(self.p_rational - p))
         super(power, self).__init__(x)
 
     @Elementwise.numpy_numeric
-    def numeric(self, values): return np.power(values[0], float(self.p.value))
+    def numeric(self, values):
+        return np.power(values[0], float(self.p.value))
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -189,11 +253,7 @@ class power(Elementwise):
             # Cannot reason about monotonicity of parametrized power.
             return False
 
-        if not isinstance(self._p_orig, cvxtypes.expression()):
-            p = self._p_orig
-        else:
-            p = self.p.value
-
+        p = self.p_rational
         if 0 <= p <= 1:
             return True
         elif p > 1:
@@ -207,12 +267,15 @@ class power(Elementwise):
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        if self.p.is_nonpos():
-            # disallow parameters
-            return True
+        if not _is_const(self.p):
+            # Cannot reason about monotonicity of parametrized power.
+            return False
 
-        elif _is_const(self.p) and self._p_orig > 1:
-            if is_power2(self._p_orig):
+        p = self.p_rational
+        if p <= 0:
+            return True
+        elif p > 1:
+            if is_power2(p):
                 return self.args[idx].is_nonpos()
             else:
                 return False
@@ -223,11 +286,12 @@ class power(Elementwise):
         if not _is_const(self.p):
             return False
 
-        if self.p.value == 0:
+        p = self.p_rational
+        if p == 0:
             return True
-        elif self.p.value == 1:
+        elif p == 1:
             return self.args[0].is_quadratic()
-        elif self.p.value == 2:
+        elif p == 2:
             return self.args[0].is_affine()
         else:
             return self.args[0].is_constant()
@@ -237,11 +301,12 @@ class power(Elementwise):
             # disallow parameters
             return False
 
-        if self.p.value == 0:
+        p = self.p_rational
+        if p == 0:
             return True
-        elif self.p.value == 1:
+        elif p == 1:
             return self.args[0].is_qpwa()
-        elif self.p.value == 2:
+        elif p == 2:
             return self.args[0].is_pwl()
         else:
             return self.args[0].is_constant()
@@ -260,8 +325,8 @@ class power(Elementwise):
         rows = self.args[0].size
         cols = self.size
 
-        if not isinstance(self._p_orig, cvxtypes.expression()):
-            p = self._p_orig
+        if self.p_rational is not None:
+            p = self.p_rational
         elif p.value is not None:
             p = self.p.value
         else:
