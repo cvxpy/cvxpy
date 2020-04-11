@@ -16,6 +16,7 @@ limitations under the License.
 
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import scopes
 import numpy as np
 
 
@@ -105,21 +106,16 @@ class SOC(Constraint):
         cone_size = 1 + self.args[1].shape[self.axis]
         return [cone_size] * self.num_cones()
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """An SOC constraint is DCP if each of its arguments is affine.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         return False
-
-    def is_dpp(self, context='dcp'):
-        if context.lower() == 'dcp':
-            return self.is_dcp() and all(arg.is_dpp(context) for arg in self.args)
-        elif context.lower() == 'dgp':
-            return False
-        else:
-            raise ValueError("Unsupported context ", context)
 
     def is_dqcp(self):
         return self.is_dcp()

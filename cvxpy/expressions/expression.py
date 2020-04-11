@@ -20,6 +20,7 @@ import warnings
 from cvxpy import error
 from cvxpy.constraints import Equality, Inequality, PSD
 from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import scopes
 import cvxpy.utilities.performance_utils as perf
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
@@ -169,12 +170,6 @@ class Expression(u.Canonical):
         return 0 in self.shape or all(
             arg.is_constant() for arg in self.args)
 
-    @abc.abstractmethod
-    def is_dpp(self, context='dcp'):
-        """The expression is a disciplined parameterized expression.
-        """
-        return NotImplemented
-
     @perf.compute_once
     def is_affine(self):
         """Is the expression affine?
@@ -194,7 +189,7 @@ class Expression(u.Canonical):
         return NotImplemented
 
     @perf.compute_once
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """Checks whether the Expression is DCP.
 
         Returns
@@ -202,6 +197,9 @@ class Expression(u.Canonical):
         bool
             True if the Expression is DCP, False otherwise.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return self.is_convex() or self.is_concave()
         return self.is_convex() or self.is_concave()
 
     def is_log_log_constant(self):
@@ -234,7 +232,7 @@ class Expression(u.Canonical):
         """
         return NotImplemented
 
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         """Checks whether the Expression is log-log DCP.
 
         Returns
@@ -242,7 +240,16 @@ class Expression(u.Canonical):
         bool
             True if the Expression is log-log DCP, False otherwise.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return self.is_log_log_convex() or self.is_log_log_concave()
         return self.is_log_log_convex() or self.is_log_log_concave()
+
+    @abc.abstractmethod
+    def is_dpp(self, context='dcp'):
+        """The expression is a disciplined parameterized expression.
+        """
+        return NotImplemented
 
     def is_quasiconvex(self):
         return self.is_convex()

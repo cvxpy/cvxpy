@@ -141,38 +141,18 @@ class Problem(u.Canonical):
         return self._constraints[:]
 
     @perf.compute_once
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """Does the problem satisfy DCP rules?
         """
         return all(
-          expr.is_dcp() for expr in self.constraints + [self.objective])
+          expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def _is_dpp_dcp(self):
-        return all(
-          expr.is_dpp('dcp') for expr in self.constraints + [self.objective])
-
-    @perf.compute_once
-    def _is_dpp_dgp(self):
-        return all(
-          expr.is_dpp('dgp') for expr in self.constraints + [self.objective])
-
-    def is_dpp(self, context='dcp'):
-        """Does the problem satisfy DPP rules?
-        """
-        if context.lower() == 'dcp':
-            return self._is_dpp_dcp()
-        elif context.lower() == 'dgp':
-            return self._is_dpp_dgp()
-        else:
-            raise ValueError("Unsupported context ", context)
-
-    @perf.compute_once
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         """Does the problem satisfy DGP rules?
         """
         return all(
-          expr.is_dgp() for expr in self.constraints + [self.objective])
+          expr.is_dgp(dpp) for expr in self.constraints + [self.objective])
 
     @perf.compute_once
     def is_dqcp(self):
@@ -180,6 +160,17 @@ class Problem(u.Canonical):
         """
         return all(
           expr.is_dqcp() for expr in self.constraints + [self.objective])
+
+    @perf.compute_once
+    def is_dpp(self, context='dcp'):
+        """Does the problem satisfy DPP rules?
+        """
+        if context.lower() == 'dcp':
+            return self.is_dcp(dpp=True)
+        elif context.lower() == 'dgp':
+            return self.is_dgp(dpp=True)
+        else:
+            raise ValueError("Unsupported context ", context)
 
     @perf.compute_once
     def is_qp(self):

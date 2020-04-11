@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions import cvxtypes
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import scopes
 
 
 class PSD(Constraint):
@@ -56,21 +57,16 @@ class PSD(Constraint):
     def name(self):
         return "%s >> 0" % self.args[0]
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """A PSD constraint is DCP if the constrained expression is affine.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_affine()
         return self.args[0].is_affine()
 
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         return False
-
-    def is_dpp(self, context='dcp'):
-        if context.lower() == 'dcp':
-            return self.is_dcp() and self.args[0].is_dpp(context)
-        elif context.lower() == 'dgp':
-            return False
-        else:
-            raise ValueError("Unsupported context ", context)
 
     def is_dqcp(self):
         return self.is_dcp()

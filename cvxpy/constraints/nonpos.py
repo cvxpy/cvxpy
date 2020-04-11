@@ -16,6 +16,7 @@ limitations under the License.
 
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import scopes
 import numpy as np
 
 
@@ -43,20 +44,15 @@ class NonPos(Constraint):
     def name(self):
         return "%s <= 0" % self.args[0]
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """A non-positive constraint is DCP if its argument is convex."""
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_convex()
         return self.args[0].is_convex()
 
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         return False
-
-    def is_dpp(self, context='dcp'):
-        if context.lower() == 'dcp':
-            return self.is_dcp() and self.args[0].is_dpp(context)
-        elif context.lower() == 'dgp':
-            return False
-        else:
-            raise ValueError('Unsupported context ', context)
 
     def is_dqcp(self):
         return self.args[0].is_quasiconvex()
@@ -111,21 +107,26 @@ class Inequality(Constraint):
         """int : The size of the constrained expression."""
         return self.expr.size
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """A non-positive constraint is DCP if its argument is convex."""
+        if dpp:
+            with scopes.dpp_scope():
+                return self.expr.is_convex()
         return self.expr.is_convex()
 
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
+        if dpp:
+            with scopes.dpp_scope():
+                return (self.args[0].is_log_log_convex() and
+                        self.args[1].is_log_log_concave())
         return (self.args[0].is_log_log_convex() and
                 self.args[1].is_log_log_concave())
 
     def is_dpp(self, context='dcp'):
         if context.lower() == 'dcp':
-            return self.is_dcp() and self.expr.is_dpp(context)
+            return self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
-            return self.is_dgp() and (
-                self.args[0].is_dpp(context) and
-                self.args[1].is_dpp(context))
+            return self.is_dgp(dpp=True)
         else:
             raise ValueError('Unsupported context ', context)
 
