@@ -869,23 +869,35 @@ Disciplined Parametrized Programming
 symbolic representations of constants. Using parameters lets you modify the
 values of constants without reconstructing the entire problem. When your
 parametrized problem is constructed according to *Disciplined Parametrized
-Programming (DPP)*, solving it repeatedly, for different values of the
-parameters, can be much faster than repeatedly solving a new problem.
+Programming (DPP)*, solving it repeatedly for different values of the
+parameters can be much faster than repeatedly solving a new problem.
 
-DPP is a ruleset for producing parametrized DCP-compliant problems that
+You should read this tutorial if you intend to solve a :ref:`DCP <dcp>` or
+:ref:`DGP <dgp>` problem many times, for different values of the numerical
+data, or if you want to differentiate through the solution map of a DCP or DGP
+problem.
+
+What is DPP?
+^^^^^^^^^^^^
+DPP is a ruleset for producing parametrized DCP or DGP compliant problems that
 CVXPY can re-canonicalize very quickly. The first time a DPP-compliant problem
 is solved, CVXPY compiles it and caches the mapping from parameters to problem
 data. As a result, subsequent rewritings of DPP problems can be substantially
 faster. CVXPY allows you to solve parametrized problems that are not DPP, but
 you won't see a speed-up when doing so.
 
-Currently, only problems that are solved by conic solvers will see
-a speed-up with DPP.
+Currently, only problems that are solved by conic solvers (such as ECOS, SCS,
+and MOSEK), will see a speed-up with DPP.
 
 The DPP ruleset
 ^^^^^^^^^^^^^^^
-DPP is a subset of DCP, with mild restrictions on how parameters can enter
-expressions. In DPP, an expression is said to be parameter-affine if it does
+
+DPP places mild restrictions on how parameters can enter expressions in
+DCP and DGP problems. First, we describe the DPP ruleset for DCP problems.
+Then, we describe the DPP ruleset for DGP problems.
+
+**DCP problems.**
+In DPP, an expression is said to be parameter-affine if it does
 not involve variables and is affine in its parameters, and it is variable-free
 if it does not have variables. DPP introduces two restrictions to DCP:
 
@@ -894,24 +906,25 @@ if it does not have variables. DPP introduces two restrictions to DCP:
    at least one of the expressions is constant, or when one of the
    expressions is parameter-affine and the other is parameter-free.
 
-An expression is DPP-compliant if it DCP-compliant, subject to these two
+An expression is DPP-compliant if it DCP-compliant subject to these two
 restrictions. You can check whether an expression or problem is DPP-compliant
-by calling the ``is_dpp`` method. For example,
+by calling the ``is_dcp`` method with the keyword argument ``dpp=True`` (by
+default, this keyword argument is ``False``). For example,
 
-.. code:: python
+.. code:: python3
 
     import cvxpy as cp
 
 
     m, n = 3, 2
     x = cp.Variable((n, 1))
-    F = cp.Parameter((m, n)) 
-    G = cp.Parameter((m, n)) 
+    F = cp.Parameter((m, n))
+    G = cp.Parameter((m, n))
     g = cp.Parameter((m, 1))
-    gamma = cp.Parameter(nonneg=True) 
+    gamma = cp.Parameter(nonneg=True)
 
     objective = cp.norm((F + G) @ x - g) + gamma * cp.norm(x)
-    print(objective.is_dpp())
+    print(objective.is_dcp(dpp=True))
 
 prints ``True``. We can walk through the DPP analysis to understand why
 ``objective`` is DPP-compliant. The product ``(F + G) @ x`` is affine under DPP,
@@ -926,7 +939,7 @@ argument (since ``gamma`` is nonnegative).
 Some expressions are DCP-compliant but not DPP-compliant. For example,
 DPP forbids taking the product of two parametrized expressions:
 
-.. code:: python
+.. code:: python3
 
     import cvxpy as cp
 
@@ -934,8 +947,8 @@ DPP forbids taking the product of two parametrized expressions:
     x = cp.Variable()
     gamma = cp.Parameter(nonneg=True)
     problem = cp.Problem(cp.Minimize(gamma * gamma * x), [x >= 1])
-    print("Is DPP? ", problem.is_dpp())
-    print("Is DCP? ", problem.is_dcp())
+    print("Is DPP? ", problem.is_dcp(dpp=True))
+    print("Is DCP? ", problem.is_dcp(dpp=False))
 
 This code snippet prints
 
@@ -948,7 +961,7 @@ Just as it is possible to rewrite non-DCP problems in DCP-compliant ways, it is
 also possible to re-express non-DPP problems in DPP-compliant ways. For
 example, the above problem can be equivalently written as
 
-.. code:: python
+.. code:: python3
 
     import cvxpy as cp
 
@@ -957,8 +970,8 @@ example, the above problem can be equivalently written as
     y = cp.Variable()
     gamma = cp.Parameter(nonneg=True)
     problem = cp.Problem(cp.Minimize(gamma * y), [y == gamma * x])
-    print("Is DPP? ", problem.is_dpp())
-    print("Is DCP? ", problem.is_dcp())
+    print("Is DPP? ", problem.is_dcp(dpp=True))
+    print("Is DCP? ", problem.is_dcp(dpp=False))
 
 This snippet prints 
 
@@ -972,7 +985,7 @@ by doing them outside of the DSL, e.g., in NumPy. For example,
 if ``P`` is a parameter and ``x`` is a variable, ``cp.quad_form(x, P)`` is not
 DPP. You can represent a parametric quadratic form like so:
 
-.. code:: python
+.. code:: python3
 
   import cvxpy as cp
   import numpy as np
@@ -986,18 +999,96 @@ DPP. You can represent a parametric quadratic form like so:
   x = cp.Variable((n, 1))
   quad_form = cp.sum_squares(P_sqrt @ x)
   P_sqrt.value = scipy.linalg.sqrtm(P)
-  assert quad_form.is_dpp()
+  assert quad_form.is_dcp(dpp=True)
 
 As another example, the quotient ``expr / p`` is not DPP-compliant when ``p`` is
 a parameter, but this can be rewritten as ``expr * p_tilde``, where ``p_tilde`` is
 a parameter that represents ``1/p``.
 
+**DGP problems.**
+Just as DGP is the log-log analogue of DCP, DPP for DGP is the log-log analog
+of DPP for DCP. DPP introduces two restrictions to DGP:
+
+1. Under DPP, all positive parameters are classified as log-log-affine, just like positive variables.
+2. Under DPP, the power atom ``x**p`` (with base ``x`` and exponent ``p``)
+   is log-log affine as long as ``x`` and ``p`` are not both parametrized.
+
+Note that for powers, the exponent ``p`` must be either a numerical constant
+or a parameter; attempting to construct a power atom in which the exponent
+is a compound expression, e.g., ``x**(p + p)``, where ``p`` is a Parameter,
+will result in a ``ValueError``.
+
+If a parameter appears in a DGP problem as an exponent, it can have any
+sign. If a parameter appears elsewhere in a DGP problem, *it must be
+positive*, i.e., it must be constructed with ``cp.Parameter(pos=True)``.
+
+You can check whether an expression or problem is DPP-compliant
+by calling the ``is_dgp`` method with the keyword argument ``dpp=True`` (by
+default, this keyword argument is ``False``). For example,
+
+.. code:: python3
+
+    import cvxpy as cp
+
+
+    x = cp.Variable(pos=True)
+    y = cp.Variable(pos=True)
+    a = cp.Parameter()
+    b = cp.Parameter()
+    c = cp.Parameter(pos=True)
+    
+    monomial = c * x**a * y**b
+    print(monomial.is_dgp(dpp=True))
+
+prints ``True``. The expressions ``x**a`` and ``y**b`` are log-log affine, since
+``x`` and ``y`` do not contain parameters. The parameter ``c`` is log-log affine
+because it is positive, and the monomial expression is log-log affine because
+the product of log-log affine expression is also log-log affine.
+
+Some expressions are DGP-compliant but not DPP-compliant. For example,
+DPP forbids taking raising a parametrized expression to a power:
+
+.. code:: python3
+
+    import cvxpy as cp
+
+
+    x = cp.Variable(pos=True)
+    a = cp.Parameter()
+    
+    monomial = (x**a)**a
+    print("Is DPP? ", monomial.is_dgp(dpp=True))
+    print("Is DGP? ", monomial.is_dgp(dpp=False))
+
+This code snippet prints
+
+::
+
+    Is DPP? False
+    Is DCP? True
+
+You can represent non-DPP transformations of parameters
+by doing them outside of CVXPY, e.g., in NumPy. For example, 
+you could rewrite the above program as the following DPP-complaint program
+
+.. code:: python3
+
+    import cvxpy as cp
+
+
+    a = 2.0
+    x = cp.Variable(pos=True)
+    b = cp.Parameter(value=a**2)
+    
+    monomial = x**b
+
 Repeatedly solving a DPP problem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The following example demonstrates how parameters can speed-up repeated
-solves of a DPP problem.
+solves of a DPP-compliant DCP problem. (Similar speed-ups can be obtained for
+DGP problems.)
 
-.. code:: python
+.. code:: python3
 
     import cvxpy as cp
     import numpy
@@ -1016,7 +1107,7 @@ solves of a DPP problem.
     error = cp.sum_squares(A @ x - b)
     obj = cp.Minimize(error + gamma*cp.norm(x, 1))
     problem = cp.Problem(obj)
-    assert problem.is_dpp()
+    assert problem.is_dcp(dpp=True)
 
     gamma_vals = numpy.logspace(-4, 1)
     times = []
