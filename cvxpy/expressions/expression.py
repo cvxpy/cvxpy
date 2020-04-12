@@ -192,6 +192,12 @@ class Expression(u.Canonical):
     def is_dcp(self, dpp=False):
         """Checks whether the Expression is DCP.
 
+        Parameters
+        ----------
+        dpp : bool, optional
+            If True, enforce the disciplined parametrized programming (DPP)
+            ruleset; only relevant when the problem involves Parameters.
+
         Returns
         -------
         bool

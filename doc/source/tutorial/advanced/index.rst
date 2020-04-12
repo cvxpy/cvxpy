@@ -591,7 +591,7 @@ If ``A`` were a parameter, factorization caching would not be possible and the b
 warm start would only be a good initial point.
 
 Setting solver options
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
 The `OSQP`_, `ECOS`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
