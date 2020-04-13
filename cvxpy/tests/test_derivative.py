@@ -340,11 +340,11 @@ class TestBackwardDgp(BaseTest):
         alpha.value = 0.4
         alpha.delta = 1e-5
         problem.solve(gp=True, requires_grad=True, eps=1e-5)
-        self.assertAlmostEqual(x.value, 1 - 0.4**2)
+        self.assertAlmostEqual(x.value, 1 - 0.4**2, places=3)
         problem.backward()
         problem.derivative()
-        self.assertAlmostEqual(alpha.gradient, -2*0.4)
-        self.assertAlmostEqual(x.delta, -2*0.4*1e-5)
+        self.assertAlmostEqual(alpha.gradient, -2*0.4, places=3)
+        self.assertAlmostEqual(x.delta, -2*0.4*1e-5, places=3)
 
         gradcheck(problem, gp=True, atol=1e-3)
         perturbcheck(problem, gp=True, atol=1e-3)
@@ -354,9 +354,9 @@ class TestBackwardDgp(BaseTest):
         problem.solve(gp=True, requires_grad=True, eps=1e-5)
         problem.backward()
         problem.derivative()
-        self.assertAlmostEqual(x.value, 1 - 0.5**2)
-        self.assertAlmostEqual(alpha.gradient, -2*0.5)
-        self.assertAlmostEqual(x.delta, -2*0.5*1e-5)
+        self.assertAlmostEqual(x.value, 1 - 0.5**2, places=3)
+        self.assertAlmostEqual(alpha.gradient, -2*0.5, places=3)
+        self.assertAlmostEqual(x.delta, -2*0.5*1e-5, places=3)
 
         gradcheck(problem, gp=True, atol=1e-3)
         perturbcheck(problem, gp=True, atol=1e-3)
@@ -459,8 +459,8 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Minimize(cp.maximum(prod1, prod2))
         constr = [x == c, y == d]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, atol=1e-4)
-        perturbcheck(problem, gp=True)
+        gradcheck(problem, gp=True, atol=1e-3)
+        perturbcheck(problem, gp=True, atol=1e-3)
 
     def test_max(self):
         x = cp.Variable(pos=True)
@@ -527,8 +527,8 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Minimize(x * y)
         constr = [cp.exp(a*y/x) <= cp.log(b*y)]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, atol=1e-2)
+        perturbcheck(problem, gp=True, atol=1e-2)
 
     def test_matrix_completion(self):
         X = cp.Variable((3, 3), pos=True)
@@ -599,8 +599,8 @@ class TestBackwardDgp(BaseTest):
         problem = cp.Problem(cp.Minimize(cp.sum_squares(alpha + h)),
                              [cp.multiply(w, h) >= beta,
                               cp.sum(alpha + w) <= kappa])
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, atol=1e-1)
+        perturbcheck(problem, gp=True, atol=1e-1)
 
     def test_sum_matrix(self):
         w = cp.Variable((2, 2), pos=True)
@@ -611,5 +611,5 @@ class TestBackwardDgp(BaseTest):
         problem = cp.Problem(cp.Minimize(alpha*cp.sum(h)),
                              [cp.multiply(w, h) >= beta,
                               cp.sum(w) <= kappa])
-        gradcheck(problem, gp=True, atol=1e-2)
-        perturbcheck(problem, gp=True, atol=1e-2)
+        gradcheck(problem, gp=True, atol=1e-1)
+        perturbcheck(problem, gp=True, atol=1e-1)

@@ -123,9 +123,13 @@ class TestDcp(BaseTest):
         problem = cp.Problem(cp.Minimize(x * x), [x == y])
         self.assertFalse(problem.is_dpp())
         self.assertTrue(problem.is_dcp())
-        self.assertEqual(problem.solve(cp.SCS), 25)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertEqual(problem.solve(cp.SCS), 25)
         x.value = 3
-        self.assertEqual(problem.solve(cp.SCS), 9)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertEqual(problem.solve(cp.SCS), 9)
 
     def test_solve_dpp_problem(self):
         x = cp.Parameter()
@@ -143,7 +147,9 @@ class TestDcp(BaseTest):
         x.value = 5
         y = cp.Variable()
         problem = cp.Problem(cp.Minimize(x * x), [x == y])
-        _, chain, _ = problem.get_problem_data(cp.SCS)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            _, chain, _ = problem.get_problem_data(cp.SCS)
         self.assertFalse(problem.is_dpp())
         self.assertTrue(cp.reductions.eval_params.EvalParams in
                         [type(r) for r in chain.reductions])
