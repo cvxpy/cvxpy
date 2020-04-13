@@ -1151,9 +1151,12 @@ DGP problems.)
     plt.ylabel(r'time (s)', fontsize=16)
     plt.legend()
 
+.. image:: advanced_files/resolving_dpp.png
+
+.. _OSQP: https://osqp.org/
 .. _derivatives:
 
-Sensitivity analysis and derivatives
+Sensitivity analysis and gradients
 ------------------------------------
 *Note: This feature requires CVXPY >= 1.1.0a0.*
 
@@ -1251,8 +1254,8 @@ and their derivatives, even though it would be impossible to derive them by
 hand.
 
 **Note.** In this simple example, the variable ``x`` was a scalar, so the
-``backward`` method computed the gradient of ``x`` with respect to ``p``. In
-general, when there is more than one scalar variable, by default, ``backward``
+``backward`` method computed the gradient of ``x`` with respect to ``p``.
+When there is more than one scalar variable, by default, ``backward``
 computes the gradient of the *sum* of the optimal variable values with respect
 to the parameters.
 
@@ -1267,11 +1270,11 @@ the derivative of ``f`` with respect to ``p``, before calling
 ``problem.backward()``, just set ``x.gradient = dx``.
 
 The ``backward`` method can be powerful when combined with software for
-automatic differentiation. We recommend the software package `CVXPY Layers
-<https://www.github.com/cvxgrp/cvxpylayers``, which provides differentiable
-PyTorch and TensorFlow compatible wrappers for CVXPY problems.
+automatic differentiation. We recommend the software package
+`CVXPY Layers <https://www.github.com/cvxgrp/cvxpylayers>`_, which provides
+differentiable PyTorch and TensorFlow wrappers for CVXPY problems.
 
-**Backward or derivative?** The ``backward`` method should be used when
+**backward or derivative?** The ``backward`` method should be used when
 you need the gradient of (a scalar-valued function) of the solution, with
 respect to the parameters. If you only want to do a sensitivity analysis,
 that is, if all you're interested in is how the solution would change if
@@ -1281,9 +1284,6 @@ compute sensitivities using the derivative method than it would be to compute
 the entire Jacobian (which can be done by calling backward multiple times,
 once for each standard basis vector).
 
-.. image:: advanced_files/resolving_dpp.png
-
-.. _OSQP: https://osqp.org/
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
