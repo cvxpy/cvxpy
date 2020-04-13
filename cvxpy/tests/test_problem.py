@@ -1444,17 +1444,25 @@ class TestProblem(BaseTest):
         obj = cp.abs(x - 1)
         prob = Problem(cp.Minimize(obj), [g == 0])
         self.assertFalse(prob.is_dpp())
-        prob.solve(cp.SCS)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            prob.solve(cp.SCS)
         x0.value = 1
-        prob.solve()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            prob.solve()
         self.assertAlmostEqual(g.value, 0)
 
         # Test multiplication.
         prob = Problem(cp.Minimize(x0*x), [x == 1])
         x0.value = 2
-        prob.solve()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            prob.solve()
         x0.value = 1
-        prob.solve()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            prob.solve()
         self.assertAlmostEqual(prob.value, 1, places=2)
 
     def test_psd_constraints(self):
