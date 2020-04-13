@@ -361,18 +361,36 @@ Solve method options
 --------------------
 
 The ``solve`` method takes optional arguments that let you change how CVXPY
-solves the problem.
+parses and solves the problem.
 
-.. function:: solve(solver=None, verbose=False, gp=False, **kwargs)
+.. function:: solve(solver=None, verbose=False, gp=False, qcp=False, requries_grad=False, enforce_dpp=False, **kwargs)
 
-   Solves a DCP compliant optimization problem.
+   Solves the problem using the specified method.
+
+   Populates the :code:`status` and :code:`value` attributes on the
+   problem object as a side-effect.
 
    :param solver: The solver to use.
    :type solver: str, optional
    :param verbose:  Overrides the default of hiding solver output.
    :type verbose: bool, optional
-   :param gp:  If True, parses the problem as a disciplined geometric program instead of a disciplined convex program.
+   :param gp:  If ``True``, parses the problem as a disciplined geometric program instead of a disciplined convex program.
    :type gp: bool, optional
+   :param qcp:  If ``True``, parses the problem as a disciplined quasiconvex program instead of a disciplined convex program.
+   :type qcp: bool, optional
+   :param requires_grad: Makes it possible to compute gradients of a solution
+        with respect to Parameters by calling ``problem.backward()`` after
+        solving, or to compute perturbations to the variables given perturbations to
+        Parameters by calling ``problem.derivative()``.
+
+        Gradients are only supported for DCP and DGP problems, not
+        quasiconvex problems. When computing gradients (i.e., when
+        this argument is True), the problem must satisfy the DPP rules.
+   :type requires_grad: bool, optional
+   :param enforce_dpp: When True, a ``DPPError`` will be thrown when trying to solve
+        a non-DPP problem (instead of just a warning). Only relevant for
+        problems involving Parameters. Defaults to ``False``.
+   :type enforce_dpp: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
    :return: The optimal value for the problem, or a string indicating why the problem could not be solved.
 
@@ -1132,6 +1150,136 @@ DGP problems.)
     plt.xlabel(r'$\gamma$', fontsize=16)
     plt.ylabel(r'time (s)', fontsize=16)
     plt.legend()
+
+.. _derivatives:
+
+Sensitivity analysis and derivatives
+------------------------------------
+*Note: This feature requires CVXPY >= 1.1.0a0.*
+
+An optimization problem can be viewed as a function mapping parameters
+to solutions. This solution map is sometimes differentiable. CVXPY
+has built-in support for computing the derivative of the optimal variable
+values of a problem with respect to small perturbations of the parameters
+(i.e., the ``Parameter`` instances appearing in a problem).
+
+The problem class exposes two methods related to computing the derivative.
+The :py:func:`derivative <cvxpy.problems.problem.Problem.derivative>` evaluates
+the derivative given perturbations to the parameters. This
+lets you calculate how the solution to a problem would change
+given small changes to the parameters, without re-solving the problem. 
+The :py:func:`backward <cvxpy.problems.problem.Problem.backward>` method
+evaluates the adjoint of the derivative, computing the gradient of the solution
+with respect to the parameters. This can be useful when combined with
+automatic differentiation software.
+
+The derivative and backward methods are only meaningful when the problem
+contains parameters. In order for a problem to be differentiable, it must
+be :ref:`DPP-compliant <dpp>`. CVXPY can compute the derivative of any
+DPP-compliant DCP or DGP problem. At non-differentiable points, CVXPY
+computes a heuristic quantity.
+
+**Example.**
+
+As a first example, we solve a trivial problem with an analytical solution,
+to illustrate the usage of the ``backward`` and ``derivative``
+functions. In the following block of code, we construct a problem with
+a scalar variable ``x`` and a scalar ``parameter ``p``. The problem
+is to minimize the quadratic ``(x -2*p)**2``.
+
+.. code:: python3
+
+    import cvxpy as cp
+
+    x = cp.Variable()
+    p = cp.Parameter()
+    quadratic = cp.square(x - 2 * p)
+    problem = cp.Problem(cp.Minimize(quadratic))
+
+Next, we solve the problem for the particular value of ``p == 3``. Notice that
+when solving the problem, we supply the keyword argument ``requires_grad=True``
+to the ``solve`` method.
+
+.. code:: python3
+
+    p.value = 3.
+    problem.solve(requires_grad=True)
+
+Having solved the problem with ``requires_grad=True``, we can now use the
+``backward`` and ``derivative`` to differentiate through the problem.
+First, we compute the gradient of the solution with respect to its parameter
+by calling the ``backward()`` method. As a side-effect, the ``backward()``
+method populates the ``gradient`` attribute on all parameters with the gradient
+of the solution with respect to that parameter.
+
+.. code:: python3
+
+    problem.backward()
+    print("The gradient is {0:0.1f}.".format(p.gradient))
+
+In this case, the problem has the trivial analytical solution ``2*p``, and
+the gradient is therefore just 2. So, as expected, the above code prints
+
+.. code::
+
+    The gradient is 2.0.
+
+Next, we use the ``derivative`` method to see how a small change in ``p``
+would affect the solution ``x``. We will perturb ``p`` by ``1e-5``, by
+setting ``p.delta = 1e-5``, and calling the ``derivative`` method will populate
+the ``delta`` attribute of ``x`` with the the change in ``x`` predicted by
+a first-order approximation (which is ``dx/dp * p.delta``).
+
+.. code:: python3
+
+    p.delta = 1e-5
+    problem.backward()
+    print("x.delta is {0:2.1g}.".format(x.delta))
+
+In this case the solution is trivial and its derivative is just ``2*p``, we
+know that the delta in ``x`` should be ``2e-5``. As expected, the output is
+
+.. code::
+
+    x.delta is 2e-05.
+
+We emphasize that this example is trivial, because it has a trivial analytical
+solution, with a trivial derivative. The ``backward()`` and ``forward()``
+methods are useful because the vast majority of convex optimization problems
+do not have analytical solutions: in these cases, CVXPY can compute solutions
+and their derivatives, even though it would be impossible to derive them by
+hand.
+
+**Note.** In this simple example, the variable ``x`` was a scalar, so the
+``backward`` method computed the gradient of ``x`` with respect to ``p``. In
+general, when there is more than one scalar variable, by default, ``backward``
+computes the gradient of the *sum* of the optimal variable values with respect
+to the parameters.
+
+More generally, the ``backward`` method can be used to compute the gradient of
+a scalar-valued function ``f`` of the optimal variables, with
+respect to the parameters. If ``x(p)`` denotes the optimal value of
+the variable (which might be a vector or a matrix) for a particular value of
+the parameter ``p`` and ``f(x(p))`` is a scalar, then ``backward`` can be used
+to compute the gradient of ``f`` with respect to ``p``. Let ``x* = x(p)``,
+and say the derivative of ``f`` with respect to ``x*`` is ``dx``. To compute
+the derivative of ``f`` with respect to ``p``, before calling
+``problem.backward()``, just set ``x.gradient = dx``.
+
+The ``backward`` method can be powerful when combined with software for
+automatic differentiation. We recommend the software package `CVXPY Layers
+<https://www.github.com/cvxgrp/cvxpylayers``, which provides differentiable
+PyTorch and TensorFlow compatible wrappers for CVXPY problems.
+
+**Backward or derivative?** The ``backward`` method should be used when
+you need the gradient of (a scalar-valued function) of the solution, with
+respect to the parameters. If you only want to do a sensitivity analysis,
+that is, if all you're interested in is how the solution would change if
+one or more parameters were changed, you should use the ``derivative``
+method. When there are multiple variables, it is much more efficient to
+compute sensitivities using the derivative method than it would be to compute
+the entire Jacobian (which can be done by calling backward multiple times,
+once for each standard basis vector).
 
 .. image:: advanced_files/resolving_dpp.png
 
