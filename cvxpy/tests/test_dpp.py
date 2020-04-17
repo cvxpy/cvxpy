@@ -750,3 +750,21 @@ class TestDgp(BaseTest):
         h.value = 3.0 * np.ones((2, 2))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         np.testing.assert_almost_equal(problem.value, 12.0)
+
+    def test_exp(self):
+        x = cp.Variable(4, pos=True)
+        c = cp.Parameter(4, pos=True)
+        expr = cp.exp(cp.multiply(c, x))
+        self.assertTrue(expr.is_dgp(dpp=True))
+
+        expr = cp.exp(c.T @ x)
+        self.assertTrue(expr.is_dgp(dpp=True))
+
+    def test_log(self):
+        x = cp.Variable(4, pos=True)
+        c = cp.Parameter(4, pos=True)
+        expr = cp.log(cp.multiply(c, x))
+        self.assertTrue(expr.is_dgp(dpp=True))
+
+        expr = cp.log(c.T @ x)
+        self.assertFalse(expr.is_dgp(dpp=True))
