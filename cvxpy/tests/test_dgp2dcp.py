@@ -593,3 +593,20 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
         self.assertAlmostEqual(dcp.parameters()[0].name(), 'alpha')
+
+    def test_gmatmul(self):
+        x = cvxpy.Variable(2, pos=True)
+        A = np.matrix("-5 2; 1 -3").A
+        b = np.array([3, 2])
+        expr = cvxpy.gmatmul(A, x)
+        x.value = b
+        self.assertItemsAlmostEqual(expr.value, [3**-5*2**2, 3./8])
+        A_par = cvxpy.Parameter((2, 2), value=A)
+        self.assertItemsAlmostEqual(cvxpy.gmatmul(A_par, x).value,
+                                    [3**-5*2**2, 3./8])
+        x.value = None
+
+        prob = cvxpy.Problem(cvxpy.Minimize(1.0), [expr == b])
+        prob.solve(gp=True)
+        sltn = np.exp(np.linalg.solve(A, np.log(b)))
+        self.assertItemsAlmostEqual(x.value, sltn)
