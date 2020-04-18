@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
-import cvxpy.interface as intf
 import cvxpy.utilities as u
 import numpy as np
 
