@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import numpy as np
 
 
 class gmatmul(Atom):
-    r"""Geometric matrix multiplication; :math:`A \mathbin{\Diamond} X`.
+    r"""Geometric matrix multiplication; :math:`A \mathbin{\diamond} X`.
 
     For :math:`A \in \mathbf{R}^{m \times n}` and
     :math:`X \in \mathbf{R}^{n \times p}_{++}`, this atom represents
