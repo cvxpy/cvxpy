@@ -614,7 +614,7 @@ and returns a vector or matrix.
      - |convex| log-log convex
      - |incr| incr.
 
-* - :ref:`resolvent(X) <resolvent>`
+   * - :ref:`resolvent(X) <resolvent>`
      - :math:`(sI - X)^{-1}`
      - :math:`X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) < s`
      - |convex| log-log convex
