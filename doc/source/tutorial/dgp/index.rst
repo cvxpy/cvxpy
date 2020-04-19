@@ -598,7 +598,9 @@ and returns a vector or matrix.
      - :math:`\left[\begin{matrix}\prod_{j=1}^n x_j^{A_{1j}} \\\vdots \\\prod_{j=1}^n x_j^{A_{mj}}\end{matrix}\right]`
      - :math:`x \in \mathbf{R}^n_{++}`
      - |affine| log-log affine
-     - None
+     - |incr| for :math:`A_{ij} \geq 0`
+
+       |decr| for :math:`A_{ij} \leq 0`
 
    * - :ref:`hstack([X1, ..., Xk]) <hstack>`
      - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
@@ -612,7 +614,7 @@ and returns a vector or matrix.
      - |convex| log-log convex
      - |incr| incr.
 
-   * - :ref:`resolvent(X) <resolvent>`
+* - :ref:`resolvent(X) <resolvent>`
      - :math:`(sI - X)^{-1}`
      - :math:`X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) < s`
      - |convex| log-log convex
