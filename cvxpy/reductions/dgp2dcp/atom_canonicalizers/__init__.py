@@ -8,6 +8,7 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms.gmatmul import gmatmul
 from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
 from cvxpy.atoms.max import max
@@ -29,6 +30,7 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.div_canon import div_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.exp_canon import exp_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.eye_minus_inv_canon import eye_minus_inv_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.geo_mean_canon import geo_mean_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.gmatmul_canon import gmatmul_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.log_canon import log_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mul_canon import mul_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import mulexpression_canon
@@ -54,6 +56,7 @@ CANON_METHODS = {
     exp : exp_canon,
     eye_minus_inv : eye_minus_inv_canon,
     geo_mean : geo_mean_canon,
+    gmatmul : gmatmul_canon,
     log : log_canon,
     MulExpression : mulexpression_canon,
     multiply : mul_canon,
