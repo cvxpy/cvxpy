@@ -1825,7 +1825,7 @@ class TestProblem(BaseTest):
         """
         n = 5
         m = 2
-        q = np.random.randint(1, 10, size=n)
+        q = np.arange(n)
         a = np.ones((m, n))
         b = np.ones((m, 1))
         x = cp.Variable((n, 1), name='x')
