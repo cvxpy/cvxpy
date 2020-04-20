@@ -1830,12 +1830,12 @@ class TestProblem(BaseTest):
         b = np.ones((m, 1))
         x = cp.Variable((n, 1), name='x')
         constraints = [a @ x == b]
-        objective = cp.Minimize((1/2) * q.T @ x + cp.transforms.indicator(constraints))
+        objective = cp.Minimize((1/2) * cp.square(q.T @ x) + cp.transforms.indicator(constraints))
         problem = cp.Problem(objective)
-        solution2 = problem.solve()
+        solution1 = problem.solve()
 
         # Without indicators.
-        objective = cp.Minimize((1/2) * q.T @ x)
+        objective = cp.Minimize((1/2) * cp.square(q.T @ x))
         problem = cp.Problem(objective, constraints)
-        solution1 = problem.solve()
+        solution2 = problem.solve()
         self.assertAlmostEqual(solution1, solution2)
