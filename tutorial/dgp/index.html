@@ -604,25 +604,35 @@ and returns a vector or matrix.</p>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#gmatmul"><span class="std std-ref">gmatmul(A, x)</span></a></p>
+<p><span class="math notranslate nohighlight">\(A \in \mathbf{R}^{m \times n}\)</span></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}\prod_{j=1}^n x_j^{A_{1j}} \\\vdots \\\prod_{j=1}^n x_j^{A_{mj}}\end{matrix}\right]\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(A_{ij} \geq 0\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(A_{ij} \leq 0\)</span></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m \times n_i}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul(X, Y)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul(X, Y)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(XY\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}, Y \in\mathbf{R}^{n \times p}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#resolvent"><span class="std std-ref">resolvent(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#resolvent"><span class="std std-ref">resolvent(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\((sI - X)^{-1}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) &lt; s\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (n’, m’))</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (n’, m’))</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(X' \in\mathbf{R}^{m' \times n'}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p>
 <p><span class="math notranslate nohighlight">\(m'n' = mn\)</span></p>
@@ -630,13 +640,13 @@ and returns a vector or matrix.</p>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{mn}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m_i \times n}_{++}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
@@ -739,7 +749,7 @@ and returns a vector or matrix.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

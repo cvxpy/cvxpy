@@ -77,13 +77,13 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solving_chain</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">param_cone_prog</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_prog</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inverse_data</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">invalidate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solving_chain</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">param_cone_prog</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">param_prog</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inverse_data</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">make_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">):</span>
@@ -463,10 +463,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">solving_chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_cone_prog</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># fast path, bypasses application of reductions</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">solver_inverse_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_cone_prog</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span><span class="p">)</span>
             <span class="n">inverse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">inverse_data</span> <span class="o">+</span> <span class="p">[</span><span class="n">solver_inverse_data</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">data</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
@@ -477,7 +477,7 @@
                             <span class="k">for</span> <span class="n">reduction</span> <span class="ow">in</span> <span class="n">solving_chain</span><span class="o">.</span><span class="n">reductions</span><span class="p">)</span>
             <span class="p">)</span>
             <span class="k">if</span> <span class="n">safe_to_cache</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_cone_prog</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">PARAM_PROB</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">PARAM_PROB</span><span class="p">]</span>
                 <span class="c1"># the last datum in inverse_data corresponds to the solver,</span>
                 <span class="c1"># so we shouldn&#39;t cache it</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">inverse_data</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -598,7 +598,7 @@
     <span class="k">def</span> <span class="nf">_invalidate_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache_key</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solving_chain</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_param_cone_prog</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_param_prog</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_inverse_data</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">_solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
@@ -778,9 +778,9 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">del_vars</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">variable</span><span class="o">.</span><span class="n">gradient</span><span class="p">,</span>
                                                    <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-        <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_cone_prog</span><span class="o">.</span><span class="n">split_adjoint</span><span class="p">(</span><span class="n">del_vars</span><span class="p">)</span>
+        <span class="n">dx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span><span class="o">.</span><span class="n">split_adjoint</span><span class="p">(</span><span class="n">del_vars</span><span class="p">)</span>
         <span class="n">dA</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">dc</span> <span class="o">=</span> <span class="n">DT</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">zeros</span><span class="p">,</span> <span class="n">zeros</span><span class="p">)</span>
-        <span class="n">dparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_cone_prog</span><span class="o">.</span><span class="n">apply_param_jac</span><span class="p">(</span><span class="n">dc</span><span class="p">,</span> <span class="o">-</span><span class="n">dA</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
+        <span class="n">dparams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span><span class="o">.</span><span class="n">apply_param_jac</span><span class="p">(</span><span class="n">dc</span><span class="p">,</span> <span class="o">-</span><span class="n">dA</span><span class="p">,</span> <span class="n">db</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
             <span class="n">parameter</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">dparams</span><span class="p">[</span><span class="n">parameter</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div>
 
@@ -834,7 +834,7 @@
                              <span class="s2">&quot;issue on Github if you need this feature.&quot;</span><span class="p">)</span>
         <span class="c1"># TODO(akshayka): Forward differentiate dual variables as well</span>
         <span class="n">backward_cache</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_cache</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">DIFFCP</span><span class="p">]</span>
-        <span class="n">param_cone_prog</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_cone_prog</span>
+        <span class="n">param_prog</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">param_prog</span>
         <span class="n">D</span> <span class="o">=</span> <span class="n">backward_cache</span><span class="p">[</span><span class="s2">&quot;D&quot;</span><span class="p">]</span>
         <span class="n">param_deltas</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
@@ -843,10 +843,10 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">param_deltas</span><span class="p">[</span><span class="n">parameter</span><span class="o">.</span><span class="n">id</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">parameter</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span>
                                                         <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
-        <span class="n">dc</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">dA</span><span class="p">,</span> <span class="n">db</span> <span class="o">=</span> <span class="n">param_cone_prog</span><span class="o">.</span><span class="n">apply_parameters</span><span class="p">(</span><span class="n">param_deltas</span><span class="p">,</span>
-                                                         <span class="n">zero_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">dc</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">dA</span><span class="p">,</span> <span class="n">db</span> <span class="o">=</span> <span class="n">param_prog</span><span class="o">.</span><span class="n">apply_parameters</span><span class="p">(</span><span class="n">param_deltas</span><span class="p">,</span>
+                                                    <span class="n">zero_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">dx</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">D</span><span class="p">(</span><span class="o">-</span><span class="n">dA</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">dc</span><span class="p">)</span>
-        <span class="n">dvars</span> <span class="o">=</span> <span class="n">param_cone_prog</span><span class="o">.</span><span class="n">split_solution</span><span class="p">(</span>
+        <span class="n">dvars</span> <span class="o">=</span> <span class="n">param_prog</span><span class="o">.</span><span class="n">split_solution</span><span class="p">(</span>
             <span class="n">dx</span><span class="p">,</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">id</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">()])</span>
         <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
             <span class="n">variable</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">dvars</span><span class="p">[</span><span class="n">variable</span><span class="o">.</span><span class="n">id</span><span class="p">]</span></div>
@@ -1160,7 +1160,7 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -536,6 +536,7 @@ dimensions or be scalars, which are promoted.
 
    * - :ref:`sqrt(x) <sqrt>`
 
+
      - :math:`\sqrt x`
      - :math:`x > 0`
      - |affine| log-log affine
@@ -590,6 +591,16 @@ and returns a vector or matrix.
      - :math:`X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) < 1`
      - |convex| log-log convex
      - |incr| incr.
+
+   * - :ref:`gmatmul(A, x) <gmatmul>`
+
+       :math:`A \in \mathbf{R}^{m \times n}`
+     - :math:`\left[\begin{matrix}\prod_{j=1}^n x_j^{A_{1j}} \\\vdots \\\prod_{j=1}^n x_j^{A_{mj}}\end{matrix}\right]`
+     - :math:`x \in \mathbf{R}^n_{++}`
+     - |affine| log-log affine
+     - |incr| for :math:`A_{ij} \geq 0`
+
+       |decr| for :math:`A_{ij} \leq 0`
 
    * - :ref:`hstack([X1, ..., Xk]) <hstack>`
      - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`

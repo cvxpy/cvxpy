@@ -48,11 +48,12 @@
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">cvxpy.reductions</span> <span class="k">import</span> <span class="n">Reduction</span><span class="p">,</span> <span class="n">Solution</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="k">import</span> <span class="n">diag</span><span class="p">,</span> <span class="n">reshape</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.constants</span> <span class="k">import</span> <span class="n">Constant</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="k">import</span> <span class="n">cvxtypes</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="k">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">upper_tri_to_full</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.reduction</span> <span class="k">import</span> <span class="n">Reduction</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solution</span> <span class="k">import</span> <span class="n">Solution</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
 
@@ -277,7 +278,7 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

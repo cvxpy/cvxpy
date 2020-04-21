@@ -125,7 +125,7 @@ the form A &#64; x + b.</p>
 <dl class="class">
 <dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg">
 <em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</code><code class="sig-name descname">ParamConeProg</code><span class="sig-paren">(</span><em class="sig-param">c</em>, <em class="sig-param">x</em>, <em class="sig-param">A</em>, <em class="sig-param">variables</em>, <em class="sig-param">var_id_to_col</em>, <em class="sig-param">constraints</em>, <em class="sig-param">parameters</em>, <em class="sig-param">param_id_to_col</em>, <em class="sig-param">formatted=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.param_prob.ParamProb</span></code></p>
 <p>Represents a parameterized cone program</p>
 <p>minimize   c’x  + d
 subject to cone_constr1(A_1*x + b_1, …)</p>
@@ -166,7 +166,8 @@ parameters are affected</p></li>
 <dl class="method">
 <dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer">
 <code class="sig-name descname">is_mixed_integer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.is_mixed_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Is the problem mixed-integer?</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint">
@@ -314,7 +315,7 @@ limitations under the License.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

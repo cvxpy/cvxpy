@@ -53,6 +53,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy.cvxcore.python</span> <span class="k">import</span> <span class="n">canonInterface</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="k">import</span> <span class="n">Variable</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="k">import</span> <span class="n">Minimize</span>
+<span class="kn">from</span> <span class="nn">cvxpy.problems.param_prob</span> <span class="k">import</span> <span class="n">ParamProb</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions</span> <span class="k">import</span> <span class="n">InverseData</span><span class="p">,</span> <span class="n">Solution</span><span class="p">,</span> <span class="n">cvx_attr2constr</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.matrix_stuffing</span> <span class="k">import</span> <span class="n">extract_mip_idx</span><span class="p">,</span> <span class="n">MatrixStuffing</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.utilities</span> <span class="k">import</span> <span class="p">(</span><span class="n">are_args_affine</span><span class="p">,</span>
@@ -66,7 +67,7 @@
 
 
 <span class="c1"># TODO(akshayka): unit tests</span>
-<div class="viewcode-block" id="ParamConeProg"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg">[docs]</a><span class="k">class</span> <span class="nc">ParamConeProg</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="ParamConeProg"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg">[docs]</a><span class="k">class</span> <span class="nc">ParamConeProg</span><span class="p">(</span><span class="n">ParamProb</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Represents a parameterized cone program</span>
 
 <span class="sd">    minimize   c&#39;x  + d</span>
@@ -103,6 +104,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">formatted</span> <span class="o">=</span> <span class="n">formatted</span>
 
 <div class="viewcode-block" id="ParamConeProg.is_mixed_integer"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer">[docs]</a>    <span class="k">def</span> <span class="nf">is_mixed_integer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Is the problem mixed-integer?&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;boolean&#39;</span><span class="p">]</span> <span class="ow">or</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span></div>
 
@@ -383,7 +385,7 @@
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

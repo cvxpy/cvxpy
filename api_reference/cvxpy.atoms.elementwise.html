@@ -220,7 +220,7 @@ is usually <strong>exact</strong>.</p>
 <p>The final domain, sign, monotonicity, and curvature of the <code class="docutils literal notranslate"><span class="pre">power</span></code> atom
 are determined by the rational approximation to <code class="docutils literal notranslate"><span class="pre">p</span></code>, <strong>not</strong> the input parameter <code class="docutils literal notranslate"><span class="pre">p</span></code>.</p>
 <p>For example,</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">power</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">cvxpy</span> <span class="k">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">power</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">1.001</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">p</span>
@@ -230,7 +230,7 @@ are determined by the rational approximation to <code class="docutils literal no
 </pre></div>
 </div>
 <p>results in a convex atom with implicit constraint <span class="math notranslate nohighlight">\(x \geq 0\)</span>, while</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">1.0001</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">g</span> <span class="o">=</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mf">1.0001</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">g</span><span class="o">.</span><span class="n">p</span>
 <span class="go">1</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">g</span>
@@ -403,7 +403,7 @@ of the function with full domain,</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

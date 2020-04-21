@@ -101,6 +101,67 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.</p>
 <dl class="class">
+<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</code><code class="sig-name descname">ParamQuadProg</code><span class="sig-paren">(</span><em class="sig-param">P</em>, <em class="sig-param">q</em>, <em class="sig-param">x</em>, <em class="sig-param">A</em>, <em class="sig-param">variables</em>, <em class="sig-param">var_id_to_col</em>, <em class="sig-param">constraints</em>, <em class="sig-param">parameters</em>, <em class="sig-param">param_id_to_col</em>, <em class="sig-param">formatted=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.param_prob.ParamProb</span></code></p>
+<p>Represents a parameterized quadratic program.</p>
+<p>minimize   x’Px  + q^Tx + d
+subject to (in)equality_constr1(A_1*x + b_1, …)</p>
+<blockquote>
+<div><p>…
+(in)equality_constrK(A_i*x + b_i, …)</p>
+</div></blockquote>
+<p>The constant offsets d and b are the last column of c and A.</p>
+<dl class="method">
+<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_param_jac">
+<code class="sig-name descname">apply_param_jac</code><span class="sig-paren">(</span><em class="sig-param">delP</em>, <em class="sig-param">delq</em>, <em class="sig-param">delA</em>, <em class="sig-param">delb</em>, <em class="sig-param">active_params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.apply_param_jac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_param_jac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiplies by Jacobian of parameter mapping.</p>
+<p>Assumes delA is sparse.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary param.id -&gt; dparam</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_parameters">
+<code class="sig-name descname">apply_parameters</code><span class="sig-paren">(</span><em class="sig-param">id_to_param_value=None</em>, <em class="sig-param">zero_offset=False</em>, <em class="sig-param">keep_zeros=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.apply_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns A, b after applying parameters (and reshaping).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id_to_param_value</strong> – (optional) dict mapping parameter ids to values</p></li>
+<li><p><strong>zero_offset</strong> – (optional) if True, zero out the constant offset in the
+parameter vector</p></li>
+<li><p><strong>keep_zeros</strong> – (optional) if True, store explicit zeros in A where
+parameters are affected</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.is_mixed_integer">
+<code class="sig-name descname">is_mixed_integer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.is_mixed_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.is_mixed_integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the problem mixed-integer?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_adjoint">
+<code class="sig-name descname">split_adjoint</code><span class="sig-paren">(</span><em class="sig-param">del_vars=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.split_adjoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_adjoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjoint of split_solution.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_solution">
+<code class="sig-name descname">split_solution</code><span class="sig-paren">(</span><em class="sig-param">sltn</em>, <em class="sig-param">active_vars=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.split_solution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the solution into individual variables.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing">
 <em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</code><code class="sig-name descname">QpMatrixStuffing</code><span class="sig-paren">(</span><em class="sig-param">problem=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#QpMatrixStuffing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.matrix_stuffing.MatrixStuffing</span></code></p>
@@ -243,7 +304,7 @@ limitations under the License.</p>
       &copy;2019, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -67,7 +67,7 @@ problem
     
     S_p = []
     for i in range(n):
-        S_p.append(cp.sum(cp.hstack(G[i, k]*p for k in range(n) if i != k)))
+        S_p.append(cp.sum(cp.hstack(G[i, k]*p[k] for k in range(n) if i != k)))
     S = sigma + cp.hstack(S_p)
     signal_power = cp.multiply(cp.diag(G), p)
     inverse_sinr = S/signal_power
