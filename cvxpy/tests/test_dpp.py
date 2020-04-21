@@ -768,3 +768,20 @@ class TestDgp(BaseTest):
 
         expr = cp.log(c.T @ x)
         self.assertFalse(expr.is_dgp(dpp=True))
+
+    def test_gmatmul(self):
+        x = cp.Variable(2, pos=True)
+        A = cp.Parameter(shape=(2, 2))
+        A.value = np.array([[-5, 2], [1, -3]])
+        b = np.array([3, 2])
+        expr = cp.gmatmul(A, x)
+        problem = cp.Problem(cp.Minimize(1.0), [expr == b])
+        self.assertTrue(problem.is_dgp(dpp=True))
+        problem.solve(gp=True, enforce_dpp=True)
+        sltn = np.exp(np.linalg.solve(A.value, np.log(b)))
+        self.assertItemsAlmostEqual(x.value, sltn)
+
+        x_par = cp.Parameter(2, pos=True)
+        expr = cp.gmatmul(A, x_par)
+        self.assertFalse(expr.is_dgp(dpp=True))
+        self.assertTrue(expr.is_dgp(dpp=False))
