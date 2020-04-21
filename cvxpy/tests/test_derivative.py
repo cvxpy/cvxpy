@@ -438,11 +438,19 @@ class TestBackwardDgp(BaseTest):
         self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
 
     def test_basic_gp(self):
-        x, y, z = cp.Variable((3,), pos=True)
-        a = cp.Parameter(pos=True, value=2.0)
-        b = cp.Parameter(pos=True, value=1.0)
-        constraints = [a*x*y + a*x*z + a*y*z <= b, x >= a*y]
+        x = cp.Variable(pos=True)
+        y = cp.Variable(pos=True)
+        z = cp.Variable(pos=True)
+        a = cp.Parameter(pos=True)
+        b = cp.Parameter(pos=True)
+        c = cp.Parameter()
+        constraints = [a*(x*y + x*z + y*z) <= b, x >= y**c]
         problem = cp.Problem(cp.Minimize(1/(x*y*z)), constraints)
+        self.assertTrue(problem.is_dgp(dpp=True))
+
+        a.value = 2.0
+        b.value = 1.0
+        c.value = 0.5
         gradcheck(problem, gp=True, atol=1e-3)
         perturbcheck(problem, gp=True, atol=1e-3)
 
