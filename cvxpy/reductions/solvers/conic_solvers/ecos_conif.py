@@ -115,7 +115,11 @@ class ECOS(ConicSolver):
         data[s.C] = c
         inv_data[s.OFFSET] = d
         data[s.A] = -A[:len_eq]
+        if data[s.A].shape[0] == 0:
+            data[s.A] = None
         data[s.B] = b[:len_eq].flatten()
+        if data[s.B].shape[0] == 0:
+            data[s.B] = None
         data[s.G] = -A[len_eq:]
         if 0 in data[s.G].shape:
             data[s.G] = None

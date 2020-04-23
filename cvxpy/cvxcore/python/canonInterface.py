@@ -43,7 +43,7 @@ def get_parameter_vector(param_size,
     -------
         A flattened NumPy array of parameter values, of length param_size + 1
     """
-    # TODO handle parameters with structure.
+#TODO handle parameters with structure.
     if param_size == 0:
         return None
     param_vec = np.zeros(param_size + 1)
@@ -63,42 +63,62 @@ def reduce_problem_data_tensor(A, var_length):
 
     The problem data tensor A is a matrix of shape (m, p), where p is the
     length of the parameter vector. The product A@param_vec gives the
-    entries of the problem data matrix for a solver; the solver's
-    problem data matrix has dimensions (n_constr, n_var + 1), and
-    n_constr * (n_var + 1) = m. In other words, each row in A corresponds
-    to an entry in the solver's data matrix.
+    entries of the problem data matrix for a solver;
+   the solver's problem data matrix has dimensions(n_constr, n_var + 1),
+       and n_constr *(
+           n_var + 1) = m.In other words,
+                   each row in A corresponds to an entry in the solver's data matrix.
 
-    This function removes the rows in A that are identically zero, since these
-    rows correspond to zeros in the problem data. It also returns the indices
-    and indptr to construct the problem data matrix from the reduced
-    representation of A, and the shape of the problem data matrix.
+       This function removes the rows in A that are identically zero,
+                   since these rows correspond to zeros in the problem data
+                       .It also returns the indices and indptr to construct the
+                   problem data matrix from the reduced representation of A,
+                   and the shape of the problem data matrix
+                           .
 
-    Let reduced_A be the sparse matrix returned by this function. Then
-    the problem data can be computed using
+                       Let reduced_A be the sparse matrix returned by
+                       this function.Then the problem data can be computed using
 
-        data := reduced_A @ param_vec
+                       data
+       : = reduced_A @param_vec
 
-    and the problem data matrix can be constructed with
+             and the problem data matrix can be constructed with
 
-        problem_data := scipy.sparse.csc_matrix((data, indices, indptr), shape=shape)
+         problem_data
+       : = scipy.sparse.csc_matrix((data, indices, indptr), shape = shape)
 
-    Parameters
-    ----------
-        A: A sparse matrix, the problem data tensor; must not have a 0 in its shape
+               Parameters-- --------A : A sparse matrix,
+                   the problem data tensor; must not have a 0 in its shape
         var_length: number of variables in the problem
 
     Returns
     -------
-        reduced_A: A sparse matrix with redundant rows removed
+        reduced_A: A CSR sparse matrix with redundant rows removed
         indices: CSC indices for the problem data matrix
         indptr: CSC indptr for the problem data matrix
         shape: the shape of the problem data matrix
     """
-    A = A.tocsr()
-    nonzero_rows, _ = A.nonzero()
-    nonzero_rows = np.unique(nonzero_rows)
-    reduced_A = A[nonzero_rows, :]
+    # construct a reduced COO matrix
+    A.eliminate_zeros()
+    A_coo = A.tocoo()
+    unique_old_row = np.sort(np.unique(A_coo.row))
+    old_row_to_new_row = {
+        unique_old_row[i]: i for i in range(unique_old_row.size)
+    }
+    shape = (unique_old_row.size, A_coo.shape[1])
 
+    # remap the rows
+    old_row = A_coo.row
+    reduced_row = np.zeros(old_row.shape)
+    for i in range(reduced_row.size):
+        reduced_row[i] = old_row_to_new_row[old_row[i]]
+    reduced_A = scipy.sparse.coo_matrix(
+        (A_coo.data, (reduced_row, A_coo.col)), shape=shape)
+
+    # convert reduced_A to csr
+    reduced_A = reduced_A.tocsr()
+
+    nonzero_rows = unique_old_row
     n_constr = A.shape[0] // (var_length + 1)
     shape = (n_constr, var_length + 1)
     indices = nonzero_rows % (n_constr)
