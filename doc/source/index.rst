@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CVXPY 1.0
+Welcome to CVXPY 1.1
 ====================
 
 **Convex optimization, for everyone.**
@@ -55,9 +55,10 @@ more.
 
 **News.**
 
-* CVXPY v1.1.a1 (which is an alpha version) has been released. This version makes
-  repeatedly canonicalizing parametrized problems much faster than before. See
-  the tutorial on :ref:`dpp` for more information.
+* CVXPY v1.1.0 has been released. This version makes
+  repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
+  allows differentiating the map from parameters to optimal solutions, and introduces
+  some new atoms. See :ref:`updates` for more information.
 
 * CVXPY v1.0.24 supports
   `disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_,

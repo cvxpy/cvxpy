@@ -1,7 +1,93 @@
 .. _updates:
 
-What's New in 1.0
-=======================
+Changes to CVXPY
+================
+
+This page details changes in major and minor versions of CVXPY,
+in reverse chronological order.
+The most up-to-date version of CVXPY is version 1.1.
+
+CVXPY 1.1
+---------
+
+Highlights
+~~~~~~~~~~
+
+:ref:`Disciplined parametrized programming <dpp>` or "DPP" provides a way to state your problem
+in more symbolic terms. Taking advantage of DPP can shorten the amount of time it takes
+for CVXPY to pass your problem to a numerical solver. DPP also provides the basis for differentiating
+the map from parameters to the solution of an optimization problem.
+
+Certain solvers (SCS and OSQP) now support differentiating the map from the parameters of an
+optimization problem to the optimal solution of that problem. This feature allows for more general
+sensitivity analysis than is possible when using dual variables alone. It also provides the basis
+for `cvxpylayers <https://github.com/cvxgrp/cvxpylayers>`_.
+
+Since version 0.4, CVXPY has used ``*`` to perform matrix multiplication. As of version 1.1,
+this behavior is officially deprecated. All matrix multiplication should now be performed with
+the python standard ``@`` operator. CVXPY will raise a warning if ``*`` is used when one of
+the operands is not a scalar.
+
+New atoms and transforms
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+CVXPY has long provided abstractions ("atoms" and "transforms") which make it easier to specify
+optimization problems in natural ways. The release of CVXPY 1.1 is accompanied by the following
+new abstractions:
+
+ - A "support function" transform for use in disciplined convex programming.
+ - A "scalar product" atom, for appropriate use across all problem classes.
+ - A "gmatmul" atom, which captures the DGP equivalent to matrix multiplication.
+ - The atoms ``cp.max`` and ``cp.min`` have been extended for use in DQCP.
+ - The python builtin ``sum`` is now allowed in DGP.
+
+Breaking changes
+~~~~~~~~~~~~~~~~
+
+We no longer support Python 2 or Python 3.4.
+
+This release drops the SuperSCS and ECOS_BB solvers.
+
+Bugfixes
+~~~~~~~~
+
+CVXPY 1.1 has substantially improved support for recovering dual variables.
+Advanced users should be able to recover dual variables to any conic constraint,
+including exponential-cone and second-order-cone constraints.
+
+This release resolves bugs in detecting when a problem falls into the category of
+"disciplined quasi-convex programming" (DQCP).
+
+Known issues
+~~~~~~~~~~~~
+
+DPP problems with many CVXPY Parameters can take a long time to compile.
+
+DPP doesn't compose with DGP or DQCP (i.e. there is no immediate runtime benefit
+or differentiation benefit to using Parameters in DGP or DQCP problems).
+
+The XPRESS interface is currently not working.
+
+Wishlist
+~~~~~~~~
+
+The following topics are (relatively) accessible to new contributors, and have
+the potential to meaningfully improve CVXPY 1.1.
+
+ - Extend more solver interfaces to allow differentiating the map from problem
+   parameters to optimal solutions. In particular, extending the ECOS or CVXOPT
+   interfaces. This may involve contributions to diffcp (see diffcp `GitHub issue
+   31 <https://github.com/cvxgrp/diffcp/issues/31>`_).
+ - Add an interface to an open-source mixed-integer nonlinear solver. CVXPY
+   currently only supports commercial mixed-integer nonlinear solvers.
+ - Help resolve any CVXPY GitHub issue with the label
+   "`help wanted <https://github.com/cvxgrp/cvxpy/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_."
+
+Anyone interested in making contributions should read the
+:ref:`contributing guide<contributing>` before writing code.
+
+CVXPY 1.0
+---------
 
 CVXPY 1.0 includes a major rewrite of the CVXPY internals, as well as a number of changes to the user interface. We first give an overview of the changes, before diving into the details.
 We only cover changes that might be of interest to users.
@@ -9,13 +95,11 @@ We only cover changes that might be of interest to users.
 We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available `here <https://github.com/cvxgrp/cvxpy/blob/1.0/cvxpy/utilities/cvxpy_upgrade.py>`_.
 
 Overview
---------
+~~~~~~~~
 
 * Disciplined geometric programming (DGP): Starting with version 1.0.11, CVXPY lets you formulate and solve log-log convex programs, which generalize both traditional geometric programs and generalized geometric programs. To get started with DGP, check out :ref:`the tutorial <dgp>` and consult the `accompanying paper <https://web.stanford.edu/~boyd/papers/dgp.html>`_.
 
 * Reductions: CVXPY 1.0 uses a modular system of *reductions* to convert problems input by the user into the format required by the solver, which makes it easy to support new standard forms, such as quadratic programs, and more advanced user inputs, such as problems with complex variables. See :ref:`reductions-api` and the `accompanying paper <http://stanford.edu/~boyd/papers/cvxpy_rewriting.html>`_ for further details.
-
-
 
 * Attributes: Variables and parameters now support a variety of attributes that describe their symbolic properties, such as nonnegative or symmetric. This unifies the treatment of symbolic properties for variables and parameters and replaces specialized variable classes such as ``Bool`` and ``Semidef``.
 
@@ -26,7 +110,7 @@ Overview
 
 
 Reductions
-----------
+~~~~~~~~~~
 
 A reduction is a transformation 
 from one problem to an equivalent problem. Two problems are equivalent
@@ -37,7 +121,7 @@ The practical benefit of the reduction based framework is that CVXPY 1.0 support
 It also makes it easy to add generic problem transformations such as converting problems with complex variables into problems with only real variables.
 
 Attributes
-----------
+~~~~~~~~~~
 
 Attributes describe the symbolic properties of variables and parameters and are specified as arguments to the constructor. For example, ``Variable(nonneg=True)`` creates a scalar variable constrained to be nonnegative.
 Attributes replace the previous syntax of special variable classes like ``Bool`` for boolean variables and ``Semidef`` for symmetric positive semidefinite variables,
@@ -61,7 +145,7 @@ Concretely, write
 See :ref:`attributes` for a complete list of supported attributes. More attributes will be added in the future.
 
 NumPy Compatibility
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 The following interface changes have been made to make CVXPY more compatible with NumPy syntax:
 
@@ -88,7 +172,7 @@ The following interface changes have been made to make CVXPY more compatible wit
 * The ``vstack`` and ``hstack`` atoms now take lists as input. For example, write ``vstack([x, y])`` instead of ``vstack(x, y)``.
 
 Transforms
-----------
+~~~~~~~~~~
 
 Transforms provide additional ways of manipulating CVXPY objects
 beyond the atomic functions.
