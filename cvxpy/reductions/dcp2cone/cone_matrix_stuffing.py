@@ -51,21 +51,45 @@ class ParamConeProg(ParamProb):
                  parameters,
                  param_id_to_col,
                  formatted=False):
+        # The problem data tensors; c is for the constraint, and A for
+        # the problem data matrix
         self.c = c
-        self.x = x
         self.A = A
+
+        # The variable
+        self.x = x
+
+        # Form a reduced representation of A, for faster application of
+        # parameters.
+        #
+        # Reducing the representation is only beneficial when the problem
+        # is parametrized, i.e., when A.shape[1] > 1.
+        if np.prod(A.shape) != 0 and A.shape[1] > 1:
+            reduced_A, indices, indptr, shape = (
+                canonInterface.reduce_problem_data_tensor(A, self.x.size)
+            )
+            self.reduced_A = reduced_A
+            self.problem_data_index = (indices, indptr, shape)
+        else:
+            self.reduced_A = A
+            self.problem_data_index = None
+
         self._A_mapping_nonzero = None
+
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
+
         self.parameters = parameters
         self.param_id_to_col = param_id_to_col
         self.id_to_param = {p.id: p for p in self.parameters}
         self.param_id_to_size = {p.id: p.size for p in self.parameters}
         self.total_param_size = sum([p.size for p in self.parameters])
+
         # TODO technically part of inverse data.
         self.variables = variables
         self.var_id_to_col = var_id_to_col
         self.id_to_var = {v.id: v for v in self.variables}
+
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
 
@@ -101,8 +125,9 @@ class ParamConeProg(ParamProb):
             self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.A, self.x.size)
         A, b = canonInterface.get_matrix_and_offset_from_tensor(
-            self.A, param_vec, self.x.size,
-            nonzero_rows=self._A_mapping_nonzero)
+            self.reduced_A, param_vec, self.x.size,
+            nonzero_rows=self._A_mapping_nonzero,
+            problem_data_index=self.problem_data_index)
         return c, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
