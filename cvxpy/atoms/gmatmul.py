@@ -100,6 +100,10 @@ class gmatmul(Atom):
         """
         return False
 
+    def parameters(self):
+        # The exponent matrix, which is not an argument, may be parametrized.
+        return self.args[0].parameters() + self.A.parameters()
+
     def is_atom_log_log_convex(self):
         """Is the atom log-log convex?
         """
