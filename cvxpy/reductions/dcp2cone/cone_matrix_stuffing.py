@@ -141,7 +141,18 @@ class ParamConeProg(ParamProb):
         del_param_vec = delc @ self.c[:-1]
         flatdelA = delA.reshape((np.prod(delA.shape), 1), order='F')
         delAb = sp.vstack([flatdelA, sp.csc_matrix(delb[:, None])])
-        del_param_vec += np.squeeze((delAb.T @ self.A).A)
+
+        one_gig_of_doubles = 125000000
+        if delAb.shape[0] < one_gig_of_doubles:
+            # fast path: if delAb is small enough, just materialize it
+            # in memory because sparse-matrix @ dense vector is much faster
+            # than sparse @ sparse
+            del_param_vec += np.squeeze(self.A.T.dot(delAb.toarray()))
+        else:
+            # slow path.
+            # TODO: make this faster by intelligently operating on the
+            # sparse matrix data / making use of reduced_A
+            del_param_vec += np.squeeze((delAb.T @ self.A).A)
         del_param_vec = np.squeeze(del_param_vec)
 
         param_id_to_delta_param = {}

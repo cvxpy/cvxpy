@@ -33,6 +33,7 @@ import cvxpy.utilities as u
 
 from collections import namedtuple
 import numpy as np
+import time
 
 
 SolveResult = namedtuple(
@@ -849,7 +850,10 @@ class Problem(u.Canonical):
                 del_vars[variable.id] *= variable.value
 
         dx = self._cache.param_prog.split_adjoint(del_vars)
+        start = time.time()
         dA, db, dc = DT(dx, zeros, zeros)
+        end = time.time()
+        backward_cache['DT_TIME'] = end - start
         dparams = self._cache.param_prog.apply_param_jac(dc, -dA, db)
 
         if not gp:
@@ -956,7 +960,10 @@ class Problem(u.Canonical):
                 param_deltas[param.id] = np.asarray(delta, dtype=np.float64)
         dc, _, dA, db = param_prog.apply_parameters(param_deltas,
                                                     zero_offset=True)
+        start = time.time()
         dx, _, _ = D(-dA, db, dc)
+        end = time.time()
+        backward_cache['D_TIME'] = end - start
         dvars = param_prog.split_solution(
             dx, [v.id for v in self.variables()])
         for variable in self.variables():
