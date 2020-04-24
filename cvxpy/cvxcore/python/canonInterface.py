@@ -43,7 +43,7 @@ def get_parameter_vector(param_size,
     -------
         A flattened NumPy array of parameter values, of length param_size + 1
     """
-#TODO handle parameters with structure.
+    #TODO handle parameters with structure.
     if param_size == 0:
         return None
     param_vec = np.zeros(param_size + 1)
@@ -64,31 +64,29 @@ def reduce_problem_data_tensor(A, var_length):
     The problem data tensor A is a matrix of shape (m, p), where p is the
     length of the parameter vector. The product A@param_vec gives the
     entries of the problem data matrix for a solver;
-   the solver's problem data matrix has dimensions(n_constr, n_var + 1),
-       and n_constr *(
-           n_var + 1) = m.In other words,
-                   each row in A corresponds to an entry in the solver's data matrix.
+    the solver's problem data matrix has dimensions(n_constr, n_var + 1),
+    and n_constr *( n_var + 1) = m. In other words, each row in A corresponds
+    to an entry in the solver's data matrix.
 
-       This function removes the rows in A that are identically zero,
-                   since these rows correspond to zeros in the problem data
-                       .It also returns the indices and indptr to construct the
-                   problem data matrix from the reduced representation of A,
-                   and the shape of the problem data matrix
-                           .
+    This function removes the rows in A that are identically zero, since these
+    rows correspond to zeros in the problem data .It also returns the indices
+    and indptr to construct the problem data matrix from the reduced
+    representation of A, and the shape of the problem data matrix.
 
-                       Let reduced_A be the sparse matrix returned by
-                       this function.Then the problem data can be computed using
+    Let reduced_A be the sparse matrix returned by this function. Then the
+    problem data can be computed using
 
-                       data
-       : = reduced_A @param_vec
+       data : = reduced_A @param_vec
 
-             and the problem data matrix can be constructed with
+    and the problem data matrix can be constructed with
 
-         problem_data
-       : = scipy.sparse.csc_matrix((data, indices, indptr), shape = shape)
+        problem_data : = scipy.sparse.csc_matrix(
+            (data, indices, indptr), shape = shape)
 
-               Parameters-- --------A : A sparse matrix,
-                   the problem data tensor; must not have a 0 in its shape
+    Parameters
+    ----------
+        A : A sparse matrix, the problem data tensor; must not have a 0 in its
+            shape
         var_length: number of variables in the problem
 
     Returns
@@ -105,7 +103,7 @@ def reduce_problem_data_tensor(A, var_length):
     old_row_to_new_row = {
         unique_old_row[i]: i for i in range(unique_old_row.size)
     }
-    shape = (unique_old_row.size, A_coo.shape[1])
+    reduced_A_shape = (unique_old_row.size, A_coo.shape[1])
 
     # remap the rows
     old_row = A_coo.row
@@ -113,7 +111,7 @@ def reduce_problem_data_tensor(A, var_length):
     for i in range(reduced_row.size):
         reduced_row[i] = old_row_to_new_row[old_row[i]]
     reduced_A = scipy.sparse.coo_matrix(
-        (A_coo.data, (reduced_row, A_coo.col)), shape=shape)
+        (A_coo.data, (reduced_row, A_coo.col)), shape=reduced_A_shape)
 
     # convert reduced_A to csr
     reduced_A = reduced_A.tocsr()
@@ -128,22 +126,22 @@ def reduce_problem_data_tensor(A, var_length):
     n_cols = shape[1]
 
     # construction of the indptr: scan through cols, and find
-    # the indices i at which cols[i-1] != cols[i]; these indices are
-    # the entries of indptr
+    # the structure of the column index pointer
     indptr = np.zeros(n_cols + 1, dtype=np.int32)
-    i = 1
+    i = 0
     j = 1
     nnz = cols.size
+    prev_col = 0
     while i < nnz:
-        prev_entry = cols[i-1]
-        entry = cols[i]
-        while entry == prev_entry and i < nnz - 1:
+        col = cols[i]
+        while col == prev_col and i < nnz - 1:
             i += 1
-            prev_entry = entry
-            entry = cols[i]
-        if prev_entry != entry:
-            indptr[j] = i
-            j += 1
+            col = cols[i]
+        if prev_col != col:
+            for k in range(col - prev_col):
+                indptr[j + k] = i
+            j += col - prev_col
+        prev_col = col
         i += 1
     indptr[j:] = nnz
     return reduced_A, indices, indptr, shape

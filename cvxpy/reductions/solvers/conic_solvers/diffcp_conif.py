@@ -18,6 +18,7 @@ limitations under the License.
 from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 import cvxpy.settings as s
+import time
 
 
 class DIFFCP(scs_conif.SCS):
@@ -83,11 +84,14 @@ class DIFFCP(scs_conif.SCS):
             warm_start_tuple = (solver_cache[self.name()]["x"],
                                 solver_cache[self.name()]["y"],
                                 solver_cache[self.name()]["s"])
+        start = time.time()
         results = diffcp.solve_and_derivative_internal(
             A, b, c, cones, verbose=verbose,
             warm_start=warm_start_tuple,
             raise_on_error=False,
             **solver_opts)
+        end = time.time()
+        results['TOT_TIME'] = end - start
         if solver_cache is not None:
             solver_cache[self.name()] = results
         return results

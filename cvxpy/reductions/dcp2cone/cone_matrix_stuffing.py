@@ -61,8 +61,6 @@ class ParamConeProg(ParamProb):
 
         # Form a reduced representation of A, for faster application of
         # parameters.
-        #
-        # Reducing the representation requires H
         if np.prod(A.shape) != 0:
             reduced_A, indices, indptr, shape = (
                 canonInterface.reduce_problem_data_tensor(A, self.x.size)
