@@ -177,7 +177,7 @@ class power(Elementwise):
         """
         if self.p.value == 1:
             # Same as input.
-            return (self.args[0].is_nonpos(), self.args[0].is_nonpos())
+            return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
         else:
             # Always positive.
             return (True, False)
