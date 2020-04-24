@@ -44,6 +44,9 @@ class gmatmul(Atom):
         A positive matrix.
     """
     def __init__(self, A, X):
+        # NB: It is important that the exponent is an attribute, not
+        # an argument. This prevents parametrized exponents from being replaced
+        # with their logs in Dgp2Dcp.
         self.A = Atom.cast_to_const(A)
         super(gmatmul, self).__init__(X)
 

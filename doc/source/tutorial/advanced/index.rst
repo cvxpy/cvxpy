@@ -1083,7 +1083,7 @@ This code snippet prints
 ::
 
     Is DPP? False
-    Is DCP? True
+    Is DGP? True
 
 You can represent non-DPP transformations of parameters
 by doing them outside of CVXPY, e.g., in NumPy. For example, 

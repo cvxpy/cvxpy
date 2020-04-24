@@ -65,18 +65,18 @@ def reduce_problem_data_tensor(A, var_length):
     length of the parameter vector. The product A@param_vec gives the
     entries of the problem data matrix for a solver;
     the solver's problem data matrix has dimensions(n_constr, n_var + 1),
-    and n_constr *( n_var + 1) = m. In other words, each row in A corresponds
+    and n_constr*(n_var + 1) = m. In other words, each row in A corresponds
     to an entry in the solver's data matrix.
 
     This function removes the rows in A that are identically zero, since these
-    rows correspond to zeros in the problem data .It also returns the indices
+    rows correspond to zeros in the problem data. It also returns the indices
     and indptr to construct the problem data matrix from the reduced
     representation of A, and the shape of the problem data matrix.
 
     Let reduced_A be the sparse matrix returned by this function. Then the
     problem data can be computed using
 
-       data : = reduced_A @param_vec
+       data : = reduced_A @ param_vec
 
     and the problem data matrix can be constructed with
 

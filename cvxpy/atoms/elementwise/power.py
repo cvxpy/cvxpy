@@ -123,6 +123,9 @@ class power(Elementwise):
 
     def __init__(self, x, p, max_denom=1024):
         self._p_orig = p
+        # NB: It is important that the exponent is an attribute, not
+        # an argument. This prevents parametrized exponents from being replaced
+        # with their logs in Dgp2Dcp.
         self.p = cvxtypes.expression().cast_to_const(p)
         if not (isinstance(self.p, cvxtypes.constant()) or
                 isinstance(self.p, cvxtypes.parameter())):
