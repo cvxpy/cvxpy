@@ -189,31 +189,61 @@ Creating a new interface requires much more work, and warrants coordination
 with CVXPY principal developers before writing any code.
 
 This section of the contributing guide outlines considerations when adding new solver interfaces.
+For the time being, we only have documentation for conic solver interfaces.
+Additional documentation for QP solver interfaces is forthcoming.
 
-QPSolver vs ConicSolver
+Conic solvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All solver interfaces are contained in ``cvxpy/reductions/solvers/``,
-which specializes into code paths for QPs and cone programs.
-You need to create a python file ``awesome_solver.py`` which defines
-an appropriate class: ``AwesomeSolver(QPSolver)`` or ``AwesomeSolver(ConicSolver)``.
+Conic solvers require that the objective is a linear function of the
+optimization variable; constraints must be expressed using convex cones and
+affine functions of the optimization variable.
+The codepath for conic solvers begins with ``cvxpy/reductions/solvers/conic_solvers/conic_solver.py``,
+and in particular with the class ``ConicSolver``.
 
-From CVXPY's perspective, the only difference between a QP solver and a conic solver
-is that a QP solver allows for a quadratic objective, while a conic solver requires
-a linear objective.
-Conic solvers generally allow for more complicated constraints compared to QP solvers.
-In the case of some commercial packages (such as CPLEX), CVXPY maintains separate interface files
-for QPs versus conic programs.
+Let's say you're writing a CVXPY interface for the "*Awesome*" conic solver,
+and that there's an existing package ``AwesomePy`` for calling *Awesome* from python.
+In this case you need to create a file called ``awesome_conif.py`` in the same folder as ``conic_solver.py``.
+Within ``awesome_conif.py`` you will define a class ``Awesome(ConicSolver)``.
+The ``Awesome(ConicSolver)`` class will manage all interaction between CVXPY and the
+existing ``AwesomePy`` python package.
 
 Essential functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Explain ``.apply()``, ``.solve_via_data()``, and ``.invert()``.
+The ``Awesome(ConicSolver)`` class will need to implement six functions:
+ - import_solver,
+ - name,
+ - accepts,
+ - apply,
+ - solve_via_data, and
+ - invert.
 
-Address differences in how someone would implement ``.apply()`` depending on if they
-had a QP solver versus a conic solver.
-For example: QP solvers inherit their apply function from ``QPSolver.apply``,
-but conic solvers must implement ``.apply()`` from scratch.
+The first three functions are very easy (often trivial) to write.
+The remaining functions are called in order: ``apply`` does any necessary preparation
+to stage data for ``solve_via_data``, ``solve_via_data`` calls the *Awesome* solver by way
+of the existing third-party ``AwesomePy`` package, and ``invert`` transforms the output
+from ``AwesomePy`` into the format that CVXPY expects.
+Key goals in this process are that the output of ``apply`` should be as close as possible
+to the *Awesome*'s standard form, and that ``solve_via_data`` should kept short.
+
+The complexity of ``Awesome(ConicSolver).solve_via_data`` will depend on ``AwesomePy``.
+If ``AwesomePy`` allows very low level input-- passed by one or two matrices,
+and a handful of numeric vectors --then you'll be in a situation like ECOS or GLPK.
+If the ``AwesomePy`` package requires that you build an object-oriented model,
+then you're looking at something closer to the MOSEK, GUROBI, or NAG interfaces.
+
+When writing ``Awesome(ConicSolver).apply``, the first time you see explicit problem data
+is when you call ``problem.apply_parameters()``. What you do with this problem data
+depends on how ``AwesomePy`` expects input.
+
+The ``Awesome(ConicSolver).invert`` function usually applies some transformation of dual
+variables returned by ``AwesomePy``. In order to correctly implement
+``Awesome(ConicSolver).invert``, it's necessary to consider transformations applied
+during ``Awesome(ConicSolver).apply`` and potentially differing conventions in how
+CVXPY and ``AwesomePy`` define dual variables.
+Because dual variables are a potential stumbling block when writing a solver interface,
+we explain this in more detail in the next section.
 
 
 Dual variables
