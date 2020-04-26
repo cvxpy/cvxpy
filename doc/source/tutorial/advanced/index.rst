@@ -1153,7 +1153,6 @@ DGP problems.)
 
 .. image:: advanced_files/resolving_dpp.png
 
-.. _OSQP: https://osqp.org/
 .. _derivatives:
 
 Sensitivity analysis and gradients
@@ -1187,8 +1186,8 @@ computes a heuristic quantity.
 As a first example, we solve a trivial problem with an analytical solution,
 to illustrate the usage of the ``backward`` and ``derivative``
 functions. In the following block of code, we construct a problem with
-a scalar variable ``x`` and a scalar ``parameter ``p``. The problem
-is to minimize the quadratic ``(x -2*p)**2``.
+a scalar variable ``x`` and a scalar parameter ``p``. The problem
+is to minimize the quadratic ``(x - 2*p)**2``.
 
 .. code:: python3
 
@@ -1284,6 +1283,9 @@ compute sensitivities using the derivative method than it would be to compute
 the entire Jacobian (which can be done by calling backward multiple times,
 once for each standard basis vector).
 
+**Next steps.** See the `introductory notebook <https://www.cvxpy.org/examples/derivatives/fundamentals.html>`_
+on derivatives.
+
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
@@ -1296,3 +1298,5 @@ once for each standard basis vector).
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _NAG: https://www.nag.co.uk/nag-library-python/
+.. _OSQP: https://osqp.org/
+
