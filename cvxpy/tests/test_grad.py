@@ -638,7 +638,7 @@ class TestGrad(BaseTest):
         self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
 
     def test_power(self):
-        """Test domain for power.
+        """Test grad for power.
         """
         expr = cp.sqrt(self.a)
         self.a.value = 2

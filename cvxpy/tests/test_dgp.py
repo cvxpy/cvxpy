@@ -197,3 +197,8 @@ class TestDgp(BaseTest):
         self.assertTrue(gmatmul.is_log_log_concave())
         self.assertFalse(gmatmul.is_incr(0))
         self.assertFalse(gmatmul.is_decr(0))
+
+    def test_power_sign(self):
+        x = cvxpy.Variable(pos=True)
+        self.assertTrue((x**1).is_nonneg())
+        self.assertFalse((x**1).is_nonpos())

@@ -4,7 +4,7 @@ import warnings
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC, \
                               NonPos, Inequality, Equality, Zero
-from cvxpy.error import DCPError, DGPError, SolverError
+from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
@@ -113,7 +113,7 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
     return reductions
 
 
-def construct_solving_chain(problem, candidates, gp=False):
+def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -129,6 +129,9 @@ def construct_solving_chain(problem, candidates, gp=False):
     gp : bool
         If True, the problem is parsed as a Disciplined Geometric Program
         instead of as a Disciplined Convex Program.
+    enforce_dpp : bool, optional
+        When True, a DPPError will be thrown when trying to parse a non-DPP
+        problem (instead of just a warning). Defaults to False.
 
     Returns
     -------
@@ -145,20 +148,20 @@ def construct_solving_chain(problem, candidates, gp=False):
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp)
 
-    if gp:
-        # Log-log convex programs need a specialized DPP ruleset (so that
-        # the corresponding DCP program ends up being DPP), which we do not yet
-        # have; for now, just evaluate the parameters.
-        reductions += [EvalParams()]
-    elif not problem.is_dpp():
-        warnings.warn(
+    dpp_context = 'dcp' if not gp else 'dgp'
+    dpp_error_msg = (
             "You are solving a parameterized problem that is not DPP. "
             "Because the problem is not DPP, subsequent solves will not be "
             "faster than the first one. For more information, see the "
             "documentation on Discplined Parametrized Programming, at\n"
             "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
             "disciplined-parametrized-programming")
-        reductions += [EvalParams()]
+    if not problem.is_dpp(dpp_context):
+        if not enforce_dpp:
+            warnings.warn(dpp_error_msg)
+            reductions += [EvalParams()]
+        else:
+            raise DPPError(dpp_error_msg)
     elif any(param.is_complex() for param in problem.parameters()):
         reductions += [EvalParams()]
 

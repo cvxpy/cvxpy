@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions import cvxtypes
 import cvxpy.utilities as u
 import numpy as np
 
@@ -43,6 +44,9 @@ class gmatmul(Atom):
         A positive matrix.
     """
     def __init__(self, A, X):
+        # NB: It is important that the exponent is an attribute, not
+        # an argument. This prevents parametrized exponents from being replaced
+        # with their logs in Dgp2Dcp.
         self.A = Atom.cast_to_const(A)
         super(gmatmul, self).__init__(X)
 
@@ -64,6 +68,10 @@ class gmatmul(Atom):
         if not self.A.is_constant():
             raise ValueError(
                 "gmatmul(A, X) requires that A be constant."
+            )
+        if self.A.parameters() and not isinstance(self.A, cvxtypes.parameter()):
+            raise ValueError(
+                "gmatmul(A, X) requires that A be a Constant or a Parameter."
             )
         if not self.args[0].is_pos():
             raise ValueError(
@@ -95,15 +103,36 @@ class gmatmul(Atom):
         """
         return False
 
+    def parameters(self):
+        # The exponent matrix, which is not an argument, may be parametrized.
+        return self.args[0].parameters() + self.A.parameters()
+
     def is_atom_log_log_convex(self):
         """Is the atom log-log convex?
         """
-        return True
+        if u.scopes.dpp_scope_active():
+            # This branch applies curvature rules for DPP.
+            #
+            # Because a DPP scope is active, parameters will be
+            # treated as affine (like variables, not constants) by curvature
+            # analysis methods.
+            #
+            # A power X^A is log-log convex (actually, affine) as long as
+            # at least one of X and P do not contain parameters.
+            #
+            # Note by construction (see A is either a Constant or
+            # a Parameter, ie, either isinstance(A, Constant) or isinstance(A,
+            # Parameter)).
+            X = self.args[0]
+            A = self.A
+            return not (X.parameters() and A.parameters())
+        else:
+            return True
 
     def is_atom_log_log_concave(self):
         """Is the atom log-log concave?
         """
-        return True
+        return self.is_atom_log_log_convex()
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
