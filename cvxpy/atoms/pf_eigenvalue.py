@@ -76,11 +76,10 @@ class pf_eigenvalue(Atom):
         """
         return False
 
-    # TODO(akshayka): Figure out monotonicity.
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return False
+        return True
 
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?

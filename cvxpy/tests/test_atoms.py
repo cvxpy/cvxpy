@@ -132,16 +132,6 @@ class TestAtoms(BaseTest):
 
         assert cp.power(-1, 2).value == 1
 
-        with self.assertRaises(Exception) as cm:
-            cp.power(-1, 3).value
-        self.assertEqual(str(cm.exception),
-                         "power(x, 3.0) cannot be applied to negative values.")
-
-        with self.assertRaises(Exception) as cm:
-            cp.power(0, -1).value
-        self.assertEqual(str(cm.exception),
-                         "power(x, -1.0) cannot be applied to negative or zero values.")
-
     # Test the geo_mean class.
     def test_geo_mean(self):
         atom = cp.geo_mean(self.x)

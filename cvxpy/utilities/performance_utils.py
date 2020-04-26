@@ -37,19 +37,37 @@ def lazyprop(func):
     return _lazyprop
 
 
+def _cache_key(args, kwargs):
+    key = args + tuple([(key, item) for key, item in kwargs.items()])
+    if scopes.dpp_scope_active():
+        key = ('__dpp_scope_active__',) + key
+    return key
+
+
 def compute_once(func):
-    """Computes a method exactly once and caches the result."""
+    """Computes an instance method caches the result.
+
+    A result is stored for each unique combination of arguments and
+    keyword arguments. Similar to functools.lru_cache, except this works
+    decorator works for instance methods (functools.lru_cache decorates
+    functions, not methods; using it on a method leaks memory.)
+
+    This decorator should not be used when there are an unbounded or very
+    large number of argument and keyword argument combinations.
+     """
 
     @functools.wraps(func)
     def _compute_once(self, *args, **kwargs):
-        if scopes.dpp_scope_active():
-            attr_name = '_compute_once_dpp_' + func.__name__
+        cache_name = func.__name__ + '__cache__'
+        if not hasattr(self, cache_name):
+            # On first call, the cache is created and stored in self
+            setattr(self, cache_name, {})
+        cache = getattr(self, cache_name)
+        key = _cache_key(args, kwargs)
+        if key in cache:
+            return cache[key]
         else:
-            attr_name = '_compute_once_' + func.__name__
-
-        try:
-            return getattr(self, attr_name)
-        except AttributeError:
-            setattr(self, attr_name, func(self, *args, **kwargs))
-        return getattr(self, attr_name)
+            result = func(self, *args, **kwargs)
+            cache[key] = result
+            return result
     return _compute_once
