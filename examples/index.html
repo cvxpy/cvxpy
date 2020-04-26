@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Examples &#8212; CVXPY 1.1.0a3 documentation</title>
+    <title>Examples &#8212; CVXPY 1.1.0a4 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -37,17 +37,21 @@
 <span id="id1"></span><h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
 <p>These examples show many different ways to use CVXPY.</p>
 <ul class="simple">
-<li><p>The <a class="reference internal" href="#basic"><span class="std std-ref">Basic Examples</span></a> section shows how to solve some common optimization problems
+<li><p>The <a class="reference internal" href="#basic"><span class="std std-ref">Basic examples</span></a> section shows how to solve some common optimization problems
 in CVXPY.</p></li>
-<li><p>The <a class="reference internal" href="#machine-learning"><span class="std std-ref">Machine Learning</span></a> section is a tutorial covering convex methods in
+<li><p>The <a class="reference internal" href="#dgp-examples"><span class="std std-ref">Disciplined geometric programming</span></a> section shows how to solve geometric programs and log-log convex programs using <a class="reference internal" href="../tutorial/dgp/index.html#dgp"><span class="std std-ref">disciplined geometric programming</span></a>.</p></li>
+<li><p>The <a class="reference internal" href="#dqcp-examples"><span class="std std-ref">Disciplined quasiconvex programming</span></a> section has examples on quasiconvex programming.</p></li>
+<li><p>The <a class="reference internal" href="../tutorial/advanced/index.html#derivatives"><span class="std std-ref">Sensitivity analysis and gradients</span></a> section shows how to compute sensitivity analyses and gradients of solutions.</p></li>
+</ul>
+<p>There are also application-specific sections.</p>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="#machine-learning"><span class="std std-ref">Machine learning</span></a> section is a tutorial on convex optimization in
 machine learning.</p></li>
 <li><p>The <a class="reference internal" href="#advanced-python"><span class="std std-ref">Advanced</span></a> and <a class="reference internal" href="#applications"><span class="std std-ref">Advanced Applications</span></a> sections contains
-more complex examples aimed at experts in convex optimization.</p></li>
-<li><p>The <a class="reference internal" href="#dgp-examples"><span class="std std-ref">Disciplined Geometric Programming</span></a> section contains an interactive tutorial on <a class="reference internal" href="../tutorial/dgp/index.html#dgp"><span class="std std-ref">disciplined
-geometric programming</span></a> and various examples of DGP problems.</p></li>
+more complex examples for experts in convex optimization.</p></li>
 </ul>
 <div class="section" id="basic-examples">
-<span id="basic"></span><h2>Basic Examples<a class="headerlink" href="#basic-examples" title="Permalink to this headline">¶</a></h2>
+<span id="basic"></span><h2>Basic examples<a class="headerlink" href="#basic-examples" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="basic/least_squares.html"><span class="doc">Least squares</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb">[.ipynb]</a></p></li>
 <li><p><a class="reference internal" href="basic/linear_program.html"><span class="doc">Linear program</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/linear_program.ipynb">[.ipynb]</a></p></li>
@@ -63,8 +67,33 @@ geometric programming</span></a> and various examples of DGP problems.</p></li>
 <li><p><a class="reference internal" href="applications/tv_inpainting.html"><span class="doc">Total variation in-painting</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb">[.ipynb]</a></p></li>
 </ul>
 </div>
+<div class="section" id="disciplined-geometric-programming">
+<span id="dgp-examples"></span><h2>Disciplined geometric programming<a class="headerlink" href="#disciplined-geometric-programming" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="dgp/dgp_fundamentals.html"><span class="doc">DGP fundamentals</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/dgp_fundamentals.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/max_volume_box.html"><span class="doc">Maximizing the volume of a box</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/max_volume_box.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/power_control.html"><span class="doc">Power control</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/pf_matrix_completion.html"><span class="doc">Perron-Frobenius matrix completion</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dgp/rank_one_nmf.html"><span class="doc">Rank-one nonnegative matrix factorization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb">[.ipynb]</a></p></li>
+</ul>
+</div>
+<div class="section" id="disciplined-quasiconvex-programming">
+<span id="dqcp-examples"></span><h2>Disciplined quasiconvex programming<a class="headerlink" href="#disciplined-quasiconvex-programming" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="dqcp/concave_fractional_function.html"><span class="doc">Concave fractional function</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/concave_fractional_function.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dqcp/minimum_length_least_squares.html"><span class="doc">Minimum-length least squares</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/minimum_length_least_squares.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="dqcp/hypersonic_shape_design.html"><span class="doc">Hypersonic shape design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/hypersonic_shape_design.ipynb">[.ipynb]</a></p></li>
+</ul>
+</div>
+<div class="section" id="derivatives">
+<span id="id16"></span><h2>Derivatives<a class="headerlink" href="#derivatives" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference internal" href="derivatives/fundamentals.html"><span class="doc">Fundamentals</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/derivatives/fundamentals.ipynb">[.ipynb]</a></p></li>
+<li><p><a class="reference internal" href="derivatives/queuing_design.html"><span class="doc">Queuing design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/derivatives/queuing_design.ipynb">[.ipynb]</a></p></li>
+</ul>
+</div>
 <div class="section" id="machine-learning">
-<span id="id8"></span><h2>Machine Learning<a class="headerlink" href="#machine-learning" title="Permalink to this headline">¶</a></h2>
+<span id="id19"></span><h2>Machine learning<a class="headerlink" href="#machine-learning" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li><p><a class="reference internal" href="machine_learning/ridge_regression.html"><span class="doc">Ridge regression</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/machine_learning/ridge_regression.ipynb">[.ipynb]</a></p></li>
 <li><p><a class="reference internal" href="machine_learning/lasso_regression.html"><span class="doc">Lasso regression</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/machine_learning/lasso_regression.ipynb">[.ipynb]</a></p></li>
@@ -105,24 +134,6 @@ geometric programming</span></a> and various examples of DGP problems.</p></li>
 <li><p><a class="reference internal" href="applications/water_filling_BVex5.2.html"><span class="doc">Water filling</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb">[.ipynb]</a></p></li>
 </ul>
 </div>
-<div class="section" id="disciplined-geometric-programming">
-<span id="dgp-examples"></span><h2>Disciplined Geometric Programming<a class="headerlink" href="#disciplined-geometric-programming" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="dgp/dgp_fundamentals.html"><span class="doc">DGP fundamentals</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/dgp_fundamentals.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dgp/max_volume_box.html"><span class="doc">Maximizing the volume of a box</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/max_volume_box.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dgp/power_control.html"><span class="doc">Power control</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dgp/pf_matrix_completion.html"><span class="doc">Perron-Frobenius matrix completion</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dgp/rank_one_nmf.html"><span class="doc">Rank-one nonnegative matrix factorization</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb">[.ipynb]</a></p></li>
-</ul>
-</div>
-<div class="section" id="disciplined-quasiconvex-programming">
-<span id="dqcp-examples"></span><h2>Disciplined Quasiconvex Programming<a class="headerlink" href="#disciplined-quasiconvex-programming" title="Permalink to this headline">¶</a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="dqcp/concave_fractional_function.html"><span class="doc">Concave fractional function</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/concave_fractional_function.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dqcp/minimum_length_least_squares.html"><span class="doc">Minimum-length least squares</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/minimum_length_least_squares.ipynb">[.ipynb]</a></p></li>
-<li><p><a class="reference internal" href="dqcp/hypersonic_shape_design.html"><span class="doc">Hypersonic shape design</span></a> <a class="reference external" href="https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/hypersonic_shape_design.ipynb">[.ipynb]</a></p></li>
-</ul>
-</div>
 </div>
 
 
@@ -157,12 +168,13 @@ geometric programming</span></a> and various examples of DGP problems.</p></li>
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Examples</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#basic-examples">Basic Examples</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#machine-learning">Machine Learning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#basic-examples">Basic examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#disciplined-geometric-programming">Disciplined geometric programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#disciplined-quasiconvex-programming">Disciplined quasiconvex programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#derivatives">Derivatives</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#machine-learning">Machine learning</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced">Advanced</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced-applications">Advanced Applications</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#disciplined-geometric-programming">Disciplined Geometric Programming</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#disciplined-quasiconvex-programming">Disciplined Quasiconvex Programming</a></li>
 </ul>
 </li>
 </ul>
@@ -207,10 +219,10 @@ geometric programming</span></a> and various examples of DGP problems.</p></li>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019, The CVXPY authors.
+      &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

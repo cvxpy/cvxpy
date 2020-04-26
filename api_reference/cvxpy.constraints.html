@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Constraints &#8212; CVXPY 1.1.0a3 documentation</title>
+    <title>Constraints &#8212; CVXPY 1.1.0a4 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -73,7 +73,7 @@ thereof.</p>
 </dl>
 <dl class="method">
 <dt id="cvxpy.constraints.constraint.Constraint.is_dcp">
-<em class="property">abstract </em><code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/constraint.html#Constraint.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.constraint.Constraint.is_dcp" title="Permalink to this definition">¶</a></dt>
+<em class="property">abstract </em><code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/constraint.html#Constraint.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.constraint.Constraint.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint is DCP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -170,7 +170,7 @@ numerical setting.</p>
 
 <dl class="method">
 <dt id="cvxpy.constraints.nonpos.NonPos.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/nonpos.html#NonPos.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/nonpos.html#NonPos.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A non-positive constraint is DCP if its argument is convex.</p>
 </dd></dl>
 
@@ -259,7 +259,7 @@ simply write <code class="docutils literal notranslate"><span class="pre">x</spa
 <code class="docutils literal notranslate"><span class="pre">x</span></code> as its argument.</p>
 <dl class="method">
 <dt id="cvxpy.constraints.zero.Zero.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/zero.html#Zero.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.zero.Zero.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/zero.html#Zero.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.zero.Zero.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A zero constraint is DCP if its argument is affine.</p>
 </dd></dl>
 
@@ -341,7 +341,7 @@ as they do not make sense in a numerical setting.</p>
 </dl>
 <dl class="method">
 <dt id="cvxpy.constraints.psd.PSD.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/psd.html#PSD.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.psd.PSD.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/psd.html#PSD.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.psd.PSD.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A PSD constraint is DCP if the constrained expression is affine.</p>
 </dd></dl>
 
@@ -424,7 +424,7 @@ constraint:</p>
 
 <dl class="method">
 <dt id="cvxpy.constraints.second_order.SOC.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/second_order.html#SOC.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.second_order.SOC.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/second_order.html#SOC.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.second_order.SOC.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>An SOC constraint is DCP if each of its arguments is affine.</p>
 </dd></dl>
 
@@ -497,15 +497,15 @@ constraint:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><em>Variable</em></a>) – x in the exponential cone.</p></li>
-<li><p><strong>y</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><em>Variable</em></a>) – y in the exponential cone.</p></li>
-<li><p><strong>z</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><em>Variable</em></a>) – z in the exponential cone.</p></li>
+<li><p><strong>x</strong> (<em>Variable</em>) – x in the exponential cone.</p></li>
+<li><p><strong>y</strong> (<em>Variable</em>) – y in the exponential cone.</p></li>
+<li><p><strong>z</strong> (<em>Variable</em>) – z in the exponential cone.</p></li>
 </ul>
 </dd>
 </dl>
 <dl class="method">
 <dt id="cvxpy.constraints.exponential.ExpCone.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#ExpCone.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.exponential.ExpCone.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#ExpCone.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.exponential.ExpCone.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>An exponential constraint is DCP if each argument is affine.</p>
 </dd></dl>
 
@@ -651,10 +651,10 @@ constraint:</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2019, The CVXPY authors.
+      &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
