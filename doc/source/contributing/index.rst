@@ -249,8 +249,54 @@ we explain this in more detail in the next section.
 Dual variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Explain that this logic is usually stored in ``.invert()``, and that correctly
-implementing this logic requires a good understanding of what happened in ``.apply()``.
+Dual variable extraction should be handled in ``Awesome(ConicSolver).invert``.
+To perform this step correctly, it's necessary to understand how CVXPY defines a primal-dual
+pair of convex optimization problems.
+We follow the convention from Chapter 5 of
+`Convex Optimization by Boyd & Vandenberghe <https://web.stanford.edu/~boyd/cvxbook/>`_.
+When dealing only with elementwise constraints, we start with a primal problem
+
+.. math::
+
+    (P) \qquad \mathrm{minimize}~ & f_0(x) \\
+    \text{subject to}~ & f_i(x) \leq 0 \quad i=1,\ldots,m \\
+                        & h_i(x) = 0 \quad i=1,\ldots,p,
+
+over :math:`x \in \mathbb{R}^n`, and then from a Lagrangian
+
+.. math::
+
+    \mathcal{L}(x,\lambda,\nu) = f_0(x) + \sum_{i=1}^m \lambda_i f_i(x) + \sum_{i=1}^p \nu_i h_i(x)
+
+over dual variables :math:`\lambda \in \mathbb{R}^m_+` and :math:`\nu \in \mathbb{R}^p`.
+It's often the case that a user specifies their problem in a form other than :math:`(P)`;
+when this happens CVXPY rewrites:
+
+ * ``con = (expr1 == expr2)`` becomes ``con = (expr1 - expr2 == 0)``,
+ * ``con = (expr1 <= expr2)`` becomes ``con = (expr1 - expr2 <= 0)``, and
+ * ``con = (expr1 >= expr2)`` becomes ``con = (expr2 - expr1 <= 0)``.
+
+That's essentially all the information you need if *Awesome* is a linear programming solver.
+More subtlety occurs when *Awesome* allows more general conic constraints :math:`x \in K` for
+a cone :math:`K` like the PSD cone, second order cone, or exponential cone.
+Here we have a primal standard form
+
+.. math::
+
+    (P) \qquad \mathrm{minimize}~ & f_0(x) \\
+    \text{subject to}~ & f_i(x) \leq 0 \quad i=1,\ldots,m \\
+                        & h_i(x) = 0 \quad i=1,\ldots,p, \\
+                        & x \in K_1 \times K_2 \times \cdots \times K_\ell
+
+over :math:`x \in \mathbb{R}^n`, and the Lagrangian is
+
+.. math::
+
+    \mathcal{L}(x,\lambda,\nu,y) = f_0(x) + \sum_{i=1}^m \lambda_i f_i(x) + \sum_{i=1}^p \nu_i h_i(x)
+        - \langle y, x \rangle
+
+where :math:`y \in K_1^* \times K_2^* \times \cdots K_\ell^*`, and :math:`K_i^*` is dual to :math:`K_i` under
+the inner product :math:`\langle \cdot, \cdot \rangle`.
 
 Explain CVXPY's conventions for dual variables, and assumptions on the Lagrangian.
 Incorporate some of `my comment <https://github.com/cvxgrp/cvxpy/issues/923#issuecomment-590516011>`_ or
