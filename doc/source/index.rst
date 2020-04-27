@@ -57,14 +57,14 @@ more.
 
 * CVXPY v1.1.a4 has been released. This pre-release
   adds support for differentiating through DCP and DGP
-  problems. See the tutorial on :ref:`derivatives`,
+  problems. See the :ref:`tutorial on derivatives <derivatives>`
   and the `accompanying <https://web.stanford.edu/~boyd/papers/diff_cvxpy.html>`_
-  `papers <https://web.stanford.edu/~boyd/papers/diff_dgp.html>`_,
+  `papers <https://web.stanford.edu/~boyd/papers/diff_dgp.html>`_
   for more information. Install it using ``pip install --pre --upgrade cvxpy``.
 
-* CVXPY v1.1.a1 (which is an alpha version) has been released. This version makes
+* CVXPY v1.1.a1 has been released. This pre-release makes
   repeatedly canonicalizing parametrized problems much faster than before. See
-  the tutorial on :ref:`dpp` for more information.
+  the :ref:`tutorial on parameters <dpp>` for more information.
 
 * CVXPY v1.0.24 supports
   `disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_,
