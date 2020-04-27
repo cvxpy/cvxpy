@@ -18,10 +18,8 @@ limitations under the License.
 import cvxpy.settings as s
 from cvxpy.constraints import Zero, NonPos, PSD, SOC, ExpCone
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConeDims,
-                                                                 ConicSolver)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.utilities import group_constraints
 import numpy as np
 import scipy.sparse as sp
 
@@ -194,18 +192,15 @@ class SCS(ConicSolver):
         # 3. soc
         # 4. psd
         # 5. exponential
-        constr_map = group_constraints(problem.constraints)
-        data[ConicSolver.DIMS] = ConeDims(constr_map)
-        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
-        zero_constr = constr_map[Zero]
-        neq_constr = (constr_map[NonPos] + constr_map[SOC]
-                      + constr_map[PSD] + constr_map[ExpCone])
-        inv_data[SCS.EQ_CONSTR] = zero_constr
-        inv_data[SCS.NEQ_CONSTR] = neq_constr
-
         if not problem.formatted:
             problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
+        data[self.DIMS] = problem.cone_dims
+        inv_data[self.DIMS] = problem.cone_dims
+
+        constr_map = problem.constr_map
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonPos] + constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone]
         return problem, data, inv_data
 
     def apply(self, problem):

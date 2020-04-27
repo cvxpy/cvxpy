@@ -21,7 +21,8 @@ import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonPos, Zero, ExpCone
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.utilities import group_constraints
-from .conic_solver import ConeDims, ConicSolver
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from collections import defaultdict
 
 
@@ -113,13 +114,12 @@ class MOSEK(ConicSolver):
         data[s.INT_IDX] = [int(t[0]) for t in var.integer_idx]
         inv_data['integer_variables'] = len(data[s.BOOL_IDX]) + len(data[s.INT_IDX]) > 0
 
-        constr_map = group_constraints(problem.constraints)
-        data[s.DIMS] = ConeDims(constr_map)
-
         if not problem.formatted:
             problem = self.format_constraints(problem,
                                               MOSEK.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
+        constr_map = problem.constr_map
+        data[s.DIMS] = problem.cone_dims
 
         inv_data['constraints'] = problem.constraints
 

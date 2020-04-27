@@ -206,12 +206,7 @@ and that there's an existing package ``AwesomePy`` for calling *Awesome* from py
 In this case you need to create a file called ``awesome_conif.py`` in the same folder as ``conic_solver.py``.
 Within ``awesome_conif.py`` you will define a class ``Awesome(ConicSolver)``.
 The ``Awesome(ConicSolver)`` class will manage all interaction between CVXPY and the
-existing ``AwesomePy`` python package.
-
-Essential functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``Awesome(ConicSolver)`` class will need to implement six functions:
+existing ``AwesomePy`` python package. It will need to implement six functions:
  - import_solver,
  - name,
  - accepts,
@@ -220,30 +215,94 @@ The ``Awesome(ConicSolver)`` class will need to implement six functions:
  - invert.
 
 The first three functions are very easy (often trivial) to write.
-The remaining functions are called in order: ``apply`` does any necessary preparation
-to stage data for ``solve_via_data``, ``solve_via_data`` calls the *Awesome* solver by way
-of the existing third-party ``AwesomePy`` package, and ``invert`` transforms the output
-from ``AwesomePy`` into the format that CVXPY expects.
+The remaining functions are called in order: ``apply`` stages data for ``solve_via_data``,
+``solve_via_data`` calls the *Awesome* solver by way of the existing third-party
+``AwesomePy`` package, and ``invert`` transforms the output from ``AwesomePy`` into
+the format that CVXPY expects.
+
 Key goals in this process are that the output of ``apply`` should be as close as possible
 to the *Awesome*'s standard form, and that ``solve_via_data`` should kept short.
-
 The complexity of ``Awesome(ConicSolver).solve_via_data`` will depend on ``AwesomePy``.
 If ``AwesomePy`` allows very low level input-- passed by one or two matrices,
 and a handful of numeric vectors --then you'll be in a situation like ECOS or GLPK.
 If the ``AwesomePy`` package requires that you build an object-oriented model,
 then you're looking at something closer to the MOSEK, GUROBI, or NAG interfaces.
+Writing the ``invert`` function may require nontrivial effort to properly recover dual variables.
 
-When writing ``Awesome(ConicSolver).apply``, the first time you see explicit problem data
-is when you call ``problem.apply_parameters()``. What you do with this problem data
-depends on how ``AwesomePy`` expects input.
+CVXPY's conic form
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+CVXPY converts an optimization problem to an explicit form at the last possible moment.
+The ``Awesome(ConicSolver)`` class will access an explicit representation in ``apply``, with
+a code snippet like
 
-The ``Awesome(ConicSolver).invert`` function usually applies some transformation of dual
-variables returned by ``AwesomePy``. In order to correctly implement
-``Awesome(ConicSolver).invert``, it's necessary to consider transformations applied
-during ``Awesome(ConicSolver).apply`` and potentially differing conventions in how
-CVXPY and ``AwesomePy`` define dual variables.
-Because dual variables are a potential stumbling block when writing a solver interface,
-we explain this in more detail in the next section.
+.. code::
+
+    # from cvxpy.constraints import Zero, NonPos, SOC, PSD, ExpCone
+    #  ...
+    if not problem.formatted:
+        problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+    constr_map = problem.constr_map
+    cone_dims = problem.cone_dims
+    c, d, A, b = problem.apply_parameters()
+
+First we need to explain ``constr_map``. This is a dict of lists of CVXPY Constraint
+objects. The dict is keyed by the references to CVXPY's Zero, NonPos, SOC, PSD, and
+ExpCone classes. The classes model the following constraints:
+ - Zero: linear equality constraints: :math:`G x = h`.
+ - NonPos: linear inequality constraints: :math:`G x \leq h`.
+ - SOC: second order cone constraints.
+
+    .. math::
+
+        (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (x,t) \,:\, \|x\| \leq t \} \subset \mathbb{R}^n \times \mathbb{R}.
+
+ - PSD: linear matrix inequalities of order :math:`n`
+
+    .. math::
+
+        z^T(X + X^T)z \geq 0 \quad \text{ for all } \quad z \in \mathbb{R}^n.
+
+ - ExpCone : exponential cone constraints
+
+   .. math::
+
+        (u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y>0\}.
+
+The variable ``cone_dims`` is an instance of the ConeDims class, as defined
+in cvxpy/reductions/dcp2cone/cone_matrix_stuffing.py. The vectorized feasible set
+for this optimization is defined by ``cone_dims`` and the returned data ``A, b``.
+The rows of ``A`` and entries of ``b`` are given in a very specific order, as described below.
+
+ - Equality constraints are found in the first ``cone_dims.zero`` rows of ``A`` and entries of ``b``.
+   Letting ``eq = cone_dims.zero``, the constraint is
+
+    .. code::
+
+        A[:eq, :] @ x + b[:eq] == 0.
+
+ - Linear inequality constraints occur immediately after the equations.
+   If for example ``ineq = cone_dims.nonpos`` then the feasible
+   set has the constraint
+
+   .. code::
+
+        A[eq:eq + ineq, :] @ x + b[eq:eq + ineq] <= 0.
+
+ - Second order cone (SOC) constraints are handled after inequalities.
+   Here, ``cone_dims.soc`` is a *list of integers* rather than a single integer.
+   Supposing ``cone_dims.soc[0] == 10``, the first second order cone constraint appearing
+   in this optimization problem would involve 10 rows of ``A`` and 10 entries of ``b``.
+   The SOC vectorization we use is given by :math:`K_{\mathrm{soc}}^n` as defined above.
+ - PSD constraints follow SOC constraints, and are similarly stored in a list.
+   However while ``cone_dims.soc[0]`` gives the number of rows in ``A, b`` for the first SOC constraint,
+   ``cone_dims.psd[0]`` gives the *order* of the first PSD cone. So if ``cone_dims[0] == 5``,
+   then this constraint involves the next ``num_rows = 5*(5+1)//2`` rows of ``A, b``.
+   The precise vectorization we use for the PSD cone is that used by the SCS solver.
+   It might help to reference the function ``tri_to_full`` in ``scs_conif.py`` to see how the vectorized form of a
+   PSD matrix compares to its full, square form.
+ - The last block of ``3 * cone_dims.exp`` rows in ``A, b`` correspond to consecutive
+   three-dimensional exponential cones, as defined by :math:`K_e` above.
+
 
 
 Dual variables

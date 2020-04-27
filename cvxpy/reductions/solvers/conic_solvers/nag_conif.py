@@ -16,11 +16,10 @@ limitations under the License.
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, NonPos, Zero
-from .conic_solver import ConeDims, ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 import scipy as sp
 import numpy as np
 from cvxpy.reductions.solution import Solution
-from cvxpy.reductions.utilities import group_constraints
 
 
 class NAG(ConicSolver):
@@ -76,11 +75,14 @@ class NAG(ConicSolver):
         data = dict()
         inv_data = dict()
         inv_data[self.VAR_ID] = problem.x.id
-        constr_map = group_constraints(problem.constraints)
-        data[s.DIMS] = ConeDims(constr_map)
+
         if not problem.formatted:
-            problem = self.format_constraints(problem,
-                                              exp_cone_order=None)
+            problem = self.format_constraints(problem, None)
+        data[s.PARAM_PROB] = problem
+        data[self.DIMS] = problem.cone_dims
+        inv_data[self.DIMS] = problem.cone_dims
+        constr_map = problem.constr_map
+
         c, d, A, b = problem.apply_parameters()
         A = -A
         data[s.C] = c.ravel()
