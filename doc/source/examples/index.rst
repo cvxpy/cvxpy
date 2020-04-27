@@ -7,9 +7,9 @@ These examples show many different ways to use CVXPY.
 
 * The :ref:`basic` section shows how to solve some common optimization problems
   in CVXPY.
-* The :ref:`dgp-examples` section shows how to solve geometric programs and log-log convex programs using :ref:`disciplined geometric programming <dgp>`.
+* The :ref:`dgp-examples` section shows how to solve log-log convex programs.
 * The :ref:`dqcp-examples` section has examples on quasiconvex programming.
-* The :ref:`derivatives` section shows how to compute sensitivity analyses and gradients of solutions.
+* The :ref:`derivative-examples` section shows how to compute sensitivity analyses and gradients of solutions.
 
 There are also application-specific sections.
 
@@ -68,7 +68,7 @@ Disciplined quasiconvex programming
 - :doc:`Hypersonic shape design <dqcp/hypersonic_shape_design>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/hypersonic_shape_design.ipynb>`_
 
 
-.. _derivatives:
+.. _derivative-examples:
 
 Derivatives
 -----------
