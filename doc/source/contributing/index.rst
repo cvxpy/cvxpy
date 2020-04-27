@@ -246,7 +246,7 @@ a code snippet like
     c, d, A, b = problem.apply_parameters()
 
 There's a *lot* to unpack in that small code snippet. We'll start by explaining
-``constr_map``, then to to ``cone_dims, A, b``. The definitions of
+``constr_map``, then turn to ``cone_dims, A, b``. The definitions of
 ``cone_dims, A, b`` have implications for both primal and dual variables.
 We hold off on any dual variable discussion until the primal problem has
 been explained in detail.
