@@ -245,18 +245,24 @@ a code snippet like
     cone_dims = problem.cone_dims
     c, d, A, b = problem.apply_parameters()
 
-First we need to explain ``constr_map``. This is a dict of lists of CVXPY Constraint
-objects. The dict is keyed by the references to CVXPY's Zero, NonPos, SOC, PSD, and
+There's a *lot* to unpack in that small code snippet. We'll start by explaining
+``constr_map``, then to to ``cone_dims, A, b``. The definitions of
+``cone_dims, A, b`` have implications for both primal and dual variables.
+We hold off on any dual variable discussion until the primal problem has
+been explained in detail.
+
+The variable ``constr_map`` is is a dict of lists of CVXPY Constraint objects.
+The dict is keyed by the references to CVXPY's Zero, NonPos, SOC, PSD, and
 ExpCone classes. The classes model the following constraints:
- - Zero: linear equality constraints: :math:`G x = h`.
- - NonPos: linear inequality constraints: :math:`G x \leq h`.
- - SOC: second order cone constraints.
+ - Zero: linear equality constraints :math:`G x + h = 0`.
+ - NonPos: linear inequality constraints :math:`G x + h \leq 0`.
+ - SOC: second order cone constraints
 
     .. math::
 
         (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (x,t) \,:\, \|x\| \leq t \} \subset \mathbb{R}^n \times \mathbb{R}.
 
- - PSD: linear matrix inequalities of order :math:`n`
+ - PSD: linear matrix inequalities on expressions :math:`X \in \mathbb{R}^{n \times n}`
 
     .. math::
 
@@ -268,9 +274,12 @@ ExpCone classes. The classes model the following constraints:
 
         (u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y>0\}.
 
-The variable ``cone_dims`` is an instance of the ConeDims class, as defined
-in cvxpy/reductions/dcp2cone/cone_matrix_stuffing.py. The vectorized feasible set
-for this optimization is defined by ``cone_dims`` and the returned data ``A, b``.
+Now we can turn to ``cone_dims`` and ``A, b``. These objects define a vectorized
+representation of this optimization problem's primal feasible set. The ``cone_dims`` object is
+an instance of the ConeDims class, as defined in
+`cone_matrix_stuffing.py
+<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.py>`_.
+The object ``A`` is a SciPy sparse matrix, and ``b`` is a numpy ndarray with ``b.ndim == 1``.
 The rows of ``A`` and entries of ``b`` are given in a very specific order, as described below.
 
  - Equality constraints are found in the first ``cone_dims.zero`` rows of ``A`` and entries of ``b``.
@@ -280,11 +289,11 @@ The rows of ``A`` and entries of ``b`` are given in a very specific order, as de
 
         A[:eq, :] @ x + b[:eq] == 0.
 
- - Linear inequality constraints occur immediately after the equations.
+ - Inequality constraints occur immediately after the equations.
    If for example ``ineq = cone_dims.nonpos`` then the feasible
    set has the constraint
 
-   .. code::
+    .. code::
 
         A[eq:eq + ineq, :] @ x + b[eq:eq + ineq] <= 0.
 
@@ -294,12 +303,12 @@ The rows of ``A`` and entries of ``b`` are given in a very specific order, as de
    in this optimization problem would involve 10 rows of ``A`` and 10 entries of ``b``.
    The SOC vectorization we use is given by :math:`K_{\mathrm{soc}}^n` as defined above.
  - PSD constraints follow SOC constraints, and are similarly stored in a list.
-   However while ``cone_dims.soc[0]`` gives the number of rows in ``A, b`` for the first SOC constraint,
-   ``cone_dims.psd[0]`` gives the *order* of the first PSD cone. So if ``cone_dims[0] == 5``,
-   then this constraint involves the next ``num_rows = 5*(5+1)//2`` rows of ``A, b``.
+   Here ``cone_dims.psd[0]`` gives the *order* of the first PSD cone.
+   So if ``cone_dims.psd[0] == 5``, then this constraint involves the next
+   ``num_rows = 5*(5+1)//2`` rows of ``A, b``.
    The precise vectorization we use for the PSD cone is that used by the SCS solver.
-   It might help to reference the function ``tri_to_full`` in ``scs_conif.py`` to see how the vectorized form of a
-   PSD matrix compares to its full, square form.
+   It might help to reference the function ``tri_to_full`` in ``scs_conif.py``
+   to see how the vectorized form of a PSD matrix compares to its full, square form.
  - The last block of ``3 * cone_dims.exp`` rows in ``A, b`` correspond to consecutive
    three-dimensional exponential cones, as defined by :math:`K_e` above.
 
@@ -361,10 +370,6 @@ Explain CVXPY's conventions for dual variables, and assumptions on the Lagrangia
 Incorporate some of `my comment <https://github.com/cvxgrp/cvxpy/issues/923#issuecomment-590516011>`_ or
 `my other comment <https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675>`_.
 
-Passing solver options
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Explain how this fits in to ``.solve_via_data()``.
 
 Writing tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -372,23 +377,6 @@ Writing tests
 Explain the conic solver testing framework.
 Explain the QP solver testing framework.
 
-Maintenance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* We doesn't ship major releases with broken solver interfaces.
-  If a change to cvxpy breaks a solver interface and no one steps up to fix it,
-  there's a chance that the interface could be removed.
-
-* The core development team is generally willing to spend some effort on fixing a solver interface before removing it.
-  However if we encounter a notable obstacle, the solver might be dropped. Examples of notable obstacles include:
-
-  * The solver doesn't have an interface for a sufficiently high version of python.
-    SuperSCS was dropped because it only had a python 2.7 interface, and cvxpy 1.1 requires python >= 3.5
-
-  * The solver has been deprecated by its principal developer. Elemental fell into this category.
-
-  * The underling numerical implementation of the solver has standing correctness issues, and routinely
-    causes confusion for CVXPY users. ECOS_BB fell into this category.
 
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
