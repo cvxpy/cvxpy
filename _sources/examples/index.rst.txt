@@ -74,6 +74,7 @@ Derivatives
 -----------
 - :doc:`Fundamentals <derivatives/fundamentals>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/derivatives/fundamentals.ipynb>`_
 - :doc:`Queuing design <derivatives/queuing_design>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/derivatives/queuing_design.ipynb>`_
+- :doc:`Structured prediction <derivatives/structured_prediction>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/derivatives/structured_prediction.ipynb>`_
 
 .. _machine-learning:
 

@@ -7,7 +7,7 @@ system, and we study the sensitivity of the design with respect to
 various parameters, such as the maximum total delay and total service
 rate.
 
-This example was described in the paper `Differentiating through Log Log
+This example was described in the paper `Differentiating through Log-Log
 Convex
 Programs <http://web.stanford.edu/~boyd/papers/pdf/diff_llcvx.pdf>`__.
 
