@@ -232,8 +232,36 @@ Writing the ``invert`` function may require nontrivial effort to properly recove
 CVXPY's conic form
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CVXPY converts an optimization problem to an explicit form at the last possible moment.
-The ``Awesome(ConicSolver)`` class will access an explicit representation in ``apply``, with
-a code snippet like
+When CVXPY does present a problem in a concrete form, it's over a single vectorized
+optimization variable, and a flattened representation of the feasible set.
+The mathematical abstraction for the standard form is
+
+.. math::
+
+   (P) \quad \min\{ c^T x + d \,:\, x \in \mathbb{R}^{n},\, A x + b \in K \}
+
+where :math:`K` is a product of elementary convex cones. The design of CVXPY allows
+for any cone supported by a target solver, but the current elementary convex cones are
+
+ 1. The zero cone :math:`y = 0 \in \mathbb{R}^m`.
+ 2. The nonpositive cone :math:`y \leq 0 \in \mathbb{R}^m`.
+ 3. The second order cone
+
+    .. math::
+
+        (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (x,t) \,:\, \|x\| \leq t \} \subset \mathbb{R}^n \times \mathbb{R}.
+
+ 4. A vectorized version of the positive semidefinite cone.
+ 5. The exponential cone
+
+   .. math::
+
+        (u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y>0\}.
+
+The precise nature of the vectorized positive semidefinite cone is a little delicate, is
+covered later.
+For now it's useful to say that the ``Awesome(ConicSolver)`` class will access an
+explicit representation for problem :math:`(P)` in in ``apply``, with a code snippet like
 
 .. code::
 
@@ -245,41 +273,22 @@ a code snippet like
     cone_dims = problem.cone_dims
     c, d, A, b = problem.apply_parameters()
 
-There's a *lot* to unpack in that small code snippet. We'll start by explaining
-``constr_map``, then turn to ``cone_dims, A, b``. The definitions of
-``cone_dims, A, b`` have implications for both primal and dual variables.
-We hold off on any dual variable discussion until the primal problem has
-been explained in detail.
-
 The variable ``constr_map`` is is a dict of lists of CVXPY Constraint objects.
 The dict is keyed by the references to CVXPY's Zero, NonPos, SOC, PSD, and
-ExpCone classes. The classes model the following constraints:
- - Zero: linear equality constraints :math:`G x + h = 0`.
- - NonPos: linear inequality constraints :math:`G x + h \leq 0`.
- - SOC: second order cone constraints
+ExpCone classes. You will need to interact with these constraint classes during
+dual variable recovery.
+For the other variables in that code snippet ...
+ -  ``c, d`` define the objective function ``c @ x + d``, and
+ - ``A, b, cone_dims`` define the mathematical abstractions :math:`A`, :math:`b`,
+   :math:`K` in the optimization problem  :math:`(P)`.
 
-    .. math::
-
-        (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (x,t) \,:\, \|x\| \leq t \} \subset \mathbb{R}^n \times \mathbb{R}.
-
- - PSD: linear matrix inequalities on expressions :math:`X \in \mathbb{R}^{n \times n}`
-
-    .. math::
-
-        z^T(X + X^T)z \geq 0 \quad \text{ for all } \quad z \in \mathbb{R}^n.
-
- - ExpCone : exponential cone constraints
-
-   .. math::
-
-        (u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y>0\}.
-
-Now we can turn to ``cone_dims`` and ``A, b``. These objects define a vectorized
-representation of this optimization problem's primal feasible set. The ``cone_dims`` object is
-an instance of the ConeDims class, as defined in
+The first step in writing a solver interface is to understand the exact
+meanings of ``A, b, cone_dims``, so that you can correctly build a primal
+problem using the third-party ``AwesomePy`` interface to the *Awesome* solver.
+The ``cone_dims`` object is an instance of the ConeDims class, as defined in
 `cone_matrix_stuffing.py
-<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.py>`_.
-The object ``A`` is a SciPy sparse matrix, and ``b`` is a numpy ndarray with ``b.ndim == 1``.
+<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.py>`_;
+``A`` is a SciPy sparse matrix, and ``b`` is a numpy ndarray with ``b.ndim == 1``.
 The rows of ``A`` and entries of ``b`` are given in a very specific order, as described below.
 
  - Equality constraints are found in the first ``cone_dims.zero`` rows of ``A`` and entries of ``b``.
@@ -302,73 +311,65 @@ The rows of ``A`` and entries of ``b`` are given in a very specific order, as de
    Supposing ``cone_dims.soc[0] == 10``, the first second order cone constraint appearing
    in this optimization problem would involve 10 rows of ``A`` and 10 entries of ``b``.
    The SOC vectorization we use is given by :math:`K_{\mathrm{soc}}^n` as defined above.
- - PSD constraints follow SOC constraints, and are similarly stored in a list.
+ - PSD constraints follow SOC constraints.
    Here ``cone_dims.psd[0]`` gives the *order* of the first PSD cone.
    So if ``cone_dims.psd[0] == 5``, then this constraint involves the next
    ``num_rows = 5*(5+1)//2`` rows of ``A, b``.
    The precise vectorization we use for the PSD cone is that used by the SCS solver.
-   It might help to reference the function ``tri_to_full`` in ``scs_conif.py``
+   It might help to reference the functions ``tri_to_full`` and ``scs_psd_vec_to_psd_mat`` in
+   `scs_conif.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/scs_conif.py>`_
    to see how the vectorized form of a PSD matrix compares to its full, square form.
  - The last block of ``3 * cone_dims.exp`` rows in ``A, b`` correspond to consecutive
    three-dimensional exponential cones, as defined by :math:`K_e` above.
 
+If *Awesome* supports nonlinear constraints like SOC, ExpCone, or PSD, then it's possible
+that you will need to transform data ``A, b`` in order to write these constraints in
+the form expected by ``AwesomePy``.
+The most common situations are when ``AwesomePy`` parametrizes the second-order cone
+as :math:`K = \{ (t,x) \,:\, \|x\|\leq t \} \subset \mathbb{R} \times \mathbb{R}^n`,
+or when it parametrizes :math:`K_e \subset \mathbb{R}^3` as some permutation of
+what we defined earlier.
 
 
 Dual variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Dual variable extraction should be handled in ``Awesome(ConicSolver).invert``.
-To perform this step correctly, it's necessary to understand how CVXPY defines a primal-dual
-pair of convex optimization problems.
-We follow the convention from Chapter 5 of
+To perform this step correctly, it's necessary to consider how CVXPY forms
+a Lagrangian for the primal problem :math:`(P)`.
+Let's say that the affine map :math:`Ax + b` in the feasible set
+:math:`Ax + b \in K \subset \mathbb{R}^m` is broken up into five blocks of sizes
+:math:`m_1,\ldots,m_5` where the blocks correspond (in order) to zero-cone, nonpositive cone,
+second-order cone, vectorized PSD cone, and exponential cone constraints.
+Then CVXPY defines the dual to :math:`(P)` by forming a Lagrangian
+
+.. math::
+
+    \mathcal{L}(x,\mu_1,\ldots,\mu_5) = c^T x + \mu_1^T(A_1 x + b_1) + \mu_2^T(A_2 x + b_2)
+        - \sum_{i=3}^5 \mu_i^T (A_i x + b_i)
+
+in dual variables :math:`\mu_1 \in \mathbb{R}^{m_1}`, :math:`\mu_2 \in \mathbb{R}^{m_2}_+`,
+and :math:`\mu_i \in K_i^* \subset \mathbb{R}^{m_i}` for :math:`i \in \{3,4,5\}`.
+Here, :math:`K_i^*` denotes the dual cone to :math:`K_i` under the standard inner product.
+
+The effect of working with this Lagrangian is that all dual variables except
+:math:`\mu_2` belong to corresponding dual cones.
+Also, although :math:`\mu_1` belongs to the dual cone :math:`R^{m_i} = \{0\}^*`
+its sign convention in the Lagrangian is different than what we use for the other
+conic constraints.
+The discrepancy between :math:`\mu_1,\mu_2` and the remaining constraints stems
+from how CVXPY defines a Lagrangian from a user's perspective.
+Specifically, users are promised that we define a (possibly nonlinear) primal-dual pair
+following Chapter 5 Section 1 of
 `Convex Optimization by Boyd & Vandenberghe <https://web.stanford.edu/~boyd/cvxbook/>`_.
-When dealing only with elementwise constraints, we start with a primal problem
+When Chapter 5 of that book gets to general conic constraints in Section 5.9,
+we depart by viewing constraints as :math:`f_i(x) \in K_i` for an affine map :math:`f_i`,
+rather than :math:`f_i(x) \preceq_{K_i} 0` as the book states.
 
-.. math::
 
-    (P) \qquad \mathrm{minimize}~ & f_0(x) \\
-    \text{subject to}~ & f_i(x) \leq 0 \quad i=1,\ldots,m \\
-                        & h_i(x) = 0 \quad i=1,\ldots,p,
-
-over :math:`x \in \mathbb{R}^n`, and then from a Lagrangian
-
-.. math::
-
-    \mathcal{L}(x,\lambda,\nu) = f_0(x) + \sum_{i=1}^m \lambda_i f_i(x) + \sum_{i=1}^p \nu_i h_i(x)
-
-over dual variables :math:`\lambda \in \mathbb{R}^m_+` and :math:`\nu \in \mathbb{R}^p`.
-It's often the case that a user specifies their problem in a form other than :math:`(P)`;
-when this happens CVXPY rewrites:
-
- * ``con = (expr1 == expr2)`` becomes ``con = (expr1 - expr2 == 0)``,
- * ``con = (expr1 <= expr2)`` becomes ``con = (expr1 - expr2 <= 0)``, and
- * ``con = (expr1 >= expr2)`` becomes ``con = (expr2 - expr1 <= 0)``.
-
-That's essentially all the information you need if *Awesome* is a linear programming solver.
-More subtlety occurs when *Awesome* allows more general conic constraints :math:`x \in K` for
-a cone :math:`K` like the PSD cone, second order cone, or exponential cone.
-Here we have a primal standard form
-
-.. math::
-
-    (P) \qquad \mathrm{minimize}~ & f_0(x) \\
-    \text{subject to}~ & f_i(x) \leq 0 \quad i=1,\ldots,m \\
-                        & h_i(x) = 0 \quad i=1,\ldots,p, \\
-                        & x \in K_1 \times K_2 \times \cdots \times K_\ell
-
-over :math:`x \in \mathbb{R}^n`, and the Lagrangian is
-
-.. math::
-
-    \mathcal{L}(x,\lambda,\nu,y) = f_0(x) + \sum_{i=1}^m \lambda_i f_i(x) + \sum_{i=1}^p \nu_i h_i(x)
-        - \langle y, x \rangle
-
-where :math:`y \in K_1^* \times K_2^* \times \cdots K_\ell^*`, and :math:`K_i^*` is dual to :math:`K_i` under
-the inner product :math:`\langle \cdot, \cdot \rangle`.
-
-Explain CVXPY's conventions for dual variables, and assumptions on the Lagrangian.
-Incorporate some of `my comment <https://github.com/cvxgrp/cvxpy/issues/923#issuecomment-590516011>`_ or
-`my other comment <https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675>`_.
+There are a couple comments on our GitHub issues which have addressed dual variable
+recovery before; refer to `this comment <https://github.com/cvxgrp/cvxpy/issues/923#issuecomment-590516011>`_ or
+`this other comment <https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675>`_.
 
 
 Writing tests
