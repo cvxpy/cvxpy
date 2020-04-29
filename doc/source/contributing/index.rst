@@ -23,6 +23,10 @@ The remainder of this page goes into more detail on how to contribute to CVXPY.
 General principles
 ----------------------
 
+
+Development environment
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Start by forking the CVXPY repository and installing CVXPY
 :ref:`from source <install_from_source>`.
 You should configure git on your local machine before changing any code.
@@ -192,14 +196,29 @@ This section of the contributing guide outlines considerations when adding new s
 For the time being, we only have documentation for conic solver interfaces.
 Additional documentation for QP solver interfaces is forthcoming.
 
+.. warning::
+
+    This documentation is far from complete! It only tries to cover the absolutely
+    essential parts of writing a solver interface. It also might not do that in
+    a spectacular way -- we welcome all feedback on this part of the documentation.
+
+.. warning::
+
+    The developers try to keep this documentation up to date, however at any given time
+    it might contain a mistake! It is very important that you contact the CVXPY developers
+    before writing a solver interface, if for no other reason than to prompt us to double-check
+    the accuracy of this guide.
+
 Conic solvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Conic solvers require that the objective is a linear function of the
 optimization variable; constraints must be expressed using convex cones and
 affine functions of the optimization variable.
-The codepath for conic solvers begins with ``cvxpy/reductions/solvers/conic_solvers/conic_solver.py``,
-and in particular with the class ``ConicSolver``.
+The codepath for conic solvers begins with
+`reductions/solvers/conic_solvers <https://github.com/cvxgrp/cvxpy/tree/master/cvxpy/reductions/solvers/conic_solvers>`_
+and in particular with the class ``ConicSolver`` in
+`conic_solver.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/conic_solver.py>`_.
 
 Let's say you're writing a CVXPY interface for the "*Awesome*" conic solver,
 and that there's an existing package ``AwesomePy`` for calling *Awesome* from python.
@@ -232,9 +251,9 @@ Writing the ``invert`` function may require nontrivial effort to properly recove
 CVXPY's conic form
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 CVXPY converts an optimization problem to an explicit form at the last possible moment.
-When CVXPY does present a problem in a concrete form, it's over a single vectorized
+When CVXPY presents a problem in a concrete form, it's over a single vectorized
 optimization variable, and a flattened representation of the feasible set.
-The mathematical abstraction for the standard form is
+The abstraction for the standard form is
 
 .. math::
 
@@ -315,7 +334,7 @@ The rows of ``A`` and entries of ``b`` are given in a very specific order, as de
    Here ``cone_dims.psd[0]`` gives the *order* of the first PSD cone.
    So if ``cone_dims.psd[0] == 5``, then this constraint involves the next
    ``num_rows = 5*(5+1)//2`` rows of ``A, b``.
-   The precise vectorization we use for the PSD cone is that used by the SCS solver.
+   CVXPY uses the same vectorization for the PSD cone as the SCS solver.
    It might help to reference the functions ``tri_to_full`` and ``scs_psd_vec_to_psd_mat`` in
    `scs_conif.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/scs_conif.py>`_
    to see how the vectorized form of a PSD matrix compares to its full, square form.
@@ -366,17 +385,101 @@ When Chapter 5 of that book gets to general conic constraints in Section 5.9,
 we depart by viewing constraints as :math:`f_i(x) \in K_i` for an affine map :math:`f_i`,
 rather than :math:`f_i(x) \preceq_{K_i} 0` as the book states.
 
+Most concrete implementations of the ConicSolver class use a common set of helper
+functions for dual variable recovery, found in
+`reductions/solvers/utilities.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py>`_.
+Refer to `MOSEK(ConicSolver).invert
+<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/mosek_conif.py#L479>`_
+for a well documented and less abstract implementation of dual variable recovery.
 
 There are a couple comments on our GitHub issues which have addressed dual variable
 recovery before; refer to `this comment <https://github.com/cvxgrp/cvxpy/issues/923#issuecomment-590516011>`_ or
 `this other comment <https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675>`_.
 
+Registering a solver
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Correctly implementing ``Awesome(ConicSolver)`` isn't enough to call *Awesome* from CVXPY.
+You need to make edits in a handful of other places, namely
+
+ - `conic_solvers/__init__.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/__init__.py>`_,
+ - `solvers/defines.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/defines.py>`_, and
+ - `cvxpy/__init__.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/__init__.py>`_.
+
+The existing content of those files should make it clear what's needed
+to add *Awesome* to CVXPY.
 
 Writing tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Explain the conic solver testing framework.
-Explain the QP solver testing framework.
+Tests for  ``Awesome(ConicSolver)`` should be placed in `cvxpy/tests/test_conic_solvers.py
+<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/tests/test_conic_solvers.py>`_.
+The overwhelming majority of tests in that file only take a single line, because
+we make consistent use of a general testing framework defined in
+`solver_test_helpers.py
+<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/tests/solver_test_helpers.py>`_.
+Here are examples of helper functions we invoke in ``test_conic_solvers.py``,
+
+.. code::
+
+    class StandardTestSDPs(object):
+
+        @staticmethod
+        def test_sdp_1min(solver, places=4, **kwargs):
+            sth = sdp_1('min')
+            sth.solve(solver, **kwargs)
+            sth.verify_objective(places=2)  # only 2 digits recorded.
+            sth.check_primal_feasibility(places)
+            sth.check_complementarity(places)
+            sth.check_dual_domains(places)  # check dual variables are PSD.
+
+    ...
+
+    class StandardTestSOCPs(object):
+
+        @staticmethod
+        def test_socp_0(solver, places=4, **kwargs):
+            sth = socp_0()
+            sth.solve(solver, **kwargs)
+            sth.verify_objective(places)
+            sth.verify_primal_values(places)
+            sth.check_complementarity(places)
+
+    ...
+
+        @staticmethod
+        def test_mi_socp_1(solver, places=4, **kwargs):
+            sth = mi_socp_1()
+            sth.solve(solver, **kwargs)
+            # mixed integer problems don't have dual variables,
+            #   so we only check the optimal objective and primal variables.
+            sth.verify_objective(places)
+            sth.verify_primal_values(places)
+
+Notice the comments in the predefined functions.
+In ``test_sdp_1min``, we override a user-supplied value for ``places`` with
+``places=2`` when checking the optimal objective function value.
+We also go through extra effort to check that the dual variables are PSD
+matrices.
+In ``test_mi_socp_1`` we're working with a mixed-integer problem, so
+there are no dual variables at all.
+You should use these predefined functions partly because they automatically check
+what's most appropriate for the problem at hand.
+
+Each of these predefined functions first constructs a SolverTestHelper object ``sth``
+which contains appropriate test data. The ``.solve`` function for the
+SolverTestHelper class is a simple wrapper around ``prob.solve`` where
+``prob`` is a CVXPY Problem. In particular, any keyword arguments
+passed to ``sth.solve`` will be passed to ``prob.solve``. This allows you to
+call modifed versions of a test with different solver parameters, for example
+
+.. code::
+
+    def test_mosek_lp_1(self):
+        # default settings
+        StandardTestLPs.test_lp_1(solver='MOSEK')  # 4 places
+        # require a basic feasible solution
+        StandardTestLPs.test_lp_1(solver='MOSEK', places=6, bfs=True)
 
 
 
