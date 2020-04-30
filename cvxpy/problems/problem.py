@@ -976,6 +976,7 @@ class SolverStats(object):
         self.solve_time = None
         self.setup_time = None
         self.num_iters = None
+        self.results_dict = results_dict  # TODO: REMOVE THIS LINE
 
         if s.SOLVE_TIME in results_dict:
             self.solve_time = results_dict[s.SOLVE_TIME]

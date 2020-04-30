@@ -3,9 +3,8 @@
 Changes to CVXPY
 ================
 
-This page details changes in major and minor versions of CVXPY,
-in reverse chronological order.
-The most up-to-date version of CVXPY is version 1.1.
+This page details changes made to CVXPY over time, in reverse chronological order.
+The latest release of CVXPY is version 1.1.
 
 CVXPY 1.1
 ---------
@@ -63,8 +62,7 @@ Known issues
 
 DPP problems with many CVXPY Parameters can take a long time to compile.
 
-DPP doesn't compose with DGP or DQCP (i.e. there is no immediate runtime benefit
-or differentiation benefit to using Parameters in DGP or DQCP problems).
+DPP doesn't compose with Disciplined Quasi-Convex Programming (DQCP).
 
 The XPRESS interface is currently not working.
 
@@ -78,7 +76,7 @@ the potential to meaningfully improve CVXPY 1.1.
    parameters to optimal solutions. In particular, extending the ECOS or CVXOPT
    interfaces. This may involve contributions to diffcp (see diffcp `GitHub issue
    31 <https://github.com/cvxgrp/diffcp/issues/31>`_).
- - Add an interface to an open-source mixed-integer nonlinear solver. CVXPY
+ - Add :ref:`an interface <contrib_solver>` to an open-source mixed-integer nonlinear solver. CVXPY
    currently only supports commercial mixed-integer nonlinear solvers.
  - Help resolve any CVXPY GitHub issue with the label
    "`help wanted <https://github.com/cvxgrp/cvxpy/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_."

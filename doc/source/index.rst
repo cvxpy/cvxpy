@@ -85,16 +85,16 @@ background on convex optimization, see the book `Convex Optimization
 
 **Development.**
 
-CVXPY began as a Stanford University :doc:`research project </citing/index>`.
-Today, CVXPY is a community project, built from the contributions of many
+CVXPY is a community project, built from the contributions of many
 researchers and engineers.
 
 CVXPY is developed and maintained by
-`Steven Diamond <http://web.stanford.edu/~stevend2/>`_ and
-`Akshay Agrawal <https://akshayagrawal.com>`_, with many others contributing
+`Steven Diamond <http://web.stanford.edu/~stevend2/>`_,
+`Akshay Agrawal <https://akshayagrawal.com>`_, and
+`Riley Murray <https://rileyjmurray.wordpress.com/>`_, with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
-Riley Murray, Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing

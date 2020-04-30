@@ -110,6 +110,7 @@ class ECOS(ConicSolver):
         len_eq = problem.cone_dims.zero
 
         c, d, A, b = problem.apply_parameters()
+        inv_data['cache_matrices'] = (c, d, A, b)  #TODO: REMOVE THIS LINE
         data[s.C] = c
         inv_data[s.OFFSET] = d
         data[s.A] = -A[:len_eq]
@@ -146,6 +147,8 @@ class ECOS(ConicSolver):
         attr[s.SOLVE_TIME] = solution["info"]["timing"]["tsolve"]
         attr[s.SETUP_TIME] = solution["info"]["timing"]["tsetup"]
         attr[s.NUM_ITERS] = solution["info"]["iter"]
+        attr['raw_solution'] = solution  #TODO: REMOVE THIS LINE
+        attr['pcp_output'] = inverse_data['cache_matrices']  # TODO: REMOVE THIS LINE
 
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['info']['pcost']

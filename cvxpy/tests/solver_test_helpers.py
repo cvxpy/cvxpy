@@ -147,6 +147,9 @@ class SolverTestHelper(object):
                 else:
                     self.tester.assertItemsAlmostEqual(actual, expect, places)
 
+    def check_stationary_lagrangian(self, places):
+        pass
+
 
 def lp_0():
     x = cp.Variable(shape=(2,))

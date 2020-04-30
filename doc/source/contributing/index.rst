@@ -182,6 +182,8 @@ with and without your change, to make sure no performance regressions are
 introduced. If you are making a code contribution, please include the output of
 the above command (with and without your change) in your pull request.
 
+.. _contrib_solver:
+
 Solver interfaces
 ----------------------
 
@@ -205,9 +207,9 @@ Additional documentation for QP solver interfaces is forthcoming.
 .. warning::
 
     The developers try to keep this documentation up to date, however at any given time
-    it might contain a mistake! It is very important that you contact the CVXPY developers
-    before writing a solver interface, if for no other reason than to prompt us to double-check
-    the accuracy of this guide.
+    it might contain inaccurate information! It's very important that you contact the
+    CVXPY developers before writing a solver interface, if for no other reason than to
+    prompt us to double-check the accuracy of this guide.
 
 Conic solvers
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -298,8 +300,8 @@ ExpCone classes. You will need to interact with these constraint classes during
 dual variable recovery.
 For the other variables in that code snippet ...
  -  ``c, d`` define the objective function ``c @ x + d``, and
- - ``A, b, cone_dims`` define the mathematical abstractions :math:`A`, :math:`b`,
-   :math:`K` in the optimization problem  :math:`(P)`.
+ - ``A, b, cone_dims`` define the abstractions :math:`A`, :math:`b`,
+   :math:`K` in problem  :math:`(P)`.
 
 The first step in writing a solver interface is to understand the exact
 meanings of ``A, b, cone_dims``, so that you can correctly build a primal
