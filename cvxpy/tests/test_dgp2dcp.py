@@ -5,11 +5,10 @@ import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
 from cvxpy.reductions import solution
 from cvxpy.settings import SOLVER_ERROR
 from cvxpy.tests.base_test import BaseTest
+
 import numpy as np
 
 
-# TODO(akshayka): Changing SOLVER to MOSEK exposes bugs in the mosek interface;
-# fix these bugs
 SOLVER = cvxpy.ECOS
 
 
@@ -318,8 +317,9 @@ class TestDgp2Dcp(BaseTest):
 
     def test_solving_non_dgp_problem_raises_error(self):
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegexp(error.DGPError, r"Problem does not follow DGP "
-                                     "rules(?s)*.*However, the problem does follow DCP rules.*"):
+        with self.assertRaisesRegex(error.DGPError,
+                                    r"Problem does not follow DGP "
+                                    "rules(?s)*.*However, the problem does follow DCP rules.*"):
             problem.solve(SOLVER, gp=True)
         problem.solve(SOLVER)
         self.assertEqual(problem.status, "unbounded")
@@ -329,8 +329,9 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
         )
-        with self.assertRaisesRegexp(error.DCPError, r"Problem does not follow DCP "
-                                     "rules(?s)*.*However, the problem does follow DGP rules.*"):
+        with self.assertRaisesRegex(error.DCPError,
+                                    r"Problem does not follow DCP "
+                                    "rules(?s)*.*However, the problem does follow DGP rules.*"):
             problem.solve(SOLVER)
         problem.solve(SOLVER, gp=True)
         self.assertEqual(problem.status, "unbounded")
@@ -339,12 +340,12 @@ class TestDgp2Dcp(BaseTest):
     def test_solving_non_dcp_problems_raises_detailed_error(self):
         x = cvxpy.Variable(3)
         problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(x) - cvxpy.sum_squares(x)))
-        with self.assertRaisesRegexp(error.DCPError, r"The objective is not DCP"):
+        with self.assertRaisesRegex(error.DCPError, r"The objective is not DCP"):
             problem.solve(SOLVER)
 
         x = cvxpy.Variable(name='x')
         problem = cvxpy.Problem(cvxpy.Minimize(x), [x * x <= 5])
-        with self.assertRaisesRegexp(error.DCPError, r"The following constraints are not DCP"):
+        with self.assertRaisesRegex(error.DCPError, r"The following constraints are not DCP"):
             problem.solve(SOLVER)
 
     def test_add_canon(self):

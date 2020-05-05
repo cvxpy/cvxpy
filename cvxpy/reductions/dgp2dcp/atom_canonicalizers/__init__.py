@@ -37,7 +37,6 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import mul
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm_inf_canon import norm_inf_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_pos_canon import one_minus_pos_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.parameter_canon import parameter_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pf_eigenvalue_canon import pf_eigenvalue_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.power_canon import power_canon
@@ -47,8 +46,9 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_over_lin_canon import qua
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import trace_canon
 
+import numpy as np
 
-# TODO(akshayka): Implement sum_largest/smallest.
+
 CANON_METHODS = {
     AddExpression : add_canon,
     Constant : constant_canon,
@@ -63,7 +63,6 @@ CANON_METHODS = {
     norm1 : norm1_canon,
     norm_inf : norm_inf_canon,
     one_minus_pos : one_minus_pos_canon,
-    Parameter : parameter_canon,
     pf_eigenvalue : pf_eigenvalue_canon,
     pnorm : pnorm_canon,
     power : power_canon, 
@@ -73,6 +72,7 @@ CANON_METHODS = {
     trace : trace_canon,
     Sum : sum_canon,
     Variable : None,
+    Parameter : None,
 }
 
 CANON_METHODS[max] = PWL_METHODS[max]
@@ -80,12 +80,12 @@ CANON_METHODS[min] = PWL_METHODS[min]
 CANON_METHODS[maximum] = PWL_METHODS[maximum]
 CANON_METHODS[minimum] = PWL_METHODS[minimum]
 
-# Canonicalization of DGPs is a stateful procedure, hence the need
-# for a class.
+# Canonicalization of DGPs is a stateful procedure, hence the need for a class.
 class DgpCanonMethods(dict):
     def __init__(self, *args, **kwargs):
         super(DgpCanonMethods, self).__init__(*args, **kwargs)
         self._variables = {}
+        self._parameters = {}
 
     def __contains__(self, key):
         return key in CANON_METHODS
@@ -93,6 +93,8 @@ class DgpCanonMethods(dict):
     def __getitem__(self, key):
         if key == Variable:
             return self.variable_canon
+        elif key == Parameter:
+            return self.parameter_canon
         else:
             return CANON_METHODS[key]
 
@@ -105,3 +107,14 @@ class DgpCanonMethods(dict):
             log_variable =  Variable(variable.shape, var_id=variable.id)
             self._variables[variable] = log_variable
             return log_variable, []
+
+    def parameter_canon(self, parameter, args):
+        del args
+        # Swaps out positive parameters for unconstrained variables.
+        if parameter in self._parameters:
+            return self._parameters[parameter], []
+        else:
+            log_parameter = Parameter(parameter.shape, name=parameter.name(),
+                                      value=np.log(parameter.value))
+            self._parameters[parameter] = log_parameter
+            return log_parameter, []

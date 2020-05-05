@@ -15,8 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.expressions import cvxtypes
-from cvxpy.reductions import Reduction
 from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.reductions.reduction import Reduction
 
 
 class FlipObjective(Reduction):

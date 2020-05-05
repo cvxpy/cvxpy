@@ -142,19 +142,30 @@ class Minimize(Objective):
         """
         return self.args[0].canonical_form
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """The objective must be convex.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_convex()
         return self.args[0].is_convex()
 
-    def is_dpp(self):
-        with scopes.dpp_scope():
-            return self.args[0].is_convex()
-
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         """The objective must be log-log convex.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_log_log_convex()
         return self.args[0].is_log_log_convex()
+
+    def is_dpp(self, context='dcp'):
+        with scopes.dpp_scope():
+            if context.lower() == 'dcp':
+                return self.is_dcp(dpp=True)
+            elif context.lower() == 'dgp':
+                return self.is_dgp(dpp=True)
+            else:
+                raise ValueError("Unsupported context ", context)
 
     def is_dqcp(self):
         """The objective must be quasiconvex.
@@ -202,21 +213,30 @@ class Maximize(Objective):
         obj, constraints = self.args[0].canonical_form
         return (lu.neg_expr(obj), constraints)
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """The objective must be concave.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_concave()
         return self.args[0].is_concave()
 
-    def is_dpp(self):
-        """The objective must be concave.
-        """
-        with scopes.dpp_scope():
-            return self.args[0].is_concave()
-
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         """The objective must be log-log concave.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_log_log_concave()
         return self.args[0].is_log_log_concave()
+
+    def is_dpp(self, context='dcp'):
+        with scopes.dpp_scope():
+            if context.lower() == 'dcp':
+                return self.is_dcp(dpp=True)
+            elif context.lower() == 'dgp':
+                return self.is_dgp(dpp=True)
+            else:
+                raise ValueError("Unsupported context ", context)
 
     def is_dqcp(self):
         """The objective must be quasiconcave.
