@@ -69,6 +69,57 @@ class NonPos(Constraint):
         return np.maximum(self.expr.value, 0)
 
 
+class NonNeg(Constraint):
+    """A constraint of the form :math:`x \\geq 0`.
+
+    This class was created to account for the fact that the
+    ConicSolver interface returns matrix data stated with respect
+    to the nonnegative orthant, rather than the nonpositive orthant.
+
+    This class can be removed if the behavior of ConicSolver is
+    changed. However the current behavior of ConicSolver means
+    CVXPY's dual variable and Lagrangian convention follows the
+    most common convention in the literature.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression to constrain.
+    constr_id : int
+        A unique id for the constraint.
+    """
+    def __init__(self, expr, constr_id=None):
+        super(NonNeg, self).__init__([expr], constr_id)
+
+    def name(self):
+        return "0 <= %s" % self.args[0]
+
+    def is_dcp(self):
+        """A non-negative constraint is DCP if its argument is concave."""
+        return self.args[0].is_concave()
+
+    def is_dpp(self):
+        return self.is_dcp() and self.args[0].is_dpp()
+
+    def is_dgp(self):
+        return False
+
+    def is_dqcp(self):
+        return self.args[0].is_quasiconcave()
+
+    @property
+    def residual(self):
+        """The residual of the constraint.
+
+        Returns
+        ---------
+        NumPy.ndarray
+        """
+        if self.expr.value is None:
+            return None
+        return np.abs(np.minimum(self.expr.value, 0))
+
+
 class Inequality(Constraint):
     """A constraint of the form :math:`x \\leq y`.
 

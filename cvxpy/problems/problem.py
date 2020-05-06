@@ -27,7 +27,7 @@ from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.deterministic import unique_list
 import cvxpy.utilities.performance_utils as perf
-from cvxpy.constraints import Equality, Inequality, NonPos, Zero
+from cvxpy.constraints import Equality, Inequality, NonPos, Zero, NonNeg
 import cvxpy.utilities as u
 
 from collections import namedtuple
@@ -976,7 +976,6 @@ class SolverStats(object):
         self.solve_time = None
         self.setup_time = None
         self.num_iters = None
-        self.results_dict = results_dict  # TODO: REMOVE THIS LINE
 
         if s.SOLVE_TIME in results_dict:
             self.solve_time = results_dict[s.SOLVE_TIME]
@@ -1047,5 +1046,5 @@ class SizeMetrics(object):
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
-            if isinstance(constraint, (Inequality, NonPos)):
+            if isinstance(constraint, (Inequality, NonPos, NonNeg)):
                 self.num_scalar_leq_constr += constraint.expr.size

@@ -18,7 +18,7 @@ from cvxpy import problems
 from cvxpy.expressions import cvxtypes
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions import InverseData, Solution
-from cvxpy.constraints import Equality, Inequality, Zero, NonPos, PSD, SOC
+from cvxpy.constraints import Equality, Inequality, Zero, NonNeg, PSD, SOC
 from cvxpy.reductions.complex2real.atom_canonicalizers import (
     CANON_METHODS as elim_cplx_methods)
 from cvxpy.reductions import utilities
@@ -56,7 +56,7 @@ class Complex2Real(Reduction):
             if type(constraint) == Equality:
                 constraint = utilities.lower_equality(constraint)
             elif type(constraint) == Inequality:
-                constraint = utilities.lower_inequality(constraint)
+                constraint = utilities.lower_ineq_to_nonneg(constraint)
             # real2imag maps variable id to a potential new variable
             # created for the imaginary part.
             real_constrs, imag_constrs = self.canonicalize_tree(
@@ -104,7 +104,7 @@ class Complex2Real(Reduction):
                     imag_id = inverse_data.real2imag[cid]
                     dvars[cid] = 1j*solution.dual_vars[imag_id]
                 # For equality and inequality constraints.
-                elif isinstance(cons, (Equality, Zero, NonPos)) and cons.is_complex():
+                elif isinstance(cons, (Equality, Zero, NonNeg)) and cons.is_complex():
                     imag_id = inverse_data.real2imag[cid]
                     if imag_id in solution.dual_vars:
                         dvars[cid] = solution.dual_vars[cid] + \

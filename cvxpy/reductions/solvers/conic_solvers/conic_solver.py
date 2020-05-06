@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
+from cvxpy.constraints import SOC, ExpCone, PSD, Zero, NonNeg, NonPos
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -73,8 +73,8 @@ class ConicSolver(Solver):
     # The key that maps to ConeDims in the data returned by apply().
     DIMS = "dims"
 
-    # Every conic solver must support Zero and NonPos constraints.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos]
+    # Every conic solver must support Zero and NonNeg constraints.
+    SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
 
     # Some solvers cannot solve problems that do not have constraints.
     # For such solvers, REQUIRES_CONSTR should be set to True.
@@ -160,11 +160,10 @@ class ConicSolver(Solver):
         restruct_mat = []  # Form a block diagonal matrix.
         for constr in problem.constraints:
             total_height = sum([arg.size for arg in constr.args])
-            if type(constr) in [Zero, NonPos]:
-                # Both of these constraints have a single argument.
-                # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
-                # Need to negate to switch from NonPos to NonNeg.
+            if type(constr) == Zero:
                 restruct_mat.append(-sp.eye(constr.size, format='csr'))
+            elif type(constr) == NonNeg:
+                restruct_mat.append(sp.eye(constr.size, format='csr'))
             elif type(constr) == SOC:
                 # Group each t row with appropriate X rows.
                 assert constr.axis == 0, 'SOC must be lowered to axis == 0'
@@ -202,7 +201,6 @@ class ConicSolver(Solver):
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PSD:
-                # Sign flipped relative to NonPos, Zero.
                 restruct_mat.append(self.psd_format_mat(constr))
             else:
                 raise ValueError("Unsupported constraint type.")

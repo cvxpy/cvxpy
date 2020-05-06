@@ -16,7 +16,7 @@ limitations under the License.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonPos, SOC, PSD
+from cvxpy.constraints import Zero, NonNeg, SOC, PSD
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
@@ -32,7 +32,7 @@ import numpy as np
 # that can be supplied to ecos.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        "l": int(cone_dims.nonpos),
+        "l": int(cone_dims.nonneg),
         "q": [int(v) for v in cone_dims.soc],
         "s": [int(v) for v in cone_dims.psd],
     }
@@ -105,7 +105,7 @@ class CVXOPT(ECOS):
 
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonPos] + constr_map[SOC] + constr_map[PSD]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + constr_map[PSD]
         len_eq = problem.cone_dims.zero
 
         c, d, A, b = problem.apply_parameters()

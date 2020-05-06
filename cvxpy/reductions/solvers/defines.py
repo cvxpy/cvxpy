@@ -64,13 +64,13 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
 CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.SCS,
-                 s.CPLEX, s.GUROBI, s.GLPK, s.XPRESS,
-                 s.GLPK_MI, s.CBC, s.CVXOPT, s.NAG, s.DIFFCP]
+                 s.CPLEX, s.GUROBI, s.GLPK, s.NAG,
+                 s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX]
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI,
-              s.CPLEX, s.XPRESS, s.NAG, s.CBC]
+              s.CPLEX, s.XPRESS, s.CBC]
 
 
 def installed_solvers():

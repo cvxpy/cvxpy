@@ -18,7 +18,7 @@ import numpy as np
 import scipy as sp
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, NonPos, Zero, ExpCone
+from cvxpy.constraints import PSD, SOC, NonNeg, Zero, ExpCone
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.utilities import group_constraints
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
@@ -123,7 +123,7 @@ class MOSEK(ConicSolver):
 
         inv_data['constraints'] = problem.constraints
 
-        # A is ordered as [Zero, NonPos, SOC, PSD, EXP]
+        # A is ordered as [Zero, NonNeg, SOC, PSD, EXP]
         c, d, A, b = problem.apply_parameters()
         A = -A
         data[s.C] = c.ravel()
@@ -135,14 +135,14 @@ class MOSEK(ConicSolver):
         hs = []
         # Linear inequalities
         num_linear_equalities = len(constr_map[Zero])
-        num_linear_inequalities = len(constr_map[NonPos])
+        num_linear_inequalities = len(constr_map[NonNeg])
         leq_dim = data[s.DIMS][s.LEQ_DIM]
         eq_dim = data[s.DIMS][s.EQ_DIM]
         if num_linear_inequalities > 0:
             # G, h : G * z <= h
             offset = num_linear_equalities
             for c in problem.constraints[offset:offset + num_linear_inequalities]:
-                assert(isinstance(c, NonPos))
+                assert(isinstance(c, NonNeg))
                 inv_data['suc_slacks'].append((c.id, c.size))
             row_offset = eq_dim
             Gs.append(A[row_offset:row_offset + leq_dim])

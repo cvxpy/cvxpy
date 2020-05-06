@@ -16,7 +16,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonPos, PSD, SOC, ExpCone
+from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers import utilities
@@ -29,7 +29,7 @@ import scipy.sparse as sp
 def dims_to_solver_dict(cone_dims):
     cones = {
         s.EQ_DIM: cone_dims.zero,
-        s.LEQ_DIM: cone_dims.nonpos,
+        s.LEQ_DIM: cone_dims.nonneg,
         s.SOC_DIM: cone_dims.soc,
         s.EXP_DIM: cone_dims.exp,
         s.PSD_DIM: cone_dims.psd,
@@ -200,7 +200,7 @@ class SCS(ConicSolver):
 
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonPos] + constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone]
         return problem, data, inv_data
 
     def apply(self, problem):

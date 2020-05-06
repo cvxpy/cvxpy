@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import NonPos, SOC, ExpCone, Zero
+from cvxpy.constraints import NonNeg, SOC, ExpCone, Zero
 import cvxpy.interface as intf
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -27,7 +27,7 @@ import numpy as np
 # that can be supplied to ecos.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'l': cone_dims.nonpos,
+        'l': cone_dims.nonneg,
         "q": cone_dims.soc,
         'e': cone_dims.exp,
     }
@@ -106,11 +106,10 @@ class ECOS(ConicSolver):
 
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + constr_map[ExpCone]
         len_eq = problem.cone_dims.zero
 
         c, d, A, b = problem.apply_parameters()
-        inv_data['cache_matrices'] = (c, d, A, b)  #TODO: REMOVE THIS LINE
         data[s.C] = c
         inv_data[s.OFFSET] = d
         data[s.A] = -A[:len_eq]
@@ -147,8 +146,6 @@ class ECOS(ConicSolver):
         attr[s.SOLVE_TIME] = solution["info"]["timing"]["tsolve"]
         attr[s.SETUP_TIME] = solution["info"]["timing"]["tsetup"]
         attr[s.NUM_ITERS] = solution["info"]["iter"]
-        attr['raw_solution'] = solution  #TODO: REMOVE THIS LINE
-        attr['pcp_output'] = inverse_data['cache_matrices']  # TODO: REMOVE THIS LINE
 
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['info']['pcost']

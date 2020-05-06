@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, NonPos, Zero
+from cvxpy.constraints import SOC, NonNeg, Zero
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 import scipy as sp
 import numpy as np
@@ -53,7 +53,6 @@ class NAG(ConicSolver):
     def accepts(self, problem):
         """Can NAG solve the problem?
         """
-        # TODO check if is matrix stuffed.
         if not problem.objective.args[0].is_affine():
             return False
         for constr in problem.constraints:
@@ -94,7 +93,7 @@ class NAG(ConicSolver):
         hs = list()
         # Linear inequalities
         num_linear_eq = len(constr_map[Zero])
-        num_linear_leq = len(constr_map[NonPos])
+        num_linear_leq = len(constr_map[NonNeg])
         leq_dim = data[s.DIMS][s.LEQ_DIM]
         eq_dim = data[s.DIMS][s.EQ_DIM]
         if num_linear_leq > 0:
