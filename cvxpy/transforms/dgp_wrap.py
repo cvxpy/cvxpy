@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import performance_utils as perf
 import numpy as np
 
 
