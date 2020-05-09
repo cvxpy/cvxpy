@@ -265,12 +265,12 @@ where :math:`K` is a product of elementary convex cones. The design of CVXPY all
 for any cone supported by a target solver, but the current elementary convex cones are
 
  1. The zero cone :math:`y = 0 \in \mathbb{R}^m`.
- 2. The nonpositive cone :math:`y \leq 0 \in \mathbb{R}^m`.
+ 2. The nonnegative cone :math:`y \geq 0 \in \mathbb{R}^m`.
  3. The second order cone
 
     .. math::
 
-        (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (x,t) \,:\, \|x\| \leq t \} \subset \mathbb{R}^n \times \mathbb{R}.
+        (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (t,x) \,:\, t \geq \|x\|_2  \} \subset \mathbb{R} \times \mathbb{R}^n.
 
  4. A vectorized version of the positive semidefinite cone.
  5. The exponential cone
@@ -286,7 +286,7 @@ explicit representation for problem :math:`(P)` in in ``apply``, with a code sni
 
 .. code::
 
-    # from cvxpy.constraints import Zero, NonPos, SOC, PSD, ExpCone
+    # from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone
     #  ...
     if not problem.formatted:
         problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
@@ -295,7 +295,7 @@ explicit representation for problem :math:`(P)` in in ``apply``, with a code sni
     c, d, A, b = problem.apply_parameters()
 
 The variable ``constr_map`` is is a dict of lists of CVXPY Constraint objects.
-The dict is keyed by the references to CVXPY's Zero, NonPos, SOC, PSD, and
+The dict is keyed by the references to CVXPY's Zero, NonNeg, SOC, PSD, and
 ExpCone classes. You will need to interact with these constraint classes during
 dual variable recovery.
 For the other variables in that code snippet ...
@@ -320,12 +320,12 @@ The rows of ``A`` and entries of ``b`` are given in a very specific order, as de
         A[:eq, :] @ x + b[:eq] == 0.
 
  - Inequality constraints occur immediately after the equations.
-   If for example ``ineq = cone_dims.nonpos`` then the feasible
+   If for example ``ineq = cone_dims.nonneg`` then the feasible
    set has the constraint
 
     .. code::
 
-        A[eq:eq + ineq, :] @ x + b[eq:eq + ineq] <= 0.
+        A[eq:eq + ineq, :] @ x + b[eq:eq + ineq] >= 0.
 
  - Second order cone (SOC) constraints are handled after inequalities.
    Here, ``cone_dims.soc`` is a *list of integers* rather than a single integer.
@@ -347,7 +347,7 @@ If *Awesome* supports nonlinear constraints like SOC, ExpCone, or PSD, then it's
 that you will need to transform data ``A, b`` in order to write these constraints in
 the form expected by ``AwesomePy``.
 The most common situations are when ``AwesomePy`` parametrizes the second-order cone
-as :math:`K = \{ (t,x) \,:\, \|x\|\leq t \} \subset \mathbb{R} \times \mathbb{R}^n`,
+as :math:`K = \{ (x,t) \,:\, \|x\|\leq t \} \subset \mathbb{R}^n \times \mathbb{R}`,
 or when it parametrizes :math:`K_e \subset \mathbb{R}^3` as some permutation of
 what we defined earlier.
 
@@ -360,32 +360,17 @@ To perform this step correctly, it's necessary to consider how CVXPY forms
 a Lagrangian for the primal problem :math:`(P)`.
 Let's say that the affine map :math:`Ax + b` in the feasible set
 :math:`Ax + b \in K \subset \mathbb{R}^m` is broken up into five blocks of sizes
-:math:`m_1,\ldots,m_5` where the blocks correspond (in order) to zero-cone, nonpositive cone,
+:math:`m_1,\ldots,m_5` where the blocks correspond (in order) to zero-cone, nonnegative cone,
 second-order cone, vectorized PSD cone, and exponential cone constraints.
 Then CVXPY defines the dual to :math:`(P)` by forming a Lagrangian
 
 .. math::
 
-    \mathcal{L}(x,\mu_1,\ldots,\mu_5) = c^T x + \mu_1^T(A_1 x + b_1) + \mu_2^T(A_2 x + b_2)
-        - \sum_{i=3}^5 \mu_i^T (A_i x + b_i)
+    \mathcal{L}(x,\mu_1,\ldots,\mu_5) = c^T x - \sum_{i=i}^5 \mu_i^T (A_i x + b_i)
 
 in dual variables :math:`\mu_1 \in \mathbb{R}^{m_1}`, :math:`\mu_2 \in \mathbb{R}^{m_2}_+`,
 and :math:`\mu_i \in K_i^* \subset \mathbb{R}^{m_i}` for :math:`i \in \{3,4,5\}`.
 Here, :math:`K_i^*` denotes the dual cone to :math:`K_i` under the standard inner product.
-
-The effect of working with this Lagrangian is that all dual variables except
-:math:`\mu_2` belong to corresponding dual cones.
-Also, although :math:`\mu_1` belongs to the dual cone :math:`R^{m_i} = \{0\}^*`
-its sign convention in the Lagrangian is different than what we use for the other
-conic constraints.
-The discrepancy between :math:`\mu_1,\mu_2` and the remaining constraints stems
-from how CVXPY defines a Lagrangian from a user's perspective.
-Specifically, users are promised that we define a (possibly nonlinear) primal-dual pair
-following Chapter 5 Section 1 of
-`Convex Optimization by Boyd & Vandenberghe <https://web.stanford.edu/~boyd/cvxbook/>`_.
-When Chapter 5 of that book gets to general conic constraints in Section 5.9,
-we depart by viewing constraints as :math:`f_i(x) \in K_i` for an affine map :math:`f_i`,
-rather than :math:`f_i(x) \preceq_{K_i} 0` as the book states.
 
 Most concrete implementations of the ConicSolver class use a common set of helper
 functions for dual variable recovery, found in
@@ -393,10 +378,6 @@ functions for dual variable recovery, found in
 Refer to `MOSEK(ConicSolver).invert
 <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/mosek_conif.py#L479>`_
 for a well documented and less abstract implementation of dual variable recovery.
-
-There are a couple comments on our GitHub issues which have addressed dual variable
-recovery before; refer to `this comment <https://github.com/cvxgrp/cvxpy/issues/923#issuecomment-590516011>`_ or
-`this other comment <https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675>`_.
 
 Registering a solver
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
