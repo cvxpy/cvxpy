@@ -200,7 +200,8 @@ class SCS(ConicSolver):
 
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
+            constr_map[PSD] + constr_map[ExpCone]
         return problem, data, inv_data
 
     def apply(self, problem):

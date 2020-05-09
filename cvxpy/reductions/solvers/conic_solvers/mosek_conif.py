@@ -20,8 +20,6 @@ from cvxpy.reductions.solvers.utilities import expcone_permutor
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonNeg, Zero, ExpCone
 from cvxpy.reductions.solution import Solution
-from cvxpy.reductions.utilities import group_constraints
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from collections import defaultdict
 
