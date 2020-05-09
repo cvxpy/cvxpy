@@ -45,7 +45,7 @@ class ConeDims(object):
     nonneg : int
         The dimension of the non-negative cone.
     exp : int
-        The dimension of the exponential cone.
+        The number of 3-dimensional exponential cones.
     soc : list of int
         A list of the second-order cone dimensions.
     psd : list of int

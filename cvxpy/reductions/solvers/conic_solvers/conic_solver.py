@@ -131,11 +131,11 @@ class ConicSolver(Solver):
         Returns a ParamConeProg whose problem data tensors will yield the
         coefficient "A" and offset "b" for the constraint in the following
         formats:
-            Linear equations: (A, b) such that A * x == b,
-            Linear inequalities: (A, b) such that A * x <= b,
-            Second order cone: (A, b) such that A * x <=_{SOC} b,
-            Exponential cone: (A, b) such that A * x <=_{EXP} b,
-            Semidefinite cone: (A, b) such that A * x <=_{SDP} b,
+            Linear equations: (A, b) such that A * x + b == 0,
+            Linear inequalities: (A, b) such that A * x + b >= 0,
+            Second order cone: (A, b) such that A * x + b in SOC,
+            Exponential cone: (A, b) such that A * x + b in EXP,
+            Semidefinite cone: (A, b) such that A * x + b in PSD,
 
         The CVXPY standard for the exponential cone is:
             K_e = closure{(x,y,z) |  y >= z * exp(x/z), z>0}.
