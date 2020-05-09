@@ -372,6 +372,9 @@ in dual variables :math:`\mu_1 \in \mathbb{R}^{m_1}`, :math:`\mu_2 \in \mathbb{R
 and :math:`\mu_i \in K_i^* \subset \mathbb{R}^{m_i}` for :math:`i \in \{3,4,5\}`.
 Here, :math:`K_i^*` denotes the dual cone to :math:`K_i` under the standard inner product.
 
+More remarks on dual variables (particularly SOC dual variables) can be found in
+`this comment on a GitHub thread <https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675>`_.
+
 Most concrete implementations of the ConicSolver class use a common set of helper
 functions for dual variable recovery, found in
 `reductions/solvers/utilities.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py>`_.
