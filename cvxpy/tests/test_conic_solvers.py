@@ -15,16 +15,19 @@ limitations under the License.
 """
 
 import math
+import unittest
+
 import numpy as np
 import scipy.linalg as la
+
 import cvxpy as cp
-import unittest
+from cvxpy import SCIP
 from cvxpy.error import SolverError
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs
-from cvxpy.tests.solver_test_helpers import StandardTestSOCPs, StandardTestLPs
+from cvxpy.tests.solver_test_helpers import StandardTestLPs, StandardTestSOCPs
 from cvxpy.tests.solver_test_helpers import StandardTestMixedCPs
-from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, INSTALLED_MI_SOLVERS
 
 
 class TestECOS(BaseTest):
@@ -975,11 +978,45 @@ class TestNAG(unittest.TestCase):
     def test_nag_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver='NAG')
 
-    def test_ecos_socp_3(self):
+    def test_nag_socp_3(self):
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='NAG')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='NAG')
+
+
+@unittest.skipUnless(SCIP in INSTALLED_SOLVERS, 'SCIP is not installed.')
+class TestSCIP(unittest.TestCase):
+
+    def test_scip_lp_0(self):
+        StandardTestLPs.test_lp_0(solver=SCIP)
+
+    def test_scip_lp_1(self):
+        StandardTestLPs.test_lp_1(solver=SCIP)
+
+    # def test_scip_lp_2(self):
+    #     StandardTestLPs.test_lp_2(solver=SCIP)
+
+    def test_scip_lp_3(self):
+        StandardTestLPs.test_lp_3(solver=SCIP)
+
+    def test_scip_lp_4(self):
+        StandardTestLPs.test_lp_4(solver=SCIP)
+
+    # def test_scip_socp_0(self):
+    #     StandardTestSOCPs.test_socp_0(solver=SCIP)
+
+    # def test_scip_socp_1(self):
+    #     StandardTestSOCPs.test_socp_1(solver=SCIP)
+
+    # def test_scip_socp_2(self):
+    #     StandardTestSOCPs.test_socp_2(solver=SCIP)
+
+    # def test_scip_socp_3(self):
+    #     # axis 0
+    #     StandardTestSOCPs.test_socp_3ax0(solver=SCIP)
+    #     # axis 1
+    #     StandardTestSOCPs.test_socp_3ax1(solver=SCIP)
 
 
 class TestAllSolvers(BaseTest):
