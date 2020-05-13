@@ -26,6 +26,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import CANON_METHODS as PWL_METHODS
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.add_canon import add_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.constant_canon import constant_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.dgp_wrap_canon import dgp_wrap_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.div_canon import div_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.exp_canon import exp_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.eye_minus_inv_canon import eye_minus_inv_canon
@@ -45,6 +46,7 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_form_canon import quad_fo
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import trace_canon
+from cvxpy.transforms.dgp_wrap import dgp_wrap
 
 import numpy as np
 
@@ -52,6 +54,7 @@ import numpy as np
 CANON_METHODS = {
     AddExpression : add_canon,
     Constant : constant_canon,
+    dgp_wrap : dgp_wrap_canon,
     DivExpression : div_canon,
     exp : exp_canon,
     eye_minus_inv : eye_minus_inv_canon,

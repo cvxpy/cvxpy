@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.expressions.expression import Expression
+import cvxpy.utilities as u
 from cvxpy.utilities import performance_utils as perf
 import numpy as np
 
@@ -34,10 +35,10 @@ class dgp_wrap(Expression):
        The arguments to the wrapped function.
     """
 
-    def __init__(self, function, args):
+    def __init__(self, function, *args):
         self.function = function
-        self.args = args
-        self.expr = self.function(*args)
+        self.args = [dgp_wrap.cast_to_const(arg) for arg in args]
+        self.func_expr = self.function(*args)
         super(dgp_wrap, self).__init__()
 
     def is_convex(self):
@@ -54,6 +55,9 @@ class dgp_wrap(Expression):
     def is_log_log_convex(self):
         """Is the expression log-log convex?
         """
+        # Not DPP
+        if u.scopes.dpp_scope_active():
+            return False
         # Applies DCP composition rule.
         if self.is_constant():
             return True
@@ -71,6 +75,9 @@ class dgp_wrap(Expression):
     def is_log_log_concave(self):
         """Is the expression log-log concave?
         """
+        # Not DPP
+        if u.scopes.dpp_scope_active():
+            return False
         # Applies DCP composition rule.
         if self.is_constant():
             return True
@@ -113,7 +120,7 @@ class dgp_wrap(Expression):
     def shape(self):
         """Returns the (row, col) dimensions of the expression.
         """
-        return self.expr.shape
+        return self.func_expr.shape
 
     def name(self):
         """Returns the string representation of the expression.
@@ -138,7 +145,7 @@ class dgp_wrap(Expression):
             return None
         else:
             log_vals = [np.log(v) for v in values]
-            return np.exp(self.expr.numeric(log_vals))
+            return np.exp(self.func_expr.numeric(log_vals))
 
     @property
     def grad(self):
