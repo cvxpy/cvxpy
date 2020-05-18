@@ -17,6 +17,7 @@ class OSQP(QpSolver):
                   3: s.INFEASIBLE_INACCURATE,
                   -4: s.UNBOUNDED,
                   4: s.UNBOUNDED_INACCURATE,
+                  -6: s.USER_LIMIT,
                   -5: s.SOLVER_ERROR,           # Interrupted by user
                   -10: s.SOLVER_ERROR}          # Unsolved
 
@@ -33,7 +34,7 @@ class OSQP(QpSolver):
         # Map OSQP statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(solution.info.status_val, s.SOLVER_ERROR)
 
-        if status in s.SOLUTION_PRESENT:
+        if status in s.SOLUTION_PRESENT + [s.USER_LIMIT]:
             opt_val = solution.info.obj_val + inverse_data[s.OFFSET]
             primal_vars = {
                 OSQP.VAR_ID:
