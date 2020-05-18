@@ -34,7 +34,7 @@ class OSQP(QpSolver):
         # Map OSQP statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(solution.info.status_val, s.SOLVER_ERROR)
 
-        if status in s.SOLUTION_PRESENT + [s.USER_LIMIT]:
+        if status in s.SOLUTION_PRESENT:
             opt_val = solution.info.obj_val + inverse_data[s.OFFSET]
             primal_vars = {
                 OSQP.VAR_ID:
