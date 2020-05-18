@@ -13,8 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import math
-
 import cvxpy as cp
 from cvxpy.reductions.solvers.defines import QP_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
@@ -67,6 +65,5 @@ class TestParamQuadProg(BaseTest):
             x_param = np.copy(x.value)
 
             self.assertItemsAlmostEqual(x_param, x_full)
-
 
         # TODO: Add derivatives and adjoint tests
