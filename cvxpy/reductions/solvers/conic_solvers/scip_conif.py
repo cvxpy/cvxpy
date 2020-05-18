@@ -18,6 +18,7 @@ from typing import Any, Dict, Generic, Iterator, List, Tuple, Union
 import logging
 
 from numpy import array, ndarray
+from pyscipopt import SCIP_PARAMSETTING
 from pyscipopt.scip import ExprCons, quicksum
 from scipy.sparse import dok_matrix
 
@@ -28,7 +29,7 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS, dims_to_solver_dict
-from cvxpy.settings import SCIP
+# from cvxpy.settings import SCIP
 
 log = logging.getLogger(__name__)
 
@@ -39,6 +40,19 @@ except ImportError as e:
     # If it fails continue and use a generic type instead.
     log.warning("Could not import SCIP model")
     ScipModel = Generic
+
+
+class ConstraintTypes:
+    """Constraint type constants."""
+    EQUAL = "EQUAL"
+    LESS_THAN_OR_EQUAL = "LESS_THAN_OR_EQUAL"
+
+
+class VariableTypes:
+    """Variable type constants."""
+    BINARY = "BINARY"
+    INTEGER = "INTEGER"
+    CONTINUOUS = "CONTINUOUS"
 
 
 class SCIP(SCS):
@@ -58,6 +72,7 @@ class SCIP(SCS):
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""
+
         data, inv_data = super(SCIP, self).apply(problem)
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
@@ -68,28 +83,32 @@ class SCIP(SCS):
 
     def invert(self, solution: Dict[str, Any], inverse_data: Dict[str, Any]) -> Solution:
         """Returns the solution to the original problem given the inverse_data."""
-        status = solution['status']
 
+        status = solution['status']
         dual_vars = None
+
         if status in s.SOLUTION_PRESENT:
             opt_val = solution['value'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[SCIP.VAR_ID]: solution['primal']}
+
             if "eq_dual" in solution and not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
-                    solution['eq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[SCIP.EQ_CONSTR])
+                    result_vec=solution['eq_dual'],
+                    parse_func=utilities.extract_dual_value,
+                    constraints=inverse_data[SCIP.EQ_CONSTR],
+                )
                 leq_dual = utilities.get_dual_values(
-                    solution['ineq_dual'],
-                    utilities.extract_dual_value,
-                    inverse_data[SCIP.NEQ_CONSTR])
+                    result_vec=solution['ineq_dual'],
+                    parse_func=utilities.extract_dual_value,
+                    constraints=inverse_data[SCIP.NEQ_CONSTR],
+                )
+
                 eq_dual.update(leq_dual)
                 dual_vars = eq_dual
+
             return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
             return failure_solution(status)
-
-        return Solution(status, opt_val, primal_vars, dual_vars, {})
 
     def solve_via_data(
             self,
@@ -150,6 +169,7 @@ class SCIP(SCS):
         return solution
 
     def _define_data(self, data: Dict[str, Any]) -> Tuple:
+        """Define data parts from the data reference."""
         c = data[s.C]
         b = data[s.B]
         A = dok_matrix(data[s.A])
@@ -158,20 +178,18 @@ class SCIP(SCS):
         dims = dims_to_solver_dict(data[s.DIMS])
         return A, b, c, dims
 
-    def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: ndarray):
-        n = c.shape[0]
-        variables = []
-        for i in range(n):
-            variables.append(
-                model.addVar(
-                    obj=c[i],
-                    name="x_{}".format(i),
-                    vtype=get_variable_type(i, data),
-                    lb=None,
-                    ub=None,
-                )
+    def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: ndarray) -> List:
+        """Create a list of variables."""
+        return [
+            model.addVar(
+                obj=obj,
+                name="x_%d" % n,
+                vtype=get_variable_type(n=n, data=data),
+                lb=None,
+                ub=None,
             )
-        return variables
+            for n, obj in enumerate(c)
+        ]
 
     def _add_constraints(
             self,
@@ -181,13 +199,14 @@ class SCIP(SCS):
             b: ndarray,
             dims: Dict[str, Union[int, List]],
     ) -> List:
+        """Create a list of constraints."""
 
         # Equal constraints
         equal_constraints = self.add_model_lin_constr(
             model=model,
             variables=variables,
             rows=range(dims[s.EQ_DIM]),
-            ctype="==",
+            ctype=ConstraintTypes.EQUAL,
             A=A,
             b=b,
         )
@@ -199,7 +218,7 @@ class SCIP(SCS):
             model=model,
             variables=variables,
             rows=range(leq_start, leq_end),
-            ctype="<=",
+            ctype=ConstraintTypes.LESS_THAN_OR_EQUAL,
             A=A,
             b=b,
         )
@@ -233,13 +252,20 @@ class SCIP(SCS):
             dims: Dict[str, Union[int, List]],
             solver_opts: Dict,
     ) -> Dict[str, Any]:
+        """Solve and return a solution if one exists."""
+
         # Set parameters
         # TODO user option to not compute duals.
         # TODO: paramsmodel.setParam("QCPDual", True)
         # for key, value in solver_opts.items():
         #    model.setParam(key, value)
 
+        model.setPresolve(SCIP_PARAMSETTING.OFF)
+        model.setHeuristics(SCIP_PARAMSETTING.OFF)
+        model.disablePropagation()
+
         solution = {}
+
         try:
             model.optimize()
             # # Reoptimize if INF_OR_UNBD, to get definitive answer.
@@ -307,27 +333,30 @@ class SCIP(SCS):
         list
             A list of constraints.
         """
-        constr = []
+        constraints = []
+
         expr_list = {i: [] for i in rows}
         for (i, j), c in A.items():
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
-            except Exception as e:
-                print("exception whilst building expr list: ", e)
+            except:
                 pass
+
         for i in rows:
             # Ignore empty constraints.
             if expr_list[i]:
-                e = quicksum(coeff * var for coeff, var in expr_list[i])
-                cons = (e == b[i]) if ctype == '==' else (e <= b[i])
-                constr.append(
-                    model.addCons(cons)
+                expression = quicksum(coeff * var for coeff, var in expr_list[i])
+                constraint = model.addCons(
+                    (expression == b[i])
+                    if ctype == ConstraintTypes.EQUAL
+                    else (expression <= b[i])
                 )
+                constraints.append(constraint)
             else:
-                constr.append(None)
+                constraints.append(None)
 
-        return constr
+        return constraints
 
     def add_model_soc_constr(
         self,
@@ -336,7 +365,7 @@ class SCIP(SCS):
         rows: Iterator,
         A: dok_matrix,
         b: ndarray,
-    ) -> List:
+    ) -> Tuple:
         """Adds SOC constraint to the model using the data from mat and vec.
 
         Parameters
@@ -356,23 +385,20 @@ class SCIP(SCS):
         -------
         tuple
             A tuple of (QConstr, list of Constr, and list of variables).
-
-        TODO: Look over this, seems wrong all vars are CONT?
         """
+
         # Assume first expression (i.e. t) is nonzero.
         expr_list = {i: [] for i in rows}
         for (i, j), c in A.items():
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
-            except Exception as e:
-                print("exception whilst building expr_list: ", e)
+            except:
                 pass
-
-        lin_expr_list = [b[i] - ExprCons(expr_list[i]) for i in rows]
 
         # Make a variable and equality constraint for each term.
         soc_vars = [
+            # TODO: Check not a gurobi thing? i.e just the first with lb=0
             model.addVar(
                 obj=0,
                 name="soc_t_%d" % rows[0],
@@ -380,38 +406,44 @@ class SCIP(SCS):
                 lb=0,
                 ub=None,
             )
+        ] + [
+            model.addVar(
+                obj=0,
+                name="soc_x_%d" % i,
+                vtype="CONTINUOUS",
+                lb=None,
+                ub=None,
+            )
+            for i in rows[1:]
         ]
-        for i in rows[1:]:
-            soc_vars += [
-                model.addVar(
-                    obj=0,
-                    name="soc_x_%d" % i,
-                    vtype="CONTINUOUS",
-                    lb=None,
-                    ub=None,
-                )
-            ]
-        model.update()
 
-        new_lin_constrs = []
-        for i, _ in enumerate(lin_expr_list):
-            new_lin_constrs += [
-                model.addCons(soc_vars[i] == lin_expr_list[i])
-            ]
+        lin_expr_list = [
+            b[i] - quicksum(coeff * var for coeff, var in expr_list[i])
+            for i in rows
+        ]
 
-        t_term = soc_vars[0]*soc_vars[0]
-        x_term = sum([var*var for var in soc_vars[1:]])
+        new_lin_constrs = [
+            model.addCons(soc_vars[i] == lin_expr_list[i])
+            for i, _ in enumerate(lin_expr_list)
+        ]
+
+        # Interesting because only <=?
+        t_term = soc_vars[0] * soc_vars[0]
+        x_term = quicksum([var * var for var in soc_vars[1:]])
+        constraint = model.addCons(x_term <= t_term)
 
         return (
-            model.addQConstr(x_term <= t_term),
+            constraint,
             new_lin_constrs,
             soc_vars,
         )
 
 
-def get_variable_type(i: int, data: Dict[str, Any]) -> str:
-    if i in data[s.BOOL_IDX]:
-        return "BINARY"
-    elif i in data[s.INT_IDX]:
-        return "INTEGER"
-    return "CONTINUOUS"
+def get_variable_type(n: int, data: Dict[str, Any]) -> str:
+    """Given an index n, and a set of data,
+    return the type of a variable with the same index."""
+    if n in data[s.BOOL_IDX]:
+        return VariableTypes.BINARY
+    elif n in data[s.INT_IDX]:
+        return VariableTypes.INTEGER
+    return VariableTypes.CONTINUOUS
