@@ -92,7 +92,6 @@ class QpSolver(Solver):
             F, g = sp.csr_matrix((0, n)), -np.array([])
 
         # Create dictionary with problem data
-        data = {}
         data[s.P] = sp.csc_matrix(P)
         data[s.Q] = q
         data[s.A] = sp.csc_matrix(A)
