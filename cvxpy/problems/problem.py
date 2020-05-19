@@ -516,6 +516,7 @@ class Problem(u.Canonical):
                     if param in old_params_to_new_params:
                         old_params_to_new_params[param].value = np.log(
                             param.value)
+
             data, solver_inverse_data = solving_chain.solver.apply(
                 self._cache.param_prog)
             inverse_data = self._cache.inverse_data + [solver_inverse_data]
