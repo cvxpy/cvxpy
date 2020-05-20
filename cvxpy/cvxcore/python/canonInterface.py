@@ -43,7 +43,7 @@ def get_parameter_vector(param_size,
     -------
         A flattened NumPy array of parameter values, of length param_size + 1
     """
-    # TODO handle parameters with structure.
+    #TODO handle parameters with structure.
     if param_size == 0:
         return None
     param_vec = np.zeros(param_size + 1)
@@ -56,6 +56,95 @@ def get_parameter_vector(param_size,
             size = param_id_to_size[param_id]
             param_vec[col:col + size] = value
     return param_vec
+
+
+def reduce_problem_data_tensor(A, var_length):
+    """Reduce a problem data tensor, for efficient construction of the problem data
+
+    The problem data tensor A is a matrix of shape (m, p), where p is the
+    length of the parameter vector. The product A@param_vec gives the
+    entries of the problem data matrix for a solver;
+    the solver's problem data matrix has dimensions(n_constr, n_var + 1),
+    and n_constr*(n_var + 1) = m. In other words, each row in A corresponds
+    to an entry in the solver's data matrix.
+
+    This function removes the rows in A that are identically zero, since these
+    rows correspond to zeros in the problem data. It also returns the indices
+    and indptr to construct the problem data matrix from the reduced
+    representation of A, and the shape of the problem data matrix.
+
+    Let reduced_A be the sparse matrix returned by this function. Then the
+    problem data can be computed using
+
+       data : = reduced_A @ param_vec
+
+    and the problem data matrix can be constructed with
+
+        problem_data : = scipy.sparse.csc_matrix(
+            (data, indices, indptr), shape = shape)
+
+    Parameters
+    ----------
+        A : A sparse matrix, the problem data tensor; must not have a 0 in its
+            shape
+        var_length: number of variables in the problem
+
+    Returns
+    -------
+        reduced_A: A CSR sparse matrix with redundant rows removed
+        indices: CSC indices for the problem data matrix
+        indptr: CSC indptr for the problem data matrix
+        shape: the shape of the problem data matrix
+    """
+    # construct a reduced COO matrix
+    A.eliminate_zeros()
+    A_coo = A.tocoo()
+    unique_old_row = np.sort(np.unique(A_coo.row))
+    old_row_to_new_row = {
+        unique_old_row[i]: i for i in range(unique_old_row.size)
+    }
+    reduced_A_shape = (unique_old_row.size, A_coo.shape[1])
+
+    # remap the rows
+    old_row = A_coo.row
+    reduced_row = np.zeros(old_row.shape)
+    for i in range(reduced_row.size):
+        reduced_row[i] = old_row_to_new_row[old_row[i]]
+    reduced_A = scipy.sparse.coo_matrix(
+        (A_coo.data, (reduced_row, A_coo.col)), shape=reduced_A_shape)
+
+    # convert reduced_A to csr
+    reduced_A = reduced_A.tocsr()
+
+    nonzero_rows = unique_old_row
+    n_constr = A.shape[0] // (var_length + 1)
+    shape = (n_constr, var_length + 1)
+    indices = nonzero_rows % (n_constr)
+
+    # cols holds the column corresponding to each row in nonzero_rows
+    cols = nonzero_rows // n_constr
+    n_cols = shape[1]
+
+    # construction of the indptr: scan through cols, and find
+    # the structure of the column index pointer
+    indptr = np.zeros(n_cols + 1, dtype=np.int32)
+    i = 0
+    j = 1
+    nnz = cols.size
+    prev_col = 0
+    while i < nnz:
+        col = cols[i]
+        while col == prev_col and i < nnz - 1:
+            i += 1
+            col = cols[i]
+        if prev_col != col:
+            for k in range(col - prev_col):
+                indptr[j + k] = i
+            j += col - prev_col
+        prev_col = col
+        i += 1
+    indptr[j:] = nnz
+    return reduced_A, indices, indptr, shape
 
 
 def nonzero_csc_matrix(A):
@@ -94,7 +183,8 @@ def A_mapping_nonzero_rows(problem_data_tensor, var_length):
 
 
 def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
-                                      var_length, nonzero_rows=None):
+                                      var_length, nonzero_rows=None,
+                                      problem_data_index=None):
     """Applies problem_data_tensor to param_vec to obtain matrix, offset
 
     This function applies problem_data_tensor to param_vec to obtain
@@ -110,6 +200,8 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
             corresponding to A that have nonzeros in them (i.e., rows that
             are affected by parameters); if not None, then the corresponding
             entries in A will have explicit zeros.
+        problem_data_index: (optional) a tuple (indices, indptr, shape) for
+            construction of the CSC matrix holding the problem data and offset
 
     Returns
     -------
@@ -117,13 +209,23 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
         and b is a flattened NumPy array representing the constant offset.
     """
     if param_vec is None:
-        tensor_application = problem_data_tensor
+        flat_problem_data = problem_data_tensor
+        if problem_data_index is not None:
+            flat_problem_data = flat_problem_data.toarray().flatten()
+    elif problem_data_index is not None:
+        flat_problem_data = problem_data_tensor @ param_vec
     else:
-        if scipy.sparse.issparse(problem_data_tensor):
-            param_vec = scipy.sparse.csc_matrix(param_vec[:, None])
-        tensor_application = problem_data_tensor @ param_vec
-    A_concat_b = tensor_application.reshape(
-        (-1, var_length + 1), order='F').tocsc()
+        param_vec = scipy.sparse.csc_matrix(param_vec[:, None])
+        flat_problem_data = problem_data_tensor @ param_vec
+            
+
+    if problem_data_index is not None:
+        indices, indptr, shape = problem_data_index
+        A_concat_b = scipy.sparse.csc_matrix(
+            (flat_problem_data, indices, indptr), shape=shape)
+    else:
+        A_concat_b = flat_problem_data.reshape(
+            (-1, var_length + 1), order='F').tocsc()
 
     A = A_concat_b[:, :-1].tocsc()
     if nonzero_rows is not None and nonzero_rows.size > 0:

@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.expressions.constants import Constant
+
 
 def indicator_canon(expr, args):
-    return 0, args
+    return Constant(0), args

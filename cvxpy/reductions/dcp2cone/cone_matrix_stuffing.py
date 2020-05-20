@@ -19,6 +19,7 @@ from cvxpy.constraints import (Equality, ExpCone, Inequality,
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
+from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
 from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import (are_args_affine,
@@ -32,7 +33,7 @@ import scipy.sparse as sp
 
 
 # TODO(akshayka): unit tests
-class ParamConeProg(object):
+class ParamConeProg(ParamProb):
     """Represents a parameterized cone program
 
     minimize   c'x  + d
@@ -50,25 +51,47 @@ class ParamConeProg(object):
                  parameters,
                  param_id_to_col,
                  formatted=False):
+        # The problem data tensors; c is for the constraint, and A for
+        # the problem data matrix
         self.c = c
-        self.x = x
         self.A = A
+
+        # The variable
+        self.x = x
+
+        # Form a reduced representation of A, for faster application of
+        # parameters.
+        if np.prod(A.shape) != 0:
+            reduced_A, indices, indptr, shape = (
+                canonInterface.reduce_problem_data_tensor(A, self.x.size)
+            )
+            self.reduced_A = reduced_A
+            self.problem_data_index = (indices, indptr, shape)
+        else:
+            self.reduced_A = A
+            self.problem_data_index = None
+
         self._A_mapping_nonzero = None
+
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
+
         self.parameters = parameters
         self.param_id_to_col = param_id_to_col
         self.id_to_param = {p.id: p for p in self.parameters}
         self.param_id_to_size = {p.id: p.size for p in self.parameters}
         self.total_param_size = sum([p.size for p in self.parameters])
+
         # TODO technically part of inverse data.
         self.variables = variables
         self.var_id_to_col = var_id_to_col
         self.id_to_var = {v.id: v for v in self.variables}
+
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
 
     def is_mixed_integer(self):
+        """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
@@ -99,8 +122,9 @@ class ParamConeProg(object):
             self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.A, self.x.size)
         A, b = canonInterface.get_matrix_and_offset_from_tensor(
-            self.A, param_vec, self.x.size,
-            nonzero_rows=self._A_mapping_nonzero)
+            self.reduced_A, param_vec, self.x.size,
+            nonzero_rows=self._A_mapping_nonzero,
+            problem_data_index=self.problem_data_index)
         return c, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
@@ -117,7 +141,18 @@ class ParamConeProg(object):
         del_param_vec = delc @ self.c[:-1]
         flatdelA = delA.reshape((np.prod(delA.shape), 1), order='F')
         delAb = sp.vstack([flatdelA, sp.csc_matrix(delb[:, None])])
-        del_param_vec += np.squeeze((delAb.T @ self.A).A)
+
+        one_gig_of_doubles = 125000000
+        if delAb.shape[0] < one_gig_of_doubles:
+            # fast path: if delAb is small enough, just materialize it
+            # in memory because sparse-matrix @ dense vector is much faster
+            # than sparse @ sparse
+            del_param_vec += np.squeeze(self.A.T.dot(delAb.toarray()))
+        else:
+            # slow path.
+            # TODO: make this faster by intelligently operating on the
+            # sparse matrix data / making use of reduced_A
+            del_param_vec += np.squeeze((delAb.T @ self.A).A)
         del_param_vec = np.squeeze(del_param_vec)
 
         param_id_to_delta_param = {}

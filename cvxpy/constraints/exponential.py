@@ -17,6 +17,7 @@ limitations under the License.
 
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import scopes
 import numpy as np
 
 
@@ -99,15 +100,15 @@ class ExpCone(Constraint):
         """
         return [3]*self.num_cones()
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """An exponential constraint is DCP if each argument is affine.
         """
+        if dpp:
+            with scopes.dpp_scope():
+                return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dpp(self):
-        return self.is_dcp() and all(arg.is_dpp() for arg in self.args)
-
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         return False
 
     def is_dqcp(self):

@@ -19,7 +19,7 @@ CVXPY is a Python-embedded modeling language for convex optimization problems. I
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
-```python
+```python3
 import cvxpy as cp
 import numpy
 

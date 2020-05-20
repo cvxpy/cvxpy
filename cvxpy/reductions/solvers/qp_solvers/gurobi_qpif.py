@@ -33,9 +33,8 @@ class GUROBI(QpSolver):
                   6: s.INFEASIBLE,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
+                  9: s.USER_LIMIT,  # Maximum time expired
                   # TODO could be anything.
-                  # means time expired.
-                  9: s.SOLVER_ERROR,
                   10: s.SOLVER_ERROR,
                   11: s.SOLVER_ERROR,
                   12: s.SOLVER_ERROR,
@@ -62,18 +61,18 @@ class GUROBI(QpSolver):
         # Map GUROBI statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(model.Status, s.SOLVER_ERROR)
 
-        if status in s.SOLUTION_PRESENT:
-            opt_val = model.objVal
+        if (status in s.SOLUTION_PRESENT) or (model.solCount > 0):
+            opt_val = model.objVal + inverse_data[s.OFFSET]
             x = np.array([x_grb[i].X for i in range(n)])
 
             primal_vars = {
-                list(inverse_data.id_map.keys())[0]:
+                GUROBI.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 
             # Only add duals if not a MIP.
             dual_vars = None
-            if not inverse_data.is_mip:
+            if not inverse_data[GUROBI.IS_MIP]:
                 y = -np.array([constraints_grb[i].Pi for i in range(m)])
                 dual_vars = {GUROBI.DUAL_VAR_ID: y}
 

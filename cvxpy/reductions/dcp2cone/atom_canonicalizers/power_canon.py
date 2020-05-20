@@ -22,7 +22,7 @@ import numpy as np
 
 def power_canon(expr, args):
     x = args[0]
-    p = expr.p
+    p = expr.p_rational
     w = expr.w
 
     if p == 1:

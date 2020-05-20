@@ -22,8 +22,6 @@ from cvxpy.reductions.solvers.conic_solvers.diffcp_conif \
     import DIFFCP as DIFFCP_con
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif \
     import ECOS as ECOS_con
-from cvxpy.reductions.solvers.conic_solvers.ecos_bb_conif \
-    import ECOS_BB as ECOS_BB_con
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif \
     import CVXOPT as CVXOPT_con
 from cvxpy.reductions.solvers.conic_solvers.glpk_conif \
@@ -52,7 +50,7 @@ from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 
-solver_conic_intf = [DIFFCP_con(), ECOS_con(), ECOS_BB_con(),
+solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      CVXOPT_con(), GLPK_con(), XPRESS(),
                      GLPK_MI_con(), CBC_con(), SCS_con(), SuperSCS_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con()]
@@ -69,10 +67,12 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # and are supported by QpSolver.
 CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.SUPER_SCS, s.SCS,
                  s.CPLEX, s.GUROBI, s.GLPK, s.XPRESS,
-                 s.GLPK_MI, s.CBC, s.CVXOPT, s.ECOS_BB, s.NAG, s.DIFFCP]
+                 s.GLPK_MI, s.CBC, s.CVXOPT, s.NAG, s.DIFFCP]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX]
+MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI,
+              s.CPLEX, s.XPRESS, s.NAG, s.CBC]
 
 
 def installed_solvers():
@@ -95,3 +95,5 @@ def installed_solvers():
 INSTALLED_SOLVERS = installed_solvers()
 INSTALLED_CONIC_SOLVERS = [
   slv for slv in INSTALLED_SOLVERS if slv in CONIC_SOLVERS]
+INSTALLED_MI_SOLVERS = [
+  slv for slv in INSTALLED_SOLVERS if slv in MI_SOLVERS]

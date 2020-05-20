@@ -14,16 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import unittest
 from cvxpy import log
 from cvxpy import Constant, Variable
 from cvxpy.settings import UNKNOWN, QUASILINEAR
-from nose.tools import assert_equals
 
 
-class TestCurvature(object):
+class TestCurvature(unittest.TestCase):
     """ Unit tests for the expression/curvature class. """
-    @classmethod
-    def setup_class(self):
+
+    def setUp(self):
         self.cvx = Variable()**2
         self.ccv = Variable()**0.5
         self.aff = Variable()
@@ -36,32 +36,32 @@ class TestCurvature(object):
         self.unknown_sign = self.pos + self.neg
 
     def test_add(self):
-        assert_equals((self.const + self.cvx).curvature, self.cvx.curvature)
-        assert_equals((self.unknown_curv + self.ccv).curvature, UNKNOWN)
-        assert_equals((self.cvx + self.ccv).curvature, UNKNOWN)
-        assert_equals((self.cvx + self.cvx).curvature, self.cvx.curvature)
-        assert_equals((self.aff + self.ccv).curvature, self.ccv.curvature)
+        self.assertEqual((self.const + self.cvx).curvature, self.cvx.curvature)
+        self.assertEqual((self.unknown_curv + self.ccv).curvature, UNKNOWN)
+        self.assertEqual((self.cvx + self.ccv).curvature, UNKNOWN)
+        self.assertEqual((self.cvx + self.cvx).curvature, self.cvx.curvature)
+        self.assertEqual((self.aff + self.ccv).curvature, self.ccv.curvature)
 
     def test_sub(self):
-        assert_equals((self.const - self.cvx).curvature, self.ccv.curvature)
-        assert_equals((self.unknown_curv - self.ccv).curvature, UNKNOWN)
-        assert_equals((self.cvx - self.ccv).curvature, self.cvx.curvature)
-        assert_equals((self.cvx - self.cvx).curvature, UNKNOWN)
-        assert_equals((self.aff - self.ccv).curvature, self.cvx.curvature)
+        self.assertEqual((self.const - self.cvx).curvature, self.ccv.curvature)
+        self.assertEqual((self.unknown_curv - self.ccv).curvature, UNKNOWN)
+        self.assertEqual((self.cvx - self.ccv).curvature, self.cvx.curvature)
+        self.assertEqual((self.cvx - self.cvx).curvature, UNKNOWN)
+        self.assertEqual((self.aff - self.ccv).curvature, self.cvx.curvature)
 
     def test_sign_mult(self):
-        assert_equals((self.zero * self.cvx).curvature, self.aff.curvature)
-        assert_equals((self.neg*self.cvx).curvature, self.ccv.curvature)
-        assert_equals((self.neg*self.ccv).curvature, self.cvx.curvature)
-        assert_equals((self.neg*self.unknown_curv).curvature, QUASILINEAR)
-        assert_equals((self.pos*self.aff).curvature, self.aff.curvature)
-        assert_equals((self.pos*self.ccv).curvature, self.ccv.curvature)
-        assert_equals((self.unknown_sign*self.const).curvature, self.const.curvature)
-        assert_equals((self.unknown_sign*self.ccv).curvature, UNKNOWN)
+        self.assertEqual((self.zero * self.cvx).curvature, self.aff.curvature)
+        self.assertEqual((self.neg*self.cvx).curvature, self.ccv.curvature)
+        self.assertEqual((self.neg*self.ccv).curvature, self.cvx.curvature)
+        self.assertEqual((self.neg*self.unknown_curv).curvature, QUASILINEAR)
+        self.assertEqual((self.pos*self.aff).curvature, self.aff.curvature)
+        self.assertEqual((self.pos*self.ccv).curvature, self.ccv.curvature)
+        self.assertEqual((self.unknown_sign*self.const).curvature, self.const.curvature)
+        self.assertEqual((self.unknown_sign*self.ccv).curvature, UNKNOWN)
 
     def test_neg(self):
-        assert_equals((-self.cvx).curvature, self.ccv.curvature)
-        assert_equals((-self.aff).curvature, self.aff.curvature)
+        self.assertEqual((-self.cvx).curvature, self.ccv.curvature)
+        self.assertEqual((-self.aff).curvature, self.aff.curvature)
 
     # Tests the is_affine, is_convex, and is_concave methods
     def test_is_curvature(self):

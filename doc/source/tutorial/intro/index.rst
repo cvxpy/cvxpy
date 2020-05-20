@@ -225,7 +225,8 @@ Parameters
 representations of constants. The purpose of parameters is to change the value
 of a constant in a problem without reconstructing the entire problem. In many
 cases, solving a parametrized program multiple times can be
-substantially faster than repeatedly solving a new problem (see :ref:`dpp`).
+substantially faster than repeatedly solving a new problem: after reading
+this section, be sure to read the tutorial on :ref:`dpp` (DPP).
 
 Parameters can be vectors or matrices, just like variables. When you
 create a parameter you have the option of specifying attributes such as the

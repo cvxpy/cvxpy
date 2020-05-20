@@ -23,7 +23,6 @@ from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities import performance_utils as perf
-from cvxpy.utilities import scopes
 import abc
 import numpy as np
 
@@ -196,14 +195,15 @@ class Atom(Expression):
         else:
             return False
 
-    @perf.compute_once
-    def is_dpp(self, context='CP'):
+    def is_dpp(self, context='dcp'):
         """The expression is a disciplined parameterized expression.
-
-           context: cone program (CP) or quadratic program (QP)
         """
-        with scopes.dpp_scope():
-            return self.is_dcp()
+        if context.lower() == 'dcp':
+            return self.is_dcp(dpp=True)
+        elif context.lower() == 'dgp':
+            return self.is_dgp(dpp=True)
+        else:
+            raise ValueError('Unsupported context ', context)
 
     @perf.compute_once
     def is_log_log_convex(self):

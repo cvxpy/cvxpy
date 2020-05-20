@@ -105,7 +105,7 @@ every row a_i of A). Consult this `IPython notebook <https://github.com/cvxgrp/c
 --------------------
 How does CVXPY work?
 --------------------
-The fundamental concepts behind CVXPY are discussed in `this paper <http://arxiv.org/abs/1506.0076>`_.
+The fundamental concepts behind CVXPY are discussed in `this paper <https://web.stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf>`_.
 
 How do I cite CVXPY?
 --------------------

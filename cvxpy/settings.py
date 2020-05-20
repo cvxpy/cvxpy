@@ -41,12 +41,12 @@ UNBOUNDED_INACCURATE = "unbounded_inaccurate"
 USER_LIMIT = "user_limit"
 SOLVER_ERROR = "solver_error"
 # Statuses that indicate a solution was found.
-SOLUTION_PRESENT = [OPTIMAL, OPTIMAL_INACCURATE]
+SOLUTION_PRESENT = [OPTIMAL, OPTIMAL_INACCURATE, USER_LIMIT]
 # Statuses that indicate the problem is infeasible or unbounded.
 INF_OR_UNB = [INFEASIBLE, INFEASIBLE_INACCURATE,
               UNBOUNDED, UNBOUNDED_INACCURATE]
 # Statuses that indicate an error.
-ERROR = [USER_LIMIT, SOLVER_ERROR]
+ERROR = [SOLVER_ERROR]
 
 # Solver names.
 CVXOPT = "CVXOPT"
@@ -55,7 +55,6 @@ GLPK_MI = "GLPK_MI"
 CBC = "CBC"
 CPLEX = "CPLEX"
 ECOS = "ECOS"
-ECOS_BB = "ECOS_BB"
 SCS = "SCS"
 DIFFCP = "DIFFCP"
 SUPER_SCS = "SUPER_SCS"
@@ -65,7 +64,7 @@ CPLEX = "CPLEX"
 MOSEK = "MOSEK"
 XPRESS = "XPRESS"
 NAG = "NAG"
-SOLVERS = [ECOS, ECOS_BB, CVXOPT, GLPK,
+SOLVERS = [ECOS, CVXOPT, GLPK,
            GLPK_MI, SCS, GUROBI, OSQP, CPLEX,
            MOSEK, CBC, XPRESS, SUPER_SCS, NAG]
 

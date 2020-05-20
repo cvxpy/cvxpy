@@ -19,11 +19,12 @@ import numpy as np
 import scipy.linalg as la
 import cvxpy as cp
 import unittest
+from cvxpy.error import SolverError
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs
 from cvxpy.tests.solver_test_helpers import StandardTestSOCPs, StandardTestLPs
 from cvxpy.tests.solver_test_helpers import StandardTestMixedCPs
-from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, INSTALLED_MI_SOLVERS
 
 
 class TestECOS(BaseTest):
@@ -54,22 +55,6 @@ class TestECOS(BaseTest):
             prob.solve(solver=cp.ECOS, feastol=EPS, abstol=EPS, reltol=EPS,
                        feastol_inacc=EPS, abstol_inacc=EPS, reltol_inacc=EPS,
                        max_iters=20, verbose=True, warm_start=True)
-        self.assertAlmostEqual(prob.value, 1.0)
-        self.assertItemsAlmostEqual(self.x.value, [0, 0])
-
-    def test_ecos_bb_options(self):
-        """Test that all the ECOS BB solver options work.
-        """
-        # 'mi_maxiter'
-        # maximum number of branch and bound iterations (default: 1000)
-        # 'mi_abs_eps'
-        # absolute tolerance between upper and lower bounds (default: 1e-6)
-        # 'mi_rel_eps'
-        prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0),
-                          [self.x == cp.Variable(2, boolean=True)])
-        for i in range(2):
-            prob.solve(solver=cp.ECOS_BB, mi_max_iters=100, mi_abs_eps=1e-6,
-                       mi_rel_eps=1e-5, verbose=True, warm_start=True)
         self.assertAlmostEqual(prob.value, 1.0)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
@@ -450,68 +435,6 @@ class TestMosek(unittest.TestCase):
             problem.solve(solver=cp.MOSEK, mosek_params=mosek_params)
 
 
-@unittest.skipUnless('SUPER_SCS' in INSTALLED_SOLVERS, 'SUPER_SCS is not installed.')
-class TestSuperSCS(BaseTest):
-
-    def setUp(self):
-        self.x = cp.Variable(2, name='x')
-        self.y = cp.Variable(2, name='y')
-
-        self.A = cp.Variable((2, 2), name='A')
-        self.B = cp.Variable((2, 2), name='B')
-        self.C = cp.Variable((3, 2), name='C')
-
-    # Overriden method to assume lower accuracy.
-    def assertItemsAlmostEqual(self, a, b, places=2):
-        super(TestSCS, self).assertItemsAlmostEqual(a, b, places=places)
-
-    # Overriden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places=2):
-        super(TestSCS, self).assertAlmostEqual(a, b, places=places)
-
-    def test_super_scs_lp_0(self):
-        StandardTestLPs.test_lp_0(solver='SUPER_SCS')
-
-    def test_super_scs_lp_1(self):
-        StandardTestLPs.test_lp_1(solver='SUPER_SCS')
-
-    def test_super_scs_lp_2(self):
-        StandardTestLPs.test_lp_2(solver='SUPER_SCS')
-
-    def test_super_scs_lp_3(self):
-        StandardTestLPs.test_lp_3(solver='SUPER_SCS')
-
-    def test_super_scs_lp_4(self):
-        StandardTestLPs.test_lp_4(solver='SUPER_SCS')
-
-    def test_super_scs_socp_0(self):
-        StandardTestSOCPs.test_socp_0(solver='SUPER_SCS')
-
-    def test_super_scs_socp_1(self):
-        StandardTestSOCPs.test_socp_1(solver='SUPER_SCS')
-
-    def test_super_scs_socp_2(self):
-        StandardTestSOCPs.test_socp_2(solver='SUPER_SCS')
-
-    def test_super_scs_sdp_1(self):
-        # minimization
-        StandardTestSDPs.test_sdp_1min(solver='SUPER_SCS')
-        # maximization
-        StandardTestSDPs.test_sdp_1max(solver='SUPER_SCS')
-
-    def test_super_scs_expcone_1(self):
-        StandardTestECPs.test_expcone_1(solver='SUPER_SCS')
-
-    def test_warm_start(self):
-        if cp.SUPER_SCS in INSTALLED_SOLVERS:
-            x = cp.Variable(10)
-            obj = cp.Minimize(cp.sum(cp.exp(x)))
-            prob = cp.Problem(obj, [cp.sum(x) == 1])
-            result = prob.solve(solver='SUPER_SCS', eps=1e-4)
-            result2 = prob.solve(solver='SUPER_SCS', warm_start=True, eps=1e-4)
-            self.assertAlmostEqual(result2, result, places=2)
-
-
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
 class TestCVXOPT(BaseTest):
 
@@ -818,7 +741,13 @@ class TestCPLEX(BaseTest):
         StandardTestSOCPs.test_socp_0(solver='CPLEX')
 
     def test_cplex_socp_1(self):
-        StandardTestSOCPs.test_socp_1(solver='CPLEX', places=2)
+        # Parameters are set due to a minor dual-variable related
+        # presolve bug in CPLEX, which will be fixed in the next
+        # CPLEX release.
+        StandardTestSOCPs.test_socp_1(solver='CPLEX', places=2,
+                                      cplex_params={
+                                          "preprocessing.presolve": 0,
+                                          "preprocessing.reduce": 2})
 
     def test_cplex_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver='CPLEX')
@@ -1092,3 +1021,18 @@ class TestAllSolvers(BaseTest):
                 with self.assertRaises(Exception) as cm:
                     prob.solve(solver=solver)
                 self.assertEqual(str(cm.exception), "The solver %s is not installed." % solver)
+
+    def test_mixed_integer_behavior(self):
+        x = cp.Variable(2, name='x', integer=True)
+        objective = cp.Minimize(cp.sum(x))
+        prob = cp.Problem(objective, [x >= 0])
+        if len(INSTALLED_MI_SOLVERS) == 0:
+            try:
+                prob.solve()
+                assert False
+            except SolverError as err:
+                msg = str(err)
+                self.assertTrue("(a `mixed-integer solver`)" in msg)
+        else:
+            prob.solve()
+            self.assertItemsAlmostEqual(x.value, [0, 0])

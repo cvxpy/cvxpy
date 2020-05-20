@@ -22,13 +22,11 @@ import operator
 import numpy as np
 import scipy.sparse as sp
 
-import cvxpy
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.utilities.replace_quad_forms import (replace_quad_forms,
                                                 restore_quad_forms)
 from cvxpy.lin_ops.lin_op import LinOp, NO_OP
-from cvxpy.problems.objective import Minimize
 
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
@@ -94,50 +92,78 @@ class CoeffExtractor(object):
             Affine expressions can be anything.
         """
         assert affine_expr.is_dpp()
-        # Extract affine data.
-        affine_problem = cvxpy.Problem(Minimize(affine_expr), [])
-        affine_inverse_data = InverseData(affine_problem)
-        affine_id_map = affine_inverse_data.id_map
-        affine_var_shapes = affine_inverse_data.var_shapes
-        extractor = CoeffExtractor(affine_inverse_data)
-        coeffs = extractor.affine(affine_problem.objective.expr)
-        c = coeffs[:-1].A.flatten()
-        b = coeffs[-1, 0]
+        # Here we take the problem objective, replace all the SymbolicQuadForm
+        # atoms with variables of the same dimensions.
+        # We then apply the canonInterface to reduce the "affine head"
+        # of the expression tree to a coefficient vector c and constant offset d.
+        # Because the expression is parameterized, we extend that to a matrix
+        # [c1 c2 ...]
+        # [d1 d2 ...]
+        # where ci,di are the vector and constant for the ith parameter.
+        affine_id_map, affine_offsets, x_length, affine_var_shapes = \
+            InverseData.get_var_offsets(affine_expr.variables())
+        op_list = [affine_expr.canonical_form[0]]
+        param_coeffs = canonInterface.get_problem_matrix(op_list,
+                                                         x_length,
+                                                         affine_offsets,
+                                                         self.param_to_size,
+                                                         self.param_id_map,
+                                                         affine_expr.size)
 
-        # Combine affine data with quadforms.
-        coeffs = {}
-        for var in affine_problem.variables():
-            if var.id in quad_forms:
-                var_id = var.id
-                orig_id = quad_forms[var_id][2].args[0].id
-                var_offset = affine_id_map[var_id][0]
-                var_size = affine_id_map[var_id][1]
-                if quad_forms[var_id][2].P.value is not None:
+        # TODO vectorize this code.
+        # Iterates over every entry of the parameters vector,
+        # and obtains the Pi and qi for that entry i.
+        # These are then combined into matrices [P1.flatten(), P2.flatten(), ...]
+        # and [q1, q2, ...]
+        coeff_list = []
+        constant = param_coeffs[-1, :]
+        for p in range(param_coeffs.shape[1]):
+            c = param_coeffs[:-1, p].A.flatten()
+
+            # coeffs stores the P and q for each quad_form,
+            # as well as for true variable nodes in the objective.
+            coeffs = {}
+            # The goal of this loop is to appropriately multiply
+            # the matrix P of each quadratic term by the coefficients
+            # in param_coeffs. Later we combine all the quadratic terms
+            # to form a single matrix P.
+            for var in affine_expr.variables():
+                # quad_forms maps the ids of the SymbolicQuadForm atoms
+                # in the objective to (modified parent node of quad form,
+                #                      argument index of quad form,
+                #                      quad form atom)
+                if var.id in quad_forms:
+                    var_id = var.id
+                    orig_id = quad_forms[var_id][2].args[0].id
+                    var_offset = affine_id_map[var_id][0]
+                    var_size = affine_id_map[var_id][1]
                     c_part = c[var_offset:var_offset+var_size]
-                    P = quad_forms[var_id][2].P.value
-                    if sp.issparse(P):
-                        P = P.toarray()
-                    # NB: this is _not_ matrix multiplication
-                    P = c_part * P
+                    if quad_forms[var_id][2].P.value is not None:
+                        P = quad_forms[var_id][2].P.value
+                        if c_part.size == 1:
+                            P = c_part[0] * P
+                        else:
+                            P = P @ sp.diags(c_part)
+                    else:
+                        P = sp.diags(c_part)
+                    if orig_id in coeffs:
+                        coeffs[orig_id]['P'] += P
+                    else:
+                        coeffs[orig_id] = dict()
+                        coeffs[orig_id]['P'] = P
+                        coeffs[orig_id]['q'] = np.zeros(P.shape[0])
                 else:
-                    P = sp.diags(c[var_offset:var_offset+var_size])
-                if orig_id in coeffs:
-                    coeffs[orig_id]['P'] += P
-                else:
-                    coeffs[orig_id] = dict()
-                    coeffs[orig_id]['P'] = P
-                    coeffs[orig_id]['q'] = np.zeros(P.shape[0])
-            else:
-                var_offset = affine_id_map[var.id][0]
-                var_size = np.prod(affine_var_shapes[var.id], dtype=int)
-                if var.id in coeffs:
-                    coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] += c[var_offset:var_offset+var_size]
-                else:
-                    coeffs[var.id] = dict()
-                    coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
-                    coeffs[var.id]['q'] = c[var_offset:var_offset+var_size]
-        return coeffs, b
+                    var_offset = affine_id_map[var.id][0]
+                    var_size = np.prod(affine_var_shapes[var.id], dtype=int)
+                    if var.id in coeffs:
+                        coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
+                        coeffs[var.id]['q'] += c[var_offset:var_offset+var_size]
+                    else:
+                        coeffs[var.id] = dict()
+                        coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
+                        coeffs[var.id]['q'] = c[var_offset:var_offset+var_size]
+            coeff_list.append(coeffs)
+        return coeff_list, constant
 
     def quad_form(self, expr):
         """Extract quadratic, linear constant parts of a quadratic objective.
@@ -151,8 +177,8 @@ class CoeffExtractor(object):
 
         # Calculate affine parts and combine them with quadratic forms to get
         # the coefficients.
-        coeffs, constant = self.extract_quadratic_coeffs(root.args[0],
-                                                         quad_forms)
+        coeff_list, constant = self.extract_quadratic_coeffs(root.args[0],
+                                                             quad_forms)
         # Restore expression.
         restore_quad_forms(root.args[0], quad_forms)
 
@@ -160,23 +186,44 @@ class CoeffExtractor(object):
         # order.
         offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
 
-        # Concatenate quadratic matrices and vectors
-        P = sp.csr_matrix((0, 0))
-        q = np.zeros(0)
-        for var_id, offset in offsets:
-            if var_id in coeffs:
-                P = sp.block_diag([P, coeffs[var_id]['P']])
-                q = np.concatenate([q, coeffs[var_id]['q']])
-            else:
-                shape = self.var_shapes[var_id]
-                size = np.prod(shape, dtype=int)
-                P = sp.block_diag([P, sp.csr_matrix((size, size))])
-                q = np.concatenate([q, np.zeros(size)])
+        # Get P and q for each parameter.
+        P_list = []
+        q_list = []
+        for coeffs in coeff_list:
+            # Concatenate quadratic matrices and vectors
+            P = sp.csr_matrix((0, 0))
+            q = np.zeros(0)
+            for var_id, offset in offsets:
+                if var_id in coeffs:
+                    P = sp.block_diag([P, coeffs[var_id]['P']])
+                    q = np.concatenate([q, coeffs[var_id]['q']])
+                else:
+                    shape = self.var_shapes[var_id]
+                    size = np.prod(shape, dtype=int)
+                    P = sp.block_diag([P, sp.csr_matrix((size, size))])
+                    q = np.concatenate([q, np.zeros(size)])
 
-        if (P.shape[0] != P.shape[1] and P.shape[1] != self.x_length) or \
-           q.shape[0] != self.x_length:
-            raise RuntimeError("Resulting quadratic form does not have "
-                               "appropriate dimensions")
-        if not np.isscalar(constant) and constant.size > 1:
-            raise RuntimeError("Constant must be a scalar")
-        return P.tocsr(), q, constant
+            if (P.shape[0] != P.shape[1] and P.shape[1] != self.x_length) or \
+                    q.shape[0] != self.x_length:
+                raise RuntimeError("Resulting quadratic form does not have "
+                                   "appropriate dimensions")
+            if not np.isscalar(constant) and constant.size > 1:
+                raise RuntimeError("Constant must be a scalar")
+
+            P_size = P.shape[0]*P.shape[1]
+            P_list.append(P.reshape((P_size, 1), order='F'))
+            q_list.append(q)
+
+        # Here we assemble the Ps and qs into matrices
+        # that we multiply by a parameter vector to get P, q
+        # i.e. [P1.flatten(), P2.flatten(), ...]
+        #      [q1, q2, ...]
+        # where Pi, qi are coefficients for the ith entry of
+        # the parameter vector.
+
+        # Stitch together Ps and qs and constant.
+        P = sp.hstack(P_list)
+        # Stack q with constant offset as last row.
+        q = np.stack(q_list, axis=1)
+        q = sp.vstack([q, constant])
+        return P, q

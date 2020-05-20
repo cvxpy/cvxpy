@@ -203,6 +203,26 @@ You can construct mixed-integer programs by creating variables with the attribut
     # expr2 must be integer valued.
     constr2 = (expr2 == Z)
 
+CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
+For licencing reasons, CVXPY does not install any of these solvers by default.
+
+CVXPY supports open source mixed-integer solvers GLPK_MI_ and CBC_. The CVXOPT_ python package
+provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running ``pip install cvxopt`` in
+your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.
+
+If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
+model, then you will need to use a commercial solver such as CPLEX_, GUROBI_, MOSEK_, or NAG_.
+Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK provide free licenses to those
+in academia (both students and faculty), as well as trial versions to those outside academia.
+CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
+online registration, and it's limited to problems at with most 1000 variables and 1000 constraints.
+
+.. note::
+   If you develop an open-source mixed-integer solver with a permissive license such
+   as Apache 2.0, and you're interested in incorporating your solver into CVXPY's default installation,
+   please reach out to us at our `GitHub issues <https://github.com/cvxgrp/cvxpy/issues>`_. We are
+   particularly interested in incorporating a simple mixed-integer SOCP solver (CVXPY previously
+   used ECOS_BB for this purpose, but dropped that solver due to recurring correctness issues).
 
 Complex valued expressions
 --------------------------
@@ -341,18 +361,36 @@ Solve method options
 --------------------
 
 The ``solve`` method takes optional arguments that let you change how CVXPY
-solves the problem.
+parses and solves the problem.
 
-.. function:: solve(solver=None, verbose=False, gp=False, **kwargs)
+.. function:: solve(solver=None, verbose=False, gp=False, qcp=False, requries_grad=False, enforce_dpp=False, **kwargs)
 
-   Solves a DCP compliant optimization problem.
+   Solves the problem using the specified method.
+
+   Populates the :code:`status` and :code:`value` attributes on the
+   problem object as a side-effect.
 
    :param solver: The solver to use.
    :type solver: str, optional
    :param verbose:  Overrides the default of hiding solver output.
    :type verbose: bool, optional
-   :param gp:  If True, parses the problem as a disciplined geometric program instead of a disciplined convex program.
+   :param gp:  If ``True``, parses the problem as a disciplined geometric program instead of a disciplined convex program.
    :type gp: bool, optional
+   :param qcp:  If ``True``, parses the problem as a disciplined quasiconvex program instead of a disciplined convex program.
+   :type qcp: bool, optional
+   :param requires_grad: Makes it possible to compute gradients of a solution
+        with respect to Parameters by calling ``problem.backward()`` after
+        solving, or to compute perturbations to the variables given perturbations to
+        Parameters by calling ``problem.derivative()``.
+
+        Gradients are only supported for DCP and DGP problems, not
+        quasiconvex problems. When computing gradients (i.e., when
+        this argument is True), the problem must satisfy the DPP rules.
+   :type requires_grad: bool, optional
+   :param enforce_dpp: When True, a ``DPPError`` will be thrown when trying to solve
+        a non-DPP problem (instead of just a warning). Only relevant for
+        problems involving Parameters. Defaults to ``False``.
+   :type enforce_dpp: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
    :return: The optimal value for the problem, or a string indicating why the problem could not be solved.
 
@@ -363,7 +401,7 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `ECOS`_, `ECOS_BB`_, `OSQP`_, and `SCS`_.
+CVXPY is distributed with the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
@@ -384,8 +422,6 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `ECOS`_      | X  | X  | X    |     | X   |     |
 +--------------+----+----+------+-----+-----+-----+
-| `ECOS_BB`_   | X  | X  | X    |     | X   | X   |
-+--------------+----+----+------+-----+-----+-----+
 | `GUROBI`_    | X  | X  | X    |     |     | X   |
 +--------------+----+----+------+-----+-----+-----+
 | `MOSEK`_     | X  | X  | X    | X   | X   | X*  |
@@ -401,9 +437,11 @@ Here EXP refers to problems with exponential cone constraints. The exponential c
 
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
-You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.
+Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
+converts the problem into standard form.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ can both handle all problems (except mixed-integer programs). `ECOS_BB`_ is called for mixed-integer LPs and SOCPs. If the problem is a QP, CVXPY will use `OSQP`_.
+By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
+`SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 
@@ -422,10 +460,6 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with ECOS.
     prob.solve(solver=cp.ECOS)
     print("optimal value with ECOS:", prob.value)
-
-    # Solve with ECOS_BB.
-    prob.solve(solver=cp.ECOS_BB)
-    print("optimal value with ECOS_BB:", prob.value)
 
     # Solve with CVXOPT.
     prob.solve(solver=cp.CVXOPT)
@@ -466,7 +500,6 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 
     optimal value with OSQP: 6.0
     optimal value with ECOS: 5.99999999551
-    optimal value with ECOS_BB: 5.99999999551
     optimal value with CVXOPT: 6.00000000512
     optimal value with SCS: 6.00046055789
     optimal value with GLPK: 6.0
@@ -485,7 +518,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -560,11 +593,11 @@ The code below shows how warm start can accelerate solving a sequence of related
 
     b.value = numpy.random.randn(m)
     prob.solve()
-    print("First solve time:", prob.solve_time)
+    print("First solve time:", prob.solver_stats.solve_time)
 
     b.value = numpy.random.randn(m)
     prob.solve(warm_start=True)
-    print("Second solve time:", prob.solve_time)
+    print("Second solve time:", prob.solver_stats.solve_time)
 
 ::
 
@@ -576,9 +609,9 @@ If ``A`` were a parameter, factorization caching would not be possible and the b
 warm start would only be a good initial point.
 
 Setting solver options
-^^^^^^^^^^^^^^^^^^^^^^
+----------------------
 
-The `OSQP`_, `ECOS`_, `ECOS_BB`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -642,13 +675,13 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     maximum number of iterations (default: 100).
 
 ``'abstol'``
-    absolute accuracy (default: 1e-7).
+    absolute accuracy (default: 1e-8).
 
 ``'reltol'``
-    relative accuracy (default: 1e-6).
+    relative accuracy (default: 1e-8).
 
 ``'feastol'``
-    tolerance for feasibility conditions (default: 1e-7).
+    tolerance for feasibility conditions (default: 1e-8).
 
 ``'abstol_inacc'``
     absolute accuracy for inaccurate solution (default: 5e-5).
@@ -658,17 +691,6 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
 
 ``'feastol_inacc'``
     tolerance for feasibility condition for inaccurate solution (default: 1e-4).
-
-`ECOS_BB`_ options:
-
-``'mi_max_iters'``
-    maximum number of branch and bound iterations (default: 1000)
-
-``'mi_abs_eps'``
-    absolute tolerance between upper and lower bounds (default: 1e-6)
-
-``'mi_rel_eps'``
-    relative tolerance, (U-L)/L, between upper and lower bounds (default: 1e-3)
 
 `MOSEK`_ options:
 
@@ -865,23 +887,35 @@ Disciplined Parametrized Programming
 symbolic representations of constants. Using parameters lets you modify the
 values of constants without reconstructing the entire problem. When your
 parametrized problem is constructed according to *Disciplined Parametrized
-Programming (DPP)*, solving it repeatedly, for different values of the
-parameters, can be much faster than repeatedly solving a new problem.
+Programming (DPP)*, solving it repeatedly for different values of the
+parameters can be much faster than repeatedly solving a new problem.
 
-DPP is a ruleset for producing parametrized DCP-compliant problems that
+You should read this tutorial if you intend to solve a :ref:`DCP <dcp>` or
+:ref:`DGP <dgp>` problem many times, for different values of the numerical
+data, or if you want to differentiate through the solution map of a DCP or DGP
+problem.
+
+What is DPP?
+^^^^^^^^^^^^
+DPP is a ruleset for producing parametrized DCP or DGP compliant problems that
 CVXPY can re-canonicalize very quickly. The first time a DPP-compliant problem
 is solved, CVXPY compiles it and caches the mapping from parameters to problem
 data. As a result, subsequent rewritings of DPP problems can be substantially
 faster. CVXPY allows you to solve parametrized problems that are not DPP, but
 you won't see a speed-up when doing so.
 
-Currently, only problems that are solved by conic solvers will see
-a speed-up with DPP.
+Currently, only problems that are solved by conic solvers (such as ECOS, SCS,
+and MOSEK), will see a speed-up with DPP.
 
 The DPP ruleset
 ^^^^^^^^^^^^^^^
-DPP is a subset of DCP, with mild restrictions on how parameters can enter
-expressions. In DPP, an expression is said to be parameter-affine if it does
+
+DPP places mild restrictions on how parameters can enter expressions in
+DCP and DGP problems. First, we describe the DPP ruleset for DCP problems.
+Then, we describe the DPP ruleset for DGP problems.
+
+**DCP problems.**
+In DPP, an expression is said to be parameter-affine if it does
 not involve variables and is affine in its parameters, and it is variable-free
 if it does not have variables. DPP introduces two restrictions to DCP:
 
@@ -890,24 +924,25 @@ if it does not have variables. DPP introduces two restrictions to DCP:
    at least one of the expressions is constant, or when one of the
    expressions is parameter-affine and the other is parameter-free.
 
-An expression is DPP-compliant if it DCP-compliant, subject to these two
+An expression is DPP-compliant if it DCP-compliant subject to these two
 restrictions. You can check whether an expression or problem is DPP-compliant
-by calling the ``is_dpp`` method. For example,
+by calling the ``is_dcp`` method with the keyword argument ``dpp=True`` (by
+default, this keyword argument is ``False``). For example,
 
-.. code:: python
+.. code:: python3
 
     import cvxpy as cp
 
 
     m, n = 3, 2
     x = cp.Variable((n, 1))
-    F = cp.Parameter((m, n)) 
-    G = cp.Parameter((m, n)) 
+    F = cp.Parameter((m, n))
+    G = cp.Parameter((m, n))
     g = cp.Parameter((m, 1))
-    gamma = cp.Parameter(nonneg=True) 
+    gamma = cp.Parameter(nonneg=True)
 
     objective = cp.norm((F + G) @ x - g) + gamma * cp.norm(x)
-    print(objective.is_dpp())
+    print(objective.is_dcp(dpp=True))
 
 prints ``True``. We can walk through the DPP analysis to understand why
 ``objective`` is DPP-compliant. The product ``(F + G) @ x`` is affine under DPP,
@@ -922,7 +957,7 @@ argument (since ``gamma`` is nonnegative).
 Some expressions are DCP-compliant but not DPP-compliant. For example,
 DPP forbids taking the product of two parametrized expressions:
 
-.. code:: python
+.. code:: python3
 
     import cvxpy as cp
 
@@ -930,8 +965,8 @@ DPP forbids taking the product of two parametrized expressions:
     x = cp.Variable()
     gamma = cp.Parameter(nonneg=True)
     problem = cp.Problem(cp.Minimize(gamma * gamma * x), [x >= 1])
-    print("Is DPP? ", problem.is_dpp())
-    print("Is DCP? ", problem.is_dcp())
+    print("Is DPP? ", problem.is_dcp(dpp=True))
+    print("Is DCP? ", problem.is_dcp(dpp=False))
 
 This code snippet prints
 
@@ -944,7 +979,7 @@ Just as it is possible to rewrite non-DCP problems in DCP-compliant ways, it is
 also possible to re-express non-DPP problems in DPP-compliant ways. For
 example, the above problem can be equivalently written as
 
-.. code:: python
+.. code:: python3
 
     import cvxpy as cp
 
@@ -953,8 +988,8 @@ example, the above problem can be equivalently written as
     y = cp.Variable()
     gamma = cp.Parameter(nonneg=True)
     problem = cp.Problem(cp.Minimize(gamma * y), [y == gamma * x])
-    print("Is DPP? ", problem.is_dpp())
-    print("Is DCP? ", problem.is_dcp())
+    print("Is DPP? ", problem.is_dcp(dpp=True))
+    print("Is DCP? ", problem.is_dcp(dpp=False))
 
 This snippet prints 
 
@@ -968,7 +1003,7 @@ by doing them outside of the DSL, e.g., in NumPy. For example,
 if ``P`` is a parameter and ``x`` is a variable, ``cp.quad_form(x, P)`` is not
 DPP. You can represent a parametric quadratic form like so:
 
-.. code:: python
+.. code:: python3
 
   import cvxpy as cp
   import numpy as np
@@ -982,18 +1017,96 @@ DPP. You can represent a parametric quadratic form like so:
   x = cp.Variable((n, 1))
   quad_form = cp.sum_squares(P_sqrt @ x)
   P_sqrt.value = scipy.linalg.sqrtm(P)
-  assert quad_form.is_dpp()
+  assert quad_form.is_dcp(dpp=True)
 
 As another example, the quotient ``expr / p`` is not DPP-compliant when ``p`` is
 a parameter, but this can be rewritten as ``expr * p_tilde``, where ``p_tilde`` is
 a parameter that represents ``1/p``.
 
+**DGP problems.**
+Just as DGP is the log-log analogue of DCP, DPP for DGP is the log-log analog
+of DPP for DCP. DPP introduces two restrictions to DGP:
+
+1. Under DPP, all positive parameters are classified as log-log-affine, just like positive variables.
+2. Under DPP, the power atom ``x**p`` (with base ``x`` and exponent ``p``)
+   is log-log affine as long as ``x`` and ``p`` are not both parametrized.
+
+Note that for powers, the exponent ``p`` must be either a numerical constant
+or a parameter; attempting to construct a power atom in which the exponent
+is a compound expression, e.g., ``x**(p + p)``, where ``p`` is a Parameter,
+will result in a ``ValueError``.
+
+If a parameter appears in a DGP problem as an exponent, it can have any
+sign. If a parameter appears elsewhere in a DGP problem, *it must be
+positive*, i.e., it must be constructed with ``cp.Parameter(pos=True)``.
+
+You can check whether an expression or problem is DPP-compliant
+by calling the ``is_dgp`` method with the keyword argument ``dpp=True`` (by
+default, this keyword argument is ``False``). For example,
+
+.. code:: python3
+
+    import cvxpy as cp
+
+
+    x = cp.Variable(pos=True)
+    y = cp.Variable(pos=True)
+    a = cp.Parameter()
+    b = cp.Parameter()
+    c = cp.Parameter(pos=True)
+    
+    monomial = c * x**a * y**b
+    print(monomial.is_dgp(dpp=True))
+
+prints ``True``. The expressions ``x**a`` and ``y**b`` are log-log affine, since
+``x`` and ``y`` do not contain parameters. The parameter ``c`` is log-log affine
+because it is positive, and the monomial expression is log-log affine because
+the product of log-log affine expression is also log-log affine.
+
+Some expressions are DGP-compliant but not DPP-compliant. For example,
+DPP forbids taking raising a parametrized expression to a power:
+
+.. code:: python3
+
+    import cvxpy as cp
+
+
+    x = cp.Variable(pos=True)
+    a = cp.Parameter()
+    
+    monomial = (x**a)**a
+    print("Is DPP? ", monomial.is_dgp(dpp=True))
+    print("Is DGP? ", monomial.is_dgp(dpp=False))
+
+This code snippet prints
+
+::
+
+    Is DPP? False
+    Is DGP? True
+
+You can represent non-DPP transformations of parameters
+by doing them outside of CVXPY, e.g., in NumPy. For example, 
+you could rewrite the above program as the following DPP-complaint program
+
+.. code:: python3
+
+    import cvxpy as cp
+
+
+    a = 2.0
+    x = cp.Variable(pos=True)
+    b = cp.Parameter(value=a**2)
+    
+    monomial = x**b
+
 Repeatedly solving a DPP problem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The following example demonstrates how parameters can speed-up repeated
-solves of a DPP problem.
+solves of a DPP-compliant DCP problem. (Similar speed-ups can be obtained for
+DGP problems.)
 
-.. code:: python
+.. code:: python3
 
     import cvxpy as cp
     import numpy
@@ -1012,7 +1125,7 @@ solves of a DPP problem.
     error = cp.sum_squares(A @ x - b)
     obj = cp.Minimize(error + gamma*cp.norm(x, 1))
     problem = cp.Problem(obj)
-    assert problem.is_dpp()
+    assert problem.is_dcp(dpp=True)
 
     gamma_vals = numpy.logspace(-4, 1)
     times = []
@@ -1040,16 +1153,150 @@ solves of a DPP problem.
 
 .. image:: advanced_files/resolving_dpp.png
 
-.. _OSQP: https://osqp.org/
+.. _derivatives:
+
+Sensitivity analysis and gradients
+------------------------------------
+*Note: This feature requires CVXPY >= 1.1.0a0.*
+
+An optimization problem can be viewed as a function mapping parameters
+to solutions. This solution map is sometimes differentiable. CVXPY
+has built-in support for computing the derivative of the optimal variable
+values of a problem with respect to small perturbations of the parameters
+(i.e., the ``Parameter`` instances appearing in a problem).
+
+The problem class exposes two methods related to computing the derivative.
+The :py:func:`derivative <cvxpy.problems.problem.Problem.derivative>` evaluates
+the derivative given perturbations to the parameters. This
+lets you calculate how the solution to a problem would change
+given small changes to the parameters, without re-solving the problem. 
+The :py:func:`backward <cvxpy.problems.problem.Problem.backward>` method
+evaluates the adjoint of the derivative, computing the gradient of the solution
+with respect to the parameters. This can be useful when combined with
+automatic differentiation software.
+
+The derivative and backward methods are only meaningful when the problem
+contains parameters. In order for a problem to be differentiable, it must
+be :ref:`DPP-compliant <dpp>`. CVXPY can compute the derivative of any
+DPP-compliant DCP or DGP problem. At non-differentiable points, CVXPY
+computes a heuristic quantity.
+
+**Example.**
+
+As a first example, we solve a trivial problem with an analytical solution,
+to illustrate the usage of the ``backward`` and ``derivative``
+functions. In the following block of code, we construct a problem with
+a scalar variable ``x`` and a scalar parameter ``p``. The problem
+is to minimize the quadratic ``(x - 2*p)**2``.
+
+.. code:: python3
+
+    import cvxpy as cp
+
+    x = cp.Variable()
+    p = cp.Parameter()
+    quadratic = cp.square(x - 2 * p)
+    problem = cp.Problem(cp.Minimize(quadratic))
+
+Next, we solve the problem for the particular value of ``p == 3``. Notice that
+when solving the problem, we supply the keyword argument ``requires_grad=True``
+to the ``solve`` method.
+
+.. code:: python3
+
+    p.value = 3.
+    problem.solve(requires_grad=True)
+
+Having solved the problem with ``requires_grad=True``, we can now use the
+``backward`` and ``derivative`` to differentiate through the problem.
+First, we compute the gradient of the solution with respect to its parameter
+by calling the ``backward()`` method. As a side-effect, the ``backward()``
+method populates the ``gradient`` attribute on all parameters with the gradient
+of the solution with respect to that parameter.
+
+.. code:: python3
+
+    problem.backward()
+    print("The gradient is {0:0.1f}.".format(p.gradient))
+
+In this case, the problem has the trivial analytical solution ``2*p``, and
+the gradient is therefore just 2. So, as expected, the above code prints
+
+.. code::
+
+    The gradient is 2.0.
+
+Next, we use the ``derivative`` method to see how a small change in ``p``
+would affect the solution ``x``. We will perturb ``p`` by ``1e-5``, by
+setting ``p.delta = 1e-5``, and calling the ``derivative`` method will populate
+the ``delta`` attribute of ``x`` with the the change in ``x`` predicted by
+a first-order approximation (which is ``dx/dp * p.delta``).
+
+.. code:: python3
+
+    p.delta = 1e-5
+    problem.backward()
+    print("x.delta is {0:2.1g}.".format(x.delta))
+
+In this case the solution is trivial and its derivative is just ``2*p``, we
+know that the delta in ``x`` should be ``2e-5``. As expected, the output is
+
+.. code::
+
+    x.delta is 2e-05.
+
+We emphasize that this example is trivial, because it has a trivial analytical
+solution, with a trivial derivative. The ``backward()`` and ``forward()``
+methods are useful because the vast majority of convex optimization problems
+do not have analytical solutions: in these cases, CVXPY can compute solutions
+and their derivatives, even though it would be impossible to derive them by
+hand.
+
+**Note.** In this simple example, the variable ``x`` was a scalar, so the
+``backward`` method computed the gradient of ``x`` with respect to ``p``.
+When there is more than one scalar variable, by default, ``backward``
+computes the gradient of the *sum* of the optimal variable values with respect
+to the parameters.
+
+More generally, the ``backward`` method can be used to compute the gradient of
+a scalar-valued function ``f`` of the optimal variables, with
+respect to the parameters. If ``x(p)`` denotes the optimal value of
+the variable (which might be a vector or a matrix) for a particular value of
+the parameter ``p`` and ``f(x(p))`` is a scalar, then ``backward`` can be used
+to compute the gradient of ``f`` with respect to ``p``. Let ``x* = x(p)``,
+and say the derivative of ``f`` with respect to ``x*`` is ``dx``. To compute
+the derivative of ``f`` with respect to ``p``, before calling
+``problem.backward()``, just set ``x.gradient = dx``.
+
+The ``backward`` method can be powerful when combined with software for
+automatic differentiation. We recommend the software package
+`CVXPY Layers <https://www.github.com/cvxgrp/cvxpylayers>`_, which provides
+differentiable PyTorch and TensorFlow wrappers for CVXPY problems.
+
+**backward or derivative?** The ``backward`` method should be used when
+you need the gradient of (a scalar-valued function) of the solution, with
+respect to the parameters. If you only want to do a sensitivity analysis,
+that is, if all you're interested in is how the solution would change if
+one or more parameters were changed, you should use the ``derivative``
+method. When there are multiple variables, it is much more efficient to
+compute sensitivities using the derivative method than it would be to compute
+the entire Jacobian (which can be done by calling backward multiple times,
+once for each standard basis vector).
+
+**Next steps.** See the `introductory notebook <https://www.cvxpy.org/examples/derivatives/fundamentals.html>`_
+on derivatives.
+
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
-.. _ECOS_BB: https://github.com/embotech/ecos#mixed-integer-socps-ecos_bb
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
+.. _XPRESS: https://www.fico.com/en/products/fico-xpress-solver
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _NAG: https://www.nag.co.uk/nag-library-python/
+.. _OSQP: https://osqp.org/
+

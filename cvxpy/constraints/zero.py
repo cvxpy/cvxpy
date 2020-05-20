@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import scopes
 import numpy as np
 
 
@@ -53,11 +54,14 @@ class Zero(Constraint):
     def name(self):
         return "%s == 0" % self.args[0]
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """A zero constraint is DCP if its argument is affine."""
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_affine()
         return self.args[0].is_affine()
 
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         return False
 
     def is_dqcp(self):
@@ -129,14 +133,18 @@ class Equality(Constraint):
     def name(self):
         return "%s == %s" % (self.args[0], self.args[1])
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """An equality constraint is DCP if its argument is affine."""
+        if dpp:
+            with scopes.dpp_scope():
+                return self.expr.is_affine()
         return self.expr.is_affine()
 
-    def is_dpp(self):
-        return self.is_dcp() and self.expr.is_dpp()
-
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
+        if dpp:
+            with scopes.dpp_scope():
+                return (self.args[0].is_log_log_affine() and
+                        self.args[1].is_log_log_affine())
         return (self.args[0].is_log_log_affine() and
                 self.args[1].is_log_log_affine())
 

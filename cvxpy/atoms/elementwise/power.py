@@ -5,7 +5,6 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,10 +14,16 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
-import numpy as np
+from cvxpy.expressions import cvxtypes
 from cvxpy.utilities.power_tools import (is_power2, pow_mid,
                                          pow_high, pow_neg)
+import cvxpy.utilities as u
+import numpy as np
 import scipy.sparse as sp
+
+
+def _is_const(p):
+    return isinstance(p, cvxtypes.constant())
 
 
 class power(Elementwise):
@@ -26,6 +31,10 @@ class power(Elementwise):
 
     If ``expr`` is a CVXPY expression, then ``expr**p``
     is equivalent to ``power(expr, p)``.
+
+    For DCP problems, the exponent `p` must be a numeric constant. For DGP
+    problems, `p` can also be a scalar Parameter.
+
 
     Specifically, the atom is given by the cases
 
@@ -43,15 +52,15 @@ class power(Elementwise):
           +\infty & x < 0 \end{cases} & \text{convex, increasing, positive}.
         \end{array}
 
+
     .. note::
 
-        Generally, ``p`` cannot be represented exactly, so a rational,
-        i.e., fractional, **approximation** must be made.
+        For DCP problems, ``p`` cannot be represented exactly, so a rational,
+        i.e., fractional, **approximation** must be made. (No such approximation
+        is made for DGP problems.)
 
         Internally, ``power`` computes a rational approximation
-        to ``p`` with a denominator up to ``max_denom``. The resulting
-        approximation can be found through the attribute ``power.p``.
-        The approximation error is given by the attribute ``power.approx_error``.
+        to ``p`` with a denominator up to ``max_denom``.
         Increasing ``max_denom`` can give better approximations.
 
         When ``p`` is an ``int`` or ``Fraction`` object, the approximation
@@ -71,9 +80,7 @@ class power(Elementwise):
         Fraction(1001, 1000)
         >>> g
         Expression(CONVEX, POSITIVE, (1, 1))
-
         results in a convex atom with implicit constraint :math:`x \geq 0`, while
-
         >>> g = power(x, 1.0001)
         >>> g.p
         1
@@ -81,7 +88,6 @@ class power(Elementwise):
         Expression(AFFINE, UNKNOWN, (1, 1))
 
         results in an affine atom with no constraint on ``x``.
-
 
     - When :math:`p > 1` and ``p`` is not a power of two, the monotonically increasing version
       of the function with full domain,
@@ -104,66 +110,72 @@ class power(Elementwise):
     Parameters
     ----------
 
-    x : cvx.Variable
+    x : cvxpy.Variable
 
-    p : int, float, or Fraction
-        Scalar power.
+    p : int, float, Fraction, or Parameter.
+        Scalar power. ``p`` may be a Parameter in DGP programs, but not
+        in DCP programs.
 
     max_denom : int
-        The maximum denominator considered in forming a rational approximation of ``p``.
-
-
-
+        The maximum denominator considered in forming a rational approximation
+        of ``p``; only relevant when solving as a DCP program.
     """
 
     def __init__(self, x, p, max_denom=1024):
-        p_old = p
+        self._p_orig = p
+        # NB: It is important that the exponent is an attribute, not
+        # an argument. This prevents parametrized exponents from being replaced
+        # with their logs in Dgp2Dcp.
+        self.p = cvxtypes.expression().cast_to_const(p)
+        if not (isinstance(self.p, cvxtypes.constant()) or
+                isinstance(self.p, cvxtypes.parameter())):
+            raise ValueError("The exponent `p` must be either a Constant or "
+                             "a Parameter; received ", type(p))
+        self.max_denom = max_denom
 
-        # how we convert p to a rational depends on the branch of the function
-        if p > 1:
-            p, w = pow_high(p, max_denom)
-        elif 0 < p < 1:
-            p, w = pow_mid(p, max_denom)
-        elif p < 0:
-            p, w = pow_neg(p, max_denom)
+        self.p_rational = None
+        if isinstance(self.p, cvxtypes.constant()):
+            # Compute a rational approximation to p, for DCP (DGP doesn't need
+            # an approximation).
 
-        # note: if, after making the rational approximation, p ends up being 0 or 1,
-        # we default to using the 0 or 1 behavior of the atom,
-        # which affects the curvature, domain, etc...
-        # maybe unexpected behavior to the user if they put in 1.00001?
+            if not isinstance(self._p_orig, cvxtypes.expression()):
+                # converting to a CVXPY Constant loses the dtype (eg, int),
+                # so fetch the original exponent when possible
+                p = self._p_orig
+            else:
+                p = self.p.value
+            # how we convert p to a rational depends on the branch of the function
+            if p > 1:
+                p, w = pow_high(p, max_denom)
+            elif 0 < p < 1:
+                p, w = pow_mid(p, max_denom)
+            elif p < 0:
+                p, w = pow_neg(p, max_denom)
 
-        if p == 1:
-            # in case p is a fraction equivalent to 1
-            p = 1
-            w = None
-        if p == 0:
-            p = 0
-            w = None
+            # note: if, after making the rational approximation, p ends up
+            # being 0 or 1, we default to using the 0 or 1 behavior of the
+            # atom, which affects the curvature, domain, etc... maybe
+            # unexpected behavior to the user if they put in 1.00001?
+            if p == 1:
+                # in case p is a fraction equivalent to 1
+                p = 1
+                w = None
+            if p == 0:
+                p = 0
+                w = None
 
-        self.p, self.w = p, w
-
-        self.approx_error = float(abs(self.p - p_old))
-
+            self.p_rational, self.w = p, w
+            self.approx_error = float(abs(self.p_rational - p))
         super(power, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        # Throw error if negative and power doesn't handle that.
-        if self.p < 0 and values[0].min() <= 0:
-            raise ValueError(
-                "power(x, %.1f) cannot be applied to negative or zero values." % float(self.p)
-            )
-        elif not is_power2(self.p) and self.p != 0 and values[0].min() < 0:
-            raise ValueError(
-                "power(x, %.1f) cannot be applied to negative values." % float(self.p)
-            )
-        else:
-            return np.power(values[0], float(self.p))
+        return np.power(values[0], float(self.p.value))
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
-        if self.p == 1:
+        if self.p.value == 1:
             # Same as input.
             return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
         else:
@@ -173,37 +185,81 @@ class power(Elementwise):
     def is_atom_convex(self):
         """Is the atom convex?
         """
+        # Parametrized powers are not allowed for DCP (curvature analysis
+        # depends on the value of the power, not just the sign).
+        #
         # p == 0 is affine here.
-        return self.p <= 0 or self.p >= 1
+        return _is_const(self.p) and (self.p.value <= 0 or self.p.value >= 1)
 
     def is_atom_concave(self):
         """Is the atom concave?
         """
+        # Parametrized powers are not allowed for DCP.
+        #
         # p == 0 is affine here.
-        return 0 <= self.p <= 1
+        return _is_const(self.p) and 0 <= self.p.value <= 1
+
+    def parameters(self):
+        # This is somewhat of a hack. When checking DPP for DGP,
+        # we need to know whether the exponent p is a parameter, because
+        # expressions like power(power(x, parameter), parameter) are
+        # unallowed.
+        #
+        # It seems natural that p should be an argument, not
+        # a member of the atom. However, this doesn't work because power
+        # is a special case: while in general parameters in a DGP program
+        # must be positive, they can have any sign when appearing as an
+        # exponent, since in this case we don't need to take the log
+        # (eg, in a monomial x_1^a_1x_2a^2, a_1 and a_2 don't need to be
+        # positive). If the parameter p were an arg and was negative,
+        # then x^p would get falsely flagged as unknown curvature under DGP.
+        #
+        # So, as a workaround, we overload the parameters method.
+        return self.args[0].parameters() + self.p.parameters()
 
     def is_atom_log_log_convex(self):
         """Is the atom log-log convex?
         """
-        return True
+        if u.scopes.dpp_scope_active():
+            # This branch applies curvature rules for DPP.
+            #
+            # Because a DPP scope is active, parameters will be
+            # treated as affine (like variables, not constants) by curvature
+            # analysis methods.
+            #
+            # A power x^p is log-log convex (actually, affine) as long as
+            # at least one of x and p do not contain parameters.
+            #
+            # Note by construction (see __init__, p is either a Constant or
+            # a Parameter, ie, either isinstance(p, Constant) or isinstance(p,
+            # Parameter)).
+            x = self.args[0]
+            p = self.p
+            return not (x.parameters() and p.parameters())
+        else:
+            return True
 
     def is_atom_log_log_concave(self):
         """Is the atom log-log concave?
         """
-        return True
+        return self.is_atom_log_log_convex()
 
     def is_constant(self):
         """Is the expression constant?
         """
-        return self.p == 0 or super(power, self).is_constant()
+        return (_is_const(self.p) and self.p.value == 0) or super(power, self).is_constant()
 
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        if 0 <= self.p <= 1:
+        if not _is_const(self.p):
+            return self.p.is_nonneg() and self.args[idx].is_nonneg()
+
+        p = self.p_rational
+        if 0 <= p <= 1:
             return True
-        elif self.p > 1:
-            if is_power2(self.p):
+        elif p > 1:
+            if is_power2(p):
                 return self.args[idx].is_nonneg()
             else:
                 return True
@@ -213,10 +269,14 @@ class power(Elementwise):
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        if self.p <= 0:
+        if not _is_const(self.p):
+            return self.p.is_nonpos() and self.args[idx].is_nonneg()
+
+        p = self.p_rational
+        if p <= 0:
             return True
-        elif self.p > 1:
-            if is_power2(self.p):
+        elif p > 1:
+            if is_power2(p):
                 return self.args[idx].is_nonpos()
             else:
                 return False
@@ -224,21 +284,30 @@ class power(Elementwise):
             return False
 
     def is_quadratic(self):
-        if self.p == 0:
+        if not _is_const(self.p):
+            return False
+
+        p = self.p_rational
+        if p == 0:
             return True
-        elif self.p == 1:
+        elif p == 1:
             return self.args[0].is_quadratic()
-        elif self.p == 2:
+        elif p == 2:
             return self.args[0].is_affine()
         else:
             return self.args[0].is_constant()
 
     def is_qpwa(self):
-        if self.p == 0:
+        if not _is_const(self.p):
+            # disallow parameters
+            return False
+
+        p = self.p_rational
+        if p == 0:
             return True
-        elif self.p == 1:
+        elif p == 1:
             return self.args[0].is_qpwa()
-        elif self.p == 2:
+        elif p == 2:
             return self.args[0].is_pwl()
         else:
             return self.args[0].is_constant()
@@ -256,32 +325,48 @@ class power(Elementwise):
         """
         rows = self.args[0].size
         cols = self.size
-        if self.p == 0:
+
+        if self.p_rational is not None:
+            p = self.p_rational
+        elif p.value is not None:
+            p = self.p.value
+        else:
+            raise ValueError("Cannot compute grad of parametrized power when "
+                             "parameter value is unspecified.")
+
+        if p == 0:
             # All zeros.
             return [sp.csc_matrix((rows, cols), dtype='float64')]
         # Outside domain or on boundary.
-        if not is_power2(self.p) and np.min(values[0]) <= 0:
-            if self.p < 1:
+        if not is_power2(p) and np.min(values[0]) <= 0:
+            if p < 1:
                 # Non-differentiable.
                 return [None]
             else:
                 # Round up to zero.
                 values[0] = np.maximum(values[0], 0)
 
-        grad_vals = float(self.p)*np.power(values[0], float(self.p)-1)
+        grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
     def _domain(self):
         """Returns constraints describing the domain of the node.
         """
-        if (self.p < 1 and not self.p == 0) or \
-           (self.p > 1 and not is_power2(self.p)):
+        if not isinstance(self._p_orig, cvxtypes.expression()):
+            p = self._p_orig
+        else:
+            p = self.p.value
+
+        if p is None:
+            raise ValueError("Cannot compute domain of parametrized power when "
+                             "parameter value is unspecified.")
+        elif (p < 1 and not p == 0) or (p > 1 and not is_power2(p)):
             return [self.args[0] >= 0]
         else:
             return []
 
     def get_data(self):
-        return [self.p, self.w]
+        return [self._p_orig, self.max_denom]
 
     def copy(self, args=None, id_objects={}):
         """Returns a shallow copy of the power atom.
@@ -298,15 +383,9 @@ class power(Elementwise):
         """
         if args is None:
             args = self.args
-        # Avoid calling __init__() directly as we do not have p and max_denom.
-        copy = type(self).__new__(type(self))
-        # Emulate __init__()
-        copy.p, copy.w = self.get_data()
-        copy.approx_error = self.approx_error
-        super(type(self), copy).__init__(*args)
-        return copy
+        return power(args[0], self._p_orig, self.max_denom)
 
     def name(self):
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
-                               self.p)
+                               self.p.value)
