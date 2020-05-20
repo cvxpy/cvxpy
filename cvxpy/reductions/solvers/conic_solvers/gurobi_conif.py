@@ -103,7 +103,8 @@ class GUROBI(SCS):
         """Returns the solution to the original problem given the inverse_data.
         """
         status = solution['status']
-        attr = {s.EXTRA_STATS: solution['model']}
+        attr = {s.SOLVE_TIME: solution[s.SOLVE_TIME],
+                s.EXTRA_STATS: solution['model']}
 
         primal_vars = None
         dual_vars = None
