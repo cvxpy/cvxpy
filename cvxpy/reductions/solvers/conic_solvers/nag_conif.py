@@ -19,6 +19,7 @@ from cvxpy.constraints import SOC, NonPos, Zero
 from .conic_solver import ConeDims, ConicSolver
 import scipy as sp
 import numpy as np
+import warnings
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.utilities import group_constraints
 
@@ -250,6 +251,10 @@ class NAG(ConicSolver):
 
         # Use an explicit I/O manager for abbreviated iteration output:
         iom = utils.FileObjManager(locus_in_output=False)
+
+        # Promote warnings to exceptions
+        warnings.simplefilter('error', utils.NagAlgorithmicWarning)
+        warnings.simplefilter('error', utils.NagAlgorithmicMajorWarning)
 
         # Call SOCP interior point solver
         x = np.zeros(nvar)
