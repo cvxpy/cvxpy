@@ -68,6 +68,14 @@ class NonPos(Constraint):
             return None
         return np.maximum(self.expr.value, 0)
 
+    def violation(self):
+        res = self.residual
+        if res is None:
+            raise ValueError("Cannot compute the violation of an constraint "
+                             "whose expression is None-valued.")
+        viol = np.linalg.norm(res, ord=2)
+        return viol
+
 
 class NonNeg(Constraint):
     """A constraint of the form :math:`x \\geq 0`.
@@ -119,14 +127,24 @@ class NonNeg(Constraint):
             return None
         return np.abs(np.minimum(self.expr.value, 0))
 
+    def violation(self):
+        res = self.residual
+        if res is None:
+            raise ValueError("Cannot compute the violation of an constraint "
+                             "whose expression is None-valued.")
+        viol = np.linalg.norm(res, ord=2)
+        return viol
+
 
 class Inequality(Constraint):
     """A constraint of the form :math:`x \\leq y`.
 
     Parameters
     ----------
-    expr : Expression
-        The expression to constrain.
+    lhs : Expression
+        The expression to be upper-bounded by rhs
+    rhs : Expression
+        The expression to be lower-bounded by lhs
     constr_id : int
         A unique id for the constraint.
     """
