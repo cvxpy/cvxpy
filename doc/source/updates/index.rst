@@ -21,6 +21,9 @@ optimization problem to the optimal solution of that problem. The differentiatio
 only available when SCS is used as the solver.
 This feature allows for more general sensitivity analysis than is possible when using dual variables alone. It also
 provides the basis for `cvxpylayers <https://github.com/cvxgrp/cvxpylayers>`_.
+See the :ref:`tutorial on derivatives <derivatives>`
+and the `accompanying <https://web.stanford.edu/~boyd/papers/diff_cvxpy.html>`_
+`papers <https://web.stanford.edu/~boyd/papers/diff_dgp.html>`_
 
 Since version 0.4, CVXPY has used ``*`` to perform matrix multiplication. As of version 1.1,
 this behavior is officially deprecated. All matrix multiplication should now be performed with
