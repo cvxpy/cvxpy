@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints import (Equality, ExpCone, Inequality,
-                               SOC, Zero, NonPos, PSD)
 from cvxpy.cvxcore.python import canonInterface
+from cvxpy.constraints import (Equality, ExpCone, Inequality,
+                               SOC, Zero, NonNeg, PSD)
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
@@ -25,11 +25,67 @@ from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import (are_args_affine,
                                         group_constraints,
                                         lower_equality,
-                                        lower_inequality)
+                                        lower_ineq_to_nonneg)
 import cvxpy.settings as s
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 import scipy.sparse as sp
+
+
+class ConeDims(object):
+    """Summary of cone dimensions present in constraints.
+
+    Constraints must be formatted as dictionary that maps from
+    constraint type to a list of constraints of that type.
+
+    Attributes
+    ----------
+    zero : int
+        The dimension of the zero cone.
+    nonneg : int
+        The dimension of the non-negative cone.
+    exp : int
+        The number of 3-dimensional exponential cones.
+    soc : list of int
+        A list of the second-order cone dimensions.
+    psd : list of int
+        A list of the positive semidefinite cone dimensions, where the
+        dimension of the PSD cone of k by k matrices is k.
+    """
+    def __init__(self, constr_map):
+        self.zero = int(sum(c.size for c in constr_map[Zero]))
+        self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
+        self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
+        self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
+        self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
+
+    def __repr__(self):
+        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4})".format(
+            self.zero, self.nonneg, self.exp, self.soc, self.psd)
+
+    def __str__(self):
+        """String representation.
+        """
+        return ("%i equalities, %i inequalities, %i exponential cones, \n"
+                "SOC constraints: %s, PSD constraints: %s.") % (self.zero,
+                                                                self.nonneg,
+                                                                self.exp,
+                                                                self.soc,
+                                                                self.psd)
+
+    def __getitem__(self, key):
+        if key == s.EQ_DIM:
+            return self.zero
+        elif key == s.LEQ_DIM:
+            return self.nonneg
+        elif key == s.EXP_DIM:
+            return self.exp
+        elif key == s.SOC_DIM:
+            return self.soc
+        elif key == s.PSD_DIM:
+            return self.psd
+        else:
+            raise KeyError(key)
 
 
 # TODO(akshayka): unit tests
@@ -75,7 +131,8 @@ class ParamConeProg(ParamProb):
 
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
-
+        self.constr_map = group_constraints(constraints)
+        self.cone_dims = ConeDims(self.constr_map)
         self.parameters = parameters
         self.param_id_to_col = param_id_to_col
         self.id_to_param = {p.id: p for p in self.parameters}
@@ -234,20 +291,20 @@ class ConeMatrixStuffing(MatrixStuffing):
         extractor = CoeffExtractor(inverse_data)
         params_to_objective, flattened_variable = self.stuffed_objective(
             problem, extractor)
-        # Lower equality and inequality to Zero and NonPos.
+        # Lower equality and inequality to Zero and NonNeg.
         cons = []
         for con in problem.constraints:
             if isinstance(con, Equality):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
-                con = lower_inequality(con)
+                con = lower_ineq_to_nonneg(con)
             elif isinstance(con, SOC) and con.axis == 1:
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
             cons.append(con)
-        # Reorder constraints to Zero, NonPos, SOC, PSD, EXP.
+        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP.
         constr_map = group_constraints(cons)
-        ordered_cons = constr_map[Zero] + constr_map[NonPos] + \
+        ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
             constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 

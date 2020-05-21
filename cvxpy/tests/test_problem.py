@@ -253,8 +253,7 @@ class TestProblem(BaseTest):
             for verbose in [True, False]:
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                # SuperSCS doesn't write to the stdout seen by Python.
-                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.SUPER_SCS, cp.CBC]:
+                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC]:
                     continue
                 sys.stdout = StringIO()  # capture output
 
