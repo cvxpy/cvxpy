@@ -242,7 +242,7 @@ The remaining functions are called in order: ``apply`` stages data for ``solve_v
 the format that CVXPY expects.
 
 Key goals in this process are that the output of ``apply`` should be as close as possible
-to the *Awesome*'s standard form, and that ``solve_via_data`` should kept short.
+to the *Awesome*'s standard form, and that ``solve_via_data`` should be kept short.
 The complexity of ``Awesome(ConicSolver).solve_via_data`` will depend on ``AwesomePy``.
 If ``AwesomePy`` allows very low level input-- passed by one or two matrices,
 and a handful of numeric vectors --then you'll be in a situation like ECOS or GLPK.

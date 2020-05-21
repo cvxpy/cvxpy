@@ -12,15 +12,15 @@ CVXPY 1.1
 Highlights
 ~~~~~~~~~~
 
-:ref:`Disciplined parametrized programming <dpp>` or "DPP" provides a way to state your problem
-in more symbolic terms. Taking advantage of DPP can shorten the amount of time it takes
-for CVXPY to pass your problem to a numerical solver. DPP also provides the basis for differentiating
-the map from parameters to the solution of an optimization problem.
+:ref:`Disciplined parametrized programming <dpp>` or "DPP" is a ruleset for constructing parametrized problems in
+CVXPY. Taking advantage of DPP can decrease the time it takes CVXPY to repeatedly canonicalize a parametrized problem.
+DPP also provides the basis for differentiating the map from parameters to the solution of an optimization problem.
 
-Certain solvers (SCS and OSQP) now support differentiating the map from the parameters of an
-optimization problem to the optimal solution of that problem. This feature allows for more general
-sensitivity analysis than is possible when using dual variables alone. It also provides the basis
-for `cvxpylayers <https://github.com/cvxgrp/cvxpylayers>`_.
+CVXPY provides an API where certain solvers can differentiate the map from the parameters of an
+optimization problem to the optimal solution of that problem. The differentiation abilities are currently
+only available when SCS is used as the solver.
+This feature allows for more general sensitivity analysis than is possible when using dual variables alone. It also
+provides the basis for `cvxpylayers <https://github.com/cvxgrp/cvxpylayers>`_.
 
 Since version 0.4, CVXPY has used ``*`` to perform matrix multiplication. As of version 1.1,
 this behavior is officially deprecated. All matrix multiplication should now be performed with
@@ -55,14 +55,14 @@ Advanced users should be able to recover dual variables to any conic constraint,
 including exponential-cone and second-order-cone constraints.
 
 This release resolves bugs in detecting when a problem falls into the category of
-"disciplined quasi-convex programming" (DQCP).
+"disciplined quasiconvex programming" (DQCP).
 
 Known issues
 ~~~~~~~~~~~~
 
 DPP problems with many CVXPY Parameters can take a long time to compile.
 
-DPP doesn't compose with Disciplined Quasi-Convex Programming (DQCP).
+Disciplined quasiconvex programming (DQCP) doesn't support DPP.
 
 The XPRESS interface is currently not working.
 
