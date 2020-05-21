@@ -103,14 +103,14 @@ class NonNeg(Constraint):
     def name(self):
         return "0 <= %s" % self.args[0]
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """A non-negative constraint is DCP if its argument is concave."""
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_concave()
         return self.args[0].is_concave()
 
-    def is_dpp(self):
-        return self.is_dcp() and self.args[0].is_dpp()
-
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         return False
 
     def is_dqcp(self):

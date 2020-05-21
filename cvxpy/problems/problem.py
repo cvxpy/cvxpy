@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.settings as s
+from cvxpy import settings as s
 from cvxpy import error
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.chain import Chain
