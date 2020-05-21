@@ -16,6 +16,6 @@ limitations under the License.
 
 from cvxpy.constraints.zero import Equality, Zero
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.nonpos import Inequality, NonPos
+from cvxpy.constraints.nonpos import Inequality, NonPos, NonNeg
 from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC

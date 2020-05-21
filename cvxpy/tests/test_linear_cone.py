@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy
+import numpy as np
 
 from cvxpy import Maximize, Minimize, Problem
-from cvxpy.atoms import exp, diag, pnorm
-from cvxpy.constraints import SOC, ExpCone
+from cvxpy.atoms import exp, diag, pnorm, hstack
+from cvxpy.constraints import SOC, ExpCone, NonNeg
 from cvxpy.error import SolverError
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
@@ -27,6 +27,7 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.tests.solver_test_helpers import SolverTestHelper
 
 
 def solve_wrapper(solver, param_cone_prog):
@@ -133,7 +134,7 @@ class TestLinearCone(BaseTest):
     # Test vector LP problems.
     def test_vector_lp(self):
         for solver in self.solvers:
-            c = Constant(numpy.array([1, 2]))
+            c = Constant(np.array([1, 2]))
             p = Problem(Minimize(c.T @ self.x), [self.x >= c])
             result = p.solve(solver.name())
             self.assertTrue(ConeMatrixStuffing().accepts(p))
@@ -153,7 +154,7 @@ class TestLinearCone(BaseTest):
             self.assertItemsAlmostEqual(inv_sltn.primal_vars[self.x.id],
                                         self.x.value)
 
-            A = Constant(numpy.array([[3, 5], [1, 2]]).T).value
+            A = Constant(np.array([[3, 5], [1, 2]]).T).value
             Imat = Constant([[1, 0], [0, 1]])
             p = Problem(Minimize(c.T @ self.x + self.a),
                         [A @ self.x >= [-1, 1],
@@ -175,7 +176,7 @@ class TestLinearCone(BaseTest):
     # Test matrix LP problems.
     def test_matrix_lp(self):
         for solver in self.solvers:
-            T = Constant(numpy.ones((2, 2))).value
+            T = Constant(np.ones((2, 2))).value
             p = Problem(Minimize(self.a), [self.A == T + self.a, self.a >= 0])
             self.assertTrue(ConeMatrixStuffing().accepts(p))
             result = p.solve(solver.name())
@@ -188,7 +189,7 @@ class TestLinearCone(BaseTest):
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
                                             var.value)
 
-            T = Constant(numpy.ones((2, 3))*2).value
+            T = Constant(np.ones((2, 3))*2).value
             p = Problem(Minimize(1), [self.A >= T @ self.C,
                                       self.A == self.B, self.C == T.T])
             self.assertTrue(ConeMatrixStuffing().accepts(p))
@@ -303,3 +304,53 @@ class TestLinearCone(BaseTest):
         constraints = [C << [[2, 0], [0, 2]]]
         prob, _ = CvxAttr2Constr().apply(Problem(obj, constraints))
         self.assertTrue(ConeMatrixStuffing().accepts(prob))
+
+    def test_nonneg_constraints_backend(self):
+        x = Variable(shape=(2,), name='x')
+        objective = Maximize(-4 * x[0] - 5 * x[1])
+        constr_expr = hstack([3 - (2 * x[0] + x[1]),
+                              3 - (x[0] + 2 * x[1]),
+                              x[0],
+                              x[1]])
+        constraints = [NonNeg(constr_expr)]
+        prob = Problem(objective, constraints)
+        self.assertFalse(ConeMatrixStuffing().accepts(prob))
+        self.assertTrue(FlipObjective().accepts(prob))
+        p_min = FlipObjective().apply(prob)
+        self.assertTrue(ConeMatrixStuffing().accepts(p_min[0]))
+
+    def test_nonneg_constraints_end_user(self):
+        x = Variable(shape=(2,), name='x')
+        objective = Minimize(-4 * x[0] - 5 * x[1])
+        constr_expr = hstack([3 - (2 * x[0] + x[1]),
+                              3 - (x[0] + 2 * x[1]),
+                              x[0],
+                              x[1]])
+        constraints = [NonNeg(constr_expr)]
+        expect_dual_var = np.array([1, 2, 0, 0])
+        con_pairs = [(constraints[0], expect_dual_var)]
+        var_pairs = [(x, np.array([1, 1]))]
+        obj_pair = (objective, -9)
+        # Check that the problem compiles correctly, and that
+        # dual variables are recovered correctly.
+        sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        sth.solve(solver='ECOS')
+        sth.verify_primal_values(places=4)
+        sth.verify_dual_values(places=4)
+        # Check that violations are computed properly
+        expr_val = constr_expr.value  # want >= 0
+        expr_val[expr_val >= 0] = 0
+        manual_viol = np.linalg.norm(expr_val, ord=2)
+        reported_viol = constraints[0].violation()
+        self.assertAlmostEqual(manual_viol, reported_viol, places=4)
+        # Check that residuals are computed properly
+        x.value = np.array([-1, -2])
+        expr_val = constraints[0].residual
+        self.assertItemsAlmostEqual(
+            expr_val,  # first two constraints are feasible.
+            np.array([0, 0, 1, 2])
+        )
+        # Run a second check for violations
+        reported_viol = constraints[0].violation()
+        expected_viol = np.sqrt(5.0)
+        self.assertAlmostEqual(reported_viol, expected_viol)
