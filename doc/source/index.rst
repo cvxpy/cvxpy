@@ -57,7 +57,7 @@ more.
 
 * CVXPY v1.1.0 has been released. This version makes
   repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
-  allows differentiating the map from parameters to optimal solutions, and introduces
+  allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
   some new atoms. See :ref:`updates` for more information.
 
 * CVXPY v1.0.24 supports

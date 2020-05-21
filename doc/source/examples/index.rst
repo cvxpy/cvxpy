@@ -7,16 +7,20 @@ These examples show many different ways to use CVXPY.
 
 * The :ref:`basic` section shows how to solve some common optimization problems
   in CVXPY.
-* The :ref:`machine-learning` section is a tutorial covering convex methods in
+* The :ref:`dgp-examples` section shows how to solve log-log convex programs.
+* The :ref:`dqcp-examples` section has examples on quasiconvex programming.
+* The :ref:`derivative-examples` section shows how to compute sensitivity analyses and gradients of solutions.
+
+There are also application-specific sections.
+
+* The :ref:`machine-learning` section is a tutorial on convex optimization in
   machine learning.
 * The :ref:`advanced-python` and :ref:`applications` sections contains
-  more complex examples aimed at experts in convex optimization.
-* The :ref:`dgp-examples` section contains an interactive tutorial on :ref:`disciplined
-  geometric programming <dgp>` and various examples of DGP problems.
-
+  more complex examples for experts in convex optimization.
+  
 .. _basic:
 
-Basic Examples
+Basic examples
 --------------
 
 - :doc:`Least squares <basic/least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/least_squares.ipynb>`_
@@ -44,9 +48,37 @@ Basic Examples
 - :doc:`Total variation in-painting <applications/tv_inpainting>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
 
 
+.. _dgp-examples:
+
+Disciplined geometric programming
+---------------------------------------
+- :doc:`DGP fundamentals <dgp/dgp_fundamentals>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/dgp_fundamentals.ipynb>`_
+- :doc:`Maximizing the volume of a box <dgp/max_volume_box>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/max_volume_box.ipynb>`_
+- :doc:`Power control <dgp/power_control>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb>`_
+- :doc:`Perron-Frobenius matrix completion <dgp/pf_matrix_completion>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb>`_
+- :doc:`Rank-one nonnegative matrix factorization <dgp/rank_one_nmf>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb>`_
+
+
+.. _dqcp-examples:
+
+Disciplined quasiconvex programming
+-----------------------------------
+- :doc:`Concave fractional function <dqcp/concave_fractional_function>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/concave_fractional_function.ipynb>`_
+- :doc:`Minimum-length least squares <dqcp/minimum_length_least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/minimum_length_least_squares.ipynb>`_
+- :doc:`Hypersonic shape design <dqcp/hypersonic_shape_design>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/hypersonic_shape_design.ipynb>`_
+
+
+.. _derivative-examples:
+
+Derivatives
+-----------
+- :doc:`Fundamentals <derivatives/fundamentals>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/derivatives/fundamentals.ipynb>`_
+- :doc:`Queuing design <derivatives/queuing_design>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/derivatives/queuing_design.ipynb>`_
+- :doc:`Structured prediction <derivatives/structured_prediction>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/derivatives/structured_prediction.ipynb>`_
+
 .. _machine-learning:
 
-Machine Learning
+Machine learning
 ----------------
 
 - :doc:`Ridge regression <machine_learning/ridge_regression>` `\[.ipynb\] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/machine_learning/ridge_regression.ipynb>`_
@@ -96,21 +128,3 @@ Advanced Applications
 - :doc:`Sparse covariance estimation for Gaussian variables <applications/sparse_covariance_est>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
 - :doc:`Water filling <applications/water_filling_BVex5.2>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_
 
-.. _dgp-examples:
-
-Disciplined Geometric Programming
----------------------------------------
-- :doc:`DGP fundamentals <dgp/dgp_fundamentals>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/dgp_fundamentals.ipynb>`_
-- :doc:`Maximizing the volume of a box <dgp/max_volume_box>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/max_volume_box.ipynb>`_
-- :doc:`Power control <dgp/power_control>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/power_control.ipynb>`_
-- :doc:`Perron-Frobenius matrix completion <dgp/pf_matrix_completion>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/pf_matrix_completion.ipynb>`_
-- :doc:`Rank-one nonnegative matrix factorization <dgp/rank_one_nmf>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dgp/rank_one_nmf.ipynb>`_
-
-
-.. _dqcp-examples:
-
-Disciplined Quasiconvex Programming
------------------------------------
-- :doc:`Concave fractional function <dqcp/concave_fractional_function>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/concave_fractional_function.ipynb>`_
-- :doc:`Minimum-length least squares <dqcp/minimum_length_least_squares>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/minimum_length_least_squares.ipynb>`_
-- :doc:`Hypersonic shape design <dqcp/hypersonic_shape_design>` `[.ipynb] <https://colab.research.google.com/github/cvxgrp/cvxpy/blob/master/examples/notebooks/dqcp/hypersonic_shape_design.ipynb>`_

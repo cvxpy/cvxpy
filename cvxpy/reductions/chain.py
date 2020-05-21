@@ -20,6 +20,12 @@ class Chain(Reduction):
     def __repr__(self):
         return "Chain(reductions=%s)" % repr(self.reductions)
 
+    def get(self, reduction_type):
+        for reduction in self.reductions:
+            if isinstance(reduction, reduction_type):
+                return reduction
+        raise KeyError
+
     def accepts(self, problem):
         """A problem is accepted if the sequence of reductions is valid.
 

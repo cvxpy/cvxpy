@@ -16,13 +16,14 @@ limitations under the License.
 
 from cvxpy import problems
 from cvxpy.expressions import cvxtypes
+from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions import InverseData, Solution
 from cvxpy.constraints import Equality, Inequality, Zero, NonNeg, PSD, SOC
 from cvxpy.reductions.complex2real.atom_canonicalizers import (
     CANON_METHODS as elim_cplx_methods)
-from cvxpy.reductions import utilities
 import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.reductions.utilities import lower_equality, lower_inequality
 import cvxpy.settings as s
 
 
@@ -54,7 +55,7 @@ class Complex2Real(Reduction):
         constrs = []
         for constraint in problem.constraints:
             if type(constraint) == Equality:
-                constraint = utilities.lower_equality(constraint)
+                constraint = lower_equality(constraint)
             elif type(constraint) == Inequality:
                 constraint = utilities.lower_ineq_to_nonneg(constraint)
             # real2imag maps variable id to a potential new variable

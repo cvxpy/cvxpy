@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 from cvxpy.expressions.expression import Expression
-import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities.performance_utils as perf
 import numpy as np
 
 
@@ -35,6 +35,13 @@ class indicator(Expression):
         self.args = constraints
         self.err_tol = err_tol
         super(indicator, self).__init__()
+
+    @perf.compute_once
+    def is_constant(self):
+        """The Indicator is constant if all constraints have constant args.
+        """
+        all_args = sum([c.args for c in self.args], [])
+        return all([arg.is_constant() for arg in all_args])
 
     def is_convex(self):
         """Is the expression convex?
@@ -118,14 +125,3 @@ class indicator(Expression):
         """
         # TODO
         return NotImplemented
-
-    def canonicalize(self):
-        """Returns the graph implementation of the object.
-
-        Returns:
-            A tuple of (affine expression, [constraints]).
-        """
-        constraints = []
-        for cons in self.args:
-            constraints += cons.canonical_form[1]
-        return (lu.create_const(0, (1, 1)), constraints)

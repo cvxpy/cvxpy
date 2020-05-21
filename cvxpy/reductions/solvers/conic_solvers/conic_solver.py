@@ -138,7 +138,7 @@ class ConicSolver(Solver):
             Semidefinite cone: (A, b) such that A * x + b in PSD,
 
         The CVXPY standard for the exponential cone is:
-            K_e = closure{(x,y,z) |  y >= z * exp(x/z), z>0}.
+            K_e = closure{(x,y,z) |  z >= y * exp(x/y), y>0}.
         Whenever a solver uses this convention, EXP_CONE_ORDER should be
         [0, 1, 2].
 

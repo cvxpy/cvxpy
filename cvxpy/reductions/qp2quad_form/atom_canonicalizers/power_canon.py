@@ -23,7 +23,7 @@ from cvxpy.expressions.variable import Variable
 
 def power_canon(expr, args):
     affine_expr = args[0]
-    p = expr.p
+    p = float(expr.p.value)
     if expr.is_constant():
         return Constant(expr.value), []
     elif p == 0:
