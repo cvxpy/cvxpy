@@ -23,7 +23,7 @@ from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-from scipy.sparse import dok_matrix
+import scipy.sparse as sp
 
 
 class GUROBI(SCS):
@@ -151,9 +151,7 @@ class GUROBI(SCS):
 
         c = data[s.C]
         b = data[s.B]
-        A = dok_matrix(data[s.A])
-        # Save the dok_matrix.
-        data[s.A] = A
+        A = sp.csr_matrix(data[s.A])
         dims = dims_to_solver_dict(data[s.DIMS])
 
         n = c.shape[0]
@@ -182,16 +180,24 @@ class GUROBI(SCS):
             )
         model.update()
 
-        eq_constrs = self.add_model_lin_constr(model, variables,
-                                               range(dims[s.EQ_DIM]),
-                                               gurobipy.GRB.EQUAL,
-                                               A, b)
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
-        ineq_constrs = self.add_model_lin_constr(model, variables,
-                                                 range(leq_start, leq_end),
-                                                 gurobipy.GRB.LESS_EQUAL,
-                                                 A, b)
+        if hasattr(model, 'addMConstrs'):
+            eq_constrs = model.addMConstrs(
+                A[:leq_start, :], None, gurobipy.GRB.EQUAL, b[:leq_start])
+            ineq_constrs = model.addMConstrs(
+                A[leq_start:leq_end, :], None, gurobipy.GRB.LESS_EQUAL, b[leq_start:leq_end])
+        else:
+            eq_constrs = self.add_model_lin_constr(model, variables,
+                                                   range(dims[s.EQ_DIM]),
+                                                   gurobipy.GRB.EQUAL,
+                                                   A, b)
+            ineq_constrs = self.add_model_lin_constr(model, variables,
+                                                     range(leq_start, leq_end),
+                                                     gurobipy.GRB.LESS_EQUAL,
+                                                     A, b)
+
+        # TODO: add all SOC constrs at once! Be careful with return values
         soc_start = leq_end
         soc_constrs = []
         new_leq_constrs = []
@@ -277,24 +283,16 @@ class GUROBI(SCS):
         list
             A list of constraints.
         """
-        import gurobipy
+        import gurobipy as gp
+
         constr = []
-        expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.items():
-            v = variables[j]
-            try:
-                expr_list[i].append((c, v))
-            except Exception:
-                pass
         for i in rows:
-            # Ignore empty constraints.
-            if expr_list[i]:
-                expr = gurobipy.LinExpr(expr_list[i])
-                constr.append(
-                    model.addConstr(expr, ctype, vec[i])
-                )
-            else:
-                constr.append(None)
+            start = mat.indptr[i]
+            end = mat.indptr[i + 1]
+            x = [variables[j] for j in mat.indices[start:end]]
+            coeff = mat.data[start:end]
+            expr = gp.LinExpr(coeff, x)
+            constr.append(model.addLConstr(expr, ctype, vec[i]))
         return constr
 
     def add_model_soc_constr(self, model, variables,
@@ -319,45 +317,41 @@ class GUROBI(SCS):
         tuple
             A tuple of (QConstr, list of Constr, and list of variables).
         """
-        import gurobipy
-        # Assume first expression (i.e. t) is nonzero.
-        expr_list = {i: [] for i in rows}
-        for (i, j), c in mat.items():
-            v = variables[j]
-            try:
-                expr_list[i].append((c, v))
-            except Exception:
-                pass
-        lin_expr_list = [vec[i] - gurobipy.LinExpr(expr_list[i]) for i in rows]
+        import gurobipy as gp
 
         # Make a variable and equality constraint for each term.
         soc_vars = [
             model.addVar(
                 obj=0,
                 name="soc_t_%d" % rows[0],
-                vtype=gurobipy.GRB.CONTINUOUS,
+                vtype=gp.GRB.CONTINUOUS,
                 lb=0,
-                ub=gurobipy.GRB.INFINITY)
+                ub=gp.GRB.INFINITY)
         ]
         for i in rows[1:]:
             soc_vars += [
                 model.addVar(
                     obj=0,
                     name="soc_x_%d" % i,
-                    vtype=gurobipy.GRB.CONTINUOUS,
-                    lb=-gurobipy.GRB.INFINITY,
-                    ub=gurobipy.GRB.INFINITY)
+                    vtype=gp.GRB.CONTINUOUS,
+                    lb=-gp.GRB.INFINITY,
+                    ub=gp.GRB.INFINITY)
             ]
         model.update()
 
         new_lin_constrs = []
-        for i, _ in enumerate(lin_expr_list):
-            new_lin_constrs += [
-                model.addConstr(soc_vars[i] == lin_expr_list[i])
-            ]
+        for i, row in enumerate(rows):
+            start = mat.indptr[row]
+            end = mat.indptr[row + 1]
+            x = [variables[j] for j in mat.indices[start:end]]
+            coeff = -mat.data[start:end]
+            expr = gp.LinExpr(coeff, x)
+            expr.addConstant(vec[row])
+            new_lin_constrs.append(model.addLConstr(soc_vars[i], gp.GRB.EQUAL, expr))
 
         t_term = soc_vars[0]*soc_vars[0]
-        x_term = gurobipy.quicksum([var*var for var in soc_vars[1:]])
+        x_term = gp.QuadExpr()
+        x_term.addTerms(np.ones(len(rows) - 1), soc_vars[1:], soc_vars[1:])
         return (model.addQConstr(x_term <= t_term),
                 new_lin_constrs,
                 soc_vars)
