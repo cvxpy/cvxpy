@@ -56,7 +56,7 @@ class OSQP(QpSolver):
         P = data[s.P]
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()
-        data['full_A'] = A
+        data['Ax'] = A
         uA = np.concatenate((data[s.B], data[s.G]))
         data['u'] = uA
         lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
@@ -73,9 +73,9 @@ class OSQP(QpSolver):
             same_pattern = (P.shape == old_data[s.P].shape and
                             all(P.indptr == old_data[s.P].indptr) and
                             all(P.indices == old_data[s.P].indices)) and \
-                           (A.shape == old_data[s.A].shape and
-                            all(A.indptr == old_data[s.A].indptr) and
-                            all(A.indices == old_data[s.A].indices))
+                           (A.shape == old_data['Ax'].shape and
+                            all(A.indptr == old_data['Ax'].indptr) and
+                            all(A.indices == old_data['Ax'].indices))
         else:
             same_pattern = False
 
@@ -90,7 +90,7 @@ class OSQP(QpSolver):
                 P_triu = sp.triu(P).tocsc()
                 new_args['Px'] = P_triu.data
                 factorizing = True
-            if any(A.data != old_data[s.A].data):
+            if any(A.data != old_data['Ax'].data):
                 new_args['Ax'] = A.data
                 factorizing = True
 
