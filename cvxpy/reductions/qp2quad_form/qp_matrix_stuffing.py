@@ -111,6 +111,19 @@ class ParamQuadProg(ParamProb):
         self.q = q
         self.x = x
         self.A = A
+
+        # Form a reduced representation of A, for faster application of
+        # parameters.
+        if np.prod(A.shape) != 0:
+            reduced_A, indices, indptr, shape = (
+                canonInterface.reduce_problem_data_tensor(A, self.x.size)
+            )
+            self.reduced_A = reduced_A
+            self.problem_data_index = (indices, indptr, shape)
+        else:
+            self.reduced_A = A
+            self.problem_data_index = None
+
         self._A_mapping_nonzero = None
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
@@ -170,8 +183,9 @@ class ParamQuadProg(ParamProb):
             self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.A, self.x.size)
         A, b = canonInterface.get_matrix_and_offset_from_tensor(
-            self.A, param_vec, self.x.size,
-            nonzero_rows=self._A_mapping_nonzero)
+            self.reduced_A, param_vec, self.x.size,
+            nonzero_rows=self._A_mapping_nonzero,
+            problem_data_index=self.problem_data_index)
         return P, q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delP, delq, delA, delb, active_params=None):
