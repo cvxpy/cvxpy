@@ -27,7 +27,15 @@ from scipy.sparse import dok_matrix
 
 
 class GUROBI(SCS):
-    """An interface for the Gurobi solver.
+    """
+    An interface for the Gurobi solver.
+
+    * WARNING * This implementation takes an inadvisable approach by directly
+    inheriting from a concrete solver (SCS). This implementation should not be
+    used as a reference when writing other solver interfaces.
+
+    TODO: simplify this file so it doesn't inherit from SCS; see gurobi_qpif.py
+        for a very clean implementation of a quadratic programming interface.
     """
 
     # Solver capabilities.

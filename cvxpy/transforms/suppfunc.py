@@ -65,9 +65,8 @@ def scs_cone_selectors(K):
         of the affine operator (A, b) returned by SCS's apply function.
     """
     idx = K.zero
-    nonpos_idxs = np.arange(idx, idx + K.nonpos)
-    idx += K.nonpos
-    # ^ Called "nonpos", but its actually nonneg.
+    nonneg_idxs = np.arange(idx, idx + K.nonneg)
+    idx += K.nonneg
     soc_idxs = []
     for soc in K.soc:
         idxs = np.arange(idx, idx + soc)
@@ -81,7 +80,7 @@ def scs_cone_selectors(K):
     expsize = 3 * K.exp
     exp_idxs = np.arange(idx, idx + expsize)
     selectors = {
-        'nonneg': nonpos_idxs,
+        'nonneg': nonneg_idxs,
         'exp': exp_idxs,
         'soc': soc_idxs,
         'psd': psd_idxs

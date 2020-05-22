@@ -32,8 +32,6 @@ from cvxpy.reductions.solvers.conic_solvers.cbc_conif \
     import CBC as CBC_con
 from cvxpy.reductions.solvers.conic_solvers.scs_conif \
     import SCS as SCS_con
-from cvxpy.reductions.solvers.conic_solvers.super_scs_conif \
-    import SuperSCS as SuperSCS_con
 from cvxpy.reductions.solvers.conic_solvers.gurobi_conif \
     import GUROBI as GUROBI_con
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif \
@@ -52,7 +50,7 @@ from cvxpy.reductions.solvers.qp_solvers.cplex_qpif import CPLEX as CPLEX_qp
 
 solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      CVXOPT_con(), GLPK_con(), XPRESS(),
-                     GLPK_MI_con(), CBC_con(), SCS_con(), SuperSCS_con(),
+                     GLPK_MI_con(), CBC_con(), SCS_con(),
                      GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con()]
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
@@ -65,14 +63,14 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 # CONIC_SOLVERS and QP_SOLVERS are sorted in order of decreasing solver
 # preference. QP_SOLVERS are those for which we have written interfaces
 # and are supported by QpSolver.
-CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.SUPER_SCS, s.SCS,
-                 s.CPLEX, s.GUROBI, s.GLPK, s.XPRESS,
-                 s.GLPK_MI, s.CBC, s.CVXOPT, s.NAG, s.DIFFCP]
+CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.SCS,
+                 s.CPLEX, s.GUROBI, s.GLPK, s.NAG,
+                 s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX]
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI,
-              s.CPLEX, s.XPRESS, s.NAG, s.CBC]
+              s.CPLEX, s.XPRESS, s.CBC]
 
 
 def installed_solvers():

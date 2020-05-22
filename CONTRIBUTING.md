@@ -50,9 +50,6 @@ following:
 * Polish the [example library](https://www.cvxpy.org/examples/index.html) or add new examples
 * Add a [benchmark](https://github.com/cvxgrp/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
 
-CVXPY supports Python 2.7 and Python 3, so please make sure your code is
-compatible with both.
-
 ## License
 Please add the following license to new files:
 
