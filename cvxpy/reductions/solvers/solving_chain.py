@@ -35,9 +35,11 @@ def _is_lp(self):
 
 
 def _solve_as_qp(problem, candidates):
-    if _is_lp(problem) and candidates['conic_solvers']:
-        # OSQP can take many iterations for LPs; use a conic solver
-        # instead
+    if _is_lp(problem) and \
+            [s for s in candidates['conic_solvers'] if s not in candidates['qp_solvers']]:
+        # OSQP can take many iterations for LPs; use a conic solver instead
+        # GUROBI and CPLEX QP/LP interfaces are more efficient
+        #   -> Use them instead of conic if applicable.
         return False
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
