@@ -994,9 +994,8 @@ class TestSCIP(unittest.TestCase):
     def test_scip_lp_1(self):
         StandardTestLPs.test_lp_1(solver=SCIP)
 
-    # # TODO: Fails on calculating dual
-    # def test_scip_lp_2(self):
-    #     StandardTestLPs.test_lp_2(solver=SCIP)
+    def test_scip_lp_2(self):
+        StandardTestLPs.test_lp_2(solver=SCIP, duals=False)
 
     def test_scip_lp_3(self):
         StandardTestLPs.test_lp_3(solver=SCIP)
@@ -1007,13 +1006,11 @@ class TestSCIP(unittest.TestCase):
     def test_scip_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver=SCIP)
 
-    # # TODO: Fails on AssertionError: -2.1297128920680164 != -2.12979 within 4 places
     # def test_scip_socp_1(self):
-    #     StandardTestSOCPs.test_socp_1(solver=SCIP)
+    #     StandardTestSOCPs.test_socp_1(solver=SCIP, places=3)
 
-    # # TODO: Fails on AssertionError: -0.0018289895257996847 != 0 within 4 places
-    # def test_scip_socp_2(self):
-    #     StandardTestSOCPs.test_socp_2(solver=SCIP)
+    def test_scip_socp_2(self):
+        StandardTestSOCPs.test_socp_2(solver=SCIP, places=2)
 
     def test_scip_socp_3(self):
         # axis 0
