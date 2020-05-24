@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, Union
 import logging
+from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, Union
 
 from numpy import array, ndarray
 from pyscipopt import SCIP_PARAMSETTING
-from pyscipopt.scip import ExprCons, quicksum
+from pyscipopt.scip import quicksum
 from scipy.sparse import dok_matrix
 
 import cvxpy.settings as s
@@ -29,7 +29,6 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS, dims_to_solver_dict
-# from cvxpy.settings import SCIP
 
 log = logging.getLogger(__name__)
 
@@ -42,8 +41,8 @@ except ImportError as e:
     ScipModel = Generic
 
 
+# Mapping of SCIP to cvxpy status codes
 STATUS_MAP = {
-    # # Mapping of SCIP to cvxpy status codes
     # SOLUTION_PRESENT
     "optimal": s.OPTIMAL,
     "timelimit": s.OPTIMAL_INACCURATE,
@@ -63,6 +62,7 @@ STATUS_MAP = {
     "restartlimit": s.USER_LIMIT,
     "unknown": s.SOLVER_ERROR,
 }
+
 
 class ConstraintTypes:
     """Constraint type constants."""
