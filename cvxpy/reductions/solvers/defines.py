@@ -69,7 +69,7 @@ SOLVER_MAP_QP = {solver.name(): solver for solver in solver_qp_intf}
 CONIC_SOLVERS = [s.MOSEK, s.ECOS, s.SCS,
                  s.CPLEX, s.GUROBI, s.GLPK, s.NAG,
                  s.GLPK_MI, s.CBC, s.CVXOPT, s.XPRESS, s.DIFFCP,
-                 s.SCIP]]
+                 s.SCIP]
 QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX]
