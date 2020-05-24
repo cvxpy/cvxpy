@@ -23,13 +23,31 @@ from cvxpy.error import DCPError, DGPError, DPPError, SolverError, disable_warni
 from cvxpy.expressions.constants import CallbackParam, Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
-import cvxpy.interface.scipy_wrapper
-from cvxpy.error import DCPError, DPPError, DGPError, SolverError, disable_warnings, enable_warnings, warnings_enabled
-from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP, NAG,
-                            ECOS, SCS, DIFFCP, GUROBI, MOSEK, XPRESS,
-                            OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
-                            OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE, SCIP)
-from cvxpy.transforms import linearize, partial_optimize, suppfunc
 from cvxpy.problems.problem import Problem
 from cvxpy.reductions import *
 from cvxpy.reductions.solvers.defines import installed_solvers
+from cvxpy.settings import (
+    CBC,
+    CPLEX,
+    CVXOPT,
+    DIFFCP,
+    ECOS,
+    GLPK,
+    GLPK_MI,
+    GUROBI,
+    INFEASIBLE,
+    INFEASIBLE_INACCURATE,
+    MOSEK,
+    NAG,
+    OPTIMAL,
+    OPTIMAL_INACCURATE,
+    OSQP,
+    ROBUST_KKTSOLVER,
+    SCIP,
+    SCS,
+    SOLVER_ERROR,
+    UNBOUNDED,
+    UNBOUNDED_INACCURATE,
+    XPRESS,
+)
+from cvxpy.transforms import linearize, partial_optimize, suppfunc
