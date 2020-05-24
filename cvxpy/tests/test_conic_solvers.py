@@ -1019,6 +1019,15 @@ class TestSCIP(unittest.TestCase):
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver=SCIP)
 
+    def test_scip_mi_lp_0(self):
+        StandardTestLPs.test_mi_lp_0(solver=SCIP)
+
+    def test_scip_mi_lp_1(self):
+        StandardTestLPs.test_mi_lp_1(solver=SCIP)
+
+    def test_scip_mi_lp_2(self):
+        StandardTestLPs.test_mi_lp_2(solver=SCIP)
+
 
 class TestAllSolvers(BaseTest):
 

@@ -189,16 +189,19 @@ class SCIP(SCS):
 
     def _create_variables(self, model: ScipModel, data: Dict[str, Any], c: ndarray) -> List:
         """Create a list of variables."""
-        return [
-            model.addVar(
-                obj=obj,
-                name="x_%d" % n,
-                vtype=get_variable_type(n=n, data=data),
-                lb=None,
-                ub=None,
+        variables = []
+        for n, obj in enumerate(c):
+            var_type = get_variable_type(n=n, data=data)
+            variables.append(
+                model.addVar(
+                    obj=obj,
+                    name="x_%d" % n,
+                    vtype=var_type,
+                    lb=None if var_type != VariableTypes.BINARY else 0,
+                    ub=None if var_type != VariableTypes.BINARY else 1,
+                )
             )
-            for n, obj in enumerate(c)
-        ]
+        return variables
 
     def _add_constraints(
             self,
