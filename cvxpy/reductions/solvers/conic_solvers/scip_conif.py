@@ -284,7 +284,8 @@ class SCIP(SCS):
                 vals = []
                 for lc in constraints:
                     if lc is not None:
-                        vals.append(model.getDualsolLinear(lc))
+                        dual = model.getDualsolLinear(lc)
+                        vals.append(dual)
                     else:
                         vals.append(0)
                 solution["y"] = -array(vals)
@@ -292,7 +293,6 @@ class SCIP(SCS):
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
 
         except Exception as e:
-            print("exception whilst solving: ", e)
             pass
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
