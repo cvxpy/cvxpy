@@ -17,6 +17,7 @@ class OSQP(QpSolver):
                   3: s.INFEASIBLE_INACCURATE,
                   -4: s.UNBOUNDED,
                   4: s.UNBOUNDED_INACCURATE,
+                  -6: s.USER_LIMIT,
                   -5: s.SOLVER_ERROR,           # Interrupted by user
                   -10: s.SOLVER_ERROR}          # Unsolved
 
@@ -26,30 +27,6 @@ class OSQP(QpSolver):
     def import_solver(self):
         import osqp
         osqp
-
-    def apply(self, problem):
-        """
-        Construct QP problem data stored in a dictionary.
-        The QP has the following form
-
-            minimize      1/2 x' P x + q' x
-            subject to    A x =  b
-                          F x <= g
-
-        """
-        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
-
-        P, q, d, A, b = problem.apply_parameters()
-        inv_data[s.OFFSET] = d
-        data['n_eq'] = data[QpSolver.DIMS].zero
-        data['n_ineq'] = data[QpSolver.DIMS].nonpos
-
-        data[s.P] = P
-        data[s.Q] = q
-        data[s.A] = A
-        data[s.B] = -b
-
-        return data, inv_data
 
     def invert(self, solution, inverse_data):
         attr = {s.SOLVE_TIME: solution.info.run_time}
@@ -78,11 +55,11 @@ class OSQP(QpSolver):
         import osqp
         P = data[s.P]
         q = data[s.Q]
-        A = data[s.A]
-        uA = data[s.B]
+        A = sp.vstack([data[s.A], data[s.F]]).tocsc()
+        data['Ax'] = A
+        uA = np.concatenate((data[s.B], data[s.G]))
         data['u'] = uA
-        lA = np.concatenate([data[s.B][:data['n_eq']],
-                             -np.inf*np.ones(data['n_ineq'])])
+        lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
         data['l'] = lA
 
         # Overwrite defaults eps_abs=eps_rel=1e-3, max_iter=4000
@@ -96,9 +73,9 @@ class OSQP(QpSolver):
             same_pattern = (P.shape == old_data[s.P].shape and
                             all(P.indptr == old_data[s.P].indptr) and
                             all(P.indices == old_data[s.P].indices)) and \
-                           (A.shape == old_data[s.A].shape and
-                            all(A.indptr == old_data[s.A].indptr) and
-                            all(A.indices == old_data[s.A].indices))
+                           (A.shape == old_data['Ax'].shape and
+                            all(A.indptr == old_data['Ax'].indptr) and
+                            all(A.indices == old_data['Ax'].indices))
         else:
             same_pattern = False
 
@@ -113,7 +90,7 @@ class OSQP(QpSolver):
                 P_triu = sp.triu(P).tocsc()
                 new_args['Px'] = P_triu.data
                 factorizing = True
-            if any(A.data != old_data[s.A].data):
+            if any(A.data != old_data['Ax'].data):
                 new_args['Ax'] = A.data
                 factorizing = True
 

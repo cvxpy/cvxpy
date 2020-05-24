@@ -2,7 +2,7 @@ import warnings
 
 
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
-from cvxpy.constraints import ExpCone, PSD, SOC, \
+from cvxpy.constraints import ExpCone, PSD, SOC, NonNeg, \
                               NonPos, Inequality, Equality, Zero
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
@@ -35,9 +35,11 @@ def _is_lp(self):
 
 
 def _solve_as_qp(problem, candidates):
-    if _is_lp(problem) and candidates['conic_solvers']:
-        # OSQP can take many iterations for LPs; use a conic solver
-        # instead
+    if _is_lp(problem) and \
+            [s for s in candidates['conic_solvers'] if s not in candidates['qp_solvers']]:
+        # OSQP can take many iterations for LPs; use a conic solver instead
+        # GUROBI and CPLEX QP/LP interfaces are more efficient
+        #   -> Use them instead of conic if applicable.
         return False
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
@@ -195,8 +197,8 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
             or any(type(c) == ExpCone for c in problem.constraints)):
         cones.append(ExpCone)
     if (any(atom in NONPOS_ATOMS for atom in atoms)
-            or any(type(c) in [Inequality, NonPos] for c in problem.constraints)):
-        cones.append(NonPos)
+            or any(type(c) in [Inequality, NonPos, NonNeg] for c in problem.constraints)):
+        cones.append(NonNeg)
     if (any(type(c) in [Equality, Zero] for c in problem.constraints)):
         cones.append(Zero)
     if (any(atom in PSD_ATOMS for atom in atoms)

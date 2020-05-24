@@ -16,9 +16,9 @@ limitations under the License.
 
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.constraints import NonPos, Zero
-from cvxpy.reductions.solvers.solver import Solver, ConeDims
+from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.utilities import group_constraints
-from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import ParamQuadProg
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import ParamQuadProg, ConeDims
 import cvxpy.settings as s
 import numpy as np
 import scipy.sparse as sp
@@ -92,7 +92,6 @@ class QpSolver(Solver):
             F, g = sp.csr_matrix((0, n)), -np.array([])
 
         # Create dictionary with problem data
-        data = {}
         data[s.P] = sp.csc_matrix(P)
         data[s.Q] = q
         data[s.A] = sp.csc_matrix(A)

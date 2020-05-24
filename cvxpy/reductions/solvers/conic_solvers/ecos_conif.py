@@ -15,12 +15,11 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import NonPos, SOC, ExpCone, Zero
+from cvxpy.constraints import NonNeg, SOC, ExpCone, Zero
 import cvxpy.interface as intf
 from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConeDims, ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.utilities import group_constraints
 import numpy as np
 
 
@@ -28,7 +27,7 @@ import numpy as np
 # that can be supplied to ecos.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'l': cone_dims.nonpos,
+        'l': cone_dims.nonneg,
         "q": cone_dims.soc,
         'e': cone_dims.exp,
     }
@@ -99,17 +98,16 @@ class ECOS(ConicSolver):
         # 2. non-negative orthant
         # 3. soc
         # 4. exponential
-        constr_map = group_constraints(problem.constraints)
-        data[ConicSolver.DIMS] = ConeDims(constr_map)
-        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
-        len_eq = sum([c.size for c in constr_map[Zero]])
-        inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[ExpCone]
-        inv_data[self.NEQ_CONSTR] = neq_constr
-
         if not problem.formatted:
             problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
+        data[self.DIMS] = problem.cone_dims
+        inv_data[self.DIMS] = problem.cone_dims
+
+        constr_map = problem.constr_map
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + constr_map[ExpCone]
+        len_eq = problem.cone_dims.zero
 
         c, d, A, b = problem.apply_parameters()
         data[s.C] = c

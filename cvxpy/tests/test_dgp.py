@@ -189,7 +189,7 @@ class TestDgp(BaseTest):
         self.assertTrue(cvxpy.gmatmul(-A, x).is_decr(0))
 
         x = cvxpy.Variable((2, 3), pos=True)
-        A = np.matrix("2 -1; 0 3").A
+        A = np.array([[2., -1.], [0., 3.]])
         gmatmul = cvxpy.gmatmul(A, x)
         self.assertTrue(gmatmul.is_dgp())
         self.assertTrue(gmatmul.is_log_log_affine())
