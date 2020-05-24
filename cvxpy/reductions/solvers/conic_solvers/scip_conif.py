@@ -140,25 +140,7 @@ class SCIP(SCS):
             solver_opts: Dict[str, Any],
             solver_cache: Dict = None,
     ) -> Solution:
-        """Returns the result of the call to the solver.
-
-        Parameters
-        ----------
-        data : dict
-            Data used by the solver.
-        warm_start : bool
-            Not used.
-        verbose : bool
-            Should the solver print output?
-        solver_opts : dict
-            Additional arguments for the solver.
-        solver_cache: Dict
-            # TODO: understand better
-        Returns
-        -------
-            A solution object of the form: (status, optimal value, primal, equality,
-            tuple dual, inequality dual)
-        """
+        """Returns the result of the call to the solver."""
         from pyscipopt.scip import Model
 
         model = Model()
@@ -347,25 +329,7 @@ class SCIP(SCS):
     ) -> List:
         """Adds EQ/LEQ constraints to the model using the data from mat and vec.
 
-        Parameters
-        ----------
-        model : model
-            The problem model.
-        variables : list
-            The problem variables.
-        rows : range
-            The rows to be constrained.
-        ctype : constraint type
-            The type of constraint.
-        A : SciPy COO matrix
-            The matrix representing the constraints.
-        b : NDArray
-            The constant part of the constraints.
-
-        Returns
-        -------
-        list
-            A list of constraints.
+        Return list contains constraints.
         """
         constraints = []
 
@@ -402,23 +366,7 @@ class SCIP(SCS):
     ) -> Tuple:
         """Adds SOC constraint to the model using the data from mat and vec.
 
-        Parameters
-        ----------
-        model : model
-            The problem model.
-        variables : list
-            The problem variables.
-        rows : range
-            The rows to be constrained.
-        A : SciPy COO matrix
-            The matrix representing the constraints.
-        b : NDArray
-            The constant part of the constraints.
-
-        Returns
-        -------
-        tuple
-            A tuple of (QConstr, list of Constr, and list of variables).
+        Return tuple contains (QConstr, list of Constr, and list of variables).
         """
 
         # Assume first expression (i.e. t) is nonzero.
