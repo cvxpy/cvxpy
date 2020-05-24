@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 try:
     # Try to import SCIP model for typing
     from pyscipopt.scip import Model as ScipModel
-except ImportError as e:
+except ImportError:
     # If it fails continue and use a generic type instead.
     log.warning("Could not import SCIP model")
     ScipModel = Generic
@@ -270,7 +270,12 @@ class SCIP(SCS):
 
         return equal_constraints + inequal_constraints + new_leq_constrs + soc_constrs
 
-    def _set_params(self, model: ScipModel, verbose: bool, solver_opts: Optional[Dict] = None) -> None:
+    def _set_params(
+            self,
+            model: ScipModel,
+            verbose: bool,
+            solver_opts: Optional[Dict] = None,
+    ) -> None:
         """Set model solve parameters."""
 
         # Default parameters:
@@ -321,7 +326,7 @@ class SCIP(SCS):
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
 
-        except:
+        except Exception:
             pass
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
@@ -369,7 +374,7 @@ class SCIP(SCS):
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
-            except:
+            except Exception:
                 pass
 
         for i in rows:
@@ -422,7 +427,7 @@ class SCIP(SCS):
             v = variables[j]
             try:
                 expr_list[i].append((c, v))
-            except:
+            except Exception:
                 pass
 
         # Make a variable and equality constraint for each term.
