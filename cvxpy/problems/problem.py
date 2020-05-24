@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.settings as s
+from cvxpy import settings as s
 from cvxpy import error
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions.chain import Chain
@@ -28,7 +28,7 @@ from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.deterministic import unique_list
 import cvxpy.utilities.performance_utils as perf
-from cvxpy.constraints import Equality, Inequality, NonPos, Zero
+from cvxpy.constraints import Equality, Inequality, NonPos, Zero, NonNeg
 import cvxpy.utilities as u
 
 from collections import namedtuple
@@ -516,6 +516,7 @@ class Problem(u.Canonical):
                     if param in old_params_to_new_params:
                         old_params_to_new_params[param].value = np.log(
                             param.value)
+
             data, solver_inverse_data = solving_chain.solver.apply(
                 self._cache.param_prog)
             inverse_data = self._cache.inverse_data + [solver_inverse_data]
@@ -1207,5 +1208,5 @@ class SizeMetrics(object):
         # num_scalar_leq_constr
         self.num_scalar_leq_constr = 0
         for constraint in problem.constraints:
-            if isinstance(constraint, (Inequality, NonPos)):
+            if isinstance(constraint, (Inequality, NonPos, NonNeg)):
                 self.num_scalar_leq_constr += constraint.expr.size

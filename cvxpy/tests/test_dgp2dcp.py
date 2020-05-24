@@ -597,7 +597,7 @@ class TestDgp2Dcp(BaseTest):
 
     def test_gmatmul(self):
         x = cvxpy.Variable(2, pos=True)
-        A = np.matrix("-5 2; 1 -3").A
+        A = np.array([[-5., 2.], [1., -3.]])
         b = np.array([3, 2])
         expr = cvxpy.gmatmul(A, x)
         x.value = b

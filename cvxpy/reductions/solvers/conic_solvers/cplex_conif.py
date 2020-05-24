@@ -200,7 +200,14 @@ def get_status(model):
 
 
 class CPLEX(SCS):
-    """An interface for the CPLEX solver."""
+    """An interface for the CPLEX solver.
+
+    * WARNING * This implementation takes an inadvisable approach by directly
+    inheriting from a concrete solver (SCS). This implementation should not be
+    used as a reference when writing other solver interfaces.
+
+    TODO: simplify this file so it doesn't inherit from SCS.
+    """
 
     # Solver capabilities.
     MIP_CAPABLE = True

@@ -17,16 +17,22 @@ limitations under the License.
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.constraints.zero import Zero
-from cvxpy.constraints.nonpos import NonPos
+from cvxpy.constraints.nonpos import NonPos, NonNeg
 from collections import defaultdict
 import numpy as np
 import scipy.sparse as sp
 
 
-def lower_inequality(inequality):
+def lower_ineq_to_nonpos(inequality):
     lhs = inequality.args[0]
     rhs = inequality.args[1]
     return NonPos(lhs - rhs, constr_id=inequality.constr_id)
+
+
+def lower_ineq_to_nonneg(inequality):
+    lhs = inequality.args[0]
+    rhs = inequality.args[1]
+    return NonNeg(rhs - lhs, constr_id=inequality.constr_id)
 
 
 def lower_equality(equality):

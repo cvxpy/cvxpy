@@ -42,7 +42,7 @@ class TestWarmstart(unittest.TestCase):
 
         # Construct the problem.
         x = cp.Variable(m)
-        error = cp.sum_squares(A*x - b)
+        error = cp.sum_squares(A@x - b)
         obj = cp.Minimize(error + gamma*cp.norm(x, 1))
         prob = cp.Problem(obj)
 

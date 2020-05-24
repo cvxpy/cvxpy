@@ -41,12 +41,12 @@ UNBOUNDED_INACCURATE = "unbounded_inaccurate"
 USER_LIMIT = "user_limit"
 SOLVER_ERROR = "solver_error"
 # Statuses that indicate a solution was found.
-SOLUTION_PRESENT = [OPTIMAL, OPTIMAL_INACCURATE]
+SOLUTION_PRESENT = [OPTIMAL, OPTIMAL_INACCURATE, USER_LIMIT]
 # Statuses that indicate the problem is infeasible or unbounded.
 INF_OR_UNB = [INFEASIBLE, INFEASIBLE_INACCURATE,
               UNBOUNDED, UNBOUNDED_INACCURATE]
 # Statuses that indicate an error.
-ERROR = [USER_LIMIT, SOLVER_ERROR]
+ERROR = [SOLVER_ERROR]
 
 # Solver names.
 CVXOPT = "CVXOPT"
@@ -57,7 +57,6 @@ CPLEX = "CPLEX"
 ECOS = "ECOS"
 SCS = "SCS"
 DIFFCP = "DIFFCP"
-SUPER_SCS = "SUPER_SCS"
 GUROBI = "GUROBI"
 OSQP = "OSQP"
 CPLEX = "CPLEX"
@@ -67,8 +66,7 @@ NAG = "NAG"
 SCIP = "SCIP"
 SOLVERS = [ECOS, CVXOPT, GLPK,
            GLPK_MI, SCS, GUROBI, OSQP, CPLEX,
-           MOSEK, CBC, XPRESS, SUPER_SCS, NAG,
-           SCIP]
+           MOSEK, CBC, XPRESS, NAG, SCIP]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
@@ -89,6 +87,9 @@ EQ, LEQ, SOC, SOC_EW, PSD, EXP, BOOL, INT = range(8)
 
 # Keys in the dictionary of cone dimensions.
 # TODO(akshayka): These should be defined in a solver module.
+#   Riley follow-up on this: cone dims are now defined in matrix
+#   stuffing modules (e.g. cone_matrix_stuffing.py), rather than
+#   the solver module.
 EQ_DIM = "f"
 LEQ_DIM = "l"
 SOC_DIM = "q"
