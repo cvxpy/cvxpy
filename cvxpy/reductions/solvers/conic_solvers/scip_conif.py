@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Any, Dict, Generic, Iterator, List, Tuple, Union
+from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, Union
 import logging
 
 from numpy import array, ndarray
@@ -158,7 +158,12 @@ class SCIP(SCS):
             b=b,
             dims=dims,
         )
-        solution = self._get_solution(
+        self._set_params(
+            model=model,
+            verbose=verbose,
+            solver_opts=solver_opts,
+        )
+        solution = self._solve(
             model=model,
             variables=variables,
             constraints=constraints,
@@ -243,7 +248,24 @@ class SCIP(SCS):
 
         return equal_constraints + inequal_constraints + new_leq_constrs + soc_constrs
 
-    def _get_solution(
+    def _set_params(self, model: ScipModel, verbose: bool, solver_opts: Optional[Dict] = None) -> None:
+        """Set model solve parameters."""
+
+        # Default parameters:
+        # These settings are needed  to allow the dual to be calculated
+        model.setPresolve(SCIP_PARAMSETTING.OFF)
+        model.setHeuristics(SCIP_PARAMSETTING.OFF)
+        model.disablePropagation()
+
+        # Set model verbosity
+        hide_output = not verbose
+        model.hideOutput(hide_output)
+
+        # User-input parameters
+        if solver_opts:
+            model.setParams(**solver_opts)
+
+    def _solve(
             self,
             model: ScipModel,
             variables: List,
@@ -254,18 +276,7 @@ class SCIP(SCS):
     ) -> Dict[str, Any]:
         """Solve and return a solution if one exists."""
 
-        # Set parameters
-        # TODO user option to not compute duals.
-        # TODO: paramsmodel.setParam("QCPDual", True)
-        # for key, value in solver_opts.items():
-        #    model.setParam(key, value)
-
-        model.setPresolve(SCIP_PARAMSETTING.OFF)
-        model.setHeuristics(SCIP_PARAMSETTING.OFF)
-        model.disablePropagation()
-
         solution = {}
-
         try:
             model.optimize()
             # # Reoptimize if INF_OR_UNBD, to get definitive answer.
