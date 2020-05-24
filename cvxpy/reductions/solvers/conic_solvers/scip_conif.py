@@ -42,6 +42,28 @@ except ImportError as e:
     ScipModel = Generic
 
 
+STATUS_MAP = {
+    # # Mapping of SCIP to cvxpy status codes
+    # SOLUTION_PRESENT
+    "optimal": s.OPTIMAL,
+    "timelimit": s.OPTIMAL_INACCURATE,
+    "gaplimit": s.OPTIMAL_INACCURATE,
+    "bestsollimit": s.OPTIMAL_INACCURATE,
+    # INF_OR_UNB
+    "infeasible": s.INFEASIBLE,
+    "unbounded": s.UNBOUNDED,
+    "inforunbd": s.UNBOUNDED_INACCURATE,
+    # ERROR
+    "userinterrupt": s.USER_LIMIT,
+    "memlimit": s.USER_LIMIT,
+    "sollimit": s.USER_LIMIT,
+    "nodelimit": s.USER_LIMIT,
+    "totalnodelimit": s.USER_LIMIT,
+    "stallnodelimit": s.USER_LIMIT,
+    "restartlimit": s.USER_LIMIT,
+    "unknown": s.SOLVER_ERROR,
+}
+
 class ConstraintTypes:
     """Constraint type constants."""
     EQUAL = "EQUAL"
@@ -279,10 +301,6 @@ class SCIP(SCS):
         solution = {}
         try:
             model.optimize()
-            # # Reoptimize if INF_OR_UNBD, to get definitive answer.
-            # if model.getStatus() == 4:
-            #     model.setParam("DualReductions", 0)
-            #     model.optimize()
 
             solution["value"] = model.getObjVal()
             sol = model.getBestSol()
@@ -303,11 +321,11 @@ class SCIP(SCS):
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
 
-        except Exception as e:
+        except:
             pass
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
-        solution['status'] = model.getStatus()
+        solution['status'] = STATUS_MAP[model.getStatus()]
         if solution["status"] == s.SOLVER_ERROR and model.SolCount:
             solution["status"] = s.OPTIMAL_INACCURATE
 
