@@ -16,6 +16,7 @@ limitations under the License.
 
 __version__ = "1.1.0a4"
 
+from cvxpy.atoms import *
 from cvxpy.constraints import NonPos, Zero, SOC, PSD
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Parameter, CallbackParam, Constant

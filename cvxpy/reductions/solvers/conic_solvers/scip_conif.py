@@ -18,8 +18,6 @@ import logging
 from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, Union
 
 from numpy import array, ndarray
-from pyscipopt import SCIP_PARAMSETTING
-from pyscipopt.scip import quicksum
 from scipy.sparse import dok_matrix
 
 import cvxpy.settings as s
@@ -262,6 +260,7 @@ class SCIP(SCS):
             solver_opts: Optional[Dict] = None,
     ) -> None:
         """Set model solve parameters."""
+        from pyscipopt import SCIP_PARAMSETTING
 
         # Default parameters:
         # These settings are needed  to allow the dual to be calculated
@@ -334,8 +333,9 @@ class SCIP(SCS):
 
         Return list contains constraints.
         """
-        constraints = []
+        from pyscipopt.scip import quicksum
 
+        constraints = []
         expr_list = {i: [] for i in rows}
         for (i, j), c in A.items():
             v = variables[j]
@@ -371,6 +371,7 @@ class SCIP(SCS):
 
         Return tuple contains (QConstr, list of Constr, and list of variables).
         """
+        from pyscipopt.scip import quicksum
 
         # Assume first expression (i.e. t) is nonzero.
         expr_list = {i: [] for i in rows}
