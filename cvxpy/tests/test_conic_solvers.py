@@ -23,11 +23,9 @@ import scipy.linalg as la
 import cvxpy as cp
 from cvxpy import SCIP
 from cvxpy.error import SolverError
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs
-from cvxpy.tests.solver_test_helpers import StandardTestLPs, StandardTestSOCPs
-from cvxpy.tests.solver_test_helpers import StandardTestMixedCPs
+from cvxpy.tests.solver_test_helpers import StandardTestSOCPs, StandardTestLPs, StandardTestMixedCPs
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
 
 
 class TestECOS(BaseTest):

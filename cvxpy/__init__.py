@@ -16,38 +16,17 @@ limitations under the License.
 
 __version__ = "1.1.0a4"
 
-import cvxpy.interface.scipy_wrapper
-from cvxpy.atoms import *
-from cvxpy.constraints import NonPos, PSD, SOC, Zero
-from cvxpy.error import DCPError, DGPError, DPPError, SolverError, disable_warnings, enable_warnings, warnings_enabled
-from cvxpy.expressions.constants import CallbackParam, Constant, Parameter
+from cvxpy.constraints import NonPos, Zero, SOC, PSD
 from cvxpy.expressions.variable import Variable
-from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem
+from cvxpy.problems.objective import Maximize, Minimize
+import cvxpy.interface.scipy_wrapper
+from cvxpy.error import DCPError, DPPError, DGPError, SolverError, disable_warnings, enable_warnings, warnings_enabled
+from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP, NAG,
+                            ECOS, SCS, DIFFCP, GUROBI, MOSEK, XPRESS, SCIP,
+                            OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
+                            OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
+from cvxpy.transforms import linearize, partial_optimize, suppfunc
 from cvxpy.reductions import *
 from cvxpy.reductions.solvers.defines import installed_solvers
-from cvxpy.settings import (
-    CBC,
-    CPLEX,
-    CVXOPT,
-    DIFFCP,
-    ECOS,
-    GLPK,
-    GLPK_MI,
-    GUROBI,
-    INFEASIBLE,
-    INFEASIBLE_INACCURATE,
-    MOSEK,
-    NAG,
-    OPTIMAL,
-    OPTIMAL_INACCURATE,
-    OSQP,
-    ROBUST_KKTSOLVER,
-    SCIP,
-    SCS,
-    SOLVER_ERROR,
-    UNBOUNDED,
-    UNBOUNDED_INACCURATE,
-    XPRESS,
-)
-from cvxpy.transforms import linearize, partial_optimize, suppfunc
