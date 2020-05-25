@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Welcome to CVXPY 1.0 &#8212; CVXPY 1.1.0a4 documentation</title>
+    <title>Welcome to CVXPY 1.1 &#8212; CVXPY 1.1.0a4 documentation</title>
     <link rel="stylesheet" href="_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -32,8 +32,8 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-cvxpy-1-0">
-<h1>Welcome to CVXPY 1.0<a class="headerlink" href="#welcome-to-cvxpy-1-0" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="welcome-to-cvxpy-1-1">
+<h1>Welcome to CVXPY 1.1<a class="headerlink" href="#welcome-to-cvxpy-1-1" title="Permalink to this headline">¶</a></h1>
 <p><strong>Convex optimization, for everyone.</strong></p>
 <p><em>For the best support, join the</em> <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a> <em>and post your questions on</em>
 <a class="reference external" href="https://stackoverflow.com/questions/tagged/cvxpy">Stack Overflow</a>.</p>
@@ -41,8 +41,8 @@
 It allows you to express your problem in a natural way that follows the math,
 rather than in the restrictive standard form required by solvers.</p>
 <p>For example, the following code solves a least-squares problem with box constraints:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Problem data.</span>
 <span class="n">m</span> <span class="o">=</span> <span class="mi">30</span>
@@ -60,10 +60,10 @@ rather than in the restrictive standard form required by solvers.</p>
 <span class="c1"># The optimal objective value is returned by `prob.solve()`.</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 <span class="c1"># The optimal value for x is stored in `x.value`.</span>
-<span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="c1"># The optimal Lagrange multiplier for a constraint is stored in</span>
 <span class="c1"># `constraint.dual_value`.</span>
-<span class="k">print</span><span class="p">(</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This short script is a basic example of what CVXPY can do; in addition
@@ -73,15 +73,10 @@ programming.</p>
 more.</p>
 <p><strong>News.</strong></p>
 <ul class="simple">
-<li><p>CVXPY v1.1.a4 has been released. This pre-release
-adds support for differentiating through DCP and DGP
-problems. See the <a class="reference internal" href="tutorial/advanced/index.html#derivatives"><span class="std std-ref">tutorial on derivatives</span></a>
-and the <a class="reference external" href="https://web.stanford.edu/~boyd/papers/diff_cvxpy.html">accompanying</a>
-<a class="reference external" href="https://web.stanford.edu/~boyd/papers/diff_dgp.html">papers</a>
-for more information. Install it using <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">--pre</span> <span class="pre">--upgrade</span> <span class="pre">cvxpy</span></code>.</p></li>
-<li><p>CVXPY v1.1.a1 has been released. This pre-release makes
-repeatedly canonicalizing parametrized problems much faster than before. See
-the <a class="reference internal" href="tutorial/advanced/index.html#dpp"><span class="std std-ref">tutorial on parameters</span></a> for more information.</p></li>
+<li><p>CVXPY v1.1.0 has been released. This version makes
+repeatedly canonicalizing <a class="reference internal" href="tutorial/advanced/index.html#dpp"><span class="std std-ref">parametrized problems</span></a> much faster than before,
+allows <a class="reference internal" href="tutorial/advanced/index.html#derivatives"><span class="std std-ref">differentiating the map</span></a> from parameters to optimal solutions, and introduces
+some new atoms. See <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">Changes to CVXPY</span></a> for more information.</p></li>
 <li><p>CVXPY v1.0.24 supports
 <a class="reference external" href="https://web.stanford.edu/~boyd/papers/dqcp.html">disciplined quasiconvex programming</a>,
 which lets you formulate and solve quasiconvex programs.
@@ -94,22 +89,22 @@ See the <a class="reference internal" href="tutorial/dgp/index.html"><span class
 and the architecture closer to software compilers, making it easy for
 developers to write custom problem transformations and target custom solvers.
 CVXPY 1.0 is not backwards compatible with previous versions
-of CVXPY. For more details, see <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">What’s New in 1.0</span></a>.</p></li>
+of CVXPY. For more details, see <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">Changes to CVXPY</span></a>.</p></li>
 </ul>
 <p><strong>Solvers.</strong></p>
 <p>CVXPY relies on the open source solvers <a class="reference external" href="http://github.com/ifa-ethz/ecos">ECOS</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
 Additional solvers are supported, but must be installed separately. For
 background on convex optimization, see the book <a class="reference external" href="http://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe.</p>
 <p><strong>Development.</strong></p>
-<p>CVXPY began as a Stanford University <a class="reference internal" href="citing/index.html"><span class="doc">research project</span></a>.
-Today, CVXPY is a community project, built from the contributions of many
+<p>CVXPY is a community project, built from the contributions of many
 researchers and engineers.</p>
 <p>CVXPY is developed and maintained by
-<a class="reference external" href="http://web.stanford.edu/~stevend2/">Steven Diamond</a> and
-<a class="reference external" href="https://akshayagrawal.com">Akshay Agrawal</a>, with many others contributing
+<a class="reference external" href="http://web.stanford.edu/~stevend2/">Steven Diamond</a>,
+<a class="reference external" href="https://akshayagrawal.com">Akshay Agrawal</a>, and
+<a class="reference external" href="https://rileyjmurray.wordpress.com/">Riley Murray</a>, with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
-Riley Murray, Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.</p>
 <p>We appreciate all contributions. To get involved, see our <a class="reference internal" href="contributing/index.html"><span class="doc">contributing
 guide</span></a>.</p>
@@ -186,7 +181,7 @@ guide</span></a>.</p>
 <li class="toctree-l1"><a class="reference internal" href="related_projects/index.html">Related Projects</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="updates/index.html">What’s New in 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="updates/index.html">Changes to CVXPY</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="short_course/index.html">CVXPY Short Course</a></li>
@@ -214,7 +209,7 @@ guide</span></a>.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -81,8 +81,8 @@ where <span class="math notranslate nohighlight">\(\epsilon\)</span> is the desi
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill &amp; K. Briggs</span>
 
-<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </pre></div>
 </div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">maxmin_sinr</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">P_max</span><span class="p">,</span> <span class="n">P_received</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Group_max</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">):</span>
@@ -91,15 +91,15 @@ where <span class="math notranslate nohighlight">\(\epsilon\)</span> is the desi
 
     <span class="c1"># Checks sizes of inputs</span>
     <span class="k">if</span> <span class="n">m</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">P_max</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Error: P_max dimensions do not match gain matrix dimensions</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error: P_max dimensions do not match gain matrix dimensions</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s1">&#39;Error: P_max dimensions do not match gain matrix dimensions</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">P_received</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Error: P_received dimensions do not match gain matrix dimensions</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error: P_received dimensions do not match gain matrix dimensions</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s1">&#39;Error: P_received dimensions do not match gain matrix dimensions&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">sigma</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Error: σ dimensions do not match gain matrix dimensions</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error: σ dimensions do not match gain matrix dimensions</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s1">&#39;Error: σ dimensions do not match gain matrix dimensions&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="c1">#I = np.zeros((n,m))</span>
@@ -113,7 +113,7 @@ where <span class="math notranslate nohighlight">\(\epsilon\)</span> is the desi
     <span class="n">num_groups</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">Group</span><span class="p">,</span><span class="mi">0</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">num_groups</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">Group_max</span><span class="p">):</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Error: Number of groups from Group matrix does not match dimensions of Group_max</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Error: Number of groups from Group matrix does not match dimensions of Group_max</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;Error: Number of groups from Group matrix does not match dimensions of Group_max&#39;</span><span class="p">,</span>
                 <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
 
@@ -145,7 +145,7 @@ where <span class="math notranslate nohighlight">\(\epsilon\)</span> is the desi
 
     <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="s1">&#39;optimal&#39;</span><span class="p">:</span>
         <span class="c1"># in this case the level set u is below the solution</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;No optimal solution within bounds</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No optimal solution within bounds</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s1">&#39;Error: no optimal solution within bounds&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="n">alpha</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span><span class="p">]</span>
@@ -154,7 +154,7 @@ where <span class="math notranslate nohighlight">\(\epsilon\)</span> is the desi
 
     <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;optimal&#39;</span><span class="p">:</span>
         <span class="c1"># in this case the level set l is below the solution</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;No optimal solution within bounds</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;No optimal solution within bounds</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="s1">&#39;Error: no optimal solution within bounds&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="c1"># Bisection algortithm starts</span>
@@ -182,7 +182,7 @@ where <span class="math notranslate nohighlight">\(\epsilon\)</span> is the desi
 
         <span class="c1"># final condition to check that the interval has converged to order ε, i.e. the range of the optimal sublevel set is &lt;=ε</span>
         <span class="k">if</span> <span class="n">u</span> <span class="o">-</span> <span class="n">l</span> <span class="o">&gt;</span> <span class="n">epsilon</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">==</span> <span class="p">(</span><span class="n">maxLoop</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s2">&quot;Solution not converged to order epsilon&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solution not converged to order epsilon&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">l</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">alpha</span><span class="o">.</span><span class="n">value</span><span class="p">),</span> <span class="n">best</span>
 </pre></div>
@@ -227,8 +227,8 @@ first group contains transmitters 1 &amp; 2, while the second group contains
 <span class="c1"># now run the optimisation problem</span>
 <span class="n">l</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">alpha</span><span class="p">,</span> <span class="n">best</span> <span class="o">=</span> <span class="n">maxmin_sinr</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">P_max</span><span class="p">,</span> <span class="n">P_received</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Group_max</span><span class="p">)</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Minimum SINR={:.4g}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">alpha</span><span class="p">))</span>
-<span class="k">print</span><span class="p">(</span><span class="s1">&#39;Power={}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">best</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Minimum SINR=</span><span class="si">{:.4g}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">alpha</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Power=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">best</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Minimum</span> <span class="n">SINR</span><span class="o">=</span><span class="mf">1.148</span>
@@ -287,7 +287,7 @@ first group contains transmitters 1 &amp; 2, while the second group contains
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
@@ -315,7 +315,7 @@ first group contains transmitters 1 &amp; 2, while the second group contains
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

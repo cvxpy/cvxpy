@@ -58,16 +58,16 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 </div>
 <div class="section" id="import-and-setup-packages">
 <h2>Import and setup packages<a class="headerlink" href="#import-and-setup-packages" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">scipy</span> <span class="kn">as</span> <span class="nn">scipy</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Show plots inline in ipython.</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 
 <span class="c1"># Plot properties.</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
 <span class="n">font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span> <span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
         <span class="s1">&#39;size&#39;</span>   <span class="p">:</span> <span class="mi">16</span><span class="p">}</span>
@@ -172,15 +172,15 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
     <span class="c1"># First pass, only gather minimal data from all cases.</span>
     <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">npts</span><span class="p">:</span>
         <span class="n">delay</span> <span class="o">=</span> <span class="n">delays</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
-        <span class="k">print</span><span class="p">(</span> <span class="p">(</span><span class="s1">&#39;Point {} of {} on the tradeoff curve &#39;</span> \
-              <span class="o">+</span> <span class="s1">&#39;(Tmax = {})&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">delay</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="p">(</span><span class="s1">&#39;Point </span><span class="si">{}</span><span class="s1"> of </span><span class="si">{}</span><span class="s1"> on the tradeoff curve &#39;</span> \
+              <span class="o">+</span> <span class="s1">&#39;(Tmax = </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">delay</span><span class="p">))</span>
     <span class="c1"># Second pass, gather more data for specific cases,</span>
     <span class="c1"># and make plots (later).</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">xi</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">npts</span>
         <span class="n">delay</span> <span class="o">=</span> <span class="n">xdelays</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span>
-        <span class="k">print</span><span class="p">(</span> <span class="p">(</span><span class="s1">&#39;Particular solution {} of {} &#39;</span> \
-              <span class="o">+</span> <span class="s1">&#39;(Tmax = {})&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">xnpts</span><span class="p">,</span> <span class="n">delay</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="p">(</span><span class="s1">&#39;Particular solution </span><span class="si">{}</span><span class="s1"> of </span><span class="si">{}</span><span class="s1"> &#39;</span> \
+              <span class="o">+</span> <span class="s1">&#39;(Tmax = </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">xnpts</span><span class="p">,</span> <span class="n">delay</span><span class="p">))</span>
 
     <span class="c1">#</span>
     <span class="c1"># Construct and solve the convex model.</span>
@@ -188,8 +188,8 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 
     <span class="c1"># Variables.</span>
     <span class="n">xt</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># Element 1 of xt == 1 below.</span>
-    <span class="n">G</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">symmetric</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c1"># Symmetric constraint below.</span>
-    <span class="n">C</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">symmetric</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c1"># Symmetric constraint below.</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Symmetric constraint below.</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Symmetric constraint below.</span>
 
     <span class="c1"># Objective.</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">C</span><span class="p">))</span>
@@ -200,7 +200,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
                     <span class="n">C</span> <span class="o">==</span> <span class="n">C</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
                     <span class="n">G</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">GG</span><span class="o">*</span><span class="n">xt</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">)),</span>
                     <span class="n">C</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">CC</span><span class="o">*</span><span class="n">xt</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">)),</span>
-                    <span class="n">delay</span> <span class="o">*</span> <span class="n">G</span> <span class="o">-</span> <span class="n">C</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">PSD</span><span class="o">=</span><span class="bp">True</span><span class="p">),</span>
+                    <span class="n">delay</span> <span class="o">*</span> <span class="n">G</span> <span class="o">-</span> <span class="n">C</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">PSD</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
                     <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">xt</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
                     <span class="n">xt</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">&lt;=</span> <span class="n">wmax</span><span class="p">,</span>
                   <span class="p">]</span>
@@ -211,7 +211,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">)</span>
     <span class="k">except</span> <span class="n">cp</span><span class="o">.</span><span class="n">SolverError</span><span class="p">:</span>
-        <span class="k">print</span><span class="p">(</span><span class="s2">&quot;CVXOPT failed, trying robust KKT&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CVXOPT failed, trying robust KKT&quot;</span><span class="p">)</span>
         <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">,</span> <span class="n">kktsolver</span><span class="o">=</span><span class="s1">&#39;robust&#39;</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL_INACCURATE</span><span class="p">]:</span>
@@ -233,11 +233,11 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
         <span class="c1"># Print display sizes.</span>
         <span class="c1">#</span>
 
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Solution {}:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Vertical segments:&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">dim</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
-        <span class="k">print</span><span class="p">(</span><span class="s1">&#39;Horizontal segments:&#39;</span><span class="p">)</span>
-        <span class="k">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">dim</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">):]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Solution </span><span class="si">{}</span><span class="s1">:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Vertical segments:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">dim</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Horizontal segments:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">dim</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">):]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
 
         <span class="c1">#</span>
         <span class="c1"># Determine and plot the step responses.</span>
@@ -273,9 +273,9 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
         <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">tdom</span><span class="p">,</span> <span class="mf">0.92</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">elmore</span><span class="p">,</span> <span class="mf">0.88</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">tthres</span><span class="p">,</span> <span class="mf">0.96</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">)</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span> <span class="n">T</span><span class="p">[</span><span class="mi">600</span><span class="p">],</span> <span class="n">Y</span><span class="p">[</span><span class="n">jmax</span><span class="p">,</span> <span class="mi">600</span><span class="p">],</span> <span class="s1">&#39;v{}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jmax</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span> <span class="n">T</span><span class="p">[</span><span class="mi">600</span><span class="p">],</span> <span class="n">Y</span><span class="p">[</span><span class="n">jmin</span><span class="p">,</span> <span class="mi">600</span><span class="p">],</span> <span class="s1">&#39;v{}&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jmin</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">((</span><span class="s1">&#39;Solution {} (Tmax={}), fastest &#39;</span> \
+        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span> <span class="n">T</span><span class="p">[</span><span class="mi">600</span><span class="p">],</span> <span class="n">Y</span><span class="p">[</span><span class="n">jmax</span><span class="p">,</span> <span class="mi">600</span><span class="p">],</span> <span class="s1">&#39;v</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jmax</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span> <span class="n">T</span><span class="p">[</span><span class="mi">600</span><span class="p">],</span> <span class="n">Y</span><span class="p">[</span><span class="n">jmin</span><span class="p">,</span> <span class="mi">600</span><span class="p">],</span> <span class="s1">&#39;v</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jmin</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">((</span><span class="s1">&#39;Solution </span><span class="si">{}</span><span class="s1"> (Tmax=</span><span class="si">{}</span><span class="s1">), fastest &#39;</span> \
                     <span class="o">+</span> <span class="s1">&#39;and slowest step responses&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">delay</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
         <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
@@ -291,7 +291,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Area-delay tradeoff curve&#39;</span><span class="p">)</span>
 <span class="c1"># Label the specific cases.</span>
 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">xnpts</span><span class="p">):</span>
-    <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">xareas</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">xdelays</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="s1">&#39;({})&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">xareas</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">xdelays</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -438,7 +438,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
@@ -466,7 +466,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

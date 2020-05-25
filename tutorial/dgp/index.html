@@ -46,22 +46,22 @@ transformation. Every geometric program (GP) and generalized geometric program
 (GGP) is an LLCP, but there are LLCPs that are neither GPs nor GGPs.</p>
 <p>CVXPY lets you form and solve DGP problems, just as it does for DCP
 problems. For example, the following code solves a simple geometric program,</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="c1"># DGP requires Variables to be declared positive via `pos=True`.</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
   <span class="mi">4</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Optimal value: &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;x: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;y: &quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;z: &quot;</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value: &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;y: &quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;z: &quot;</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>and it prints the below output.</p>
@@ -140,10 +140,10 @@ log-log affine expression is log-log convex and log-log concave.</p>
 <p>The log-log curvature of an Expression is stored in its
 <code class="code docutils literal notranslate"><span class="pre">.log_log_curvature</span></code> attribute. For example, running the following
 script</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">constant</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
 <span class="n">monomial</span> <span class="o">=</span> <span class="n">constant</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
@@ -151,11 +151,11 @@ script</p>
 <span class="n">reciprocal</span> <span class="o">=</span> <span class="n">posynomial</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>
 <span class="n">unknown</span> <span class="o">=</span> <span class="n">reciprocal</span> <span class="o">+</span> <span class="n">posynomial</span>
 
-<span class="k">print</span><span class="p">(</span><span class="n">constant</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">monomial</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">posynomial</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">reciprocal</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="n">unknown</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">constant</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">monomial</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">posynomial</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">reciprocal</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">unknown</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>prints the following output.</p>
@@ -213,10 +213,10 @@ expr_n)\)</span> is marked as having unknown curvature.</p>
 the Expression “is DGP.” You can check whether an Expression is DGP
 by calling the method <code class="code docutils literal notranslate"><span class="pre">is_dgp()</span></code>. For example, the assertions
 in the following code block will pass.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">monomial</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">constant</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
 <span class="n">posynomial</span> <span class="o">=</span> <span class="n">monomial</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -232,7 +232,7 @@ at least one of the methods <code class="code docutils literal notranslate"><spa
 </div>
 <div class="section" id="dgp-problems">
 <h2>DGP problems<a class="headerlink" href="#dgp-problems" title="Permalink to this headline">¶</a></h2>
-<p>A <code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code> is constructed from an objective and
+<p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
 a list of constraints. If a problem follows the DGP rules, it is guaranteed to
 be an LLCP and solvable by CVXPY. The DGP rules require that the problem
 objective have one of two forms:</p>
@@ -249,12 +249,12 @@ objective have one of two forms:</p>
 <p>You can check that a problem, constraint, or objective satisfies the DGP
 rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dgp()</span></code>. Here are some examples of DGP and
 non-DGP problems:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="c1"># DGP requires Variables to be declared positive via `pos=True`.</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
@@ -721,7 +721,7 @@ and returns a vector or matrix.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
@@ -749,7 +749,7 @@ and returns a vector or matrix.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -70,7 +70,7 @@ constant <span class="math notranslate nohighlight">\(D\)</span>.</p>
 </div>
 <div class="section" id="data-generation">
 <h2>Data Generation<a class="headerlink" href="#data-generation" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">30</span> <span class="c1"># number of variables</span>
 <span class="n">M</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># number of censored observations</span>
 <span class="n">K</span> <span class="o">=</span> <span class="mi">200</span> <span class="c1"># total number of observations</span>
@@ -93,7 +93,7 @@ constant <span class="math notranslate nohighlight">\(D\)</span>.</p>
 <span class="c1"># applying censoring</span>
 <span class="n">y_censored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">y_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">K</span><span class="o">-</span><span class="n">M</span><span class="p">)</span><span class="o">*</span><span class="n">D</span><span class="p">))</span>
 
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Show plot inline in ipython.</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
@@ -114,7 +114,7 @@ constant <span class="math notranslate nohighlight">\(D\)</span>.</p>
 <h2>Regular OLS<a class="headerlink" href="#regular-ols" title="Permalink to this headline">¶</a></h2>
 <p>Let’s see what the OLS result looks like. We’ll use the
 <code class="docutils literal notranslate"><span class="pre">np.linalg.lstsq</span></code> function to solve for our coefficients.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c_ols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">,</span> <span class="n">y_censored</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="bp">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c_ols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">,</span> <span class="n">y_censored</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">fit_ols</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c_ols</span><span class="p">)</span>
 <span class="n">plot_fit</span><span class="p">(</span><span class="n">fit_ols</span><span class="p">,</span> <span class="s1">&#39;OLS fit&#39;</span><span class="p">)</span>
 </pre></div>
@@ -137,7 +137,7 @@ is to simply ignore all censored observations.</p>
 <p>Give that our <span class="math notranslate nohighlight">\(M\)</span> is much smaller than <span class="math notranslate nohighlight">\(K\)</span>, we are throwing
 away the majority of the dataset in order to accomplish this, let’s see
 how this new regression does.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c_ols_uncensored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">y_censored</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">rcond</span><span class="o">=</span><span class="bp">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c_ols_uncensored</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">y_censored</span><span class="p">[:</span><span class="n">M</span><span class="p">],</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
 <span class="n">fit_ols_uncensored</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c_ols_uncensored</span><span class="p">)</span>
 <span class="n">plot_fit</span><span class="p">(</span><span class="n">fit_ols_uncensored</span><span class="p">,</span> <span class="s1">&#39;OLS fit with uncensored data only&#39;</span><span class="p">)</span>
 
@@ -167,7 +167,7 @@ additional constraints:</p>
   \mbox{subject to} &amp; c^T x^{(i)} \geq D\\
   &amp; \mbox{for } i=\mbox{M+1},\ldots,K
 \end{array}\end{split}\]</div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="n">X_uncensored</span> <span class="o">=</span> <span class="n">X_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">,</span> <span class="p">:]</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
 <span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">X_uncensored</span><span class="o">*</span><span class="n">c</span> <span class="o">-</span> <span class="n">y_ordered</span><span class="p">[:</span><span class="n">M</span><span class="p">]))</span>
@@ -187,8 +187,8 @@ data. But does it do a good job of actually finding coefficients
 <span class="math notranslate nohighlight">\(c\)</span> that are close to our original data?</p>
 <p>We’ll use a simple Euclidean distance <span class="math notranslate nohighlight">\(\|c_\mbox{true} - c\|_2\)</span> to
 compare:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">&quot;norm(c_true - c_cvx): {:.2f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_cvx</span><span class="p">))))</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;norm(c_true - c_ols_uncensored): {:.2f}&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_ols_uncensored</span><span class="p">))))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;norm(c_true - c_cvx): </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_cvx</span><span class="p">))))</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;norm(c_true - c_ols_uncensored): </span><span class="si">{:.2f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">((</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_ols_uncensored</span><span class="p">))))</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">norm</span><span class="p">(</span><span class="n">c_true</span> <span class="o">-</span> <span class="n">c_cvx</span><span class="p">):</span> <span class="mf">1.49</span>
@@ -257,7 +257,7 @@ portions of the data.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
@@ -285,7 +285,7 @@ portions of the data.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

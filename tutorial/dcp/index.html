@@ -45,7 +45,7 @@ more interactive introduction to DCP.</p>
 constants such as Python floats and Numpy matrices, the standard
 arithmetic operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/,</span> <span class="pre">&#64;</span></code>, and a library of
 <a class="reference internal" href="../functions/index.html#functions"><span class="std std-ref">functions</span></a>. Here are some examples of CVXPY expressions:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="kn">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="c1"># Create variables and parameters.</span>
 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(),</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -66,23 +66,23 @@ expression is used in a way that doesn’t make sense given its
 dimensions, for example adding matrices of different size.
 The semantics for how shapes behave under arithmetic operations
 are the same as for NumPy ndarrays (except some broadcasting is banned).</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>import numpy
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span>
 
-X = cp.Variable((5, 4))
-A = numpy.ones((3, 5))
+<span class="n">X</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+<span class="n">A</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 
-# Use expr.shape to get the dimensions.
-print(&quot;dimensions of X:&quot;, X.shape)
-print(&quot;size of X:&quot;, X.size)
-print(&quot;number of dimensions:&quot;, X.ndim)
-print(&quot;dimensions of sum(X):&quot;, cp.sum(X).shape)
-print(&quot;dimensions of A @ X:&quot;, (A @ X).shape)
+<span class="c1"># Use expr.shape to get the dimensions.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dimensions of X:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;size of X:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;number of dimensions:&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dimensions of sum(X):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;dimensions of A @ X:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
-# ValueError raised for invalid dimensions.
-try:
-    A + X
-except ValueError, e:
-    print(e)
+<span class="c1"># ValueError raised for invalid dimensions.</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">A</span> <span class="o">+</span> <span class="n">X</span>
+<span class="k">except</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">dimensions</span> <span class="n">of</span> <span class="n">X</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
@@ -114,13 +114,13 @@ has unknown sign by the rules above.</p>
 <p>CVXPY determines the sign of constants by looking at their value. For scalar constants, this is straightforward. Vector and matrix constants with all positive (negative) entries are marked as positive (negative). Vector and matrix constants with both positive and negative entries are marked as unknown sign.</p>
 <p>The sign of an expression is stored as <code class="docutils literal notranslate"><span class="pre">expr.sign</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonpos</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonpos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;sign of x:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;sign of a:&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;sign of square(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;sign of c*a:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sign of x:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sign of a:&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sign of square(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sign of c*a:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="o">*</span><span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">sign</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sign</span> <span class="n">of</span> <span class="n">x</span><span class="p">:</span> <span class="n">UNKNOWN</span>
@@ -199,12 +199,12 @@ on the sign of the argument. For instance, <code class="docutils literal notrans
 positive arguments and decreasing for negative arguments.</p>
 <p>The curvature of an expression is stored as <code class="docutils literal notranslate"><span class="pre">expr.curvature</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
-<span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;curvature of x:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;curvature of a:&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;curvature of square(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;curvature of sqrt(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curvature of x:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curvature of a:&quot;</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curvature of square(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;curvature of sqrt(x):&quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">curvature</span> <span class="n">of</span> <span class="n">x</span><span class="p">:</span> <span class="n">AFFINE</span>
@@ -254,9 +254,9 @@ DCP rules are not able to verify convexity. If the expression is written
 as <code class="docutils literal notranslate"><span class="pre">norm(hstack(1,</span> <span class="pre">x),</span> <span class="pre">2)</span></code>, the L2 norm of the vector <span class="math notranslate nohighlight">\([1,x]\)</span>,
 which has the same value as <code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>, then it will be
 certified as convex using the DCP rules.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">print</span><span class="p">(</span><span class="s2">&quot;sqrt(1 + square(x)) curvature:&quot;</span><span class="p">,</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;sqrt(1 + square(x)) curvature:&quot;</span><span class="p">,</span>
       <span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;norm(hstack([1, x]), 2) curvature:&quot;</span><span class="p">,</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;norm(hstack([1, x]), 2) curvature:&quot;</span><span class="p">,</span>
       <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -294,8 +294,8 @@ non-DCP problems:</p>
                 <span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">x</span> <span class="o">-</span> <span class="mi">3</span> <span class="o">==</span> <span class="n">y</span><span class="p">,</span>
                  <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">])</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;prob1 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob1</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;prob2 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;prob1 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob1</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;prob2 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob2</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
 
 <span class="c1"># Non-DCP problems.</span>
 
@@ -303,15 +303,15 @@ non-DCP problems:</p>
 <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 <span class="n">prob3</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;prob3 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob3</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
-<span class="k">print</span><span class="p">(</span><span class="s2">&quot;Maximize(square(x)) is DCP:&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;prob3 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob3</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Maximize(square(x)) is DCP:&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">())</span>
 
 <span class="c1"># A non-DCP constraint.</span>
 <span class="n">prob4</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)),</span>
                     <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">])</span>
 
-<span class="k">print</span> <span class="s2">&quot;prob4 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob4</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
-<span class="k">print</span> <span class="s2">&quot;sqrt(x) &lt;= 2 is DCP:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
+<span class="nb">print</span> <span class="s2">&quot;prob4 is DCP:&quot;</span><span class="p">,</span> <span class="n">prob4</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
+<span class="nb">print</span> <span class="s2">&quot;sqrt(x) &lt;= 2 is DCP:&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">prob1</span> <span class="ow">is</span> <span class="n">DCP</span><span class="p">:</span> <span class="kc">True</span>
@@ -330,7 +330,7 @@ non-DCP problem.</p>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="k">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">follow</span> <span class="n">DCP</span> <span class="n">rules</span><span class="o">.</span>
@@ -406,7 +406,7 @@ non-DCP problem.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">What’s New in 1.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
@@ -434,7 +434,7 @@ non-DCP problem.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
