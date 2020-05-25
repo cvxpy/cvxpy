@@ -716,7 +716,10 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
   // Interpret as row or column vector as needed.
   int arg_cols;
   int result_rows;
-  if (lin.get_args()[0]->get_shape().size() == 1) {
+  if (lin.get_args()[0]->get_shape().size() == 0) {
+    arg_cols = 1;
+    result_rows = 1;
+  } else if (lin.get_args()[0]->get_shape().size() == 1) {
     arg_cols = lin.get_args()[0]->get_shape()[0];
     result_rows = 1;
   } else {

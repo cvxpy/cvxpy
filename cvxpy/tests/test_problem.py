@@ -1846,3 +1846,24 @@ class TestProblem(BaseTest):
         problem = cp.Problem(objective, constraints)
         solution2 = problem.solve()
         self.assertAlmostEqual(solution1, solution2)
+
+    def test_rmul_scalar_mats(self):
+        """Test that rmul works with 1x1 matrices.
+        """
+        x = [[4144.30127531]]
+        y = [[7202.52114311]]
+        z = cp.Variable(shape=(1, 1))
+        objective = cp.Minimize(cp.quad_form(z, x) - 2 * z.T @ y)
+
+        prob = cp.Problem(objective)
+        prob.solve('OSQP', verbose=True)
+        result1 = prob.value
+
+        x = 4144.30127531
+        y = 7202.52114311
+        z = cp.Variable()
+        objective = cp.Minimize(x*z**2 - 2 * z * y)
+
+        prob = cp.Problem(objective)
+        prob.solve('OSQP', verbose=True)
+        self.assertAlmostEqual(prob.value, result1)
