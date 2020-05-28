@@ -70,12 +70,7 @@ class OSQP(QpSolver):
         if solver_cache is not None and self.name() in solver_cache:
             # Use cached data.
             solver, old_data, results = solver_cache[self.name()]
-            same_pattern = (P.shape == old_data[s.P].shape and
-                            all(P.indptr == old_data[s.P].indptr) and
-                            all(P.indices == old_data[s.P].indices)) and \
-                           (A.shape == old_data['Ax'].shape and
-                            all(A.indptr == old_data['Ax'].indptr) and
-                            all(A.indices == old_data['Ax'].indices))
+            same_pattern = True
         else:
             same_pattern = False
 
