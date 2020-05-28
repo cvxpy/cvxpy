@@ -28,7 +28,7 @@ from cvxpy import settings as s
 
 def accepts(problem):
     leaves = problem.variables() + problem.parameters() + problem.constants()
-    return any(l.is_complex() for l in leaves)
+    return any(leaf.is_complex() for leaf in leaves)
 
 
 class Complex2Real(Reduction):

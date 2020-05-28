@@ -18,6 +18,7 @@ from cvxpy.reductions.solvers.defines import QP_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
 import numpy as np
+import scipy.sparse as spa
 
 
 class TestParamQuadProg(BaseTest):
@@ -32,6 +33,45 @@ class TestParamQuadProg(BaseTest):
     # Overridden method to assume lower accuracy.
     def assertAlmostEqual(self, a, b, places=2):
         super(TestParamQuadProg, self).assertAlmostEqual(a, b, places=places)
+
+    def test_param_data(self):
+        for solver in self.solvers:
+            m = 30
+            n = 20
+            A = np.random.randn(m, n)
+            b = np.random.randn(m)
+            x = cp.Variable(n)
+            gamma = cp.Parameter(nonneg=True)
+            gamma_val = .5
+            gamma_val_new = .1
+            objective = cp.Minimize(gamma * cp.sum_squares(A @ x - b) + cp.norm(x, 1))
+            constraints = [0 <= x, x <= 1]
+
+            # Solve from scratch (directly new parameter)
+            prob = cp.Problem(objective, constraints)
+            self.assertTrue(prob.is_dpp())
+            gamma.value = gamma_val_new
+            data_scratch, _, _ = prob.get_problem_data(solver)
+            prob.solve(solver=solver)
+            x_scratch = np.copy(x.value)
+
+            # Canonicalize problem with parameter values (solve once)
+            prob = cp.Problem(objective, constraints)
+            gamma.value = gamma_val
+            data_param, _, _ = prob.get_problem_data(solver)
+            prob.solve(solver=solver)
+
+            # Get data with new parameter
+            gamma.value = gamma_val_new
+            data_param_new, _, _ = prob.get_problem_data(solver)
+            prob.solve(solver=solver)
+            x_gamma_new = np.copy(x.value)
+
+            # Check if data match
+            self.assertAlmostEqual(spa.linalg.norm(data_param_new['P'] - data_scratch['P']), 0)
+
+            # Check if solutions match
+            self.assertItemsAlmostEqual(x_gamma_new, x_scratch)
 
     def test_qp_problem(self):
         for solver in self.solvers:
