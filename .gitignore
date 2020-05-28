@@ -55,3 +55,4 @@ env_*
 .eggs
 venv/
 pip-wheel-metadata/
+tags

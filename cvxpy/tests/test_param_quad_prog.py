@@ -35,6 +35,7 @@ class TestParamQuadProg(BaseTest):
 
     def test_param_data(self):
         for solver in self.solvers:
+            np.random.seed(0)
             m = 30
             n = 20
             A = np.random.randn(m, n)
@@ -70,7 +71,7 @@ class TestParamQuadProg(BaseTest):
             np.testing.assert_allclose(data_param_new['P'].todense(), data_scratch['P'].todense())
 
             # Check if solutions match
-            np.testing.assert_allclose(x_gamma_new, x_scratch)
+            np.testing.assert_allclose(x_gamma_new, x_scratch, rtol=1e-02, atol=1e-02)
 
     def test_qp_problem(self):
         for solver in self.solvers:
@@ -103,6 +104,6 @@ class TestParamQuadProg(BaseTest):
             problem.unpack_results(raw_solution, solving_chain, inverse_data)
             x_param = np.copy(x.value)
 
-            np.testing.assert_allclose(x_param, x_full)
+            np.testing.assert_allclose(x_param, x_full, rtol=1e-2, atol=1e-02)
 
         # TODO: Add derivatives and adjoint tests
