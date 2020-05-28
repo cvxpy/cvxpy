@@ -67,20 +67,9 @@ class OSQP(QpSolver):
         solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
         solver_opts['max_iter'] = solver_opts.get('max_iter', 10000)
 
-        if solver_cache is not None and self.name() in solver_cache:
-            # Use cached data.
+        # Use cached data
+        if warm_start and solver_cache is not None and self.name() in solver_cache:
             solver, old_data, results = solver_cache[self.name()]
-            same_pattern = (P.shape == old_data[s.P].shape and
-                            all(P.indptr == old_data[s.P].indptr) and
-                            all(P.indices == old_data[s.P].indices)) and \
-                           (A.shape == old_data['Ax'].shape and
-                            all(A.indptr == old_data['Ax'].indptr) and
-                            all(A.indices == old_data['Ax'].indices))
-        else:
-            same_pattern = False
-
-        # If sparsity pattern differs need to do setup.
-        if warm_start and same_pattern:
             new_args = {}
             for key in ['q', 'l', 'u']:
                 if any(data[key] != old_data[key]):

@@ -54,3 +54,5 @@ env_*
 .vscode/
 .eggs
 venv/
+pip-wheel-metadata/
+tags
