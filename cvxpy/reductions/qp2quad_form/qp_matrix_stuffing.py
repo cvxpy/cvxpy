@@ -177,18 +177,6 @@ class ParamQuadProg(ParamProb):
             param_value,
             zero_offset=zero_offset)
 
-        # TODO special code to handle P in canonInterface.
-        # Old
-        #  if param_vec is None:
-        #      tensor_application = self.P
-        #  else:
-        #      if sp.issparse(self.P):
-        #          tensor_application = self.P @ sp.csc_matrix(param_vec[:, None])
-        #      else:
-        #          tensor_application = self.P @ param_vec
-        #  P = tensor_application.reshape((self.x.size, self.x.size), order='F').tocsc()
-
-        # New
         if keep_zeros and self._P_mapping_nonzero is None:
             self._P_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.P, self.x.size)
