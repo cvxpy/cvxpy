@@ -45,7 +45,7 @@ class TestParamQuadProg(BaseTest):
             gamma_val = .5
             gamma_val_new = .1
             objective = cp.Minimize(gamma * cp.sum_squares(A @ x - b) + cp.norm(x, 1))
-            constraints = [0 <= x, x <= 1]
+            constraints = [1 <= x, x <= 2]
 
             # Solve from scratch (directly new parameter)
             prob = cp.Problem(objective, constraints)
@@ -68,10 +68,10 @@ class TestParamQuadProg(BaseTest):
             x_gamma_new = np.copy(x.value)
 
             # Check if data match
-            self.assertAlmostEqual(spa.linalg.norm(data_param_new['P'] - data_scratch['P']), 0)
+            np.testing.assert_allclose(data_param_new['P'].todense(), data_scratch['P'].todense())
 
             # Check if solutions match
-            self.assertItemsAlmostEqual(x_gamma_new, x_scratch)
+            np.testing.assert_allclose(x_gamma_new, x_scratch)
 
     def test_qp_problem(self):
         for solver in self.solvers:
@@ -104,6 +104,6 @@ class TestParamQuadProg(BaseTest):
             problem.unpack_results(raw_solution, solving_chain, inverse_data)
             x_param = np.copy(x.value)
 
-            self.assertItemsAlmostEqual(x_param, x_full)
+            np.testing.assert_allclose(x_param, x_full)
 
         # TODO: Add derivatives and adjoint tests
