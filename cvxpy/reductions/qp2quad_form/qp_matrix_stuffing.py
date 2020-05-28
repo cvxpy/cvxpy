@@ -121,7 +121,7 @@ class ParamQuadProg(ParamProb):
             self.problem_data_index_A = (indices, indptr, shape)
         else:
             self.reduced_A = A
-            self.problem_data_index = None
+            self.problem_data_index_A = None
         self._A_mapping_nonzero = None
 
         # Form a reduced representation of P, for faster application of
@@ -134,7 +134,7 @@ class ParamQuadProg(ParamProb):
             self.problem_data_index_P = (indices, indptr, shape)
         else:
             self.reduced_P = P
-            self.problem_data_index = None
+            self.problem_data_index_P = None
         self._P_mapping_nonzero = None
 
         self.constraints = constraints
