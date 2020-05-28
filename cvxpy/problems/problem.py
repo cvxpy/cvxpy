@@ -617,7 +617,7 @@ class Problem(u.Canonical):
                     not candidates['qp_solvers']:
                 raise error.SolverError(
                     "Problem is mixed-integer, but candidate "
-                    "QP/Conic solvers (%s/%s) are not MIP-capable." %
+                    "QP/Conic solvers (%s) are not MIP-capable." %
                     [candidates['qp_solvers'], candidates['conic_solvers']])
 
         return candidates
