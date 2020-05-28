@@ -286,7 +286,7 @@ there is some scaling :math:`\tilde{w} = \alpha w` such that
 :math:`f_{\tilde{w}}(x^w_i, x^l_i) \geq 1` for all :math:`i`. This
 motivates the loss function which we'll use:
 
-.. raw:: latex
+.. math::
 
    \begin{equation}
    L(w) = \frac{1}{m}\sum_{i=1}^m \max \lbrace 1 - (x^w_i - x^l_i)^T w, 0 \rbrace.
@@ -302,7 +302,7 @@ used to prevent over-fitting.
 We use the ``fit(W,L,gamma)`` function defined below to solve the
 optimization problem
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
    \mbox{minimize} & L(w) + \gamma \| w \|_2,

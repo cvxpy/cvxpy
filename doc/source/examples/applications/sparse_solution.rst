@@ -21,7 +21,7 @@ satisfies these inequalities.
 The (standard) :math:`\ell_1`-norm heuristic for finding a sparse
 solution is:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
        \mbox{minimize}   &  \|x\|_1 \\
@@ -31,7 +31,7 @@ solution is:
 The log-based heuristic is an iterative method for finding a sparse
 solution, by finding a local optimal point for the problem:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
        \mbox{minimize}   &  \sum_i \log \left( \delta + \left|x_i\right| \right) \\
@@ -45,7 +45,7 @@ However, we can apply a heuristic in which we linearize the objective,
 solve, and re-iterate. This becomes a weighted :math:`\ell_1`-norm
 heuristic:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
        \mbox{minimize}   &  \sum_i W_i \left|x_i\right| \\

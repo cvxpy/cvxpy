@@ -12,7 +12,7 @@ Introduction
 We are given a matrix :math:`A \in \mathbf{\mbox{R}}^{m \times n}` and
 are interested in solving the problem:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
        \mbox{minimize}   & \| A - YX \|_F \\
