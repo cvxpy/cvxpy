@@ -33,6 +33,46 @@ class TestParamQuadProg(BaseTest):
     def assertAlmostEqual(self, a, b, places=2):
         super(TestParamQuadProg, self).assertAlmostEqual(a, b, places=places)
 
+    def test_param_data(self):
+        for solver in self.solvers:
+            np.random.seed(0)
+            m = 30
+            n = 20
+            A = np.random.randn(m, n)
+            b = np.random.randn(m)
+            x = cp.Variable(n)
+            gamma = cp.Parameter(nonneg=True)
+            gamma_val = .5
+            gamma_val_new = .1
+            objective = cp.Minimize(gamma * cp.sum_squares(A @ x - b) + cp.norm(x, 1))
+            constraints = [1 <= x, x <= 2]
+
+            # Solve from scratch (directly new parameter)
+            prob = cp.Problem(objective, constraints)
+            self.assertTrue(prob.is_dpp())
+            gamma.value = gamma_val_new
+            data_scratch, _, _ = prob.get_problem_data(solver)
+            prob.solve(solver=solver)
+            x_scratch = np.copy(x.value)
+
+            # Canonicalize problem with parameter values (solve once)
+            prob = cp.Problem(objective, constraints)
+            gamma.value = gamma_val
+            data_param, _, _ = prob.get_problem_data(solver)
+            prob.solve(solver=solver)
+
+            # Get data with new parameter
+            gamma.value = gamma_val_new
+            data_param_new, _, _ = prob.get_problem_data(solver)
+            prob.solve(solver=solver)
+            x_gamma_new = np.copy(x.value)
+
+            # Check if data match
+            np.testing.assert_allclose(data_param_new['P'].todense(), data_scratch['P'].todense())
+
+            # Check if solutions match
+            np.testing.assert_allclose(x_gamma_new, x_scratch, rtol=1e-02, atol=1e-02)
+
     def test_qp_problem(self):
         for solver in self.solvers:
             m = 30
@@ -64,6 +104,6 @@ class TestParamQuadProg(BaseTest):
             problem.unpack_results(raw_solution, solving_chain, inverse_data)
             x_param = np.copy(x.value)
 
-            self.assertItemsAlmostEqual(x_param, x_full)
+            np.testing.assert_allclose(x_param, x_full, rtol=1e-2, atol=1e-02)
 
         # TODO: Add derivatives and adjoint tests

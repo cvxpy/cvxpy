@@ -172,15 +172,15 @@ class ParamConeProg(ParamProb):
             self.param_id_to_size,
             param_value,
             zero_offset=zero_offset)
-        c, d = canonInterface.get_matrix_and_offset_from_tensor(
-            self.c, param_vec, self.x.size)
+        c, d = canonInterface.get_matrix_from_tensor(
+            self.c, param_vec, self.x.size, with_offset=True)
         c = c.toarray().flatten()
         if keep_zeros and self._A_mapping_nonzero is None:
             self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.A, self.x.size)
-        A, b = canonInterface.get_matrix_and_offset_from_tensor(
+        A, b = canonInterface.get_matrix_from_tensor(
             self.reduced_A, param_vec, self.x.size,
-            nonzero_rows=self._A_mapping_nonzero,
+            nonzero_rows=self._A_mapping_nonzero, with_offset=True,
             problem_data_index=self.problem_data_index)
         return c, d, A, np.atleast_1d(b)
 
