@@ -10,8 +10,8 @@ Linux, macOS, and Windows
 CVXPY supports Python 3 on Linux, macOS, and Windows. We recommend using
 pip for installation. You may want to isolate
 your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
-If you prefer `Anaconda`_ to `pip`_, see the 
-:ref:`Anaconda installation guide <anaconda-installation>`.
+If you prefer `conda`_ to `pip`_, see the 
+:ref:`conda installation guide <conda-installation>`.
 
 1. (Windows only) Download the Visual Studio build tools for Python 3
    (`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
@@ -33,14 +33,14 @@ Other Platforms
 
 The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms>`_ for instructions for your platform.
 
-.. _anaconda-installation:
+.. _conda-installation:
 
-Anaconda
-----------------
+conda
+-----
 
-`Anaconda`_ is a system for package and environment management.
+`conda`_ is a system for package and environment management.
 
-1. Install `Anaconda`_.
+1. Install `conda`_.
 
 2. Install `pip`_ and ``setuptools`` with ``conda``.
 
@@ -52,7 +52,7 @@ Anaconda
 3. (Windows only) Download the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
    
 
-4. Install ``cvxpy`` with `pip`_ inside `Anaconda`_.
+4. Install ``cvxpy`` with `pip`_ inside `conda`_.
 
    ::
 
@@ -174,8 +174,7 @@ CVXPY supports the NAG solver.
 Simply install NAG such that you can ``import naginterfaces`` in Python.
 See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
 
-.. _Anaconda: https://store.continuum.io/cshop/anaconda/
-.. _website: https://store.continuum.io/cshop/anaconda/
+.. _conda: https://docs.conda.io/en/latest/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
 .. _CVXOPT: http://cvxopt.org/
 .. _OSQP: https://osqp.org/
