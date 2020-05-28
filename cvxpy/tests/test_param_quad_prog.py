@@ -18,7 +18,6 @@ from cvxpy.reductions.solvers.defines import QP_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
 import numpy as np
-import scipy.sparse as spa
 
 
 class TestParamQuadProg(BaseTest):
