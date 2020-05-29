@@ -20,7 +20,7 @@ time series :math:`y`.
 
 The :math:`\ell_1` trend estimation problem can be formulated as
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
        \mbox{minimize}   &  (1/2)||y-x||_2^2 + \lambda ||Dx||_1,

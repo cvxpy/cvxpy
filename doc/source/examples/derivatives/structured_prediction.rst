@@ -9,7 +9,7 @@ training dataset :math:`\mathcal D` contains :math:`N` input-output
 pairs :math:`(x, y)`, where :math:`x \in \reals^{n}_{++}` is an input
 and :math:`y \in \reals^{m}_{++}` is an outputs. The entries of each
 output :math:`y` are sorted in ascending order, meaning
-:math:`y_1 \leq y_2 \leq \cdots y_m`.
+:math:`y_1 \leq y_2 \leq \cdots \leq y_m`.
 
 Our regression model :math:`\phi : \reals^{n}_{++} \to \reals^{m}_{++}`
 takes as input a vector :math:`x \in \reals^{n}_{++}`, and solves an
