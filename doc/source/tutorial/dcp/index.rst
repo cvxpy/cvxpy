@@ -255,7 +255,7 @@ certified as convex using the DCP rules.
 
 ::
 
-    sqrt(1 + square(x)) curvature: UNKNOWN
+    sqrt(1 + square(x)) curvature: QUASICONVEX
     norm(hstack(1, x), 2) curvature: CONVEX
 
 DCP problems
