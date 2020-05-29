@@ -10,7 +10,7 @@ Introduction
 
 Consider the linear inequality constrained entropy maximization problem:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
        \mbox{maximize}   & -\sum_{i=1}^n x_i \log(x_i) \\
