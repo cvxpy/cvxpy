@@ -45,7 +45,7 @@ STATUS_MAP = {
     "optimal": s.OPTIMAL,
     "timelimit": s.OPTIMAL_INACCURATE,
     "gaplimit": s.OPTIMAL_INACCURATE,
-    "bestsollimit": s.OPTIMAL_INACCURATE,
+    "bestsollimit": s.USER_LIMIT,
     # INF_OR_UNB
     "infeasible": s.INFEASIBLE,
     "unbounded": s.UNBOUNDED,
