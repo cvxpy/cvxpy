@@ -53,6 +53,10 @@ IEEE Conference on. IEEE,
 fault occurrences, with <span class="math notranslate nohighlight">\(x_i = 1\)</span> indicating that fault <span class="math notranslate nohighlight">\(i\)</span>
 has occurred. System performance is measured by <span class="math notranslate nohighlight">\(m\)</span> sensors. The
 sensor output is</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+y = Ax + v = \sum_{i=1}^n a_i x_i + v,
+\end{equation}\]</div>
 <p>where <span class="math notranslate nohighlight">\(A \in \mathbf{R}^{m \times n}\)</span> is the sensing matrix with
 column <span class="math notranslate nohighlight">\(a_i\)</span> being the <strong>fault signature</strong> of fault <span class="math notranslate nohighlight">\(i\)</span>, and
 <span class="math notranslate nohighlight">\(v \in \mathbf{R}^m\)</span> is a noise vector where <span class="math notranslate nohighlight">\(v_j\)</span> is
@@ -69,11 +73,20 @@ subject of compressed sensing.</p>
 <p>To identify the faults, one reasonable approach is to choose
 <span class="math notranslate nohighlight">\(x \in \lbrace 0,1 \rbrace^{n}\)</span> to minimize the negative
 log-likelihood function</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+\ell(x) = \frac{1}{2 \sigma^2} \|Ax-y\|_2^2 +  \log(1/p-1)\mathbf{1}^T x + c.
+\end{equation}\]</div>
 <p>However, this problem is nonconvex and NP-hard, due to the constraint
 that <span class="math notranslate nohighlight">\(x\)</span> must be Boolean.</p>
 <p>To make this problem tractable, we can relax the Boolean constraints and
 instead constrain <span class="math notranslate nohighlight">\(x_i \in [0,1]\)</span>.</p>
 <p>The optimization problem</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize} &amp;  \|Ax-y\|_2^2 + 2 \sigma^2 \log(1/p-1)\mathbf{1}^T x\\
+\mbox{subject to} &amp;  0 \leq x_i \leq 1, \quad i=1, \ldots n
+\end{array}\end{split}\]</div>
 <p>is convex. We’ll refer to the solution of the convex problem as the
 <strong>relaxed ML</strong> estimate.</p>
 <p>By taking the relaxed ML estimate of <span class="math notranslate nohighlight">\(x\)</span> and rounding the entries
@@ -86,6 +99,10 @@ occurrences.</p>
 <span class="math notranslate nohighlight">\(m = 200\)</span> measurements, and fault probability <span class="math notranslate nohighlight">\(p = 0.01\)</span>.
 We’ll choose <span class="math notranslate nohighlight">\(\sigma^2\)</span> so that the signal-to-noise ratio is 5.
 That is,</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+\sqrt{\frac{\mathbf{E}\|Ax \|^2_2}{\mathbf{E} \|v\|_2^2}} = 5.
+\end{equation}\]</div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 

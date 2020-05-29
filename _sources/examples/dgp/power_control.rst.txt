@@ -30,8 +30,8 @@ at receiver :math:`i` is :math:`\sigma_i`, and the signal to noise ratio
    S_i = \frac{G_{ii}P_i}{\sigma_i + \sum_{k \neq i} G_{ik}P_k}.
 
 The transmitters and receivers are constrained to have a minimum SINR
-:math:`S^{\text min}`, and the :math:`P_i` are bounded between
-:math:`P_i^{\text min}` and :math:`P_i^{\text max}`. This gives the
+:math:`S^{\text{min}}`, and the :math:`P_i` are bounded between
+:math:`P_i^{\text{min}}` and :math:`P_i^{\text{max}}`. This gives the
 problem
 
 .. math::
@@ -39,9 +39,9 @@ problem
 
    \begin{array}{ll}
    \mbox{minimize} & P_1 + \cdots + P_n \\
-   \mbox{subject to} & P_i^{\text min} \leq P_i \leq P_i^{\text max}, \\
-   & 1/S^{\text min} \geq \frac{\sigma_i + \sum_{k \neq i} G_{ik}P_k}{G_{ii}P_i}
-   \end{array}.
+   \mbox{subject to} & P_i^{\text{min}} \leq P_i \leq P_i^{\text{max}}, \\
+   & 1/S^{\text{min}} \geq \frac{\sigma_i + \sum_{k \neq i} G_{ik}P_k}{G_{ii}P_i}.
+   \end{array}
 
 .. code:: python
 

@@ -64,7 +64,6 @@
 <span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities.coeff_extractor</span> <span class="kn">import</span> <span class="n">CoeffExtractor</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
 
 
 <div class="viewcode-block" id="ConeDims"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims">[docs]</a><span class="k">class</span> <span class="nc">ConeDims</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -145,7 +144,33 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">=</span> <span class="n">q</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">=</span> <span class="n">A</span>
+
+        <span class="c1"># Form a reduced representation of A, for faster application of</span>
+        <span class="c1"># parameters.</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">reduced_A</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">canonInterface</span><span class="o">.</span><span class="n">reduce_problem_data_tensor</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="n">reduced_A</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index_A</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="n">A</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index_A</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Form a reduced representation of P, for faster application of</span>
+        <span class="c1"># parameters.</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">P</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">reduced_P</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">canonInterface</span><span class="o">.</span><span class="n">reduce_problem_data_tensor</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">quad_form</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_P</span> <span class="o">=</span> <span class="n">reduced_P</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index_P</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_P</span> <span class="o">=</span> <span class="n">P</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index_P</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_P_mapping_nonzero</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="n">constraints</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constr_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">size</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span>
@@ -186,26 +211,26 @@
             <span class="n">param_value</span><span class="p">,</span>
             <span class="n">zero_offset</span><span class="o">=</span><span class="n">zero_offset</span><span class="p">)</span>
 
-        <span class="c1"># TODO special code to handle P in canonInterface.</span>
-        <span class="k">if</span> <span class="n">param_vec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">tensor_application</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">issparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">):</span>
-                <span class="n">tensor_application</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">@</span> <span class="n">sp</span><span class="o">.</span><span class="n">csc_matrix</span><span class="p">(</span><span class="n">param_vec</span><span class="p">[:,</span> <span class="kc">None</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">tensor_application</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">P</span> <span class="o">@</span> <span class="n">param_vec</span>
-        <span class="n">P</span> <span class="o">=</span> <span class="n">tensor_application</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">keep_zeros</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P_mapping_nonzero</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_P_mapping_nonzero</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">A_mapping_nonzero_rows</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">P</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_P</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">nonzero_rows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_P_mapping_nonzero</span><span class="p">,</span>
+            <span class="n">with_offset</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">problem_data_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index_P</span><span class="p">)</span>
 
-        <span class="n">q</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_and_offset_from_tensor</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">q</span><span class="p">,</span> <span class="n">d</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">with_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">toarray</span><span class="p">()</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">keep_zeros</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">A_mapping_nonzero_rows</span><span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-        <span class="n">A</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_and_offset_from_tensor</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
-            <span class="n">nonzero_rows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span><span class="p">)</span>
+        <span class="n">A</span><span class="p">,</span> <span class="n">b</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_matrix_from_tensor</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span><span class="p">,</span> <span class="n">param_vec</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">,</span>
+            <span class="n">nonzero_rows</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span><span class="p">,</span>
+            <span class="n">with_offset</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">problem_data_index</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index_A</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ParamQuadProg.apply_param_jac"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_param_jac">[docs]</a>    <span class="k">def</span> <span class="nf">apply_param_jac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delP</span><span class="p">,</span> <span class="n">delq</span><span class="p">,</span> <span class="n">delA</span><span class="p">,</span> <span class="n">delb</span><span class="p">,</span> <span class="n">active_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>

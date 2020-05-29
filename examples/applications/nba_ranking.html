@@ -309,6 +309,10 @@ homogenous strict inequalities in <span class="math notranslate nohighlight">\(w
 there is some scaling <span class="math notranslate nohighlight">\(\tilde{w} = \alpha w\)</span> such that
 <span class="math notranslate nohighlight">\(f_{\tilde{w}}(x^w_i, x^l_i) \geq 1\)</span> for all <span class="math notranslate nohighlight">\(i\)</span>. This
 motivates the loss function which we’ll use:</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+L(w) = \frac{1}{m}\sum_{i=1}^m \max \lbrace 1 - (x^w_i - x^l_i)^T w, 0 \rbrace.
+\end{equation}\]</div>
 <p>The function <span class="math notranslate nohighlight">\(L(w)\)</span> assigns a positive loss whenever the
 classification inequality <span class="math notranslate nohighlight">\(f_w(x^w_i, x^l_i) \geq 1\)</span> is violated.</p>
 <p>We’ll choose <span class="math notranslate nohighlight">\(w\)</span> by minimizing the loss <span class="math notranslate nohighlight">\(L(w)\)</span>, plus a
@@ -316,6 +320,10 @@ regularization term <span class="math notranslate nohighlight">\(\gamma \| w \|_
 used to prevent over-fitting.</p>
 <p>We use the <code class="docutils literal notranslate"><span class="pre">fit(W,L,gamma)</span></code> function defined below to solve the
 optimization problem</p>
+<div class="math notranslate nohighlight">
+\[\begin{array}{ll}
+\mbox{minimize} &amp; L(w) + \gamma \| w \|_2,
+\end{array}\]</div>
 <p>where <span class="math notranslate nohighlight">\(W,L \in \mathbf{R}^{m \times n}\)</span> are data matrices, with
 row <span class="math notranslate nohighlight">\(i\)</span> of <span class="math notranslate nohighlight">\(W\)</span> (<span class="math notranslate nohighlight">\(L\)</span>) corresponding to <span class="math notranslate nohighlight">\(x^w_i\)</span>
 (<span class="math notranslate nohighlight">\(x^l_i\)</span>).</p>

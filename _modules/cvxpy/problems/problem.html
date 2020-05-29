@@ -652,7 +652,8 @@
                 <span class="k">raise</span> <span class="n">error</span><span class="o">.</span><span class="n">SolverError</span><span class="p">(</span>
                     <span class="s2">&quot;Problem is mixed-integer, but candidate &quot;</span>
                     <span class="s2">&quot;QP/Conic solvers (</span><span class="si">%s</span><span class="s2">) are not MIP-capable.&quot;</span> <span class="o">%</span>
-                    <span class="p">[</span><span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">],</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]])</span>
+                    <span class="p">(</span><span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">+</span>
+                     <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]))</span>
 
         <span class="k">return</span> <span class="n">candidates</span>
 

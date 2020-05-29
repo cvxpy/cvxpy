@@ -23,7 +23,7 @@ fault occurrences, with :math:`x_i = 1` indicating that fault :math:`i`
 has occurred. System performance is measured by :math:`m` sensors. The
 sensor output is
 
-.. raw:: latex
+.. math::
 
    \begin{equation}
    y = Ax + v = \sum_{i=1}^n a_i x_i + v,
@@ -49,7 +49,7 @@ To identify the faults, one reasonable approach is to choose
 :math:`x \in \lbrace 0,1 \rbrace^{n}` to minimize the negative
 log-likelihood function
 
-.. raw:: latex
+.. math::
 
    \begin{equation}
    \ell(x) = \frac{1}{2 \sigma^2} \|Ax-y\|_2^2 +  \log(1/p-1)\mathbf{1}^T x + c.
@@ -63,7 +63,7 @@ instead constrain :math:`x_i \in [0,1]`.
 
 The optimization problem
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
    \mbox{minimize} &  \|Ax-y\|_2^2 + 2 \sigma^2 \log(1/p-1)\mathbf{1}^T x\\
@@ -85,7 +85,7 @@ We'll generate an example with :math:`n = 2000` possible faults,
 We'll choose :math:`\sigma^2` so that the signal-to-noise ratio is 5.
 That is,
 
-.. raw:: latex
+.. math::
 
    \begin{equation}
    \sqrt{\frac{\mathbf{E}\|Ax \|^2_2}{\mathbf{E} \|v\|_2^2}} = 5.

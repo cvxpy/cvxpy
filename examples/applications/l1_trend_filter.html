@@ -47,6 +47,10 @@ in a variety of disciplines. The <span class="math notranslate nohighlight">\(\e
 produces trend estimates <span class="math notranslate nohighlight">\(x\)</span> that are piecewise linear from the
 time series <span class="math notranslate nohighlight">\(y\)</span>.</p>
 <p>The <span class="math notranslate nohighlight">\(\ell_1\)</span> trend estimation problem can be formulated as</p>
+<div class="math notranslate nohighlight">
+\[\begin{array}{ll}
+    \mbox{minimize}   &amp;  (1/2)||y-x||_2^2 + \lambda ||Dx||_1,
+    \end{array}\]</div>
 <p>with variable <span class="math notranslate nohighlight">\(x\)</span> , and problem data <span class="math notranslate nohighlight">\(y\)</span> and
 <span class="math notranslate nohighlight">\(\lambda\)</span>, with <span class="math notranslate nohighlight">\(\lambda &gt;0\)</span>. <span class="math notranslate nohighlight">\(D\)</span> is the second
 difference matrix, with rows</p>

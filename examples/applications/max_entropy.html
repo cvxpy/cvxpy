@@ -38,6 +38,12 @@ example of the same name, by Joëlle Skaf, 4/24/2008.</p>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Consider the linear inequality constrained entropy maximization problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{maximize}   &amp; -\sum_{i=1}^n x_i \log(x_i) \\
+    \mbox{subject to} &amp; \sum_{i=1}^n x_i = 1 \\
+                      &amp; Fx \succeq g,
+    \end{array}\end{split}\]</div>
 <p>where the variable is <span class="math notranslate nohighlight">\(x \in \mathbf{{\mbox{R}}}^{n}\)</span>.</p>
 <p>This problem can be formulated in CVXPY using the <code class="docutils literal notranslate"><span class="pre">entr</span></code> atom.</p>
 </div>

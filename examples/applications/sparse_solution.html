@@ -48,14 +48,29 @@ feasible. We apply two heuristics to find a sparse point <span class="math notra
 satisfies these inequalities.</p>
 <p>The (standard) <span class="math notranslate nohighlight">\(\ell_1\)</span>-norm heuristic for finding a sparse
 solution is:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{minimize}   &amp;  \|x\|_1 \\
+    \mbox{subject to} &amp; Ax \preceq b.
+    \end{array}\end{split}\]</div>
 <p>The log-based heuristic is an iterative method for finding a sparse
 solution, by finding a local optimal point for the problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{minimize}   &amp;  \sum_i \log \left( \delta + \left|x_i\right| \right) \\
+    \mbox{subject to} &amp; Ax \preceq b,
+    \end{array}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\delta\)</span> is a small threshold value (which determines if a
 value is close to zero). We cannot solve this problem since it is a
 minimization of a concave function and thus it is not a convex problem.
 However, we can apply a heuristic in which we linearize the objective,
 solve, and re-iterate. This becomes a weighted <span class="math notranslate nohighlight">\(\ell_1\)</span>-norm
 heuristic:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{minimize}   &amp;  \sum_i W_i \left|x_i\right| \\
+    \mbox{subject to} &amp; Ax \preceq b,
+    \end{array}\end{split}\]</div>
 <p>which in each iteration re-adjusts the weights <span class="math notranslate nohighlight">\(W_i\)</span> based on the
 rule:</p>
 <div class="math notranslate nohighlight">

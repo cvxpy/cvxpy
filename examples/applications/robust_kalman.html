@@ -46,6 +46,11 @@ with outliers.</p>
 <p>A discrete-time linear dynamical system consists of a sequence of state
 vectors <span class="math notranslate nohighlight">\(x_t \in \mathbf{R}^n\)</span>, indexed by time
 <span class="math notranslate nohighlight">\(t \in \lbrace 0, \ldots, N-1 \rbrace\)</span> and dynamics equations</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align}
+x_{t+1} &amp;= Ax_t + Bw_t\\
+y_t &amp;=Cx_t + v_t,
+\end{align}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(w_t \in \mathbf{R}^m\)</span> is an input to the dynamical system
 (say, a drive force on the vehicle), <span class="math notranslate nohighlight">\(y_t \in \mathbf{R}^r\)</span> is a
 state measurement, <span class="math notranslate nohighlight">\(v_t \in \mathbf{R}^r\)</span> is noise, <span class="math notranslate nohighlight">\(A\)</span> is
@@ -59,6 +64,13 @@ observation matrix.</p>
 <h1>Kalman filtering<a class="headerlink" href="#kalman-filtering" title="Permalink to this headline">¶</a></h1>
 <p>A Kalman filter estimates <span class="math notranslate nohighlight">\(x_t\)</span> by solving the optimization
 problem</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize} &amp; \sum_{t=0}^{N-1} \left(
+\|w_t\|_2^2 + \tau \|v_t\|_2^2\right)\\
+\mbox{subject to} &amp; x_{t+1} = Ax_t + Bw_t,\quad t=0,\ldots, N-1\\
+&amp; y_t = Cx_t+v_t,\quad t = 0, \ldots, N-1,
+\end{array}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\tau\)</span> is a tuning parameter. This problem is actually a
 least squares problem, and can be solved via linear algebra, without the
 need for more general convex optimization. Note that since we have no
@@ -76,6 +88,12 @@ the presence of outliers, we can use <strong>robust Kalman filtering</strong>.</
 <p>To handle outliers in <span class="math notranslate nohighlight">\(v_t\)</span>, robust Kalman filtering replaces the
 quadratic cost with a Huber cost, which results in the convex
 optimization problem</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize} &amp; \sum_{t=0}^{N-1} \left( \|w_t\|^2_2 + \tau \phi_\rho(v_t) \right)\\
+\mbox{subject to} &amp; x_{t+1} = Ax_t + Bw_t,\quad t=0,\ldots, N-1\\
+&amp; y_t = Cx_t+v_t,\quad t=0,\ldots, N-1,
+\end{array}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\phi_\rho\)</span> is the Huber function</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\phi_\rho(a)= \left\{ \begin{array}{ll} \|a\|_2^2 &amp; \|a\|_2\leq \rho\\

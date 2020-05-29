@@ -42,6 +42,12 @@
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>We are given a matrix <span class="math notranslate nohighlight">\(A \in \mathbf{\mbox{R}}^{m \times n}\)</span> and
 are interested in solving the problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{minimize}   &amp; \| A - YX \|_F \\
+    \mbox{subject to} &amp; Y \succeq 0 \\
+                      &amp; X \succeq 0,
+    \end{array}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(Y \in \mathbf{\mbox{R}}^{m \times k}\)</span> and
 <span class="math notranslate nohighlight">\(X \in \mathbf{\mbox{R}}^{k \times n}\)</span>.</p>
 <p>This example generates a random matrix <span class="math notranslate nohighlight">\(A\)</span> and obtains an

@@ -55,6 +55,12 @@ segment, with capacitance <span class="math notranslate nohighlight">\(\beta_i x
 the dissipated power is equal to <span class="math notranslate nohighlight">\(\mathbf{1}^T C(x) \mathbf{1}\)</span>.
 Thus to minimize the dissipated power subject to a constraint in the
 widths and a constraint in the dominant time constant, we solve the SDP</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{minimize}   &amp; \mathbf{1}^T C(x) \mathbf{1}   \\
+    \mbox{subject to} &amp;  T_{\mbox{max}} G(x) - C(x) \succeq 0 \\
+                      &amp; 0 \le x_i \le W_{\mbox{max}}.
+    \end{array}\end{split}\]</div>
 </div>
 <div class="section" id="import-and-setup-packages">
 <h2>Import and setup packages<a class="headerlink" href="#import-and-setup-packages" title="Permalink to this headline">¶</a></h2>

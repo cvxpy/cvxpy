@@ -35,9 +35,16 @@
 <h1>Consensus optimization<a class="headerlink" href="#consensus-optimization" title="Permalink to this headline">¶</a></h1>
 <p>Suppose we have a convex optimization problem with <span class="math notranslate nohighlight">\(N\)</span> terms in
 the objective</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll} \mbox{minimize} &amp; \sum_{i=1}^N f_i(x)\\
+\end{array}\end{split}\]</div>
 <p>For example, we might be fitting a model to data and <span class="math notranslate nohighlight">\(f_i\)</span> is the
 loss function for the <span class="math notranslate nohighlight">\(i\)</span>th block of training data.</p>
 <p>We can convert this problem into consensus form</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll} \mbox{minimize} &amp; \sum_{i=1}^N f_i(x_i)\\
+\mbox{subject to} &amp; x_i = z
+\end{array}\end{split}\]</div>
 <p>We interpret the <span class="math notranslate nohighlight">\(x_i\)</span> as local variables, since they are
 particular to a given <span class="math notranslate nohighlight">\(f_i\)</span>. The variable <span class="math notranslate nohighlight">\(z\)</span>, by contrast,
 is global. The constraints <span class="math notranslate nohighlight">\(x_i = z\)</span> enforce consistency, or
@@ -45,6 +52,14 @@ consensus.</p>
 <p>We can solve a problem in consensus form using the Alternating Direction
 Method of Multipliers (ADMM). Each iteration of ADMM reduces to the
 following updates:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{lll}
+% xbar, u parameters in prox.
+% called proximal operator.
+x^{k+1}_i &amp; := &amp; \mathop{\rm argmin}_{x_i}\left(f_i(x_i) + (\rho/2)\left\|x_i - \overline{x}^k + u^k_i \right\|^2_2 \right) \\
+% u running sum of errors.
+u^{k+1}_i &amp; := &amp; u^{k}_i + x^{k+1}_i - \overline{x}^{k+1}
+\end{array}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\overline{x}^k = (1/N)\sum_{i=1}^N x^k_i\)</span>.</p>
 <p>The following code carries out consensus ADMM, using CVXPY to solve the
 local subproblems.</p>

@@ -54,15 +54,15 @@ at receiver <span class="math notranslate nohighlight">\(i\)</span> is <span cla
 <div class="math notranslate nohighlight">
 \[S_i = \frac{G_{ii}P_i}{\sigma_i + \sum_{k \neq i} G_{ik}P_k}.\]</div>
 <p>The transmitters and receivers are constrained to have a minimum SINR
-<span class="math notranslate nohighlight">\(S^{\text min}\)</span>, and the <span class="math notranslate nohighlight">\(P_i\)</span> are bounded between
-<span class="math notranslate nohighlight">\(P_i^{\text min}\)</span> and <span class="math notranslate nohighlight">\(P_i^{\text max}\)</span>. This gives the
+<span class="math notranslate nohighlight">\(S^{\text{min}}\)</span>, and the <span class="math notranslate nohighlight">\(P_i\)</span> are bounded between
+<span class="math notranslate nohighlight">\(P_i^{\text{min}}\)</span> and <span class="math notranslate nohighlight">\(P_i^{\text{max}}\)</span>. This gives the
 problem</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize} &amp; P_1 + \cdots + P_n \\
-\mbox{subject to} &amp; P_i^{\text min} \leq P_i \leq P_i^{\text max}, \\
-&amp; 1/S^{\text min} \geq \frac{\sigma_i + \sum_{k \neq i} G_{ik}P_k}{G_{ii}P_i}
-\end{array}.\end{split}\]</div>
+\mbox{subject to} &amp; P_i^{\text{min}} \leq P_i \leq P_i^{\text{max}}, \\
+&amp; 1/S^{\text{min}} \geq \frac{\sigma_i + \sum_{k \neq i} G_{ik}P_k}{G_{ii}P_i}.
+\end{array}\end{split}\]</div>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 

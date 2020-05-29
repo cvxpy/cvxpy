@@ -62,7 +62,7 @@
 
 <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
     <span class="n">leaves</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span> <span class="o">+</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="o">+</span> <span class="n">problem</span><span class="o">.</span><span class="n">constants</span><span class="p">()</span>
-    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">is_complex</span><span class="p">()</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">leaves</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">is_complex</span><span class="p">()</span> <span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">leaves</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Complex2Real"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real">[docs]</a><span class="k">class</span> <span class="nc">Complex2Real</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>

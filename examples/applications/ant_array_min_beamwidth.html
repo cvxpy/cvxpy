@@ -62,6 +62,13 @@ interval</p>
 performed by bisection, where the interval which contains the optimal
 value is bisected according to the result of the following feasibility
 problem:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize}   &amp;  0 \\
+\mbox{subject to} &amp; y(\theta_{\mbox{tar}}) = 1 \\
+                  &amp;  \left|y(\theta)\right| \leq t_{\mbox{sb}}
+                         \quad \forall \theta \notin \Theta_b.
+\end{array}\end{split}\]</div>
 <p><span class="math notranslate nohighlight">\(y\)</span> is the antenna array gain pattern (a complex-valued function),
 <span class="math notranslate nohighlight">\(t_{\mbox{sb}}\)</span> is the maximum allowed sideband gain threshold,
 and the variables are <span class="math notranslate nohighlight">\(w\)</span> (antenna array weights or shading
@@ -70,6 +77,13 @@ coefficients). The gain pattern is a linear function of <span class="math notran
 the antenna array configuration and specs.</p>
 <p>Once the optimal beamwidth is found, the solution <span class="math notranslate nohighlight">\(w\)</span> is refined
 with the following optimization:</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize}   &amp;  \|w\| \\
+\mbox{subject to} &amp; y(\theta_{\mbox{tar}}) = 1 \\
+                  &amp; \left|y(\theta)\right|  \leq t_{\mbox{sb}}
+                          \quad \forall \theta \notin \Theta_b.
+\end{array}\end{split}\]</div>
 <p>The implementation below discretizes the angular quantities and their
 counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
 </div>
