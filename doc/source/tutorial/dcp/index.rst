@@ -238,7 +238,7 @@ composition ``1 + square(x)`` is convex by the curvature rule for convex
 functions. The function ``sqrt`` is concave and increasing, which means
 it can only take a concave argument. Since ``1 + square(x)`` is convex,
 ``sqrt(1 + square(x))`` violates the DCP rules and cannot be verified as
-convex.
+convex but can be identified as at least quasiconvex.
 
 In fact, ``sqrt(1 + square(x))`` is a convex function of ``x``, but the
 DCP rules are not able to verify convexity. If the expression is written
