@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
     <title>Problems &#8212; CVXPY 1.1.0a4 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Reductions" href="cvxpy.reductions.html" />
@@ -87,9 +87,9 @@ accessed via the <a class="reference internal" href="#cvxpy.problems.problem.Pro
 </div>
 <div class="section" id="minimize">
 <h2><a class="toc-backref" href="#id1">Minimize</a><a class="headerlink" href="#minimize" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="cvxpy.problems.objective.Minimize">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.objective.</code><code class="sig-name descname">Minimize</code><span class="sig-paren">(</span><em class="sig-param">expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.objective.</code><code class="sig-name descname">Minimize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.objective.Objective</span></code></p>
 <p>An optimization objective for minimization.</p>
 <dl class="field-list simple">
@@ -100,15 +100,15 @@ accessed via the <a class="reference internal" href="#cvxpy.problems.problem.Pro
 <dd class="field-even"><p><strong>ValueError</strong> – If expr is not a scalar.</p>
 </dd>
 </dl>
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.objective.Minimize.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>The objective must be convex.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.objective.Minimize.is_dgp">
-<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize.is_dgp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize.is_dgp" title="Permalink to this definition">¶</a></dt>
 <dd><p>The objective must be log-log convex.</p>
 </dd></dl>
 
@@ -117,9 +117,9 @@ accessed via the <a class="reference internal" href="#cvxpy.problems.problem.Pro
 </div>
 <div class="section" id="maximize">
 <h2><a class="toc-backref" href="#id2">Maximize</a><a class="headerlink" href="#maximize" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="cvxpy.problems.objective.Maximize">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.objective.</code><code class="sig-name descname">Maximize</code><span class="sig-paren">(</span><em class="sig-param">expr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.objective.</code><code class="sig-name descname">Maximize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.objective.Objective</span></code></p>
 <p>An optimization objective for maximization.</p>
 <dl class="field-list simple">
@@ -130,15 +130,15 @@ accessed via the <a class="reference internal" href="#cvxpy.problems.problem.Pro
 <dd class="field-even"><p><strong>ValueError</strong> – If expr is not a scalar.</p>
 </dd>
 </dl>
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.objective.Maximize.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>The objective must be concave.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.objective.Maximize.is_dgp">
-<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize.is_dgp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize.is_dgp" title="Permalink to this definition">¶</a></dt>
 <dd><p>The objective must be log-log concave.</p>
 </dd></dl>
 
@@ -147,12 +147,12 @@ accessed via the <a class="reference internal" href="#cvxpy.problems.problem.Pro
 </div>
 <div class="section" id="sizemetrics">
 <h2><a class="toc-backref" href="#id3">SizeMetrics</a><a class="headerlink" href="#sizemetrics" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="cvxpy.problems.problem.SizeMetrics">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">SizeMetrics</code><span class="sig-paren">(</span><em class="sig-param">problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#SizeMetrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">SizeMetrics</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#SizeMetrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Reports various metrics regarding the problem.</p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_variables">
 <code class="sig-name descname">num_scalar_variables</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of scalar variables in the problem.</p>
@@ -163,7 +163,7 @@ accessed via the <a class="reference internal" href="#cvxpy.problems.problem.Pro
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_data">
 <code class="sig-name descname">num_scalar_data</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of scalar constants and parameters in the problem. The number of
@@ -178,7 +178,7 @@ constant 1 in the denominator.</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_eq_constr">
 <code class="sig-name descname">num_scalar_eq_constr</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_eq_constr" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of scalar equality constraints in the problem.</p>
@@ -189,7 +189,7 @@ constant 1 in the denominator.</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_leq_constr">
 <code class="sig-name descname">num_scalar_leq_constr</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_leq_constr" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of scalar inequality constraints in the problem.</p>
@@ -200,7 +200,7 @@ constant 1 in the denominator.</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SizeMetrics.max_data_dimension">
 <code class="sig-name descname">max_data_dimension</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.max_data_dimension" title="Permalink to this definition">¶</a></dt>
 <dd><p>The longest dimension of any data block constraint or parameter.</p>
@@ -211,7 +211,7 @@ constant 1 in the denominator.</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SizeMetrics.max_big_small_squared">
 <code class="sig-name descname">max_big_small_squared</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.max_big_small_squared" title="Permalink to this definition">¶</a></dt>
 <dd><p>The maximum value of (big)(small)^2 over all data blocks of the problem, where
@@ -229,14 +229,14 @@ for each data block.</p>
 </div>
 <div class="section" id="solverstats">
 <h2><a class="toc-backref" href="#id4">SolverStats</a><a class="headerlink" href="#solverstats" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="cvxpy.problems.problem.SolverStats">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">SolverStats</code><span class="sig-paren">(</span><em class="sig-param">results_dict</em>, <em class="sig-param">solver_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#SolverStats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.SolverStats" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">SolverStats</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results_dict</span></em>, <em class="sig-param"><span class="n">solver_name</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#SolverStats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.SolverStats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Reports some of the miscellaneous information that is returned
 by the solver after solving but that is not captured directly by
 the Problem instance.</p>
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SolverStats.solve_time">
 <code class="sig-name descname">solve_time</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.solve_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>The time (in seconds) it took for the solver to solve the problem.</p>
@@ -247,7 +247,7 @@ the Problem instance.</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SolverStats.setup_time">
 <code class="sig-name descname">setup_time</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.setup_time" title="Permalink to this definition">¶</a></dt>
 <dd><p>The time (in seconds) it took for the solver to setup the problem.</p>
@@ -258,7 +258,7 @@ the Problem instance.</p>
 </dl>
 </dd></dl>
 
-<dl class="attribute">
+<dl class="py attribute">
 <dt id="cvxpy.problems.problem.SolverStats.num_iters">
 <code class="sig-name descname">num_iters</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.num_iters" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of iterations the solver had to go through to find a solution.</p>
@@ -274,9 +274,9 @@ the Problem instance.</p>
 </div>
 <div class="section" id="problem">
 <h2><a class="toc-backref" href="#id5">Problem</a><a class="headerlink" href="#problem" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
+<dl class="py class">
 <dt id="cvxpy.problems.problem.Problem">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">Problem</code><span class="sig-paren">(</span><em class="sig-param">objective</em>, <em class="sig-param">constraints=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">Problem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">objective</span></em>, <em class="sig-param"><span class="n">constraints</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.utilities.canonical.Canonical</span></code></p>
 <p>A convex optimization problem.</p>
 <p>Problems are immutable, save for modification through the specification
@@ -289,7 +289,7 @@ of <code class="xref py py-class docutils literal notranslate"><span class="pre"
 </ul>
 </dd>
 </dl>
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.atoms">
 <code class="sig-name descname">atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.atoms" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor method for atoms.</p>
@@ -304,7 +304,7 @@ contains classes, not instances.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.backward">
 <code class="sig-name descname">backward</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.backward" title="Permalink to this definition">¶</a></dt>
 <dd><p>Compute the gradient of a solution with respect to Parameters.</p>
@@ -376,7 +376,7 @@ perturbation to its optimal value.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.constants">
 <code class="sig-name descname">constants</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.constants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.constants" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor method for constants.</p>
@@ -390,7 +390,7 @@ perturbation to its optimal value.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.constraints">
 <em class="property">property </em><code class="sig-name descname">constraints</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.constraints" title="Permalink to this definition">¶</a></dt>
 <dd><p>A shallow copy of the problem’s constraints.</p>
@@ -398,7 +398,7 @@ perturbation to its optimal value.</p>
 modified after creation, except through parameters.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.derivative">
 <code class="sig-name descname">derivative</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.derivative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.derivative" title="Permalink to this definition">¶</a></dt>
 <dd><p>Apply the derivative of the solution map to perturbations in the Parameters</p>
@@ -440,9 +440,9 @@ problems (that are also DPP-compliant).</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.get_problem_data">
-<code class="sig-name descname">get_problem_data</code><span class="sig-paren">(</span><em class="sig-param">solver</em>, <em class="sig-param">gp=False</em>, <em class="sig-param">enforce_dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.get_problem_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.get_problem_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_problem_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span></em>, <em class="sig-param"><span class="n">gp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">enforce_dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.get_problem_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.get_problem_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the problem data used in the call to the solver.</p>
 <p>When a problem is solved, CVXPY creates a chain of reductions enclosed
 in a <a class="reference internal" href="cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code></a>,
@@ -517,9 +517,9 @@ problem (instead of just a warning). Defaults to False.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does the problem satisfy DCP rules?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -540,9 +540,9 @@ the first one. For more information, consult the documentation at</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.is_dgp">
-<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param">dpp=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dgp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dgp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does the problem satisfy DGP rules?</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -563,9 +563,9 @@ the first one. For more information, consult the documentation at</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.is_dpp">
-<code class="sig-name descname">is_dpp</code><span class="sig-paren">(</span><em class="sig-param">context='dcp'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dpp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dpp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dpp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">context</span><span class="o">=</span><span class="default_value">'dcp'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dpp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dpp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does the problem satisfy DPP rules?</p>
 <p>DPP is a mild restriction of DGP. When a problem involving
 Parameters is DPP, subsequent solves can be much faster than
@@ -588,19 +588,19 @@ is equivalent to <code class="docutils literal notranslate"><span class="pre">pr
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.is_dqcp">
 <code class="sig-name descname">is_dqcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dqcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dqcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does the problem satisfy the DQCP rules?</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.is_qp">
 <code class="sig-name descname">is_qp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_qp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_qp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is problem a quadratic program?</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.objective">
 <em class="property">property </em><code class="sig-name descname">objective</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.objective" title="Permalink to this definition">¶</a></dt>
 <dd><p>The problem’s objective.</p>
@@ -614,7 +614,7 @@ undefined behavior.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.parameters">
 <code class="sig-name descname">parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor method for parameters.</p>
@@ -628,9 +628,9 @@ undefined behavior.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.register_solve">
-<em class="property">classmethod </em><code class="sig-name descname">register_solve</code><span class="sig-paren">(</span><em class="sig-param">name</em>, <em class="sig-param">func</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.register_solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.register_solve" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><code class="sig-name descname">register_solve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.register_solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.register_solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adds a solve method to the Problem class.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -643,7 +643,7 @@ take as its first argument the problem instance to solve.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.size_metrics">
 <em class="property">property </em><code class="sig-name descname">size_metrics</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.size_metrics" title="Permalink to this definition">¶</a></dt>
 <dd><p>Information about the problem’s size.</p>
@@ -654,9 +654,9 @@ take as its first argument the problem instance to solve.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.solve">
-<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">*args</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.solve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the problem using the specified method.</p>
 <p>Populates the <code class="code docutils literal notranslate"><span class="pre">status</span></code> and <code class="code docutils literal notranslate"><span class="pre">value</span></code> attributes on the
 problem object as a side-effect.</p>
@@ -719,7 +719,7 @@ why the problem could not be solved.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.solver_stats">
 <em class="property">property </em><code class="sig-name descname">solver_stats</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.solver_stats" title="Permalink to this definition">¶</a></dt>
 <dd><p>Information returned by the solver.</p>
@@ -730,7 +730,7 @@ why the problem could not be solved.</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.status">
 <em class="property">property </em><code class="sig-name descname">status</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.status" title="Permalink to this definition">¶</a></dt>
 <dd><p>The status from the last time the problem was solved; one
@@ -743,9 +743,9 @@ suffix inaccurate).</p>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.unpack_results">
-<code class="sig-name descname">unpack_results</code><span class="sig-paren">(</span><em class="sig-param">solution</em>, <em class="sig-param">chain</em>, <em class="sig-param">inverse_data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.unpack_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.unpack_results" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">unpack_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">chain</span></em>, <em class="sig-param"><span class="n">inverse_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.unpack_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.unpack_results" title="Permalink to this definition">¶</a></dt>
 <dd><p>Updates the problem state given the solver results.</p>
 <p>Updates problem.status, problem.value and value of
 primal and dual variables.</p>
@@ -764,7 +764,7 @@ and invoking the solver on the resulting data.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.value">
 <em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The value from the last time the problem was solved
@@ -776,7 +776,7 @@ and invoking the solver on the resulting data.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="method">
+<dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.variables">
 <code class="sig-name descname">variables</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accessor method for variables.</p>
@@ -878,7 +878,7 @@ and invoking the solver on the resulting data.</p></li>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -887,7 +887,7 @@ and invoking the solver on the resulting data.</p></li>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.4</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
