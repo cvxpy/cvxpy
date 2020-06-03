@@ -249,6 +249,40 @@ class TestDcp(BaseTest):
         problem = cp.Problem(objective, constraints)
         self.assertTrue(problem.is_dpp())
 
+    def test_non_dpp_powers(self):
+        s = cp.Parameter(1, nonneg=True)
+        x = cp.Variable(1)
+        obj = cp.Maximize(x+s)
+        cons = [x <= 1]
+        prob = cp.Problem(obj, cons)
+        s.value = np.array([1.])
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            prob.solve(solver=cp.SCS)
+        np.testing.assert_almost_equal(prob.value, 2.)
+
+        s = cp.Parameter(1, nonneg=True)
+        x = cp.Variable(1)
+        obj = cp.Maximize(x+s**2)
+        cons = [x <= 1]
+        prob = cp.Problem(obj, cons)
+        s.value = np.array([1.])
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            prob.solve(solver=cp.SCS)
+        np.testing.assert_almost_equal(prob.value, 2.)
+
+        s = cp.Parameter(1, nonneg=True)
+        x = cp.Variable(1)
+        obj = cp.Maximize(cp.multiply(x, s**2))
+        cons = [x <= 1]
+        prob = cp.Problem(obj, cons)
+        s.value = np.array([1.])
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            prob.solve(solver=cp.SCS)
+        np.testing.assert_almost_equal(prob.value, 1.)
+
 
 class TestDgp(BaseTest):
     def test_basic_equality_constraint(self):
