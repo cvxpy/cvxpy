@@ -301,7 +301,9 @@ class SCIP(SCS):
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
                 vals = []
                 for lc in constraints:
-                    if lc is not None:
+                    if lc is not None and lc.isLinear():
+                        # Note: you can only get the dual for linear
+                        # constraints with SCIP.
                         dual = model.getDualsolLinear(lc)
                         vals.append(dual)
                     else:

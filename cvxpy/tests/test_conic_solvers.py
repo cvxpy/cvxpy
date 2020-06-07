@@ -1010,9 +1010,8 @@ class TestSCIP(unittest.TestCase):
     def test_scip_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver=SCIP)
 
-    # Fails when checking complementary, TODO: fix.
-    # def test_scip_socp_1(self):
-    #     StandardTestSOCPs.test_socp_1(solver=SCIP, places=3)
+    def test_scip_socp_1(self):
+        StandardTestSOCPs.test_socp_1(solver=SCIP, places=3, duals=False)
 
     def test_scip_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver=SCIP, places=2)
