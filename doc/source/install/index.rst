@@ -17,12 +17,14 @@ If you prefer `conda`_ to `pip`_, see the
    (`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
    `install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
 
-2. Install ``cvxpy``.
+2. (macOS only) Install the Xcode command line tools.
+
+3. Install ``cvxpy``.
   ::
 
       pip install cvxpy
 
-3. Test the installation with ``nose``.
+4. Test the installation with ``nose``.
   ::
 
       pip install nose
