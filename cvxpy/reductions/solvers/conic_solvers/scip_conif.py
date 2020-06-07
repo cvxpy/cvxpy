@@ -171,7 +171,6 @@ class SCIP(SCS):
             constraints=constraints,
             data=data,
             dims=dims,
-            solver_opts=solver_opts,
         )
         return solution
 
@@ -283,7 +282,6 @@ class SCIP(SCS):
             constraints: List,
             data: Dict[str, Any],
             dims: Dict[str, Union[int, List]],
-            solver_opts: Dict,
     ) -> Dict[str, Any]:
         """Solve and return a solution if one exists."""
 
