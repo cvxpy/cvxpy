@@ -312,8 +312,8 @@ class SCIP(SCS):
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
 
-        except Exception:
-            pass
+        except Exception as e:
+            log.warning("Error encountered when optimising %s: %s", model, e)
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
         solution['status'] = STATUS_MAP[model.getStatus()]
