@@ -231,9 +231,8 @@ class geo_mean(Atom):
     def numeric(self, values):
         values = np.array(values[0]).flatten()
         val = 1.0
-        w_tot = np.sum(self.w)
         for x, p in zip(values, self.w):
-            val *= x**float(p/w_tot)
+            val *= x**float(p)
         return val
 
     def _domain(self):

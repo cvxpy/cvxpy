@@ -7,4 +7,4 @@ from cvxpy.atoms.elementwise.inv_pos import inv_pos
 def inv_prod(value):
     """The reciprocal of a product of the entries of a vector ``x``.
     """
-    return power(inv_pos(geo_mean(value)), len(value))
+    return power(inv_pos(geo_mean(value)), sum(value.shape))
