@@ -1,28 +1,11 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @import url("basic.css");
 
 /* -- page layout ----------------------------------------------------------- */
 
 body {
-    font-family: 'goudy old style', 'minion pro', 'bell mt', Georgia, 'Hiragino Mincho Pro', serif;
+    font-family: Georgia, serif;
     font-size: 17px;
-    background-color: white;
+    background-color: #fff;
     color: #000;
     margin: 0;
     padding: 0;
@@ -54,7 +37,7 @@ hr {
 }
 
 div.body {
-    background-color: #ffffff;
+    background-color: #fff;
     color: #3E4349;
     padding: 0 30px 0 30px;
 }
@@ -76,7 +59,7 @@ div.footer a {
 }
 
 p.caption {
-    font-family: ;
+    font-family: inherit;
     font-size: inherit;
 }
 
@@ -124,7 +107,7 @@ div.sphinxsidebarwrapper p.blurb {
 
 div.sphinxsidebar h3,
 div.sphinxsidebar h4 {
-    font-family: 'Garamond', 'Georgia', serif;
+    font-family: Georgia, serif;
     color: #444;
     font-size: 24px;
     font-weight: normal;
@@ -168,7 +151,7 @@ div.sphinxsidebar ul li.toctree-l2 > a {
 
 div.sphinxsidebar input {
     border: 1px solid #CCC;
-    font-family: 'goudy old style', 'minion pro', 'bell mt', Georgia, 'Hiragino Mincho Pro', serif;
+    font-family: Georgia, serif;
     font-size: 1em;
 }
 
@@ -181,6 +164,19 @@ div.sphinxsidebar hr {
     text-align: left;
     margin-left: 0;
     width: 50%;
+}
+
+div.sphinxsidebar .badge {
+    border-bottom: none;
+}
+
+div.sphinxsidebar .badge:hover {
+    border-bottom: none;
+}
+
+/* To address an issue with donation coming after search */
+div.sphinxsidebar h3.donation {
+    margin-top: 10px;
 }
 
 /* -- body styles ----------------------------------------------------------- */
@@ -201,7 +197,7 @@ div.body h3,
 div.body h4,
 div.body h5,
 div.body h6 {
-    font-family: 'Garamond', 'Georgia', serif;
+    font-family: Georgia, serif;
     font-weight: normal;
     margin: 30px 0px 10px 0px;
     padding: 0;
@@ -232,21 +228,17 @@ div.body p, div.body dd, div.body li {
 div.admonition {
     margin: 20px 0px;
     padding: 10px 30px;
-    background-color: #FCC;
-    border: 1px solid #FAA;
+    background-color: #EEE;
+    border: 1px solid #CCC;
 }
 
-div.admonition tt.xref, div.admonition a tt {
+div.admonition tt.xref, div.admonition code.xref, div.admonition a tt {
+    background-color: #FBFBFB;
     border-bottom: 1px solid #fafafa;
 }
 
-dd div.admonition {
-    margin-left: -60px;
-    padding-left: 60px;
-}
-
 div.admonition p.admonition-title {
-    font-family: 'Garamond', 'Georgia', serif;
+    font-family: Georgia, serif;
     font-weight: normal;
     font-size: 24px;
     margin: 0 0 10px 0;
@@ -259,14 +251,60 @@ div.admonition p.last {
 }
 
 div.highlight {
-    background-color: white;
+    background-color: #fff;
 }
 
 dt:target, .highlight {
     background: #FAF3E8;
 }
 
+div.warning {
+    background-color: #FCC;
+    border: 1px solid #FAA;
+}
+
+div.danger {
+    background-color: #FCC;
+    border: 1px solid #FAA;
+    -moz-box-shadow: 2px 2px 4px #D52C2C;
+    -webkit-box-shadow: 2px 2px 4px #D52C2C;
+    box-shadow: 2px 2px 4px #D52C2C;
+}
+
+div.error {
+    background-color: #FCC;
+    border: 1px solid #FAA;
+    -moz-box-shadow: 2px 2px 4px #D52C2C;
+    -webkit-box-shadow: 2px 2px 4px #D52C2C;
+    box-shadow: 2px 2px 4px #D52C2C;
+}
+
+div.caution {
+    background-color: #FCC;
+    border: 1px solid #FAA;
+}
+
+div.attention {
+    background-color: #FCC;
+    border: 1px solid #FAA;
+}
+
+div.important {
+    background-color: #EEE;
+    border: 1px solid #CCC;
+}
+
 div.note {
+    background-color: #EEE;
+    border: 1px solid #CCC;
+}
+
+div.tip {
+    background-color: #EEE;
+    border: 1px solid #CCC;
+}
+
+div.hint {
     background-color: #EEE;
     border: 1px solid #CCC;
 }
@@ -277,7 +315,7 @@ div.seealso {
 }
 
 div.topic {
-    background-color: #eee;
+    background-color: #EEE;
 }
 
 p.admonition-title {
@@ -289,7 +327,7 @@ p.admonition-title:after {
 }
 
 pre, tt, code {
-    font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-family: 'Consolas', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
     font-size: 0.9em;
 }
 
@@ -312,16 +350,16 @@ tt.descname, code.descname {
 }
 
 img.screenshot {
-    -moz-box-shadow: 2px 2px 4px #eee;
-    -webkit-box-shadow: 2px 2px 4px #eee;
-    box-shadow: 2px 2px 4px #eee;
+    -moz-box-shadow: 2px 2px 4px #EEE;
+    -webkit-box-shadow: 2px 2px 4px #EEE;
+    box-shadow: 2px 2px 4px #EEE;
 }
 
 table.docutils {
     border: 1px solid #888;
-    -moz-box-shadow: 2px 2px 4px #eee;
-    -webkit-box-shadow: 2px 2px 4px #eee;
-    box-shadow: 2px 2px 4px #eee;
+    -moz-box-shadow: 2px 2px 4px #EEE;
+    -webkit-box-shadow: 2px 2px 4px #EEE;
+    box-shadow: 2px 2px 4px #EEE;
 }
 
 table.docutils td, table.docutils th {
@@ -361,6 +399,16 @@ table.field-list p {
     margin-bottom: 0.8em;
 }
 
+/* Cloned from
+ * https://github.com/sphinx-doc/sphinx/commit/ef60dbfce09286b20b7385333d63a60321784e68
+ */
+.field-name {
+    -moz-hyphens: manual;
+    -ms-hyphens: manual;
+    -webkit-hyphens: manual;
+    hyphens: manual;
+}
+
 table.footnote td.label {
     width: .1px;
     padding: 0.3em 0 0.3em 0.5em;
@@ -397,14 +445,13 @@ pre {
     line-height: 1.3em;
 }
 
+div.viewcode-block:target {
+    background: #ffd;
+}
+
 dl pre, blockquote pre, li pre {
     margin-left: 0;
     padding-left: 30px;
-}
-
-dl dl pre {
-    margin-left: -90px;
-    padding-left: 90px;
 }
 
 tt, code {
@@ -415,7 +462,7 @@ tt, code {
 
 tt.xref, code.xref, a tt {
     background-color: #FBFBFB;
-    border-bottom: 1px solid white;
+    border-bottom: 1px solid #fff;
 }
 
 a.reference {
@@ -517,7 +564,7 @@ a:hover tt, a:hover code {
 
     div.documentwrapper {
         float: none;
-        background: white;
+        background: #fff;
     }
 
     div.sphinxsidebar {
@@ -532,7 +579,7 @@ a:hover tt, a:hover code {
 
     div.sphinxsidebar h3, div.sphinxsidebar h4, div.sphinxsidebar p,
     div.sphinxsidebar h3 a {
-        color: white;
+        color: #fff;
     }
 
     div.sphinxsidebar a {
@@ -604,4 +651,51 @@ table.docutils.citation, table.docutils.citation td, table.docutils.citation th 
   -moz-box-shadow: none;
   -webkit-box-shadow: none;
   box-shadow: none;
+}
+
+
+/* relbar */
+
+.related {
+    line-height: 30px;
+    width: 100%;
+    font-size: 0.9rem;
+}
+
+.related.top {
+    border-bottom: 1px solid #EEE;
+    margin-bottom: 20px;
+}
+
+.related.bottom {
+    border-top: 1px solid #EEE;
+}
+
+.related ul {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+}
+
+.related li {
+    display: inline;
+}
+
+nav#rellinks {
+    float: right;
+}
+
+nav#rellinks li+li:before {
+    content: "|";
+}
+
+nav#breadcrumbs li+li:before {
+    content: "\00BB";
+}
+
+/* Hide certain items when printing */
+@media print {
+    div.related {
+        display: none;
+    }
 }
