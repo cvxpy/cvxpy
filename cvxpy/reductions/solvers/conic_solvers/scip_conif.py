@@ -142,8 +142,6 @@ class SCIP(SCS):
         from pyscipopt.scip import Model
 
         model = Model()
-        # Pass through verbosity
-        # TODO: how to pass verbosity -> model.setParam("OutputFlag", verbose)
 
         A, b, c, dims = self._define_data(
             data=data,
@@ -293,9 +291,6 @@ class SCIP(SCS):
             sol = model.getBestSol()
             solution["primal"] = array([sol[v] for v in variables])
 
-            # Only add duals if not a MIP.
-            # Not sure why we need to negate the following,
-            # but need to in order to be consistent with other solvers.
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
                 vals = []
                 for lc in constraints:
@@ -388,7 +383,7 @@ class SCIP(SCS):
             model.addVar(
                 obj=0,
                 name="soc_t_%d" % rows[0],
-                vtype="CONTINUOUS",
+                vtype=VariableTypes.CONTINUOUS,
                 lb=0,
                 ub=None,
             )
@@ -396,7 +391,7 @@ class SCIP(SCS):
             model.addVar(
                 obj=0,
                 name="soc_x_%d" % i,
-                vtype="CONTINUOUS",
+                vtype=VariableTypes.CONTINUOUS,
                 lb=None,
                 ub=None,
             )
