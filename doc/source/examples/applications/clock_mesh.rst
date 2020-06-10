@@ -27,7 +27,7 @@ the dissipated power is equal to :math:`\mathbf{1}^T C(x) \mathbf{1}`.
 Thus to minimize the dissipated power subject to a constraint in the
 widths and a constraint in the dominant time constant, we solve the SDP
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
        \mbox{minimize}   & \mathbf{1}^T C(x) \mathbf{1}   \\

@@ -58,15 +58,22 @@ def get_parameter_vector(param_size,
     return param_vec
 
 
-def reduce_problem_data_tensor(A, var_length):
+def reduce_problem_data_tensor(A, var_length, quad_form=False):
     """Reduce a problem data tensor, for efficient construction of the problem data
 
-    The problem data tensor A is a matrix of shape (m, p), where p is the
+    If quad_form=False, the problem data tensor A is a matrix of shape (m, p), where p is the
     length of the parameter vector. The product A@param_vec gives the
     entries of the problem data matrix for a solver;
     the solver's problem data matrix has dimensions(n_constr, n_var + 1),
     and n_constr*(n_var + 1) = m. In other words, each row in A corresponds
     to an entry in the solver's data matrix.
+
+    If quad_form=True, the problem data tensor A is a matrix of shape (m, p), where p is the
+    length of the parameter vector. The product A@param_vec gives the
+    entries of the quadratic form matrix P for a QP solver;
+    the solver's quadratic matrix P has dimensions(n_var, n_var),
+    and n_var*n_var = m. In other words, each row in A corresponds
+    to an entry in the solver's quadratic form matrix P.
 
     This function removes the rows in A that are identically zero, since these
     rows correspond to zeros in the problem data. It also returns the indices
@@ -88,6 +95,7 @@ def reduce_problem_data_tensor(A, var_length):
         A : A sparse matrix, the problem data tensor; must not have a 0 in its
             shape
         var_length: number of variables in the problem
+        quad_form: (optional) if True, consider quadratic form matrix P
 
     Returns
     -------
@@ -117,13 +125,16 @@ def reduce_problem_data_tensor(A, var_length):
     reduced_A = reduced_A.tocsr()
 
     nonzero_rows = unique_old_row
-    n_constr = A.shape[0] // (var_length + 1)
-    shape = (n_constr, var_length + 1)
+    n_cols = var_length
+    # add one more column for the offset if not quad_form
+    if not quad_form:
+        n_cols += 1
+    n_constr = A.shape[0] // (n_cols)
+    shape = (n_constr, n_cols)
     indices = nonzero_rows % (n_constr)
 
     # cols holds the column corresponding to each row in nonzero_rows
     cols = nonzero_rows // n_constr
-    n_cols = shape[1]
 
     # construction of the indptr: scan through cols, and find
     # the structure of the column index pointer
@@ -182,10 +193,12 @@ def A_mapping_nonzero_rows(problem_data_tensor, var_length):
     return np.unique(A_mapping_nonzero_rows)
 
 
-def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
-                                      var_length, nonzero_rows=None,
-                                      problem_data_index=None):
-    """Applies problem_data_tensor to param_vec to obtain matrix, offset
+def get_matrix_from_tensor(problem_data_tensor, param_vec,
+                           var_length, nonzero_rows=None,
+                           with_offset=True,
+                           problem_data_index=None):
+    """Applies problem_data_tensor to param_vec to obtain matrix and (optionally)
+    the offset.
 
     This function applies problem_data_tensor to param_vec to obtain
     a matrix representation of the corresponding affine map.
@@ -200,6 +213,7 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
             corresponding to A that have nonzeros in them (i.e., rows that
             are affected by parameters); if not None, then the corresponding
             entries in A will have explicit zeros.
+        with_offset: (optional) return offset. Defaults to True.
         problem_data_index: (optional) a tuple (indices, indptr, shape) for
             construction of the CSC matrix holding the problem data and offset
 
@@ -207,6 +221,7 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
     -------
         A tuple (A, b), where A is a matrix with `var_length` columns
         and b is a flattened NumPy array representing the constant offset.
+        If with_offset=False, returned b is None.
     """
     if param_vec is None:
         flat_problem_data = problem_data_tensor
@@ -217,17 +232,25 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
     else:
         param_vec = scipy.sparse.csc_matrix(param_vec[:, None])
         flat_problem_data = problem_data_tensor @ param_vec
-            
+
 
     if problem_data_index is not None:
         indices, indptr, shape = problem_data_index
-        A_concat_b = scipy.sparse.csc_matrix(
+        M = scipy.sparse.csc_matrix(
             (flat_problem_data, indices, indptr), shape=shape)
     else:
-        A_concat_b = flat_problem_data.reshape(
-            (-1, var_length + 1), order='F').tocsc()
+        n_cols = var_length
+        if with_offset:
+            n_cols += 1
+        M = flat_problem_data.reshape((-1, n_cols), order='F').tocsc()
 
-    A = A_concat_b[:, :-1].tocsc()
+    if with_offset:
+        A = M[:, :-1].tocsc()
+        b = np.squeeze(M[:, -1].toarray().flatten())
+    else:
+        A = M.tocsc()
+        b = None
+
     if nonzero_rows is not None and nonzero_rows.size > 0:
         A_nrows, _ = A.shape
         A_rows, A_cols = nonzero_csc_matrix(A)
@@ -237,7 +260,6 @@ def get_matrix_and_offset_from_tensor(problem_data_tensor, param_vec,
         A = scipy.sparse.csc_matrix((A_vals, (A_rows, A_cols)),
                                     shape=A.shape)
 
-    b = np.squeeze(A_concat_b[:, -1].toarray().flatten())
     return (A, b)
 
 

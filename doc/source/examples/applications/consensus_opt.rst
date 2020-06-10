@@ -5,7 +5,7 @@ Consensus optimization
 Suppose we have a convex optimization problem with :math:`N` terms in
 the objective
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll} \mbox{minimize} & \sum_{i=1}^N f_i(x)\\
    \end{array}
@@ -15,7 +15,7 @@ loss function for the :math:`i`\ th block of training data.
 
 We can convert this problem into consensus form
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll} \mbox{minimize} & \sum_{i=1}^N f_i(x_i)\\
    \mbox{subject to} & x_i = z
@@ -30,7 +30,7 @@ We can solve a problem in consensus form using the Alternating Direction
 Method of Multipliers (ADMM). Each iteration of ADMM reduces to the
 following updates:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{lll}
    % xbar, u parameters in prox.

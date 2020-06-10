@@ -881,7 +881,7 @@ The full set of reductions available is discussed in :ref:`reductions-api`.
 
 Disciplined Parametrized Programming
 ------------------------------------
-*Note: DPP requires CVXPY >= 1.1.0a0.*
+*Note: DPP requires CVXPY version 1.1.0 or greater.*
 
 :py:class:`Parameters <cvxpy.expressions.constants.parameter.Parameter>` are
 symbolic representations of constants. Using parameters lets you modify the
@@ -903,9 +903,6 @@ is solved, CVXPY compiles it and caches the mapping from parameters to problem
 data. As a result, subsequent rewritings of DPP problems can be substantially
 faster. CVXPY allows you to solve parametrized problems that are not DPP, but
 you won't see a speed-up when doing so.
-
-Currently, only problems that are solved by conic solvers (such as ECOS, SCS,
-and MOSEK), will see a speed-up with DPP.
 
 The DPP ruleset
 ^^^^^^^^^^^^^^^
@@ -1103,8 +1100,7 @@ you could rewrite the above program as the following DPP-complaint program
 Repeatedly solving a DPP problem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The following example demonstrates how parameters can speed-up repeated
-solves of a DPP-compliant DCP problem. (Similar speed-ups can be obtained for
-DGP problems.)
+solves of a DPP-compliant DCP problem.
 
 .. code:: python3
 
@@ -1133,12 +1129,12 @@ DGP problems.)
     for val in gamma_vals:
         gamma.value = val
         start = time.time()
-        problem.solve(cp.SCS)
+        problem.solve()
         end = time.time()
         times.append(end - start)
         new_problem = cp.Problem(obj)
         start = time.time()
-        new_problem.solve(cp.SCS)
+        new_problem.solve()
         end = time.time()
         new_problem_times.append(end - start)
 
@@ -1153,11 +1149,14 @@ DGP problems.)
 
 .. image:: advanced_files/resolving_dpp.png
 
+Similar speed-ups can be obtained for DGP problems.
+
 .. _derivatives:
+
 
 Sensitivity analysis and gradients
 ------------------------------------
-*Note: This feature requires CVXPY >= 1.1.0a0.*
+*Note: This feature requires CVXPY version 1.1.0 or greater.*
 
 An optimization problem can be viewed as a function mapping parameters
 to solutions. This solution map is sometimes differentiable. CVXPY

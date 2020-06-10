@@ -30,7 +30,6 @@ from cvxpy.reductions.utilities import (are_args_affine,
 import cvxpy.settings as s
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
-import scipy.sparse as sp
 
 
 class ConeDims(object):
@@ -111,7 +110,33 @@ class ParamQuadProg(ParamProb):
         self.q = q
         self.x = x
         self.A = A
+
+        # Form a reduced representation of A, for faster application of
+        # parameters.
+        if np.prod(A.shape) != 0:
+            reduced_A, indices, indptr, shape = (
+                canonInterface.reduce_problem_data_tensor(A, self.x.size)
+            )
+            self.reduced_A = reduced_A
+            self.problem_data_index_A = (indices, indptr, shape)
+        else:
+            self.reduced_A = A
+            self.problem_data_index_A = None
         self._A_mapping_nonzero = None
+
+        # Form a reduced representation of P, for faster application of
+        # parameters.
+        if np.prod(P.shape) != 0:
+            reduced_P, indices, indptr, shape = (
+                canonInterface.reduce_problem_data_tensor(P, self.x.size, quad_form=True)
+            )
+            self.reduced_P = reduced_P
+            self.problem_data_index_P = (indices, indptr, shape)
+        else:
+            self.reduced_P = P
+            self.problem_data_index_P = None
+        self._P_mapping_nonzero = None
+
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
         self.parameters = parameters
@@ -152,26 +177,26 @@ class ParamQuadProg(ParamProb):
             param_value,
             zero_offset=zero_offset)
 
-        # TODO special code to handle P in canonInterface.
-        if param_vec is None:
-            tensor_application = self.P
-        else:
-            if sp.issparse(self.P):
-                tensor_application = self.P @ sp.csc_matrix(param_vec[:, None])
-            else:
-                tensor_application = self.P @ param_vec
-        P = tensor_application.reshape(
-            (self.x.size, self.x.size), order='F').tocsc()
+        if keep_zeros and self._P_mapping_nonzero is None:
+            self._P_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
+                self.P, self.x.size)
+        P, _ = canonInterface.get_matrix_from_tensor(
+            self.reduced_P, param_vec, self.x.size,
+            nonzero_rows=self._P_mapping_nonzero,
+            with_offset=False,
+            problem_data_index=self.problem_data_index_P)
 
-        q, d = canonInterface.get_matrix_and_offset_from_tensor(
-            self.q, param_vec, self.x.size)
+        q, d = canonInterface.get_matrix_from_tensor(
+            self.q, param_vec, self.x.size, with_offset=True)
         q = q.toarray().flatten()
         if keep_zeros and self._A_mapping_nonzero is None:
             self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
                 self.A, self.x.size)
-        A, b = canonInterface.get_matrix_and_offset_from_tensor(
-            self.A, param_vec, self.x.size,
-            nonzero_rows=self._A_mapping_nonzero)
+        A, b = canonInterface.get_matrix_from_tensor(
+            self.reduced_A, param_vec, self.x.size,
+            nonzero_rows=self._A_mapping_nonzero,
+            with_offset=True,
+            problem_data_index=self.problem_data_index_A)
         return P, q, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delP, delq, delA, delb, active_params=None):
