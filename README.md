@@ -56,9 +56,14 @@ many people, across many institutions and countries.
 
 
 ## Installation
-CVXPY is available on pip, and can be installed with
+CVXPY is available on PyPI, and can be installed with
 ```
 pip install cvxpy
+```
+
+CVXPY can also be installed with conda, using
+```
+conda install -c conda-forge cvxpy
 ```
 
 CVXPY has the following dependencies:
