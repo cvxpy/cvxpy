@@ -37,7 +37,7 @@ performed by bisection, where the interval which contains the optimal
 value is bisected according to the result of the following feasibility
 problem:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
    \mbox{minimize}   &  0 \\
@@ -56,7 +56,7 @@ the antenna array configuration and specs.
 Once the optimal beamwidth is found, the solution :math:`w` is refined
 with the following optimization:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
    \mbox{minimize}   &  \|w\| \\

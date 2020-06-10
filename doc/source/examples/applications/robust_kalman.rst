@@ -17,7 +17,7 @@ A discrete-time linear dynamical system consists of a sequence of state
 vectors :math:`x_t \in \mathbf{R}^n`, indexed by time
 :math:`t \in \lbrace 0, \ldots, N-1 \rbrace` and dynamics equations
 
-.. raw:: latex
+.. math::
 
    \begin{align}
    x_{t+1} &= Ax_t + Bw_t\\
@@ -40,7 +40,7 @@ Kalman filtering
 A Kalman filter estimates :math:`x_t` by solving the optimization
 problem
 
-.. raw:: latex
+.. math:: 
 
    \begin{array}{ll}
    \mbox{minimize} & \sum_{t=0}^{N-1} \left( 
@@ -69,7 +69,7 @@ To handle outliers in :math:`v_t`, robust Kalman filtering replaces the
 quadratic cost with a Huber cost, which results in the convex
 optimization problem
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
    \mbox{minimize} & \sum_{t=0}^{N-1} \left( \|w_t\|^2_2 + \tau \phi_\rho(v_t) \right)\\

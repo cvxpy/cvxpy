@@ -18,7 +18,7 @@ absolute error (Chebychev norm). This is a convex problem (after
 sampling it can be formulated as an SOCP), which may be written in the
 form:
 
-.. raw:: latex
+.. math::
 
    \begin{array}{ll}
        \mbox{minimize}   &  \max |H(\omega) - H_\mbox{des}(\omega)| 

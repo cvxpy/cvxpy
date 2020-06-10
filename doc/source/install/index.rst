@@ -3,35 +3,32 @@
 Install
 =======
 
+CVXPY supports Python 3 on Linux, macOS, and Windows. You can use
+pip or conda for installation. You may want to isolate
+your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_,
+or a conda environment.
 
-Linux, macOS, and Windows
--------------------------
+pip
+---
 
-CVXPY supports Python 3 on Linux, macOS, and Windows. We recommend using
-pip for installation. You may want to isolate
-your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
-If you prefer `conda`_ to `pip`_, see the
-:ref:`conda installation guide <conda-installation>`.
+(Windows only) Download the Visual Studio build tools for Python 3
+(`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
+`install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
 
-1. (Windows only) Download the Visual Studio build tools for Python 3
-   (`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
-   `install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
+(macOS only) Install the Xcode command line tools.
 
-2. Install ``cvxpy``.
+(optional) Create and activate a virtual environment
+
+1. Install ``cvxpy``.
   ::
 
       pip install cvxpy
 
-3. Test the installation with ``nose``.
+2. Test the installation with ``nose``.
   ::
 
       pip install nose
       nosetests cvxpy
-
-Other Platforms
----------------
-
-The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms>`_ for instructions for your platform.
 
 .. _conda-installation:
 
@@ -40,26 +37,24 @@ conda
 
 `conda`_ is a system for package and environment management.
 
+(Windows only) Download the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
+
 1. Install `conda`_.
 
-2. Install `pip`_ and ``setuptools`` with ``conda``.
+2. Create a new conda environment,
+  ::
 
+      conda create --name cvxpy
+      conda activate cvxpy
+
+ or activate an existing one
+
+3. Install ``cvxpy`` from `conda-forge <https://conda-forge.org/>`_
    ::
 
-      conda install pip
-      pip install --upgrade setuptools
+      conda install -c conda-forge cvxpy
 
-3. (Windows only) Download the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
-   
-
-4. Install ``cvxpy`` with `pip`_ inside `conda`_.
-
-   ::
-
-      pip install cvxpy
-
-5. Test the installation with ``nose``.
-
+4. Test the installation with ``nose``.
   ::
 
        conda install nose

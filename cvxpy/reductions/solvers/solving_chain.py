@@ -161,11 +161,11 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
     if not problem.is_dpp(dpp_context):
         if not enforce_dpp:
             warnings.warn(dpp_error_msg)
-            reductions += [EvalParams()]
+            reductions = [EvalParams()] + reductions
         else:
             raise DPPError(dpp_error_msg)
     elif any(param.is_complex() for param in problem.parameters()):
-        reductions += [EvalParams()]
+        reductions = [EvalParams()] + reductions
 
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
