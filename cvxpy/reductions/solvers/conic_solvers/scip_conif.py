@@ -21,7 +21,8 @@ from numpy import array, ndarray
 from scipy.sparse import dok_matrix
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC
+from cvxpy import Zero
+from cvxpy.constraints import ExpCone, NonNeg, SOC
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
@@ -75,7 +76,7 @@ class VariableTypes:
     CONTINUOUS = "CONTINUOUS"
 
 
-class SCIP(SCS):
+class SCIP(ConicSolver):
     """An interface to the SCIP solver."""
 
     MIP_CAPABLE = True
@@ -93,7 +94,30 @@ class SCIP(SCS):
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""
 
-        data, inv_data = super(SCIP, self).apply(problem)
+        # Create data and inv_data objects
+        data = {}
+        inv_data = {self.VAR_ID: problem.x.id}
+        if not problem.formatted:
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
+        data[self.DIMS] = problem.cone_dims
+        inv_data[self.DIMS] = problem.cone_dims
+
+        constr_map = problem.constr_map
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
+                                    constr_map[s.PSD] + constr_map[ExpCone]
+
+        # Apply parameter values.
+        # Obtain A, b such that Ax + s = b, s \in cones.
+        c, d, A, b = problem.apply_parameters()
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A
+        data[s.B] = b
+        # return data, inv_data
+
+        # data, inv_data = super(SCIP, self).apply(problem)
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
