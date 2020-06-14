@@ -166,34 +166,12 @@ class SCIP(ConicSolver):
         from pyscipopt.scip import Model
 
         model = Model()
+        A, b, c, dims = self._define_data(data)
+        variables = self._create_variables(model, data, c)
+        constraints = self._add_constraints(model, variables, A, b, dims)
+        self._set_params(model, verbose, solver_opts)
+        solution = self._solve(model, variables, constraints, data, dims)
 
-        A, b, c, dims = self._define_data(
-            data=data,
-        )
-        variables = self._create_variables(
-            model=model,
-            data=data,
-            c=c
-        )
-        constraints = self._add_constraints(
-            model=model,
-            variables=variables,
-            A=A,
-            b=b,
-            dims=dims,
-        )
-        self._set_params(
-            model=model,
-            verbose=verbose,
-            solver_opts=solver_opts,
-        )
-        solution = self._solve(
-            model=model,
-            variables=variables,
-            constraints=constraints,
-            data=data,
-            dims=dims,
-        )
         return solution
 
     def _define_data(self, data: Dict[str, Any]) -> Tuple:
