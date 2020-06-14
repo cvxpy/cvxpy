@@ -19,6 +19,7 @@ import unittest
 
 import numpy as np
 import scipy.linalg as la
+from nose.tools import assert_raises
 
 import cvxpy as cp
 from cvxpy.error import SolverError
@@ -1029,6 +1030,53 @@ class TestSCIP(unittest.TestCase):
 
     def test_scip_mi_lp_2(self):
         StandardTestLPs.test_mi_lp_2(solver="SCIP")
+
+    def get_simple_problem(self):
+        """Example problem that can be used within additional tests."""
+        x = cp.Variable()
+        y = cp.Variable()
+        constraints = [
+            x >= 0,  # x must be positive
+            y >= 1,  # y must be greater or equal to 1
+            x + y <= 4
+        ]
+        obj = cp.Maximize(x)
+        prob = cp.Problem(obj, constraints)
+        return prob
+
+    def test_scip_test_params__no_params_set(self):
+        prob = self.get_simple_problem()
+        prob.solve(solver="SCIP")
+        # Important that passes without raising an error also check obj.
+        assert prob.value == 3
+
+    def test_scip_test_params__valid_params(self):
+        prob = self.get_simple_problem()
+        prob.solve(solver="SCIP", gp=False)
+        # Important that passes without raising an error also check obj.
+        assert prob.value == 3
+
+    def test_scip_test_params__valid_scip_params(self):
+        prob = self.get_simple_problem()
+        prob.solve(solver="SCIP", scip_params={"lp/fastmip": 1, "limits/gap": 0.1})
+        # Important that passes without raising an error also check obj.
+        assert prob.value == 3
+
+    def test_scip_test_params__invalid_params(self):
+        prob = self.get_simple_problem()
+        # Since an invalid NON-scip param is passed, an error is expected
+        # to be raised when calling solve.
+        with assert_raises(KeyError) as ke:
+            prob.solve(solver="SCIP", a="what?")
+            assert ke.exception == "One or more solver params in ['a'] are not valid: 'Not a valid parameter name'"
+
+    def test_scip_test_params__invalid_scip_params(self):
+        prob = self.get_simple_problem()
+        # Since an invalid SCIP param is passed, an error is expected
+        # to be raised when calling solve.
+        with assert_raises(KeyError) as ke:
+            prob.solve(solver="SCIP", scip_params={"a": "what?"})
+            assert ke.exception == "One or more scip params in ['a'] are not valid: 'Not a valid parameter name'"
 
 
 class TestAllSolvers(BaseTest):

@@ -271,9 +271,30 @@ class SCIP(ConicSolver):
         hide_output = not verbose
         model.hideOutput(hide_output)
 
-        # User-input parameters
+        # General kwarg params
+        scip_params = solver_opts.pop("scip_params", {})
         if solver_opts:
-            model.setParams(**solver_opts)
+            try:
+                model.setParams(solver_opts)
+            except KeyError as e:
+                raise KeyError(
+                    "One or more solver params in {} are not valid: {}".format(
+                        list(solver_opts.keys()),
+                        e,
+                    )
+                )
+
+        # Scip specific params
+        if scip_params:
+            try:
+                model.setParams(scip_params)
+            except KeyError as e:
+                raise KeyError(
+                    "One or more scip params in {} are not valid: {}".format(
+                        list(scip_params.keys()),
+                        e,
+                    )
+                )
 
     def _solve(
             self,
