@@ -401,25 +401,17 @@ class SCIP(ConicSolver):
                 pass
 
         # Make a variable and equality constraint for each term.
-        soc_vars = [
-            # TODO: Check not a gurobi thing? i.e just the first with lb=0
-            model.addVar(
+        soc_vars = []
+        for i in rows:
+            lb = 0 if len(soc_vars) == 0 else None
+            var = model.addVar(
                 obj=0,
-                name="soc_t_%d" % rows[0],
+                name="soc_t_%d" % i,
                 vtype=VariableTypes.CONTINUOUS,
-                lb=0,
+                lb=lb,
                 ub=None,
             )
-        ] + [
-            model.addVar(
-                obj=0,
-                name="soc_x_%d" % i,
-                vtype=VariableTypes.CONTINUOUS,
-                lb=None,
-                ub=None,
-            )
-            for i in rows[1:]
-        ]
+            soc_vars.append(var)
 
         lin_expr_list = [
             b[i] - quicksum(coeff * var for coeff, var in expr_list[i])
