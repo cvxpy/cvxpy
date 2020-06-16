@@ -13,11 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import warnings
+
+
 import cvxpy.settings as s
 import cvxpy.error as error
 import cvxpy.problems as problems
 from cvxpy.problems.objective import Minimize
-from cvxpy.reductions import solution as solution_module
+from cvxpy.reductions.solution import failure_solution
 
 
 def _lower_problem(problem):
@@ -33,7 +36,10 @@ def _lower_problem(problem):
 def _solve(problem, solver):
     if problem is None:
         return
-    problem.solve(solver=solver)
+    with warnings.catch_warnings():
+        # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
+        warnings.filterwarnings('ignore', message=r'.*DPP.*')
+        problem.solve(solver=solver)
 
 
 def _infeasible(problem):
@@ -41,6 +47,11 @@ def _infeasible(problem):
                                                  s.INFEASIBLE_INACCURATE)
 
 
+# TODO(akshayka): Eliminate the need for reconstructing the problem
+# (via _lower_problem). Right now, some constraints are lazy, namely the
+# callable constraints, because for certain values of the parameters they
+# become invalidated. Either support lazy constraints that do not need
+# recompilation, or (if possible) find rewritings that 'just work'.
 def _find_bisection_interval(problem, t, solver=None, low=None, high=None,
                              max_iters=100):
     """Finds an interval for bisection."""
@@ -168,7 +179,7 @@ def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
     if _infeasible(lowered_feas):
         if verbose:
             print("Problem is infeasible.")
-        return solution_module.failure_solution(s.INFEASIBLE)
+        return failure_solution(s.INFEASIBLE)
 
     if low is None or high is None:
         if verbose:

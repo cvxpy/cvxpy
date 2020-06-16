@@ -27,7 +27,15 @@ from scipy.sparse import dok_matrix
 
 
 class GUROBI(SCS):
-    """An interface for the Gurobi solver.
+    """
+    An interface for the Gurobi solver.
+
+    * WARNING * This implementation takes an inadvisable approach by directly
+    inheriting from a concrete solver (SCS). This implementation should not be
+    used as a reference when writing other solver interfaces.
+
+    TODO: simplify this file so it doesn't inherit from SCS; see gurobi_qpif.py
+        for a very clean implementation of a quadratic programming interface.
     """
 
     # Solver capabilities.
@@ -149,6 +157,9 @@ class GUROBI(SCS):
         n = c.shape[0]
 
         model = gurobipy.Model()
+        # Pass through verbosity
+        model.setParam("OutputFlag", verbose)
+
         variables = []
         for i in range(n):
             # Set variable type.
@@ -193,16 +204,13 @@ class GUROBI(SCS):
             variables += new_vars
             soc_start += constr_len
 
-        gur_constrs = eq_constrs + ineq_constrs + \
-            soc_constrs + new_leq_constrs
+        gur_constrs = eq_constrs + ineq_constrs + new_leq_constrs + soc_constrs
         model.update()
 
-        # Set verbosity and other parameters
-        model.setParam("OutputFlag", verbose)
+        # Set parameters
         # TODO user option to not compute duals.
         model.setParam("QCPDual", True)
-
-        for key, value in list(solver_opts.items()):
+        for key, value in solver_opts.items():
             model.setParam(key, value)
 
         solution = {}

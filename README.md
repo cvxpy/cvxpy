@@ -3,9 +3,9 @@ CVXPY
 [![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.org/cvxgrp/cvxpy)
 [![Build status](https://ci.appveyor.com/api/projects/status/jo7tkvc58c3hgfd7?svg=true)](https://ci.appveyor.com/project/StevenDiamond/cvxpy)
 
-**Join the [CVXPY mailing list](https://groups.google.com/forum/#!forum/cvxpy), and use the [issue tracker](https://github.com/cvxgrp/cvxpy/issues) and [StackOverflow](https://stackoverflow.com/questions/tagged/cvxpy) for the best support.**
-
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
+
+**Join the [CVXPY mailing list](https://groups.google.com/forum/#!forum/cvxpy), and use the [issue tracker](https://github.com/cvxgrp/cvxpy/issues) and [StackOverflow](https://stackoverflow.com/questions/tagged/cvxpy) for the best support.**
 
 - [Installation](#installation)
 - [Getting started](#getting-started)
@@ -19,7 +19,7 @@ CVXPY is a Python-embedded modeling language for convex optimization problems. I
 
 For example, the following code solves a least-squares problem where the variable is constrained by lower and upper bounds:
 
-```python
+```python3
 import cvxpy as cp
 import numpy
 
@@ -56,9 +56,14 @@ many people, across many institutions and countries.
 
 
 ## Installation
-CVXPY is available on pip, and can be installed with
+CVXPY is available on PyPI, and can be installed with
 ```
 pip install cvxpy
+```
+
+CVXPY can also be installed with conda, using
+```
+conda install -c conda-forge cvxpy
 ```
 
 CVXPY has the following dependencies:
@@ -73,8 +78,6 @@ CVXPY has the following dependencies:
 
 For detailed instructions, see the [installation
 guide](https://www.cvxpy.org/install/index.html).
-
-**Python 2.7 end of life**: The CVXPY development team will stop supporting python 2.7 and python 3.4, starting when CVXPY version 1.1 is released.
 
 ## Getting started
 To get started with CVXPY, check out the following:

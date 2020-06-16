@@ -22,7 +22,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 sys.path.append('/home/docs/checkouts/readthedocs.org/user_builds/cvxpy/checkouts/1.0/cvxpy')
 
-__version__ = "1.1.0a3"
+__version__ = "1.1.1"
 
 # -- General configuration -----------------------------------------------------
 
@@ -75,7 +75,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'CVXPY'
-copyright = u'2019, The CVXPY authors'
+copyright = u'2020, The CVXPY authors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

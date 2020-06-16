@@ -87,7 +87,7 @@ class Constraint(u.Canonical, metaclass=abc.ABCMeta):
         return any(arg.is_complex() for arg in self.args)
 
     @abc.abstractmethod
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """Checks whether the constraint is DCP.
 
         Returns
@@ -98,7 +98,7 @@ class Constraint(u.Canonical, metaclass=abc.ABCMeta):
         return NotImplemented
 
     @abc.abstractmethod
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         """Checks whether the constraint is DGP.
 
         Returns
@@ -107,6 +107,14 @@ class Constraint(u.Canonical, metaclass=abc.ABCMeta):
             True if the constraint is DGP, False otherwise.
         """
         return NotImplemented
+
+    def is_dpp(self, context='dcp'):
+        if context.lower() == 'dcp':
+            return self.is_dcp(dpp=True)
+        elif context.lower() == 'dgp':
+            return self.is_dgp(dpp=True)
+        else:
+            raise ValueError("Unsupported context ", context)
 
     @abc.abstractproperty
     def residual(self):

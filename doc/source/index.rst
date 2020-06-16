@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CVXPY 1.0
+Welcome to CVXPY 1.1
 ====================
 
 **Convex optimization, for everyone.**
@@ -55,9 +55,10 @@ more.
 
 **News.**
 
-* CVXPY v1.1.a1 (which is an alpha version) has been released. This version makes
-  repeatedly canonicalizing parametrized problems much faster than before. See
-  the tutorial on :ref:`dpp` for more information.
+* CVXPY v1.1.0 has been released. This version makes
+  repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
+  allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
+  some new atoms. See :ref:`updates` for more information.
 
 * CVXPY v1.0.24 supports
   `disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_,
@@ -84,16 +85,16 @@ background on convex optimization, see the book `Convex Optimization
 
 **Development.**
 
-CVXPY began as a Stanford University :doc:`research project </citing/index>`.
-Today, CVXPY is a community project, built from the contributions of many
+CVXPY is a community project, built from the contributions of many
 researchers and engineers.
 
 CVXPY is developed and maintained by
-`Steven Diamond <http://web.stanford.edu/~stevend2/>`_ and
-`Akshay Agrawal <https://akshayagrawal.com>`_, with many others contributing
+`Steven Diamond <http://web.stanford.edu/~stevend2/>`_,
+`Akshay Agrawal <https://akshayagrawal.com>`_, and
+`Riley Murray <https://rileyjmurray.wordpress.com/>`_, with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
-Riley Murray, Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing

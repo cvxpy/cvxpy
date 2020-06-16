@@ -21,6 +21,9 @@ import numpy as np
 
 def parameter_canon(expr, args):
     del args
-    param = Parameter(expr.shape, name=expr.name)
+    # NB: we do _not_ reuse the original parameter's id. This is important,
+    # because we want to distinguish between parameters in the DGP problem
+    # and parameters in the DCP problem (for differentiation)
+    param = Parameter(expr.shape, name=expr.name())
     param.value = np.log(expr.value)
     return param, []

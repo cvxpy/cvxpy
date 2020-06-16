@@ -17,7 +17,7 @@ limitations under the License.
 
 import abc
 
-from cvxpy.reductions import Reduction
+from cvxpy.reductions.reduction import Reduction
 
 import numpy as np
 

@@ -8,6 +8,7 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.geo_mean import geo_mean
+from cvxpy.atoms.gmatmul import gmatmul
 from cvxpy.atoms.one_minus_pos import one_minus_pos
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
 from cvxpy.atoms.max import max
@@ -29,13 +30,13 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.div_canon import div_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.exp_canon import exp_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.eye_minus_inv_canon import eye_minus_inv_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.geo_mean_canon import geo_mean_canon
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.gmatmul_canon import gmatmul_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.log_canon import log_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mul_canon import mul_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.mulexpression_canon import mulexpression_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm1_canon import norm1_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.norm_inf_canon import norm_inf_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.one_minus_pos_canon import one_minus_pos_canon
-from cvxpy.reductions.dgp2dcp.atom_canonicalizers.parameter_canon import parameter_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pf_eigenvalue_canon import pf_eigenvalue_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.pnorm_canon import pnorm_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.power_canon import power_canon
@@ -45,8 +46,9 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_over_lin_canon import qua
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import trace_canon
 
+import numpy as np
 
-# TODO(akshayka): Implement sum_largest/smallest.
+
 CANON_METHODS = {
     AddExpression : add_canon,
     Constant : constant_canon,
@@ -54,13 +56,13 @@ CANON_METHODS = {
     exp : exp_canon,
     eye_minus_inv : eye_minus_inv_canon,
     geo_mean : geo_mean_canon,
+    gmatmul : gmatmul_canon,
     log : log_canon,
     MulExpression : mulexpression_canon,
     multiply : mul_canon,
     norm1 : norm1_canon,
     norm_inf : norm_inf_canon,
     one_minus_pos : one_minus_pos_canon,
-    Parameter : parameter_canon,
     pf_eigenvalue : pf_eigenvalue_canon,
     pnorm : pnorm_canon,
     power : power_canon, 
@@ -70,6 +72,7 @@ CANON_METHODS = {
     trace : trace_canon,
     Sum : sum_canon,
     Variable : None,
+    Parameter : None,
 }
 
 CANON_METHODS[max] = PWL_METHODS[max]
@@ -77,12 +80,12 @@ CANON_METHODS[min] = PWL_METHODS[min]
 CANON_METHODS[maximum] = PWL_METHODS[maximum]
 CANON_METHODS[minimum] = PWL_METHODS[minimum]
 
-# Canonicalization of DGPs is a stateful procedure, hence the need
-# for a class.
+# Canonicalization of DGPs is a stateful procedure, hence the need for a class.
 class DgpCanonMethods(dict):
     def __init__(self, *args, **kwargs):
         super(DgpCanonMethods, self).__init__(*args, **kwargs)
         self._variables = {}
+        self._parameters = {}
 
     def __contains__(self, key):
         return key in CANON_METHODS
@@ -90,6 +93,8 @@ class DgpCanonMethods(dict):
     def __getitem__(self, key):
         if key == Variable:
             return self.variable_canon
+        elif key == Parameter:
+            return self.parameter_canon
         else:
             return CANON_METHODS[key]
 
@@ -102,3 +107,14 @@ class DgpCanonMethods(dict):
             log_variable =  Variable(variable.shape, var_id=variable.id)
             self._variables[variable] = log_variable
             return log_variable, []
+
+    def parameter_canon(self, parameter, args):
+        del args
+        # Swaps out positive parameters for unconstrained variables.
+        if parameter in self._parameters:
+            return self._parameters[parameter], []
+        else:
+            log_parameter = Parameter(parameter.shape, name=parameter.name(),
+                                      value=np.log(parameter.value))
+            self._parameters[parameter] = log_parameter
+            return log_parameter, []

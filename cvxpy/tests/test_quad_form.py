@@ -105,7 +105,9 @@ class TestNonOptimal(BaseTest):
         cost = cvxpy.quad_form(x, P)
         P.value = Q
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
-        self.assertAlmostEqual(prob.solve(), 5)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            self.assertAlmostEqual(prob.solve(), 5)
 
     def test_non_symmetric(self):
         """Test when P is constant and not symmetric.
@@ -143,8 +145,8 @@ class TestNonOptimal(BaseTest):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             cost = cvxpy.quad_form(x, P)
-        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
-        prob.solve()
+            prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
+            prob.solve()
 
     def test_nsd_exactly_tolerance(self):
         """Test that NSD check when eigenvalue is exactly EIGVAL_TOL
@@ -155,8 +157,8 @@ class TestNonOptimal(BaseTest):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             cost = cvxpy.quad_form(x, P)
-        prob = cvxpy.Problem(cvxpy.Maximize(cost), [x == [1, 2]])
-        prob.solve()
+            prob = cvxpy.Problem(cvxpy.Maximize(cost), [x == [1, 2]])
+            prob.solve()
 
     def test_obj_eval(self):
         """Test case where objective evaluation differs from result.

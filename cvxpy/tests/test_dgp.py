@@ -1,5 +1,6 @@
 import cvxpy
 from cvxpy.tests.base_test import BaseTest
+import numpy as np
 
 
 class TestDgp(BaseTest):
@@ -160,3 +161,44 @@ class TestDgp(BaseTest):
     def test_builtin_sum(self):
         x = cvxpy.Variable(2, pos=True)
         self.assertTrue(sum(x).is_log_log_convex())
+
+    def test_gmatmul(self):
+        x = cvxpy.Variable(2, pos=True)
+        A = cvxpy.Variable((2, 2))
+        with self.assertRaises(Exception) as cm:
+            cvxpy.gmatmul(A, x)
+        self.assertTrue(str(cm.exception) ==
+                        "gmatmul(A, X) requires that A be constant.")
+
+        x = cvxpy.Variable(2)
+        A = np.ones((4, 2))
+        with self.assertRaises(Exception) as cm:
+            cvxpy.gmatmul(A, x)
+        self.assertTrue(str(cm.exception) ==
+                        "gmatmul(A, X) requires that X be positive.")
+
+        x = cvxpy.Variable(3, pos=True)
+        A = np.ones((4, 3))
+        gmatmul = cvxpy.gmatmul(A, x)
+        self.assertTrue(gmatmul.is_dgp())
+        self.assertTrue(gmatmul.is_log_log_affine())
+        self.assertTrue(gmatmul.is_log_log_convex())
+        self.assertTrue(gmatmul.is_log_log_concave())
+        self.assertTrue(gmatmul.is_nonneg())
+        self.assertTrue(gmatmul.is_incr(0))
+        self.assertTrue(cvxpy.gmatmul(-A, x).is_decr(0))
+
+        x = cvxpy.Variable((2, 3), pos=True)
+        A = np.array([[2., -1.], [0., 3.]])
+        gmatmul = cvxpy.gmatmul(A, x)
+        self.assertTrue(gmatmul.is_dgp())
+        self.assertTrue(gmatmul.is_log_log_affine())
+        self.assertTrue(gmatmul.is_log_log_convex())
+        self.assertTrue(gmatmul.is_log_log_concave())
+        self.assertFalse(gmatmul.is_incr(0))
+        self.assertFalse(gmatmul.is_decr(0))
+
+    def test_power_sign(self):
+        x = cvxpy.Variable(pos=True)
+        self.assertTrue((x**1).is_nonneg())
+        self.assertFalse((x**1).is_nonpos())

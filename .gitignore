@@ -52,3 +52,7 @@ env_*
 
 # VS Code
 .vscode/
+.eggs
+venv/
+pip-wheel-metadata/
+tags

@@ -200,7 +200,14 @@ def get_status(model):
 
 
 class CPLEX(SCS):
-    """An interface for the CPLEX solver."""
+    """An interface for the CPLEX solver.
+
+    * WARNING * This implementation takes an inadvisable approach by directly
+    inheriting from a concrete solver (SCS). This implementation should not be
+    used as a reference when writing other solver interfaces.
+
+    TODO: simplify this file so it doesn't inherit from SCS.
+    """
 
     # Solver capabilities.
     MIP_CAPABLE = True
@@ -444,10 +451,9 @@ class CPLEX(SCS):
             # Ignore empty constraints.
             if ind:
                 lin_expr_list.append((ind, val))
-                lin_rhs.append(vec[i])
             else:
                 lin_expr_list.append(None)
-                lin_rhs.append(0.0)
+            lin_rhs.append(vec[i])
 
         # Make a variable and equality constraint for each term.
         soc_vars, is_first = [], True

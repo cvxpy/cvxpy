@@ -16,6 +16,7 @@ limitations under the License.
 
 # Only need Variable from expressions, but that would create a circular import.
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities import scopes
 import numpy as np
 
 
@@ -43,14 +44,14 @@ class NonPos(Constraint):
     def name(self):
         return "%s <= 0" % self.args[0]
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """A non-positive constraint is DCP if its argument is convex."""
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_convex()
         return self.args[0].is_convex()
 
-    def is_dpp(self):
-        return self.is_dcp() and self.args[0].is_dpp()
-
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
         return False
 
     def is_dqcp(self):
@@ -68,14 +69,83 @@ class NonPos(Constraint):
             return None
         return np.maximum(self.expr.value, 0)
 
+    def violation(self):
+        res = self.residual
+        if res is None:
+            raise ValueError("Cannot compute the violation of an constraint "
+                             "whose expression is None-valued.")
+        viol = np.linalg.norm(res, ord=2)
+        return viol
+
+
+class NonNeg(Constraint):
+    """A constraint of the form :math:`x \\geq 0`.
+
+    This class was created to account for the fact that the
+    ConicSolver interface returns matrix data stated with respect
+    to the nonnegative orthant, rather than the nonpositive orthant.
+
+    This class can be removed if the behavior of ConicSolver is
+    changed. However the current behavior of ConicSolver means
+    CVXPY's dual variable and Lagrangian convention follows the
+    most common convention in the literature.
+
+    Parameters
+    ----------
+    expr : Expression
+        The expression to constrain.
+    constr_id : int
+        A unique id for the constraint.
+    """
+    def __init__(self, expr, constr_id=None):
+        super(NonNeg, self).__init__([expr], constr_id)
+
+    def name(self):
+        return "0 <= %s" % self.args[0]
+
+    def is_dcp(self, dpp=False):
+        """A non-negative constraint is DCP if its argument is concave."""
+        if dpp:
+            with scopes.dpp_scope():
+                return self.args[0].is_concave()
+        return self.args[0].is_concave()
+
+    def is_dgp(self, dpp=False):
+        return False
+
+    def is_dqcp(self):
+        return self.args[0].is_quasiconcave()
+
+    @property
+    def residual(self):
+        """The residual of the constraint.
+
+        Returns
+        ---------
+        NumPy.ndarray
+        """
+        if self.expr.value is None:
+            return None
+        return np.abs(np.minimum(self.expr.value, 0))
+
+    def violation(self):
+        res = self.residual
+        if res is None:
+            raise ValueError("Cannot compute the violation of an constraint "
+                             "whose expression is None-valued.")
+        viol = np.linalg.norm(res, ord=2)
+        return viol
+
 
 class Inequality(Constraint):
     """A constraint of the form :math:`x \\leq y`.
 
     Parameters
     ----------
-    expr : Expression
-        The expression to constrain.
+    lhs : Expression
+        The expression to be upper-bounded by rhs
+    rhs : Expression
+        The expression to be lower-bounded by lhs
     constr_id : int
         A unique id for the constraint.
     """
@@ -106,16 +176,28 @@ class Inequality(Constraint):
         """int : The size of the constrained expression."""
         return self.expr.size
 
-    def is_dcp(self):
+    def is_dcp(self, dpp=False):
         """A non-positive constraint is DCP if its argument is convex."""
+        if dpp:
+            with scopes.dpp_scope():
+                return self.expr.is_convex()
         return self.expr.is_convex()
 
-    def is_dpp(self):
-        return self.is_dcp() and self.expr.is_dpp()
-
-    def is_dgp(self):
+    def is_dgp(self, dpp=False):
+        if dpp:
+            with scopes.dpp_scope():
+                return (self.args[0].is_log_log_convex() and
+                        self.args[1].is_log_log_concave())
         return (self.args[0].is_log_log_convex() and
                 self.args[1].is_log_log_concave())
+
+    def is_dpp(self, context='dcp'):
+        if context.lower() == 'dcp':
+            return self.is_dcp(dpp=True)
+        elif context.lower() == 'dgp':
+            return self.is_dgp(dpp=True)
+        else:
+            raise ValueError('Unsupported context ', context)
 
     def is_dqcp(self):
         return (

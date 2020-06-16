@@ -18,6 +18,7 @@ from cvxpy.atoms.dist_ratio import dist_ratio
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv, resolvent
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.gen_lambda_max import gen_lambda_max
+from cvxpy.atoms.gmatmul import gmatmul
 from cvxpy.atoms.harmonic_mean import harmonic_mean
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
@@ -66,6 +67,7 @@ from cvxpy.atoms.affine.real import real
 from cvxpy.atoms.affine.reshape import reshape, deep_flatten
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.trace import trace
+from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.vstack import vstack

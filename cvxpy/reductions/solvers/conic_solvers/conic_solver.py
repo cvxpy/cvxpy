@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, NonPos, PSD, Zero
+from cvxpy.constraints import SOC, ExpCone, PSD, Zero, NonNeg
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -29,61 +29,6 @@ import scipy.sparse as sp
 # performance regressions. If you are making a change to this file,
 # make sure to run cvxpy/tests/test_benchmarks.py to ensure that you have
 # not introduced a regression.
-class ConeDims(object):
-    """Summary of cone dimensions present in constraints.
-
-    Constraints must be formatted as dictionary that maps from
-    constraint type to a list of constraints of that type.
-
-    Attributes
-    ----------
-    zero : int
-        The dimension of the zero cone.
-    nonpos : int
-        The dimension of the non-positive cone.
-    exp : int
-        The dimension of the exponential cone.
-    soc : list of int
-        A list of the second-order cone dimensions.
-    psd : list of int
-        A list of the positive semidefinite cone dimensions, where the
-        dimension of the PSD cone of k by k matrices is k.
-    """
-    def __init__(self, constr_map):
-        self.zero = int(sum(c.size for c in constr_map[Zero]))
-        self.nonpos = int(sum(c.size for c in constr_map[NonPos]))
-        self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
-        self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
-        self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
-
-    def __repr__(self):
-        return "(zero: {0}, nonpos: {1}, exp: {2}, soc: {3}, psd: {4})".format(
-            self.zero, self.nonpos, self.exp, self.soc, self.psd)
-
-    def __str__(self):
-        """String representation.
-        """
-        return ("%i equalities, %i inequalities, %i exponential cones, \n"
-                "SOC constraints: %s, PSD constraints: %s.") % (self.zero,
-                                                                self.nonpos,
-                                                                self.exp,
-                                                                self.soc,
-                                                                self.psd)
-
-    def __getitem__(self, key):
-        if key == s.EQ_DIM:
-            return self.zero
-        elif key == s.LEQ_DIM:
-            return self.nonpos
-        elif key == s.EXP_DIM:
-            return self.exp
-        elif key == s.SOC_DIM:
-            return self.soc
-        elif key == s.PSD_DIM:
-            return self.psd
-        else:
-            raise KeyError(key)
-
 
 class LinearOperator(object):
     """A wrapper for linear operators."""
@@ -128,12 +73,14 @@ class ConicSolver(Solver):
     # The key that maps to ConeDims in the data returned by apply().
     DIMS = "dims"
 
-    # Every conic solver must support Zero and NonPos constraints.
-    SUPPORTED_CONSTRAINTS = [Zero, NonPos]
+    # Every conic solver must support Zero and NonNeg constraints.
+    SUPPORTED_CONSTRAINTS = [Zero, NonNeg]
 
     # Some solvers cannot solve problems that do not have constraints.
     # For such solvers, REQUIRES_CONSTR should be set to True.
     REQUIRES_CONSTR = False
+
+    EXP_CONE_ORDER = None
 
     def accepts(self, problem):
         return (isinstance(problem, ParamConeProg)
@@ -184,14 +131,14 @@ class ConicSolver(Solver):
         Returns a ParamConeProg whose problem data tensors will yield the
         coefficient "A" and offset "b" for the constraint in the following
         formats:
-            Linear equations: (A, b) such that A * x == b,
-            Linear inequalities: (A, b) such that A * x <= b,
-            Second order cone: (A, b) such that A * x <=_{SOC} b,
-            Exponential cone: (A, b) such that A * x <=_{EXP} b,
-            Semidefinite cone: (A, b) such that A * x <=_{SDP} b,
+            Linear equations: (A, b) such that A * x + b == 0,
+            Linear inequalities: (A, b) such that A * x + b >= 0,
+            Second order cone: (A, b) such that A * x + b in SOC,
+            Exponential cone: (A, b) such that A * x + b in EXP,
+            Semidefinite cone: (A, b) such that A * x + b in PSD,
 
         The CVXPY standard for the exponential cone is:
-            K_e = closure{(x,y,z) |  y >= z * exp(x/z), z>0}.
+            K_e = closure{(x,y,z) |  z >= y * exp(x/y), y>0}.
         Whenever a solver uses this convention, EXP_CONE_ORDER should be
         [0, 1, 2].
 
@@ -213,11 +160,10 @@ class ConicSolver(Solver):
         restruct_mat = []  # Form a block diagonal matrix.
         for constr in problem.constraints:
             total_height = sum([arg.size for arg in constr.args])
-            if type(constr) in [Zero, NonPos]:
-                # Both of these constraints have a single argument.
-                # c.T * x + b (<)= 0 if and only if c.T * x (<)= -b.
-                # Need to negate to switch from NonPos to NonNeg.
+            if type(constr) == Zero:
                 restruct_mat.append(-sp.eye(constr.size, format='csr'))
+            elif type(constr) == NonNeg:
+                restruct_mat.append(sp.eye(constr.size, format='csr'))
             elif type(constr) == SOC:
                 # Group each t row with appropriate X rows.
                 assert constr.axis == 0, 'SOC must be lowered to axis == 0'
@@ -255,7 +201,6 @@ class ConicSolver(Solver):
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
             elif type(constr) == PSD:
-                # Sign flipped relative to NonPos, Zero.
                 restruct_mat.append(self.psd_format_mat(constr))
             else:
                 raise ValueError("Unsupported constraint type.")
@@ -268,7 +213,11 @@ class ConicSolver(Solver):
             # this is equivalent to but _much_ faster than:
             #    restruct_mat_rep = sp.block_diag([restruct_mat]*(problem.x.size + 1))
             #    restruct_A = restruct_mat_rep * problem.A
-            reshaped_A = problem.A.reshape(restruct_mat.shape[1], -1, order='F').tocsr()
+            unspecified, remainder = divmod(problem.A.shape[0] *
+                                            problem.A.shape[1],
+                                            restruct_mat.shape[1])
+            reshaped_A = problem.A.reshape(restruct_mat.shape[1],
+                                           unspecified, order='F').tocsr()
             restructured_A = restruct_mat(reshaped_A).tocoo()
             # Because of a bug in scipy versions <  1.20, `reshape`
             # can overflow if indices are int32s.

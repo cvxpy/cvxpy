@@ -16,15 +16,13 @@ limitations under the License.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonPos, SOC, PSD
+from cvxpy.constraints import Zero, NonNeg, SOC, PSD
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import (ConicSolver,
-                                                                 ConeDims)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.kktsolver import get_kktsolver
-from cvxpy.reductions.utilities import group_constraints
 import scipy.sparse as sp
 import scipy
 import numpy as np
@@ -34,7 +32,7 @@ import numpy as np
 # that can be supplied to ecos.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        "l": int(cone_dims.nonpos),
+        "l": int(cone_dims.nonneg),
         "q": [int(v) for v in cone_dims.soc],
         "s": [int(v) for v in cone_dims.psd],
     }
@@ -99,17 +97,16 @@ class CVXOPT(ECOS):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
 
-        constr_map = group_constraints(problem.constraints)
-        data[ConicSolver.DIMS] = ConeDims(constr_map)
-        inv_data[ConicSolver.DIMS] = data[ConicSolver.DIMS]
-        len_eq = sum([c.size for c in constr_map[Zero]])
-        inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        neq_constr = constr_map[NonPos] + constr_map[SOC] + constr_map[PSD]
-        inv_data[self.NEQ_CONSTR] = neq_constr
-
         if not problem.formatted:
-            problem = self.format_constraints(problem, ECOS.EXP_CONE_ORDER)
+            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
+        data[self.DIMS] = problem.cone_dims
+        inv_data[self.DIMS] = problem.cone_dims
+
+        constr_map = problem.constr_map
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + constr_map[PSD]
+        len_eq = problem.cone_dims.zero
 
         c, d, A, b = problem.apply_parameters()
         data[s.C] = c

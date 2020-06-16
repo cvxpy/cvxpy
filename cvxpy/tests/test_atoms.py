@@ -19,9 +19,11 @@ import cvxpy.settings as s
 from cvxpy.transforms.partial_optimize import partial_optimize
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Parameter, Constant
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
 import numpy as np
 from cvxpy import Problem, Minimize
 from cvxpy.tests.base_test import BaseTest
+import unittest
 import scipy.sparse as sp
 
 
@@ -129,16 +131,6 @@ class TestAtoms(BaseTest):
                 self.assertEqual(copy.get_data(), atom.get_data())
 
         assert cp.power(-1, 2).value == 1
-
-        with self.assertRaises(Exception) as cm:
-            cp.power(-1, 3).value
-        self.assertEqual(str(cm.exception),
-                         "power(x, 3.0) cannot be applied to negative values.")
-
-        with self.assertRaises(Exception) as cm:
-            cp.power(0, -1).value
-        self.assertEqual(str(cm.exception),
-                         "power(x, -1.0) cannot be applied to negative or zero values.")
 
     # Test the geo_mean class.
     def test_geo_mean(self):
@@ -862,6 +854,7 @@ class TestAtoms(BaseTest):
         p3.solve()
         self.assertAlmostEqual(p1.value, p3.value)
 
+    @unittest.skipUnless(len(INSTALLED_MI_SOLVERS) > 0, 'No mixed-integer solver is installed.')
     def test_partial_optimize_special_var(self):
         x, y = Variable(boolean=True), Variable(integer=True)
 

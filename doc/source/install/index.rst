@@ -3,95 +3,96 @@
 Install
 =======
 
-*Note*: Version 1.0 of CVXPY is incompatible with previous versions in minor
-ways. See :ref:`updates` for how to update legacy code to a form that's
-compatible with 1.0.
+CVXPY supports Python 3 on Linux, macOS, and Windows. You can use
+pip or conda for installation. You may want to isolate
+your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_,
+or a conda environment.
 
-Mac OS X, Windows, and Linux
-----------------------------
+pip
+---
 
-CVXPY supports both Python 2 and Python 3 on OS X, Windows, and Linux. We recommend using
-pip for installation. You may want to isolate
-your installation in a `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
-If you prefer `Anaconda`_ to `pip`_, see the 
-:ref:`Anaconda installation guide <anaconda-installation>`.
+(Windows only) Download the Visual Studio build tools for Python 3
+(`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
+`install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
 
-1. (Windows only) Download the `Visual Studio C++ compiler for Python 2.7 <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_
-or the Visual Studio build tools for Python 3 (`download <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_, `install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
+(macOS only) Install the Xcode command line tools.
 
-2. Install ``cvxpy``.
+(optional) Create and activate a virtual environment
+
+1. Install ``cvxpy``.
   ::
 
       pip install cvxpy
 
-3. Test the installation with ``nose``.
+2. Test the installation with ``nose``.
   ::
 
       pip install nose
       nosetests cvxpy
 
-Other Platforms
----------------
+.. _conda-installation:
 
-The CVXPY installation process on other platforms is less automated and less well tested. Check `this page <https://github.com/cvxgrp/cvxpy/wiki/CVXPY-installation-instructions-for-non-standard-platforms>`_ for instructions for your platform.
+conda
+-----
 
-.. _anaconda-installation:
+`conda`_ is a system for package and environment management.
 
-Anaconda
-----------------
+(Windows only) Download the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
 
-`Anaconda`_ is a system for package and environment management.
+1. Install `conda`_.
 
-1. Install `Anaconda`_.
+2. Create a new conda environment,
+  ::
 
-2. Install `pip`_ and ``setuptools`` with ``conda``.
+      conda create --name cvxpy
+      conda activate cvxpy
 
+ or activate an existing one
+
+3. Install ``cvxpy`` from `conda-forge <https://conda-forge.org/>`_
    ::
 
-      conda install pip
-      pip install --upgrade setuptools
+      conda install -c conda-forge cvxpy
 
-3. (Windows only) Download the `Visual Studio C++ compiler for Python 2.7 <https://www.microsoft.com/en-us/download/details.aspx?id=44266>`_
-or the `Visual Studio build tools for Python 3 <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_.
-   
-
-4. Install ``cvxpy`` with `pip`_ inside `Anaconda`_.
-
-   ::
-
-      pip install cvxpy
-
-5. Test the installation with ``nose``.
-
+4. Test the installation with ``nose``.
   ::
 
        conda install nose
        nosetests cvxpy
 
+.. _install_from_source:
+
 Install from source
 -------------------
 
+We strongly recommend using a fresh virtual environment (virtualenv or conda) when installing CVXPY from source.
+
 CVXPY has the following dependencies:
 
-* Python 2.7, 3.4, 3.5, 3.6, or 3.7.
-* `OSQP`_
-* `ECOS`_ >= 2
-* `SCS`_ >= 1.1.3
-* `NumPy`_ >= 1.15
-* `SciPy`_ >= 1.1.0
+ * Python 3.5, 3.6, or 3.7.
+ * `OSQP`_
+ * `ECOS`_ >= 2
+ * `SCS`_ >= 1.1.3
+ * `NumPy`_ >= 1.15
+ * `SciPy`_ >= 1.1.0
 
 To test the CVXPY installation, you additionally need `Nose`_.
 
 CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_. `NumPy`_ and
 `SciPy`_ will need to be installed manually,
-as will `Swig`_ . Once you’ve installed these dependencies:
+as will `Swig`_ . Once you’ve installed these dependencies, perform the following steps:
 
-1. Clone the `CVXPY git repository`_.
-2. Navigate to the top-level of the cloned directory and run
+ 1. Clone the official `CVXPY git repository`_, or a newly minted fork of the CVXPY repository.
+ 2. Navigate to the top-level of the cloned directory.
+ 3. If you want to use CVXPY with edited source code, run
+    ::
 
-   ::
+        pip install -e .
 
-       python setup.py install
+    otherwise, run
+    ::
+
+        pip install .
 
 Install with CVXOPT and GLPK support
 ------------------------------------
@@ -168,8 +169,14 @@ Install with SDPT3 support
 
 The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows you to model problems with CVXPY and solve them with SDPT3.
 
-.. _Anaconda: https://store.continuum.io/cshop/anaconda/
-.. _website: https://store.continuum.io/cshop/anaconda/
+Install with NAG support
+---------------------------
+
+CVXPY supports the NAG solver.
+Simply install NAG such that you can ``import naginterfaces`` in Python.
+See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
+
+.. _conda: https://docs.conda.io/en/latest/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
 .. _CVXOPT: http://cvxopt.org/
 .. _OSQP: https://osqp.org/

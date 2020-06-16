@@ -5,11 +5,10 @@ import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
 from cvxpy.reductions import solution
 from cvxpy.settings import SOLVER_ERROR
 from cvxpy.tests.base_test import BaseTest
+
 import numpy as np
 
 
-# TODO(akshayka): Changing SOLVER to MOSEK exposes bugs in the mosek interface;
-# fix these bugs
 SOLVER = cvxpy.ECOS
 
 
@@ -318,8 +317,9 @@ class TestDgp2Dcp(BaseTest):
 
     def test_solving_non_dgp_problem_raises_error(self):
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegexp(error.DGPError, r"Problem does not follow DGP "
-                                     "rules(?s)*.*However, the problem does follow DCP rules.*"):
+        with self.assertRaisesRegex(error.DGPError,
+                                    r"Problem does not follow DGP "
+                                    "rules(?s)*.*However, the problem does follow DCP rules.*"):
             problem.solve(SOLVER, gp=True)
         problem.solve(SOLVER)
         self.assertEqual(problem.status, "unbounded")
@@ -329,8 +329,9 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
         )
-        with self.assertRaisesRegexp(error.DCPError, r"Problem does not follow DCP "
-                                     "rules(?s)*.*However, the problem does follow DGP rules.*"):
+        with self.assertRaisesRegex(error.DCPError,
+                                    r"Problem does not follow DCP "
+                                    "rules(?s)*.*However, the problem does follow DGP rules.*"):
             problem.solve(SOLVER)
         problem.solve(SOLVER, gp=True)
         self.assertEqual(problem.status, "unbounded")
@@ -339,12 +340,12 @@ class TestDgp2Dcp(BaseTest):
     def test_solving_non_dcp_problems_raises_detailed_error(self):
         x = cvxpy.Variable(3)
         problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum(x) - cvxpy.sum_squares(x)))
-        with self.assertRaisesRegexp(error.DCPError, r"The objective is not DCP"):
+        with self.assertRaisesRegex(error.DCPError, r"The objective is not DCP"):
             problem.solve(SOLVER)
 
         x = cvxpy.Variable(name='x')
         problem = cvxpy.Problem(cvxpy.Minimize(x), [x * x <= 5])
-        with self.assertRaisesRegexp(error.DCPError, r"The following constraints are not DCP"):
+        with self.assertRaisesRegex(error.DCPError, r"The following constraints are not DCP"):
             problem.solve(SOLVER)
 
     def test_add_canon(self):
@@ -434,10 +435,22 @@ class TestDgp2Dcp(BaseTest):
     def test_paper_example_eye_minus_inv(self):
         X = cvxpy.Variable((2, 2), pos=True)
         obj = cvxpy.Minimize(cvxpy.trace(cvxpy.eye_minus_inv(X)))
-        constr = [cvxpy.geo_mean(cvxpy.diag(X)) == 0.1]
+        constr = [cvxpy.geo_mean(cvxpy.diag(X)) == 0.1,
+                  cvxpy.geo_mean(cvxpy.hstack([X[0, 1], X[1, 0]])) == 0.1]
         problem = cvxpy.Problem(obj, constr)
-        # smoke test.
         problem.solve(gp=True, solver="ECOS")
+        np.testing.assert_almost_equal(X.value, 0.1*np.ones((2, 2)), decimal=3)
+        self.assertAlmostEqual(problem.value, 2.25)
+
+    def test_simpler_eye_minus_inv(self):
+        X = cvxpy.Variable((2, 2), pos=True)
+        obj = cvxpy.Minimize(cvxpy.trace(cvxpy.eye_minus_inv(X)))
+        constr = [cvxpy.diag(X) == 0.1,
+                  cvxpy.hstack([X[0, 1], X[1, 0]]) == 0.1]
+        problem = cvxpy.Problem(obj, constr)
+        problem.solve(gp=True, solver="ECOS")
+        np.testing.assert_almost_equal(X.value, 0.1*np.ones((2, 2)), decimal=3)
+        self.assertAlmostEqual(problem.value, 2.25)
 
     def test_paper_example_exp_log(self):
         x = cvxpy.Variable(pos=True)
@@ -525,6 +538,17 @@ class TestDgp2Dcp(BaseTest):
         np.testing.assert_almost_equal(h.value, np.array([2, 2]))
         np.testing.assert_almost_equal(w.value, np.array([5, 5]))
 
+    def test_sum_squares_vector(self):
+        w = cvxpy.Variable(2, pos=True)
+        h = cvxpy.Variable(2, pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(cvxpy.sum_squares(h)),
+                                [cvxpy.multiply(w, h) >= 10,
+                                cvxpy.sum(w) <= 10])
+        problem.solve(SOLVER, gp=True)
+        np.testing.assert_almost_equal(problem.value, 8)
+        np.testing.assert_almost_equal(h.value, np.array([2, 2]))
+        np.testing.assert_almost_equal(w.value, np.array([5, 5]))
+
     def test_sum_matrix(self):
         w = cvxpy.Variable((2, 2), pos=True)
         h = cvxpy.Variable((2, 2), pos=True)
@@ -553,3 +577,37 @@ class TestDgp2Dcp(BaseTest):
         dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
         dcp = dgp2dcp.reduce()
         self.assertAlmostEqual(dcp.parameters()[0].value, np.log(param.value))
+
+        x = cvxpy.Variable(pos=True)
+        problem = cvxpy.Problem(cvxpy.Minimize(x), [x == param])
+        problem.solve(SOLVER, gp=True)
+        self.assertAlmostEqual(problem.value, 1.0)
+
+        param.value = 2.0
+        problem.solve(SOLVER, gp=True)
+        self.assertAlmostEqual(problem.value, 2.0)
+
+    def test_parameter_name(self):
+        param = cvxpy.Parameter(pos=True, name='alpha')
+        param.value = 1.0
+        dgp = cvxpy.Problem(cvxpy.Minimize(param), [])
+        dgp2dcp = cvxpy.reductions.Dgp2Dcp(dgp)
+        dcp = dgp2dcp.reduce()
+        self.assertAlmostEqual(dcp.parameters()[0].name(), 'alpha')
+
+    def test_gmatmul(self):
+        x = cvxpy.Variable(2, pos=True)
+        A = np.array([[-5., 2.], [1., -3.]])
+        b = np.array([3, 2])
+        expr = cvxpy.gmatmul(A, x)
+        x.value = b
+        self.assertItemsAlmostEqual(expr.value, [3**-5*2**2, 3./8])
+        A_par = cvxpy.Parameter((2, 2), value=A)
+        self.assertItemsAlmostEqual(cvxpy.gmatmul(A_par, x).value,
+                                    [3**-5*2**2, 3./8])
+        x.value = None
+
+        prob = cvxpy.Problem(cvxpy.Minimize(1.0), [expr == b])
+        prob.solve(gp=True)
+        sltn = np.exp(np.linalg.solve(A, np.log(b)))
+        self.assertItemsAlmostEqual(x.value, sltn)

@@ -14,68 +14,50 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.reductions.cvx_attr2constr import convex_attributes
+from cvxpy.constraints import NonPos, Zero
+from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.utilities import group_constraints
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import ParamQuadProg, ConeDims
+import cvxpy.settings as s
 import numpy as np
 import scipy.sparse as sp
-
-from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.binary_operators import MulExpression
-from cvxpy.atoms.affine.reshape import reshape as reshape_atom
-from cvxpy.atoms.quad_form import QuadForm
-from cvxpy.constraints import NonPos, Zero
-from cvxpy.problems.objective import Minimize
-from cvxpy.reductions import InverseData
-from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.utilities import are_args_affine
-import cvxpy.settings as s
-
-
-def is_stuffed_qp_objective(objective):
-    """QPSolver requires objectives to be stuffed in the following way.
-    """
-    expr = objective.expr
-    return (type(expr) == AddExpression
-            and len(expr.args) == 2
-            and type(expr.args[0]) == QuadForm
-            and type(expr.args[1]) == MulExpression
-            and expr.args[1].is_affine())
-
-
-def get_coeff_offset(expr):
-    """Return the coefficient A and offset b in A*x + b.
-    Args:
-      expr: A CVXPY expression.
-    Returns:
-      (SciPy COO sparse matrix, NumPy 1D array)
-    """
-    # May be a reshape as root.
-    if type(expr) == reshape_atom:
-        expr = expr.args[0]
-    # Convert data to float64.
-    if len(expr.args[0].args) == 0:
-        # expr is c.T*x
-        offset = 0
-        coeff = expr.args[0].value.astype(np.float64)
-    else:
-        # expr is c.T*x + d
-        offset = expr.args[1].value.ravel().astype(np.float64)
-        coeff = expr.args[0].args[0].value.astype(np.float64)
-    # Convert scalars to sparse matrices.
-    if np.isscalar(coeff):
-        coeff = sp.coo_matrix(([coeff], ([0], [0])), shape=(1, 1))
-    return (coeff, offset)
 
 
 class QpSolver(Solver):
     """
     A QP solver interface.
     """
+    # Every QP solver supports Zero and NonPos constraints.
+    SUPPORTED_CONSTRAINTS = [Zero, NonPos]
+
+    # Some solvers cannot solve problems that do not have constraints.
+    # For such solvers, REQUIRES_CONSTR should be set to True.
+    REQUIRES_CONSTR = False
+
+    IS_MIP = "IS_MIP"
 
     def accepts(self, problem):
-        return (type(problem.objective) == Minimize
-                and is_stuffed_qp_objective(problem.objective)
-                and all(type(c) == Zero or type(c) == NonPos
-                        for c in problem.constraints)
-                and are_args_affine(problem.constraints))
+        return (isinstance(problem, ParamQuadProg)
+                and (self.MIP_CAPABLE or not problem.is_mixed_integer())
+                and not convex_attributes([problem.x])
+                and (len(problem.constraints) > 0 or not self.REQUIRES_CONSTR)
+                and all(type(c) in self.SUPPORTED_CONSTRAINTS for c in
+                        problem.constraints))
+
+    def _prepare_data_and_inv_data(self, problem):
+        data = {}
+        inv_data = {self.VAR_ID: problem.x.id}
+
+        constr_map = group_constraints(problem.constraints)
+        data[QpSolver.DIMS] = ConeDims(constr_map)
+        inv_data[QpSolver.DIMS] = data[QpSolver.DIMS]
+
+        # Add information about integer variables
+        inv_data[QpSolver.IS_MIP] = problem.is_mixed_integer()
+
+        data[s.PARAM_PROB] = problem
+        return problem, data, inv_data
 
     def apply(self, problem):
         """
@@ -87,54 +69,39 @@ class QpSolver(Solver):
                           F x <= g
 
         """
-        inverse_data = InverseData(problem)
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
 
-        obj = problem.objective
-        # quadratic part of objective is x.T * P * x but solvers expect
-        # 0.5*x.T * P * x.
-        P = 2*obj.expr.args[0].args[1].value
-        q = obj.expr.args[1].args[0].value.flatten()
+        P, q, d, AF, bg = problem.apply_parameters()
+        inv_data[s.OFFSET] = d
 
         # Get number of variables
-        n = problem.size_metrics.num_scalar_variables
+        n = problem.x.size
+        len_eq = data[QpSolver.DIMS].zero
+        len_leq = data[QpSolver.DIMS].nonpos
 
-        eq_cons = [c for c in problem.constraints if type(c) == Zero]
-        if eq_cons:
-            eq_coeffs = list(zip(*[get_coeff_offset(con.expr)
-                                   for con in eq_cons]))
-            A = sp.vstack(eq_coeffs[0])
-            b = - np.concatenate(eq_coeffs[1])
+        if len_eq > 0:
+            A = AF[:len_eq, :]
+            b = -bg[:len_eq]
         else:
             A, b = sp.csr_matrix((0, n)), -np.array([])
 
-        ineq_cons = [c for c in problem.constraints if type(c) == NonPos]
-        if ineq_cons:
-            ineq_coeffs = list(zip(*[get_coeff_offset(con.expr)
-                                     for con in ineq_cons]))
-            F = sp.vstack(ineq_coeffs[0])
-            g = - np.concatenate(ineq_coeffs[1])
+        if len_leq > 0:
+            F = AF[len_eq:, :]
+            g = -bg[len_eq:]
         else:
             F, g = sp.csr_matrix((0, n)), -np.array([])
 
         # Create dictionary with problem data
-        variables = problem.variables()[0]
-        data = {}
         data[s.P] = sp.csc_matrix(P)
         data[s.Q] = q
         data[s.A] = sp.csc_matrix(A)
         data[s.B] = b
         data[s.F] = sp.csc_matrix(F)
         data[s.G] = g
-        data[s.BOOL_IDX] = [t[0] for t in variables.boolean_idx]
-        data[s.INT_IDX] = [t[0] for t in variables.integer_idx]
+        data[s.BOOL_IDX] = [t[0] for t in problem.x.boolean_idx]
+        data[s.INT_IDX] = [t[0] for t in problem.x.integer_idx]
         data['n_var'] = n
         data['n_eq'] = A.shape[0]
         data['n_ineq'] = F.shape[0]
 
-        inverse_data.sorted_constraints = eq_cons + ineq_cons
-
-        # Add information about integer variables
-        inverse_data.is_mip = \
-            len(data[s.BOOL_IDX]) > 0 or len(data[s.INT_IDX]) > 0
-
-        return data, inverse_data
+        return data, inv_data

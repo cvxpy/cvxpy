@@ -41,7 +41,7 @@ help:
 	@echo "  doctest	to run all doctests embedded in the documentation (if enabled)"
 
 clean:
-	-rm -rf *.so $(BUILDDIR)/*
+	-rm -rf *.so dist cvxpy.egg-info $(BUILDDIR)
 
 html:
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(BUILDDIR)/html

@@ -7,7 +7,7 @@ The atoms listed here are neither affine nor elementwise.
 .. _cummax:
 
 cummax
-------
+--------
 
 .. autoclass:: cvxpy.atoms.cummax.cummax
     :show-inheritance:
@@ -15,14 +15,14 @@ cummax
 .. _diff-pos:
 
 diff_pos
-------
+--------
 
 .. autofunction:: cvxpy.atoms.one_minus.diff_pos
 
 .. _eye-minus-inv:
 
 eye_minus_inv
-------
+--------------
 
 .. autoclass:: cvxpy.atoms.eye_minus_inv.eye_minus_inv
     :show-inheritance:
@@ -33,6 +33,14 @@ geo_mean
 ------------------------------
 
 .. autoclass:: cvxpy.atoms.geo_mean.geo_mean
+    :show-inheritance:
+
+.. _gmatmul:
+
+gmatmul
+------------------------------
+
+.. autoclass:: cvxpy.atoms.gmatmul.gmatmul
     :show-inheritance:
 
 .. _harmonic-mean:

@@ -17,6 +17,7 @@ class OSQP(QpSolver):
                   3: s.INFEASIBLE_INACCURATE,
                   -4: s.UNBOUNDED,
                   4: s.UNBOUNDED_INACCURATE,
+                  -6: s.USER_LIMIT,
                   -5: s.SOLVER_ERROR,           # Interrupted by user
                   -10: s.SOLVER_ERROR}          # Unsolved
 
@@ -34,9 +35,9 @@ class OSQP(QpSolver):
         status = self.STATUS_MAP.get(solution.info.status_val, s.SOLVER_ERROR)
 
         if status in s.SOLUTION_PRESENT:
-            opt_val = solution.info.obj_val
+            opt_val = solution.info.obj_val + inverse_data[s.OFFSET]
             primal_vars = {
-                list(inverse_data.id_map.keys())[0]:
+                OSQP.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(solution.x))
             }
             dual_vars = {OSQP.DUAL_VAR_ID: solution.y}
@@ -55,7 +56,7 @@ class OSQP(QpSolver):
         P = data[s.P]
         q = data[s.Q]
         A = sp.vstack([data[s.A], data[s.F]]).tocsc()
-        data['full_A'] = A
+        data['Ax'] = A
         uA = np.concatenate((data[s.B], data[s.G]))
         data['u'] = uA
         lA = np.concatenate([data[s.B], -np.inf*np.ones(data[s.G].shape)])
@@ -66,20 +67,9 @@ class OSQP(QpSolver):
         solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
         solver_opts['max_iter'] = solver_opts.get('max_iter', 10000)
 
-        if solver_cache is not None and self.name() in solver_cache:
-            # Use cached data.
+        # Use cached data
+        if warm_start and solver_cache is not None and self.name() in solver_cache:
             solver, old_data, results = solver_cache[self.name()]
-            same_pattern = (P.shape == old_data[s.P].shape and
-                            all(P.indptr == old_data[s.P].indptr) and
-                            all(P.indices == old_data[s.P].indices)) and \
-                           (A.shape == old_data['full_A'].shape and
-                            all(A.indptr == old_data['full_A'].indptr) and
-                            all(A.indices == old_data['full_A'].indices))
-        else:
-            same_pattern = False
-
-        # If sparsity pattern differs need to do setup.
-        if warm_start and same_pattern:
             new_args = {}
             for key in ['q', 'l', 'u']:
                 if any(data[key] != old_data[key]):
@@ -89,7 +79,7 @@ class OSQP(QpSolver):
                 P_triu = sp.triu(P).tocsc()
                 new_args['Px'] = P_triu.data
                 factorizing = True
-            if any(A.data != old_data['full_A'].data):
+            if any(A.data != old_data['Ax'].data):
                 new_args['Ax'] = A.data
                 factorizing = True
 

@@ -23,7 +23,7 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.affine.reshape import deep_flatten
-from cvxpy.atoms import conj
+from cvxpy.atoms.affine.conj import conj
 from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
 from cvxpy.error import DCPError
 import cvxpy.lin_ops.lin_utils as lu
