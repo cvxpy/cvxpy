@@ -57,7 +57,7 @@ class XPRESS(QpSolver):
             attr[s.SOLVE_TIME] = results["cputime"]
         attr[s.NUM_ITERS] = \
             int(model.attributes.bariter) \
-            if not inverse_data.is_mip \
+            if not inverse_data['is_mip'] \
             else 0
 
         status_map_lp, status_map_mip = get_status_maps()
@@ -80,7 +80,7 @@ class XPRESS(QpSolver):
 
             # Only add duals if not a MIP.
             dual_vars = None
-            if not inverse_data.is_mip:
+            if not inverse_data['is_mip']:
                 y = -np.array(model.getDual())
                 dual_vars = {XPRESS.DUAL_VAR_ID: y}
 
