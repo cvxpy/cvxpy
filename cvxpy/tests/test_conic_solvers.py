@@ -1068,7 +1068,8 @@ class TestSCIP(unittest.TestCase):
         # to be raised when calling solve.
         with assert_raises(KeyError) as ke:
             prob.solve(solver="SCIP", a="what?")
-            assert ke.exception == "One or more solver params in ['a'] are not valid: 'Not a valid parameter name'"
+            exc = "One or more solver params in ['a'] are not valid: 'Not a valid parameter name'"
+            assert ke.exception == exc
 
     def test_scip_test_params__invalid_scip_params(self):
         prob = self.get_simple_problem()
@@ -1076,7 +1077,8 @@ class TestSCIP(unittest.TestCase):
         # to be raised when calling solve.
         with assert_raises(KeyError) as ke:
             prob.solve(solver="SCIP", scip_params={"a": "what?"})
-            assert ke.exception == "One or more scip params in ['a'] are not valid: 'Not a valid parameter name'"
+            exc = "One or more scip params in ['a'] are not valid: 'Not a valid parameter name'"
+            assert ke.exception == exc
 
 
 class TestAllSolvers(BaseTest):
