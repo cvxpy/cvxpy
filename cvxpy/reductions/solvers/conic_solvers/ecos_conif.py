@@ -138,6 +138,8 @@ class ECOS(ConicSolver):
                               cones, data[s.A], data[s.B],
                               verbose=verbose,
                               **solver_opts)
+        if solver_cache is not None:
+            solver_cache[self.name()] = solution["info"]
         return solution
 
     def invert(self, solution, inverse_data):

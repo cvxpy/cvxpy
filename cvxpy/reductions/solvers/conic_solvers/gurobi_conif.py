@@ -247,6 +247,8 @@ class GUROBI(SCS):
         if solution["status"] == s.SOLVER_ERROR and model.SolCount:
             solution["status"] = s.OPTIMAL_INACCURATE
 
+        if solver_cache is not None:
+            solver_cache[self.name()] = model
         return solution
 
     def add_model_lin_constr(self, model, variables,

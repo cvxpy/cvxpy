@@ -202,6 +202,8 @@ class GUROBI(QpSolver):
         except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
 
+        if solver_cache is not None:
+            solver_cache[self.name()] = model
         results_dict["model"] = model
 
         return results_dict
