@@ -117,53 +117,53 @@ class CoeffExtractor(object):
         # and [q1, q2, ...]
         coeff_list = []
         constant = param_coeffs[-1, :]
-        for p in range(param_coeffs.shape[1]):
-            c = param_coeffs[:-1, p].A.flatten()
+        c = param_coeffs[:-1, :].A
 
-            # coeffs stores the P and q for each quad_form,
-            # as well as for true variable nodes in the objective.
-            coeffs = {}
-            # The goal of this loop is to appropriately multiply
-            # the matrix P of each quadratic term by the coefficients
-            # in param_coeffs. Later we combine all the quadratic terms
-            # to form a single matrix P.
-            for var in affine_expr.variables():
-                # quad_forms maps the ids of the SymbolicQuadForm atoms
-                # in the objective to (modified parent node of quad form,
-                #                      argument index of quad form,
-                #                      quad form atom)
-                if var.id in quad_forms:
-                    var_id = var.id
-                    orig_id = quad_forms[var_id][2].args[0].id
-                    var_offset = affine_id_map[var_id][0]
-                    var_size = affine_id_map[var_id][1]
-                    c_part = c[var_offset:var_offset+var_size]
-                    if quad_forms[var_id][2].P.value is not None:
-                        P = quad_forms[var_id][2].P.value
-                        if c_part.size == 1:
-                            P = c_part[0] * P
-                        else:
-                            P = P @ sp.diags(c_part)
-                    else:
-                        P = sp.diags(c_part)
-                    if orig_id in coeffs:
+        # coeffs stores the P and q for each quad_form,
+        # as well as for true variable nodes in the objective.
+        coeffs = {}
+        # The goal of this loop is to appropriately multiply
+        # the matrix P of each quadratic term by the coefficients
+        # in param_coeffs. Later we combine all the quadratic terms
+        # to form a single matrix P.
+        for var in affine_expr.variables():
+            # quad_forms maps the ids of the SymbolicQuadForm atoms
+            # in the objective to (modified parent node of quad form,
+            #                      argument index of quad form,
+            #                      quad form atom)
+            if var.id in quad_forms:
+                var_id = var.id
+                orig_id = quad_forms[var_id][2].args[0].id
+                var_offset = affine_id_map[var_id][0]
+                var_size = affine_id_map[var_id][1]
+                c_part = c[var_offset:var_offset+var_size, :]
+                if quad_forms[var_id][2].P.value is not None:
+                    # Convert to dense matrix.
+                    P = quad_forms[var_id][2].P.value
+                    if var_size == 1:
+                        c_part = np.ones((P.shape[0], 1)) * c_part
+                else:
+                    P = np.eye(var_size)
+                # We multiply the columns of P, by c_part.
+                P = P[:, :, None] * c_part[None, :, :]
+                if orig_id in coeffs:
+                    if 'P' in coeffs[orig_id]:
                         coeffs[orig_id]['P'] += P
                     else:
-                        coeffs[orig_id] = dict()
                         coeffs[orig_id]['P'] = P
-                        coeffs[orig_id]['q'] = np.zeros(P.shape[0])
                 else:
-                    var_offset = affine_id_map[var.id][0]
-                    var_size = np.prod(affine_var_shapes[var.id], dtype=int)
-                    if var.id in coeffs:
-                        coeffs[var.id]['P'] += sp.csr_matrix((var_size, var_size))
-                        coeffs[var.id]['q'] += c[var_offset:var_offset+var_size]
-                    else:
-                        coeffs[var.id] = dict()
-                        coeffs[var.id]['P'] = sp.csr_matrix((var_size, var_size))
-                        coeffs[var.id]['q'] = c[var_offset:var_offset+var_size]
-            coeff_list.append(coeffs)
-        return coeff_list, constant
+                    coeffs[orig_id] = dict()
+                    coeffs[orig_id]['P'] = P
+                    coeffs[orig_id]['q'] = np.zeros((P.shape[0], c.shape[1]))
+            else:
+                var_offset = affine_id_map[var.id][0]
+                var_size = np.prod(affine_var_shapes[var.id], dtype=int)
+                if var.id in coeffs:
+                    coeffs[var.id]['q'] += c[var_offset:var_offset+var_size, :]
+                else:
+                    coeffs[var.id] = dict()
+                    coeffs[var.id]['q'] = c[var_offset:var_offset+var_size, :]
+        return coeffs, constant
 
     def quad_form(self, expr):
         """Extract quadratic, linear constant parts of a quadratic objective.
@@ -177,8 +177,8 @@ class CoeffExtractor(object):
 
         # Calculate affine parts and combine them with quadratic forms to get
         # the coefficients.
-        coeff_list, constant = self.extract_quadratic_coeffs(root.args[0],
-                                                             quad_forms)
+        coeffs, constant = self.extract_quadratic_coeffs(root.args[0],
+                                                         quad_forms)
         # Restore expression.
         restore_quad_forms(root.args[0], quad_forms)
 
@@ -186,44 +186,54 @@ class CoeffExtractor(object):
         # order.
         offsets = sorted(self.id_map.items(), key=operator.itemgetter(1))
 
-        # Get P and q for each parameter.
+        # Extract quadratic matrices and vectors
+        num_params = constant.shape[1]
         P_list = []
         q_list = []
-        for coeffs in coeff_list:
-            # Concatenate quadratic matrices and vectors
-            P = sp.csr_matrix((0, 0))
-            q = np.zeros(0)
-            for var_id, offset in offsets:
-                if var_id in coeffs:
-                    P = sp.block_diag([P, coeffs[var_id]['P']])
-                    q = np.concatenate([q, coeffs[var_id]['q']])
-                else:
-                    shape = self.var_shapes[var_id]
-                    size = np.prod(shape, dtype=int)
-                    P = sp.block_diag([P, sp.csr_matrix((size, size))])
-                    q = np.concatenate([q, np.zeros(size)])
+        P_height = 0
+        for var_id, offset in offsets:
+            shape = self.var_shapes[var_id]
+            size = np.prod(shape, dtype=int)
+            if var_id in coeffs and 'P' in coeffs[var_id]:
+                P = coeffs[var_id]['P']
+            else:
+                P = np.zeros((size, size, num_params))
+            if var_id in coeffs and 'q' in coeffs[var_id]:
+                q = coeffs[var_id]['q']
+            else:
+                q = np.zeros((size, num_params))
 
-            if (P.shape[0] != P.shape[1] and P.shape[1] != self.x_length) or \
-                    q.shape[0] != self.x_length:
-                raise RuntimeError("Resulting quadratic form does not have "
-                                   "appropriate dimensions")
-            if not np.isscalar(constant) and constant.size > 1:
-                raise RuntimeError("Constant must be a scalar")
-
-            P_size = P.shape[0]*P.shape[1]
-            P_list.append(P.reshape((P_size, 1), order='F'))
+            P_list.append(P)
             q_list.append(q)
+            P_height += P.shape[0]
 
-        # Here we assemble the Ps and qs into matrices
-        # that we multiply by a parameter vector to get P, q
-        # i.e. [P1.flatten(), P2.flatten(), ...]
-        #      [q1, q2, ...]
-        # where Pi, qi are coefficients for the ith entry of
-        # the parameter vector.
+        if P_height != self.x_length:
+            raise RuntimeError("Resulting quadratic form does not have "
+                               "appropriate dimensions")
+
+        # Conceptually we build a block diagonal matrix
+        # out of all the Ps, then flatten the first two dimensions.
+        # eg P1
+        #      P2
+        # We do this by extending each P with zero blocks above and below.
+        padded_P_list = []
+        gap_above = 0
+        gap_below = P_height
+        for P in P_list:
+            gap_below -= P.shape[0]
+            above = np.zeros((gap_above, P.shape[1], num_params))
+            below = np.zeros((gap_below, P.shape[1], num_params))
+            padded_P = np.concatenate([above, P, below], axis=0)
+            gap_above += P.shape[0]
+            padded_P = np.reshape(padded_P, (P_height*P.shape[1], num_params),
+                                  order='F')
+            padded_P_list.append(padded_P)
 
         # Stitch together Ps and qs and constant.
-        P = sp.hstack(P_list)
+        P = np.vstack(padded_P_list)
         # Stack q with constant offset as last row.
-        q = np.stack(q_list, axis=1)
-        q = sp.vstack([q, constant])
+        q = np.vstack(q_list)
+        q = np.vstack([q, constant.A])
+        P = sp.csr_matrix(P)
+        q = sp.csr_matrix(q)
         return P, q
