@@ -320,14 +320,18 @@ class SCIP(ConicSolver):
 
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
                 vals = []
+
+                # Get linear duals.
                 for lc in constraints:
                     if lc is not None and lc.isLinear():
-                        # Note: you can only get the dual for linear
-                        # constraints with SCIP.
                         dual = model.getDualsolLinear(lc)
                         vals.append(dual)
-                    else:
-                        vals.append(0)
+
+                # Get non-linear duals.
+                if len(dims[s.SOC_DIM]) > 1:
+                    for row in model.getNlRows():
+                        vals.append(row.getDualsol())
+
                 solution["y"] = -array(vals)
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
