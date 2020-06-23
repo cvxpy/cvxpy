@@ -87,7 +87,7 @@ result = prob.solve (solver = 'XPRESS', scaling = 0, bargaptarget = 4e-30, origi
 
 data = prob.get_problem_data (solver = 'XPRESS')
 
-p = data['XPRESSprob']
+p = data[1].solver.prob_
 
 # This problem object can be saved in LP and MPS format (first and
 # second instructions. Note that the MPS format is preferable when
