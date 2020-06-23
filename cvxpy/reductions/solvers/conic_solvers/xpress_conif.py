@@ -291,6 +291,12 @@ class XPRESS(SCS):
         self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
                                if i in list(xp.controls.__dict__.keys())})
 
+        if 'bargaptarget' not in solver_opts.keys():
+            self.prob_.controls.bargaptarget = 1e-30
+
+        if 'feastol' not in solver_opts.keys():
+            self.prob_.controls.feastol = 1e-9
+
         # Solve
         self.prob_.solve()
 
