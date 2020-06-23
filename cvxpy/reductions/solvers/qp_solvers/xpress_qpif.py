@@ -75,14 +75,14 @@ class XPRESS(QpSolver):
             x = np.array(model.getSolution())
             primal_vars = {
                 XPRESS.VAR_ID:
-                # list(inverse_data.id_map.keys())[0]:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 
             # Only add duals if not a MIP.
             dual_vars = None
-            y = -np.array(model.getDual())
-            dual_vars = {XPRESS.DUAL_VAR_ID: y}
+            if not inverse_data[XPRESS.IS_MIP]:
+                y = -np.array(model.getDual())
+                dual_vars = {XPRESS.DUAL_VAR_ID: y}
 
         else:
             primal_vars = None
