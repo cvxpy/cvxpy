@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import (bmat, cumsum, diag, kron, conv,
+from cvxpy.atoms import (bmat, cumsum, kron, conv,
                          abs, reshape, trace,
                          upper_tri, conj, imag, real,
                          norm1, norm_inf, Pnorm,
                          sigma_max, lambda_max, lambda_sum_largest,
                          log_det, QuadForm, MatrixFrac, quad_over_lin)
+from cvxpy.atoms.affine.diag import diag_mat, diag_vec
 from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.add_expr import AddExpression
@@ -58,7 +59,8 @@ CANON_METHODS = {
     AddExpression: separable_canon,
     bmat: separable_canon,
     cumsum: separable_canon,
-    diag: separable_canon,
+    diag_mat: separable_canon,
+    diag_vec: separable_canon,
     Hstack: separable_canon,
     index: separable_canon,
     special_index: separable_canon,
