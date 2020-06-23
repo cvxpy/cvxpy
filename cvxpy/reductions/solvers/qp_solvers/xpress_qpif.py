@@ -62,14 +62,16 @@ class XPRESS(QpSolver):
 
         status_map_lp, status_map_mip = get_status_maps()
 
-        if 'mip_' in results['model'].getProbStatusString():
+        if results['status'] == 'solver_error':
+            status = 'solver_error'
+        elif 'mip_' in results['model'].getProbStatusString():
             status = status_map_mip[results['status']]
         else:
             status = status_map_lp[results['status']]
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
-            opt_val = model.getObjVal()
+            opt_val = model.getObjVal() + inverse_data[s.OFFSET]
 
             # Get solution
             x = np.array(model.getSolution())
