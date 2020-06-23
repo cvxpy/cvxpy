@@ -56,7 +56,9 @@ class XPRESS(QpSolver):
         if "cputime" in results:
             attr[s.SOLVE_TIME] = results["cputime"]
         attr[s.NUM_ITERS] = \
-            int(model.attributes.bariter)
+            int(model.attributes.bariter) \
+            if not inverse_data[XPRESS.IS_MIP] \
+            else 0
 
         status_map_lp, status_map_mip = get_status_maps()
 
