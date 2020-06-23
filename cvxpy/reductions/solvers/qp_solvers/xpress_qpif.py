@@ -74,7 +74,8 @@ class XPRESS(QpSolver):
             # Get solution
             x = np.array(model.getSolution())
             primal_vars = {
-                list(inverse_data.id_map.keys())[0]:
+                XPRESS.VAR_ID:
+                # list(inverse_data.id_map.keys())[0]:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
             }
 
