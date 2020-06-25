@@ -123,7 +123,7 @@ class XPRESS(SCS):
         primal_vars = None
         dual_vars = None
         if status in s.SOLUTION_PRESENT:
-            opt_val = self.prob_.getObjVal() + inverse_data[s.OFFSET]
+            opt_val = solution['getObjVal'] + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[XPRESS.VAR_ID]: solution['primal']}
             if not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
@@ -384,6 +384,10 @@ class XPRESS(SCS):
 
         solution[s.XPRESS_IIS] = results_dict[s.XPRESS_IIS]
         solution[s.XPRESS_TROW] = results_dict[s.XPRESS_TROW]
+
+        solution['getObjVal'] = self.prob_.getObjVal()
+
+        del self.prob_
 
         return solution
 

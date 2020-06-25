@@ -51,12 +51,12 @@ class XPRESS(QpSolver):
 
 
     def invert(self, results, inverse_data):
-        model = results["model"]
+        # model = results["model"]
         attr = {}
         if "cputime" in results:
             attr[s.SOLVE_TIME] = results["cputime"]
         attr[s.NUM_ITERS] = \
-            int(model.attributes.bariter) \
+            int(results['bariter']) \
             if not inverse_data[XPRESS.IS_MIP] \
             else 0
 
@@ -64,17 +64,17 @@ class XPRESS(QpSolver):
 
         if results['status'] == 'solver_error':
             status = 'solver_error'
-        elif 'mip_' in results['model'].getProbStatusString():
+        elif 'mip_' in results['getProbStatusString']:
             status = status_map_mip[results['status']]
         else:
             status = status_map_lp[results['status']]
 
         if status in s.SOLUTION_PRESENT:
             # Get objective value
-            opt_val = model.getObjVal() + inverse_data[s.OFFSET]
+            opt_val = results['getObjVal'] + inverse_data[s.OFFSET]
 
             # Get solution
-            x = np.array(model.getSolution())
+            x = np.array(results['getSolution'])
             primal_vars = {
                 XPRESS.VAR_ID:
                 intf.DEFAULT_INTF.const_to_matrix(np.array(x))
@@ -83,7 +83,7 @@ class XPRESS(QpSolver):
             # Only add duals if not a MIP.
             dual_vars = None
             if not inverse_data[XPRESS.IS_MIP]:
-                y = -np.array(model.getDual())
+                y = -np.array(results['getDual'])
                 dual_vars = {XPRESS.DUAL_VAR_ID: y}
 
         else:
@@ -238,10 +238,32 @@ class XPRESS(QpSolver):
             results_dict["status"] = s.SOLVER_ERROR
         else:
             results_dict['status'] = self.prob_.getProbStatus()
+            results_dict['getProbStatusString'] = self.prob_.getProbStatusString()
             results_dict['obj_value'] = self.prob_.getObjVal()
             try:
                 results_dict[s.PRIMAL] = np.array(self.prob_.getSolution())
             except:
                 pass
+
+            status_map_lp, status_map_mip = get_status_maps()
+
+            if results_dict['status'] == 'solver_error':
+                status = 'solver_error'
+            elif 'mip_' in results_dict['getProbStatusString']:
+                status = status_map_mip[results_dict['status']]
+            else:
+                status = status_map_lp[results_dict['status']]
+
+            results_dict['bariter'] = self.prob_.attributes.bariter
+            results_dict['getProbStatusString'] = self.prob_.getProbStatusString()
+
+            if status in s.SOLUTION_PRESENT:
+                results_dict['getObjVal'] = self.prob_.getObjVal()
+                results_dict['getSolution'] = self.prob_.getSolution()
+
+                if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
+                    results_dict['getDual'] = self.prob_.getDual()
+
+        del self.prob_
 
         return results_dict
