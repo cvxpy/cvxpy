@@ -231,11 +231,12 @@ class XPRESS(QpSolver):
         # Solve problem
         results_dict = {"model": self.prob_}
         try:
-            # If option given, write file instead of solving
+
+            # If option given, write file before solving
             if 'write_mps' in solver_opts.keys():
                 self.prob_.write(solver_opts['write_mps'])
-            else:
-                self.prob_.solve()
+
+            self.prob_.solve()
             results_dict["cputime"] = self.prob_.attributes.time
         except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
