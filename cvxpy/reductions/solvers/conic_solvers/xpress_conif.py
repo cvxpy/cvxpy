@@ -297,6 +297,10 @@ class XPRESS(SCS):
         if 'feastol' not in solver_opts.keys():
             self.prob_.controls.feastol = 1e-9
 
+        # If option given, write file before solving
+        if 'write_mps' in solver_opts.keys():
+            self.prob_.write(solver_opts['write_mps'])
+
         # Solve
         self.prob_.solve()
 
