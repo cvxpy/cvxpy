@@ -248,6 +248,7 @@ class SCS(ConicSolver):
         attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
         attr[s.SETUP_TIME] = solution["info"]["setupTime"]
         attr[s.NUM_ITERS] = solution["info"]["iter"]
+        attr[s.EXTRA_STATS] = solution
 
         if status in s.SOLUTION_PRESENT:
             primal_val = solution["info"]["pobj"]
