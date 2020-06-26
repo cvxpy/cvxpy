@@ -110,6 +110,7 @@ INEQ_DUAL = "ineq_dual"
 SOLVE_TIME = "solve_time"  # in seconds
 SETUP_TIME = "setup_time"  # in seconds
 NUM_ITERS = "num_iters"  # number of iterations
+EXTRA_STATS = "solver_specific_stats"
 
 # Keys for problem data dict.
 C = "c"

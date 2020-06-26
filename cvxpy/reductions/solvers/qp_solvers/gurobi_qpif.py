@@ -56,7 +56,8 @@ class GUROBI(QpSolver):
 
         # Start populating attribute dictionary
         attr = {s.SOLVE_TIME: model.Runtime,
-                s.NUM_ITERS: model.BarIterCount}
+                s.NUM_ITERS: model.BarIterCount,
+                s.EXTRA_STATS: model}
 
         # Map GUROBI statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(model.Status, s.SOLVER_ERROR)
@@ -202,8 +203,6 @@ class GUROBI(QpSolver):
         except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
 
-        if solver_cache is not None:
-            solver_cache[self.name()] = model
         results_dict["model"] = model
 
         return results_dict

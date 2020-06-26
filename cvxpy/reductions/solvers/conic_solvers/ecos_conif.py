@@ -138,8 +138,6 @@ class ECOS(ConicSolver):
                               cones, data[s.A], data[s.B],
                               verbose=verbose,
                               **solver_opts)
-        if solver_cache is not None:
-            solver_cache[self.name()] = solution["info"]
         return solution
 
     def invert(self, solution, inverse_data):
@@ -152,6 +150,7 @@ class ECOS(ConicSolver):
         attr[s.SOLVE_TIME] = solution["info"]["timing"]["tsolve"]
         attr[s.SETUP_TIME] = solution["info"]["timing"]["tsetup"]
         attr[s.NUM_ITERS] = solution["info"]["iter"]
+        attr[s.EXTRA_STATS] = solution
 
         if status in s.SOLUTION_PRESENT:
             primal_val = solution['info']['pcost']
