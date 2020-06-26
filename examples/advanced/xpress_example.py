@@ -80,7 +80,8 @@ prob = XpressProblem (objective, constraints)
 # unbounded and infeasible, respectively (in the case of a
 # minimization problem).
 
-result = prob.solve (solver = 'XPRESS', scaling = 0, bargaptarget = 4e-30, original_problem = prob, keep_prob = True)
+result = prob.solve(solver='XPRESS', scaling=0, bargaptarget=4e-30,
+                    original_problem=prob, keep_prob=True, write_mps='bo2.mps')
 
 # We can now gather data from the Xpress problem, much in the same way
 # as in CVXPY, but we now have the Xpress problem object:
