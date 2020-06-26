@@ -80,7 +80,7 @@ prob = XpressProblem (objective, constraints)
 # unbounded and infeasible, respectively (in the case of a
 # minimization problem).
 
-result = prob.solve (solver = 'XPRESS', scaling = 0, bargaptarget = 4e-30, original_problem = prob)
+result = prob.solve (solver = 'XPRESS', scaling = 0, bargaptarget = 4e-30, original_problem = prob, keep_prob = True)
 
 # We can now gather data from the Xpress problem, much in the same way
 # as in CVXPY, but we now have the Xpress problem object:
@@ -100,6 +100,8 @@ p.write ('xprob', '')
 
 print ("Problem has {0:4d} columns and {1:4d} rows".format (p.attributes.cols, p.attributes.rows))
 
+del p
+
 # Obtaining the problem's IISs is done through the XpressProblem
 # object, rather than p, as we agreed. For LP problems there can be
 # more than one IISs, while for quadratic problem only one IIS is
@@ -108,8 +110,6 @@ print ("Problem has {0:4d} columns and {1:4d} rows".format (p.attributes.cols, p
 # each dictionary corresponding to an IIS. In the following, they are
 # all printed if the problem is infeasible, otherwise the variable
 # values and the dual value of the first constraint are printed.
-
-print (prob._transferRow)
 
 if prob.status == 'infeasible':
     print (prob._iis)
