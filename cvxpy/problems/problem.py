@@ -1115,18 +1115,25 @@ class SolverStats(object):
 
     Attributes
     ----------
+    solver_name : str
+        The name of the solver.
     solve_time : double
         The time (in seconds) it took for the solver to solve the problem.
     setup_time : double
         The time (in seconds) it took for the solver to setup the problem.
     num_iters : int
         The number of iterations the solver had to go through to find a solution.
+    extra_stats : object
+        Extra statistics specific to the solver; these statistics are typically
+        returned directly from the solver, without modification by CVXPY.
+        This object may be a dict, or a custom Python object.
     """
     def __init__(self, results_dict, solver_name):
         self.solver_name = solver_name
         self.solve_time = None
         self.setup_time = None
         self.num_iters = None
+        self.extra_stats = None
 
         if s.SOLVE_TIME in results_dict:
             self.solve_time = results_dict[s.SOLVE_TIME]
@@ -1134,6 +1141,8 @@ class SolverStats(object):
             self.setup_time = results_dict[s.SETUP_TIME]
         if s.NUM_ITERS in results_dict:
             self.num_iters = results_dict[s.NUM_ITERS]
+        if s.EXTRA_STATS in results_dict:
+            self.extra_stats = results_dict[s.EXTRA_STATS]
 
 
 class SizeMetrics(object):
