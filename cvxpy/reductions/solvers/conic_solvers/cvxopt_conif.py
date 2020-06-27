@@ -22,7 +22,8 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
-from cvxpy.reductions.solvers.kktsolver import get_kktsolver
+from cvxpy.reductions.solvers.kktsolver import setup_kktsolver
+from cvxpy.expressions.constants.constant import smallest_eig_near_ref
 import scipy.sparse as sp
 import scipy
 import numpy as np
@@ -155,13 +156,12 @@ class CVXOPT(ECOS):
         old_options = cvxopt.solvers.options.copy()
         # Save old data in case need to use robust solver.
         data[s.DIMS] = dims_to_solver_dict(data[s.DIMS])
-        # User chosen KKT solver option.
+        # Do a preliminary check for a certain, problematic KKT solver.
         kktsolver = self.get_kktsolver_opt(solver_opts)
-        # Cannot have redundant rows unless using robust LDL kktsolver.
-        if kktsolver != s.ROBUST_KKTSOLVER:
-            # Will detect infeasibility.
+        if isinstance(kktsolver, str) and kktsolver == 'chol':
             if self.remove_redundant_rows(data) == s.INFEASIBLE:
                 return {s.STATUS: s.INFEASIBLE}
+
         # Convert A, b, G, h, c to CVXOPT matrices.
         data[s.C] = intf.dense2cvxopt(data[s.C])
         var_length = data[s.C].size[0]
@@ -176,6 +176,9 @@ class CVXOPT(ECOS):
         data[s.G] = intf.sparse2cvxopt(data[s.G])
         data[s.H] = intf.dense2cvxopt(data[s.H])
 
+        c, G, h, dims = data[s.C], data[s.G], data[s.H], data[s.DIMS]
+        A, b = data[s.A], data[s.B]
+
         # Apply any user-specific options.
         # Silence solver.
         solver_opts["show_progress"] = verbose
@@ -189,18 +192,14 @@ class CVXOPT(ECOS):
         if "refinement" not in cvxopt.solvers.options:
             cvxopt.solvers.options["refinement"] = 1
 
+        # finalize the KKT solver.
+        if isinstance(kktsolver, str) and kktsolver == s.ROBUST_KKTSOLVER:
+            kktsolver = setup_kktsolver(c, G, h, dims, A, b)
+        elif not isinstance(kktsolver, str):
+            kktsolver = kktsolver(c, G, h, dims, A, b)
+
         try:
-            if kktsolver == s.ROBUST_KKTSOLVER:
-                # Get custom kktsolver.
-                kktsolver = get_kktsolver(data[s.G],
-                                          data[s.DIMS],
-                                          data[s.A])
-            results_dict = cvxopt.solvers.conelp(data[s.C],
-                                                 data[s.G],
-                                                 data[s.H],
-                                                 data[s.DIMS],
-                                                 data[s.A],
-                                                 data[s.B],
+            results_dict = cvxopt.solvers.conelp(c, G, h, dims, A, b,
                                                  kktsolver=kktsolver)
         # Catch exceptions in CVXOPT and convert them to solver errors.
         except ValueError:
@@ -248,7 +247,8 @@ class CVXOPT(ECOS):
 
     @staticmethod
     def remove_redundant_rows(data):
-        """Remove redundant constraints from A and G.
+        """Check if A has redundant rows. If it does, remove redundant constraints
+        from A, and apply a presolve procedure for G.
 
         Parameters
         ----------
@@ -266,32 +266,54 @@ class CVXOPT(ECOS):
         G = data[s.G]
         b = data[s.B]
         h = data[s.H]
-        # Remove redundant rows in A.
-        if A is not None:
-            # The pivoting improves robustness.
-            Q, R, P = scipy.linalg.qr(A.todense(), pivoting=True)
-            rows_to_keep = []
-            for i in range(R.shape[0]):
-                if np.linalg.norm(R[i, :]) > 1e-10:
-                    rows_to_keep.append(i)
-            R = R[rows_to_keep, :]
-            Q = Q[:, rows_to_keep]
-            # Invert P from col -> var to var -> col.
-            Pinv = np.zeros(P.size, dtype='int')
-            for i in range(P.size):
-                Pinv[P[i]] = i
-            # Rearrage R.
-            R = R[:, Pinv]
-            A = R
-            b_old = b
-            b = Q.T.dot(b)
-            # If b is not in the range of Q,
-            # the problem is infeasible.
-            if not np.allclose(b_old, Q.dot(b)):
+        if A is None:
+            return s.OPTIMAL
+        TOL = 1e-10
+        #
+        # Use a gram matrix approach to skip dense QR factorization, if possible.
+        #
+        gram = A @ A.T
+        if gram.shape[0] == 1:
+            gram = gram.toarray().item()  # we only have one equality constraint.
+            if gram > 0:
+                return s.OPTIMAL
+            elif not b.item() == 0.0:
                 return s.INFEASIBLE
-            dims[s.EQ_DIM] = int(b.shape[0])
-            data["Q"] = intf.dense2cvxopt(Q)
-        # Remove obviously redundant rows in G's <= constraints.
+            else:
+                data[s.A] = None
+                data[s.B] = None
+                return s.OPTIMAL
+        eig = smallest_eig_near_ref(gram, ref=TOL)
+        if eig > TOL:
+            return s.OPTIMAL
+        #
+        # Redundant constraints exist, up to numerical tolerance;
+        # reformulate equality constraints to remove this redundancy.
+        #
+        Q, R, P = scipy.linalg.qr(A.todense(), pivoting=True)  # pivoting helps robustness
+        rows_to_keep = []
+        for i in range(R.shape[0]):
+            if np.linalg.norm(R[i, :]) > TOL:
+                rows_to_keep.append(i)
+        R = R[rows_to_keep, :]
+        Q = Q[:, rows_to_keep]
+        # Invert P from col -> var to var -> col.
+        Pinv = np.zeros(P.size, dtype='int')
+        for i in range(P.size):
+            Pinv[P[i]] = i
+        # Rearrage R.
+        R = R[:, Pinv]
+        A = R
+        b_old = b
+        b = Q.T.dot(b)
+        # If b is not in the range of Q, the problem is infeasible.
+        if not np.allclose(b_old, Q.dot(b)):
+            return s.INFEASIBLE
+        dims[s.EQ_DIM] = int(b.shape[0])
+        data["Q"] = intf.dense2cvxopt(Q)
+        #
+        # Since we're applying nontrivial presolve to A, apply to G as well.
+        #
         if G is not None:
             G = G.tocsr()
             G_leq = G[:dims[s.LEQ_DIM], :]
@@ -303,7 +325,7 @@ class CVXOPT(ECOS):
             data["P_leq"] = intf.sparse2cvxopt(P_leq)
             G = sp.vstack([G_leq, G_other])
             h = np.hstack([h_leq, h_other])
-        # Convert A, b, G, h to CVXOPT matrices.
+        # Record changes, and return.
         data[s.A] = A
         data[s.G] = G
         data[s.B] = b
