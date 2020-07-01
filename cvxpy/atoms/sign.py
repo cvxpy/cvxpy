@@ -26,7 +26,7 @@ class sign(Atom):
     def numeric(self, values):
         """Returns the sign of x.
         """
-        x = values[0]
+        x = values[0].copy()
         x[x > 0] = 1.0
         x[x <= 0] = -1.0
         return x
