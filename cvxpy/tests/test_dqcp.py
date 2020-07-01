@@ -411,7 +411,7 @@ class TestDqcp(base_test.BaseTest):
         problem.solve()
 
         value = variable.value.copy()
-        sign_value = cp.sign(variable).value
+        cp.sign(variable).value
         self.assertItemsAlmostEqual(value, variable.value)
 
     def test_dist_ratio(self):
