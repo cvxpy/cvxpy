@@ -869,7 +869,7 @@ class TestGUROBI(BaseTest):
         StandardTestLPs.test_lp_2(solver='GUROBI')
 
     def test_gurobi_lp_3(self):
-        StandardTestLPs.test_lp_3(solver='GUROBI', DualReductions=0)
+        StandardTestLPs.test_lp_3(solver='GUROBI')
 
     def test_gurobi_lp_4(self):
         StandardTestLPs.test_lp_4(solver='GUROBI')
