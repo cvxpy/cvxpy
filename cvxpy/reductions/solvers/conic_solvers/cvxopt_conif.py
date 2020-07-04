@@ -23,7 +23,7 @@ from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
-from cvxpy.expressions.constants.constant import smallest_eig_near_ref
+from cvxpy.expressions.constants.constant import extremal_eig_near_ref
 import scipy.sparse as sp
 import scipy
 import numpy as np
@@ -283,7 +283,7 @@ class CVXOPT(ECOS):
                 data[s.A] = None
                 data[s.B] = None
                 return s.OPTIMAL
-        eig = smallest_eig_near_ref(gram, ref=TOL)
+        eig = extremal_eig_near_ref(gram, ref=TOL)
         if eig > TOL:
             return s.OPTIMAL
         #
