@@ -21,7 +21,7 @@ limitations under the License.
 REG_EPS = 1e-9
 
 
-def setup_kktsolver(c, G, h, dims, A, b):
+def setup_ldl_factor(c, G, h, dims, A, b):
     """
     The meanings of arguments in this function are identical to those of the
     function cvxopt.solvers.conelp. Refer to CVXOPT documentation

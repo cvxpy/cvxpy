@@ -22,7 +22,7 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
-from cvxpy.reductions.solvers.kktsolver import setup_kktsolver
+from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
 from cvxpy.expressions.constants.constant import smallest_eig_near_ref
 import scipy.sparse as sp
 import scipy
@@ -194,7 +194,7 @@ class CVXOPT(ECOS):
 
         # finalize the KKT solver.
         if isinstance(kktsolver, str) and kktsolver == s.ROBUST_KKTSOLVER:
-            kktsolver = setup_kktsolver(c, G, h, dims, A, b)
+            kktsolver = setup_ldl_factor(c, G, h, dims, A, b)
         elif not isinstance(kktsolver, str):
             kktsolver = kktsolver(c, G, h, dims, A, b)
 
