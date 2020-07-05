@@ -176,6 +176,9 @@ CVXPY supports the SCIP solver.
 Simply install SCIP such that you can ``from pyscipopt.scip import Model`` in Python.
 See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_ github for installation instructions.
 
+It is important to note that the currently the SCIP solver does not consistently calculate duals correctly, therefore if you are looking to use the dual values specifically this may not be the best solver choice for you.
+
+
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
 .. _conda: https://docs.conda.io/en/latest/
