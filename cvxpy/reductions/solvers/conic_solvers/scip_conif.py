@@ -319,6 +319,9 @@ class SCIP(ConicSolver):
             solution["primal"] = array([sol[v] for v in variables])
 
             if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
+                # Not the following code calculating the dual values does not
+                # always return the correct values, see tests `test_scip_lp_2`
+                # and `test_scip_socp_1`.
                 vals = []
 
                 # Get linear duals.
@@ -341,7 +344,7 @@ class SCIP(ConicSolver):
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
         solution['status'] = STATUS_MAP[model.getStatus()]
-        if solution["status"] == s.SOLVER_ERROR and model.SolCount:
+        if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
             solution["status"] = s.OPTIMAL_INACCURATE
 
         return solution
