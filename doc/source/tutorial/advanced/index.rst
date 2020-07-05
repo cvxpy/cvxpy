@@ -206,7 +206,7 @@ You can construct mixed-integer programs by creating variables with the attribut
 CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
 For licencing reasons, CVXPY does not install any of these solvers by default.
 
-CVXPY supports open source mixed-integer solvers GLPK_MI_ and CBC_. The CVXOPT_ python package
+CVXPY supports open source mixed-integer solvers GLPK_MI_, CBC_ and SCIP_. The CVXOPT_ python package
 provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running ``pip install cvxopt`` in
 your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.
 
@@ -810,6 +810,9 @@ The following cut-generators are available:
 
 ``'nag_params'``
     a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value . 
+
+SCIP_ options:
+``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
 Getting the standard form
 -------------------------
