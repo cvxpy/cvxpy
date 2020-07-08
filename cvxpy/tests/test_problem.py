@@ -190,6 +190,24 @@ class TestProblem(BaseTest):
         self.assertGreater(stats.solve_time, 0)
         self.assertGreater(stats.setup_time, 0)
         self.assertGreater(stats.num_iters, 0)
+        self.assertIn('info', stats.extra_stats)
+
+        prob = Problem(cp.Minimize(cp.norm(self.x)), [self.x == 0])
+        prob.solve(solver=s.SCS)
+        stats = prob.solver_stats
+        self.assertGreater(stats.solve_time, 0)
+        self.assertGreater(stats.setup_time, 0)
+        self.assertGreater(stats.num_iters, 0)
+        self.assertIn('info', stats.extra_stats)
+
+        prob = Problem(cp.Minimize(cp.sum(self.x)), [self.x == 0])
+        prob.solve(solver=s.OSQP)
+        stats = prob.solver_stats
+        self.assertGreater(stats.solve_time, 0)
+        # We do not populate setup_time for OSQP (OSQP decomposes time
+        # into setup, solve, and polish; these are summed to obtain solve_time)
+        self.assertGreater(stats.num_iters, 0)
+        self.assertTrue(hasattr(stats.extra_stats, 'info'))
 
     def test_get_problem_data(self):
         """Test get_problem_data method.

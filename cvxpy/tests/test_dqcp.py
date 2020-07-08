@@ -403,6 +403,17 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(problem.objective.value, 1.0)
         self.assertGreater(x.value, 0)
 
+        # Check that sign doesn't change value.
+        vector = np.array([.1, -.3, .5])
+        variable = cp.Variable(len(vector))
+        problem = cp.Problem(cp.Maximize(vector @ variable),
+                             [cp.norm2(variable) <= 1.])
+        problem.solve()
+
+        value = variable.value.copy()
+        cp.sign(variable).value
+        self.assertItemsAlmostEqual(value, variable.value)
+
     def test_dist_ratio(self):
         x = cp.Variable(2)
         a = np.ones(2)
