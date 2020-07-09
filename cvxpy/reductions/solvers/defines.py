@@ -52,7 +52,7 @@ from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
 solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      CVXOPT_con(), GLPK_con(),
                      GLPK_MI_con(), CBC_con(), SCS_con(),
-                     GUROBI_con(), MOSEK_con(), CPLEX_con(), NAG_con(), XPRESS_con()]
+                     GUROBI_con(), MOSEK_con(), CPLEX_con(), XPRESS_con(), NAG_con()]
 solver_qp_intf = [OSQP_qp(),
                   GUROBI_qp(),
                   CPLEX_qp(),
@@ -81,11 +81,11 @@ def installed_solvers():
     """
     installed = []
     # Check conic solvers
-    for name, solver in SOLVER_MAP_CONIC.items():
+    for name, solver in list(SOLVER_MAP_CONIC.items()):
         if solver.is_installed():
             installed.append(name)
     # Check QP solvers
-    for name, solver in SOLVER_MAP_QP.items():
+    for name, solver in list(SOLVER_MAP_QP.items()):
         if solver.is_installed():
             installed.append(name)
 

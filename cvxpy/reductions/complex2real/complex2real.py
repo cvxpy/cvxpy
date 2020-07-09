@@ -74,7 +74,7 @@ class Complex2Real(Reduction):
         pvars = {}
         dvars = {}
         if solution.status in s.SOLUTION_PRESENT:
-            for vid, var in inverse_data.id2var.items():
+            for vid, var in list(inverse_data.id2var.items()):
                 if var.is_real():
                     pvars[vid] = solution.primal_vars[vid]
                 elif var.is_imag():
@@ -97,7 +97,7 @@ class Complex2Real(Reduction):
                             1j*solution.primal_vars[imag_id]
                     else:
                         pvars[vid] = solution.primal_vars[vid]
-            for cid, cons in inverse_data.id2cons.items():
+            for cid, cons in list(inverse_data.id2cons.items()):
                 if cons.is_real():
                     dvars[vid] = solution.dual_vars[cid]
                 elif cons.is_imag():

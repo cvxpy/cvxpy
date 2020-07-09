@@ -204,7 +204,7 @@ class GUROBI(SCS):
         for constr_len in dims[s.SOC_DIM]:
             soc_end = soc_start + constr_len
             soc_constr, new_leq, new_vars = self.add_model_soc_constr(
-                model, variables, range(soc_start, soc_end),
+                model, variables, list(range(soc_start, soc_end)),
                 A, b
             )
             soc_constrs.append(soc_constr)

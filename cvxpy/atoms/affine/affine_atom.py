@@ -25,9 +25,8 @@ from cvxpy.utilities import performance_utils as perf
 import scipy.sparse as sp
 
 
-class AffAtom(Atom):
+class AffAtom(Atom, metaclass=abc.ABCMeta):
     """ Abstract base class for affine atoms. """
-    __metaclass__ = abc.ABCMeta
     _allow_complex = True
 
     def sign_from_args(self):

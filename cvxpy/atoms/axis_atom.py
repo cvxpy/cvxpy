@@ -20,12 +20,10 @@ import numpy as np
 import scipy.sparse as sp
 
 
-class AxisAtom(Atom):
+class AxisAtom(Atom, metaclass=abc.ABCMeta):
     """
     An abstract base class for atoms that can be applied along an axis.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, expr, axis=None, keepdims=False):
         self.axis = axis

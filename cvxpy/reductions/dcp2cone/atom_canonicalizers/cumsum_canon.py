@@ -14,18 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import sum_squares
-from cvxpy.atoms.quad_form import decomp_quad
-from cvxpy.expressions.constants import Constant
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import quad_over_lin_canon
+from cvxpy.expressions.variable import Variable
 
 
-def quad_form_canon(expr, args):
-    scale, M1, M2 = decomp_quad(args[1].value)
-    if M1.size > 0:
-        expr = sum_squares(Constant(M1.T) @ args[0])
-    if M2.size > 0:
-        scale = -scale
-        expr = sum_squares(Constant(M2.T) @ args[0])
-    obj, constr = quad_over_lin_canon(expr, expr.args)
-    return scale * obj, constr
+def cumsum_canon(expr, args):
+    """Cumulative sum.
+    """
+    X = args[0]
+    axis = expr.axis
+    # Implicit O(n) definition:
+    # X = Y[:1,:] - Y[1:, :]
+    Y = Variable(expr.shape)
+    if axis == 0:
+        constr = [X[1:] == Y[1:] - Y[:-1], Y[0] == X[0]]
+    else:
+        constr = [X[:, 1:] == Y[:, 1:] - Y[:, :-1], Y[:, 0] == X[:, 0]]
+    return (Y, constr)

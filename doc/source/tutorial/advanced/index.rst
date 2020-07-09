@@ -495,6 +495,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.CPLEX)
     print "optimal value with CPLEX:", prob.value
 
+    # Solve with XPRESS
+    prob.solve(solver=cp.XPRESS)
+    print "optimal value with XPRESS:", prob.value
+
     # Solve with NAG.
     prob.solve(solver=cp.NAG)
     print "optimal value with NAG:", prob.value
@@ -515,6 +519,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with MOSEK: 6.0
     optimal value with CBC: 6.0
     optimal value with CPLEX: 6.0
+    optimal value with XPRESS: 6.0
     optimal value with NAG: 6.000000003182365
     optimal value with XPRESS: 6.0
 
@@ -526,7 +531,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'XPRESS']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'XPRESS', 'NAG']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1304,7 +1309,6 @@ on derivatives.
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
+.. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
-.. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
-
