@@ -298,7 +298,7 @@ class MOSEK(ConicSolver):
         #   indicating that a function deals with PSD variables.
 
         task.appendvars(n)
-        task.putvarboundlist(np.arange(n, dtype=int),
+        task.putvarboundlist(np.arange(n, dtype=int64),
                              [mosek.boundkey.fr] * n, np.zeros(n), np.zeros(n))
         if psd_total_dims > 0:
             task.appendbarvars(dims[s.PSD_DIM])
