@@ -113,21 +113,21 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
             return soln, low, high
         query_pt = (low + high) / 2.0
         if verbose and i % verbose_freq == 0:
-            print(("(iteration %d) lower bound: %0.6f" % (i, low)))
-            print(("(iteration %d) upper bound: %0.6f" % (i, high)))
-            print(("(iteration %d) query point: %0.6f " % (i, query_pt)))
+            print("(iteration %d) lower bound: %0.6f" % (i, low))
+            print("(iteration %d) upper bound: %0.6f" % (i, high))
+            print("(iteration %d) query point: %0.6f " % (i, query_pt))
         t.value = query_pt
         lowered = _lower_problem(problem)
         _solve(lowered, solver=solver)
 
         if _infeasible(lowered):
             if verbose and i % verbose_freq == 0:
-                print(("(iteration %d) query was infeasible.\n" % i))
+                print("(iteration %d) query was infeasible.\n" % i)
             low = tighten_lower(query_pt)
         elif lowered.status in s.SOLUTION_PRESENT:
             if verbose and i % verbose_freq == 0:
-                print(("(iteration %d) query was feasible. %s)\n" %
-                      (i, lowered.solution)))
+                print("(iteration %d) query was feasible. %s)\n" %
+                      (i, lowered.solution))
             soln = lowered.solution
             high = tighten_higher(query_pt)
         else:
@@ -170,9 +170,9 @@ def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
 
     feas_problem, t, tighten_lower, tighten_higher = problem._bisection_data
     if verbose:
-        print(("\n******************************************************"
+        print("\n******************************************************"
               "**************************\n"
-              "Preparing to bisect problem\n\n%s\n" % _lower_problem(problem)))
+              "Preparing to bisect problem\n\n%s\n" % _lower_problem(problem))
 
     lowered_feas = _lower_problem(feas_problem)
     _solve(lowered_feas, solver)
@@ -187,16 +187,16 @@ def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
         low, high = _find_bisection_interval(problem, t, solver, low, high,
                                              max_iters_interval_search)
     if verbose:
-        print(("initial lower bound: %0.6f" % low))
-        print(("initial upper bound: %0.6f\n" % high))
+        print("initial lower bound: %0.6f" % low)
+        print("initial upper bound: %0.6f\n" % high)
 
     soln, low, high = _bisect(
         problem, solver, t, low, high, tighten_lower, tighten_higher,
         eps, verbose, max_iters)
     soln.opt_val = (low + high) / 2.0
     if verbose:
-        print(("Bisection completed, with lower bound %0.6f and upper bound "
+        print("Bisection completed, with lower bound %0.6f and upper bound "
               "%0.7f\n******************************************"
               "**************************************\n"
-              % (low, high)))
+              % (low, high))
     return soln

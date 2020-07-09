@@ -16,7 +16,7 @@ limitations under the License.
 
 # Utility functions to handle indexing/slicing into an expression.
 
-
+from __future__ import division
 import numpy as np
 import numbers
 
@@ -48,7 +48,7 @@ def validate_key(key, shape):
         # Add : to the right.
         key = tuple(list(key) + [slice(None, None, None)]*(len(shape) - slices))
     # Change numbers into slices and ensure all slices have a start and step.
-    return tuple(format_slice(slc, dim, i) for slc, dim, i in zip(key, shape, list(range(len(shape)))))
+    return tuple(format_slice(slc, dim, i) for slc, dim, i in zip(key, shape, range(len(shape))))
 
 
 def to_tuple(key):

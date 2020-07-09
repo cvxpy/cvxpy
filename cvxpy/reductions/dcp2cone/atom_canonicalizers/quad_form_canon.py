@@ -21,6 +21,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import qu
 
 
 def quad_form_canon(expr, args):
+    # TODO this doesn't work with parameters!
     scale, M1, M2 = decomp_quad(args[1].value)
     if M1.size > 0:
         expr = sum_squares(Constant(M1.T) @ args[0])

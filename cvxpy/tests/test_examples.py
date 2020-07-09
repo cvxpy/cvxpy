@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
+from __future__ import print_function
 import cvxpy as cvx
 import cvxpy.interface as intf
 from cvxpy.tests.base_test import BaseTest

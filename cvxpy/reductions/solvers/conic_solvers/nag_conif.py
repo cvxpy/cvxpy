@@ -243,7 +243,7 @@ class NAG(ConicSolver):
         # Set the optional parameters
         kwargs = sorted(solver_opts.keys())
         if "nag_params" in kwargs:
-            for option, value in list(solver_opts["nag_params"].items()):
+            for option, value in solver_opts["nag_params"].items():
                 optstr = option + '=' + str(value)
                 opt.handle_opt_set(handle, optstr)
             kwargs.remove("nag_params")

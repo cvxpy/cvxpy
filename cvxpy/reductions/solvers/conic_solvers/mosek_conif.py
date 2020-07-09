@@ -593,7 +593,7 @@ class MOSEK(ConicSolver):
             else:
                 raise ValueError("Invalid MOSEK parameter '%s'." % param)
 
-        for param, value in list(params.items()):
+        for param, value in params.items():
             if isinstance(param, str):
                 _handle_str_param(param.strip(), value)
             else:

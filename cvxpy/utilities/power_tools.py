@@ -76,7 +76,7 @@ def gm_constrs(t, x_list, p):
             d[tuple(tmp)] = v
 
     constraints = []
-    for elem, children in list(tree.items()):
+    for elem, children in tree.items():
         if 1 not in elem:
             constraints += [gm(d[elem], d[children[0]], d[children[1]])]
 

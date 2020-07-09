@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 
 
-class Reduction(object, metaclass=abc.ABCMeta):
+class Reduction(object):
     """Abstract base class for reductions.
 
     A reduction is an actor that transforms a problem into an
@@ -45,6 +45,8 @@ class Reduction(object, metaclass=abc.ABCMeta):
     problem : Problem
         A problem owned by this reduction; possibly None.
     """
+
+    __metaclass__ = abc.ABCMeta
 
     def __init__(self, problem=None):
         """Construct a reduction for reducing `problem`.

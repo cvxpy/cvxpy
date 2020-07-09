@@ -59,8 +59,8 @@ def format_axis(t, X, axis):
         X = lu.reshape(X, (X.shape[0], 1))
     mat_shape = (cone_size, X.shape[0])
     val_arr = (cone_size - 1)*[1.0]
-    row_arr = list(range(1, cone_size))
-    col_arr = list(range(cone_size-1))
+    row_arr = range(1, cone_size)
+    col_arr = range(cone_size-1)
     X_mat = sp.csc_matrix((val_arr, (row_arr, col_arr)), mat_shape)
     X_mat = lu.create_const(X_mat, mat_shape, sparse=True)
     mul_shape = (cone_size, X.shape[1])

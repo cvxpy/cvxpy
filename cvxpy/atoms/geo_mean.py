@@ -78,7 +78,7 @@ class geo_mean(Atom):
 
     >>> from cvxpy import Variable, geo_mean, Problem, Maximize
     >>> x = Variable(3, name='x')
-    >>> print((geo_mean(x)))
+    >>> print(geo_mean(x))
     geo_mean(x, (1/3, 1/3, 1/3))
     >>> g = geo_mean(x, [1, 2, 1])
     >>> g.w
@@ -121,7 +121,7 @@ class geo_mean(Atom):
 
     >>> p = [Fraction(1,17), Fraction(4,9), Fraction(1,3), Fraction(25,153)]
     >>> x = Variable(4, name='x')
-    >>> print((geo_mean(x, p)))
+    >>> print(geo_mean(x, p))
     geo_mean(x, (1/17, 4/9, 1/3, 25/153))
 
     Terms with a zero power will not have an implicit nonnegativity constraint.
@@ -269,7 +269,7 @@ class geo_mean(Atom):
                                  ', '.join(str(v) for v in self.w))
 
     def pretty_tree(self):
-        print((prettydict(self.tree)))
+        print(prettydict(self.tree))
 
     def shape_from_args(self):
         """Returns the (row, col) shape of the expression.
@@ -340,4 +340,3 @@ class geo_mean(Atom):
         copy.cone_num_over = self.cone_num_over
         copy.cone_num = self.cone_num
         return copy
-

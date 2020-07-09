@@ -27,8 +27,9 @@ import abc
 import numpy as np
 
 
-class Atom(Expression, metaclass=abc.ABCMeta):
+class Atom(Expression):
     """ Abstract base class for atoms. """
+    __metaclass__ = abc.ABCMeta
     _allow_complex = False
     # args are the expressions passed into the Atom constructor.
 

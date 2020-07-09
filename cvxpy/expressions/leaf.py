@@ -26,7 +26,7 @@ import numpy.linalg as LA
 import scipy.sparse as sp
 
 
-class Leaf(expression.Expression, metaclass=abc.ABCMeta):
+class Leaf(expression.Expression):
     """
     A leaf node of an expression tree; i.e., a Variable, Constant, or Parameter.
 
@@ -80,6 +80,8 @@ class Leaf(expression.Expression, metaclass=abc.ABCMeta):
         Is the variable negative?
     """
 
+    __metaclass__ = abc.ABCMeta
+
     def __init__(self, shape, value=None, nonneg=False, nonpos=False,
                  complex=False, imag=False,
                  symmetric=False, diag=False, PSD=False,
@@ -123,7 +125,7 @@ class Leaf(expression.Expression, metaclass=abc.ABCMeta):
             self.integer_idx = []
 
         # Only one attribute be True (except can be boolean and integer).
-        true_attr = sum(1 for k, v in list(self.attributes.items()) if v)
+        true_attr = sum(1 for k, v in self.attributes.items() if v)
         if boolean and integer:
             true_attr -= 1
         if true_attr > 1:
@@ -139,7 +141,7 @@ class Leaf(expression.Expression, metaclass=abc.ABCMeta):
         """Get a string representing the attributes.
         """
         attr_str = ""
-        for attr, val in list(self.attributes.items()):
+        for attr, val in self.attributes.items():
             if attr != 'real' and val:
                 attr_str += ", %s=%s" % (attr, val)
         return attr_str
@@ -421,7 +423,7 @@ class Leaf(expression.Expression, metaclass=abc.ABCMeta):
                 elif self.attributes['imag']:
                     attr_str = 'imaginary'
                 else:
-                    attr_str = ([k for (k, v) in list(self.attributes.items()) if v] + ['real'])[0]
+                    attr_str = ([k for (k, v) in self.attributes.items() if v] + ['real'])[0]
                 raise ValueError(
                     "%s value must be %s." % (self.__class__.__name__, attr_str)
                 )

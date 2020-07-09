@@ -22,8 +22,9 @@ import numpy as np
 import scipy.sparse as sp
 
 
-class Elementwise(Atom, metaclass=abc.ABCMeta):
+class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
+    __metaclass__ = abc.ABCMeta
 
     def shape_from_args(self):
         """Shape is the same as the sum of the arguments.

@@ -107,4 +107,4 @@ class TestConvolution(BaseTest):
         x = cvx.Variable(N)
         v = cvx.conv(h, x)
         obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))
-        print((cvx.Problem(obj, []).solve()))
+        print(cvx.Problem(obj, []).solve())
