@@ -367,7 +367,7 @@ def get_problem_matrix(linOps,
     I = np.concatenate(I)
     J = np.concatenate(J)
     A = scipy.sparse.csc_matrix(
-        (V, (I, J)), shape=(constr_length*(var_length+1), param_size_plus_one))
+        (V, (I, J)), shape=(np.int64(constr_length)*np.int64(var_length+1), param_size_plus_one))
     return A
 
 
