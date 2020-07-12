@@ -176,7 +176,7 @@ CVXPY supports the SCIP solver.
 Simply install SCIP such that you can ``from pyscipopt.scip import Model`` in Python.
 See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_ github for installation instructions.
 
-It is important to note that the currently the SCIP solver does not consistently calculate duals correctly, therefore if you are looking to use the dual values specifically this may not be the best solver choice for you.
+CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
 
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
