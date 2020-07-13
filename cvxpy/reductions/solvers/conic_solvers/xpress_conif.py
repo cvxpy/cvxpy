@@ -189,6 +189,7 @@ class XPRESS(SCS):
             self.prob_.controls.miplog = 0
             self.prob_.controls.lplog = 0
             self.prob_.controls.outputlog = 0
+            self.prob_.controls.xslp_log = -1
 
         self.prob_.loadproblem(probname="CVX_xpress_conic",
                                # constraint types
