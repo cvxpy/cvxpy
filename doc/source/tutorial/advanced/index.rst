@@ -752,9 +752,23 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     number of iterative refinement steps after solving KKT system (default: 1).
 
 ``'kktsolver'``
-    The KKT solver used. The default, "chol", does a Cholesky factorization with preprocessing to make A and [A; G] full rank.
-    The "robust" solver does an LDL factorization without preprocessing.
-    It is slower, but more robust.
+    Controls the method used to solve systems of linear equations at each step of CVXOPT's
+    interior-point algorithm. This parameter can be a string (with one of several values),
+    or a function handle.
+
+    KKT solvers built-in to CVXOPT can be specified by strings  'ldl', 'ldl2', 'qr', 'chol',
+    and 'chol2'. If 'chol' is chosen, then CVXPY will perform an additional presolve
+    procedure to eliminate redundant constraints. You can also set ``kktsolver='robust'``.
+    The 'robust' solver is implemented in python, and is part of CVXPY source code; the
+    'robust' solver doesn't require a presolve phase to eliminate redundant constraints,
+    however it can be slower than 'chol'.
+
+    Finally, there is an option to pass a function handle for the ``kktsolver`` argument.
+    Passing a KKT solver based on a function handle allows you to take complete control of
+    solving the linear systems encountered in CVXOPT's interior-point algorithm. The API for
+    KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
+    solvers. The precise API that CVXPY users are held to is described in the CVXPY source
+    code: cvxpy/reductions/solvers/kktsolver.py
 
 `SCS`_ options:
 
