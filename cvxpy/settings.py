@@ -63,9 +63,10 @@ CPLEX = "CPLEX"
 MOSEK = "MOSEK"
 XPRESS = "XPRESS"
 NAG = "NAG"
+SCIP = "SCIP"
 SOLVERS = [ECOS, CVXOPT, GLPK,
            GLPK_MI, SCS, GUROBI, OSQP, CPLEX,
-           MOSEK, CBC, XPRESS, NAG]
+           MOSEK, CBC, XPRESS, NAG, SCIP]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
@@ -110,6 +111,7 @@ INEQ_DUAL = "ineq_dual"
 SOLVE_TIME = "solve_time"  # in seconds
 SETUP_TIME = "setup_time"  # in seconds
 NUM_ITERS = "num_iters"  # number of iterations
+EXTRA_STATS = "solver_specific_stats"
 
 # Keys for problem data dict.
 C = "c"

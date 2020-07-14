@@ -554,3 +554,21 @@ class TestComplex(BaseTest):
             with self.assertRaises(Exception) as cm:
                 atom(x)
             self.assertEqual(str(cm.exception), "pnorm(x, p) cannot have x complex for p < 1.")
+
+    def test_diag(self):
+        """Test diag of mat, and of vector.
+        """
+        X = cvx.Variable((2, 2), complex=True)
+        obj = cvx.Maximize(cvx.trace(cvx.real(X)))
+        cons = [cvx.diag(X) == 1]
+        prob = cvx.Problem(obj, cons)
+        result = prob.solve()
+        self.assertAlmostEqual(result, 2)
+
+        x = cvx.Variable(2, complex=True)
+        X = cvx.diag(x)
+        obj = cvx.Maximize(cvx.trace(cvx.real(X)))
+        cons = [cvx.diag(X) == 1]
+        prob = cvx.Problem(obj, cons)
+        result = prob.solve()
+        self.assertAlmostEqual(result, 2)
