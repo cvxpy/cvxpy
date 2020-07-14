@@ -495,6 +495,27 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Invalid reshape dimensions (5, 4).")
 
+        # Test C-style reshape.
+        a = np.arange(10)
+        A_np = np.reshape(a, (5, 2), order='C')
+        A_cp = cp.reshape(a, (5, 2), order='C')
+        self.assertItemsAlmostEqual(A_np, A_cp.value)
+
+        X = cp.Variable((5, 2))
+        prob = cp.Problem(cp.Minimize(0), [X == A_cp])
+        prob.solve()
+        self.assertItemsAlmostEqual(A_np, X.value)
+
+        a_np = np.reshape(A_np, 10, order='C')
+        a_cp = cp.reshape(A_cp, 10, order='C')
+
+        self.assertItemsAlmostEqual(a_np, a_cp.value)
+
+        x = cp.Variable(10)
+        prob = cp.Problem(cp.Minimize(0), [x == a_cp])
+        prob.solve()
+        self.assertItemsAlmostEqual(a_np, x.value)
+
     def test_vec(self):
         """Test the vec atom.
         """
