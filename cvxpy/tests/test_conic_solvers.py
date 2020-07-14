@@ -15,16 +15,23 @@ limitations under the License.
 """
 
 import math
+import unittest
+
 import numpy as np
 import scipy.linalg as la
+from nose.tools import assert_raises
+
 import cvxpy as cp
-import unittest
 from cvxpy.error import SolverError
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import StandardTestECPs, StandardTestSDPs
-from cvxpy.tests.solver_test_helpers import StandardTestSOCPs, StandardTestLPs
-from cvxpy.tests.solver_test_helpers import StandardTestMixedCPs
-from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, INSTALLED_MI_SOLVERS
+from cvxpy.tests.solver_test_helpers import (
+    StandardTestECPs,
+    StandardTestLPs,
+    StandardTestMixedCPs,
+    StandardTestSDPs,
+    StandardTestSOCPs,
+)
 
 
 class TestECOS(BaseTest):
@@ -975,11 +982,103 @@ class TestNAG(unittest.TestCase):
     def test_nag_socp_2(self):
         StandardTestSOCPs.test_socp_2(solver='NAG')
 
-    def test_ecos_socp_3(self):
+    def test_nag_socp_3(self):
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='NAG')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='NAG')
+
+
+@unittest.skipUnless("SCIP" in INSTALLED_SOLVERS, "SCIP is not installed.")
+class TestSCIP(unittest.TestCase):
+
+    def test_scip_lp_0(self):
+        StandardTestLPs.test_lp_0(solver="SCIP")
+
+    def test_scip_lp_1(self):
+        StandardTestLPs.test_lp_1(solver="SCIP")
+
+    def test_scip_lp_2(self):
+        StandardTestLPs.test_lp_2(solver="SCIP", duals=False)
+
+    def test_scip_lp_3(self):
+        StandardTestLPs.test_lp_3(solver="SCIP")
+
+    def test_scip_lp_4(self):
+        StandardTestLPs.test_lp_4(solver="SCIP")
+
+    def test_scip_socp_0(self):
+        StandardTestSOCPs.test_socp_0(solver="SCIP")
+
+    def test_scip_socp_1(self):
+        StandardTestSOCPs.test_socp_1(solver="SCIP", places=3, duals=False)
+
+    def test_scip_socp_2(self):
+        StandardTestSOCPs.test_socp_2(solver="SCIP", places=2)
+
+    def test_scip_socp_3(self):
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver="SCIP")
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver="SCIP")
+
+    def test_scip_mi_lp_0(self):
+        StandardTestLPs.test_mi_lp_0(solver="SCIP")
+
+    def test_scip_mi_lp_1(self):
+        StandardTestLPs.test_mi_lp_1(solver="SCIP")
+
+    def test_scip_mi_lp_2(self):
+        StandardTestLPs.test_mi_lp_2(solver="SCIP")
+
+    def get_simple_problem(self):
+        """Example problem that can be used within additional tests."""
+        x = cp.Variable()
+        y = cp.Variable()
+        constraints = [
+            x >= 0,  # x must be positive
+            y >= 1,  # y must be greater or equal to 1
+            x + y <= 4
+        ]
+        obj = cp.Maximize(x)
+        prob = cp.Problem(obj, constraints)
+        return prob
+
+    def test_scip_test_params__no_params_set(self):
+        prob = self.get_simple_problem()
+        prob.solve(solver="SCIP")
+        # Important that passes without raising an error also check obj.
+        assert prob.value == 3
+
+    def test_scip_test_params__valid_params(self):
+        prob = self.get_simple_problem()
+        prob.solve(solver="SCIP", gp=False)
+        # Important that passes without raising an error also check obj.
+        assert prob.value == 3
+
+    def test_scip_test_params__valid_scip_params(self):
+        prob = self.get_simple_problem()
+        prob.solve(solver="SCIP", scip_params={"lp/fastmip": 1, "limits/gap": 0.1})
+        # Important that passes without raising an error also check obj.
+        assert prob.value == 3
+
+    def test_scip_test_params__invalid_params(self):
+        prob = self.get_simple_problem()
+        # Since an invalid NON-scip param is passed, an error is expected
+        # to be raised when calling solve.
+        with assert_raises(KeyError) as ke:
+            prob.solve(solver="SCIP", a="what?")
+            exc = "One or more solver params in ['a'] are not valid: 'Not a valid parameter name'"
+            assert ke.exception == exc
+
+    def test_scip_test_params__invalid_scip_params(self):
+        prob = self.get_simple_problem()
+        # Since an invalid SCIP param is passed, an error is expected
+        # to be raised when calling solve.
+        with assert_raises(KeyError) as ke:
+            prob.solve(solver="SCIP", scip_params={"a": "what?"})
+            exc = "One or more scip params in ['a'] are not valid: 'Not a valid parameter name'"
+            assert ke.exception == exc
 
 
 class TestAllSolvers(BaseTest):
