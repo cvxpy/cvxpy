@@ -14,7 +14,7 @@ If you've found a bug in CVXPY or have a feature request,
 create an issue on the `CVXPY Github issue tracker <https://github.com/cvxgrp/cvxpy/issues>`_.
 
 Where can I learn more about convex optimization?
---------------------------------------------------
+-------------------------------------------------
 The book `Convex Optimization <http://web.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe is available for free online and has extensive background on convex optimization.
 To learn more about disciplined convex programming,
 visit the `DCP tutorial website <http://dcp.stanford.edu/>`_.
@@ -80,15 +80,15 @@ Can I use SciPy sparse matrices with CVXPY?
 Yes, they are fully supported.
 
 How do I constrain a CVXPY matrix expression to be positive semidefinite?
-------------------------------------------------------------------------------
+-------------------------------------------------------------------------
 See :ref:`Advanced Features <advanced>`.
 
 How do I create variables with special properties, such as boolean or symmetric variables?
--------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------
 See :ref:`Advanced Features <advanced>`.
 
 How do I create a variable that has multiple special properties, such as boolean and symmetric?
----------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------
 Create one variable with each desired property, and then set them all equal by adding equality constraints.
 
 How do I create variables with more than 2 dimensions?
@@ -97,7 +97,7 @@ You must mimic the extra dimensions using a dict,
 as described in `this Github issue <https://github.com/cvxgrp/cvxpy/issues/198>`__.
 
 Why does it take so long to compile my Problem?
-----------------------------------------------
+-----------------------------------------------
 In general, you should vectorize CVXPY expressions whenever possible if you
 care about performance (e.g., write A * x == b instead of a_i  * x == b_i for
 every row a_i of A). Consult this `IPython notebook <https://github.com/cvxgrp/cvxpy/blob/1.0/examples/notebooks/building_models_with_fast_compile_times.ipynb>`_ for details.

@@ -14,80 +14,84 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-"""
-THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
-DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
-"""
-
 # A custom KKT solver for CVXOPT that can handle redundant constraints.
 # Uses regularization and iterative refinement.
 
 # Regularization constant.
 REG_EPS = 1e-9
 
-# Returns a kktsolver for linear cone programs (or nonlinear if F is given).
 
-
-def get_kktsolver(G, dims, A, F=None):
-    if F is None:
-        factor = kkt_ldl(G, dims, A)
-
-        def kktsolver(W):
-            return factor(W)
-    else:
-        mnl, x0 = F()
-        factor = kkt_ldl(G, dims, A, mnl)
-
-        def kktsolver(x, z, W):
-            f, Df, H = F(x, z)
-            return factor(W, H, Df)
-    return kktsolver
-
-
-def kkt_ldl(G, dims, A, mnl=0):
+def setup_ldl_factor(c, G, h, dims, A, b):
     """
-    Solution of KKT equations by a dense LDL factorization of the
-    3 x 3 system.
+    The meanings of arguments in this function are identical to those of the
+    function cvxopt.solvers.conelp. Refer to CVXOPT documentation
 
-    Returns a function that (1) computes the LDL factorization of
+        https://cvxopt.org/userguide/coneprog.html#linear-cone-programs
 
-        [ H           A'   GG'*W^{-1} ]
-        [ A           0    0          ],
-        [ W^{-T}*GG   0   -I          ]
+    for more information.
 
-    given H, Df, W, where GG = [Df; G], and (2) returns a function for
-    solving
+    Note: CVXOPT allows G and A to be passed as dense matrix objects. However,
+    this function will only ever be called with spmatrix objects. If creating
+    a custom kktsolver of your own, you need to conform to this sparse matrix
+    assumption.
+    """
+    factor = kkt_ldl(G, dims, A)
+    return factor
 
-        [ H     A'   GG'   ]   [ ux ]   [ bx ]
+
+def kkt_ldl(G, dims, A):
+    """
+    Returns a function handle "factor", which conforms to the CVXOPT
+    custom KKT solver specifications:
+
+        https://cvxopt.org/userguide/coneprog.html#exploiting-structure.
+
+    For convenience, we provide a short outline for how this function works.
+
+    First, we allocate workspace for use in "factor". The factor function is
+    called with data (H, W). Once called, the factor function computes an LDL
+    factorization of the 3 x 3 system:
+
+        [ H           A'   G'*W^{-1}  ]
+        [ A           0    0          ].
+        [ W^{-T}*G    0   -I          ]
+
+    Once that LDL factorization is computed, "factor" constructs another
+    inner function, called "solve". The solve function uses the newly
+    constructed LDL factorization to compute solutions to linear systems of
+    the form
+
+        [ H     A'   G'    ]   [ ux ]   [ bx ]
         [ A     0    0     ] * [ uy ] = [ by ].
-        [ GG    0   -W'*W  ]   [ uz ]   [ bz ]
+        [ G     0   -W'*W  ]   [ uz ]   [ bz ]
 
-    H is n x n,  A is p x n, Df is mnl x n, G is N x n where
-    N = dims['l'] + sum(dims['q']) + sum( k**2 for k in dims['s'] ).
+    The factor function concludes by returning a reference to the solve function.
+
+    Notes: In the 3 x 3 system, H is n x n, A is p x n, and G is N x n, where
+    N = dims['l'] + sum(dims['q']) + sum( k**2 for k in dims['s'] ). For cone
+    programs, H is the zero matrix.
     """
     from cvxopt import blas, lapack
     from cvxopt.base import matrix
     from cvxopt.misc import scale, pack, unpack
 
     p, n = A.size
-    ldK = n + p + mnl + dims['l'] + sum(dims['q']) + sum([int(k*(k+1)/2)
-                                                          for k in dims['s']])
+    ldK = n + p + dims['l'] + sum(dims['q']) + sum([int(k*(k+1)/2)
+                                                    for k in dims['s']])
     K = matrix(0.0, (ldK, ldK))
     ipiv = matrix(0, (ldK, 1))
     u = matrix(0.0, (ldK, 1))
-    g = matrix(0.0, (mnl + G.size[0], 1))
+    g = matrix(0.0, (G.size[0], 1))
 
-    def factor(W, H=None, Df=None):
+    def factor(W, H=None):
         blas.scal(0.0, K)
         if H is not None:
             K[:n, :n] = H
         K[n:n+p, :n] = A
         for k in range(n):
-            if mnl:
-                g[:mnl] = Df[:, k]
-            g[mnl:] = G[:, k]
+            g[:] = G[:, k]
             scale(g, W, trans='T', inverse='I')
-            pack(g, K, dims, mnl, offsety=k*ldK + n + p)
+            pack(g, K, dims, 0, offsety=k*ldK + n + p)
         K[(ldK+1)*(p+n):: ldK+1] = -1.0
         # Add positive regularization in 1x1 block and negative in 2x2 block.
         K[0: (ldK+1)*n: ldK+1] += REG_EPS
@@ -98,9 +102,9 @@ def kkt_ldl(G, dims, A, mnl=0):
 
             # Solve
             #
-            #     [ H          A'   GG'*W^{-1} ]   [ ux   ]   [ bx        ]
+            #     [ H          A'   G'*W^{-1}  ]   [ ux   ]   [ bx        ]
             #     [ A          0    0          ] * [ uy   [ = [ by        ]
-            #     [ W^{-T}*GG  0   -I          ]   [ W*uz ]   [ W^{-T}*bz ]
+            #     [ W^{-T}*G   0   -I          ]   [ W*uz ]   [ W^{-T}*bz ]
             #
             # and return ux, uy, W*uz.
             #
@@ -109,11 +113,11 @@ def kkt_ldl(G, dims, A, mnl=0):
             blas.copy(x, u)
             blas.copy(y, u, offsety=n)
             scale(z, W, trans='T', inverse='I')
-            pack(z, u, dims, mnl, offsety=n + p)
+            pack(z, u, dims, 0, offsety=n + p)
             lapack.sytrs(K, ipiv, u)
             blas.copy(u, x, n=n)
             blas.copy(u, y, offsetx=n, n=p)
-            unpack(u, z, dims, mnl, offsetx=n + p)
+            unpack(u, z, dims, 0, offsetx=n + p)
 
         return solve
 

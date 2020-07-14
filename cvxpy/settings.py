@@ -63,9 +63,10 @@ CPLEX = "CPLEX"
 MOSEK = "MOSEK"
 XPRESS = "XPRESS"
 NAG = "NAG"
+SCIP = "SCIP"
 SOLVERS = [ECOS, CVXOPT, GLPK,
            GLPK_MI, SCS, GUROBI, OSQP, CPLEX,
-           MOSEK, CBC, XPRESS, NAG]
+           MOSEK, CBC, XPRESS, NAG, SCIP]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"

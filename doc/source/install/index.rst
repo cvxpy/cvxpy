@@ -169,6 +169,18 @@ CVXPY supports the NAG solver.
 Simply install NAG such that you can ``import naginterfaces`` in Python.
 See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
 
+Install with SCIP support
+---------------------------
+
+CVXPY supports the SCIP solver.
+Simply install SCIP such that you can ``from pyscipopt.scip import Model`` in Python.
+See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_ github for installation instructions.
+
+CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
+
+
+.. _Anaconda: https://store.continuum.io/cshop/anaconda/
+.. _website: https://store.continuum.io/cshop/anaconda/
 .. _conda: https://docs.conda.io/en/latest/
 .. _setuptools: https://pypi.python.org/pypi/setuptools
 .. _CVXOPT: http://cvxopt.org/
