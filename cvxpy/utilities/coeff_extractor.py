@@ -110,12 +110,11 @@ class CoeffExtractor(object):
                                                          self.param_id_map,
                                                          affine_expr.size)
 
-        # TODO vectorize this code.
+        # TODO preserve sparsity
         # Iterates over every entry of the parameters vector,
         # and obtains the Pi and qi for that entry i.
         # These are then combined into matrices [P1.flatten(), P2.flatten(), ...]
         # and [q1, q2, ...]
-        coeff_list = []
         constant = param_coeffs[-1, :]
         c = param_coeffs[:-1, :].A
 
@@ -140,6 +139,8 @@ class CoeffExtractor(object):
                 if quad_forms[var_id][2].P.value is not None:
                     # Convert to dense matrix.
                     P = quad_forms[var_id][2].P.value
+                    if sp.issparse(P):
+                        P = P.todense().A
                     if var_size == 1:
                         c_part = np.ones((P.shape[0], 1)) * c_part
                 else:
@@ -221,9 +222,9 @@ class CoeffExtractor(object):
         gap_below = P_height
         for P in P_list:
             gap_below -= P.shape[0]
-            above = np.zeros((gap_above, P.shape[1], num_params))
-            below = np.zeros((gap_below, P.shape[1], num_params))
-            padded_P = np.concatenate([above, P, below], axis=0)
+            above = sp.zeros((gap_above, P.shape[1], num_params))
+            below = sp.zeros((gap_below, P.shape[1], num_params))
+            padded_P = sp.concatenate([above, P, below], axis=0)
             gap_above += P.shape[0]
             padded_P = np.reshape(padded_P, (P_height*P.shape[1], num_params),
                                   order='F')
