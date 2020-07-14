@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.1 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.2 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -1161,25 +1161,34 @@
 
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
+<span class="sd">    solver_name : str</span>
+<span class="sd">        The name of the solver.</span>
 <span class="sd">    solve_time : double</span>
 <span class="sd">        The time (in seconds) it took for the solver to solve the problem.</span>
 <span class="sd">    setup_time : double</span>
 <span class="sd">        The time (in seconds) it took for the solver to setup the problem.</span>
 <span class="sd">    num_iters : int</span>
 <span class="sd">        The number of iterations the solver had to go through to find a solution.</span>
+<span class="sd">    extra_stats : object</span>
+<span class="sd">        Extra statistics specific to the solver; these statistics are typically</span>
+<span class="sd">        returned directly from the solver, without modification by CVXPY.</span>
+<span class="sd">        This object may be a dict, or a custom Python object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span> <span class="o">=</span> <span class="n">solver_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solve_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_iters</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">extra_stats</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">SOLVE_TIME</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">solve_time</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">SOLVE_TIME</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">SETUP_TIME</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setup_time</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">SETUP_TIME</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">NUM_ITERS</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">num_iters</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">NUM_ITERS</span><span class="p">]</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_iters</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">NUM_ITERS</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">EXTRA_STATS</span> <span class="ow">in</span> <span class="n">results_dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extra_stats</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EXTRA_STATS</span><span class="p">]</span></div>
 
 
 <div class="viewcode-block" id="SizeMetrics"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SizeMetrics">[docs]</a><span class="k">class</span> <span class="nc">SizeMetrics</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -1314,7 +1323,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1323,7 +1332,7 @@
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

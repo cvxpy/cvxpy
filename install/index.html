@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Install &#8212; CVXPY 1.1.1 documentation</title>
+    <title>Install &#8212; CVXPY 1.1.2 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorial" href="../tutorial/index.html" />
@@ -198,6 +198,13 @@ See the <a class="reference external" href="https://www.ibm.com/support/knowledg
 Simply install NAG such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">naginterfaces</span></code> in Python.
 See the <a class="reference external" href="https://www.nag.co.uk/nag-library-python">NAG</a> website for installation instructions.</p>
 </div>
+<div class="section" id="install-with-scip-support">
+<h2>Install with SCIP support<a class="headerlink" href="#install-with-scip-support" title="Permalink to this headline">¶</a></h2>
+<p>CVXPY supports the SCIP solver.
+Simply install SCIP such that you can <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">pyscipopt.scip</span> <span class="pre">import</span> <span class="pre">Model</span></code> in Python.
+See the <a class="reference external" href="https://github.com/SCIP-Interfaces/PySCIPOpt#installation">PySCIPOpt</a> github for installation instructions.</p>
+<p>CVXPY’s SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.</p>
+</div>
 </div>
 
 
@@ -237,6 +244,7 @@ See the <a class="reference external" href="https://www.nag.co.uk/nag-library-py
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cplex-support">Install with CPLEX support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-sdpt3-support">Install with SDPT3 support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-nag-support">Install with NAG support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-with-scip-support">Install with SCIP support</a></li>
 </ul>
 </li>
 </ul>
@@ -281,7 +289,7 @@ See the <a class="reference external" href="https://www.nag.co.uk/nag-library-py
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -290,7 +298,7 @@ See the <a class="reference external" href="https://www.nag.co.uk/nag-library-py
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

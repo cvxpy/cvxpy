@@ -1,18 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta charset="utf-8" />
-    <title>Advanced Features &#8212; CVXPY 1.1.1 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.1.2 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/language_data.js"></script>
+    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Examples" href="../../examples/index.html" />
@@ -78,9 +78,9 @@ Similarly, <code class="docutils literal notranslate"><span class="pre">Paramete
 The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Leaf</span></code></a> (the parent class
 of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and
 <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>) is given below.</p>
-<dl class="py function">
+<dl class="function">
 <dt id="Leaf">
-<code class="sig-name descname">Leaf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nonneg</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">nonpos</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">symmetric</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">diag</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">PSD</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">NSD</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">boolean</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">integer</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">Leaf</code><span class="sig-paren">(</span><em class="sig-param">shape=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">value=None</em>, <em class="sig-param">nonneg=False</em>, <em class="sig-param">nonpos=False</em>, <em class="sig-param">symmetric=False</em>, <em class="sig-param">diag=False</em>, <em class="sig-param">PSD=False</em>, <em class="sig-param">NSD=False</em>, <em class="sig-param">boolean=False</em>, <em class="sig-param">integer=False</em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a Leaf object (e.g., Variable or Parameter).
 Only one attribute can be active (set to True).</p>
 <dl class="field-list simple">
@@ -200,7 +200,7 @@ You can construct mixed-integer programs by creating variables with the attribut
 </div>
 <p>CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
 For licencing reasons, CVXPY does not install any of these solvers by default.</p>
-<p>CVXPY supports open source mixed-integer solvers <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a> and <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>. The <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> python package
+<p>CVXPY supports open source mixed-integer solvers <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a> and <a class="reference external" href="https://scip.zib.de/">SCIP</a>. The <a class="reference external" href="http://cvxopt.org/">CVXOPT</a> python package
 provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">cvxopt</span></code> in
 your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.</p>
 <p>If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
@@ -325,9 +325,9 @@ objectives and problems and follow the same rules as above.</p>
 <h2>Solve method options<a class="headerlink" href="#solve-method-options" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">solve</span></code> method takes optional arguments that let you change how CVXPY
 parses and solves the problem.</p>
-<dl class="py function">
+<dl class="function">
 <dt id="solve">
-<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">gp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">qcp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">requries_grad</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">enforce_dpp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">solver=None</em>, <em class="sig-param">verbose=False</em>, <em class="sig-param">gp=False</em>, <em class="sig-param">qcp=False</em>, <em class="sig-param">requries_grad=False</em>, <em class="sig-param">enforce_dpp=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the problem using the specified method.</p>
 <p>Populates the <code class="code docutils literal notranslate"><span class="pre">status</span></code> and <code class="code docutils literal notranslate"><span class="pre">value</span></code> attributes on the
 problem object as a side-effect.</p>
@@ -473,6 +473,14 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td></td>
 </tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://scip.zib.de/">SCIP</a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
 </tbody>
 </table>
 <p>(*) Except mixed-integer SDP.</p>
@@ -534,6 +542,10 @@ converts the problem into standard form.</p>
 <span class="c1"># Solve with NAG.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">NAG</span><span class="p">)</span>
 <span class="nb">print</span> <span class="s2">&quot;optimal value with NAG:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with SCIP.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCIP</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with SCIP:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">OSQP</span><span class="p">:</span> <span class="mf">6.0</span>
@@ -547,13 +559,14 @@ converts the problem into standard form.</p>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CBC</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CPLEX</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">NAG</span><span class="p">:</span> <span class="mf">6.000000003182365</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SCIP</span><span class="p">:</span> <span class="mf">6.0</span>
 </pre></div>
 </div>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">installed_solvers</span></code> utility function to get a list of the solvers your installation of CVXPY supports.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="n">installed_solvers</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">,</span> <span class="s1">&#39;SCIP&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -724,7 +737,7 @@ parameters were used which prevent computing the basic solution.</p>
 </dd>
 </dl>
 <p><a class="reference external" href="http://cvxopt.org/">CVXOPT</a> options:</p>
-<dl class="simple">
+<dl>
 <dt><code class="docutils literal notranslate"><span class="pre">'max_iters'</span></code></dt><dd><p>maximum number of iterations (default: 100).</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">'abstol'</span></code></dt><dd><p>absolute accuracy (default: 1e-7).</p>
@@ -735,9 +748,21 @@ parameters were used which prevent computing the basic solution.</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">'refinement'</span></code></dt><dd><p>number of iterative refinement steps after solving KKT system (default: 1).</p>
 </dd>
-<dt><code class="docutils literal notranslate"><span class="pre">'kktsolver'</span></code></dt><dd><p>The KKT solver used. The default, “chol”, does a Cholesky factorization with preprocessing to make A and [A; G] full rank.
-The “robust” solver does an LDL factorization without preprocessing.
-It is slower, but more robust.</p>
+<dt><code class="docutils literal notranslate"><span class="pre">'kktsolver'</span></code></dt><dd><p>Controls the method used to solve systems of linear equations at each step of CVXOPT’s
+interior-point algorithm. This parameter can be a string (with one of several values),
+or a function handle.</p>
+<p>KKT solvers built-in to CVXOPT can be specified by strings  ‘ldl’, ‘ldl2’, ‘qr’, ‘chol’,
+and ‘chol2’. If ‘chol’ is chosen, then CVXPY will perform an additional presolve
+procedure to eliminate redundant constraints. You can also set <code class="docutils literal notranslate"><span class="pre">kktsolver='robust'</span></code>.
+The ‘robust’ solver is implemented in python, and is part of CVXPY source code; the
+‘robust’ solver doesn’t require a presolve phase to eliminate redundant constraints,
+however it can be slower than ‘chol’.</p>
+<p>Finally, there is an option to pass a function handle for the <code class="docutils literal notranslate"><span class="pre">kktsolver</span></code> argument.
+Passing a KKT solver based on a function handle allows you to take complete control of
+solving the linear systems encountered in CVXOPT’s interior-point algorithm. The API for
+KKT solvers of this form is a small wrapper around CVXOPT’s API for function-handle KKT
+solvers. The precise API that CVXPY users are held to is described in the CVXPY source
+code: cvxpy/reductions/solvers/kktsolver.py</p>
 </dd>
 </dl>
 <p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> options:</p>
@@ -796,6 +821,8 @@ It is slower, but more robust.</p>
 <dt><code class="docutils literal notranslate"><span class="pre">'nag_params'</span></code></dt><dd><p>a dictionary of NAG option parameters. Refer to NAG’s Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use “LPIPM Iteration Limit” for the key name and 20 for its value .</p>
 </dd>
 </dl>
+<p><a class="reference external" href="https://scip.zib.de/">SCIP</a> options:
+<code class="docutils literal notranslate"><span class="pre">'scip_params'</span></code> a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed <a class="reference external" href="https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php">here</a>.</p>
 </div>
 <div class="section" id="getting-the-standard-form">
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
@@ -1305,7 +1332,7 @@ on derivatives.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1314,7 +1341,7 @@ on derivatives.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.0.4</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
