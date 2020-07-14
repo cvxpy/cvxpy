@@ -203,6 +203,26 @@ You can construct mixed-integer programs by creating variables with the attribut
     # expr2 must be integer valued.
     constr2 = (expr2 == Z)
 
+CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
+For licencing reasons, CVXPY does not install any of these solvers by default.
+
+CVXPY supports open source mixed-integer solvers GLPK_MI_, CBC_ and SCIP_. The CVXOPT_ python package
+provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running ``pip install cvxopt`` in
+your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.
+
+If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
+model, then you will need to use a commercial solver such as CPLEX_, GUROBI_, MOSEK_, or NAG_.
+Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK provide free licenses to those
+in academia (both students and faculty), as well as trial versions to those outside academia.
+CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
+online registration, and it's limited to problems at with most 1000 variables and 1000 constraints.
+
+.. note::
+   If you develop an open-source mixed-integer solver with a permissive license such
+   as Apache 2.0, and you're interested in incorporating your solver into CVXPY's default installation,
+   please reach out to us at our `GitHub issues <https://github.com/cvxgrp/cvxpy/issues>`_. We are
+   particularly interested in incorporating a simple mixed-integer SOCP solver (CVXPY previously
+   used ECOS_BB for this purpose, but dropped that solver due to recurring correctness issues).
 
 Complex valued expressions
 --------------------------
@@ -412,6 +432,8 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `SCS`_       | X  | X  | X    | X   | X   |     |
 +--------------+----+----+------+-----+-----+-----+
+| `SCIP`_      | X  | X  | X    |     |     | X   |
++--------------+----+----+------+-----+-----+-----+
 
 (*) Except mixed-integer SDP.
 
@@ -480,6 +502,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with NAG.
     prob.solve(solver=cp.NAG)
     print "optimal value with NAG:", prob.value
+
+    # Solve with SCIP.
+    prob.solve(solver=cp.SCIP)
+    print "optimal value with SCIP:", prob.value
 ::
 
     optimal value with OSQP: 6.0
@@ -494,6 +520,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CBC: 6.0
     optimal value with CPLEX: 6.0
     optimal value with NAG: 6.000000003182365
+    optimal value with SCIP: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -503,7 +530,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS_BB', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -799,6 +826,9 @@ The following cut-generators are available:
 
 ``'nag_params'``
     a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value . 
+
+SCIP_ options:
+``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
 Getting the standard form
 -------------------------
@@ -1294,4 +1324,5 @@ on derivatives.
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
+.. _SCIP: https://scip.zib.de/
 

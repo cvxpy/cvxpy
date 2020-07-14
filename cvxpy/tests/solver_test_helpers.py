@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
+
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
 
@@ -581,13 +582,14 @@ class StandardTestSOCPs(object):
         sth.check_complementarity(places)
 
     @staticmethod
-    def test_socp_1(solver, places=4, **kwargs):
+    def test_socp_1(solver, places=4, duals=True, **kwargs):
         sth = socp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
-        sth.check_complementarity(places)
-        sth.verify_dual_values(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.verify_dual_values(places)
 
     @staticmethod
     def test_socp_2(solver, places=4, **kwargs):

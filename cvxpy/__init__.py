@@ -24,7 +24,11 @@ from cvxpy.problems.objective import Maximize, Minimize
 import cvxpy.interface.scipy_wrapper
 from cvxpy.error import DCPError, DPPError, DGPError, SolverError, disable_warnings, enable_warnings, warnings_enabled
 from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP, NAG,
+<<<<<<< HEAD
                             ECOS, ECOS_BB, SUPER_SCS, SCS, DIFFCP, GUROBI, MOSEK, XPRESS,
+=======
+                            ECOS, SCS, DIFFCP, GUROBI, MOSEK, XPRESS, SCIP,
+>>>>>>> bc968fa8... SCIP interface (#1035)
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
 from cvxpy.transforms import linearize, partial_optimize, suppfunc
