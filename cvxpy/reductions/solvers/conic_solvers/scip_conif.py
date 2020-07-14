@@ -36,7 +36,6 @@ try:
     from pyscipopt.scip import Model as ScipModel
 except ImportError:
     # If it fails continue and use a generic type instead.
-    log.warning("Could not import SCIP model")
     ScipModel = Generic
 
 
