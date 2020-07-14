@@ -80,6 +80,9 @@ class TestECOS(BaseTest):
     def test_ecos_lp_4(self):
         StandardTestLPs.test_lp_4(solver='ECOS')
 
+    def test_ecos_lp_5(self):
+        StandardTestLPs.test_lp_5(solver='ECOS')
+
     def test_ecos_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='ECOS')
 
@@ -329,6 +332,9 @@ class TestSCS(BaseTest):
     def test_scs_lp_4(self):
         StandardTestLPs.test_lp_4(solver='SCS')
 
+    def test_scs_lp_5(self):
+        StandardTestLPs.test_lp_5(solver='SCS')
+
     def test_scs_socp_1(self):
         StandardTestSOCPs.test_socp_1(solver='SCS')
 
@@ -368,6 +374,9 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_lp_4(self):
         StandardTestLPs.test_lp_4(solver='MOSEK')
+
+    def test_mosek_lp_5(self):
+        StandardTestLPs.test_lp_5(solver='MOSEK')
 
     def test_mosek_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='MOSEK')
@@ -461,7 +470,6 @@ class TestCVXOPT(BaseTest):
     def test_cvxopt_options(self):
         """Test that all the CVXOPT solver options work.
         """
-        # TODO race condition when changing these values.
         # 'maxiters'
         # maximum number of iterations (default: 100).
         # 'abstol'
@@ -474,15 +482,23 @@ class TestCVXOPT(BaseTest):
         # number of iterative refinement steps when solving KKT equations
         # (default: 0 if the problem has no second-order cone
         #  or matrix inequality constraints; 1 otherwise).
-        if cp.CVXOPT in INSTALLED_SOLVERS:
-            EPS = 1e-7
-            prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
-            for i in range(2):
-                prob.solve(solver=cp.CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
-                           max_iters=20, verbose=True, kktsolver="chol",
-                           refinement=2, warm_start=True)
-            self.assertAlmostEqual(prob.value, 1.0)
-            self.assertItemsAlmostEqual(self.x.value, [0, 0])
+        EPS = 1e-7
+        prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
+        prob.solve(solver=cp.CVXOPT, feastol=EPS, abstol=EPS, reltol=EPS,
+                   max_iters=20, verbose=True, kktsolver='chol', refinement=2)
+        self.assertAlmostEqual(prob.value, 1.0)
+        self.assertItemsAlmostEqual(self.x.value, [0, 0])
+
+        msg = 'This setup-factor function was called.'
+
+        def setup_dummy_factor(c, G, h, dims, A, b):
+            # see cvxpy/reductions/solvers/kktsolver.py for an actual implementation
+            # of a setup-factor function.
+            raise NotImplementedError(msg)
+
+        with self.assertRaises(NotImplementedError) as nix:
+            prob.solve(solver='CVXOPT', kktsolver=setup_dummy_factor)
+        self.assertEqual(msg, str(nix.exception))
 
     def test_cvxopt_lp_0(self):
         StandardTestLPs.test_lp_0(solver='CVXOPT')
@@ -497,10 +513,12 @@ class TestCVXOPT(BaseTest):
         StandardTestLPs.test_lp_3(solver='CVXOPT')
 
     def test_cvxopt_lp_4(self):
-        # default settings
         StandardTestLPs.test_lp_4(solver='CVXOPT')
-        # without a CVXPY-based presolve
-        StandardTestLPs.test_lp_4(solver='CVXOPT', kktsolver='robust')
+
+    def test_cvxopt_lp_5(self):
+        from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
+        StandardTestLPs.test_lp_5(solver='CVXOPT', kktsolver=setup_ldl_factor)
+        StandardTestLPs.test_lp_5(solver='CVXOPT', kktsolver='chol')
 
     def test_cvxopt_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='CVXOPT')
@@ -576,6 +594,9 @@ class TestCBC(BaseTest):
     def test_cbc_lp_4(self):
         StandardTestLPs.test_lp_4(solver='CBC')
 
+    def test_cbc_lp_5(self):
+        StandardTestLPs.test_lp_5(solver='CBC')
+
     def test_cbc_mi_lp_0(self):
         StandardTestLPs.test_mi_lp_0(solver='CBC')
 
@@ -603,6 +624,9 @@ class TestGLPK(unittest.TestCase):
 
     def test_glpk_lp_4(self):
         StandardTestLPs.test_lp_4(solver='GLPK')
+
+    def test_glpk_lk_5(self):
+        StandardTestLPs.test_lp_5(solver='GLPK')
 
     def test_glpk_mi_lp_0(self):
         StandardTestLPs.test_mi_lp_0(solver='GLPK_MI')
@@ -744,6 +768,9 @@ class TestCPLEX(BaseTest):
     def test_cplex_lp_4(self):
         StandardTestLPs.test_lp_4(solver='CPLEX')
 
+    def test_cplex_lp_5(self):
+        StandardTestLPs.test_lp_5(solver='CPLEX')
+
     def test_cplex_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='CPLEX')
 
@@ -881,6 +908,9 @@ class TestGUROBI(BaseTest):
     def test_gurobi_lp_4(self):
         StandardTestLPs.test_lp_4(solver='GUROBI')
 
+    def test_gurobi_lp_5(self):
+        StandardTestLPs.test_lp_5(solver='GUROBI')
+
     def test_gurobi_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='GUROBI')
 
@@ -972,6 +1002,9 @@ class TestNAG(unittest.TestCase):
 
     def test_nag_lp_4(self):
         StandardTestLPs.test_lp_4(solver='NAG')
+
+    def test_nag_lp_5(self):
+        StandardTestLPs.test_lp_5(solver='NAG')
 
     def test_nag_socp_0(self):
         StandardTestSOCPs.test_socp_0(solver='NAG')

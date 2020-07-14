@@ -203,26 +203,8 @@ class Constant(Leaf):
 
         # Compute bottom eigenvalue if absent.
         if self._bottom_eig is None:
-            def SA_eigsh(sigma):
-                return eigsh(self.value, k=1,
-                             which='SA',
-                             sigma=sigma,
-                             return_eigenvectors=False)
-
-            # Run eigsh in shift-invert mode since we are
-            # interested in finding very small (in magnitude)
-            # eigenvalues
-            try:
-                self._bottom_eig = SA_eigsh(-EIGVAL_TOL)
-            except ArpackError:
-                self._bottom_eig = SA_eigsh(
-                    -EIGVAL_TOL + np.finfo(self.value.dtype).eps)
-            else:
-                if np.isnan(self._bottom_eig):
-                    # self._bottom_eig will be NaN if self.value has an
-                    # eigenvalue which is exactly EIGVAL_TOL
-                    self._bottom_eig = SA_eigsh(
-                        -EIGVAL_TOL + np.finfo(self.value.dtype).eps)
+            ev = extremal_eig_near_ref(self.value, EIGVAL_TOL, low=True)
+            self._bottom_eig = ev
 
         return self._bottom_eig >= -EIGVAL_TOL
 
@@ -244,25 +226,29 @@ class Constant(Leaf):
 
         # Compute top eigenvalue if absent.
         if self._top_eig is None:
-            def LA_eigsh(sigma):
-                return eigsh(self.value, k=1,
-                             which='LA',
-                             sigma=sigma,
-                             return_eigenvectors=False)
-
-            # Run eigsh in shift-invert mode since we are
-            # interested in finding very small (in magnitude)
-            # eigenvalues
-            try:
-                self._top_eig = LA_eigsh(EIGVAL_TOL)
-            except ArpackError:
-                self._top_eig = LA_eigsh(
-                    EIGVAL_TOL - np.finfo(self.value.dtype).eps)
-            else:
-                if np.isnan(self._top_eig):
-                    # self._top_eig will be NaN if self.value has an
-                    # eigenvalue which is exactly EIGVAL_TOL
-                    self._top_eig = LA_eigsh(
-                        EIGVAL_TOL - np.finfo(self.value.dtype).eps)
+            ev = extremal_eig_near_ref(self.value, EIGVAL_TOL, low=False)
+            self._top_eig = ev
 
         return self._top_eig <= EIGVAL_TOL
+
+
+def extremal_eig_near_ref(A, ref, low=True):
+
+    def SA_eigsh(sigma):
+        return eigsh(A, k=1, sigma=sigma, return_eigenvectors=False)
+    # Run eigsh in shift-invert mode, since we're particularly interested in finding
+    # eigenvalues in a certain region.
+    try:
+        sigma = -ref if low else ref
+        ev = SA_eigsh(sigma)
+    except ArpackError:
+        temp = ref - np.finfo(A.dtype).eps
+        sigma = -temp if low else temp
+        ev = SA_eigsh(sigma)
+    else:
+        if np.isnan(ev):
+            # will be NaN if A has an eigenvalue which is exactly tol
+            temp = ref - np.finfo(A.dtype).eps
+            sigma = -temp if low else temp
+            ev = SA_eigsh(sigma)
+    return ev
