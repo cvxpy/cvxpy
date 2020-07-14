@@ -222,9 +222,9 @@ class CoeffExtractor(object):
         gap_below = P_height
         for P in P_list:
             gap_below -= P.shape[0]
-            above = sp.zeros((gap_above, P.shape[1], num_params))
-            below = sp.zeros((gap_below, P.shape[1], num_params))
-            padded_P = sp.concatenate([above, P, below], axis=0)
+            above = np.zeros((gap_above, P.shape[1], num_params))
+            below = np.zeros((gap_below, P.shape[1], num_params))
+            padded_P = np.concatenate([above, P, below], axis=0)
             gap_above += P.shape[0]
             padded_P = np.reshape(padded_P, (P_height*P.shape[1], num_params),
                                   order='F')
