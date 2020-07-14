@@ -35,15 +35,18 @@ class reshape(AffAtom):
        The expression to promote.
     shape : tuple or int
         The shape to promote to.
+    order : F(ortran) or C
     """
 
-    def __init__(self, expr, shape):
+    def __init__(self, expr, shape, order='F'):
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         if len(shape) > 2:
             raise ValueError("Expressions of dimension greater than 2 "
                              "are not supported.")
         self._shape = tuple(shape)
+        assert order in ['F', 'C']
+        self.order = order
         super(reshape, self).__init__(expr)
 
     def is_atom_log_log_convex(self):
@@ -60,7 +63,7 @@ class reshape(AffAtom):
     def numeric(self, values):
         """Reshape the value.
         """
-        return np.reshape(values[0], self.shape, "F")
+        return np.reshape(values[0], self.shape, self.order)
 
     def validate_arguments(self):
         """Checks that the new shape has the same number of entries as the old.
@@ -80,7 +83,7 @@ class reshape(AffAtom):
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self._shape]
+        return [self._shape, self.order]
 
     def graph_implementation(self, arg_objs, shape, data=None):
         """Convolve two vectors.
@@ -99,7 +102,17 @@ class reshape(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.reshape(arg_objs[0], shape), [])
+        arg = arg_objs[0]
+        if data[1] == 'F':
+            return (lu.reshape(arg_objs[0], shape), [])
+        else:  # 'C':
+            print(shape)
+            if len(shape) <= 1:
+                arg = lu.transpose(arg_objs[0])
+                return (lu.reshape(arg, shape), [])
+            else:
+                result = lu.reshape(arg, (shape[1], shape[0]))
+                return (lu.transpose(result), [])
 
 
 def deep_flatten(x):
