@@ -50,6 +50,13 @@ harmonic_mean
 
 .. autofunction:: cvxpy.atoms.harmonic_mean.harmonic_mean
 
+.. _inv-prod:
+
+inv_prod
+-----------------------------------
+
+.. autofunction:: cvxpy.atoms.inv_prod.inv_prod
+
 .. _lambda-max:
 
 lambda_max
