@@ -35,6 +35,8 @@ def makeMstart(A, n, ifCol=1):
 
 class XPRESS(SCS):
     """An interface for the Xpress solver.
+
+    Inherits SCS due to the rich apply() method that extracts A and other data.
     """
     solvecount = 0
     version = -1
@@ -42,20 +44,6 @@ class XPRESS(SCS):
     # Solver capabilities.
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
-
-    # Map of XPRESS status to CVXPY status.
-    STATUS_MAP = {2: s.OPTIMAL,
-                  3: s.INFEASIBLE,
-                  5: s.UNBOUNDED,
-                  4: s.SOLVER_ERROR,
-                  6: s.SOLVER_ERROR,
-                  7: s.SOLVER_ERROR,
-                  8: s.SOLVER_ERROR,
-                  9: s.SOLVER_ERROR,
-                  10: s.SOLVER_ERROR,
-                  11: s.SOLVER_ERROR,
-                  12: s.SOLVER_ERROR,
-                  13: s.SOLVER_ERROR}
 
     def __init__(self):
         # Main member of this class: an Xpress problem. Marked with a
@@ -280,17 +268,17 @@ class XPRESS(SCS):
         # {'control': value}, matching perfectly the format used by
         # the Xpress Python interface.
 
-        self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
-                               if i in list(xp.controls.__dict__.keys())})
+        self.prob_.setControl({i: solver_opts[i] for i in solver_opts
+                               if hasattr(xp.controls.__dict__, i)})
 
-        if 'bargaptarget' not in solver_opts.keys():
+        if 'bargaptarget' not in solver_opts:
             self.prob_.controls.bargaptarget = 1e-30
 
-        if 'feastol' not in solver_opts.keys():
+        if 'feastol' not in solver_opts:
             self.prob_.controls.feastol = 1e-9
 
         # If option given, write file before solving
-        if 'write_mps' in solver_opts.keys():
+        if 'write_mps' in solver_opts:
             self.prob_.write(solver_opts['write_mps'])
 
         # Solve
@@ -334,7 +322,7 @@ class XPRESS(SCS):
 
             origrow = []
             for iRow in row:
-                if iRow.name in transf2Orig.keys():
+                if iRow.name in transf2Orig:
                     name = transf2Orig[iRow.name]
                 else:
                     name = iRow.name

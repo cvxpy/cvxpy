@@ -24,11 +24,8 @@ class XPRESS(QpSolver):
 
     def import_solver(self):
 
-        try:
-            import xpress
-            xpress  # Prevents flake8 warning
-        except:
-            raise
+        import xpress
+        xpress  # Prevents flake8 warning
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -222,8 +219,9 @@ class XPRESS(QpSolver):
         # the Xpress Python interface.
 
         # Set options if compatible with Xpress problem control names
-        self.prob_.setControl({i: solver_opts[i] for i in list(solver_opts.keys())
-                               if i in list(xp.controls.__dict__.keys())})
+
+        self.prob_.setControl({i: solver_opts[i] for i in solver_opts
+                               if hasattr(xp.controls.__dict__, i)})
 
         if 'bargaptarget' not in solver_opts.keys():
             self.prob_.controls.bargaptarget = 1e-30
@@ -250,7 +248,7 @@ class XPRESS(QpSolver):
             try:
                 results_dict[s.PRIMAL] = np.array(self.prob_.getSolution())
             except:
-                pass
+                results_dict[s.PRIMAL] = np.zeros(self.prob_.attributes.ncol)
 
             status_map_lp, status_map_mip = get_status_maps()
 
