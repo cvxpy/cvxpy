@@ -200,8 +200,8 @@ class XPRESS(SCS):
                                mstart=mstart,                               # mstart
                                mnel=None,                                   # mnel (unused)
                                # linear coefficients
-                               mrwind=A.indices,                           # row indices
-                               dmatval=A.data,                              # coefficients
+                               mrwind=A.indices[A.data != 0],                           # row indices
+                               dmatval=A.data[A.data != 0],                              # coefficients
                                dlb=[-xp.infinity] * len(c),         # lower bound
                                dub=[xp.infinity] * len(c),          # upper bound
                                colnames=varnames,                   # column names
@@ -252,8 +252,8 @@ class XPRESS(SCS):
             self.prob_.addrows(['E'] * k,        # qrtypes
                                b,                # rhs
                                mstart,           # mstart
-                               A.indices,        # ind
-                               A.data,           # dmatval
+                               A.indices[A.data != 0],        # ind
+                               A.data[A.data != 0],           # dmatval
                                names=trNames)  # row names
 
             self.prob_.chgmcoef([initrow + i for i in range(k)],
