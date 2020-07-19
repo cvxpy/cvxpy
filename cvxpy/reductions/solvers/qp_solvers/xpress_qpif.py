@@ -239,7 +239,7 @@ class XPRESS(QpSolver):
 
             self.prob_.solve()
             results_dict["cputime"] = self.prob_.attributes.time
-        except Exception:  # Error in the solution
+        except xp.SolverError:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
         else:
             results_dict['status'] = self.prob_.getProbStatus()
@@ -247,7 +247,7 @@ class XPRESS(QpSolver):
             results_dict['obj_value'] = self.prob_.getObjVal()
             try:
                 results_dict[s.PRIMAL] = np.array(self.prob_.getSolution())
-            except:
+            except xp.SolverError:
                 results_dict[s.PRIMAL] = np.zeros(self.prob_.attributes.ncol)
 
             status_map_lp, status_map_mip = get_status_maps()
