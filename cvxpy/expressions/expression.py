@@ -457,6 +457,13 @@ class Expression(u.Canonical):
     def cast_to_const(expr):
         """Converts a non-Expression to a Constant.
         """
+        if isinstance(expr, list):
+            for elem in expr:
+                if isinstance(elem, Expression):
+                    raise ValueError(
+                        "The input must be a single CVXPY Expression, not a list. "
+                        "Combine Expressions using atoms such as bmat, hstack, and vstack."
+                    )
         return expr if isinstance(expr, Expression) else cvxtypes.constant()(expr)
 
     @_cast_other

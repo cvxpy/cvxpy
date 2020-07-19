@@ -82,6 +82,29 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.norm1(atom).curvature, s.CONVEX)
         self.assertEqual(cp.norm1(-atom).curvature, s.CONVEX)
 
+    def test_list_input(self):
+        """Test that list input is rejected.
+        """
+        with self.assertRaises(Exception) as cm:
+            cp.max([cp.Variable(), 1])
+        self.assertTrue(str(cm.exception) in (
+            "The input must be a single CVXPY Expression, not a list. "
+            "Combine Expressions using atoms such as bmat, hstack, and vstack."))
+
+        with self.assertRaises(Exception) as cm:
+            cp.norm([1, cp.Variable()])
+        self.assertTrue(str(cm.exception) in (
+            "The input must be a single CVXPY Expression, not a list. "
+            "Combine Expressions using atoms such as bmat, hstack, and vstack."))
+
+        x = cp.Variable()
+        y = cp.Variable()
+        with self.assertRaises(Exception) as cm:
+            cp.norm([x, y]) <= 1
+        self.assertTrue(str(cm.exception) in (
+            "The input must be a single CVXPY Expression, not a list. "
+            "Combine Expressions using atoms such as bmat, hstack, and vstack."))
+
     def test_quad_form(self):
         """Test quad_form atom.
         """
