@@ -16,7 +16,7 @@ class XPRESS(QpSolver):
 
     MIP_CAPABLE = True
 
-    def __init__ (self):
+    def __init__(self):
         self.prob_ = None
 
     def name(self):
@@ -26,9 +26,9 @@ class XPRESS(QpSolver):
 
         try:
             import xpress
+            xpress  # Prevents flake8 warning
         except:
             raise
-
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -48,7 +48,6 @@ class XPRESS(QpSolver):
         data, inv_data = super(XPRESS, self).apply(problem)
 
         return data, inv_data
-
 
     def invert(self, results, inverse_data):
         # model = results["model"]
@@ -94,7 +93,6 @@ class XPRESS(QpSolver):
                 opt_val = -np.inf
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
-
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
 
@@ -148,14 +146,18 @@ class XPRESS(QpSolver):
         for i in range(n_var):
 
             nElemA = mstartA[i+1] - mstartA[i]  # number of elements of A in this column
-            nElemF = mstartF[i+1] - mstartF[i]  #                       F
+            nElemF = mstartF[i+1] - mstartF[i]  # number of elements of F in this column
 
             if nElemA:
-                mrwind[mstart[i]:mstart[i] + nElemA] = A.indices[A.data != 0][mstartA[i]:mstartA[i+1]]
-                dmatval[mstart[i]:mstart[i] + nElemA] = A.data[A.data != 0][mstartA[i]:mstartA[i+1]]
+                mrwind[mstart[i]:mstart[i] + nElemA] = \
+                    A.indices[A.data != 0][mstartA[i]:mstartA[i+1]]
+                dmatval[mstart[i]:mstart[i] + nElemA] = \
+                    A.data[A.data != 0][mstartA[i]:mstartA[i+1]]
             if nElemF:
-                mrwind[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = n_eq + F.indices[F.data != 0][mstartF[i]:mstartF[i+1]]
-                dmatval[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = F.data[F.data != 0][mstartF[i]:mstartF[i+1]]
+                mrwind[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = \
+                    n_eq + F.indices[F.data != 0][mstartF[i]:mstartF[i+1]]
+                dmatval[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = \
+                    F.data[F.data != 0][mstartF[i]:mstartF[i+1]]
 
             mstart[i] = mstartA[i] + mstartF[i]
 
@@ -170,13 +172,13 @@ class XPRESS(QpSolver):
         Q /= 2
         Q = Q.tocoo()
 
-        mqcol1 = Q.row  [Q.row <= Q.col]
-        mqcol2 = Q.col  [Q.row <= Q.col]
-        dqe    = Q.data [Q.row <= Q.col]
+        mqcol1 = Q.row[Q.row <= Q.col]
+        mqcol2 = Q.col[Q.row <= Q.col]
+        dqe = Q.data[Q.row <= Q.col]
 
         colnames = ['x_{0:09d}'.format(i) for i in range(n_var)]
         rownames = ['eq_{0:09d}'.format(i) for i in range(n_eq)] + \
-            ['ineq_{0:09d}'.format(i) for i in range(n_ineq)] 
+            ['ineq_{0:09d}'.format(i) for i in range(n_ineq)]
 
         if verbose:
             self.prob_.controls.miplog = 2
@@ -188,29 +190,29 @@ class XPRESS(QpSolver):
             self.prob_.controls.outputlog = 0
             self.prob_.controls.xslp_log = -1
 
-        self.prob_.loadproblem (probname='CVX_xpress_qp',
-                                qrtypes=['E']*n_eq + ['L']*n_ineq,
-                                rhs=list(b) + list(g),
-                                range=None,
-                                obj=q,
-                                mstart=mstart,
-                                mnel=None,
-                                # linear coefficients
-                                mrwind=mrwind,
-                                dmatval=dmatval,
-                                # variable bounds
-                                dlb=[-xp.infinity]*n_var,
-                                dub=[xp.infinity]*n_var,
-                                # quadratic objective (only upper triangle)
-                                mqcol1=mqcol1,
-                                mqcol2=mqcol2,
-                                dqe=dqe,
-                                # binary and integer variables
-                                qgtype=['B']*len(data[s.BOOL_IDX]) + ['I']*len(data[s.INT_IDX]),
-                                mgcols=data[s.BOOL_IDX] + data[s.INT_IDX],
-                                # variables' and constraints' names
-                                colnames=colnames,
-                                rownames=rownames)
+        self.prob_.loadproblem(probname='CVX_xpress_qp',
+                               qrtypes=['E']*n_eq + ['L']*n_ineq,
+                               rhs=list(b) + list(g),
+                               range=None,
+                               obj=q,
+                               mstart=mstart,
+                               mnel=None,
+                               # linear coefficients
+                               mrwind=mrwind,
+                               dmatval=dmatval,
+                               # variable bounds
+                               dlb=[-xp.infinity]*n_var,
+                               dub=[xp.infinity]*n_var,
+                               # quadratic objective (only upper triangle)
+                               mqcol1=mqcol1,
+                               mqcol2=mqcol2,
+                               dqe=dqe,
+                               # binary and integer variables
+                               qgtype=['B']*len(data[s.BOOL_IDX]) + ['I']*len(data[s.INT_IDX]),
+                               mgcols=data[s.BOOL_IDX] + data[s.INT_IDX],
+                               # variables' and constraints' names
+                               colnames=colnames,
+                               rownames=rownames)
 
         # Set options
         #

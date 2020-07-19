@@ -57,7 +57,6 @@ class XPRESS(SCS):
                   12: s.SOLVER_ERROR,
                   13: s.SOLVER_ERROR}
 
-
     def __init__(self):
         # Main member of this class: an Xpress problem. Marked with a
         # trailing "_" to denote a member
@@ -68,13 +67,11 @@ class XPRESS(SCS):
         """
         return s.XPRESS
 
-
     def import_solver(self):
         """Imports the solver.
         """
         import xpress
         self.version = xpress.getversion()
-
 
     def accepts(self, problem):
         """Can Xpress solve the problem?
@@ -89,7 +86,6 @@ class XPRESS(SCS):
                 if not arg.is_affine():
                     return False
         return True
-
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
@@ -113,7 +109,6 @@ class XPRESS(SCS):
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         return data, inv_data
-
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
@@ -148,7 +143,6 @@ class XPRESS(SCS):
         other[s.XPRESS_IIS] = solution[s.XPRESS_IIS]
         other[s.XPRESS_TROW] = solution[s.XPRESS_TROW]
         return Solution(status, opt_val, primal_vars, dual_vars, other)
-
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
 
@@ -194,20 +188,18 @@ class XPRESS(SCS):
         self.prob_.loadproblem(probname="CVX_xpress_conic",
                                # constraint types
                                qrtypes=['E'] * nrowsEQ + ['L'] * nrowsLEQ,
-                               rhs=b,                                       # rhs
-                               range=None,                                  # range
-                               obj=c,                                       # obj coeff
-                               mstart=mstart,                               # mstart
-                               mnel=None,                                   # mnel (unused)
+                               rhs=b,                               # rhs
+                               range=None,                          # range
+                               obj=c,                               # obj coeff
+                               mstart=mstart,                       # mstart
+                               mnel=None,                           # mnel (unused)
                                # linear coefficients
-                               mrwind=A.indices[A.data != 0],                           # row indices
-                               dmatval=A.data[A.data != 0],                              # coefficients
+                               mrwind=A.indices[A.data != 0],       # row indices
+                               dmatval=A.data[A.data != 0],         # coefficients
                                dlb=[-xp.infinity] * len(c),         # lower bound
                                dub=[xp.infinity] * len(c),          # upper bound
                                colnames=varnames,                   # column names
                                rownames=linRownames)                # row    names
-
-        x = np.array(self.prob_.getVariable())  # get whole variable vector
 
         # Set variable types for discrete variables
         self.prob_.chgcoltype(data[s.BOOL_IDX] + data[s.INT_IDX],
@@ -234,11 +226,10 @@ class XPRESS(SCS):
             b = data[s.B][currow: currow + k]
             currow += k
 
-
             # Create new (cone) variables and add them to the problem
             conevar = np.array([xp.var(name='cX{0:d}_{1:d}'.format(iCone, i),
-                                               lb=-xp.infinity if i > 0 else 0)
-                                    for i in range(k)])
+                                       lb=-xp.infinity if i > 0 else 0)
+                                for i in range(k)])
 
             self.prob_.addVariable(conevar)
 
