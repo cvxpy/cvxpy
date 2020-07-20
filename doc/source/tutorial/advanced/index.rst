@@ -432,6 +432,8 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `SCIP`_      | X  | X  | X    |     |     | X   |
 +--------------+----+----+------+-----+-----+-----+
+| `XPRESS`_    | X  | X  | X    |     |     | X   |
++--------------+----+----+------+-----+-----+-----+
 
 (*) Except mixed-integer SDP.
 
@@ -502,6 +504,11 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with SCIP.
     prob.solve(solver=cp.SCIP)
     print "optimal value with SCIP:", prob.value
+
+    # Solve with XPRESS
+    prob.solve(solver=cp.XPRESS)
+    print "optimal value with XPRESS:", prob.value
+
 ::
 
     optimal value with OSQP: 6.0
@@ -516,6 +523,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CPLEX: 6.0
     optimal value with NAG: 6.000000003182365
     optimal value with SCIP: 6.0
+    optimal value with XPRESS: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -525,7 +533,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1323,4 +1331,5 @@ on derivatives.
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
 .. _SCIP: https://scip.zib.de/
+.. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 

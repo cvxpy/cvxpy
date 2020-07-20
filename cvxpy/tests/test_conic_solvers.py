@@ -942,8 +942,108 @@ class TestGUROBI(BaseTest):
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
 
 
-@unittest.skipUnless('XPRESS' in INSTALLED_SOLVERS, 'EXPRESS is not installed.')
-class TestXPRESS(unittest.TestCase):
+@unittest.skipUnless('XPRESS' in INSTALLED_SOLVERS, 'XPRESS is not installed.')
+class TestXPRESS(BaseTest):
+
+    def setUp(self):
+        self.a = cp.Variable(name='a')
+        self.b = cp.Variable(name='b')
+        self.c = cp.Variable(name='c')
+
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+        self.z = cp.Variable(2, name='z')
+
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+
+    def test_xpress_warm_start(self):
+        """Make sure that warm starting Xpress behaves as expected
+           Note: Xpress does not have warmstart yet, it will re-solve problem from scratch
+        """
+        if cp.XPRESS in INSTALLED_SOLVERS:
+            import numpy as np
+
+            A = cp.Parameter((2, 2))
+            b = cp.Parameter(2)
+            h = cp.Parameter(2)
+            c = cp.Parameter(2)
+
+            A.value = np.array([[1, 0], [0, 0]])
+            b.value = np.array([1, 0])
+            h.value = np.array([2, 2])
+            c.value = np.array([1, 1])
+
+            objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
+            constraints = [self.x[0] <= h[0],
+                           self.x[1] <= h[1],
+                           A @ self.x == b]
+            prob = cp.Problem(objective, constraints)
+            result = prob.solve(solver=cp.XPRESS, warm_start=True)
+            self.assertEqual(result, 3)
+            self.assertItemsAlmostEqual(self.x.value, [1, 2])
+
+            # Change A and b from the original values
+            A.value = np.array([[0, 0], [0, 1]])   # <----- Changed
+            b.value = np.array([0, 1])              # <----- Changed
+            h.value = np.array([2, 2])
+            c.value = np.array([1, 1])
+
+            # Without setting update_eq_constrs = False,
+            # the results should change to the correct answer
+            result = prob.solve(solver=cp.XPRESS, warm_start=True)
+            self.assertEqual(result, 3)
+            self.assertItemsAlmostEqual(self.x.value, [2, 1])
+
+            # Change h from the original values
+            A.value = np.array([[1, 0], [0, 0]])
+            b.value = np.array([1, 0])
+            h.value = np.array([1, 1])              # <----- Changed
+            c.value = np.array([1, 1])
+
+            # Without setting update_ineq_constrs = False,
+            # the results should change to the correct answer
+            result = prob.solve(solver=cp.XPRESS, warm_start=True)
+            self.assertEqual(result, 2)
+            self.assertItemsAlmostEqual(self.x.value, [1, 1])
+
+            # Change c from the original values
+            A.value = np.array([[1, 0], [0, 0]])
+            b.value = np.array([1, 0])
+            h.value = np.array([2, 2])
+            c.value = np.array([2, 1])              # <----- Changed
+
+            # Without setting update_objective = False,
+            # the results should change to the correct answer
+            result = prob.solve(solver=cp.XPRESS, warm_start=True)
+            self.assertEqual(result, 4)
+            self.assertItemsAlmostEqual(self.x.value, [1, 2])
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cp.XPRESS, warm_start=True)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.XPRESS)
+
+    def test_xpress_params(self):
+        if cp.XPRESS in INSTALLED_SOLVERS:
+            n, m = 10, 4
+            A = np.random.randn(m, n)
+            x = np.random.randn(n)
+            y = A.dot(x)
+
+            # Solve a simple basis pursuit problem for testing purposes.
+            z = cp.Variable(n)
+            objective = cp.Minimize(cp.norm1(z))
+            constraints = [A @ z == y]
+            problem = cp.Problem(objective, constraints)
+
+            params = {
+                "lpiterlimit": 1000,  # maximum number of simplex iterations
+                "maxtime": 1000.0     # time limit
+            }
+            problem.solve(solver=cp.XPRESS, solver_opts=params)
 
     def test_xpress_lp_0(self):
         StandardTestLPs.test_lp_0(solver='XPRESS')
