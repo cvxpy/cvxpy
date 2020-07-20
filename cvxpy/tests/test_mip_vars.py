@@ -66,8 +66,9 @@ class TestMIPVariable(BaseTest):
         for solver in self.solvers:
             self.bool_prob(solver)
             self.int_prob(solver)
-            self.bool_socp(solver)
-            self.int_socp(solver)
+            if solver in [cp.CPLEX, cp.GUROBI, cp.MOSEK, cp.XPRESS]:
+                self.bool_socp(solver)
+                self.int_socp(solver)
 
     def bool_prob(self, solver):
         # Bool in objective.

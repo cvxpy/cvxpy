@@ -49,7 +49,6 @@ class XpressProblem (Problem):
 
         super(XpressProblem, self).__init__(objective, constraints)
         self._iis = None
-        self._xprob = None
 
     def _reset_iis(self):
         """Clears the iis information

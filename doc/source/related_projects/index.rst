@@ -47,3 +47,5 @@ Solvers
 - `GUROBI <http://www.gurobi.com/>`_ is a commercial solver for mixed integer second-order cone programs.
 
 - `MOSEK <https://www.mosek.com/>`_ is a commercial solver for mixed integer second-order cone programs and semidefinite programs.
+
+- `XPRESS <https://www.fico.com/en/products/fico-xpress-optimization>`_ is a commercial solver for mixed integer linear, quadratic, and second-order cone optimization problems.
