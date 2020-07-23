@@ -34,6 +34,7 @@ import cvxpy.utilities as u
 from collections import namedtuple
 import numpy as np
 import time
+import warnings
 
 
 SolveResult = namedtuple(
@@ -1037,6 +1038,12 @@ class Problem(u.Canonical):
         """
 
         solution = chain.invert(solution, inverse_data)
+        if solution.status in s.INACCURATE:
+            warnings.warn(
+                "Solution may be inaccurate. Try another solver, "
+                "adjusting the solver settings, or solve with "
+                "verbose=True for more information."
+            )
         if solution.status in s.ERROR:
             raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +
