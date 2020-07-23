@@ -3,6 +3,8 @@ import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore")
 
 
 def perturbcheck(problem, gp=False, delta=1e-5, atol=1e-8, eps=1e-10, **kwargs):
