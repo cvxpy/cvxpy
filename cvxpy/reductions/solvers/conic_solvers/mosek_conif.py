@@ -21,6 +21,8 @@ import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonNeg, Zero, ExpCone
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.cone2cone import affine2direct as a2d
+from cvxpy.reductions.cone2cone.affine2direct import Dualize, Slacks
 from collections import defaultdict
 
 
@@ -51,6 +53,7 @@ class MOSEK(ConicSolver):
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
     EXP_CONE_ORDER = [2, 1, 0]
+    DUAL_EXP_CONE_ORDER = [0, 1, 2]
 
     """
     Note that MOSEK.SUPPORTED_CONSTRAINTS does not include the exponential cone
@@ -94,7 +97,7 @@ class MOSEK(ConicSolver):
                     return False
         return True
 
-    def apply(self, problem):
+    def old_apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
         Returns
@@ -204,7 +207,7 @@ class MOSEK(ConicSolver):
 
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def old_solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import mosek
         env = mosek.Env()
         task = env.Task(0, 0)
@@ -384,7 +387,7 @@ class MOSEK(ConicSolver):
 
         return {'env': env, 'task': task, 'solver_options': solver_opts}
 
-    def invert(self, results, inverse_data):
+    def old_invert(self, results, inverse_data):
         """
         Use information contained within "results" and "inverse_data" to properly
         define a cvxpy Solution object.
@@ -473,8 +476,244 @@ class MOSEK(ConicSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
+    def apply(self, problem):
+        if not problem.formatted:
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        if problem.x.boolean_idx or problem.x.integer_idx:  # check if either list is empty
+            data, inv_data = Slacks.apply(problem, [a2d.NONNEG])
+        else:
+            data, inv_data = Dualize.apply(problem)
+        return data, inv_data
+
+    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+        import mosek
+        env = mosek.Env()
+        task = env.Task(0, 0)
+        save_file = self.handle_options(env, task, verbose, solver_opts)
+
+        ## Check if the cvxpy standard form has zero variables. If so,
+        ## return a trivial solution. This is necessary because MOSEK
+        ## will crash if handed a problem with zero variables.
+        #if len(data[s.C]) == 0:
+        #    return {s.STATUS: s.OPTIMAL, s.PRIMAL: [],
+        #            s.VALUE: data[s.OFFSET], s.EQ_DUAL: [], s.INEQ_DUAL: []}
+
+        if 'dualized' in data:
+            task = self._build_dualized_task(task, data)
+        else:
+            task = self._build_slack_task(task, data)
+
+        # Optimize the Mosek Task and return the result.
+        if save_file:
+            task.writedata(save_file)
+        task.optimize()
+
+        if verbose:
+            task.solutionsummary(mosek.streamtype.msg)
+
+        return {'env': env, 'task': task, 'solver_options': solver_opts}
+
+    def _build_dualized_task(self, task, data):
+        # problem has A, b, K_dir, c.
+        #   max{ c.T @ x : A @ x == b, x in K_dir }
+        import mosek
+        # problem data
+        c, A, b, K = data[s.C], data[s.A], data[s.B], data['K_dir']
+        n, m = A.shape
+        task.appendvars(m)
+        o = np.zeros(m)
+        task.putvarboundlist(np.arange(m, dtype=int), [mosek.boundkey.fr] * m, o, o)
+        task.appendcons(n)
+        # objective
+        task.putclist(np.arange(c.size, dtype=int), c)
+        task.putobjsense(mosek.objsense.maximize)
+        # equality constraints
+        rows, cols, vals = sp.sparse.find(A)
+        task.putaijlist(rows.tolist(), cols.tolist(), vals.tolist())
+        task.putconboundlist(np.arange(n, dtype=int), [mosek.boundkey.fx] * n, b, b)
+        # conic constraints
+        idx = K[a2d.FREE]
+        num_pos = K[a2d.NONNEG]
+        if num_pos > 0:
+            o = np.zeros(num_pos)
+            task.putvarboundlist(np.arange(idx, idx + num_pos, dtype=int),
+                                 [mosek.boundkey.lo] * num_pos, o, o)
+            idx += num_pos
+        num_soc = len(K[a2d.SOC])
+        if num_soc > 0:
+            task.appendconesseq([mosek.conetype.quad] * num_soc, [0] * num_soc,
+                                K[a2d.SOC], idx)
+            idx += sum(K[a2d.SOC])
+        num_psd = len(K[a2d.PSD])
+        if num_psd > 0:
+            raise NotImplementedError()
+        num_dexp = K[a2d.DUAL_EXP]
+        if num_dexp > 0:
+            task.appendconesseq([mosek.conetype.dexp] * num_dexp, [0] * num_dexp,
+                                [3] * num_dexp, idx)
+            idx += 3 * num_dexp
+        return task
+
+    def _build_slack_task(self, task, data):
+        """
+        min{ c.T @ x : A @ x <=_{K_aff} b,  x in K_dir }
+        """
+        import mosek
+        K_aff = data['K_aff']
+        # K_aff keyed by a2d.NONNEG, a2d.ZERO
+        c, A, b = data[s.C], data[s.A], data[s.B]
+        # The rows of (A, b) go by a2d.FREE then a2d.NONNEG
+        K_dir = data['K_dir']
+        # Components of the vector "x" are constrained in the order
+        # a2d.FREE, then a2d.SOC, then a2d.EXP. PSD is not supported.
+        m, n = A.shape
+        task.appendvars(n)
+        o = np.zeros(n)
+        task.putvarboundlist(np.arange(n, dtype=int), [mosek.boundkey.fr] * n, o, o)
+        task.appendcons(m)
+        # objective
+        task.putclist(np.arange(n, dtype=int), c)
+        task.putobjsense(mosek.objsense.minimize)
+        # elementwise constraints
+        rows, cols, vals = sp.sparse.find(A)
+        task.putaijlist(rows, cols, vals)
+        eq_keys = [mosek.boundkey.fx] * K_aff[a2d.ZERO]
+        ineq_keys = [mosek.boundkey.up] * K_aff[a2d.NONNEG]
+        task.putconboundlist(np.arange(m, dtype=int), eq_keys + ineq_keys, b, b)
+        # conic constraints
+        idx = K_dir[a2d.FREE]
+        num_soc = len(K_dir[a2d.SOC])
+        if num_soc > 0:
+            conetypes = [mosek.conetype.quad] * num_soc
+            task.appendconesseq(conetypes, [0] * num_soc, K_dir[a2d.SOC], idx)
+            idx += sum(K_dir[a2d.SOC])
+        num_exp = K_dir[a2d.EXP]
+        if num_exp > 0:
+            conetypes = [mosek.conetype.pexp] * num_exp
+            task.appendconesseq(conetypes, [0] * num_exp, [3] * num_exp, idx)
+            idx += 3*num_exp
+        # integrality constraints
+        num_bool = len(data[s.BOOL_IDX])
+        num_int = len(data[s.INT_IDX])
+        vartypes = [mosek.variabletype.type_int] * (num_bool + num_int)
+        task.putvartypelist(data[s.INT_IDX] + data[s.BOOL_IDX], vartypes)
+        if num_bool > 0:
+            task.putvarboundlist(data[s.BOOL_IDX], [mosek.boundkey.ra] * num_bool,
+                                 [0] * num_bool, [1] * num_bool)
+        return task
+
+    def invert(self, solver_output, inverse_data):
+        import mosek
+
+        STATUS_MAP = {mosek.solsta.optimal: s.OPTIMAL,
+                      mosek.solsta.integer_optimal: s.OPTIMAL,
+                      mosek.solsta.prim_feas: s.OPTIMAL_INACCURATE,    # for integer problems
+                      mosek.solsta.prim_infeas_cer: s.INFEASIBLE,
+                      mosek.solsta.dual_infeas_cer: s.UNBOUNDED}
+        # "Near" statuses only up to Mosek 8.1
+        if hasattr(mosek.solsta, 'near_optimal'):
+            STATUS_MAP[mosek.solsta.near_optimal] = s.OPTIMAL_INACCURATE
+            STATUS_MAP[mosek.solsta.near_integer_optimal] = s.OPTIMAL_INACCURATE
+            STATUS_MAP[mosek.solsta.near_prim_infeas_cer] = s.INFEASIBLE_INACCURATE
+            STATUS_MAP[mosek.solsta.near_dual_infeas_cer] = s.UNBOUNDED_INACCURATE
+        STATUS_MAP = defaultdict(lambda: s.SOLVER_ERROR, STATUS_MAP)
+
+        env = solver_output['env']
+        task = solver_output['task']
+        solver_opts = solver_output['solver_options']
+
+        if task.getnumintvar() > 0:
+            sol_type = mosek.soltype.itg
+        elif 'bfs' in solver_opts and solver_opts['bfs'] and task.getnumcone() == 0:
+            sol_type = mosek.soltype.bas  # the basic feasible solution
+        else:
+            sol_type = mosek.soltype.itr  # the solution found via interior point method
+
+        problem_status = task.getprosta(sol_type)
+        if sol_type == mosek.soltype.itg and problem_status == mosek.prosta.prim_infeas:
+            status = s.INFEASIBLE
+        else:
+            solsta = task.getsolsta(sol_type)
+            status = STATUS_MAP[solsta]
+
+        prob_val = np.NaN
+        prim_vars = None
+        dual_vars = None
+        if status in s.SOLUTION_PRESENT:
+            prob_val = task.getprimalobj(sol_type)
+            K = inverse_data['K_dir']
+            prim_vars = self.recover_primal_variables(task, sol_type, K)
+            dual_vars = self.recover_dual_variables(task, sol_type)
+        attr = {s.SOLVE_TIME: task.getdouinf(mosek.dinfitem.optimizer_time)}
+        raw_sol = Solution(status, prob_val, prim_vars, dual_vars, attr)
+
+        if task.getobjsense() == mosek.objsense.maximize:
+            sol = Dualize.invert(raw_sol, inverse_data)
+        else:
+            sol = Slacks.invert(raw_sol, inverse_data)
+
+        # Delete the mosek Task and Environment
+        task.__exit__(None, None, None)
+        env.__exit__(None, None, None)
+
+        return sol
+
+    def recover_dual_variables(self, task, sol):
+        # This function is only designed to recover dual variables
+        # when the "dualize" transformation has been applied.
+        # A problem is dualized if and only if it has no discrete variables.
+        if task.getnumintvar() == 0:
+            dual_vars = dict()
+            dual_var = [0.] * task.getnumcon()
+            task.gety(sol, dual_var)
+            dual_vars[s.EQ_DUAL] = np.array(dual_var)
+        else:
+            dual_vars = None
+        return dual_vars
+
+    def recover_primal_variables(self, task, sol, K_dir):
+        # This function applies both when slacks are introduced, and
+        # when the problem is dualized.
+        prim_vars = dict()
+        idx = 0
+        m_free = K_dir[a2d.FREE]
+        if m_free > 0:
+            temp = [0.] * m_free
+            task.getxxslice(sol, idx, len(temp), temp)
+            prim_vars[a2d.FREE] = np.array(temp)
+            idx += m_free
+        if task.getnumintvar() > 0:
+            return prim_vars  # Skip the slack variables.
+        m_pos = K_dir[a2d.NONNEG]
+        if m_pos > 0:
+            temp = [0.] * m_pos
+            task.getxxslice(sol, idx, idx + m_pos, temp)
+            prim_vars[a2d.NONNEG] = np.array(temp)
+            idx += m_pos
+        num_soc = len(K_dir[a2d.SOC])
+        if num_soc > 0:
+            soc_vars = []
+            for dim in K_dir[a2d.SOC]:
+                temp = [0.] * dim
+                task.getxxslice(sol, idx, idx + dim, temp)
+                soc_vars.append(np.array(temp))
+                idx += dim
+            prim_vars[a2d.SOC] = soc_vars
+        num_psd = len(K_dir[a2d.PSD])
+        if num_psd > 0:
+            raise NotImplementedError()
+        num_dexp = K_dir[a2d.DUAL_EXP]
+        if num_dexp > 0:
+            temp = [0.] * (3 * num_dexp)
+            task.getxxslice(sol, idx, idx + len(temp), temp)
+            temp = np.array(temp)
+            perm = expcone_permutor(num_dexp, MOSEK.EXP_CONE_ORDER)
+            prim_vars[a2d.DUAL_EXP] = temp[perm]
+            idx += (3 * num_dexp)
+        return prim_vars
+
     @staticmethod
-    def recover_dual_variables(task, sol, inverse_data):
+    def old_recover_dual_variables(task, sol, inverse_data):
         """
         A cvxpy Constraint "constr" views itself as
             affine_expression(z) in K.
@@ -545,7 +784,7 @@ class MOSEK(ConicSolver):
         return dual_vars
 
     @staticmethod
-    def _parse_dual_var_block(dual_var, constr_id_to_constr_dim):
+    def _old_parse_dual_var_block(dual_var, constr_id_to_constr_dim):
         """
         :param dual_var: a list of numbers returned by some 'get dual variable'
           function in mosek's Optimzer API.
@@ -565,6 +804,48 @@ class MOSEK(ConicSolver):
                 dual_vars[id] = np.array(dual_var[running_idx:(running_idx + dim)])
             running_idx += dim
         return dual_vars
+
+    def handle_options(self, env, task, verbose, solver_opts):
+        # If verbose, then set default logging parameters.
+        import mosek
+
+        if verbose:
+            import sys
+
+            def streamprinter(text):
+                sys.stdout.write(text)
+                sys.stdout.flush()
+
+            print('\n')
+            env.set_Stream(mosek.streamtype.log, streamprinter)
+            task.set_Stream(mosek.streamtype.log, streamprinter)
+            task.putintparam(mosek.iparam.infeas_report_auto, mosek.onoffkey.on)
+            task.putintparam(mosek.iparam.log_presolve, 0)
+
+        # Parse all user-specified parameters (override default logging
+        # parameters if applicable).
+        kwargs = sorted(solver_opts.keys())
+        save_file = None
+        bfs = False
+        if 'mosek_params' in kwargs:
+            self._handle_mosek_params(task, solver_opts['mosek_params'])
+            kwargs.remove('mosek_params')
+        if 'save_file' in kwargs:
+            save_file = solver_opts['save_file']
+            kwargs.remove('save_file')
+        if 'bfs' in kwargs:
+            bfs = solver_opts['bfs']
+            kwargs.remove('bfs')
+        if kwargs:
+            raise ValueError("Invalid keyword-argument '%s'" % kwargs[0])
+
+        # Decide whether basis identification is needed for intpnt solver
+        # This is only required if solve() was called with bfs=True
+        if bfs:
+            task.putintparam(mosek.iparam.intpnt_basis, mosek.basindtype.always)
+        else:
+            task.putintparam(mosek.iparam.intpnt_basis, mosek.basindtype.never)
+        return save_file
 
     @staticmethod
     def _handle_mosek_params(task, params):
