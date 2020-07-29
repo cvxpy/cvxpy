@@ -39,9 +39,10 @@ class QuadForm(Atom):
     def numeric(self, values):
         prod = values[1].dot(values[0])
         if self.args[0].is_complex():
-            return np.dot(np.conj(values[0]).T, prod)
+            quad = np.dot(np.conj(values[0]).T, prod)
         else:
-            return np.dot(np.transpose(values[0]), prod)
+            quad = np.dot(np.transpose(values[0]), prod)
+        return np.real(quad)
 
     def validate_arguments(self):
         super(QuadForm, self).validate_arguments()
