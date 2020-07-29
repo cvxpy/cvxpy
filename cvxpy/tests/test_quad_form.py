@@ -114,11 +114,9 @@ class TestNonOptimal(BaseTest):
         """
         P = np.array([[2, 2], [3, 4]])
         x = cvxpy.Variable(2)
-        cost = cvxpy.quad_form(x, P)
-        prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         with self.assertRaises(Exception) as cm:
-            prob.solve()
-        self.assertTrue("Problem does not follow DCP rules."
+            cost = cvxpy.quad_form(x, P)
+        self.assertTrue("P must be symmetric/Hermitian."
                         in str(cm.exception))
 
     def test_non_psd(self):

@@ -49,6 +49,8 @@ class QuadForm(Atom):
         n = self.args[1].shape[0]
         if self.args[1].shape[1] != n or self.args[0].shape not in [(n, 1), (n,)]:
             raise ValueError("Invalid dimensions for arguments.")
+        if not self.args[1].is_hermitian():
+            raise ValueError("P must be symmetric/Hermitian.")
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
