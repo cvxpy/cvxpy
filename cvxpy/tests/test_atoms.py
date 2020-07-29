@@ -106,7 +106,7 @@ class TestAtoms(BaseTest):
     def test_quad_form(self):
         """Test quad_form atom.
         """
-        P = Parameter((2, 2))
+        P = Parameter((2, 2), symmetric=True)
         expr = cp.quad_form(self.x, P)
         assert not expr.is_dcp()
 
