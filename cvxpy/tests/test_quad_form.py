@@ -115,7 +115,7 @@ class TestNonOptimal(BaseTest):
         P = np.array([[2, 2], [3, 4]])
         x = cvxpy.Variable(2)
         with self.assertRaises(Exception) as cm:
-            cost = cvxpy.quad_form(x, P)
+            cvxpy.quad_form(x, P)
         self.assertTrue("P must be symmetric/Hermitian."
                         in str(cm.exception))
 
