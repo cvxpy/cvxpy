@@ -89,8 +89,9 @@ class Dualize(object):
             dv = np.concatenate(direct_prims[SOC][i:i + block_len])
             dual_vars[con.id] = dv
             i += block_len
-        if len(constr_map[PSD_obj]) > 0:
-            raise NotImplementedError()
+        for i, con in enumerate(constr_map[PSD_obj]):
+            dv = direct_prims[PSD][i]
+            dual_vars[con.id] = dv
         i = 0
         for con in constr_map[ExpCone_obj]:
             dv = direct_prims[DUAL_EXP][i:i + con.size]
@@ -225,9 +226,10 @@ class Slacks(object):
 
     @staticmethod
     def invert(solution, inv_data):
-        prim_vars = solution.primal_vars
-        x = prim_vars[FREE]
-        del prim_vars[FREE]
-        prim_vars[inv_data['x_id']] = x
+        if solution.status in s.SOLUTION_PRESENT:
+            prim_vars = solution.primal_vars
+            x = prim_vars[FREE]
+            del prim_vars[FREE]
+            prim_vars[inv_data['x_id']] = x
         solution.opt_val += inv_data[s.OBJ_OFFSET]
         return solution
