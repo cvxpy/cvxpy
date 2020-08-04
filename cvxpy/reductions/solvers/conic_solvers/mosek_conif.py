@@ -18,7 +18,7 @@ import numpy as np
 import scipy as sp
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, NonNeg, Zero, ExpCone
+from cvxpy.constraints import PSD, SOC, ExpCone
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.cone2cone import affine2direct as a2d
@@ -180,30 +180,38 @@ class MOSEK(ConicSolver):
                 data['A_bar_data'] = A_bar_data
                 data['c_bar_data'] = c_bar_data
             else:
-                data['A_bar_data'] = None
-                data['c_bar_data'] = None
+                data['A_bar_data'] = []
+                data['c_bar_data'] = []
 
         return data, inv_data
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import mosek
-        env = mosek.Env()
-        task = env.Task(0, 0)
-        save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
-
-        ## Check if the cvxpy standard form has zero variables. If so,
-        ## return a trivial solution. This is necessary because MOSEK
-        ## will crash if handed a problem with zero variables.
-        #if len(data[s.C]) == 0:
-        #    return {s.STATUS: s.OPTIMAL, s.PRIMAL: [],
-        #            s.VALUE: data[s.OFFSET], s.EQ_DUAL: [], s.INEQ_DUAL: []}
 
         if 'dualized' in data:
-            task = MOSEK._build_dualized_task(task, data)
+            if len(data[s.C]) == 0 and len(data['c_bar_data']) == 0:
+                # primal problem was unconstrained minimization of a linear function.
+                if np.linalg.norm(data[s.B]) > 0:
+                    sol = Solution(s.INFEASIBLE, -np.inf, None, None, dict())
+                    return {'sol': sol}
+                else:
+                    sol = Solution(s.OPTIMAL, 0.0, dict(), {s.EQ_DUAL: data[s.B]}, dict())
+                    return {'sol': sol}
+            else:
+                env = mosek.Env()
+                task = env.Task(0, 0)
+                task = MOSEK._build_dualized_task(task, data)
         else:
-            task = MOSEK._build_slack_task(task, data)
+            if len(data[s.C]) == 0:
+                sol = Solution(s.OPTIMAL, 0.0, dict(), dict(), dict())
+                return {'sol': sol}
+            else:
+                env = mosek.Env()
+                task = env.Task(0, 0)
+                task = MOSEK._build_slack_task(task, data)
 
-        # Optimize the Mosek Task and return the result.
+        # Set parameters, optimize the Mosek Task, and return the result.
+        save_file = MOSEK.handle_options(env, task, verbose, solver_opts)
         if save_file:
             task.writedata(save_file)
         task.optimize()
@@ -314,6 +322,14 @@ class MOSEK(ConicSolver):
         return task
 
     def invert(self, solver_output, inverse_data):
+        if 'sol' in solver_output:
+            sol = solver_output['sol']
+            if 'dualized' in inverse_data:
+                sol = Dualize.invert(sol, inverse_data)
+            else:
+                sol = Slacks.invert(sol, inverse_data)
+            return sol
+
         import mosek
 
         STATUS_MAP = {mosek.solsta.optimal: s.OPTIMAL,

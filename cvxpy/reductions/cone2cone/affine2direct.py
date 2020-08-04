@@ -20,7 +20,6 @@ from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
 from cvxpy.constraints.second_order import SOC as SOC_obj
 from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
 from cvxpy.constraints.psd import PSD as PSD_obj
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeDims
 import numpy as np
 import scipy as sp
 
@@ -62,7 +61,8 @@ class Dualize(object):
             s.OBJ_OFFSET: d,
             CONSTR_MAP: problem.constr_map,
             'x_id': problem.x.id,
-            'K_dir': Kd
+            'K_dir': Kd,
+            'dualized': True
         }
         return data, inv_data
 
@@ -76,12 +76,12 @@ class Dualize(object):
         i = 0
         for con in constr_map[Zero_obj]:
             dv = direct_prims[FREE][i:i + con.size]
-            dual_vars[con.id] = dv
+            dual_vars[con.id] = dv if dv.size > 1 else dv.item()
             i += con.size
         i = 0
         for con in constr_map[NonNeg_obj]:
             dv = direct_prims[NONNEG][i:i + con.size]
-            dual_vars[con.id] = dv
+            dual_vars[con.id] = dv if dv.size > 1 else dv.item()
             i += con.size
         i = 0
         for con in constr_map[SOC_obj]:
