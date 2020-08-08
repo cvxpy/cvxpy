@@ -107,6 +107,10 @@ class MOSEK(ConicSolver):
 
         Special cases PSD constraints, as MOSEK expects constraints to be
         imposed on solely the lower triangular part of the variable matrix.
+
+        This function differs from ``SCS.psd_format_mat`` only in that it does not
+        apply sqrt(2) scaling on off-diagonal entries. This difference from SCS is
+        necessary based on how we implement ``MOSEK.bar_data``.
         """
         rows = cols = constr.expr.shape[0]
         entries = rows * (cols + 1)//2
@@ -136,6 +140,36 @@ class MOSEK(ConicSolver):
 
         return scaled_lower_tri @ symm_matrix
 
+    @staticmethod
+    def bar_data(A_psd, c_psd, K):
+        # TODO: investigate how to transform or represent "A_psd" so that the following
+        #  indexing and slicing operations are computationally cheap. Or just rewrite
+        #  the function so that explicit slicing is not needed on a SciPy sparse matrix.
+        n = A_psd.shape[0]
+        c_bar_data, A_bar_data = [], []
+        idx = 0
+        for j, dim in enumerate(K[a2d.PSD]):  # psd variable index j.
+            vec_len = dim * (dim + 1) // 2
+            A_block = A_psd[:, idx:idx + vec_len]  # each row specifies a linear operator on PSD variable.
+            for i in range(n):
+                A_row = A_block[i, :]
+                if A_row.nnz == 0:
+                    continue
+                A_row = A_row.toarray().ravel()
+                # A_row defines a symmetric matrix by where the first "order" entries
+                #   gives the matrix's first column, the second "order-1" entries gives
+                #   the matrix's second column (diagonal and blow), and so on.
+                rows, cols, vals = vectorized_lower_tri_to_triples(A_row, dim)
+                # TODO: replace the above function with something that only reads the nonzero
+                #  entries. I.e. return *actual* sparse matrix data, rather than data for a dense
+                #  matrix stated in a sparse format.
+                A_bar_data.append((i, j, (rows, cols, vals)))
+            c_block = c_psd[idx:idx + vec_len]
+            rows, cols, vals = vectorized_lower_tri_to_triples(c_block, dim)
+            c_bar_data.append((j, (rows, cols, vals)))
+            idx += vec_len
+        return A_bar_data, c_bar_data
+
     def apply(self, problem):
         if not problem.formatted:
             problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
@@ -145,7 +179,6 @@ class MOSEK(ConicSolver):
             data, inv_data = Dualize.apply(problem)
             # need to do more to handle SDP.
             A, b, c, K = data[s.A], data[s.B], data[s.C], data['K_dir']
-            n = A.shape[0]
             num_psd = len(K[a2d.PSD])
             if num_psd > 0:
                 idx = K[a2d.FREE] + K[a2d.NONNEG] + sum(K[a2d.SOC])
@@ -158,25 +191,7 @@ class MOSEK(ConicSolver):
                 else:
                     data[s.A] = sp.sparse.hstack([A[:, :idx], A[:, idx+total_psd:]])
                     data[s.C] = np.concatenate([c[:idx], c[idx+total_psd:]])
-                c_bar_data, A_bar_data = [], []
-                idx = 0
-                for j, dim in enumerate(K[a2d.PSD]):
-                    vec_len = dim * (dim + 1) // 2
-                    A_block = A_psd[:, idx:idx + vec_len]  # each row of this matrix specifies a linear operator on this
-                    for i in range(n):
-                        A_row = A_block[i, :]
-                        if A_row.nnz == 0:
-                            continue
-                        A_row = A_row.toarray().ravel()
-                        # A_row defines a symmetric matrix by where the first "order" entries
-                        #   gives the matrix's first column, the second "order-1" entries gives
-                        #   the matrix's second column (diagonal and blow), and so on.
-                        rows, cols, vals = vectorized_lower_tri_to_triples(A_row, dim)
-                        A_bar_data.append((i, j,  (rows, cols, vals)))
-                    c_block = c_psd[idx:idx+vec_len]
-                    rows, cols, vals = vectorized_lower_tri_to_triples(c_block, dim)
-                    c_bar_data.append((j, (rows, cols, vals)))
-                    idx += vec_len
+                A_bar_data, c_bar_data = MOSEK.bar_data(A_psd, c_psd, K)
                 data['A_bar_data'] = A_bar_data
                 data['c_bar_data'] = c_bar_data
             else:
@@ -223,11 +238,28 @@ class MOSEK(ConicSolver):
 
     @staticmethod
     def _build_dualized_task(task, data):
-        # problem has A, b, K_dir, c.
-        #   max{ c.T @ x : A @ x == b, x in K_dir }
+        """
+        This function assumes "data" is formatted according to MOSEK.apply when the problem
+        features no integer constraints. This dictionary should contain keys s.C, s.A, s.B,
+        'K_dir', 'c_bar_data' and 'A_bar_data'.
+
+        If the problem has no PSD constraints, then we construct a Task representing
+
+           max{ c.T @ x : A @ x == b, x in K_dir }
+
+        If the problem has PSD constraints, then the Task looks like
+
+           max{ c.T @ x + c_bar(X_bars) : A @ x + A_bar(X_bars) == b, x in K_dir, X_bars PSD }
+
+        In the above formulation, c_bar is effectively specified by a list of appropriately
+        formatted symmetric matrices (one symmetric matrix for each PSD variable). A_bar
+        is specified a collection of symmetric matrix data indexed by (i, j) where the j-th
+        PSD variable contributes a certain scalar to the i-th linear equation in the system
+        "A @ x + A_bar(X_bars) == b".
+        """
         import mosek
         # problem data
-        c, A, b, K = data[s.C], data[s.A], data[s.B], data['K_dir']  # PSD data is elsewhere!
+        c, A, b, K = data[s.C], data[s.A], data[s.B], data['K_dir']
         n, m = A.shape
         task.appendvars(m)
         o = np.zeros(m)
@@ -275,13 +307,25 @@ class MOSEK(ConicSolver):
     @staticmethod
     def _build_slack_task(task, data):
         """
-        min{ c.T @ x : A @ x <=_{K_aff} b,  x in K_dir }
+        This function assumes "data" is formatted by MOSEK.apply, and is only intended when the problem
+        has integer constraints. As of MOSEK version 9.2, MOSEK does not support mixed-integer SDP.
+        This implementation relies on that fact.
+
+        "data" is a dict, keyed by s.C, s.A, s.B, 'K_dir', 'K_aff', s.BOOL_IDX and s.INT_IDX.
+        The data 'K_aff' corresponds to constraints which MOSEK accepts as "A @ x <=_{K_aff}"
+        (so-called "affine"  conic constraints), in contrast with constraints which must be stated as
+        "x in K_dir" ("direct" conic constraints). As of MOSEK 9.2, the only allowed K_aff is the zero
+        cone and the nonnegative orthant. All other constraints must be specified in a "direct" sense.
+
+        The returned Task represents
+
+            min{ c.T @ x : A @ x <=_{K_aff} b,  x in K_dir, x[bools] in {0,1}, x[ints] in Z }.
         """
         import mosek
         K_aff = data['K_aff']
-        # K_aff keyed by a2d.NONNEG, a2d.ZERO
+        # K_aff keyed by a2d.ZERO, a2d.NONNEG
         c, A, b = data[s.C], data[s.A], data[s.B]
-        # The rows of (A, b) go by a2d.FREE then a2d.NONNEG
+        # The rows of (A, b) go by a2d.ZERO and then a2d.NONNEG
         K_dir = data['K_dir']
         # Components of the vector "x" are constrained in the order
         # a2d.FREE, then a2d.SOC, then a2d.EXP. PSD is not supported.
@@ -322,13 +366,27 @@ class MOSEK(ConicSolver):
         return task
 
     def invert(self, solver_output, inverse_data):
+        """
+        This function parses data from the MOSEK Task as though we only cared about the
+        Task *exactly* as stated (i.e. we are indifferent to whether the Task represents
+        the dual formulation to an earlier CVXPY problem). Once we have parsed that data
+        into a Solution object called "raw_sol", we call the appropriate invert-step of
+        the dualize or slack reduction to obtain a final result in terms of CVXPY's
+        standard-form cone programs.
+        """
         if 'sol' in solver_output:
+            # The presence of this key means the original problem was somehow degenerate
+            # (e.g. no variables, or no constraints). The MOSEK.solve_via_data function
+            # automatically constructions appropriate solutions for these situations. So
+            # in this case we only need to invert the transformations from MOSEK.apply.
             sol = solver_output['sol']
             if 'dualized' in inverse_data:
                 sol = Dualize.invert(sol, inverse_data)
             else:
                 sol = Slacks.invert(sol, inverse_data)
             return sol
+        # If we reach this point in the code, then we actually called MOSEK's optimizer,
+        # and we need to properly parse the result.
 
         import mosek
 
@@ -395,6 +453,9 @@ class MOSEK(ConicSolver):
             dual_var = [0.] * task.getnumcon()
             task.gety(sol, dual_var)
             dual_vars[s.EQ_DUAL] = np.array(dual_var)
+            # We only need to recover dual variables related to the equality constraints.
+            # Dual variables related to the "direct" conic constraints are not needed when
+            # inverting the solution to undo dualization.
         else:
             dual_vars = None
         return dual_vars
