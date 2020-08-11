@@ -31,7 +31,6 @@ EXP = 'e'
 DUAL_EXP = 'de'
 SOC = 's'
 PSD = 'p'
-CONSTR_MAP = 'constr_map'
 
 
 class Dualize(object):
@@ -53,7 +52,7 @@ class Dualize(object):
     -----
     Dualize applies to ParamConeProg problems. It accesses (P-Opt) data by calling
     ``c, d, A, b = problem.apply_parameters()``. It assumes the solver interface
-    has already executed its "format_constraints" function on the ParamConeProg problem.
+    has already executed its ``format_constraints`` function on the ParamConeProg problem.
 
     A solver interface is responsible for calling both Dualize.apply and Dualize.invert.
     The call to Dualize.apply should be one of the first things that happens, and the
@@ -64,11 +63,12 @@ class Dualize(object):
     right-hand-side (c), the dual objective vector (-b), and the dual cones (K^*).
     The solver interface should interpret this data is a new primal problem, just with a
     maximization objective. Given a numerical solution, the solver interface should first
-    construct a CVXPY Solution object where :math:`y` is a primal variable, and the only
-    dual variable is that corresponding to the equality constraint :math:`c = A^T y`.
+    construct a CVXPY Solution object where :math:`y` is a primal variable, divided into
+    several blocks according to the structure of elementary cones appearing in K^*. The only
+    dual variable we use is that corresponding to the equality constraint :math:`c = A^T y`.
     No attempt should be made to map unbounded / infeasible status codes for (D-Opt) back
     to unbounded / infeasible status codes for (P-Opt); all such mappings are handled in
-    Dualize.invert. Refer to Dualize.invert for detailed documentation
+    Dualize.invert. Refer to Dualize.invert for detailed documentation.
 
     Assumptions
     -----------
@@ -108,7 +108,7 @@ class Dualize(object):
         }
         inv_data = {
             s.OBJ_OFFSET: d,
-            CONSTR_MAP: problem.constr_map,
+            'constr_map': problem.constr_map,
             'x_id': problem.x.id,
             'K_dir': Kd,
             'dualized': True
@@ -168,7 +168,7 @@ class Dualize(object):
                            solution.dual_vars[s.EQ_DUAL]}
             dual_vars = dict()
             direct_prims = solution.primal_vars
-            constr_map = inv_data[CONSTR_MAP]
+            constr_map = inv_data['constr_map']
             i = 0
             for con in constr_map[Zero_obj]:
                 dv = direct_prims[FREE][i:i + con.size]
@@ -213,12 +213,73 @@ class Dualize(object):
 
 
 class Slacks(object):
+    """
+    CVXPY represents mixed-integer cone programs as
+
+        (Aff)   min{ c.T @ x : A @ x + b in K,
+                              x[bools] in {0, 1}, x[ints] in Z } + d.
+
+    Some solvers do not accept input in the form (Aff). A general pattern we find
+    across solver types is that the feasible set is represented by
+
+        (Dir)   min{ f @ y : G @ y <=_{K_aff} h, y in K_dir
+                             y[bools] in {0, 1}, y[ints] in Z } + d,
+
+    where K_aff is built from a list convex cones which includes the zero cone (ZERO),
+    and K_dir is built from a list of convex cones which includes the free cone (FREE).
+
+    This reduction handles mapping back and forth between problems stated in terms
+    of (Aff) and (Dir), by way of adding slack variables.
+
+    Notes
+    -----
+    Support for semidefinite constraints has not yet been implemented in this
+    reduction.
+
+    If the problem has no integer constraints, then the Dualize reduction should be
+    used instead.
+
+    Because this reduction is only intended for mixed-integer problems, this reduction
+    makes no attempt to recover dual variables when mapping between (Aff) and (Dir).
+    """
 
     @staticmethod
-    def apply(problem, affine):
-        c, d, A, b = problem.apply_parameters()  # A @ x + b in K
+    def apply(prob, affine):
+        """
+        "prob" is a ParamConeProg which represents
+
+            (Aff)   min{ c.T @ x : A @ x + b in K,
+                                  x[bools] in {0, 1}, x[ints] in Z } + d.
+
+        We return data for an equivalent problem
+
+            (Dir)   min{ f @ y : G @ y <=_{K_aff} h, y in K_dir
+                                 y[bools] in {0, 1}, y[ints] in Z } + d,
+
+        where
+
+            (1) K_aff is built from cone types specified in "affine" (a list of strings),
+            (2) a primal solution for (Dir-Opt) can be mapped back to a primal solution
+                for (Aff-Opt) by selecting the leading ``c.size`` block of y's components.
+
+        In the returned dict "data", data[s.A] = G, data[s.B] = h, data[s.C] = f,
+        data['K_aff'] = K_aff, data['K_dir'] = K_dir, data[s.BOOL_IDX] = bools,
+        and data[s.INT_IDX] = ints. The rows of G are ordered according to ZERO, then
+        (as applicable) NONNEG, SOC, and EXP. If  "c" is the objective vector in (Aff),
+        then ``y[:c.size]`` should contain the optimal solution to (Aff). The columns of
+        G correspond first to variables in cones FREE, then NONNEG, then SOC, then EXP.
+        The length of the free cone is equal to ``c.size``.
+
+        Assumptions
+        -----------
+        The function call ``c, d, A, b = prob.apply_parameters()`` returns (A,b) with
+        rows formatted first for the zero cone, then for the nonnegative orthant, then
+        second order cones, then the exponential cone. Removing this assumption will
+        require adding additional data to ParamConeProg objects.
+        """
+        c, d, A, b = prob.apply_parameters()  # A @ x + b in K
         A = -A  # A @ x <=_K b.
-        cone_dims = problem.cone_dims
+        cone_dims = prob.cone_dims
         if cone_dims.psd:
             # This will need to account for different conventions: does order-n
             # PSD constraint give rise to n**2 rows in A, or n*(n-1)//2 rows?
@@ -226,7 +287,8 @@ class Slacks(object):
 
         for val in affine:
             if val not in {ZERO, NONNEG, EXP, SOC}:
-                raise ValueError()
+
+                raise NotImplementedError()
         if ZERO not in affine:
             affine.append(ZERO)
 
@@ -242,14 +304,27 @@ class Slacks(object):
             SOC: cone_lens[ZERO] + cone_lens[NONNEG],
             EXP: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC]
         }
+        # ^ If the rows of A are formatted in an order different from
+        # zero -> nonneg -> soc -> exp, then the above block of code should
+        # change. Right now there isn't enough data in (c, d, A, b, cone_dims,
+        # constr_map) which allows us to figure out the ordering of these rows.
         A_aff, b_aff = [], []
         A_slk, b_slk = [], []
         total_slack = 0
         for co_type in [ZERO, NONNEG, SOC, EXP]:
+            # ^ The order of that list means that the matrix "G" in "G @ z <=_{K_aff} h"
+            # will always have rows ordered by the zero cone, then the nonnegative orthant,
+            # then second order cones, and finally exponential cones. Changing the order
+            # of items in this list would change the order of row blocks in "G".
+            #
+            # If the order is changed, then this affects which columns of the final matrix
+            # "G" correspond to which types of cones. For example, [ZERO, SOC, EXP, NONNEG]
+            # and NONNEG is not in "affine", then the columns of G with nonnegative variables
+            # occur after all free variables and soc variables and exp variables.
             co_dim = cone_lens[co_type]
             if co_dim > 0:
                 r = row_offsets[co_type]
-                A_temp = A[r:r + co_dim]
+                A_temp = A[r:r + co_dim, :]
                 b_temp = b[r:r + co_dim]
                 if co_type in affine:
                     A_aff.append(A_temp)
@@ -259,53 +334,54 @@ class Slacks(object):
                     A_slk.append(A_temp)
                     b_slk.append(b_temp)
         K_dir = {
-            FREE: problem.x.size,
+            FREE: prob.x.size,
             NONNEG: 0 if NONNEG in affine else cone_dims.nonneg,
             SOC: [] if SOC in affine else cone_dims.soc,
             EXP: 0 if EXP in affine else cone_dims.exp,
-            PSD: [],
+            PSD: [],  # PSD currently not supported.
             DUAL_EXP: 0
         }
         K_aff = {
             NONNEG: cone_dims.nonneg if NONNEG in affine else 0,
             SOC: cone_dims.soc if SOC in affine else [],
             EXP: cone_dims.exp if EXP in affine else 0,
-            PSD: [],
+            PSD: [],  # PSD currently not supported.
             ZERO: cone_dims.zero + total_slack
         }
 
         data = dict()
         if A_slk:
+            # We need to introduce slack variables.
             A_slk = sp.sparse.vstack(tuple(A_slk))
             eye = sp.sparse.eye(total_slack)
             if A_aff:
                 A_aff = sp.sparse.vstack(tuple(A_aff), format='csr')
-                A = sp.sparse.bmat([[A_slk, eye], [A_aff, None]])
-                b = np.concatenate(b_slk + b_aff)
+                G = sp.sparse.bmat([[A_slk, eye], [A_aff, None]])
+                h = np.concatenate(b_slk + b_aff)  # concatenate lists, then turn to vector
             else:
-                A = sp.sparse.hstack((A_slk, eye))
-                b = np.concatenate(b_slk)
-            c = np.concatenate((c, np.zeros(total_slack)))
+                G = sp.sparse.hstack((A_slk, eye))
+                h = np.concatenate(b_slk)
+            f = np.concatenate((c, np.zeros(total_slack)))
         elif A_aff:
-            A = sp.sparse.vstack(tuple(A_aff), format='csr')
-            b = np.concatenate(b_aff)
+            # No slack variables were introduced.
+            G = sp.sparse.vstack(tuple(A_aff), format='csr')
+            h = np.concatenate(b_aff)
+            f = c
         else:
             raise ValueError()
 
-        data[s.A] = A
-        data[s.B] = b
-        data[s.C] = c
-        data[s.BOOL_IDX] = [int(t[0]) for t in problem.x.boolean_idx]
-        data[s.INT_IDX] = [int(t[0]) for t in problem.x.integer_idx]
+        data[s.A] = G
+        data[s.B] = h
+        data[s.C] = f
+        data[s.BOOL_IDX] = [int(t[0]) for t in prob.x.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in prob.x.integer_idx]
         data['K_dir'] = K_dir
         data['K_aff'] = K_aff
 
         inv_data = dict()
-        inv_data['x_id'] = problem.x.id
-        inv_data['is_LP'] = (cone_lens[SOC] + cone_lens[EXP]) == 0
+        inv_data['x_id'] = prob.x.id
         inv_data['K_dir'] = K_dir
         inv_data['K_aff'] = K_aff
-        inv_data['integer_variables'] = data[s.BOOL_IDX] or data[s.INT_IDX]
         inv_data[s.OBJ_OFFSET] = d
 
         return data, inv_data
