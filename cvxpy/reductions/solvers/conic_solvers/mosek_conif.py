@@ -150,7 +150,8 @@ class MOSEK(ConicSolver):
         idx = 0
         for j, dim in enumerate(K[a2d.PSD]):  # psd variable index j.
             vec_len = dim * (dim + 1) // 2
-            A_block = A_psd[:, idx:idx + vec_len]  # each row specifies a linear operator on PSD variable.
+            A_block = A_psd[:, idx:idx + vec_len]
+            # ^ each row specifies a linear operator on PSD variable.
             for i in range(n):
                 A_row = A_block[i, :]
                 if A_row.nnz == 0:
@@ -178,7 +179,7 @@ class MOSEK(ConicSolver):
         else:
             data, inv_data = Dualize.apply(problem)
             # need to do more to handle SDP.
-            A, b, c, K = data[s.A], data[s.B], data[s.C], data['K_dir']
+            A, c, K = data[s.A], data[s.C], data['K_dir']
             num_psd = len(K[a2d.PSD])
             if num_psd > 0:
                 idx = K[a2d.FREE] + K[a2d.NONNEG] + sum(K[a2d.SOC])
@@ -307,15 +308,16 @@ class MOSEK(ConicSolver):
     @staticmethod
     def _build_slack_task(task, data):
         """
-        This function assumes "data" is formatted by MOSEK.apply, and is only intended when the problem
-        has integer constraints. As of MOSEK version 9.2, MOSEK does not support mixed-integer SDP.
-        This implementation relies on that fact.
+        This function assumes "data" is formatted by MOSEK.apply, and is only intended when
+        the problem has integer constraints. As of MOSEK version 9.2, MOSEK does not support
+        mixed-integer SDP. This implementation relies on that fact.
 
         "data" is a dict, keyed by s.C, s.A, s.B, 'K_dir', 'K_aff', s.BOOL_IDX and s.INT_IDX.
         The data 'K_aff' corresponds to constraints which MOSEK accepts as "A @ x <=_{K_aff}"
-        (so-called "affine"  conic constraints), in contrast with constraints which must be stated as
-        "x in K_dir" ("direct" conic constraints). As of MOSEK 9.2, the only allowed K_aff is the zero
-        cone and the nonnegative orthant. All other constraints must be specified in a "direct" sense.
+        (so-called "affine"  conic constraints), in contrast with constraints which must be stated
+        as "x in K_dir" ("direct" conic constraints). As of MOSEK 9.2, the only allowed K_aff is
+        the zero cone and the nonnegative orthant. All other constraints must be specified in a
+        "direct" sense.
 
         The returned Task represents
 
