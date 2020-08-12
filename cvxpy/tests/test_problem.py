@@ -1885,3 +1885,19 @@ class TestProblem(BaseTest):
         prob = cp.Problem(objective)
         prob.solve('OSQP', verbose=True)
         self.assertAlmostEqual(prob.value, result1)
+
+
+    def test_min_with_axis(self):
+        """Test reshape of a min with axis=0.
+        """
+        x = cp.Variable((5, 2))
+        y = cp.Variable((5, 2))
+
+        stacked_flattened = cp.vstack([cp.vec(x), cp.vec(y)])  # (2, 10)
+        minimum = cp.min(stacked_flattened, axis=0)  # (10,)
+        reshaped_minimum = cp.reshape(minimum, (5, 2))  # (5, 2)
+
+        obj = cp.sum(reshaped_minimum)
+        problem = cp.Problem(cp.Maximize(obj), [x == 1, y == 2])
+        result = problem.solve()
+        self.assertAlmostEqual(result, 10)
