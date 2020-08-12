@@ -102,14 +102,6 @@ and returns a scalar.
      - |concave| concave
      - |incr| incr.
 
-   * - :ref:`inv_prod(x) <inv-prod>`
-     - :math:`(x_1\cdots x_n)^{-1}`
-     - :math:`x \in \mathbf{R}^n_+`
-     - |positive| positive
-     - |convex| convex
-     - |decr| decr.
-
-
    * - :ref:`lambda_max(X) <lambda-max>`
      - :math:`\lambda_{\max}(X)`
      - :math:`X \in \mathbf{S}^n`
