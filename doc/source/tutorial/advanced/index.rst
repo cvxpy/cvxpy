@@ -277,7 +277,7 @@ constraints hold and :math:`\infty` when they are violated.
 
    x = cp.Variable()
    constraints = [0 <= x, x <= 1]
-   expr = cp.indicator(constraints)
+   expr = cp.transforms.indicator(constraints)
    x.value = .5
    print("expr.value = ", expr.value)
    x.value = 2
