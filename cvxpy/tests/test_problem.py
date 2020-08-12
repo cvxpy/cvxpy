@@ -1886,7 +1886,6 @@ class TestProblem(BaseTest):
         prob.solve('OSQP', verbose=True)
         self.assertAlmostEqual(prob.value, result1)
 
-
     def test_min_with_axis(self):
         """Test reshape of a min with axis=0.
         """
