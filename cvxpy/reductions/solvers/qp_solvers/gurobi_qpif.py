@@ -119,7 +119,7 @@ class GUROBI(QpSolver):
                       ub={i: grb.GRB.INFINITY for i in range(n)},
                       lb={i: -grb.GRB.INFINITY for i in range(n)},
                       vtype=vtypes)
-        model.update()
+        
         x = np.array(model.getVars(), copy=False)
 
         if A.shape[0] > 0:
@@ -143,7 +143,6 @@ class GUROBI(QpSolver):
                     coeff = A.data[start:end]
                     expr = grb.LinExpr(coeff, variables)
                     model.addConstr(expr, grb.GRB.EQUAL, b[i])
-        model.update()
 
         if F.shape[0] > 0:
             if hasattr(model, 'addMConstrs'):
@@ -166,7 +165,6 @@ class GUROBI(QpSolver):
                     coeff = F.data[start:end]
                     expr = grb.LinExpr(coeff, variables)
                     model.addConstr(expr, grb.GRB.LESS_EQUAL, g[i])
-        model.update()
 
         # Define objective
         if hasattr(model, 'setMObjective'):
@@ -185,15 +183,12 @@ class GUROBI(QpSolver):
                              vars2=list(x[P.col]))
             obj.add(grb.LinExpr(q, x))  # Add linear part
             model.setObjective(obj)  # Set objective
-        model.update()
 
         # Set parameters
         model.setParam("QCPDual", True)
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
-        # Update model
-        model.update()
 
         # Solve problem
         results_dict = {}

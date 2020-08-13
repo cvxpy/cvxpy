@@ -178,7 +178,6 @@ class GUROBI(SCS):
                     lb=-gurobipy.GRB.INFINITY,
                     ub=gurobipy.GRB.INFINITY)
             )
-        model.update()
 
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
@@ -329,7 +328,7 @@ class GUROBI(SCS):
                     lb=-gp.GRB.INFINITY,
                     ub=gp.GRB.INFINITY)
             ]
-        model.update()
+        
 
         new_lin_constrs = []
         for i, row in enumerate(rows):
