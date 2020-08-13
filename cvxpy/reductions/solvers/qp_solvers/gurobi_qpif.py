@@ -119,7 +119,7 @@ class GUROBI(QpSolver):
                       ub={i: grb.GRB.INFINITY for i in range(n)},
                       lb={i: -grb.GRB.INFINITY for i in range(n)},
                       vtype=vtypes)
-        
+
         x = np.array(model.getVars(), copy=False)
 
         if A.shape[0] > 0:
@@ -188,7 +188,6 @@ class GUROBI(QpSolver):
         model.setParam("QCPDual", True)
         for key, value in solver_opts.items():
             model.setParam(key, value)
-
 
         # Solve problem
         results_dict = {}
