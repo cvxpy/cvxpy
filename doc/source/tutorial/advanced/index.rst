@@ -443,9 +443,11 @@ Here EXP refers to problems with exponential cone constraints. The exponential c
 
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
-You cannot specify cone constraints explicitly in CVXPY, but cone constraints are added when CVXPY converts the problem into standard form.
+Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
+converts the problem into standard form.
 
-By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs. `SCS`_ can both handle all problems (except mixed-integer programs). `ECOS_BB`_ is called for mixed-integer LPs and SOCPs. If the problem is a QP, CVXPY will use `OSQP`_.
+By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
+`SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
 
 You can change the solver called by CVXPY using the ``solver`` keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here's example code solving the same problem with different solvers.
 
@@ -1341,6 +1343,7 @@ on derivatives.
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
+.. _XPRESS: https://www.fico.com/en/products/fico-xpress-solver
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/

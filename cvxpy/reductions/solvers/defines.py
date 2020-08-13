@@ -79,7 +79,7 @@ QP_SOLVERS = [s.OSQP,
               s.CPLEX,
               s.XPRESS]
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI,
-              s.CPLEX, s.XPRESS, s.CBC]
+              s.CPLEX, s.XPRESS, s.CBC, s.ECOS_BB]
 
 
 def installed_solvers():
@@ -102,3 +102,5 @@ def installed_solvers():
 INSTALLED_SOLVERS = installed_solvers()
 INSTALLED_CONIC_SOLVERS = [
   slv for slv in INSTALLED_SOLVERS if slv in CONIC_SOLVERS]
+INSTALLED_MI_SOLVERS = [
+  slv for slv in INSTALLED_SOLVERS if slv in MI_SOLVERS]
