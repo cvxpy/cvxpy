@@ -39,15 +39,18 @@ class QuadForm(Atom):
     def numeric(self, values):
         prod = values[1].dot(values[0])
         if self.args[0].is_complex():
-            return np.dot(np.conj(values[0]).T, prod)
+            quad = np.dot(np.conj(values[0]).T, prod)
         else:
-            return np.dot(np.transpose(values[0]), prod)
+            quad = np.dot(np.transpose(values[0]), prod)
+        return np.real(quad)
 
     def validate_arguments(self):
         super(QuadForm, self).validate_arguments()
         n = self.args[1].shape[0]
         if self.args[1].shape[1] != n or self.args[0].shape not in [(n, 1), (n,)]:
             raise ValueError("Invalid dimensions for arguments.")
+        if not self.args[1].is_hermitian():
+            raise ValueError("P must be symmetric/Hermitian.")
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
@@ -106,7 +109,7 @@ class QuadForm(Atom):
     def _grad(self, values):
         x = np.array(values[0])
         P = np.array(values[1])
-        D = 2 * np.dot(P, x.T)
+        D = (P + P.H) @ x.T
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
     def shape_from_args(self):

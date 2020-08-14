@@ -37,7 +37,7 @@ class TestMIPVariable(BaseTest):
         for solver in self.solvers:
             self.bool_prob(solver)
             self.int_prob(solver)
-            if solver in [cp.CPLEX, cp.GUROBI, cp.MOSEK]:
+            if solver in [cp.CPLEX, cp.GUROBI, cp.MOSEK, cp.XPRESS]:
                 self.bool_socp(solver)
                 self.int_socp(solver)
 

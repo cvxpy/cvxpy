@@ -317,6 +317,12 @@ class TestExamples(BaseTest):
             print("optimal value with GUROBI:", prob.value)
             self.assertAlmostEqual(prob.value, 6)
 
+        if cvx.XPRESS in cvx.installed_solvers():
+            # Solve with the Xpress Optimizer.
+            prob.solve(solver=cvx.XPRESS)
+            print("optimal value with XPRESS:", prob.value)
+            self.assertAlmostEqual(prob.value, 6)
+
         print(cvx.installed_solvers())
 
     def test_log_det(self):
