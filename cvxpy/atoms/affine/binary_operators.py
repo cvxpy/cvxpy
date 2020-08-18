@@ -238,6 +238,16 @@ class multiply(MulExpression):
             lh_expr = promote(lh_expr, rh_expr.shape)
         elif rh_expr.is_scalar() and not lh_expr.is_scalar():
             rh_expr = promote(rh_expr, lh_expr.shape)
+        # Broadcasting.
+        if lh_expr.ndim == 2 and rh_expr.ndim == 2:
+            # Pattern matching on (n, 1) x (1, m).
+            if lh_expr.shape[1] == 1 and rh_expr.shape[0] == 1:
+                m = rh_expr.shape[1]
+                if m > 1:
+                    lh_expr = lh_expr @ np.ones((1, m))
+                n = lh_expr.shape[0]
+                if n > 1:
+                    rh_expr = np.ones((n, 1)) @ rh_expr
         super(multiply, self).__init__(lh_expr, rh_expr)
 
     def is_atom_log_log_convex(self):
