@@ -20,7 +20,6 @@ import sys
 import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.affine.reshape import deep_flatten
 from cvxpy.atoms.affine.conj import conj
@@ -76,32 +75,6 @@ class BinaryOperator(AffAtom):
         """
         return (self.args[0].is_complex() or self.args[1].is_complex()) and \
             not (self.args[0].is_imag() and self.args[1].is_imag())
-
-    @staticmethod
-    def broadcast(lh_expr, rh_expr):
-        """Broacast the binary operator.
-        """
-        lh_expr = BinaryOperator.cast_to_const(lh_expr)
-        rh_expr = BinaryOperator.cast_to_const(rh_expr)
-        if lh_expr.is_scalar() and not rh_expr.is_scalar():
-            lh_expr = promote(lh_expr, rh_expr.shape)
-        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
-            rh_expr = promote(rh_expr, lh_expr.shape)
-        # Broadcasting.
-        if lh_expr.ndim == 2 and rh_expr.ndim == 2:
-            # Replicate dimensions of size 1.
-            dims = [max(lh_expr.shape[i], rh_expr.shape[i]) for i in range(2)]
-            # Broadcast along dim 0.
-            if lh_expr.shape[0] == 1 and lh_expr.shape[0] < dims[0]:
-                lh_expr = np.ones((dims[0], 1)) @ lh_expr
-            if rh_expr.shape[0] == 1 and rh_expr.shape[0] < dims[0]:
-                rh_expr = np.ones((dims[0], 1)) @ rh_expr
-            # Broadcast along dim 1.
-            if lh_expr.shape[1] == 1 and lh_expr.shape[1] < dims[1]:
-                lh_expr = lh_expr @ np.ones((1, dims[1]))
-            if rh_expr.shape[1] == 1 and rh_expr.shape[1] < dims[1]:
-                rh_expr = rh_expr @ np.ones((1, dims[1]))
-        return lh_expr, rh_expr
 
 
 def matmul(lh_exp, rh_exp):
