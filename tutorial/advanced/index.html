@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>Advanced Features &#8212; CVXPY 1.1.2 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Advanced Features &#8212; CVXPY 1.1.4 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Examples" href="../../examples/index.html" />
@@ -78,9 +79,9 @@ Similarly, <code class="docutils literal notranslate"><span class="pre">Paramete
 The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Leaf</span></code></a> (the parent class
 of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and
 <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>) is given below.</p>
-<dl class="function">
+<dl class="py function">
 <dt id="Leaf">
-<code class="sig-name descname">Leaf</code><span class="sig-paren">(</span><em class="sig-param">shape=None</em>, <em class="sig-param">name=None</em>, <em class="sig-param">value=None</em>, <em class="sig-param">nonneg=False</em>, <em class="sig-param">nonpos=False</em>, <em class="sig-param">symmetric=False</em>, <em class="sig-param">diag=False</em>, <em class="sig-param">PSD=False</em>, <em class="sig-param">NSD=False</em>, <em class="sig-param">boolean=False</em>, <em class="sig-param">integer=False</em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">Leaf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nonneg</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">nonpos</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">symmetric</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">diag</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">PSD</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">NSD</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">boolean</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">integer</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a Leaf object (e.g., Variable or Parameter).
 Only one attribute can be active (set to True).</p>
 <dl class="field-list simple">
@@ -261,7 +262,7 @@ expression representing the convex function that takes value 0 when the
 constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
-<span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">indicator</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+<span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">indicator</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
 <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">2</span>
@@ -325,9 +326,9 @@ objectives and problems and follow the same rules as above.</p>
 <h2>Solve method options<a class="headerlink" href="#solve-method-options" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">solve</span></code> method takes optional arguments that let you change how CVXPY
 parses and solves the problem.</p>
-<dl class="function">
+<dl class="py function">
 <dt id="solve">
-<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param">solver=None</em>, <em class="sig-param">verbose=False</em>, <em class="sig-param">gp=False</em>, <em class="sig-param">qcp=False</em>, <em class="sig-param">requries_grad=False</em>, <em class="sig-param">enforce_dpp=False</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">gp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">qcp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">requries_grad</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">enforce_dpp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the problem using the specified method.</p>
 <p>Populates the <code class="code docutils literal notranslate"><span class="pre">status</span></code> and <code class="code docutils literal notranslate"><span class="pre">value</span></code> attributes on the
 problem object as a side-effect.</p>
@@ -481,6 +482,14 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 </tr>
+<tr class="row-even"><td><p><a href="#id3"><span class="problematic" id="id4">`XPRESS`_</span></a></p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td><p>X</p></td>
+</tr>
 </tbody>
 </table>
 <p>(*) Except mixed-integer SDP.</p>
@@ -546,6 +555,10 @@ converts the problem into standard form.</p>
 <span class="c1"># Solve with SCIP.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCIP</span><span class="p">)</span>
 <span class="nb">print</span> <span class="s2">&quot;optimal value with SCIP:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
+
+<span class="c1"># Solve with XPRESS</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">XPRESS</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;optimal value with XPRESS:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">OSQP</span><span class="p">:</span> <span class="mf">6.0</span>
@@ -560,13 +573,14 @@ converts the problem into standard form.</p>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CPLEX</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">NAG</span><span class="p">:</span> <span class="mf">6.000000003182365</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SCIP</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">XPRESS</span><span class="p">:</span> <span class="mf">6.0</span>
 </pre></div>
 </div>
 <p>Use the <code class="docutils literal notranslate"><span class="pre">installed_solvers</span></code> utility function to get a list of the solvers your installation of CVXPY supports.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span> <span class="n">installed_solvers</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">,</span> <span class="s1">&#39;SCIP&#39;</span><span class="p">]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="s1">&#39;CBC&#39;</span><span class="p">,</span> <span class="s1">&#39;CVXOPT&#39;</span><span class="p">,</span> <span class="s1">&#39;MOSEK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK&#39;</span><span class="p">,</span> <span class="s1">&#39;GLPK_MI&#39;</span><span class="p">,</span> <span class="s1">&#39;ECOS&#39;</span><span class="p">,</span> <span class="s1">&#39;SCS&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">,</span> <span class="s1">&#39;SCIP&#39;</span><span class="p">,</span> <span class="s1">&#39;XPRESS&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
 </div>
@@ -1332,7 +1346,7 @@ on derivatives.</p>
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1341,7 +1355,7 @@ on derivatives.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

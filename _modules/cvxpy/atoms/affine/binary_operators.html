@@ -1,18 +1,19 @@
 
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
     <meta charset="utf-8" />
-    <title>cvxpy.atoms.affine.binary_operators &#8212; CVXPY 1.1.2 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cvxpy.atoms.affine.binary_operators &#8212; CVXPY 1.1.4 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
-    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../../../_static/language_data.js"></script>
-    <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <script src="../../../../_static/jquery.js"></script>
+    <script src="../../../../_static/underscore.js"></script>
+    <script src="../../../../_static/doctools.js"></script>
+    <script src="../../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -54,7 +55,6 @@
 <span class="kn">import</span> <span class="nn">cvxpy.interface</span> <span class="k">as</span> <span class="nn">intf</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.affine_atom</span> <span class="kn">import</span> <span class="n">AffAtom</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.add_expr</span> <span class="kn">import</span> <span class="n">AddExpression</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.promote</span> <span class="kn">import</span> <span class="n">promote</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.sum</span> <span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">cvxpy_sum</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.reshape</span> <span class="kn">import</span> <span class="n">deep_flatten</span>
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.conj</span> <span class="kn">import</span> <span class="n">conj</span>
@@ -266,12 +266,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">):</span>
-        <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">multiply</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">)</span>
-        <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">multiply</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">rh_expr</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-            <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">promote</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-            <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">promote</span><span class="p">(</span><span class="n">rh_expr</span><span class="p">,</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">multiply</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -362,12 +357,7 @@
     <span class="n">OP_FUNC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">):</span>
-        <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">DivExpression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">)</span>
-        <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">DivExpression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">rh_expr</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-            <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">promote</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
-            <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">promote</span><span class="p">(</span><span class="n">rh_expr</span><span class="p">,</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">)</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">DivExpression</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">numeric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
@@ -549,7 +539,7 @@
     </form>
     </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -558,7 +548,7 @@
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 2.3.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
