@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = "1.1.3"
+__version__ = "1.1.4"
 from cvxpy.atoms import *
 from cvxpy.constraints import NonPos, Zero, SOC, PSD
+from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.expressions.constants import Parameter, CallbackParam, Constant
 from cvxpy.problems.problem import Problem

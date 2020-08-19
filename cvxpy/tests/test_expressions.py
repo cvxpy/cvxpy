@@ -1104,3 +1104,67 @@ class TestExpressions(BaseTest):
 
         expr = cp.pnorm(3 * self.y ** 2, 1)
         self.assertEqual(expr.is_pwl(), False)
+
+    def test_broadcast_mul(self):
+        """Test multiply broadcasting.
+        """
+        y = Parameter((3, 1))
+        z = Variable((1, 3))
+        y.value = np.arange(3)[:, None]
+        z.value = (np.arange(3) - 1)[None, :]
+        expr = cp.multiply(y, z)
+        self.assertItemsAlmostEqual(expr.value, y.value * z.value)
+
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [z == z.value])
+        prob.solve()
+        self.assertItemsAlmostEqual(expr.value, y.value * z.value)
+
+        np.random.seed(0)
+        m, n = 3, 4
+        A = np.random.rand(m, n)
+
+        col_scale = Variable(n)
+
+        with self.assertRaises(ValueError) as cm:
+            cp.multiply(A, col_scale)
+        self.assertEqual(str(cm.exception), "Cannot broadcast dimensions  (3, 4) (4,)")
+
+        col_scale = Variable([1, n])
+        C = cp.multiply(A, col_scale)
+        self.assertEqual(C.shape, (m, n))
+
+        row_scale = Variable([m, 1])
+        R = cp.multiply(A, row_scale)
+        self.assertEqual(R.shape, (m, n))
+
+    def test_broadcast_add(self):
+        """Test addition broadcasting.
+        """
+        y = Parameter((3, 1))
+        z = Variable((1, 3))
+        y.value = np.arange(3)[:, None]
+        z.value = (np.arange(3) - 1)[None, :]
+        expr = y + z
+        self.assertItemsAlmostEqual(expr.value, y.value + z.value)
+
+        prob = cp.Problem(cp.Minimize(cp.sum(expr)), [z == z.value])
+        prob.solve()
+        self.assertItemsAlmostEqual(expr.value, y.value + z.value)
+
+        np.random.seed(0)
+        m, n = 3, 4
+        A = np.random.rand(m, n)
+
+        col_scale = Variable(n)
+
+        with self.assertRaises(ValueError) as cm:
+            A + col_scale
+        self.assertEqual(str(cm.exception), "Cannot broadcast dimensions  (3, 4) (4,)")
+
+        col_scale = Variable([1, n])
+        C = A + col_scale
+        self.assertEqual(C.shape, (m, n))
+
+        row_scale = Variable([m, 1])
+        R = A + row_scale
+        self.assertEqual(R.shape, (m, n))
