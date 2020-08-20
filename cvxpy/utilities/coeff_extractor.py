@@ -218,33 +218,35 @@ class CoeffExtractor(object):
         #      P2
         # We do this by extending each P with zero blocks above and below.
         gap_above = 0
-        gap_below = P_height
-        total_height = 0
+        acc_height = 0
         rows = []
         cols = []
         vals = []
         for P in P_list:
-            gap_below -= P.shape[0]
-            total_height += P_height * P.shape[1]
-            # above = np.zeros((gap_above, P.shape[1], num_params))
-            # below = np.zeros((gap_below, P.shape[1], num_params))
-            # padded_P = np.concatenate([above, P, below], axis=0)
-            # padded_P = np.reshape(padded_P, (P_height*P.shape[1], num_params),
-            #                       order='F')
-            # padded_P_list.append(padded_P)
-            vals.extend(P.flatten(order='C'))
-            base_rows = np.arange(gap_above, gap_above + P.shape[1])
+            """Conceptually, the code is equivalent to
+            ```
+            above = np.zeros((gap_above, P.shape[1], num_params))
+            below = np.zeros((gap_below, P.shape[1], num_params))
+            padded_P = np.concatenate([above, P, below], axis=0)
+            padded_P = np.reshape(padded_P, (P_height*P.shape[1], num_params),
+                                  order='F')
+            padded_P_list.append(padded_P)
+            ```
+            but done by constructing a COO matrix.
+            """
+            vals.extend(P.flatten(order='F'))
+            base_rows = np.arange(gap_above + acc_height,
+                                  gap_above + acc_height + P.shape[1])
             scale_rows = np.arange(P.shape[1]) * P_height
-            P_rows = base_rows[None, :] + scale_rows[:, None]
-            flat_rows = P_rows.flatten(order='C')
-            rows.extend(np.repeat(flat_rows, num_params))
+            P_rows = base_rows[:, None] + scale_rows[None, :]
+            flat_rows = P_rows.flatten(order='F')
+            rows.extend(np.tile(flat_rows, num_params))
             cols.extend(np.repeat(np.arange(num_params), P.shape[0] * P.shape[1]))
             gap_above += P.shape[0]
-            print(P)
+            acc_height += P_height * P.shape[1]
 
         # Stitch together Ps and qs and constant.
-        P = sp.coo_matrix((vals, (rows, cols)), shape=(total_height, num_params))
-        print(P)
+        P = sp.coo_matrix((vals, (rows, cols)), shape=(acc_height, num_params))
         # Stack q with constant offset as last row.
         q = np.vstack(q_list)
         q = np.vstack([q, constant.A])
