@@ -80,7 +80,7 @@ class Dqcp2Dcp(Canonicalization):
                  if vid in solution.primal_vars}
         for vid in inverse_data.id_map:
             if vid not in pvars:
-                # Variable was optimized out because it was unconstrainted.
+                # Variable was optimized out because it was unconstrained.
                 pvars[vid] = 0.0
         return Solution(solution.status, solution.opt_val, pvars, {},
                         solution.attr)
