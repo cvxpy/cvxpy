@@ -110,7 +110,6 @@ class CoeffExtractor(object):
                                                          self.param_id_map,
                                                          affine_expr.size)
 
-        # TODO preserve sparsity
         # Iterates over every entry of the parameters vector,
         # and obtains the Pi and qi for that entry i.
         # These are then combined into matrices [P1.flatten(), P2.flatten(), ...]
@@ -140,21 +139,28 @@ class CoeffExtractor(object):
                     # Convert to dense matrix.
                     P = quad_forms[var_id][2].P.value
                     if sp.issparse(P):
-                        P = P.todense().A
+                        P = P.tocoo()
+                    else:
+                        P = sp.coo_matrix(P)
                     if var_size == 1:
                         c_part = np.ones((P.shape[0], 1)) * c_part
                 else:
-                    P = np.eye(var_size)
-                # We multiply the columns of P, by c_part.
-                P = P[:, :, None] * c_part[None, :, :]
+                    P = sp.eye(var_size).tocoo()
+                # We multiply the columns of P, by c_part
+                # by operating directly on the data.
+                data = P.data[:, None] * c_part[P.col]
+                P_tup = (data, (P.row, P.col), P.shape)
+                # Conceptually similar to
+                # P = P[:, :, None] * c_part[None, :, :]
                 if orig_id in coeffs:
                     if 'P' in coeffs[orig_id]:
-                        coeffs[orig_id]['P'] += P
+                        # TODO fix
+                        coeffs[orig_id]['P'] += P_tup
                     else:
-                        coeffs[orig_id]['P'] = P
+                        coeffs[orig_id]['P'] = P_tup
                 else:
                     coeffs[orig_id] = dict()
-                    coeffs[orig_id]['P'] = P
+                    coeffs[orig_id]['P'] = P_tup
                     coeffs[orig_id]['q'] = np.zeros((P.shape[0], c.shape[1]))
             else:
                 var_offset = affine_id_map[var.id][0]
@@ -192,13 +198,15 @@ class CoeffExtractor(object):
         P_list = []
         q_list = []
         P_height = 0
+        P_entries = 0
         for var_id, offset in offsets:
             shape = self.var_shapes[var_id]
             size = np.prod(shape, dtype=int)
             if var_id in coeffs and 'P' in coeffs[var_id]:
                 P = coeffs[var_id]['P']
+                P_entries += P[0].size
             else:
-                P = np.zeros((size, size, num_params))
+                P = ([], ([], []), (size, size))
             if var_id in coeffs and 'q' in coeffs[var_id]:
                 q = coeffs[var_id]['q']
             else:
@@ -206,7 +214,7 @@ class CoeffExtractor(object):
 
             P_list.append(P)
             q_list.append(q)
-            P_height += P.shape[0]
+            P_height += size
 
         if P_height != self.x_length:
             raise RuntimeError("Resulting quadratic form does not have "
@@ -219,9 +227,10 @@ class CoeffExtractor(object):
         # We do this by extending each P with zero blocks above and below.
         gap_above = 0
         acc_height = 0
-        rows = []
-        cols = []
-        vals = []
+        rows = np.zeros(P_entries)
+        cols = np.zeros(P_entries)
+        vals = np.zeros(P_entries)
+        entry_offset = 0
         for P in P_list:
             """Conceptually, the code is equivalent to
             ```
@@ -234,20 +243,19 @@ class CoeffExtractor(object):
             ```
             but done by constructing a COO matrix.
             """
-            P_vals = P.flatten(order='F')
-            P_idxs = P_vals != 0
-            vals.extend(P_vals[P_idxs])
-            base_rows = np.arange(gap_above + acc_height,
-                                  gap_above + acc_height + P.shape[1])
-            scale_rows = np.arange(P.shape[1]) * P_height
-            P_rows = base_rows[:, None] + scale_rows[None, :]
-            flat_rows = P_rows.flatten(order='F')
-            P_rows = np.tile(flat_rows, num_params)
-            rows.extend(P_rows[P_idxs])
-            P_cols = np.repeat(np.arange(num_params), P.shape[0] * P.shape[1])
-            cols.extend(P_cols[P_idxs])
-            gap_above += P.shape[0]
-            acc_height += P_height * P.shape[1]
+            P_vals, (P_rows, P_cols), P_shape = P
+            if len(P_vals) > 0:
+                vals[entry_offset:entry_offset + P_vals.size] = P_vals.flatten(
+                    order='F'
+                )
+                base_rows = gap_above + acc_height + P_rows + P_cols * P_height
+                full_rows = np.tile(base_rows, num_params)
+                rows[entry_offset:entry_offset + P_vals.size] = full_rows
+                full_cols = np.repeat(np.arange(num_params), P_cols.size)
+                cols[entry_offset:entry_offset + P_vals.size] = full_cols
+                entry_offset += P_vals.size
+            gap_above += P_shape[0]
+            acc_height += P_height * P_shape[1]
 
         # Stitch together Ps and qs and constant.
         P = sp.coo_matrix((vals, (rows, cols)), shape=(acc_height, num_params))
