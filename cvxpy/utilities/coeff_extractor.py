@@ -136,7 +136,7 @@ class CoeffExtractor(object):
                 var_size = affine_id_map[var_id][1]
                 c_part = c[var_offset:var_offset+var_size, :]
                 if quad_forms[var_id][2].P.value is not None:
-                    # Convert to dense matrix.
+                    # Convert to sparse matrix.
                     P = quad_forms[var_id][2].P.value
                     if sp.issparse(P):
                         P = P.tocoo()

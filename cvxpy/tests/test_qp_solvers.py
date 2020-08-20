@@ -155,6 +155,8 @@ class TestQp(BaseTest):
             self.assertItemsAlmostEqual(z, var.value, places=4)
 
     def rep_quad_form(self, solver):
+        """A problem where the quad_form term is used multiple times.
+        """
         np.random.seed(0)
         A = np.random.randn(5, 5)
         z = np.random.randn(5)
