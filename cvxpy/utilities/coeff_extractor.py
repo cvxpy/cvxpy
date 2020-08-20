@@ -234,14 +234,18 @@ class CoeffExtractor(object):
             ```
             but done by constructing a COO matrix.
             """
-            vals.extend(P.flatten(order='F'))
+            P_vals = P.flatten(order='F')
+            P_idxs = P_vals != 0
+            vals.extend(P_vals[P_idxs])
             base_rows = np.arange(gap_above + acc_height,
                                   gap_above + acc_height + P.shape[1])
             scale_rows = np.arange(P.shape[1]) * P_height
             P_rows = base_rows[:, None] + scale_rows[None, :]
             flat_rows = P_rows.flatten(order='F')
-            rows.extend(np.tile(flat_rows, num_params))
-            cols.extend(np.repeat(np.arange(num_params), P.shape[0] * P.shape[1]))
+            P_rows = np.tile(flat_rows, num_params)
+            rows.extend(P_rows[P_idxs])
+            P_cols = np.repeat(np.arange(num_params), P.shape[0] * P.shape[1])
+            cols.extend(P_cols[P_idxs])
             gap_above += P.shape[0]
             acc_height += P_height * P.shape[1]
 
