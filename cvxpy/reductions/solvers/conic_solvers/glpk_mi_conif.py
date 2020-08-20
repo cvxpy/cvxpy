@@ -67,9 +67,6 @@ class GLPK_MI(GLPK):
         for key, value in solver_opts.items():
             cvxopt.glpk.options[key] = value
 
-        if data[s.A] is None:
-            raise ValueError("GLPK_MI cannot solve problems with no equality constraints.")
-
         try:
             results_tup = cvxopt.glpk.ilp(data[s.C],
                                           data[s.G],
