@@ -1,7 +1,7 @@
 .. _dqcp:
 
 Disciplined Quasiconvex Programming
-=================================
+===================================
 
 Disciplined quasiconvex programming (DQCP) is a generalization of DCP for
 quasiconvex functions. Quasiconvexity generalizes convexity: a function
