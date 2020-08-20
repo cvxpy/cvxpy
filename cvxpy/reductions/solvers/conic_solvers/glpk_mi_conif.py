@@ -19,6 +19,7 @@ import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers import GLPK
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution, failure_solution
+import numpy as np
 
 
 class GLPK_MI(GLPK):
@@ -65,6 +66,9 @@ class GLPK_MI(GLPK):
             solver_opts["maxiters"] = solver_opts["max_iters"]
         for key, value in solver_opts.items():
             cvxopt.glpk.options[key] = value
+
+        if data[s.A] is None:
+            raise ValueError("GLPK_MI cannot solve problems with no equality constraints.")
 
         try:
             results_tup = cvxopt.glpk.ilp(data[s.C],
