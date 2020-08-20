@@ -19,7 +19,6 @@ import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers import GLPK
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution, failure_solution
-import numpy as np
 
 
 class GLPK_MI(GLPK):
