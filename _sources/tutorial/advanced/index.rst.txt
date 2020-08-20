@@ -1324,7 +1324,6 @@ on derivatives.
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
-.. _XPRESS: https://www.fico.com/en/products/fico-xpress-solver
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/

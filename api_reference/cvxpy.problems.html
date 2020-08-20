@@ -449,8 +449,8 @@ problems (that are also DPP-compliant).</p>
 <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">3.0</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
 <span class="c1"># derivative() populates the delta attribute of the variables</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">derivative</span><span class="p">()</span>
 <span class="n">p</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-3</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">derivative</span><span class="p">()</span>
 <span class="c1"># Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3</span>
 <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="mf">2e-3</span><span class="p">)</span>
 </pre></div>
