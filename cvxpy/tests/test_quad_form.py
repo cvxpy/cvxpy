@@ -167,7 +167,7 @@ class TestNonOptimal(BaseTest):
         obj0 = -B.T @ x
         obj1 = cvxpy.quad_form(B.T @ x, A)
         prob = cvxpy.Problem(cvxpy.Minimize(obj0 + obj1))
-        prob.solve()
+        prob.solve(verbose=True)
         self.assertAlmostEqual(prob.value, prob.objective.value)
 
     def test_zero_term(self):
