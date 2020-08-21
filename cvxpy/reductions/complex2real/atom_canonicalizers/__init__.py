@@ -35,7 +35,7 @@ from cvxpy.atoms.affine.binary_operators import (MulExpression,
                                                  DivExpression)
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
-from cvxpy.constraints import NonPos, SOC, PSD, Zero, NonNeg
+from cvxpy.constraints import Equality, Inequality, NonPos, SOC, PSD, Zero, NonNeg
 from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import abs_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.aff_canon import (separable_canon,
                                                                          real_canon,
@@ -46,13 +46,15 @@ from cvxpy.reductions.complex2real.atom_canonicalizers.pnorm_canon import pnorm_
 from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import (
     hermitian_canon, quad_canon, lambda_sum_largest_canon, norm_nuc_canon, matrix_frac_canon,
     quad_over_lin_canon)
-from cvxpy.reductions.complex2real.atom_canonicalizers.nonpos_canon import nonpos_canon, nonneg_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.inequality_canon import (
+    inequality_canon, nonpos_canon, nonneg_canon)
 from cvxpy.reductions.complex2real.atom_canonicalizers.psd_canon import psd_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.soc_canon import soc_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import variable_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.constant_canon import constant_canon
 from cvxpy.reductions.complex2real.atom_canonicalizers.param_canon import param_canon
-from cvxpy.reductions.complex2real.atom_canonicalizers.zero_canon import zero_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.equality_canon import (
+    equality_canon, zero_canon)
 
 
 CANON_METHODS = {
@@ -85,11 +87,13 @@ CANON_METHODS = {
     Variable: variable_canon,
     Constant: constant_canon,
     Parameter: param_canon,
-    NonPos: nonpos_canon,
-    NonNeg: nonneg_canon,
+    Inequality: inequality_canon,
+    NonPos: inequality_canon,
+    NonNeg: inequality_canon,
     PSD: psd_canon,
     SOC: soc_canon,
-    Zero: zero_canon,
+    Equality: equality_canon,
+    Zero: equality_canon,
 
     abs: abs_canon,
     norm1: pnorm_canon,
