@@ -74,7 +74,8 @@ QP_SOLVERS = [s.OSQP,
               s.GUROBI,
               s.CPLEX]
 MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI,
-              s.CPLEX, s.XPRESS, s.CBC]
+              s.CPLEX, s.XPRESS, s.CBC, s.SCIP]
+MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS, s.SCIP]
 
 
 def installed_solvers():

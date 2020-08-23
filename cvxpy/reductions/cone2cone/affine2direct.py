@@ -259,8 +259,8 @@ class Slacks(object):
         where
 
             (1) K_aff is built from cone types specified in "affine" (a list of strings),
-            (2) a primal solution for (Dir-Opt) can be mapped back to a primal solution
-                for (Aff-Opt) by selecting the leading ``c.size`` block of y's components.
+            (2) a primal solution for (Dir) can be mapped back to a primal solution
+                for (Aff) by selecting the leading ``c.size`` block of y's components.
 
         In the returned dict "data", data[s.A] = G, data[s.B] = h, data[s.C] = f,
         data['K_aff'] = K_aff, data['K_dir'] = K_dir, data[s.BOOL_IDX] = bools,
@@ -287,7 +287,6 @@ class Slacks(object):
 
         for val in affine:
             if val not in {ZERO, NONNEG, EXP, SOC}:
-
                 raise NotImplementedError()
         if ZERO not in affine:
             affine.append(ZERO)
