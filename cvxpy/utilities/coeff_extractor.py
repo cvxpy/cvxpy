@@ -138,14 +138,14 @@ class CoeffExtractor(object):
                 if quad_forms[var_id][2].P.value is not None:
                     # Convert to sparse matrix.
                     P = quad_forms[var_id][2].P.value
-                    if sp.issparse(P):
+                    if sp.issparse(P) and not isinstance(P, sp.coo_matrix):
                         P = P.tocoo()
                     else:
                         P = sp.coo_matrix(P)
                     if var_size == 1:
                         c_part = np.ones((P.shape[0], 1)) * c_part
                 else:
-                    P = sp.eye(var_size).tocoo()
+                    P = sp.eye(var_size, format='coo')
                 # We multiply the columns of P, by c_part
                 # by operating directly on the data.
                 data = P.data[:, None] * c_part[P.col]
@@ -155,7 +155,7 @@ class CoeffExtractor(object):
                 if orig_id in coeffs:
                     if 'P' in coeffs[orig_id]:
                         # Concatenation becomes addition when constructing
-                        # COO matrix.
+                        # COO matrix because repeated indices are summed.
                         # Conceptually equivalent to
                         # coeffs[orig_id]['P'] += P_tup
                         acc_data, (acc_row, acc_col), _ = coeffs[orig_id]['P']
