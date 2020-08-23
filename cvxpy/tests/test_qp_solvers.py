@@ -87,6 +87,7 @@ class TestQp(BaseTest):
             self.quad_form_bound(solver)
             self.regression_1(solver)
             self.regression_2(solver)
+            self.rep_quad_form(solver)
 
             # slow tests:
             self.control(solver)
@@ -149,6 +150,20 @@ class TestQp(BaseTest):
         P = A.T.dot(A)
         q = -2*P.dot(z)
         p = Problem(Minimize(QuadForm(self.w, P) + q.T @ self.w))
+        self.solve_QP(p, solver)
+        for var in p.variables():
+            self.assertItemsAlmostEqual(z, var.value, places=4)
+
+    def rep_quad_form(self, solver):
+        """A problem where the quad_form term is used multiple times.
+        """
+        np.random.seed(0)
+        A = np.random.randn(5, 5)
+        z = np.random.randn(5)
+        P = A.T.dot(A)
+        q = -2*P.dot(z)
+        qf = QuadForm(self.w, P)
+        p = Problem(Minimize(0.5*qf + 0.5*qf + q.T @ self.w))
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual(z, var.value, places=4)

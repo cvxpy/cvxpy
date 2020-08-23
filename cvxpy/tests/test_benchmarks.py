@@ -227,3 +227,46 @@ class TestBenchmarks(BaseTest):
         benchmark(small_parameterized_lp, iters=1)
         benchmark(small_parameterized_lp, iters=1,
                   name="small_parameterized_lp_second_time")
+
+    def test_parameterized_qp(self):
+        """Test speed of first solve with QP codepath and SOCP codepath.
+        """
+        m = 150
+        n = 100
+        np.random.seed(1)
+        A = cp.Parameter((m, n))
+        b = cp.Parameter((m,))
+
+        x = cp.Variable(n)
+        objective = cp.Minimize(cp.sum_squares(A@x - b))
+        constraints = [0 <= x, x <= 1]
+        prob = cp.Problem(objective, constraints)
+
+        start = time.time()
+        A.value = np.random.randn(m, n)
+        b.value = np.random.randn(m)
+        prob.solve(solver=cp.ECOS)
+        end = time.time()
+
+        print('Conic canonicalization')
+        print('(ECOS) solver time: ', prob.solver_stats.solve_time)
+        print('cvxpy time: ', (end - start) - prob.solver_stats.solve_time)
+
+        np.random.seed(1)
+        A = cp.Parameter((m, n))
+        b = cp.Parameter((m,))
+
+        x = cp.Variable(n)
+        objective = cp.Minimize(cp.sum_squares(A@x - b))
+        constraints = [0 <= x, x <= 1]
+        prob = cp.Problem(objective, constraints)
+
+        start = time.time()
+        A.value = np.random.randn(m, n)
+        b.value = np.random.randn(m)
+        prob.solve(solver=cp.OSQP)
+        end = time.time()
+
+        print('Quadratic canonicalization')
+        print('(OSQP) solver time: ', prob.solver_stats.solve_time)
+        print('cvxpy time: ', (end - start) - prob.solver_stats.solve_time)
