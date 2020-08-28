@@ -263,7 +263,7 @@ class CoeffExtractor(object):
                 cols[entry_offset:entry_offset + P_vals.size] = full_cols
                 entry_offset += P_vals.size
             gap_above += P_shape[0]
-            acc_height += P_height * P_shape[1]
+            acc_height += P_height * np.int64(P_shape[1])
 
         # Stitch together Ps and qs and constant.
         P = sp.coo_matrix((vals, (rows, cols)), shape=(acc_height, num_params))
