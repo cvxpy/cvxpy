@@ -233,8 +233,8 @@ class CoeffExtractor(object):
         # eg P1
         #      P2
         # We do this by extending each P with zero blocks above and below.
-        gap_above = 0
-        acc_height = 0
+        gap_above = np.int64(0)
+        acc_height = np.int64(0)
         rows = np.zeros(P_entries)
         cols = np.zeros(P_entries)
         vals = np.zeros(P_entries)
