@@ -583,9 +583,9 @@ class Problem(u.Canonical):
                                         if s in slv_def.QP_SOLVERS]
             candidates['conic_solvers'] = []
             # ECOS_BB can only be called explicitly.
-            for solver in slv_def.INSTALLED_SOLVERS:
-                if solver in slv_def.CONIC_SOLVERS and solver != s.ECOS_BB:
-                    candidates['conic_solvers'].append(solver)
+            for slv in slv_def.INSTALLED_SOLVERS:
+                if slv in slv_def.CONIC_SOLVERS and slv != s.ECOS_BB:
+                    candidates['conic_solvers'].append(slv)
 
         # If gp we must have only conic solvers
         if gp:
