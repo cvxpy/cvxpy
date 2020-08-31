@@ -581,8 +581,11 @@ class Problem(u.Canonical):
         else:
             candidates['qp_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
                                         if s in slv_def.QP_SOLVERS]
-            candidates['conic_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
-                                           if s in slv_def.CONIC_SOLVERS]
+            candidates['conic_solvers'] = []
+            # ECOS_BB can only be called explicitly.
+            for solver in slv_def.INSTALLED_SOLVERS:
+                if solver in slv_def.CONIC_SOLVERS and solver != s.ECOS_BB:
+                    candidates['conic_solvers'].append(solver)
 
         # If gp we must have only conic solvers
         if gp:
@@ -596,7 +599,8 @@ class Problem(u.Canonical):
                 candidates['qp_solvers'] = []  # No QP solvers allowed
 
         if self.is_mixed_integer():
-            if len(slv_def.INSTALLED_MI_SOLVERS) == 0:
+            # ECOS_BB must be called explicitly.
+            if len(slv_def.INSTALLED_MI_SOLVERS) == 1 and solver != s.ECOS_BB:
                 msg = """
 
                     CVXPY needs additional software (a `mixed-integer solver`) to handle this model.

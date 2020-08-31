@@ -1258,7 +1258,7 @@ class TestAllSolvers(BaseTest):
         x = cp.Variable(2, name='x', integer=True)
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
-        if len(INSTALLED_MI_SOLVERS) == 0:
+        if len(INSTALLED_MI_SOLVERS) == 1:
             try:
                 prob.solve()
                 assert False
@@ -1268,3 +1268,71 @@ class TestAllSolvers(BaseTest):
         else:
             prob.solve()
             self.assertItemsAlmostEqual(x.value, [0, 0])
+
+
+class TestECOS_BB(unittest.TestCase):
+
+    def test_ecos_bb_explicit_only(self):
+        """Test that ECOS_BB isn't chosen by default.
+        """
+        x = cp.Variable(1, name='x', integer=True)
+        objective = cp.Minimize(cp.exp(x))
+        prob = cp.Problem(objective, [x >= 0])
+        if cp.MOSEK not in INSTALLED_MI_SOLVERS:
+            try:
+                prob.solve()
+                assert False
+            except SolverError as err:
+                msg = str(err)
+                self.assertTrue("(a `mixed-integer solver`)" in msg)
+
+    def test_ecos_bb_lp_0(self):
+        StandardTestLPs.test_lp_0(solver='ECOS_BB')
+
+    def test_ecos_bb_lp_1(self):
+        # default settings
+        StandardTestLPs.test_lp_1(solver='ECOS_BB')
+        # require a basic feasible solution
+        StandardTestLPs.test_lp_1(solver='ECOS_BB')
+
+    def test_ecos_bb_lp_2(self):
+        StandardTestLPs.test_lp_2(solver='ECOS_BB')
+
+    def test_ecos_bb_lp_3(self):
+        StandardTestLPs.test_lp_3(solver='ECOS_BB')
+
+    def test_ecos_bb_lp_4(self):
+        StandardTestLPs.test_lp_4(solver='ECOS_BB')
+
+    def test_ecos_bb_lp_5(self):
+        StandardTestLPs.test_lp_5(solver='ECOS_BB')
+
+    def test_ecos_bb_socp_0(self):
+        StandardTestSOCPs.test_socp_0(solver='ECOS_BB')
+
+    def test_ecos_bb_socp_1(self):
+        StandardTestSOCPs.test_socp_1(solver='ECOS_BB')
+
+    def test_ecos_bb_socp_2(self):
+        StandardTestSOCPs.test_socp_2(solver='ECOS_BB')
+
+    def test_ecos_bb_socp_3(self):
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='ECOS_BB')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='ECOS_BB')
+
+    def test_ecos_bb_expcone_1(self):
+        StandardTestECPs.test_expcone_1(solver='ECOS_BB')
+
+    def test_ecos_bb_exp_soc_1(self):
+        StandardTestMixedCPs.test_exp_soc_1(solver='ECOS_BB')
+
+    def test_ecos_bb_mi_lp_0(self):
+        StandardTestLPs.test_mi_lp_0(solver='ECOS_BB')
+
+    def test_ecos_bb_mi_lp_2(self):
+        StandardTestLPs.test_mi_lp_2(solver='ECOS_BB')
+
+    def test_ecos_bb_mi_socp_1(self):
+        StandardTestSOCPs.test_mi_socp_1(solver='ECOS_BB')
