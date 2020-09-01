@@ -347,6 +347,9 @@ class TestSCS(BaseTest):
     def test_scs_sdp_1min(self):
         StandardTestSDPs.test_sdp_1min(solver='SCS')
 
+    def test_scs_sdp_2(self):
+        StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-8)
+
     def test_scs_expcone_1(self):
         StandardTestECPs.test_expcone_1(solver='SCS')
 
@@ -398,6 +401,9 @@ class TestMosek(unittest.TestCase):
         StandardTestSDPs.test_sdp_1min(solver='MOSEK')
         # maximization
         StandardTestSDPs.test_sdp_1max(solver='MOSEK')
+
+    def test_mosek_sdp_2(self):
+        StandardTestSDPs.test_sdp_2(solver='MOSEK')
 
     def test_mosek_expcone_1(self):
         StandardTestECPs.test_expcone_1(solver='MOSEK')
@@ -540,6 +546,9 @@ class TestCVXOPT(BaseTest):
         StandardTestSDPs.test_sdp_1min(solver='CVXOPT')
         # maximization
         StandardTestSDPs.test_sdp_1max(solver='CVXOPT')
+
+    def test_cvxopt_sdp_2(self):
+        StandardTestSDPs.test_sdp_2(solver='CVXOPT')
 
 
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
