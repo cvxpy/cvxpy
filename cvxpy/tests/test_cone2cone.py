@@ -304,25 +304,22 @@ class TestSlacks(BaseTest):
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
-    @unittest.skipUnless(INSTALLED_MI, 'No mixed-integer solver is installed.')
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine)
+            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS_BB')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
-    @unittest.skipUnless([svr for svr in INSTALLED_MI if svr in MI_SOCP],
-                         'No mixed-integer SOCP solver is installed.')
     def test_mi_socp_1(self):
         sth = STH.mi_socp_1()
         for affine in TestSlacks.AFF_SOCP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine)
+            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS_BB')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
-    @unittest.skipUnless([svr for svr in INSTALLED_MI if svr in MI_SOCP],
-                         'No mixed-integer SOCP solver is installed.')
+    @unittest.skipUnless([svr for svr in INSTALLED_MI if svr in MI_SOCP and svr != 'ECOS_BB'],
+                         'No appropriate mixed-integer SOCP solver is installed.')
     def test_mi_socp_2(self):
         sth = STH.mi_socp_2()
         for affine in TestSlacks.AFF_SOCP_CASES:
