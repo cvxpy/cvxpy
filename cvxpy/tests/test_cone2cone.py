@@ -307,7 +307,7 @@ class TestSlacks(BaseTest):
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()
         for affine in TestSlacks.AFF_LP_CASES:
-            TestSlacks.simulate_chain(sth.prob, affine, solvr='ECOS_BB')
+            TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS_BB')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
