@@ -528,7 +528,6 @@ def mi_socp_1():
              norm(x,2) <= y[1]
              x[0] + x[1] + 3*x[2] >= 0.1
              y <= 5, y integer.
-    and solve with MOSEK.
     """
     x = cp.Variable(shape=(3,))
     y = cp.Variable(shape=(2,), integer=True)
