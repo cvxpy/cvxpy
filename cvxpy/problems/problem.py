@@ -34,6 +34,7 @@ import cvxpy.utilities as u
 from collections import namedtuple
 import numpy as np
 import time
+import warnings
 
 
 SolveResult = namedtuple(
@@ -580,8 +581,11 @@ class Problem(u.Canonical):
         else:
             candidates['qp_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
                                         if s in slv_def.QP_SOLVERS]
-            candidates['conic_solvers'] = [s for s in slv_def.INSTALLED_SOLVERS
-                                           if s in slv_def.CONIC_SOLVERS]
+            candidates['conic_solvers'] = []
+            # ECOS_BB can only be called explicitly.
+            for slv in slv_def.INSTALLED_SOLVERS:
+                if slv in slv_def.CONIC_SOLVERS and slv != s.ECOS_BB:
+                    candidates['conic_solvers'].append(slv)
 
         # If gp we must have only conic solvers
         if gp:
@@ -595,7 +599,8 @@ class Problem(u.Canonical):
                 candidates['qp_solvers'] = []  # No QP solvers allowed
 
         if self.is_mixed_integer():
-            if len(slv_def.INSTALLED_MI_SOLVERS) == 0:
+            # ECOS_BB must be called explicitly.
+            if len(slv_def.INSTALLED_MI_SOLVERS) == 1 and solver != s.ECOS_BB:
                 msg = """
 
                     CVXPY needs additional software (a `mixed-integer solver`) to handle this model.
@@ -914,8 +919,8 @@ class Problem(u.Canonical):
             p.value = 3.0
             problem.solve(requires_grad=True, eps=1e-10)
             # derivative() populates the delta attribute of the variables
-            problem.derivative()
             p.delta = 1e-3
+            problem.derivative()
             # Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3
             np.testing.assert_allclose(x.delta, 2e-3)
 
@@ -1049,6 +1054,12 @@ class Problem(u.Canonical):
         """
 
         solution = chain.invert(solution, inverse_data)
+        if solution.status in s.INACCURATE:
+            warnings.warn(
+                "Solution may be inaccurate. Try another solver, "
+                "adjusting the solver settings, or solve with "
+                "verbose=True for more information."
+            )
         if solution.status in s.ERROR:
             raise error.SolverError(
                     "Solver '%s' failed. " % chain.solver.name() +

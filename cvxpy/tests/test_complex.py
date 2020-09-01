@@ -572,3 +572,23 @@ class TestComplex(BaseTest):
         prob = cvx.Problem(obj, cons)
         result = prob.solve()
         self.assertAlmostEqual(result, 2)
+
+    def test_complex_qp(self):
+        """Test a QP with a complex variable.
+        """
+        A0 = np.array([0+1j, 2-1j])
+        A1 = np.array([[2, -1+1j], [4-3j, -3+2j]])
+        Z = cvx.Variable(complex=True)
+        X = cvx.Variable(2)
+        B = np.array([2+1j, -2j])
+
+        objective = cvx.Minimize(cvx.sum_squares(A0*Z + A1@X - B))
+        prob = cvx.Problem(objective)
+        prob.solve()
+        self.assertEqual(prob.status, cvx.OPTIMAL)
+
+        constraints = [X >= 0]
+        prob = cvx.Problem(objective, constraints)
+        prob.solve()
+        self.assertEqual(prob.status, cvx.OPTIMAL)
+        assert constraints[0].dual_value is not None

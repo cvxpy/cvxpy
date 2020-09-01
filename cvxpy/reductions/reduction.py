@@ -40,7 +40,7 @@ class Reduction(object):
     it to an equivalent form, and the invert method maps solutions
     from reduced-to problems to their problems of provenance.
 
-    Attributes:
+    Parameters
     ----------
     problem : Problem
         A problem owned by this reduction; possibly None.

@@ -140,9 +140,9 @@ See the `MOSEK <https://www.mosek.com/>`_ website for installation instructions.
 Install with XPRESS support
 ---------------------------
 
-CVXPY supports the XPRESS solver.
+CVXPY supports the FICO Xpress solver.
 Simply install XPRESS such that you can ``import xpress`` in Python.
-See the `XPRESS <http://www.fico.com/en/products/fico-xpress-optimization-suite>`_ website for installation instructions.
+See the `Xpress Python documentation <https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/python/HTML/GUID-616C323F-05D8-3460-B0D7-80F77DA7D046.html>`_ pages for installation instructions.
 
 Install with Cbc (Clp, Cgl) support
 -----------------------------------
@@ -163,14 +163,14 @@ Install with SDPT3 support
 The `sdpt3glue package <https://github.com/TrishGillett/pysdpt3glue>`_ allows you to model problems with CVXPY and solve them with SDPT3.
 
 Install with NAG support
----------------------------
+------------------------
 
 CVXPY supports the NAG solver.
 Simply install NAG such that you can ``import naginterfaces`` in Python.
 See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
 
 Install with SCIP support
----------------------------
+-------------------------
 
 CVXPY supports the SCIP solver.
 Simply install SCIP such that you can ``from pyscipopt.scip import Model`` in Python.

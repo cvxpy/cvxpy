@@ -20,7 +20,6 @@ import sys
 import cvxpy.interface as intf
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.sum import sum as cvxpy_sum
 from cvxpy.atoms.affine.reshape import deep_flatten
 from cvxpy.atoms.affine.conj import conj
@@ -232,12 +231,7 @@ class multiply(MulExpression):
     """
 
     def __init__(self, lh_expr, rh_expr):
-        lh_expr = multiply.cast_to_const(lh_expr)
-        rh_expr = multiply.cast_to_const(rh_expr)
-        if lh_expr.is_scalar() and not rh_expr.is_scalar():
-            lh_expr = promote(lh_expr, rh_expr.shape)
-        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
-            rh_expr = promote(rh_expr, lh_expr.shape)
+        lh_expr, rh_expr = self.broadcast(lh_expr, rh_expr)
         super(multiply, self).__init__(lh_expr, rh_expr)
 
     def is_atom_log_log_convex(self):
@@ -328,12 +322,7 @@ class DivExpression(BinaryOperator):
     OP_FUNC = np.divide
 
     def __init__(self, lh_expr, rh_expr):
-        lh_expr = DivExpression.cast_to_const(lh_expr)
-        rh_expr = DivExpression.cast_to_const(rh_expr)
-        if lh_expr.is_scalar() and not rh_expr.is_scalar():
-            lh_expr = promote(lh_expr, rh_expr.shape)
-        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
-            rh_expr = promote(rh_expr, lh_expr.shape)
+        lh_expr, rh_expr = self.broadcast(lh_expr, rh_expr)
         super(DivExpression, self).__init__(lh_expr, rh_expr)
 
     def numeric(self, values):

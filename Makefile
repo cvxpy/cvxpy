@@ -164,6 +164,7 @@ gh-pages:
 	git checkout gh-pages
 	mv CNAME /tmp/cvxpy_docs/CNAME
 	git rm -r .
+	rm -rf examples
 	mv /tmp/cvxpy_docs/* .
 	touch .nojekyll
 	rm -rf $(GH_PAGES_SOURCES) build doc

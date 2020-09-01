@@ -102,6 +102,11 @@ def pos():
     return pos.pos
 
 
+def promote():
+    from cvxpy.atoms.affine.promote import promote
+    return promote
+
+
 def maximum():
     from cvxpy.atoms.elementwise import maximum
     return maximum.maximum

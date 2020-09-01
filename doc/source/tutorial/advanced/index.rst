@@ -277,7 +277,7 @@ constraints hold and :math:`\infty` when they are violated.
 
    x = cp.Variable()
    constraints = [0 <= x, x <= 1]
-   expr = cp.indicator(constraints)
+   expr = cp.transforms.indicator(constraints)
    x.value = .5
    print("expr.value = ", expr.value)
    x.value = 2
@@ -432,6 +432,8 @@ The table below shows the types of problems the supported solvers can handle.
 +--------------+----+----+------+-----+-----+-----+
 | `SCIP`_      | X  | X  | X    |     |     | X   |
 +--------------+----+----+------+-----+-----+-----+
+| `XPRESS`_    | X  | X  | X    |     |     | X   |
++--------------+----+----+------+-----+-----+-----+
 
 (*) Except mixed-integer SDP.
 
@@ -502,6 +504,11 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with SCIP.
     prob.solve(solver=cp.SCIP)
     print "optimal value with SCIP:", prob.value
+
+    # Solve with XPRESS
+    prob.solve(solver=cp.XPRESS)
+    print "optimal value with XPRESS:", prob.value
+
 ::
 
     optimal value with OSQP: 6.0
@@ -516,6 +523,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CPLEX: 6.0
     optimal value with NAG: 6.000000003182365
     optimal value with SCIP: 6.0
+    optimal value with XPRESS: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
 
@@ -525,7 +533,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -1316,11 +1324,11 @@ on derivatives.
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
-.. _XPRESS: https://www.fico.com/en/products/fico-xpress-solver
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
 .. _SCIP: https://scip.zib.de/
+.. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 

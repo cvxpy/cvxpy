@@ -25,7 +25,7 @@ def diff_pos(x, y):
 
     This atom is log-log concave.
 
-    Parameters:
+    Parameters
     ----------
     x : :class:`~cvxpy.expressions.expression.Expression`
         An Expression.
@@ -40,7 +40,7 @@ class one_minus_pos(Atom):
 
     This atom is log-log concave.
 
-    Parameters:
+    Parameters
     ----------
     x : :class:`~cvxpy.expressions.expression.Expression`
         An Expression.

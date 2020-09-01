@@ -466,12 +466,39 @@ class Expression(u.Canonical):
                     )
         return expr if isinstance(expr, Expression) else cvxtypes.constant()(expr)
 
+    @staticmethod
+    def broadcast(lh_expr, rh_expr):
+        """Broacast the binary operator.
+        """
+        lh_expr = Expression.cast_to_const(lh_expr)
+        rh_expr = Expression.cast_to_const(rh_expr)
+        if lh_expr.is_scalar() and not rh_expr.is_scalar():
+            lh_expr = cvxtypes.promote()(lh_expr, rh_expr.shape)
+        elif rh_expr.is_scalar() and not lh_expr.is_scalar():
+            rh_expr = cvxtypes.promote()(rh_expr, lh_expr.shape)
+        # Broadcasting.
+        if lh_expr.ndim == 2 and rh_expr.ndim == 2:
+            # Replicate dimensions of size 1.
+            dims = [max(lh_expr.shape[i], rh_expr.shape[i]) for i in range(2)]
+            # Broadcast along dim 0.
+            if lh_expr.shape[0] == 1 and lh_expr.shape[0] < dims[0]:
+                lh_expr = np.ones((dims[0], 1)) @ lh_expr
+            if rh_expr.shape[0] == 1 and rh_expr.shape[0] < dims[0]:
+                rh_expr = np.ones((dims[0], 1)) @ rh_expr
+            # Broadcast along dim 1.
+            if lh_expr.shape[1] == 1 and lh_expr.shape[1] < dims[1]:
+                lh_expr = lh_expr @ np.ones((1, dims[1]))
+            if rh_expr.shape[1] == 1 and rh_expr.shape[1] < dims[1]:
+                rh_expr = rh_expr @ np.ones((1, dims[1]))
+        return lh_expr, rh_expr
+
     @_cast_other
     def __add__(self, other):
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
             return self
+        self, other = self.broadcast(self, other)
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other

@@ -45,6 +45,9 @@ SOLUTION_PRESENT = [OPTIMAL, OPTIMAL_INACCURATE, USER_LIMIT]
 # Statuses that indicate the problem is infeasible or unbounded.
 INF_OR_UNB = [INFEASIBLE, INFEASIBLE_INACCURATE,
               UNBOUNDED, UNBOUNDED_INACCURATE]
+# Statuses that indicate an inaccurate solution.
+INACCURATE = [OPTIMAL_INACCURATE, INFEASIBLE_INACCURATE,
+              UNBOUNDED_INACCURATE, USER_LIMIT]
 # Statuses that indicate an error.
 ERROR = [SOLVER_ERROR]
 
@@ -55,6 +58,7 @@ GLPK_MI = "GLPK_MI"
 CBC = "CBC"
 CPLEX = "CPLEX"
 ECOS = "ECOS"
+ECOS_BB = "ECOS_BB"
 SCS = "SCS"
 DIFFCP = "DIFFCP"
 GUROBI = "GUROBI"
