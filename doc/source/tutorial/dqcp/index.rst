@@ -182,7 +182,7 @@ The only valid constraints under the DQCP rules are
 -  affine == affine
 -  convex <= concave
 -  concave >= convex
--  qausiconvex <= constant
+-  quasiconvex <= constant
 -  quasiconcave >= constant
 
 You can check that a problem, constraint, or objective satisfies the DQCP
