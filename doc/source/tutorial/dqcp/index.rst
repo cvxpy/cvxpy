@@ -125,7 +125,7 @@ quasiconvex under DQCP if it is one of the following:
   decreasing in argument :math:`i` and :math:`e_i` is concave, or :math:`e_i`
   is affine.
 
-An expression quasiconcave under DQCP if it is one of the following:
+An expression is quasiconcave under DQCP if it is one of the following:
 
 - concave (under DCP);
 - a quasiconcave atom, applied to a variable or constant:
