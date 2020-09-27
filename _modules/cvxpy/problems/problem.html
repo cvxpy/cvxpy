@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.4 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.5 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -616,8 +616,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span>
                                         <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">QP_SOLVERS</span><span class="p">]</span>
-            <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span>
-                                           <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">CONIC_SOLVERS</span><span class="p">]</span>
+            <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="c1"># ECOS_BB can only be called explicitly.</span>
+            <span class="k">for</span> <span class="n">slv</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">slv</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">CONIC_SOLVERS</span> <span class="ow">and</span> <span class="n">slv</span> <span class="o">!=</span> <span class="n">s</span><span class="o">.</span><span class="n">ECOS_BB</span><span class="p">:</span>
+                    <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">slv</span><span class="p">)</span>
 
         <span class="c1"># If gp we must have only conic solvers</span>
         <span class="k">if</span> <span class="n">gp</span><span class="p">:</span>
@@ -631,7 +634,8 @@
                 <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># No QP solvers allowed</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_MI_SOLVERS</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># ECOS_BB must be called explicitly.</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_MI_SOLVERS</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">solver</span> <span class="o">!=</span> <span class="n">s</span><span class="o">.</span><span class="n">ECOS_BB</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 
 <span class="s2">                    CVXPY needs additional software (a `mixed-integer solver`) to handle this model.</span>

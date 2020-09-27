@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.complex2real.complex2real &#8212; CVXPY 1.1.4 documentation</title>
+    <title>cvxpy.reductions.complex2real.complex2real &#8212; CVXPY 1.1.5 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -53,11 +53,12 @@
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.reduction</span> <span class="kn">import</span> <span class="n">Reduction</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions</span> <span class="kn">import</span> <span class="n">InverseData</span><span class="p">,</span> <span class="n">Solution</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span> <span class="n">PSD</span><span class="p">,</span> <span class="n">SOC</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span>
+                               <span class="n">Zero</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span>
+                               <span class="n">PSD</span><span class="p">,</span> <span class="n">SOC</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.complex2real.atom_canonicalizers</span> <span class="kn">import</span> <span class="p">(</span>
     <span class="n">CANON_METHODS</span> <span class="k">as</span> <span class="n">elim_cplx_methods</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.lin_ops</span> <span class="kn">import</span> <span class="n">lin_utils</span> <span class="k">as</span> <span class="n">lu</span>
-<span class="kn">from</span> <span class="nn">cvxpy.reductions.utilities</span> <span class="kn">import</span> <span class="n">lower_equality</span><span class="p">,</span> <span class="n">lower_ineq_to_nonneg</span>
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">s</span>
 
 
@@ -88,10 +89,6 @@
 
         <span class="n">constrs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span> <span class="o">==</span> <span class="n">Equality</span><span class="p">:</span>
-                <span class="n">constraint</span> <span class="o">=</span> <span class="n">lower_equality</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span> <span class="o">==</span> <span class="n">Inequality</span><span class="p">:</span>
-                <span class="n">constraint</span> <span class="o">=</span> <span class="n">lower_ineq_to_nonneg</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
             <span class="c1"># real2imag maps variable id to a potential new variable</span>
             <span class="c1"># created for the imaginary part.</span>
             <span class="n">real_constrs</span><span class="p">,</span> <span class="n">imag_constrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">canonicalize_tree</span><span class="p">(</span>
@@ -134,12 +131,15 @@
                         <span class="n">pvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">cid</span><span class="p">,</span> <span class="n">cons</span> <span class="ow">in</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">id2cons</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="k">if</span> <span class="n">cons</span><span class="o">.</span><span class="n">is_real</span><span class="p">():</span>
-                    <span class="n">dvars</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
+                    <span class="n">dvars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
                 <span class="k">elif</span> <span class="n">cons</span><span class="o">.</span><span class="n">is_imag</span><span class="p">():</span>
                     <span class="n">imag_id</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">real2imag</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
                     <span class="n">dvars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">imag_id</span><span class="p">]</span>
                 <span class="c1"># For equality and inequality constraints.</span>
-                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cons</span><span class="p">,</span> <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">))</span> <span class="ow">and</span> <span class="n">cons</span><span class="o">.</span><span class="n">is_complex</span><span class="p">():</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cons</span><span class="p">,</span>
+                                <span class="p">(</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span>
+                                 <span class="n">NonNeg</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">)</span>
+                                <span class="p">)</span> <span class="ow">and</span> <span class="n">cons</span><span class="o">.</span><span class="n">is_complex</span><span class="p">():</span>
                     <span class="n">imag_id</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">real2imag</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span>
                     <span class="k">if</span> <span class="n">imag_id</span> <span class="ow">in</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">:</span>
                         <span class="n">dvars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">+</span> \
@@ -156,6 +156,7 @@
                     <span class="n">dvars</span><span class="p">[</span><span class="n">cid</span><span class="p">]</span> <span class="o">=</span> <span class="n">dual</span><span class="p">[:</span><span class="n">n</span><span class="p">,</span> <span class="p">:</span><span class="n">n</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="n">j</span><span class="o">*</span><span class="n">dual</span><span class="p">[</span><span class="n">n</span><span class="p">:,</span> <span class="p">:</span><span class="n">n</span><span class="p">]</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unknown constraint type.&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">solution</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span><span class="p">,</span> <span class="n">pvars</span><span class="p">,</span> <span class="n">dvars</span><span class="p">,</span>
                         <span class="n">solution</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span></div>
 
