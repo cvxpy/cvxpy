@@ -235,8 +235,8 @@ class CoeffExtractor(object):
         # We do this by extending each P with zero blocks above and below.
         gap_above = np.int64(0)
         acc_height = np.int64(0)
-        rows = np.zeros(P_entries)
-        cols = np.zeros(P_entries)
+        rows = np.zeros(P_entries, dtype=np.int64)
+        cols = np.zeros(P_entries, dtype=np.int64)
         vals = np.zeros(P_entries)
         entry_offset = 0
         for P in P_list:
@@ -256,7 +256,8 @@ class CoeffExtractor(object):
                 vals[entry_offset:entry_offset + P_vals.size] = P_vals.flatten(
                     order='F'
                 )
-                base_rows = gap_above + acc_height + P_rows + P_cols * P_height
+                P_cols_ext = P_cols.astype(np.int64) * np.int64(P_height)
+                base_rows = gap_above + acc_height + P_rows + P_cols_ext
                 full_rows = np.tile(base_rows, num_params)
                 rows[entry_offset:entry_offset + P_vals.size] = full_rows
                 full_cols = np.repeat(np.arange(num_params), P_cols.size)
