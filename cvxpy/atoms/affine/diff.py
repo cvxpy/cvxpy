@@ -36,7 +36,7 @@ def diff(x, k=1, axis=0):
     x = Expression.cast_to_const(x)
     if (axis == 1 and x.ndim < 2) or x.ndim == 0:
         raise ValueError("Invalid axis given input dimensions.")
-    elif axis == 0:
+    elif axis == 1:
         x = x.T
 
     if k < 0 or k >= x.shape[axis]:

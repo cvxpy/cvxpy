@@ -236,9 +236,9 @@ atoms = [
         (lambda x: cp.diff(x, 2), tuple(), [[1, 2, 3]], Constant([0])),
         (cp.diff, (3,), [[2.1, 1, 4.5, -.1]], Constant([-1.1, 3.5, -4.6])),
         (lambda x: cp.diff(x, 2), (2,), [[2.1, 1, 4.5, -.1]], Constant([4.6, -8.1])),
-        (lambda x: cp.diff(x, 1, axis=0), (1, 2), [[[-5, -3], [2, 1]]],
+        (lambda x: cp.diff(x, 1, axis=0), (1, 2), [np.array([[-5, -3], [2, 1]])],
             Constant([[7], [4]])),
-        (lambda x: cp.diff(x, 1, axis=1), (2, 1), [[[-5, -3], [2, 1]]],
+        (lambda x: cp.diff(x, 1, axis=1), (2, 1), [np.array([[-5, -3], [2, 1]])],
             Constant([[2, -1]])),
 
         (lambda x: cp.pnorm(x, .5), tuple(), [[1.1, 2, .1]], Constant([7.724231543909264])),

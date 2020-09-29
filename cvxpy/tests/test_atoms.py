@@ -1053,3 +1053,13 @@ class TestAtoms(BaseTest):
             cp.lambda_max([[1, 2], [3, 4]]).value
         self.assertEqual(str(cm.exception),
                          "Input matrix was not Hermitian/symmetric.")
+
+    def test_diff(self):
+        """Test the diff atom.
+        """
+        A = cp.Variable((20, 10))
+        B = np.zeros((20, 10))
+        self.assertEqual(cp.diff(A, axis=0).shape,
+                         np.diff(B, axis=0).shape)
+        self.assertEqual(cp.diff(A, axis=1).shape,
+                         np.diff(B, axis=1).shape)
