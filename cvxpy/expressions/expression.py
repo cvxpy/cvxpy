@@ -569,9 +569,8 @@ class Expression(u.Canonical):
     def __div__(self, other):
         """Expression : One expression divided by another.
         """
+        self, other = self.broadcast(self, other)
         if (self.is_scalar() or other.is_scalar()) or other.shape == self.shape:
-            if error.warnings_enabled():
-                warnings.warn("Forming a nonconvex expression.")
             return cvxtypes.div_expr()(self, other)
         else:
             raise ValueError("Incompatible shapes for division (%s / %s)" % (

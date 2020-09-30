@@ -703,6 +703,21 @@ class TestExpressions(BaseTest):
         self.assertEqual((Constant(2)*rho).sign, s.NONNEG)
         self.assertEqual((rho/2).sign, s.NONNEG)
 
+        # Broadcasting.
+        x = cp.Variable((3, 3))
+        c = np.arange(1, 4)[:, None]
+        expr = x / c
+        self.assertEqual((3, 3), expr.shape)
+        x.value = np.ones((3, 3))
+        A = np.ones((3, 3)) / c
+        self.assertItemsAlmostEqual(A, expr.value)
+
+        with self.assertRaises(Exception) as cm:
+            (x/c[:, 0])
+        print(cm.exception)
+        self.assertRegexpMatches(str(cm.exception),
+                                 "Incompatible shapes for division.*")
+
     # Test the NegExpression class.
     def test_neg_expression(self):
         # Vectors
