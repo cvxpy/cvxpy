@@ -204,25 +204,32 @@ You can construct mixed-integer programs by creating variables with the attribut
     constr2 = (expr2 == Z)
 
 CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
-For licencing reasons, CVXPY does not install any of these solvers by default.
+For licencing reasons, CVXPY does not install any of the preferred solvers by default.
 
-CVXPY supports open source mixed-integer solvers GLPK_MI_, CBC_ and SCIP_. The CVXOPT_ python package
-provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running ``pip install cvxopt`` in
-your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.
+The preferred open source mixed-integer solvers in CVXPY are GLPK_MI_, CBC_ and SCIP_. The CVXOPT_
+python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running
+`pip install cvxopt`` in your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.
+
+CVXPY comes with ECOS_BB -- an open source mixed-integer nonlinear solver -- by default. However
+ECOS_BB will not be called automatically; you must explicitly call ``prob.solve(solver='ECOS_BB')``
+if you want to use it. This policy stems from the fact that there are recurring correctness issues
+with ECOS_BB. If you rely on this solver for some application then you need to be aware of the
+increased risks that come with using it.
 
 If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
-model, then you will need to use a commercial solver such as CPLEX_, GUROBI_, MOSEK_, or NAG_.
+model, then you will need to use a commercial solver such as CPLEX_, GUROBI_, XPRESS_, or MOSEK_.
 Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK provide free licenses to those
 in academia (both students and faculty), as well as trial versions to those outside academia.
 CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
 online registration, and it's limited to problems at with most 1000 variables and 1000 constraints.
+XPRESS has a free community edition which does not require registration, however it is limited
+to problems where sum of variables count and constraint count does not exceed 5000.
 
 .. note::
    If you develop an open-source mixed-integer solver with a permissive license such
    as Apache 2.0, and you're interested in incorporating your solver into CVXPY's default installation,
    please reach out to us at our `GitHub issues <https://github.com/cvxgrp/cvxpy/issues>`_. We are
-   particularly interested in incorporating a simple mixed-integer SOCP solver (CVXPY previously
-   used ECOS_BB for this purpose, but dropped that solver due to recurring correctness issues).
+   particularly interested in incorporating a simple mixed-integer SOCP solver.
 
 Complex valued expressions
 --------------------------
@@ -623,6 +630,8 @@ The speed up in this case comes from caching the KKT matrix factorization.
 If ``A`` were a parameter, factorization caching would not be possible and the benefit of
 warm start would only be a good initial point.
 
+.. _solveropts:
+
 Setting solver options
 ----------------------
 
@@ -725,6 +734,18 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     For a linear problem, if ``bfs=True``, then the basic solution will be retrieved
     instead of the interior-point solution. This assumes no specific MOSEK
     parameters were used which prevent computing the basic solution.
+
+.. note::
+
+    In CVXPY 1.1.6 we did a complete rewrite of the MOSEK interface. The main
+    takeaway is that we now dualize all continuous problems. The dualization is
+    automatic because this eliminates the previous need for a large number of
+    slack variables, and never results in larger problems compared to our old
+    MOSEK interface. If you notice MOSEK solve times are slower for some of your
+    problems under CVXPY 1.1.6 or higher, be sure to use the MOSEK solver options
+    to tell MOSEK that it should solve the dual; this can be accomplished by
+    adding the ``(key, value)`` pair ``(mosek.iparam.intpnt_solve_form, mosek.solveform.dual)``
+    to the ``mosek_params`` argument.
     
 `CVXOPT`_ options:
 

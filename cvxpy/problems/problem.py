@@ -603,13 +603,15 @@ class Problem(u.Canonical):
             if len(slv_def.INSTALLED_MI_SOLVERS) == 1 and solver != s.ECOS_BB:
                 msg = """
 
-                    CVXPY needs additional software (a `mixed-integer solver`) to handle this model.
-                    The web documentation
+                    You need a mixed-integer solver for this model. Refer to the documentation
                         https://www.cvxpy.org/tutorial/advanced/index.html#mixed-integer-programs
-                    reviews open-source and commercial options for mixed-integer solvers.
+                    for discussion on this topic.
 
-                    Quick fix: if you install the python package CVXOPT (pip install cvxopt),
+                    Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),
                     then CVXPY can use the open-source mixed-integer solver `GLPK`.
+                    
+                    Quick fix 2: you can explicitly specify solver='ECOS_BB'. This may result
+                    in incorrect solutions and is not recommended.
                 """
                 raise error.SolverError(msg)
             candidates['qp_solvers'] = [
