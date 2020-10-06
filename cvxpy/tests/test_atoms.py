@@ -580,6 +580,16 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Argument to diag must be a vector or square matrix.")
 
+        # Test that diag is PSD
+        w = np.array([1.0, 2.0])
+        expr = cp.diag(w)
+        self.assertTrue(expr.is_psd())
+        expr = cp.diag(-w)
+        self.assertTrue(expr.is_nsd())
+        expr = cp.diag(np.array([1, -1]))
+        self.assertFalse(expr.is_psd())
+        self.assertFalse(expr.is_nsd())
+
     def test_trace(self):
         """Test the trace atom.
         """

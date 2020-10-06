@@ -80,6 +80,16 @@ class diag_vec(AffAtom):
         """
         return True
 
+    def is_psd(self):
+        """Is the expression a positive semidefinite matrix?
+        """
+        return self.is_nonneg()
+
+    def is_nsd(self):
+        """Is the expression a negative semidefinite matrix?
+        """
+        return self.is_nonpos()
+
     def graph_implementation(self, arg_objs, shape, data=None):
         """Convolve two vectors.
 
