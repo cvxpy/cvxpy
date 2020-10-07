@@ -38,6 +38,20 @@
 <span id="updates"></span><h1>Changes to CVXPY<a class="headerlink" href="#changes-to-cvxpy" title="Permalink to this headline">¶</a></h1>
 <p>This page details changes made to CVXPY over time, in reverse chronological order.
 The latest release of CVXPY is version 1.1.</p>
+<div class="section" id="recent-patches">
+<h2>Recent patches<a class="headerlink" href="#recent-patches" title="Permalink to this headline">¶</a></h2>
+<dl class="simple">
+<dt>Changes in version 1.1.6</dt><dd><ul class="simple">
+<li><p>The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not
+be called automatically; you must explicitly call <code class="docutils literal notranslate"><span class="pre">prob.solve(solver='ECOS_BB')</span></code> if you want to
+use this solver. Refer to our documentation on <a class="reference internal" href="../tutorial/advanced/index.html#mip"><span class="std std-ref">mixed-integer models</span></a> for more information.</p></li>
+<li><p>The MOSEK interface has been rewritten and now dualizes all continuous problems. Refer to <a class="reference internal" href="../tutorial/advanced/index.html#solveropts"><span class="std std-ref">solver
+documentation</span></a> for technical reasons of why we do this, and how to manage MOSEK solver
+options in the off chance that this change made your solve times increase.</p></li>
+</ul>
+</dd>
+</dl>
+</div>
 <div class="section" id="cvxpy-1-1">
 <h2>CVXPY 1.1<a class="headerlink" href="#cvxpy-1-1" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="highlights">
@@ -237,6 +251,7 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changes to CVXPY</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#recent-patches">Recent patches</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-1">CVXPY 1.1</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#highlights">Highlights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#new-atoms-and-transforms">New atoms and transforms</a></li>

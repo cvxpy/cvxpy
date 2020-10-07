@@ -285,7 +285,7 @@ for any cone supported by a target solver, but the current elementary convex con
 <div class="math notranslate nohighlight">
 \[(u,v) \in K_{\mathrm{soc}}^n \doteq \{ (t,x) \,:\, t \geq \|x\|_2  \} \subset \mathbb{R} \times \mathbb{R}^n.\]</div>
 </li>
-<li><p>A vectorized version of the positive semidefinite cone.</p></li>
+<li><p>One of several vectorized versions of the positive semidefinite cone.</p></li>
 <li><p>The exponential cone</p></li>
 </ol>
 <blockquote>
@@ -293,8 +293,7 @@ for any cone supported by a target solver, but the current elementary convex con
 \[(u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y&gt;0\}.\]</div>
 </div></blockquote>
 </div></blockquote>
-<p>The precise nature of the vectorized positive semidefinite cone is a little delicate, is
-covered later.
+<p>We address the vectorization options for the semidefinite cones later.
 For now it’s useful to say that the <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code> class will access an
 explicit representation for problem <span class="math notranslate nohighlight">\((P)\)</span> in in <code class="docutils literal notranslate"><span class="pre">apply</span></code>, with a code snippet like</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone</span>
@@ -350,13 +349,14 @@ Supposing <code class="docutils literal notranslate"><span class="pre">cone_dims
 in this optimization problem would involve 10 rows of <code class="docutils literal notranslate"><span class="pre">A</span></code> and 10 entries of <code class="docutils literal notranslate"><span class="pre">b</span></code>.
 The SOC vectorization we use is given by <span class="math notranslate nohighlight">\(K_{\mathrm{soc}}^n\)</span> as defined above.</p></li>
 <li><p>PSD constraints follow SOC constraints.
-Here <code class="docutils literal notranslate"><span class="pre">cone_dims.psd[0]</span></code> gives the <em>order</em> of the first PSD cone.
-So if <code class="docutils literal notranslate"><span class="pre">cone_dims.psd[0]</span> <span class="pre">==</span> <span class="pre">5</span></code>, then this constraint involves the next
-<code class="docutils literal notranslate"><span class="pre">num_rows</span> <span class="pre">=</span> <span class="pre">5*(5+1)//2</span></code> rows of <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code>.
-CVXPY uses the same vectorization for the PSD cone as the SCS solver.
-It might help to reference the functions <code class="docutils literal notranslate"><span class="pre">tri_to_full</span></code> and <code class="docutils literal notranslate"><span class="pre">scs_psd_vec_to_psd_mat</span></code> in
-<a class="reference external" href="https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/scs_conif.py">scs_conif.py</a>
-to see how the vectorized form of a PSD matrix compares to its full, square form.</p></li>
+For most solver interfaces it is a good idea to make a deliberate decision about how to
+handle the vectorization, which amounts to implementing <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver).psd_format_mat</span></code>.
+If you do nothing, then the vectorization will behave as in <code class="docutils literal notranslate"><span class="pre">ConicSolver.psd_format_mat</span></code>,
+which takes a PSD constraint of order <span class="math notranslate nohighlight">\(n\)</span> and maps it to <span class="math notranslate nohighlight">\(n^2\)</span> rows of <span class="math notranslate nohighlight">\(A\)</span> and
+entries of <span class="math notranslate nohighlight">\(b\)</span>.
+You can also borrow from <code class="docutils literal notranslate"><span class="pre">SCS.psd_format_mat</span></code> which maps an order <span class="math notranslate nohighlight">\(n\)</span> PSD constraint
+to <span class="math notranslate nohighlight">\(n(n+1)/2\)</span> suitably scaled rows of <span class="math notranslate nohighlight">\(A\)</span> and entries of <span class="math notranslate nohighlight">\(b\)</span>, or
+<code class="docutils literal notranslate"><span class="pre">MOSEK.psd_format_mat</span></code> which behaves identically to SCS except for the scaling.</p></li>
 <li><p>The last block of <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">*</span> <span class="pre">cone_dims.exp</span></code> rows in <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> correspond to consecutive
 three-dimensional exponential cones, as defined by <span class="math notranslate nohighlight">\(K_e\)</span> above.</p></li>
 </ul>
@@ -368,6 +368,21 @@ The most common situations are when <code class="docutils literal notranslate"><
 as <span class="math notranslate nohighlight">\(K = \{ (x,t) \,:\, \|x\|\leq t \} \subset \mathbb{R}^n \times \mathbb{R}\)</span>,
 or when it parametrizes <span class="math notranslate nohighlight">\(K_e \subset \mathbb{R}^3\)</span> as some permutation of
 what we defined earlier.</p>
+</div>
+<div class="section" id="an-alternative-conic-form">
+<h3>An alternative conic form<a class="headerlink" href="#an-alternative-conic-form" title="Permalink to this headline">¶</a></h3>
+<p>Some conic solvers do not natively support problem formats like (P) described in
+the previous section. Instead, the solver requires problem statements like</p>
+<div class="math notranslate nohighlight">
+\[(Dir) \quad \min\{ f^T z  \,:\, z \in K,\, G z = h \}.\]</div>
+<p>Problem (Dir) uses so-called “direct” conic constraints <span class="math notranslate nohighlight">\(z \in K\)</span>. If you are
+writing an interface for a solver which works this way, you should use the
+<code class="docutils literal notranslate"><span class="pre">Dualize</span></code> reduction on the standard CVXPY problem data given in (P).
+Using the Dualize reduction will avoid introduction unnecessary slack variables
+for continuous problems, but it is not applicable for problems with integer constraints.
+Therefore if your solver supports integer constraints, make sure to also use the
+<code class="docutils literal notranslate"><span class="pre">Slacks</span></code> reduction for that code path.</p>
+<p>The MOSEK interface uses both of the reductions mentioned above.</p>
 </div>
 <div class="section" id="dual-variables">
 <h3>Dual variables<a class="headerlink" href="#dual-variables" title="Permalink to this headline">¶</a></h3>
@@ -388,9 +403,7 @@ Here, <span class="math notranslate nohighlight">\(K_i^*\)</span> denotes the du
 <a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675">this comment on a GitHub thread</a>.</p>
 <p>Most concrete implementations of the ConicSolver class use a common set of helper
 functions for dual variable recovery, found in
-<a class="reference external" href="https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py">reductions/solvers/utilities.py</a>.
-Refer to <a class="reference external" href="https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/mosek_conif.py#L479">MOSEK(ConicSolver).invert</a>
-for a well documented and less abstract implementation of dual variable recovery.</p>
+<a class="reference external" href="https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py">reductions/solvers/utilities.py</a>.</p>
 </div>
 <div class="section" id="registering-a-solver">
 <h3>Registering a solver<a class="headerlink" href="#registering-a-solver" title="Permalink to this headline">¶</a></h3>
@@ -531,6 +544,7 @@ call modifed versions of a test with different solver parameters, for example</p
 <li class="toctree-l2"><a class="reference internal" href="#solver-interfaces">Solver interfaces</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#conic-solvers">Conic solvers</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#cvxpy-s-conic-form">CVXPY’s conic form</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#an-alternative-conic-form">An alternative conic form</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#dual-variables">Dual variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#registering-a-solver">Registering a solver</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#writing-tests">Writing tests</a></li>
