@@ -609,7 +609,7 @@ class Problem(u.Canonical):
 
                     Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),
                     then CVXPY can use the open-source mixed-integer solver `GLPK`.
-                    
+
                     Quick fix 2: you can explicitly specify solver='ECOS_BB'. This may result
                     in incorrect solutions and is not recommended.
                 """

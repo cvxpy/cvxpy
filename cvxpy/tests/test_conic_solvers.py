@@ -1273,7 +1273,7 @@ class TestAllSolvers(BaseTest):
                 assert False
             except SolverError as err:
                 msg = str(err)
-                self.assertTrue("(a `mixed-integer solver`)" in msg)
+                self.assertTrue("a mixed-integer solver" in msg)
         else:
             prob.solve()
             self.assertItemsAlmostEqual(x.value, [0, 0])
