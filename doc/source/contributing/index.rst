@@ -272,15 +272,14 @@ for any cone supported by a target solver, but the current elementary convex con
 
         (u,v) \in K_{\mathrm{soc}}^n \doteq \{ (t,x) \,:\, t \geq \|x\|_2  \} \subset \mathbb{R} \times \mathbb{R}^n.
 
- 4. A vectorized version of the positive semidefinite cone.
+ 4. One of several vectorized versions of the positive semidefinite cone.
  5. The exponential cone
 
    .. math::
 
         (u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y>0\}.
 
-The precise nature of the vectorized positive semidefinite cone is a little delicate, is
-covered later.
+We address the vectorization options for the semidefinite cones later.
 For now it's useful to say that the ``Awesome(ConicSolver)`` class will access an
 explicit representation for problem :math:`(P)` in in ``apply``, with a code snippet like
 
@@ -333,13 +332,14 @@ The rows of ``A`` and entries of ``b`` are given in a very specific order, as de
    in this optimization problem would involve 10 rows of ``A`` and 10 entries of ``b``.
    The SOC vectorization we use is given by :math:`K_{\mathrm{soc}}^n` as defined above.
  - PSD constraints follow SOC constraints.
-   Here ``cone_dims.psd[0]`` gives the *order* of the first PSD cone.
-   So if ``cone_dims.psd[0] == 5``, then this constraint involves the next
-   ``num_rows = 5*(5+1)//2`` rows of ``A, b``.
-   CVXPY uses the same vectorization for the PSD cone as the SCS solver.
-   It might help to reference the functions ``tri_to_full`` and ``scs_psd_vec_to_psd_mat`` in
-   `scs_conif.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/scs_conif.py>`_
-   to see how the vectorized form of a PSD matrix compares to its full, square form.
+   For most solver interfaces it is a good idea to make a deliberate decision about how to
+   handle the vectorization, which amounts to implementing ``Awesome(ConicSolver).psd_format_mat``.
+   If you do nothing, then the vectorization will behave as in ``ConicSolver.psd_format_mat``,
+   which takes a PSD constraint of order :math:`n` and maps it to :math:`n^2` rows of :math:`A` and
+   entries of :math:`b`.
+   You can also borrow from ``SCS.psd_format_mat`` which maps an order :math:`n` PSD constraint
+   to :math:`n(n+1)/2` suitably scaled rows of :math:`A` and entries of :math:`b`, or
+   ``MOSEK.psd_format_mat`` which behaves identically to SCS except for the scaling.
  - The last block of ``3 * cone_dims.exp`` rows in ``A, b`` correspond to consecutive
    three-dimensional exponential cones, as defined by :math:`K_e` above.
 
@@ -351,6 +351,25 @@ as :math:`K = \{ (x,t) \,:\, \|x\|\leq t \} \subset \mathbb{R}^n \times \mathbb{
 or when it parametrizes :math:`K_e \subset \mathbb{R}^3` as some permutation of
 what we defined earlier.
 
+An alternative conic form
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Some conic solvers do not natively support problem formats like (P) described in
+the previous section. Instead, the solver requires problem statements like
+
+.. math::
+
+   (Dir) \quad \min\{ f^T z  \,:\, z \in K,\, G z = h \}.
+
+Problem (Dir) uses so-called "direct" conic constraints :math:`z \in K`. If you are
+writing an interface for a solver which works this way, you should use the
+``Dualize`` reduction on the standard CVXPY problem data given in (P).
+Using the Dualize reduction will avoid introduction unnecessary slack variables
+for continuous problems, but it is not applicable for problems with integer constraints.
+Therefore if your solver supports integer constraints, make sure to also use the
+``Slacks`` reduction for that code path.
+
+The MOSEK interface uses both of the reductions mentioned above.
 
 Dual variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -378,9 +397,7 @@ More remarks on dual variables (particularly SOC dual variables) can be found in
 Most concrete implementations of the ConicSolver class use a common set of helper
 functions for dual variable recovery, found in
 `reductions/solvers/utilities.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py>`_.
-Refer to `MOSEK(ConicSolver).invert
-<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/mosek_conif.py#L479>`_
-for a well documented and less abstract implementation of dual variable recovery.
+
 
 Registering a solver
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

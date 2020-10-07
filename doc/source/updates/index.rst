@@ -6,6 +6,19 @@ Changes to CVXPY
 This page details changes made to CVXPY over time, in reverse chronological order.
 The latest release of CVXPY is version 1.1.
 
+Recent patches
+--------------
+
+Changes in version 1.1.6
+ - The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not
+   be called automatically; you must explicitly call ``prob.solve(solver='ECOS_BB')`` if you want to
+   use this solver. Refer to our documentation on :ref:`mixed-integer models <mip>` for more information.
+ - The MOSEK interface has been rewritten and now dualizes all continuous problems. Refer to :ref:`solver
+   documentation <solveropts>` for technical reasons of why we do this, and how to manage MOSEK solver
+   options in the off chance that this change made your solve times increase.
+
+
+
 CVXPY 1.1
 ---------
 
