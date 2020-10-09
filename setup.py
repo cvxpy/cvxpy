@@ -49,7 +49,7 @@ canon = Extension(
              'cvxpy/cvxcore/python/cvxcore_wrap.cpp'],
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
-                  'cvxpy/cvxcore/include/Eigen'],
+                  'cvxpy/cvxcore/include/'],
     extra_compile_args=['-O3'],
 )
 
