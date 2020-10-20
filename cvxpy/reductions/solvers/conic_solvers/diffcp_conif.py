@@ -76,6 +76,8 @@ class DIFFCP(scs_conif.SCS):
         b = data[s.B]
         c = data[s.C]
         cones = scs_conif.dims_to_solver_dict(data[ConicSolver.DIMS])
+        # This interface is tied to SCS, so force SCS for now.
+        solver_opts['solve_method'] = 'SCS'
         # Default to eps = 1e-4 instead of 1e-3.
         solver_opts['eps'] = solver_opts.get('eps', 1e-4)
         warm_start_tuple = None
