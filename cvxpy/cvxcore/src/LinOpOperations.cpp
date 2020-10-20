@@ -22,7 +22,7 @@
 /***********************
  * FUNCTION PROTOTYPES *
  ***********************/
-std::vector<LinearOperator> build_vector(Matrix &mat);
+std::vector<LinearOperator> build_vector(LinearOperator &mat);
 std::vector<LinearOperator> get_sum_coefficients(LinOp &lin);
 std::vector<LinearOperator> get_sum_entries_mat(LinOp &lin);
 std::vector<LinearOperator> get_trace_mat(LinOp &lin);
@@ -606,7 +606,8 @@ std::vector<LinearOperator> get_index_mat(LinOp &lin) {
 
 	/* If slice is empty, return empty matrix */
 	if (coeffs.rows () == 0 ||  coeffs.cols() == 0) {
-		return build_vector(coeffs);
+		auto as_linear_operator = from_matrix(coeffs);
+		return build_vector(as_linear_operator);
     // Special case for scalars.
 	} else if (coeffs.rows() * coeffs.cols() == 1) {
     Matrix coeffs = sparse_eye(1);
@@ -622,7 +623,8 @@ std::vector<LinearOperator> get_index_mat(LinOp &lin) {
   add_triplets(tripletList, lin.slice, dims, lin.slice.size() - 1, 0, 0);
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
