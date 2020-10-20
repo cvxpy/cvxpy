@@ -722,6 +722,39 @@ std::vector<LinearOperator> get_rmul_mat(LinOp &lin) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
+// std::vector<LinearOperator> get_mul_mat(LinOp &lin) {
+// 	assert(lin.type == MUL);
+//   // Scalar multiplication handled in mul_elemwise.
+//   assert(lin.args[0]->size.size() > 0);
+// 	Matrix block = get_constant_data(lin, false);
+//   // Interpret as row or column vector as needed.
+//   if (lin.data_ndim == 1 && lin.args[0]->size[0] != block.cols()) {
+//     block = block.transpose();
+//   }
+// 	int block_rows = block.rows();
+// 	int block_cols = block.cols();
+
+//   int num_blocks = (lin.args[0]->size.size() <= 1) ? 1 : lin.args[0]->size[1];
+// 	Matrix coeffs (num_blocks * block_rows, num_blocks * block_cols);
+
+// 	std::vector<Triplet> tripletList;
+// 	tripletList.reserve(num_blocks * block.nonZeros());
+// 	for (int curr_block = 0; curr_block < num_blocks; curr_block++) {
+// 		int start_i = curr_block * block_rows;
+// 		int start_j = curr_block * block_cols;
+// 		for ( int k = 0; k < block.outerSize(); ++k ) {
+// 			for ( Matrix::InnerIterator it(block, k); it; ++it ) {
+// 				tripletList.push_back(Triplet(start_i + it.row(), start_j + it.col(),
+// 				                              it.value()));
+// 			}
+// 		}
+// 	}
+// 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
+// 	coeffs.makeCompressed();
+// 	auto as_linear_operator = from_matrix(coeffs);
+// 	return build_vector(as_linear_operator);
+// }
+
 std::vector<LinearOperator> get_mul_mat(LinOp &lin) {
 	assert(lin.type == MUL);
   // Scalar multiplication handled in mul_elemwise.
@@ -734,26 +767,36 @@ std::vector<LinearOperator> get_mul_mat(LinOp &lin) {
 	int block_rows = block.rows();
 	int block_cols = block.cols();
 
-  int num_blocks = (lin.args[0]->size.size() <= 1) ? 1 : lin.args[0]->size[1];
-	Matrix coeffs (num_blocks * block_rows, num_blocks * block_cols);
+	  int num_blocks = (lin.args[0]->size.size() <= 1) ? 1 : lin.args[0]->size[1];
 
-	std::vector<Triplet> tripletList;
-	tripletList.reserve(num_blocks * block.nonZeros());
-	for (int curr_block = 0; curr_block < num_blocks; curr_block++) {
-		int start_i = curr_block * block_rows;
-		int start_j = curr_block * block_cols;
-		for ( int k = 0; k < block.outerSize(); ++k ) {
-			for ( Matrix::InnerIterator it(block, k); it; ++it ) {
-				tripletList.push_back(Triplet(start_i + it.row(), start_j + it.col(),
-				                              it.value()));
+	const MatFn matvec = [block, block_rows, block_cols, num_blocks](const Matrix &rhs) -> Matrix {
+		if (num_blocks == 1) { // LHS is scalar
+			return block * rhs;
+		}
+
+		std::vector<Triplet> tripletList;
+		for (int i = 0; i < num_blocks; i++) {
+			Matrix rhs_block = rhs.block(i*block_cols, 0, block_cols, rhs.cols());
+			Matrix tmp = block * rhs_block;
+			for (int k=0; k<tmp.outerSize(); ++k) {
+			  for (Matrix::InnerIterator it(tmp,k); it; ++it)
+			  {
+			      tripletList.push_back(Triplet(it.row() + i*block_rows, it.col(), it.value()));
+			  }
 			}
 		}
-	}
-	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
-	coeffs.makeCompressed();
-	auto as_linear_operator = from_matrix(coeffs);
+		Matrix out(block_rows * num_blocks, rhs.cols());
+		out.setFromTriplets(tripletList.begin(), tripletList.end());
+		out.makeCompressed();
+
+		return out; // all is normal in the world
+	};
+
+
+	auto as_linear_operator = LinearOperator(matvec);
 	return build_vector(as_linear_operator);
 }
+
 
 /**
  * Return the coefficients for PROMOTE: a column vector of size N with all
