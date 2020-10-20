@@ -22,26 +22,26 @@
 /***********************
  * FUNCTION PROTOTYPES *
  ***********************/
-std::vector<Matrix> build_vector(Matrix &mat);
-std::vector<Matrix> get_sum_coefficients(LinOp &lin);
-std::vector<Matrix> get_sum_entries_mat(LinOp &lin);
-std::vector<Matrix> get_trace_mat(LinOp &lin);
-std::vector<Matrix> get_neg_mat(LinOp &lin);
-std::vector<Matrix> get_div_mat(LinOp &lin);
-std::vector<Matrix> get_promote_mat(LinOp &lin);
-std::vector<Matrix> get_mul_mat(LinOp &lin);
-std::vector<Matrix> get_mul_elemwise_mat(LinOp &lin);
-std::vector<Matrix> get_rmul_mat(LinOp &lin);
-std::vector<Matrix> get_index_mat(LinOp &lin);
-std::vector<Matrix> get_transpose_mat(LinOp &lin);
-std::vector<Matrix> get_reshape_mat(LinOp &lin);
-std::vector<Matrix> get_diag_vec_mat(LinOp &lin);
-std::vector<Matrix> get_diag_matrix_mat(LinOp &lin);
-std::vector<Matrix> get_upper_tri_mat(LinOp &lin);
-std::vector<Matrix> get_conv_mat(LinOp &lin);
-std::vector<Matrix> get_hstack_mat(LinOp &lin);
-std::vector<Matrix> get_vstack_mat(LinOp &lin);
-std::vector<Matrix> get_kron_mat(LinOp &lin);
+std::vector<LinearOperator> build_vector(Matrix &mat);
+std::vector<LinearOperator> get_sum_coefficients(LinOp &lin);
+std::vector<LinearOperator> get_sum_entries_mat(LinOp &lin);
+std::vector<LinearOperator> get_trace_mat(LinOp &lin);
+std::vector<LinearOperator> get_neg_mat(LinOp &lin);
+std::vector<LinearOperator> get_div_mat(LinOp &lin);
+std::vector<LinearOperator> get_promote_mat(LinOp &lin);
+std::vector<LinearOperator> get_mul_mat(LinOp &lin);
+std::vector<LinearOperator> get_mul_elemwise_mat(LinOp &lin);
+std::vector<LinearOperator> get_rmul_mat(LinOp &lin);
+std::vector<LinearOperator> get_index_mat(LinOp &lin);
+std::vector<LinearOperator> get_transpose_mat(LinOp &lin);
+std::vector<LinearOperator> get_reshape_mat(LinOp &lin);
+std::vector<LinearOperator> get_diag_vec_mat(LinOp &lin);
+std::vector<LinearOperator> get_diag_matrix_mat(LinOp &lin);
+std::vector<LinearOperator> get_upper_tri_mat(LinOp &lin);
+std::vector<LinearOperator> get_conv_mat(LinOp &lin);
+std::vector<LinearOperator> get_hstack_mat(LinOp &lin);
+std::vector<LinearOperator> get_vstack_mat(LinOp &lin);
+std::vector<LinearOperator> get_kron_mat(LinOp &lin);
 
 /**
  * Computes a vector of coefficient matrices for the linOp LIN based on the
@@ -55,8 +55,8 @@ std::vector<Matrix> get_kron_mat(LinOp &lin);
  *
  * Returns: std::vector of sparse coefficient matrices for LIN
  */
-std::vector<Matrix> get_func_coeffs(LinOp& lin) {
-	std::vector<Matrix> coeffs;
+std::vector<LinearOperator> get_func_coeffs(LinOp& lin) {
+	std::vector<LinearOperator> coeffs;
 	switch (lin.type) {
 	case PROMOTE:
 		coeffs = get_promote_mat(lin);
@@ -126,11 +126,24 @@ std::vector<Matrix> get_func_coeffs(LinOp& lin) {
  * HELPER FUNCTIONS
  *******************/
 
+LinearOperator from_matrix(const Matrix &A) {
+	const MatFn matvec = [A](const Matrix &rhs) -> Matrix {
+		if (A.rows() == 1 && A.cols() == 1) {
+			return A.coeff(0, 0) * rhs;
+		} else if (rhs.rows() == 1 && rhs.cols() == 1) {
+			return A * rhs.coeff(0, 0);
+		}
+		return A * rhs;
+	};
+
+	return LinearOperator(matvec);
+}
+
 /**
  * Returns a vector containing the sparse matrix MAT
  */
-std::vector<Matrix> build_vector(Matrix &mat) {
-	std::vector<Matrix> vec;
+std::vector<LinearOperator> build_vector(LinearOperator &mat) {
+	std::vector<LinearOperator> vec;
 	vec.push_back(mat);
 	return vec;
 }
@@ -200,8 +213,8 @@ Matrix sparse_reshape_to_vec(Matrix &mat) {
  * 					for each argument.
  *
  */
-std::vector<Matrix> stack_matrices(LinOp &lin, bool vertical) {
-	std::vector<Matrix> coeffs_mats;
+std::vector<LinearOperator> stack_matrices(LinOp &lin, bool vertical) {
+	std::vector<LinearOperator> coeffs_mats;
 	int offset = 0;
 	int num_args = lin.args.size();
 	for (int idx = 0; idx < num_args; idx++) {
@@ -244,7 +257,8 @@ std::vector<Matrix> stack_matrices(LinOp &lin, bool vertical) {
 		Matrix coeff(vecprod(lin.size), vecprod(arg.size));
 		coeff.setFromTriplets(tripletList.begin(), tripletList.end());
 		coeff.makeCompressed();
-		coeffs_mats.push_back(coeff);
+		auto as_linear_operator = from_matrix(coeff);
+		coeffs_mats.push_back(as_linear_operator);
 		offset += offset_increment;
 	}
 	return coeffs_mats;
@@ -318,7 +332,7 @@ int get_id_data(LinOp &lin) {
  * Returns: vector containing the coefficient matrix for the Kronecker
  						product.
  */
-std::vector<Matrix> get_kron_mat(LinOp &lin) {
+std::vector<LinearOperator> get_kron_mat(LinOp &lin) {
 	assert(lin.type == KRON);
 	Matrix constant = get_constant_data(lin, false);
 	int lh_rows = constant.rows();
@@ -347,7 +361,8 @@ std::vector<Matrix> get_kron_mat(LinOp &lin) {
 	}
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -356,7 +371,7 @@ std::vector<Matrix> get_kron_mat(LinOp &lin) {
  * Parameters: linOp LIN with type VSTACK
  * Returns: vector of coefficient matrices for each argument.
  */
-std::vector<Matrix> get_vstack_mat(LinOp &lin) {
+std::vector<LinearOperator> get_vstack_mat(LinOp &lin) {
 	assert(lin.type == VSTACK);
 	return stack_matrices(lin, true);
 }
@@ -367,7 +382,7 @@ std::vector<Matrix> get_vstack_mat(LinOp &lin) {
  * Parameters: linOp LIN with type HSTACK
  * Returns: vector of coefficient matrices for each argument.
  */
-std::vector<Matrix> get_hstack_mat(LinOp &lin) {
+std::vector<LinearOperator> get_hstack_mat(LinOp &lin) {
 	assert(lin.type == HSTACK);
 	return stack_matrices(lin, false);
 }
@@ -383,7 +398,7 @@ std::vector<Matrix> get_hstack_mat(LinOp &lin) {
  *
  * Returns: vector of coefficients for convolution linOp
  */
-std::vector<Matrix> get_conv_mat(LinOp &lin) {
+std::vector<LinearOperator> get_conv_mat(LinOp &lin) {
 	assert(lin.type == CONV);
 	Matrix constant = get_constant_data(lin, false);
 	int rows = lin.size[0];
@@ -405,7 +420,8 @@ std::vector<Matrix> get_conv_mat(LinOp &lin) {
 	}
 	toeplitz.setFromTriplets(tripletList.begin(), tripletList.end());
 	toeplitz.makeCompressed();
-	return build_vector(toeplitz);
+	auto as_linear_operator = from_matrix(toeplitz);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -416,7 +432,7 @@ std::vector<Matrix> get_conv_mat(LinOp &lin) {
  * Parameters: LinOp with type UPPER_TRI.
  * Returns: vector of coefficients for upper triangular matrix linOp
  */
-std::vector<Matrix> get_upper_tri_mat(LinOp &lin) {
+std::vector<LinearOperator> get_upper_tri_mat(LinOp &lin) {
 	assert(lin.type == UPPER_TRI);
 	int rows = lin.args[0]->size[0];
 	int cols = lin.args[0]->size[1];
@@ -441,7 +457,8 @@ std::vector<Matrix> get_upper_tri_mat(LinOp &lin) {
 	}
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -454,7 +471,7 @@ std::vector<Matrix> get_upper_tri_mat(LinOp &lin) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_diag_matrix_mat(LinOp &lin) {
+std::vector<LinearOperator> get_diag_matrix_mat(LinOp &lin) {
 	assert(lin.type == DIAG_MAT);
 	int rows = lin.size[0];
 
@@ -471,7 +488,8 @@ std::vector<Matrix> get_diag_matrix_mat(LinOp &lin) {
 
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -484,7 +502,7 @@ std::vector<Matrix> get_diag_matrix_mat(LinOp &lin) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_diag_vec_mat(LinOp &lin) {
+std::vector<LinearOperator> get_diag_vec_mat(LinOp &lin) {
 	assert(lin.type == DIAG_VEC);
 	int rows = lin.size[0];
 
@@ -500,7 +518,8 @@ std::vector<Matrix> get_diag_vec_mat(LinOp &lin) {
 	}
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -513,7 +532,7 @@ std::vector<Matrix> get_diag_vec_mat(LinOp &lin) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_transpose_mat(LinOp &lin) {
+std::vector<LinearOperator> get_transpose_mat(LinOp &lin) {
 	assert(lin.type == TRANSPOSE);
 	int rows = lin.size[0];
 	int cols = lin.size[1];
@@ -531,7 +550,8 @@ std::vector<Matrix> get_transpose_mat(LinOp &lin) {
 	}
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -580,7 +600,7 @@ int add_triplets(std::vector<Triplet> &tripletList,
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_index_mat(LinOp &lin) {
+std::vector<LinearOperator> get_index_mat(LinOp &lin) {
 	assert(lin.type == INDEX);
 	Matrix coeffs (vecprod(lin.size), vecprod(lin.args[0]->size));
 
@@ -590,7 +610,8 @@ std::vector<Matrix> get_index_mat(LinOp &lin) {
     // Special case for scalars.
 	} else if (coeffs.rows() * coeffs.cols() == 1) {
     Matrix coeffs = sparse_eye(1);
-    return build_vector(coeffs);
+   	auto as_linear_operator = from_matrix(coeffs);
+   	return build_vector(as_linear_operator);
   }
 
 	/* Set the index coefficients by looping over the column selection
@@ -614,7 +635,7 @@ std::vector<Matrix> get_index_mat(LinOp &lin) {
  * Returns: vector containing the coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_mul_elemwise_mat(LinOp &lin) {
+std::vector<LinearOperator> get_mul_elemwise_mat(LinOp &lin) {
 	assert(lin.type == MUL_ELEM);
 	Matrix constant = get_constant_data(lin, true);
 	int n = constant.rows();
@@ -630,7 +651,8 @@ std::vector<Matrix> get_mul_elemwise_mat(LinOp &lin) {
 	Matrix coeffs(n, n);
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -643,7 +665,7 @@ std::vector<Matrix> get_mul_elemwise_mat(LinOp &lin) {
  * Returns: vector containing the corresponding coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_rmul_mat(LinOp &lin) {
+std::vector<LinearOperator> get_rmul_mat(LinOp &lin) {
 	assert(lin.type == RMUL);
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.args[0]->size.size() > 0);
@@ -684,7 +706,8 @@ std::vector<Matrix> get_rmul_mat(LinOp &lin) {
 	}
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -697,7 +720,7 @@ std::vector<Matrix> get_rmul_mat(LinOp &lin) {
  * Returns: vector containing coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_mul_mat(LinOp &lin) {
+std::vector<LinearOperator> get_mul_mat(LinOp &lin) {
 	assert(lin.type == MUL);
   // Scalar multiplication handled in mul_elemwise.
   assert(lin.args[0]->size.size() > 0);
@@ -726,7 +749,8 @@ std::vector<Matrix> get_mul_mat(LinOp &lin) {
 	}
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -739,12 +763,13 @@ std::vector<Matrix> get_mul_mat(LinOp &lin) {
  * Returns: vector containing coefficient matrix ONES.
  *
  */
-std::vector<Matrix> get_promote_mat(LinOp &lin) {
+std::vector<LinearOperator> get_promote_mat(LinOp &lin) {
 	assert(lin.type == PROMOTE);
 	int num_entries = vecprod(lin.size);
 	Matrix ones = sparse_ones(num_entries, 1);
 	ones.makeCompressed();
-	return build_vector(ones);
+	auto as_linear_operator = from_matrix(ones);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -757,12 +782,13 @@ std::vector<Matrix> get_promote_mat(LinOp &lin) {
  * Returns: vector containing the coefficient matrix ONE.
  *
  */
-std::vector<Matrix> get_reshape_mat(LinOp &lin) {
+std::vector<LinearOperator> get_reshape_mat(LinOp &lin) {
 	assert(lin.type == RESHAPE);
 	Matrix one(1, 1);
 	one.insert(0, 0) = 1;
 	one.makeCompressed();
-	return build_vector(one);
+	auto as_linear_operator = from_matrix(one);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -774,7 +800,7 @@ std::vector<Matrix> get_reshape_mat(LinOp &lin) {
  * Returns: vector containing the coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_div_mat(LinOp &lin) {
+std::vector<LinearOperator> get_div_mat(LinOp &lin) {
 	assert(lin.type == DIV);
 	Matrix constant = get_constant_data(lin, true);
 	int n = constant.rows();
@@ -790,7 +816,8 @@ std::vector<Matrix> get_div_mat(LinOp &lin) {
 	Matrix coeffs(n, n);
 	coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -800,13 +827,14 @@ std::vector<Matrix> get_div_mat(LinOp &lin) {
  *
  * Returns: vector containing the coefficient matrix COEFFS
  */
-std::vector<Matrix> get_neg_mat(LinOp &lin) {
+std::vector<LinearOperator> get_neg_mat(LinOp &lin) {
 	assert(lin.type == NEG);
 	int n = vecprod(lin.size);
 	Matrix coeffs = sparse_eye(n);
 	coeffs *= -1;
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -819,7 +847,7 @@ std::vector<Matrix> get_neg_mat(LinOp &lin) {
  * Returns: vector containing the coefficient matrix COEFFS
  *
  */
-std::vector<Matrix> get_trace_mat(LinOp &lin) {
+std::vector<LinearOperator> get_trace_mat(LinOp &lin) {
 	assert(lin.type == TRACE);
 	int rows = lin.args[0]->size[0];
 	Matrix coeffs (1, rows * rows);
@@ -827,7 +855,8 @@ std::vector<Matrix> get_trace_mat(LinOp &lin) {
 		coeffs.insert(0, i * rows + i) = 1;
 	}
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -838,13 +867,14 @@ std::vector<Matrix> get_trace_mat(LinOp &lin) {
  *
  * Returns: vector containing the coefficient matrix COEFFS
  */
-std::vector<Matrix> get_sum_entries_mat(LinOp &lin) {
+std::vector<LinearOperator> get_sum_entries_mat(LinOp &lin) {
 	assert(lin.type == SUM_ENTRIES);
 	// assumes all args have the same size
 	int size = vecprod(lin.args[0]->size);
 	Matrix coeffs = sparse_ones(1, size);
 	coeffs.makeCompressed();
-	return build_vector(coeffs);
+	auto as_linear_operator = from_matrix(coeffs);
+	return build_vector(as_linear_operator);
 }
 
 /**
@@ -856,15 +886,16 @@ std::vector<Matrix> get_sum_entries_mat(LinOp &lin) {
  *
  * Returns: A vector of length N where each element is a 1x1 matrix
  */
-std::vector<Matrix> get_sum_coefficients(LinOp &lin) {
+std::vector<LinearOperator> get_sum_coefficients(LinOp &lin) {
 	assert(lin.type == SUM);
 	int n = lin.args.size();
-	std::vector<Matrix> coeffs;
+	std::vector<LinearOperator> coeffs;
 	Matrix scalar(1, 1);
 	scalar.insert(0, 0) = 1;
 	scalar.makeCompressed();
 	for (int i = 0; i < n; i++) {
-		coeffs.push_back(scalar);
+		auto as_linear_operator = from_matrix(scalar);
+		coeffs.push_back(as_linear_operator);
 	}
 	return coeffs;
 }

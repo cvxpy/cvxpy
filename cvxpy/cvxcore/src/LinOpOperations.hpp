@@ -19,9 +19,20 @@
 #include <map>
 #include "Utils.hpp"
 #include "LinOp.hpp"
+#include <functional>
 
+using MatFn = std::function<Matrix(const Matrix &)>;
+
+class LinearOperator {
+	public:
+		const MatFn matvec;
+
+	LinearOperator(const MatFn &matvec_in) : matvec(matvec_in){};
+};
+
+LinearOperator from_matrix(const Matrix &A);
 std::map<int, Matrix> get_variable_coeffs(LinOp &lin);
 std::map<int, Matrix> get_const_coeffs(LinOp &lin);
-std::vector<Matrix> get_func_coeffs(LinOp& lin);
+std::vector<LinearOperator> get_func_coeffs(LinOp& lin);
 
 #endif

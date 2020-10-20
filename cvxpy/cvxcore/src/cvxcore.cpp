@@ -19,7 +19,7 @@
 #include "LinOpOperations.hpp"
 #include "ProblemData.hpp"
 
-void mul_by_const(Matrix &coeff_mat,
+void mul_by_const(LinearOperator &coeff_mat,
         std::map<int, Matrix > &rh_coeffs,
         std::map<int, Matrix > &result){
 
@@ -27,25 +27,12 @@ void mul_by_const(Matrix &coeff_mat,
 	for (it_type it = rh_coeffs.begin(); it != rh_coeffs.end(); ++it){
 		int id = it->first;
 		Matrix rh = it->second;
-		/* Convert scalars (1x1 matrices) to primitive types */
-		if (coeff_mat.rows() == 1 && coeff_mat.cols() == 1){
-			double scalar = coeff_mat.coeffRef(0, 0);
-			if (result.count(id) == 0)
-				result[id] = scalar * rh;
-			else
-				result[id] += scalar * rh;
-		} else if (rh.rows() == 1 && rh.cols() == 1) {
-			double scalar = rh.coeffRef(0, 0);
-			if(result.count(id) == 0)
-				result[id] = coeff_mat * scalar;
-			else
-				result[id] = coeff_mat * scalar;
-		} else{
-			if (result.count(id) == 0) {
-				result[id] = coeff_mat * rh;
-			} else {
-				result[id] += coeff_mat * rh;
-            }
+
+		Matrix out = coeff_mat.matvec(rh);
+		if (result.count(id) == 0) {
+			result[id] = out;
+		} else {
+			result[id] += out;
 		}
 	}
 }
@@ -77,9 +64,9 @@ std::map<int, Matrix > get_coefficient(LinOp &lin){
 	}
 	else {
 		/* Multiply the arguments of the function coefficient in order */
-		std::vector<Matrix> coeff_mat = get_func_coeffs(lin);
+		std::vector<LinearOperator> coeff_mat = get_func_coeffs(lin);
 		for (unsigned i = 0; i < lin.args.size(); i++){
-			Matrix coeff = coeff_mat[i];
+			LinearOperator coeff = coeff_mat[i];
 			std::map<int, Matrix > rh_coeffs = get_coefficient(*lin.args[i]);
 			std::map<int,  Matrix > new_coeffs;
 			mul_by_const(coeff, rh_coeffs, new_coeffs);
