@@ -114,19 +114,8 @@ class ParamConeProg(ParamProb):
 
         # The variable
         self.x = x
-
-        # Form a reduced representation of A, for faster application of
-        # parameters.
-        if np.prod(A.shape) != 0:
-            reduced_A, indices, indptr, shape = (
-                canonInterface.reduce_problem_data_tensor(A, self.x.size)
-            )
-            self.reduced_A = reduced_A
-            self.problem_data_index = (indices, indptr, shape)
-        else:
-            self.reduced_A = A
-            self.problem_data_index = None
-
+        self.reduced_A = None
+        self.problem_data_tensor = None
         self._A_mapping_nonzero = None
 
         self.constraints = constraints
@@ -163,9 +152,23 @@ class ParamConeProg(ParamProb):
           keep_zeros: (optional) if True, store explicit zeros in A where
                         parameters are affected
         """
+        if self.reduced_A is None:
+            # Form a reduced representation of A, for faster application of
+            # parameters.
+            if np.prod(self.A.shape) != 0:
+                reduced_A, indices, indptr, shape = (
+                    canonInterface.reduce_problem_data_tensor(
+                        self.A, self.x.size))
+                self.reduced_A = reduced_A
+                self.problem_data_index = (indices, indptr, shape)
+            else:
+                self.reduced_A = self.A
+                self.problem_data_index = None
+
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value
                     is None else id_to_param_value[idx])
+
         param_vec = canonInterface.get_parameter_vector(
             self.total_param_size,
             self.param_id_to_col,
