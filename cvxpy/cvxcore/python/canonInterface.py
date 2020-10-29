@@ -106,6 +106,7 @@ def reduce_problem_data_tensor(A, var_length, quad_form=False):
     """
     # construct a reduced COO matrix
     A.eliminate_zeros()
+    A = A.tocsc()
 
     n_cols = var_length
     # add one more column for the offset if not quad_form
@@ -114,10 +115,18 @@ def reduce_problem_data_tensor(A, var_length, quad_form=False):
     n_constr = A.shape[0] // (n_cols)
     shape = (n_constr, n_cols)
 
-    nnz_rows = A.getnnz(axis=1)
-    A_reduced = A.tocsc()[nnz_rows.astype(bool)]
+    # nnz_rows = A.getnnz(axis=1)
+    # A_reduced = A.tocsc()[nnz_rows.astype(bool)]
+    # nnz_entries = scipy.sparse.coo_matrix(
+    #     nnz_rows).reshape(shape, order='F').tocsc()
+    # indices = nnz_entries.indices
+    # indptr = nnz_entries.indptr
+
+    nnz_rows = np.unique(A.indices)
+    A_reduced = A[nnz_rows]
     nnz_entries = scipy.sparse.coo_matrix(
-        nnz_rows).reshape(shape, order='F').tocsc()
+        (np.ones(nnz_rows.size), (nnz_rows, np.zeros(nnz_rows.size, dtype=np.int))), shape=(A.shape[0], 1))
+    nnz_entries = nnz_entries.reshape(shape, order='F').tocsc()
     indices = nnz_entries.indices
     indptr = nnz_entries.indptr
 
