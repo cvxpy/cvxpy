@@ -17,6 +17,7 @@ from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import scopes
+import cvxpy.interface as intf
 
 
 def is_param_affine(expr):
@@ -79,6 +80,8 @@ class Parameter(Leaf):
 
     @value.setter
     def value(self, val):
+        if intf.is_sparse(val):
+            raise ValueError("Parameter value cannot be set to a sparse matrix.")
         self._value = self._validate_value(val)
 
     @property
