@@ -93,7 +93,7 @@ class Parameter(Leaf):
         """NumPy.ndarray or None: The numeric value of the parameter.
         """
         if self.sparse:
-            return self.Indexer @ self._parameter.value
+            return (self.Indexer @ self._parameter.value).reshape(self.shape, order='C')
         else:
             return self._value
 
