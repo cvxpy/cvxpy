@@ -251,8 +251,8 @@ class TestExpressions(BaseTest):
 
         # Test valid diagonal parameter.
         p = Parameter((2, 2), diag=True)
-        p.value = sp.csc_matrix(np.eye(2))
-        self.assertItemsAlmostEqual(p.value.todense(), np.eye(2), places=10)
+        p.value = np.eye(2)
+        self.assertItemsAlmostEqual(p.value, np.eye(2), places=10)
 
     def test_psd_nsd_parameters(self):
         # Test valid rank-deficeint PSD parameter.

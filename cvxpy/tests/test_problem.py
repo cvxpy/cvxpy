@@ -115,7 +115,7 @@ class TestProblem(BaseTest):
     def test_problem_with_sparse_parameter(self):
         m, n = 10, 5
         b = np.random.randn(m)
-        Avalue = scipy.sparse.random(m, n, density=.5, format='coo')
+        Avalue = sp.random(m, n, density=.5, format='coo')
 
         x = cp.Variable(n)
         A = cp.Parameter((m, n))
