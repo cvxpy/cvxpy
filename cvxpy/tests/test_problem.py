@@ -120,11 +120,9 @@ class TestProblem(BaseTest):
         x = cp.Variable(n)
         A = cp.Parameter((m, n))
         problem = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
-        A.value = Avalue
-
         with self.assertRaises(
               ValueError, msg="Parameter value cannot be set to a sparse matrix."):
-            problem.solve()
+            A.value = Avalue
 
         with self.assertRaises(
               ValueError, msg="Parameter value cannot be set to a sparse matrix."):
