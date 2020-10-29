@@ -13,11 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import cvxpy
 from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import scopes
 
+import scipy.sparse
+import numpy as np
 
 def is_param_affine(expr):
     """Returns true if expression is parameters-affine (and variable-free)"""
@@ -41,7 +44,7 @@ class Parameter(Leaf):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, shape=(), name=None, value=None, id=None, **kwargs):
+    def __init__(self, shape=(), name=None, value=None, id=None, sparse=False, nonzero=None, **kwargs):
         if id is None:
             self.id = lu.get_id()
         else:
@@ -54,13 +57,27 @@ class Parameter(Leaf):
         self._value = None
         self.delta = None
         self.gradient = None
+        self.sparse = sparse
+        self.nonzero = nonzero
+        if sparse:
+            assert len(shape) == 2, "Sparse parameters must be 2-d."
+            m, n = shape
+            nnz_rows, nnz_cols = self.nonzero
+            nnz = nnz_rows.size
+            self._parameter = Parameter(nnz)
+            data = np.ones(nnz)
+            rows = nnz_rows * n + nnz_cols
+            cols = np.arange(nnz)
+            self.Indexer = scipy.sparse.coo_matrix(
+                (data, (rows, cols)), shape=(n*m, nnz))
+            self._expr = cvxpy.reshape(self.Indexer @ self._parameter, (m, n), order='C')
         super(Parameter, self).__init__(shape, value, **kwargs)
         self._is_constant = True
 
     def get_data(self):
         """Returns info needed to reconstruct the expression besides the args.
         """
-        return [self.shape, self._name, self.value, self.id, self.attributes]
+        return [self.shape, self._name, self.value, self.id, self.sparse, self.nonzero, self.attributes]
 
     def name(self):
         return self._name
@@ -75,11 +92,17 @@ class Parameter(Leaf):
     def value(self):
         """NumPy.ndarray or None: The numeric value of the parameter.
         """
-        return self._value
+        if self.sparse:
+            return self.Indexer @ self._parameter.value
+        else:
+            return self._value
 
     @value.setter
     def value(self, val):
-        self._value = self._validate_value(val)
+        if self.sparse:
+            self._parameter.value = val
+        else:
+            self._value = self._validate_value(val)
 
     @property
     def grad(self):
@@ -95,7 +118,10 @@ class Parameter(Leaf):
     def parameters(self):
         """Returns itself as a parameter.
         """
-        return [self]
+        if self.sparse:
+            return [self._parameter]
+        else:
+            return [self]
 
     def canonicalize(self):
         """Returns the graph implementation of the object.
@@ -103,8 +129,11 @@ class Parameter(Leaf):
         Returns:
             A tuple of (affine expression, [constraints]).
         """
-        obj = lu.create_param(self.shape, self.id)
-        return (obj, [])
+        if self.sparse:
+            return (self._expr, [])
+        else:
+            obj = lu.create_param(self.shape, self.id)
+            return (obj, [])
 
     def __repr__(self):
         """String to recreate the object.
