@@ -112,6 +112,24 @@ class TestProblem(BaseTest):
               ParameterError, msg="A Parameter (whose name is 'lambda').*"):
             problem.solve()
 
+    def test_problem_with_sparse_parameter(self):
+        m, n = 10, 5
+        b = np.random.randn(m)
+        Avalue = scipy.sparse.random(m, n, density=.5, format='coo')
+
+        x = cp.Variable(n)
+        A = cp.Parameter((m, n))
+        problem = cp.Problem(cp.Minimize(cp.sum_squares(A @ x - b)))
+        A.value = Avalue
+
+        with self.assertRaises(
+              ValueError, msg="Parameter value cannot be set to a sparse matrix."):
+            problem.solve()
+
+        with self.assertRaises(
+              ValueError, msg="Parameter value cannot be set to a sparse matrix."):
+            A = cp.Parameter((m, n), value=Avalue)
+
     def test_constants(self):
         """Test the constants method.
         """
