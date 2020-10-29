@@ -43,7 +43,7 @@ def get_parameter_vector(param_size,
     -------
         A flattened NumPy array of parameter values, of length param_size + 1
     """
-    #TODO handle parameters with structure.
+    # TODO handle parameters with structure.
     if param_size == 0:
         return None
     param_vec = np.zeros(param_size + 1)
@@ -106,56 +106,22 @@ def reduce_problem_data_tensor(A, var_length, quad_form=False):
     """
     # construct a reduced COO matrix
     A.eliminate_zeros()
-    A_coo = A.tocoo()
-    unique_old_row = np.sort(np.unique(A_coo.row))
-    old_row_to_new_row = {
-        unique_old_row[i]: i for i in range(unique_old_row.size)
-    }
-    reduced_A_shape = (unique_old_row.size, A_coo.shape[1])
 
-    # remap the rows
-    old_row = A_coo.row
-    reduced_row = np.zeros(old_row.shape)
-    for i in range(reduced_row.size):
-        reduced_row[i] = old_row_to_new_row[old_row[i]]
-    reduced_A = scipy.sparse.coo_matrix(
-        (A_coo.data, (reduced_row, A_coo.col)), shape=reduced_A_shape)
-
-    # convert reduced_A to csr
-    reduced_A = reduced_A.tocsr()
-
-    nonzero_rows = unique_old_row
     n_cols = var_length
     # add one more column for the offset if not quad_form
     if not quad_form:
         n_cols += 1
     n_constr = A.shape[0] // (n_cols)
     shape = (n_constr, n_cols)
-    indices = nonzero_rows % (n_constr)
 
-    # cols holds the column corresponding to each row in nonzero_rows
-    cols = nonzero_rows // n_constr
+    nnz_rows = A.getnnz(axis=1)
+    A_reduced = A.tocsc()[nnz_rows.astype(bool)]
+    nnz_entries = scipy.sparse.coo_matrix(
+        nnz_rows).reshape(shape, order='F').tocsc()
+    indices = nnz_entries.indices
+    indptr = nnz_entries.indptr
 
-    # construction of the indptr: scan through cols, and find
-    # the structure of the column index pointer
-    indptr = np.zeros(n_cols + 1, dtype=np.int32)
-    i = 0
-    j = 1
-    nnz = cols.size
-    prev_col = 0
-    while i < nnz:
-        col = cols[i]
-        while col == prev_col and i < nnz - 1:
-            i += 1
-            col = cols[i]
-        if prev_col != col:
-            for k in range(col - prev_col):
-                indptr[j + k] = i
-            j += col - prev_col
-        prev_col = col
-        i += 1
-    indptr[j:] = nnz
-    return reduced_A, indices, indptr, shape
+    return A_reduced, indices, indptr, shape
 
 
 def nonzero_csc_matrix(A):
@@ -186,7 +152,7 @@ def A_mapping_nonzero_rows(problem_data_tensor, var_length):
     problem_data_tensor_csc = problem_data_tensor.tocsc()
     A_nrows = problem_data_tensor.shape[0] // (var_length + 1)
     A_ncols = var_length
-    A_mapping = problem_data_tensor_csc[:A_nrows*A_ncols, :-1]
+    A_mapping = problem_data_tensor_csc[:A_nrows * A_ncols, :-1]
     # don't call nonzero_csc_matrix, because here we don't want to
     # count explicit zeros
     A_mapping_nonzero_rows, _ = A_mapping.nonzero()
@@ -232,7 +198,6 @@ def get_matrix_from_tensor(problem_data_tensor, param_vec,
     else:
         param_vec = scipy.sparse.csc_matrix(param_vec[:, None])
         flat_problem_data = problem_data_tensor @ param_vec
-
 
     if problem_data_index is not None:
         indices, indptr, shape = problem_data_index
@@ -361,13 +326,13 @@ def get_problem_matrix(linOps,
         for i in range(size):
             V.append(tensor_V[param_id][i])
             I.append(tensor_I[param_id][i] +
-                     tensor_J[param_id][i]*constr_length)
-            J.append(tensor_J[param_id][i]*0 + (i + col))
+                     tensor_J[param_id][i] * constr_length)
+            J.append(tensor_J[param_id][i] * 0 + (i + col))
     V = np.concatenate(V)
     I = np.concatenate(I)
     J = np.concatenate(J)
     A = scipy.sparse.csc_matrix(
-        (V, (I, J)), shape=(np.int64(constr_length)*np.int64(var_length+1), param_size_plus_one))
+        (V, (I, J)), shape=(np.int64(constr_length) * np.int64(var_length + 1), param_size_plus_one))
     return A
 
 
@@ -459,7 +424,7 @@ def set_linC_data(linC, linPy):
     if isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
         slice_data = set_slice_data(linC, linPy)
     elif isinstance(linPy.data, float) or isinstance(linPy.data,
-                                                   numbers.Integral):
+                                                     numbers.Integral):
         linC.set_dense_data(format_matrix(linPy.data, format='scalar'))
         linC.set_data_ndim(0)
     else:
