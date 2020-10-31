@@ -271,7 +271,7 @@ class XPRESS(SCS):
         # the Xpress Python interface.
 
         self.prob_.setControl({i: solver_opts[i] for i in solver_opts
-                               if hasattr(xp.controls.__dict__, i)})
+                               if i in xp.controls.__dict__})
 
         if 'bargaptarget' not in solver_opts:
             self.prob_.controls.bargaptarget = 1e-30
