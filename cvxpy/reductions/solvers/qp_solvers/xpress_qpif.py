@@ -49,8 +49,8 @@ class XPRESS(QpSolver):
     def invert(self, results, inverse_data):
         # model = results["model"]
         attr = {}
-        if "cputime" in results:
-            attr[s.SOLVE_TIME] = results["cputime"]
+        if s.SOLVE_TIME in results:
+            attr[s.SOLVE_TIME] = results[s.SOLVE_TIME]
         attr[s.NUM_ITERS] = \
             int(results['bariter']) \
             if not inverse_data[XPRESS.IS_MIP] \
@@ -238,7 +238,8 @@ class XPRESS(QpSolver):
                 self.prob_.write(solver_opts['write_mps'])
 
             self.prob_.solve()
-            results_dict["cputime"] = self.prob_.attributes.time
+
+            results_dict[s.SOLVE_TIME] = self.prob_.attributes.time
         except xp.SolverError:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
         else:

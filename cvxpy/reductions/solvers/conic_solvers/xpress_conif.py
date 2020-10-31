@@ -130,6 +130,8 @@ class XPRESS(SCS):
         other = {}
         other[s.XPRESS_IIS] = solution[s.XPRESS_IIS]
         other[s.XPRESS_TROW] = solution[s.XPRESS_TROW]
+        other[s.SOLVE_TIME] = solution[s.SOLVE_TIME]
+
         return Solution(status, opt_val, primal_vars, dual_vars, other)
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
@@ -370,6 +372,8 @@ class XPRESS(SCS):
         solution[s.XPRESS_TROW] = results_dict[s.XPRESS_TROW]
 
         solution['getObjVal'] = self.prob_.getObjVal()
+
+        solution[s.SOLVE_TIME] = self.prob_.attributes.time
 
         del self.prob_
 
