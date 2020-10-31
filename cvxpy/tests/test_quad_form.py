@@ -49,7 +49,7 @@ class TestNonOptimal(BaseTest):
                 Q = np.dot(E, np.dot(Q, E.T))
                 observed_rank = np.linalg.matrix_rank(Q)
                 desired_rank = n-1
-                yield assert_equal, observed_rank, desired_rank
+                assert_equal(observed_rank, desired_rank)
 
                 for action in 'minimize', 'maximize':
 
@@ -67,7 +67,7 @@ class TestNonOptimal(BaseTest):
                     p.solve()
 
                     # check that cvxpy found the right answer
-                    xopt = x.value.A.flatten()
+                    xopt = x.value.flatten()
                     yopt = np.dot(xopt, np.dot(Q, xopt))
                     assert_allclose(yopt, 0, atol=1e-3)
                     assert_allclose(xopt, v, atol=1e-3)
