@@ -91,6 +91,7 @@ class XPRESS(QpSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
+
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
 
         import xpress as xp
@@ -105,14 +106,8 @@ class XPRESS(QpSolver):
         A = data[s.A]          # linear coefficient matrix
         b = data[s.B]          # rhs
 
-        # Inequalities, Fx <= g
-
-        F = data[s.F]          # linear coefficient matrix
-        g = data[s.G]          # rhs
-
         n_var = data['n_var']
         n_eq = data['n_eq']
-        n_ineq = data['n_ineq']
 
         self.prob_ = xp.problem()
 
@@ -121,61 +116,32 @@ class XPRESS(QpSolver):
         #    minimize      1/2 x' P x + q' x
         #    subject to    A x =  b
         #                  F x <= g
+        #
+        # Instead of combining A and F to call loadproblem() once
+        # (which is inefficient due to a necessary Python loop), call
+        # loadproblem() for A and then use addrow()
 
-        mstartA = makeMstart(A, n_var, 1)
-        mstartF = makeMstart(F, n_var, 1)
+        mstart = makeMstart(A, n_var, 1)
 
-        # index start is simply the sum of the two mstarts for A and F
-        mstart = mstartA + mstartF
+        if len(Q.data) != 0:
 
-        # In order to arrange (A;F) as a single matrix, we have to
-        # concatenate all indices. I prefer not to do a vstack of A
-        # and F as it might increase memory usage a lot.
+            # Q matrix is input via row/col indices and value, but only
+            # for the upper triangle. We just make it symmetric and twice
+            # itself, then, just remove all lower-triangular elements.
+            Q += Q.transpose()
+            Q /= 2
+            Q = Q.tocoo()
 
-        # Begin by creating two vectors of zeros for indices and
-        # coefficients
-        mrwind = np.zeros(mstart[n_var], dtype=np.int64)
-        dmatval = np.zeros(mstart[n_var], dtype=np.float64)
+            mqcol1 = Q.row[Q.row <= Q.col]
+            mqcol2 = Q.col[Q.row <= Q.col]
+            dqe = Q.data[Q.row <= Q.col]
 
-        # Fill in mrwind and dmatval by alternately drawing from
-        # indices/coeff of A and F.
+        else:
 
-        for i in range(n_var):
-
-            nElemA = mstartA[i+1] - mstartA[i]  # number of elements of A in this column
-            nElemF = mstartF[i+1] - mstartF[i]  # number of elements of F in this column
-
-            if nElemA:
-                mrwind[mstart[i]:mstart[i] + nElemA] = \
-                    A.indices[A.data != 0][mstartA[i]:mstartA[i+1]]
-                dmatval[mstart[i]:mstart[i] + nElemA] = \
-                    A.data[A.data != 0][mstartA[i]:mstartA[i+1]]
-            if nElemF:
-                mrwind[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = \
-                    n_eq + F.indices[F.data != 0][mstartF[i]:mstartF[i+1]]
-                dmatval[mstart[i] + nElemA: mstart[i] + nElemA + nElemF] = \
-                    F.data[F.data != 0][mstartF[i]:mstartF[i+1]]
-
-            mstart[i] = mstartA[i] + mstartF[i]
-
-        # The last value of mstart must be the total number of
-        # coefficients.
-        mstart[n_var] = mstartA[n_var] + mstartF[n_var]
-
-        # Q matrix is input via row/col indices and value, but only
-        # for the upper triangle. We just make it symmetric and twice
-        # itself, then, just remove all lower-triangular elements.
-        Q += Q.transpose()
-        Q /= 2
-        Q = Q.tocoo()
-
-        mqcol1 = Q.row[Q.row <= Q.col]
-        mqcol2 = Q.col[Q.row <= Q.col]
-        dqe = Q.data[Q.row <= Q.col]
+            mqcol1, mqcol2, dqe = [], [], []
 
         colnames = ['x_{0:09d}'.format(i) for i in range(n_var)]
-        rownames = ['eq_{0:09d}'.format(i) for i in range(n_eq)] + \
-            ['ineq_{0:09d}'.format(i) for i in range(n_ineq)]
+        rownames = ['eq_{0:09d}'.format(i) for i in range(n_eq)]
 
         if verbose:
             self.prob_.controls.miplog = 2
@@ -188,18 +154,18 @@ class XPRESS(QpSolver):
             self.prob_.controls.xslp_log = -1
 
         self.prob_.loadproblem(probname='CVX_xpress_qp',
-                               qrtypes=['E']*n_eq + ['L']*n_ineq,
-                               rhs=list(b) + list(g),
-                               range=None,
-                               obj=q,
-                               mstart=mstart,
-                               mnel=None,
+                               # constraint types
+                               qrtypes=['E'] * n_eq,
+                               rhs=b,                               # rhs
+                               range=None,                          # range
+                               obj=q,                               # obj coeff
+                               mstart=mstart,                       # mstart
+                               mnel=None,                           # mnel (unused)
                                # linear coefficients
-                               mrwind=mrwind,
-                               dmatval=dmatval,
-                               # variable bounds
-                               dlb=[-xp.infinity]*n_var,
-                               dub=[xp.infinity]*n_var,
+                               mrwind=A.indices[A.data != 0],       # row indices
+                               dmatval=A.data[A.data != 0],         # coefficients
+                               dlb=[-xp.infinity] * len(q),         # lower bound
+                               dub=[xp.infinity] * len(q),          # upper bound
                                # quadratic objective (only upper triangle)
                                mqcol1=mqcol1,
                                mqcol2=mqcol2,
@@ -211,6 +177,33 @@ class XPRESS(QpSolver):
                                colnames=colnames,
                                rownames=rownames)
 
+        # The problem currently has the quadratic objective function
+        # and the linear equations. Add the linear inequalities
+        #
+        # Fx <= g
+
+        n_ineq = data['n_ineq']
+
+        if n_ineq > 0:
+
+            F = data[s.F].tocsr()  # linear coefficient matrix, converted to row-major
+            g = data[s.G]          # rhs
+
+            mstartIneq = makeMstart(F, n_ineq, 0)  # ifCol=0 --> check rows
+
+            rownames_ineq = ['ineq_{0:09d}'.format(i) for i in range(n_ineq)]
+
+            mclind=F.indices[F.data != 0]      # column indices
+            dmatval=F.data[F.data != 0]        # coefficient
+
+            self.prob_.addrows(# constraint types
+                qrtype=['L'] * n_ineq,              # inequalities sign
+                rhs=g,                              # rhs
+                mstart=mstartIneq,                  # starting indices
+                mclind=F.indices[F.data != 0],      # column indices
+                dmatval=F.data[F.data != 0],        # coefficient
+                names=rownames_ineq)                # row names
+
         # Set options
         #
         # The parameter solver_opts is a dictionary that contains only
@@ -221,7 +214,7 @@ class XPRESS(QpSolver):
         # Set options if compatible with Xpress problem control names
 
         self.prob_.setControl({i: solver_opts[i] for i in solver_opts
-                               if hasattr(xp.controls.__dict__, i)})
+                               if i in xp.controls.__dict__})
 
         if 'bargaptarget' not in solver_opts.keys():
             self.prob_.controls.bargaptarget = 1e-30
