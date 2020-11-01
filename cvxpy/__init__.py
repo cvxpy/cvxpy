@@ -31,3 +31,4 @@ from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP, NAG,
 from cvxpy.transforms import linearize, partial_optimize, suppfunc
 from cvxpy.reductions import *
 from cvxpy.reductions.solvers.defines import installed_solvers
+from cvxpy.utilities import cplex
