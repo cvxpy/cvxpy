@@ -5,13 +5,15 @@ def _refine_conflicts_if_infeasible(problem, soln):
     """
     Run Cplex's conflict refiner if the solution is infeasible and print the results.
 
-    TODO: This function is very limited as the documentation of conflict refiner is 
+    TODO: This function is very limited as the documentation of conflict refiner is
         brief and does not contain any examples. This will catch only some basic cases.
         If you know how to use it properly, feel free to iterate on this.
     """
     c = soln['model']
     if problem.status != INFEASIBLE:
         return
+
+    import cplex
 
     print("Starting solution refiner.")
     c.conflict.refine(c.conflict.all_constraints())
@@ -20,13 +22,13 @@ def _refine_conflicts_if_infeasible(problem, soln):
     def var_name(idx):
         try:
             return c.variables.get_names(idx)
-        except:
+        except cplex.exceptions.CplexSolverError:
             return "x" + str(idx)
 
     def linear_constraint_name(idx):
         try:
             return c.linear_constraints.get_names(idx)
-        except:
+        except cplex.exceptions.CplexSolverError:
             return "c" + str(idx)
 
     conflict_groups = c.conflict.get_groups()
@@ -45,11 +47,13 @@ def _refine_conflicts_if_infeasible(problem, soln):
                 sense = c.linear_constraints.get_senses(constr_id)
                 sense_dict = {'E': '=', 'G': '≥', 'L': '≤'}
                 lhs_str = " + ".join([
-                    str(val) + "*" + str(var_name(ind)) 
+                    str(val) + "*" + str(var_name(ind))
                     for ind, val in zip(lhs.ind, lhs.val)
                 ])
                 print(
-                    "Linear constraint: {}:\n    {} {} {}".format(constraint_name, lhs_str, sense_dict[sense], rhs)
+                    "Linear constraint: {}:\n    {} {} {}".format(
+                        constraint_name, lhs_str, sense_dict[sense], rhs
+                        )
                 )
             elif constr_type == c.conflict.constraint_type.upper_bound:
                 ub = c.variables.get_upper_bounds(constr_id)
@@ -64,10 +68,17 @@ def _refine_conflicts_if_infeasible(problem, soln):
         print()
 
 
-def solve_with_conflict_refiner(problem, warm_start=False, verbose=False, solver_opts={}, gp=False, enforce_dpp=False):
+def solve_with_conflict_refiner(
+        problem,
+        warm_start=False,
+        verbose=False,
+        solver_opts={},
+        gp=False,
+        enforce_dpp=False
+        ):
     """
-    Solve the problem using CPLEX. If the solution is infeasible use the conflict refiner
-    and print the results. Here is an example:
+    Solve the problem using CPLEX. If the solution is infeasible use the conflict
+    refiner and print the results. Here is an example:
 
         problem = cp.Problem(objective, constraints.get())
         cp.cplex.solve_with_conflict_refiner(problem)
@@ -87,7 +98,8 @@ def solve_with_conflict_refiner(problem, warm_start=False, verbose=False, solver
             When True, a DPPError will be thrown when trying to parse a non-DPP
             problem (instead of just a warning). Defaults to False.
     """
-    data, chain, inverse_data = problem.get_problem_data(solver=CPLEX, gp=gp, enforce_dpp=enforce_dpp)
+    data, chain, inverse_data = problem.get_problem_data(
+        solver=CPLEX, gp=gp, enforce_dpp=enforce_dpp)
     soln = chain.solve_via_data(problem, data, warm_start, verbose, solver_opts)
     problem.unpack_results(soln, chain, inverse_data)
     _refine_conflicts_if_infeasible(problem, soln)
