@@ -22,7 +22,7 @@ class InverseData(object):
 
     def __init__(self, problem):
         varis = problem.variables()
-        self.id_map, self.var_offsets, self.x_length, self.var_shapes = \
+        self.id_map, self.var_offsets, self.var_names, self.x_length, self.var_shapes = \
             InverseData.get_var_offsets(varis)
 
         self.param_shapes = {}
@@ -46,11 +46,13 @@ class InverseData(object):
     def get_var_offsets(variables):
         var_shapes = {}
         var_offsets = {}
+        var_names = {}
         id_map = {}
         vert_offset = 0
         for x in variables:
             var_shapes[x.id] = x.shape
             var_offsets[x.id] = vert_offset
+            var_names[x.id] = x.name()
             id_map[x.id] = (vert_offset, x.size)
             vert_offset += x.size
-        return (id_map, var_offsets, vert_offset, var_shapes)
+        return (id_map, var_offsets, var_names, vert_offset, var_shapes)
