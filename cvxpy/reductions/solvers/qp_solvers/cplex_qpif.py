@@ -87,6 +87,11 @@ class CPLEX(QpSolver):
         n_var = data['n_var']
         n_eq = data['n_eq']
         n_ineq = data['n_ineq']
+        param_prob = data['param_prob']
+
+        # Variable names
+        id_to_var = param_prob.id_to_var
+        variable_names = [v._name for idx, v in sorted(id_to_var.items())]
 
         # Constrain values between bounds
         constrain_cplex_infty(b)
@@ -101,7 +106,8 @@ class CPLEX(QpSolver):
         # Add variables and linear objective
         var_idx = list(model.variables.add(obj=q,
                                            lb=-cpx.infinity*np.ones(n_var),
-                                           ub=cpx.infinity*np.ones(n_var)))
+                                           ub=cpx.infinity*np.ones(n_var),
+                                           names=variable_names))
 
         # Constrain binary/integer variables if present
         for i in data[s.BOOL_IDX]:
