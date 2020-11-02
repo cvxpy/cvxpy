@@ -129,6 +129,12 @@ guide </contributing/index>`.
    :maxdepth: 1
    :hidden:
 
+   help/index
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
    faq/index
 
 .. toctree::
