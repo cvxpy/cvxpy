@@ -651,7 +651,8 @@ class Problem(u.Canonical):
             Raised if the name of the custom solver conflicts with the name of some officially supported solver
         """
         if custom_solver.name() in SOLVERS:
-            raise(error.SolverError("Custom solvers must have a different name than the officially supported ones"))
+            message = "Custom solvers must have a different name than the officially supported ones"
+            raise(error.SolverError(message))
 
         candidates = {'qp_solvers': [], 'conic_solvers': []}
         if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
