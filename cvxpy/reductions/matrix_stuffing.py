@@ -65,7 +65,6 @@ class MatrixStuffing(Reduction):
         ----------
         problem: The problem to stuff; the arguments of every constraint
             must be affine
-        constraints: A list of constraints, whose arguments are affine
 
         Returns
         -------
