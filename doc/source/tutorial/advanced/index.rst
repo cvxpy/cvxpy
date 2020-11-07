@@ -1320,9 +1320,6 @@ and say the derivative of ``f`` with respect to ``x*`` is ``dx``. To compute
 the derivative of ``f`` with respect to ``p``, before calling
 ``problem.backward()``, just set ``x.gradient = dx``.
 
-
-
-
 The ``backward`` method can be powerful when combined with software for
 automatic differentiation. We recommend the software package
 `CVXPY Layers <https://www.github.com/cvxgrp/cvxpylayers>`_, which provides
