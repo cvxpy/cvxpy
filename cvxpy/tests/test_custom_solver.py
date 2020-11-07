@@ -105,3 +105,4 @@ class TestCustomSolvers(unittest.TestCase):
         z = cp.Variable(integer=True)
         quadratic = cp.sum_squares(x + z)
         problem = cp.Problem(cp.Minimize(quadratic), [cp.SOC(y, x)])
+        problem.solve(solver=solver)

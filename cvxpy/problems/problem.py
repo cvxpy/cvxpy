@@ -545,17 +545,18 @@ class Problem(u.Canonical):
                                 solver=None,
                                 gp=False):
         """
-        Find candiate solvers for the current problem. If solver
+        Find candidate solvers for the current problem. If solver
         is not None, it checks if the specified solver is compatible
         with the problem passed.
 
         Arguments
         ---------
-        solver : string
-            The name of the solver with which to solve the problem. If no
-            solver is supplied (i.e., if solver is None), then the targeted
-            solver may be any of those that are installed. If the problem
-            is variable-free, then this parameter is ignored.
+        solver : Union[string, Solver, None]
+            The name of the solver with which to solve the problem or an
+            instance of a custom solver. If no solver is supplied
+            (i.e., if solver is None), then the targeted solver may be any
+            of those that are installed. If the problem is variable-free,
+            then this parameter is ignored.
         gp : bool
             If True, the problem is parsed as a Disciplined Geometric Program
             instead of as a Disciplined Convex Program.
@@ -641,9 +642,15 @@ class Problem(u.Canonical):
         """
         Returns a list of candidate solvers where custom_solver is the only potential option.
 
+        Arguments
+        ---------
+        custom_solver : Solver
+
         Returns
         -------
-        the same as _find_candidate_solvers
+        dict
+            A dictionary of compatible solvers divided in `qp_solvers`
+            and `conic_solvers`.
 
         Raises
         ------
@@ -657,11 +664,9 @@ class Problem(u.Canonical):
         candidates = {'qp_solvers': [], 'conic_solvers': []}
         if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
             if isinstance(custom_solver, QpSolver):
-                slv_def.QP_SOLVERS.append(custom_solver.name())
                 SOLVER_MAP_QP[custom_solver.name()] = custom_solver
                 candidates['qp_solvers'] = [custom_solver.name()]
             elif isinstance(custom_solver, ConicSolver):
-                slv_def.CONIC_SOLVERS.append(custom_solver.name())
                 SOLVER_MAP_CONIC[custom_solver.name()] = custom_solver
                 candidates['conic_solvers'] = [custom_solver.name()]
         return candidates
@@ -691,8 +696,28 @@ class Problem(u.Canonical):
         A solving chain
         """
         candidate_solvers = self._find_candidate_solvers(solver=solver, gp=gp)
+        self._sort_candidate_solvers(candidate_solvers)
         return construct_solving_chain(self, candidate_solvers, gp=gp,
                                        enforce_dpp=enforce_dpp)
+
+    @staticmethod
+    def _sort_candidate_solvers(solvers):
+        """Sorts candidate solvers lists according to slv_def.CONIC_SOLVERS/QP_SOLVERS
+
+        Arguments
+        ---------
+        candidates : dict
+            Dictionary of candidate solvers divided in qp_solvers
+            and conic_solvers
+        Returns
+        -------
+        None
+        """
+        if len(solvers['conic_solvers']) > 1:
+            solvers['conic_solvers'] = sorted(solvers['conic_solvers'], key=lambda s: slv_def.CONIC_SOLVERS.index(s))
+        if len(solvers['qp_solvers']) > 1:
+            solvers['qp_solvers'] = sorted(solvers['qp_solvers'], key=lambda s: slv_def.QP_SOLVERS.index(s))
+
 
     def _invalidate_cache(self):
         self._cache_key = None
