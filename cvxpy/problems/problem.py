@@ -655,7 +655,8 @@ class Problem(u.Canonical):
         Raises
         ------
         cvxpy.error.SolverError
-            Raised if the name of the custom solver conflicts with the name of some officially supported solver
+            Raised if the name of the custom solver conflicts with the name of some officially
+            supported solver
         """
         if custom_solver.name() in SOLVERS:
             message = "Custom solvers must have a different name than the officially supported ones"
