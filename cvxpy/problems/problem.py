@@ -714,10 +714,13 @@ class Problem(u.Canonical):
         None
         """
         if len(solvers['conic_solvers']) > 1:
-            solvers['conic_solvers'] = sorted(solvers['conic_solvers'], key=lambda s: slv_def.CONIC_SOLVERS.index(s))
+            solvers['conic_solvers'] = sorted(
+                solvers['conic_solvers'], key=lambda s: slv_def.CONIC_SOLVERS.index(s)
+            )
         if len(solvers['qp_solvers']) > 1:
-            solvers['qp_solvers'] = sorted(solvers['qp_solvers'], key=lambda s: slv_def.QP_SOLVERS.index(s))
-
+            solvers['qp_solvers'] = sorted(
+                solvers['qp_solvers'], key=lambda s: slv_def.QP_SOLVERS.index(s)
+            )
 
     def _invalidate_cache(self):
         self._cache_key = None
