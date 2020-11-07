@@ -22,6 +22,10 @@ from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.defines import SOLVER_MAP_QP, SOLVER_MAP_CONIC
+from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import bisection
@@ -570,6 +574,8 @@ class Problem(u.Canonical):
         """
         candidates = {'qp_solvers': [],
                       'conic_solvers': []}
+        if isinstance(solver, Solver):
+            return self._add_custom_solver_candidates(candidates, solver)
 
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
@@ -628,6 +634,15 @@ class Problem(u.Canonical):
                     (candidates['qp_solvers'] +
                      candidates['conic_solvers']))
 
+        return candidates
+
+    def _add_custom_solver_candidates(self, candidates, solver: Solver):
+        if isinstance(solver, QpSolver):
+            SOLVER_MAP_QP[solver.name()] = solver
+            candidates['qp_solvers'] = solver.name()
+        elif isinstance(solver, ConicSolver):
+            SOLVER_MAP_CONIC[solver.name()] = solver
+            candidates['conic_solvers'] = solver.name()
         return candidates
 
     def _construct_chain(self, solver=None, gp=False, enforce_dpp=False):
