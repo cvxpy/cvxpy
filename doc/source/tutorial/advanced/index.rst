@@ -1320,6 +1320,9 @@ and say the derivative of ``f`` with respect to ``x*`` is ``dx``. To compute
 the derivative of ``f`` with respect to ``p``, before calling
 ``problem.backward()``, just set ``x.gradient = dx``.
 
+
+
+
 The ``backward`` method can be powerful when combined with software for
 automatic differentiation. We recommend the software package
 `CVXPY Layers <https://www.github.com/cvxgrp/cvxpylayers>`_, which provides
@@ -1352,4 +1355,35 @@ on derivatives.
 .. _OSQP: https://osqp.org/
 .. _SCIP: https://scip.zib.de/
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
+
+Custom Solvers
+------------------------------------
+Although ``cvxpy`` supports many different solvers out of the box, it is possible to use custom solvers that are not currently officially supported. This could be helpful in prototyping or developing custom solvers tailored to a specific application.
+
+To do so, you have to implement a solver class that is a children of ``cvxpy.reductions.solvers.qp_solvers.qp_solver.QpSolver`` or ``cvxpy.reductions.solvers.conic_solvers.conic_solver.ConicSolver``. Then you pass an instance of this solver class to ``solver.solve(.)`` as following:
+
+.. code:: python3
+
+    import cvxpy as cp
+    from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+
+
+    class CUSTOM_OSQP(OSQP):
+        MIP_CAPABLE=False
+
+        def name(self):
+            return "CUSTOM_OSQP"
+
+        def solve_via_data(self, *args, **kwargs):
+            print("Solving with a custom QP solver!")
+            super().solve_via_data(*args, **kwargs)
+
+
+    x = cp.Variable()
+    quadratic = cp.square(x)
+    problem = cp.Problem(cp.Minimize(quadratic))
+    problem.solve(solver=CUSTOM_OSQP())
+
+Note that the string returned by the ``name`` property should be different to all of the officially supported solvers (a list of which can be found in ``cvxpy.settings.SOLVERS``). Also, if your solver is mixed integer capable, you should set the class variable ``MIP_CAPABLE`` to ``True``.
+
 

@@ -30,6 +30,7 @@ from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.settings import SOLVERS
 from cvxpy.utilities.deterministic import unique_list
 import cvxpy.utilities.performance_utils as perf
 from cvxpy.constraints import Equality, Inequality, NonPos, Zero, NonNeg
@@ -575,7 +576,7 @@ class Problem(u.Canonical):
         candidates = {'qp_solvers': [],
                       'conic_solvers': []}
         if isinstance(solver, Solver):
-            return self._add_custom_solver_candidates(candidates, solver)
+            return self._add_custom_solver_candidates(solver)
 
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
@@ -636,13 +637,32 @@ class Problem(u.Canonical):
 
         return candidates
 
-    def _add_custom_solver_candidates(self, candidates, solver: Solver):
-        if isinstance(solver, QpSolver):
-            SOLVER_MAP_QP[solver.name()] = solver
-            candidates['qp_solvers'] = solver.name()
-        elif isinstance(solver, ConicSolver):
-            SOLVER_MAP_CONIC[solver.name()] = solver
-            candidates['conic_solvers'] = solver.name()
+    def _add_custom_solver_candidates(self, custom_solver: Solver):
+        """
+        Returns custom_solver as the only candidate solver.
+
+        Returns
+        -------
+        the same as _find_candidate_solvers
+
+        Raises
+        ------
+        cvxpy.error.SolverError
+            Raised if the problem is not DCP and `gp` is False.
+        """
+        if custom_solver.name() in SOLVERS:
+            raise(error.SolverError("Custom solvers must have a different name than the officially supported ones"))
+
+        candidates = {'qp_solvers': [], 'conic_solvers': []}
+        if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
+            if isinstance(custom_solver, QpSolver):
+                slv_def.QP_SOLVERS.append(custom_solver.name())
+                SOLVER_MAP_QP[custom_solver.name()] = custom_solver
+                candidates['qp_solvers'] = [custom_solver.name()]
+            elif isinstance(custom_solver, ConicSolver):
+                slv_def.CONIC_SOLVERS.append(custom_solver.name())
+                SOLVER_MAP_CONIC[custom_solver.name()] = custom_solver
+                candidates['conic_solvers'] = [custom_solver.name()]
         return candidates
 
     def _construct_chain(self, solver=None, gp=False, enforce_dpp=False):
