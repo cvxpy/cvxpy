@@ -639,7 +639,7 @@ class Problem(u.Canonical):
 
     def _add_custom_solver_candidates(self, custom_solver: Solver):
         """
-        Returns custom_solver as the only candidate solver.
+        Returns a list of candidate solvers where custom_solver is the only potential option.
 
         Returns
         -------
