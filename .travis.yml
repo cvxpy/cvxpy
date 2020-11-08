@@ -22,8 +22,8 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CXX=g++; fi
 install: source continuous_integration/Travis/install_dependencies.sh
 script:
-  - bash continuous_integration/Travis/test_script.sh
   - flake8 .
+  - bash continuous_integration/Travis/test_script.sh
 after_success:
   - if [[ "$COVERAGE" == "true" ]]; then coveralls; fi
 deploy:

@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 import scipy.linalg as la
-from nose.tools import assert_raises
+import pytest
 
 import cvxpy as cp
 from cvxpy.error import SolverError
@@ -1208,7 +1208,7 @@ class TestSCIP(unittest.TestCase):
         prob = self.get_simple_problem()
         # Since an invalid NON-scip param is passed, an error is expected
         # to be raised when calling solve.
-        with assert_raises(KeyError) as ke:
+        with pytest.raises(KeyError) as ke:
             prob.solve(solver="SCIP", a="what?")
             exc = "One or more solver params in ['a'] are not valid: 'Not a valid parameter name'"
             assert ke.exception == exc
@@ -1217,7 +1217,7 @@ class TestSCIP(unittest.TestCase):
         prob = self.get_simple_problem()
         # Since an invalid SCIP param is passed, an error is expected
         # to be raised when calling solve.
-        with assert_raises(KeyError) as ke:
+        with pytest.raises(KeyError) as ke:
             prob.solve(solver="SCIP", scip_params={"a": "what?"})
             exc = "One or more scip params in ['a'] are not valid: 'Not a valid parameter name'"
             assert ke.exception == exc

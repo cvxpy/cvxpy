@@ -41,12 +41,13 @@ class Test(numpy.ndarray):
         else:
             raise AttributeError("'Test' object has no attribute 'affa'")
 
-print(issubclass(Test, Meta))
-print(issubclass(Meta, numpy.ndarray))
-print(issubclass(Test, numpy.ndarray))
-print(issubclass(numpy.ndarray, Test))
-
-a = numpy.arange(2)
-t = Test(1)
-a + t
-import pdb; pdb.set_trace()
+if __name__ == "__main__":
+    print(issubclass(Test, Meta))
+    print(issubclass(Meta, numpy.ndarray))
+    print(issubclass(Test, numpy.ndarray))
+    print(issubclass(numpy.ndarray, Test))
+    
+    a = numpy.arange(2)
+    t = Test(1)
+    a + t
+    import pdb; pdb.set_trace()
