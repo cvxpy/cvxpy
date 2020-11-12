@@ -1353,3 +1353,36 @@ on derivatives.
 .. _SCIP: https://scip.zib.de/
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 
+Custom Solvers
+------------------------------------
+Although ``cvxpy`` supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.
+
+To do so, you have to implement a solver class that is a child of ``cvxpy.reductions.solvers.qp_solvers.qp_solver.QpSolver`` or ``cvxpy.reductions.solvers.conic_solvers.conic_solver.ConicSolver``. Then you pass an instance of this solver class to ``solver.solve(.)`` as following:
+
+.. code:: python3
+
+    import cvxpy as cp
+    from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+
+
+    class CUSTOM_OSQP(OSQP):
+        MIP_CAPABLE=False
+
+        def name(self):
+            return "CUSTOM_OSQP"
+
+        def solve_via_data(self, *args, **kwargs):
+            print("Solving with a custom QP solver!")
+            super().solve_via_data(*args, **kwargs)
+
+
+    x = cp.Variable()
+    quadratic = cp.square(x)
+    problem = cp.Problem(cp.Minimize(quadratic))
+    problem.solve(solver=CUSTOM_OSQP())
+
+You might also want to override the methods ``invert`` and ``import_solver`` of the ``Solver`` class.
+
+Note that the string returned by the ``name`` property should be different to all of the officially supported solvers (a list of which can be found in ``cvxpy.settings.SOLVERS``). Also, if your solver is mixed integer capable, you should set the class variable ``MIP_CAPABLE`` to ``True``.
+
+
