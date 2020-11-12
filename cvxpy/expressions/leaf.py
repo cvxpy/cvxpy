@@ -94,7 +94,7 @@ class Leaf(expression.Expression):
             raise ValueError("Expressions of dimension greater than 2 "
                              "are not supported.")
         for d in shape:
-            if not isinstance(d, numbers.Integral) or d <= 0:
+            if not isinstance(d, numbers.Integral) or d < 0:
                 raise ValueError("Invalid dimensions %s." % (shape,))
         self._shape = tuple(np.int32(d) for d in shape)
 

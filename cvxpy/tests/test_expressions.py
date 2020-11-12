@@ -88,8 +88,8 @@ class TestExpressions(BaseTest):
                          "Cannot set more than one special attribute in Variable.")
 
         with self.assertRaises(Exception) as cm:
-            Variable((2, 0))
-        self.assertEqual(str(cm.exception), "Invalid dimensions (2, 0).")
+            Variable((2, -1))
+        self.assertEqual(str(cm.exception), "Invalid dimensions (2, -1).")
 
         with self.assertRaises(Exception) as cm:
             Variable((2, .5))
