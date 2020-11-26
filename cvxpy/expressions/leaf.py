@@ -269,7 +269,7 @@ class Leaf(expression.Expression):
             domain.append(self >> 0)
         elif self.attributes['NSD']:
             domain.append(self << 0)
-        return []
+        return domain
 
     def project(self, val):
         """Project value onto the attribute set of the leaf.
