@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.dcp2cone.cone_matrix_stuffing &#8212; CVXPY 1.1.5 documentation</title>
+    <title>cvxpy.reductions.dcp2cone.cone_matrix_stuffing &#8212; CVXPY 1.1.7 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -149,19 +149,8 @@
 
         <span class="c1"># The variable</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">x</span>
-
-        <span class="c1"># Form a reduced representation of A, for faster application of</span>
-        <span class="c1"># parameters.</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">reduced_A</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span>
-                <span class="n">canonInterface</span><span class="o">.</span><span class="n">reduce_problem_data_tensor</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
-            <span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="n">reduced_A</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="n">A</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index</span> <span class="o">=</span> <span class="kc">None</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_tensor</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_A_mapping_nonzero</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">=</span> <span class="n">constraints</span>
@@ -198,9 +187,23 @@
 <span class="sd">          keep_zeros: (optional) if True, store explicit zeros in A where</span>
 <span class="sd">                        parameters are affected</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Form a reduced representation of A, for faster application of</span>
+            <span class="c1"># parameters.</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">reduced_A</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">canonInterface</span><span class="o">.</span><span class="n">reduce_problem_data_tensor</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">size</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="n">reduced_A</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index</span> <span class="o">=</span> <span class="p">(</span><span class="n">indices</span><span class="p">,</span> <span class="n">indptr</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">reduced_A</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">problem_data_index</span> <span class="o">=</span> <span class="kc">None</span>
+
         <span class="k">def</span> <span class="nf">param_value</span><span class="p">(</span><span class="n">idx</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">id_to_param</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="k">if</span> <span class="n">id_to_param_value</span>
                     <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">id_to_param_value</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
+
         <span class="n">param_vec</span> <span class="o">=</span> <span class="n">canonInterface</span><span class="o">.</span><span class="n">get_parameter_vector</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">total_param_size</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">param_id_to_col</span><span class="p">,</span>

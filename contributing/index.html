@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contributing &#8212; CVXPY 1.1.5 documentation</title>
+    <title>Contributing &#8212; CVXPY 1.1.7 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -167,35 +167,35 @@ test.</p>
 </div>
 <div class="section" id="running-unit-tests">
 <span id="contrib-run-tests"></span><h3>Running unit tests<a class="headerlink" href="#running-unit-tests" title="Permalink to this headline">¶</a></h3>
-<p>We use <code class="docutils literal notranslate"><span class="pre">nose</span></code> to run our unit tests, which you can install with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">nose</span></code>.
+<p>We use <code class="docutils literal notranslate"><span class="pre">pytest</span></code> to run our unit tests, which you can install with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pytest</span></code>.
 To run all unit tests, <code class="docutils literal notranslate"><span class="pre">cd</span></code> into <code class="docutils literal notranslate"><span class="pre">cvxpy/tests</span></code> and run the following command:</p>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nosetests</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>To run tests in a specific file (e.g., <code class="docutils literal notranslate"><span class="pre">test_dgp.py</span></code>), use</p>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nosetests</span> <span class="n">test_dgp</span><span class="o">.</span><span class="n">py</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="n">test_dgp</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>To run a specific test method (e.g., <code class="docutils literal notranslate"><span class="pre">TestDgp.test_product</span></code>), use</p>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nosetests</span> <span class="n">test_dgp</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="n">TestDgp</span><span class="o">.</span><span class="n">test_product</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="n">test_dgp</span><span class="o">.</span><span class="n">py</span><span class="p">::</span><span class="n">TestDgp</span><span class="p">::</span><span class="n">test_product</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>Please make sure that your change doesn’t cause any of the unit tests to fail.</p>
-<p><code class="docutils literal notranslate"><span class="pre">nosetests</span></code> suppresses stdout by default. To see stdout, pass the <code class="docutils literal notranslate"><span class="pre">-s</span></code> flag
-to <code class="docutils literal notranslate"><span class="pre">nosetests</span></code>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">pytest</span></code> suppresses stdout by default. To see stdout, pass the <code class="docutils literal notranslate"><span class="pre">-s</span></code> flag
+to <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p>
 </div>
 <div class="section" id="benchmarks">
 <span id="contrib-run-benchmarks"></span><h3>Benchmarks<a class="headerlink" href="#benchmarks" title="Permalink to this headline">¶</a></h3>
 <p>CVXPY has a few benchmarks in <code class="docutils literal notranslate"><span class="pre">cvxpy/tests/test_benchmarks.py</span></code>, which test
 the time to canonicalize problems. Please run</p>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nosetests</span> <span class="o">-</span><span class="n">s</span> <span class="n">test_benchmarks</span><span class="o">.</span><span class="n">py</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">-</span><span class="n">s</span> <span class="n">test_benchmarks</span><span class="o">.</span><span class="n">py</span>
 </pre></div>
 </div>
 </div></blockquote>

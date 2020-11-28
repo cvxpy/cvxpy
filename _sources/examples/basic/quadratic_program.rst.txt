@@ -17,7 +17,7 @@ standard form is the following:
 
 Here :math:`P \in \mathcal{S}^{n}_+`, :math:`q \in \mathcal{R}^n`,
 :math:`G \in \mathcal{R}^{m \times n}`, :math:`h \in \mathcal{R}^m`,
-:math:`A \in \mathcal{R}^{p \times n}`, and :math:`b \in \mathcal{R}^n`
+:math:`A \in \mathcal{R}^{p \times n}`, and :math:`b \in \mathcal{R}^p`
 are problem data and :math:`x \in \mathcal{R}^{n}` is the optimization
 variable. The inequality constraint :math:`Gx \leq h` is elementwise.
 

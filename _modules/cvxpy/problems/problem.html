@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.5 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.7 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -57,10 +57,15 @@
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dqcp2dcp</span> <span class="kn">import</span> <span class="n">dqcp2dcp</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.eval_params</span> <span class="kn">import</span> <span class="n">EvalParams</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.flip_objective</span> <span class="kn">import</span> <span class="n">FlipObjective</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.conic_solvers.conic_solver</span> <span class="kn">import</span> <span class="n">ConicSolver</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.qp_solvers.qp_solver</span> <span class="kn">import</span> <span class="n">QpSolver</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.defines</span> <span class="kn">import</span> <span class="n">SOLVER_MAP_QP</span><span class="p">,</span> <span class="n">SOLVER_MAP_CONIC</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solver</span> <span class="kn">import</span> <span class="n">Solver</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solving_chain</span> <span class="kn">import</span> <span class="n">construct_solving_chain</span>
 <span class="kn">from</span> <span class="nn">cvxpy.interface.matrix_utilities</span> <span class="kn">import</span> <span class="n">scalar_value</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers</span> <span class="kn">import</span> <span class="n">bisection</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers</span> <span class="kn">import</span> <span class="n">defines</span> <span class="k">as</span> <span class="n">slv_def</span>
+<span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="kn">import</span> <span class="n">SOLVERS</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities.deterministic</span> <span class="kn">import</span> <span class="n">unique_list</span>
 <span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">perf</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">NonNeg</span>
@@ -575,17 +580,18 @@
                                 <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">gp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Find candiate solvers for the current problem. If solver</span>
+<span class="sd">        Find candidate solvers for the current problem. If solver</span>
 <span class="sd">        is not None, it checks if the specified solver is compatible</span>
 <span class="sd">        with the problem passed.</span>
 
 <span class="sd">        Arguments</span>
 <span class="sd">        ---------</span>
-<span class="sd">        solver : string</span>
-<span class="sd">            The name of the solver with which to solve the problem. If no</span>
-<span class="sd">            solver is supplied (i.e., if solver is None), then the targeted</span>
-<span class="sd">            solver may be any of those that are installed. If the problem</span>
-<span class="sd">            is variable-free, then this parameter is ignored.</span>
+<span class="sd">        solver : Union[string, Solver, None]</span>
+<span class="sd">            The name of the solver with which to solve the problem or an</span>
+<span class="sd">            instance of a custom solver. If no solver is supplied</span>
+<span class="sd">            (i.e., if solver is None), then the targeted solver may be any</span>
+<span class="sd">            of those that are installed. If the problem is variable-free,</span>
+<span class="sd">            then this parameter is ignored.</span>
 <span class="sd">        gp : bool</span>
 <span class="sd">            If True, the problem is parsed as a Disciplined Geometric Program</span>
 <span class="sd">            instead of as a Disciplined Convex Program.</span>
@@ -605,6 +611,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">candidates</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">:</span> <span class="p">[],</span>
                       <span class="s1">&#39;conic_solvers&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">Solver</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_custom_solver_candidates</span><span class="p">(</span><span class="n">solver</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">solver</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span><span class="p">:</span>
@@ -665,6 +673,40 @@
 
         <span class="k">return</span> <span class="n">candidates</span>
 
+    <span class="k">def</span> <span class="nf">_add_custom_solver_candidates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">custom_solver</span><span class="p">:</span> <span class="n">Solver</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of candidate solvers where custom_solver is the only potential option.</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        custom_solver : Solver</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A dictionary of compatible solvers divided in `qp_solvers`</span>
+<span class="sd">            and `conic_solvers`.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        cvxpy.error.SolverError</span>
+<span class="sd">            Raised if the name of the custom solver conflicts with the name of some officially</span>
+<span class="sd">            supported solver</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">custom_solver</span><span class="o">.</span><span class="n">name</span><span class="p">()</span> <span class="ow">in</span> <span class="n">SOLVERS</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">=</span> <span class="s2">&quot;Custom solvers must have a different name than the officially supported ones&quot;</span>
+            <span class="k">raise</span><span class="p">(</span><span class="n">error</span><span class="o">.</span><span class="n">SolverError</span><span class="p">(</span><span class="n">message</span><span class="p">))</span>
+
+        <span class="n">candidates</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">:</span> <span class="p">[],</span> <span class="s1">&#39;conic_solvers&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">()</span> <span class="ow">or</span> <span class="n">custom_solver</span><span class="o">.</span><span class="n">MIP_CAPABLE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">custom_solver</span><span class="p">,</span> <span class="n">QpSolver</span><span class="p">):</span>
+                <span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">custom_solver</span><span class="o">.</span><span class="n">name</span><span class="p">()]</span> <span class="o">=</span> <span class="n">custom_solver</span>
+                <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">custom_solver</span><span class="o">.</span><span class="n">name</span><span class="p">()]</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">custom_solver</span><span class="p">,</span> <span class="n">ConicSolver</span><span class="p">):</span>
+                <span class="n">SOLVER_MAP_CONIC</span><span class="p">[</span><span class="n">custom_solver</span><span class="o">.</span><span class="n">name</span><span class="p">()]</span> <span class="o">=</span> <span class="n">custom_solver</span>
+                <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">custom_solver</span><span class="o">.</span><span class="n">name</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="n">candidates</span>
+
     <span class="k">def</span> <span class="nf">_construct_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">enforce_dpp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construct the chains required to reformulate and solve the problem.</span>
@@ -690,8 +732,31 @@
 <span class="sd">        A solving chain</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">candidate_solvers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_candidate_solvers</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sort_candidate_solvers</span><span class="p">(</span><span class="n">candidate_solvers</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">construct_solving_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_solvers</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">,</span>
                                        <span class="n">enforce_dpp</span><span class="o">=</span><span class="n">enforce_dpp</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_sort_candidate_solvers</span><span class="p">(</span><span class="n">solvers</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sorts candidate solvers lists according to slv_def.CONIC_SOLVERS/QP_SOLVERS</span>
+
+<span class="sd">        Arguments</span>
+<span class="sd">        ---------</span>
+<span class="sd">        candidates : dict</span>
+<span class="sd">            Dictionary of candidate solvers divided in qp_solvers</span>
+<span class="sd">            and conic_solvers</span>
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solvers</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">solvers</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="n">solvers</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">CONIC_SOLVERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">solvers</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">solvers</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="n">solvers</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">],</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">QP_SOLVERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_invalidate_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache_key</span> <span class="o">=</span> <span class="kc">None</span>

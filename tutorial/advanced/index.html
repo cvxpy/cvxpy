@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Advanced Features &#8212; CVXPY 1.1.5 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.1.7 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -206,9 +206,9 @@ python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by
 <cite>pip install cvxopt`</cite> in your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.</p>
 <p>CVXPY comes with ECOS_BB – an open source mixed-integer nonlinear solver – by default. However
 ECOS_BB will not be called automatically; you must explicitly call <code class="docutils literal notranslate"><span class="pre">prob.solve(solver='ECOS_BB')</span></code>
-if you want to use it. This policy stems from the fact that there are recurring correctness issues
-with ECOS_BB. If you rely on this solver for some application then you need to be aware of the
-increased risks that come with using it.</p>
+if you want to use it (<a class="reference internal" href="../../updates/index.html#changes116"><span class="std std-ref">changed in CVXPY 1.1.6</span></a>). This policy stems from the fact
+that there are recurring correctness issues with ECOS_BB. If you rely on this solver for some
+application then you need to be aware of the increased risks that come with using it.</p>
 <p>If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
 model, then you will need to use a commercial solver such as <a class="reference external" href="https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a>, or <a class="reference external" href="https://www.mosek.com/">MOSEK</a>.
 Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK provide free licenses to those
@@ -1269,6 +1269,34 @@ once for each standard basis vector).</p>
 <p><strong>Next steps.</strong> See the <a class="reference external" href="https://www.cvxpy.org/examples/derivatives/fundamentals.html">introductory notebook</a>
 on derivatives.</p>
 </div>
+<div class="section" id="custom-solvers">
+<h2>Custom Solvers<a class="headerlink" href="#custom-solvers" title="Permalink to this headline">¶</a></h2>
+<p>Although <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.</p>
+<p>To do so, you have to implement a solver class that is a child of <code class="docutils literal notranslate"><span class="pre">cvxpy.reductions.solvers.qp_solvers.qp_solver.QpSolver</span></code> or <code class="docutils literal notranslate"><span class="pre">cvxpy.reductions.solvers.conic_solvers.conic_solver.ConicSolver</span></code>. Then you pass an instance of this solver class to <code class="docutils literal notranslate"><span class="pre">solver.solve(.)</span></code> as following:</p>
+<div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.qp_solvers.osqp_qpif</span> <span class="kn">import</span> <span class="n">OSQP</span>
+
+
+<span class="k">class</span> <span class="nc">CUSTOM_OSQP</span><span class="p">(</span><span class="n">OSQP</span><span class="p">):</span>
+    <span class="n">MIP_CAPABLE</span><span class="o">=</span><span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;CUSTOM_OSQP&quot;</span>
+
+    <span class="k">def</span> <span class="nf">solve_via_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Solving with a custom QP solver!&quot;</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">quadratic</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">quadratic</span><span class="p">))</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">CUSTOM_OSQP</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>You might also want to override the methods <code class="docutils literal notranslate"><span class="pre">invert</span></code> and <code class="docutils literal notranslate"><span class="pre">import_solver</span></code> of the <code class="docutils literal notranslate"><span class="pre">Solver</span></code> class.</p>
+<p>Note that the string returned by the <code class="docutils literal notranslate"><span class="pre">name</span></code> property should be different to all of the officially supported solvers (a list of which can be found in <code class="docutils literal notranslate"><span class="pre">cvxpy.settings.SOLVERS</span></code>). Also, if your solver is mixed integer capable, you should set the class variable <code class="docutils literal notranslate"><span class="pre">MIP_CAPABLE</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</div>
 </div>
 
 
@@ -1321,6 +1349,7 @@ on derivatives.</p>
 <li class="toctree-l3"><a class="reference internal" href="#reductions">Reductions</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#disciplined-parametrized-programming">Disciplined Parametrized Programming</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#sensitivity-analysis-and-gradients">Sensitivity analysis and gradients</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#custom-solvers">Custom Solvers</a></li>
 </ul>
 </li>
 </ul>

@@ -24,11 +24,11 @@ pip
 
       pip install cvxpy
 
-2. Test the installation with ``nose``.
+2. Test the installation with ``pytest``.
   ::
 
-      pip install nose
-      nosetests cvxpy
+      pip install pytest
+      pytest cvxpy/tests
 
 .. _conda-installation:
 
@@ -54,11 +54,11 @@ conda
 
       conda install -c conda-forge cvxpy
 
-4. Test the installation with ``nose``.
+4. Test the installation with ``pytest``.
   ::
 
-       conda install nose
-       nosetests cvxpy
+       conda install pytest
+       pytest cvxpy/tests
 
 .. _install_from_source:
 
@@ -76,7 +76,7 @@ CVXPY has the following dependencies:
  * `NumPy`_ >= 1.15
  * `SciPy`_ >= 1.1.0
 
-To test the CVXPY installation, you additionally need `Nose`_.
+To test the CVXPY installation, you additionally need `pytest`_.
 
 CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_. `NumPy`_ and
 `SciPy`_ will need to be installed manually,
@@ -189,7 +189,7 @@ CVXPY's SCIP interface does not reliably recover dual variables for constraints.
 .. _SCS: http://github.com/cvxgrp/scs
 .. _NumPy: http://www.numpy.org/
 .. _SciPy: http://www.scipy.org/
-.. _Nose: http://nose.readthedocs.org
+.. _pytest: https://docs.pytest.org/en/latest/
 .. _CVXPY git repository: https://github.com/cvxgrp/cvxpy
 .. _Swig: http://www.swig.org/
 .. _pip: https://pip.pypa.io/

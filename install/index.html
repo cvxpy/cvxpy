@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Install &#8212; CVXPY 1.1.5 documentation</title>
+    <title>Install &#8212; CVXPY 1.1.7 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -56,11 +56,11 @@ or a conda environment.</p>
 </div>
 </div></blockquote>
 <ol class="arabic simple" start="2">
-<li><p>Test the installation with <code class="docutils literal notranslate"><span class="pre">nose</span></code>.</p></li>
+<li><p>Test the installation with <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p></li>
 </ol>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">nose</span>
-<span class="n">nosetests</span> <span class="n">cvxpy</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">pytest</span>
+<span class="n">pytest</span> <span class="n">cvxpy</span><span class="o">/</span><span class="n">tests</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -88,11 +88,11 @@ or a conda environment.</p>
 </pre></div>
 </div>
 </li>
-<li><p>Test the installation with <code class="docutils literal notranslate"><span class="pre">nose</span></code>.</p></li>
+<li><p>Test the installation with <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p></li>
 </ol>
 <blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">nose</span>
-<span class="n">nosetests</span> <span class="n">cvxpy</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">pytest</span>
+<span class="n">pytest</span> <span class="n">cvxpy</span><span class="o">/</span><span class="n">tests</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -111,7 +111,7 @@ or a conda environment.</p>
 <li><p><a class="reference external" href="http://www.scipy.org/">SciPy</a> &gt;= 1.1.0</p></li>
 </ul>
 </div></blockquote>
-<p>To test the CVXPY installation, you additionally need <a class="reference external" href="http://nose.readthedocs.org">Nose</a>.</p>
+<p>To test the CVXPY installation, you additionally need <a class="reference external" href="https://docs.pytest.org/en/latest/">pytest</a>.</p>
 <p>CVXPY automatically installs <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="http://github.com/ifa-ethz/ecos">ECOS</a>, <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>. <a class="reference external" href="http://www.numpy.org/">NumPy</a> and
 <a class="reference external" href="http://www.scipy.org/">SciPy</a> will need to be installed manually,
 as will <a class="reference external" href="http://www.swig.org/">Swig</a> . Once you’ve installed these dependencies, perform the following steps:</p>

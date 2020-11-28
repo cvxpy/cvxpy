@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.solvers.solving_chain &#8212; CVXPY 1.1.5 documentation</title>
+    <title>cvxpy.reductions.solvers.solving_chain &#8212; CVXPY 1.1.7 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -207,8 +207,7 @@
     <span class="c1">#   (2) ConeMatrixStuffing --&gt; [a ConicSolver]</span>
     <span class="k">if</span> <span class="n">_solve_as_qp</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">):</span>
         <span class="c1"># Canonicalize as a QP</span>
-        <span class="n">solver</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">],</span>
-                        <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">QP_SOLVERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">s</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">solver</span> <span class="o">=</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
         <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">QpMatrixStuffing</span><span class="p">(),</span>
                        <span class="n">solver_instance</span><span class="p">]</span>
@@ -246,8 +245,7 @@
     <span class="c1"># increases the number of constraints in our problem.</span>
     <span class="n">has_constr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cones</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
-    <span class="k">for</span> <span class="n">solver</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">],</span>
-                         <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">CONIC_SOLVERS</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">s</span><span class="p">)):</span>
+    <span class="k">for</span> <span class="n">solver</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;conic_solvers&#39;</span><span class="p">]:</span>
         <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_CONIC</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
         <span class="k">if</span> <span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">SUPPORTED_CONSTRAINTS</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="p">(</span><span class="n">has_constr</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">REQUIRES_CONSTR</span><span class="p">)):</span>
