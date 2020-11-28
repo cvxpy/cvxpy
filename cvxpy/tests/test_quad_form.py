@@ -49,7 +49,7 @@ class TestNonOptimal(BaseTest):
                 Q = np.dot(E, np.dot(Q, E.T))
                 observed_rank = np.linalg.matrix_rank(Q)
                 desired_rank = n-1
-                self.assertEqual(observed_rank, desired_rank)
+                assert_equal(observed_rank, desired_rank)
 
                 for action in 'minimize', 'maximize':
 

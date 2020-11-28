@@ -19,7 +19,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda update --yes conda
         # Configure the conda environment and put it in the path using the
         # provided versions
-        conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
+        conda create -n testenv --yes python=$PYTHON_VERSION mkl pip pytest \
                 numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
         PIN_FILE=/home/travis/miniconda3/envs/testenv/conda-meta/pinned
@@ -44,7 +44,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda update --yes conda
         # Configure the conda environment and put it in the path using the
         # provided versions
-        conda create -n testenv --yes python=$PYTHON_VERSION mkl pip nose \
+        conda create -n testenv --yes python=$PYTHON_VERSION mkl pip pytest \
               numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
         source activate testenv
         PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned

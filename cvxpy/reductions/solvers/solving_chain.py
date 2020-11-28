@@ -172,8 +172,7 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
     if _solve_as_qp(problem, candidates):
         # Canonicalize as a QP
-        solver = sorted(candidates['qp_solvers'],
-                        key=lambda s: slv_def.QP_SOLVERS.index(s))[0]
+        solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
         reductions += [QpMatrixStuffing(),
                        solver_instance]
@@ -211,8 +210,7 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
     # increases the number of constraints in our problem.
     has_constr = len(cones) > 0 or len(problem.constraints) > 0
 
-    for solver in sorted(candidates['conic_solvers'],
-                         key=lambda s: slv_def.CONIC_SOLVERS.index(s)):
+    for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):

@@ -1,6 +1,6 @@
 conda config --add channels conda-forge
 conda config --add channels oxfordcontrol
-conda create -n testenv --yes python=$env:PYTHON_VERSION mkl=2018.0.3 pip nose numpy scipy
+conda create -n testenv --yes python=$env:PYTHON_VERSION mkl=2018.0.3 pip pytest numpy scipy
 conda activate testenv
 "python=$env:PYTHON_VERSION" | Out-File C:\conda\envs\testenv\conda-meta\pinned -encoding ascii
 conda install --yes lapack ecos multiprocess

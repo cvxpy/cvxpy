@@ -77,11 +77,13 @@ class OSQP(QpSolver):
                 if any(data[key] != old_data[key]):
                     new_args[key] = data[key]
             factorizing = False
-            if any(P.data != old_data[s.P].data):
+            if P.data.shape != old_data[s.P].data.shape or any(
+                    P.data != old_data[s.P].data):
                 P_triu = sp.triu(P).tocsc()
                 new_args['Px'] = P_triu.data
                 factorizing = True
-            if any(A.data != old_data['Ax'].data):
+            if A.data.shape != old_data['Ax'].shape or any(
+                    A.data != old_data['Ax'].data):
                 new_args['Ax'] = A.data
                 factorizing = True
 

@@ -9,6 +9,8 @@ The latest release of CVXPY is version 1.1.
 Recent patches
 --------------
 
+.. _changes116:
+
 Changes in version 1.1.6
  - The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not
    be called automatically; you must explicitly call ``prob.solve(solver='ECOS_BB')`` if you want to

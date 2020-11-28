@@ -32,7 +32,8 @@ build: false
 test_script:
     - "conda activate testenv"
     - "conda env list"
-    - "nosetests cvxpy"
+    - "pytest cvxpy/tests"
+    - "pytest cvxpy/performance_tests"
 
 deploy_script:
     - "powershell continuous_integration\\AppVeyor\\deploy_windows.ps1"
