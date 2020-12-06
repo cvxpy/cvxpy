@@ -186,3 +186,16 @@ class TestNonOptimal(BaseTest):
         constraints = [(M[0] @ c) == 1]  # (K * c) >= -0.1]
         prob = cvxpy.Problem(objective, constraints)
         prob.solve()
+
+    def test_zero_matrix(self):
+        """Test quad_form with P = 0.
+        """
+        x = cvxpy.Variable(3)
+        A = np.eye(3)
+        b = np.ones(3,)
+        c = -np.ones(3,)
+        P = np.zeros((3, 3))
+        expr = (1/2) * cvxpy.quad_form(x, P) + c.T @ x
+        prob = cvxpy.Problem(cvxpy.Minimize(expr),
+                             [A @ x <= b])
+        prob.solve(solver=cvxpy.SCS)
