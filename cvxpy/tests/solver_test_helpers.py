@@ -516,8 +516,24 @@ def mi_lp_2():
     return sth
 
 
-# TODO: Add a test-case for an infeasible integer-linear program
-#  (infeasible only due integrality constraints).
+def mi_lp_3():
+    # infeasible (but relaxable) test case
+    x = cp.Variable(4, boolean=True)
+    from cvxpy.expressions.constants import Constant
+    objective = cp.Maximize(Constant(1))
+    constraints = [x[0] + x[1] + x[2] + x[3] <= 2,
+                   x[0] + x[1] + x[2] + x[3] >= 2,
+                   x[0] + x[1] <= 1,
+                   x[0] + x[2] <= 1,
+                   x[0] + x[3] <= 1,
+                   x[2] + x[3] <= 1,
+                   x[1] + x[3] <= 1,
+                   x[1] + x[2] <= 1]
+    obj_pair = (objective, -np.inf)
+    con_pairs = [(c, None) for c in constraints]
+    var_pairs = [(x, None)]
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
 
 
 def mi_socp_1():
@@ -635,6 +651,13 @@ class StandardTestLPs(object):
     @staticmethod
     def test_mi_lp_2(solver, places=4, **kwargs):
         sth = mi_lp_2()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+
+    @staticmethod
+    def test_mi_lp_3(solver, places=4, **kwargs):
+        sth = mi_lp_3()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
