@@ -52,7 +52,7 @@ class CVXOPT(ECOS):
     # Map of CVXOPT status to CVXPY status.
     STATUS_MAP = {"optimal": s.OPTIMAL,
                   "feasible": s.OPTIMAL_INACCURATE,
-                  "infeasible": s.INFEASIBLE,
+                  "infeasible problem": s.INFEASIBLE,
                   "primal infeasible": s.INFEASIBLE,
                   "LP relaxation is primal infeasible": s.INFEASIBLE,
                   "LP relaxation is dual infeasible": s.UNBOUNDED,
