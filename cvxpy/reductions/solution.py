@@ -31,9 +31,9 @@ def failure_solution(status):
     Solution
         A solution object.
     """
-    if status == s.INFEASIBLE:
+    if status in [s.INFEASIBLE, s.INFEASIBLE_INACCURATE]:
         opt_val = np.inf
-    elif status == s.UNBOUNDED:
+    elif status in [s.UNBOUNDED, s.UNBOUNDED_INACCURATE]:
         opt_val = -np.inf
     else:
         opt_val = None
