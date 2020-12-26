@@ -15,7 +15,7 @@ env:
       DEPLOY_PYPI_SOURCE="False"
 sudo: required
 before_install:
-  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CC=g++ ; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CC=gcc ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CXX=g++; fi
 install: source continuous_integration/Travis/install_dependencies.sh
 script:
