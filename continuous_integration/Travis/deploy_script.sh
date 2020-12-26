@@ -1,7 +1,6 @@
 #!/bin/bash
 
 source activate testenv
-conda config --add channels cvxgrp
 conda config --add channels conda-forge
 conda config --add channels oxfordcontrol
 conda install --yes requests twine
