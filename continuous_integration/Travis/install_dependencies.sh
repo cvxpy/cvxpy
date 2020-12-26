@@ -34,9 +34,12 @@ touch $PIN_FILE
 echo $PIN_CMD_PREFIX >> $PIN_FILE
 conda install --yes lapack ecos scs
 conda install -c anaconda --yes flake8
-#pip install osqp # not available for up-to-date python, as of Dec 26, 2020.
+#pip install osqp # let python setuptools figure out how to install
 pip install diffcp
-pip install cvxopt
+
+if [[ "$PYTHON_VERSION" != "3.9"]]; then
+  pip install cvxopt  # pip install fails on python 3.9, as of Dec 26, 2020.
+fi
 
 if [[ "$COVERAGE" == "true" ]]; then
     pip install coverage coveralls

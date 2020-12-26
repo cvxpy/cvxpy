@@ -2,7 +2,6 @@
 
 source activate testenv
 conda config --add channels conda-forge
-conda config --add channels oxfordcontrol
 conda install --yes requests twine
 conda install --yes readme_renderer
 
