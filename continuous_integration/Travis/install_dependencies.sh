@@ -23,8 +23,6 @@ elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     export PATH=/Users/travis/miniconda3/bin:$PATH
     PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
     PIN_CMD_PREFIX="python=$PYTHON_VERSION.*"
-    # brew install gcc
-    #sudo xcode-select --reset  # otherwise system can't find the C compiler
 fi
 
 conda update --yes conda
@@ -36,7 +34,7 @@ touch $PIN_FILE
 echo $PIN_CMD_PREFIX >> $PIN_FILE
 conda install --yes lapack ecos scs
 conda install -c anaconda --yes flake8
-pip install osqp # let python setuptools figure out how to install
+pip install osqp
 pip install diffcp
 
 if [[ "$PYTHON_VERSION" != "3.9" ]]; then
