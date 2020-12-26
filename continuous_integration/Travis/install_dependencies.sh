@@ -23,6 +23,7 @@ elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     export PATH=/Users/travis/miniconda3/bin:$PATH
     PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
     PIN_CMD_PREFIX="python=$PYTHON_VERSION.*"
+    sudo xcode-select --reset  # otherwise system can't find the C compiler
 fi
 
 conda update --yes conda
