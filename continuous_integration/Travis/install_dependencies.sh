@@ -13,18 +13,16 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
     wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh \
        -O miniconda.sh
     chmod +x miniconda.sh && ./miniconda.sh -b
-    PIN_FILE=/home/travis/miniconda3/envs/testenv/conda-meta/pinned
-    touch $PIN_FILE
-    echo "python=$PYTHON_VERSION" >> $PIN_FILE
     export PATH=/home/travis/miniconda3/bin:$PATH
+    PIN_FILE=/home/travis/miniconda3/envs/testenv/conda-meta/pinned
+    PIN_CMD_PREFIX="python=$PYTHON_VERSION"
 elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
          -O miniconda.sh
     chmod +x miniconda.sh && ./miniconda.sh -b
-    PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
-    touch $PIN_FILE
-    echo "python=$PYTHON_VERSION.*" >> $PIN_FILE
     export PATH=/Users/travis/miniconda3/bin:$PATH
+    PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
+    PIN_CMD_PREFIX="python=$PYTHON_VERSION.*"
 fi
 
 conda update --yes conda
@@ -32,6 +30,8 @@ conda config --add channels conda-forge
 conda create -n testenv --yes python=$PYTHON_VERSION mkl pip pytest \
       numpy=$NUMPY_VERSION scipy=$SCIPY_VERSION
 source activate testenv
+touch $PIN_FILE
+echo $PIN_CMD_PREFIX >> $PIN_FILE
 conda install --yes lapack ecos scs
 conda install -c anaconda --yes flake8
 #pip install osqp # not available for up-to-date python, as of Dec 26, 2020.
