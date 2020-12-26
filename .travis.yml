@@ -4,15 +4,15 @@ os:
   - linux
 env:
   matrix:
-    - DISTRIB="conda" PYTHON_VERSION="3.5" CVXOPT="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.7"
       NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
-    - DISTRIB="conda" PYTHON_VERSION="3.6" CVXOPT="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.8"
       NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="True"
-    - DISTRIB="conda" PYTHON_VERSION="3.7" CVXOPT="true"
+    - DISTRIB="conda" PYTHON_VERSION="3.9"
       NUMPY_VERSION="1.15" SCIPY_VERSION="1.1.0"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"

@@ -30,11 +30,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda install -c oxfordcontrol --yes osqp
         conda install -c default --yes flake8
         pip install diffcp
-
-        # Install GLPK.
-        if [[ "$CVXOPT" == "true" ]]; then
-            pip install cvxopt
-        fi
+        pip install cvxopt
 
     elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
         wget http://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh \
@@ -55,13 +51,6 @@ if [[ "$DISTRIB" == "conda" ]]; then
         conda install -c default --yes flake8=3.5.0
         pip install diffcp
     fi
-
-
-elif [[ "$DISTRIB" == "ubuntu" ]]; then
-    sudo apt-get update -qq
-    # Use standard ubuntu packages in their default version
-    sudo apt-get install -qq python-pip python-scipy python-numpy
-fi
 
 if [[ "$COVERAGE" == "true" ]]; then
     pip install coverage coveralls
