@@ -9,11 +9,11 @@ env:
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
     - PYTHON_VERSION="3.8"
-      NUMPY_VERSION="1.16" SCIPY_VERSION="1.1.0"
+      NUMPY_VERSION="1.16" SCIPY_VERSION="1.4.0"
       COVERAGE="true"
       DEPLOY_PYPI_SOURCE="True"
     - PYTHON_VERSION="3.9"
-      NUMPY_VERSION="1.16" SCIPY_VERSION="1.1.0"
+      NUMPY_VERSION="1.16" SCIPY_VERSION="1.5.0"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
 sudo: required
