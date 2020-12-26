@@ -37,7 +37,7 @@ conda install -c anaconda --yes flake8
 #pip install osqp # let python setuptools figure out how to install
 pip install diffcp
 
-if [[ "$PYTHON_VERSION" != "3.9"]]; then
+if [[ "$PYTHON_VERSION" != "3.9" ]]; then
   pip install cvxopt  # pip install fails on python 3.9, as of Dec 26, 2020.
 fi
 
