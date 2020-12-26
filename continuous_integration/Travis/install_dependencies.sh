@@ -25,7 +25,7 @@ if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
     echo "python=$PYTHON_VERSION" >> $PIN_FILE
     conda install -c conda-forge --yes lapack
     conda install -c conda-forge --yes ecos scs
-    conda install -c oxfordcontrol --yes osqp
+    pip install osqp # not available for up-to-date python, as of Dec 26, 2020.
     conda install -c default --yes flake8
     pip install diffcp
     pip install cvxopt
@@ -45,7 +45,7 @@ elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     touch $PIN_FILE
     echo "python=$PYTHON_VERSION.*" >> $PIN_FILE
     conda install -c conda-forge --yes ecos scs
-    conda install -c oxfordcontrol --yes osqp
+    pip install osqp # not available for up-to-date python, as of Dec 26, 2020.
     conda install -c default --yes flake8=3.5.0
     pip install diffcp
 fi
