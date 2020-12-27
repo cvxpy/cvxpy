@@ -22,24 +22,19 @@ elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     chmod +x miniconda.sh && ./miniconda.sh -b
     export PATH=/Users/travis/miniconda3/bin:$PATH
     PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
-    PIN_CMD_PREFIX="python=$PYTHON_VERSION"
+    PIN_CMD_PREFIX="python=$PYTHON_VERSION.*"
 fi
 
 conda update --yes conda
 conda config --add channels conda-forge
 conda create -n testenv --yes python=$PYTHON_VERSION mkl pip pytest \
-      numpy=$NUMPY_VERSION scipy=1.1
+      numpy scipy
 source activate testenv
 touch $PIN_FILE
-echo $PIN_CMD_PREFIX
 echo $PIN_CMD_PREFIX >> $PIN_FILE
-if [[ "$PYTHON_VERSION" != "3.7" ]]; then
-    conda install --yes lapack ecos scs
-    pip install osqp  # breaks with numpy < 1.19.
-else
-    conda install --yes lapack ecos scs osqp
-fi
+conda install --yes lapack ecos scs
 conda install -c anaconda --yes flake8
+pip install osqp
 pip install diffcp
 
 if [[ "$PYTHON_VERSION" != "3.9" ]]; then
