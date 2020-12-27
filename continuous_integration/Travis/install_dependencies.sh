@@ -33,9 +33,13 @@ source activate testenv
 touch $PIN_FILE
 echo $PIN_CMD_PREFIX
 echo $PIN_CMD_PREFIX >> $PIN_FILE
-conda install --yes lapack ecos scs osqp
+if [[ "$PYTHON_VERSION" != "3.7" ]]; then
+    conda install --yes lapack ecos scs
+    pip install osqp  # breaks with numpy < 1.19.
+else
+    conda install --yes lapack ecos scs osqp
+fi
 conda install -c anaconda --yes flake8
-# pip install osqp
 pip install diffcp
 
 if [[ "$PYTHON_VERSION" != "3.9" ]]; then
