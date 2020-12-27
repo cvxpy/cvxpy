@@ -7,12 +7,15 @@ env:
     - PYTHON_VERSION="3.7"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
+      NUMPY_VERSION="1.14"
     - PYTHON_VERSION="3.8"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="True"
+      NUMPY_VERSION="1.14"
     - PYTHON_VERSION="3.9"
       COVERAGE="false"
       DEPLOY_PYPI_SOURCE="False"
+      NUMPY_VERSION="1.16"
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CC=gcc ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CXX=g++; fi

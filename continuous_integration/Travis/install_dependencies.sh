@@ -28,7 +28,7 @@ fi
 conda update --yes conda
 conda config --add channels conda-forge
 conda create -n testenv --yes python=$PYTHON_VERSION mkl pip pytest \
-      numpy scipy
+      numpy=$NUMPY_VERSION scipy
 source activate testenv
 touch $PIN_FILE
 echo $PIN_CMD_PREFIX >> $PIN_FILE

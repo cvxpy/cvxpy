@@ -22,37 +22,6 @@ def update_pypi_source(server):
         raise RuntimeError(msg)
 
 
-def conda_version(python_version, operating_system):
-    #
-    #   python_version must be one of {2.7, 3.5, 3.6, 3.7}
-    #
-    #   operating system must be one of {linux, osx, win}
-    #
-    major_minor = python_version.split('.')
-    pyvers = 'py' + major_minor[0] + major_minor[1]
-    url = "https://api.anaconda.org/package/cvxgrp/cvxpy"
-    r = requests.get(url)
-    data = r.json()
-    filestrings = [str(data['files'][i]['full_name']) for i in range(len(data['files']))]
-    versions = []
-    for fs in filestrings:
-        fs = fs.split('/')
-        # fs = ['cvxgrp', 'cvxpy', '<x.y.z>', '<os>', '<filename>' ]
-        if operating_system in fs[3] and pyvers in fs[4]:
-            versions.append(fs[2])
-    versions.sort(key=parse_version)
-    if len(versions) == 0:
-        versions = ['0.0.0']
-    return versions[-1]
-
-
-def update_conda(python_version, operating_system):
-    import cvxpy
-    most_recent_remote = conda_version(python_version, operating_system)
-    local_version = cvxpy.__version__
-    return parse_version(local_version) > parse_version(most_recent_remote)
-
-
 def update_pypi_wheel(python_version, operating_system, server):
     # python_version is expected to be
     #
