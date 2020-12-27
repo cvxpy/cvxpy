@@ -22,7 +22,7 @@ elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
     chmod +x miniconda.sh && ./miniconda.sh -b
     export PATH=/Users/travis/miniconda3/bin:$PATH
     PIN_FILE=/Users/travis/miniconda3/envs/testenv/conda-meta/pinned
-    PIN_CMD_PREFIX="python=$PYTHON_VERSION.*"
+    PIN_CMD_PREFIX="python=$PYTHON_VERSION"
 fi
 
 conda update --yes conda
