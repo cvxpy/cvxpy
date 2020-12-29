@@ -22,7 +22,8 @@ elif [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 fi
 
 conda update --yes conda
-conda config --add channels conda-forge anaconda
+conda config --add channels conda-forge
+conda config --add channels anaconda
 
 if [[ "$PYTHON_VERSION" == "3.7" ]]; then
   conda create -n testenv --yes python=3.7 mkl pip pytest \
