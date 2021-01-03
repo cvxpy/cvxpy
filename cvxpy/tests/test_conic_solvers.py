@@ -360,6 +360,9 @@ class TestSCS(BaseTest):
     def test_scs_pcp_1(self):
         StandardTestPCPs.test_pcp_1(solver='SCS')
 
+    def test_scs_pcp_2(self):
+        StandardTestPCPs.test_pcp_2(solver='SCS', eps=1e-8)
+
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
 class TestMosek(unittest.TestCase):
@@ -414,6 +417,12 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_exp_soc_1(self):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOSEK')
+
+    def test_mosek_pcp_1(self):
+        StandardTestPCPs.test_pcp_1(solver='MOSEK')
+
+    def test_mosek_pcp_2(self):
+        StandardTestPCPs.test_pcp_2(solver='MOSEK')
 
     def test_mosek_mi_lp_0(self):
         StandardTestLPs.test_mi_lp_0(solver='MOSEK')

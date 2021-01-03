@@ -18,7 +18,7 @@ import numpy as np
 import scipy as sp
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone
+from cvxpy.constraints import PSD, SOC, ExpCone, PowerCone3D
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.cone2cone import affine2direct as a2d
@@ -81,6 +81,7 @@ class MOSEK(ConicSolver):
         mosek  # For flake8
         if hasattr(mosek.conetype, 'pexp') and ExpCone not in MOSEK.SUPPORTED_CONSTRAINTS:
             MOSEK.SUPPORTED_CONSTRAINTS.append(ExpCone)
+            MOSEK.SUPPORTED_CONSTRAINTS.append(PowerCone3D)
 
     def name(self):
         """The name of the solver.
@@ -291,6 +292,11 @@ class MOSEK(ConicSolver):
             cones = [mosek.conetype.dexp] * num_dexp
             task.appendconesseq(cones, [0] * num_dexp, [3] * num_dexp, idx)
             idx += 3 * num_dexp
+        num_dpow = len(K[a2d.DUAL_POW3D])
+        if num_dpow > 0:
+            cones = [mosek.conetype.dpow] * num_dpow
+            task.appendconesseq(cones, K[a2d.DUAL_POW3D], [3] * num_dpow, idx)
+            idx += 3 * num_dpow
         num_psd = len(K[a2d.PSD])
         if num_psd > 0:
             task.appendbarvars(K[a2d.PSD])
@@ -499,6 +505,13 @@ class MOSEK(ConicSolver):
             perm = expcone_permutor(num_dexp, MOSEK.EXP_CONE_ORDER)
             prim_vars[a2d.DUAL_EXP] = temp[perm]
             idx += (3 * num_dexp)
+        num_dpow = len(K_dir[a2d.DUAL_POW3D])
+        if num_dpow > 0:
+            temp = [0.] * (3 * num_dpow)
+            task.getxxslice(sol, idx, idx + len(temp), temp)
+            temp = np.array(temp)
+            prim_vars[a2d.DUAL_POW3D] = temp
+            idx += (3 * num_dpow)
         num_psd = len(K_dir[a2d.PSD])
         if num_psd > 0:
             psd_vars = []

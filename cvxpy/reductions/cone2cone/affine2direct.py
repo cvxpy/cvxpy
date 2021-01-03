@@ -20,6 +20,7 @@ from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
 from cvxpy.constraints.second_order import SOC as SOC_obj
 from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
 from cvxpy.constraints.psd import PSD as PSD_obj
+from cvxpy.constraints.power import PowerCone3D as PowerCone_obj
 import numpy as np
 import scipy as sp
 
@@ -29,8 +30,10 @@ ZERO = '0'
 NONNEG = '+'
 EXP = 'e'
 DUAL_EXP = 'de'
-SOC = 's'
-PSD = 'p'
+SOC = 'q'
+PSD = 's'
+POW3D = 'pp3'
+DUAL_POW3D = 'dp3'
 
 
 class Dualize(object):
@@ -97,7 +100,8 @@ class Dualize(object):
             NONNEG: Kp.nonneg,  # length of block of nonneg variables.
             SOC: Kp.soc,  # lengths of blocks of soc-constrained variables.
             PSD: Kp.psd,  # "orders" of PSD variables
-            DUAL_EXP: Kp.exp  # number of length-3 blocks of dual exp cone variables.
+            DUAL_EXP: Kp.exp,  # number of length-3 blocks of dual exp cone variables.
+            DUAL_POW3D: Kp.p3d  # scale parameters for dual 3d power cones
         }
         data = {
             s.A: A.T,
@@ -191,6 +195,10 @@ class Dualize(object):
             i = 0
             for con in constr_map[ExpCone_obj]:
                 dv = direct_prims[DUAL_EXP][i:i + con.size]
+                dual_vars[con.id] = dv
+                i += con.size
+            for con in constr_map[PowerCone_obj]:
+                dv = direct_prims[DUAL_POW3D][i:i + con.size]
                 dual_vars[con.id] = dv
                 i += con.size
         elif status == s.INFEASIBLE:
