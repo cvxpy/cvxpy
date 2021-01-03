@@ -16,7 +16,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone
+from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone, PowerCone3D
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers import utilities
@@ -28,11 +28,12 @@ import scipy.sparse as sp
 # that can be supplied to scs.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        s.EQ_DIM: cone_dims.zero,
-        s.LEQ_DIM: cone_dims.nonneg,
-        s.SOC_DIM: cone_dims.soc,
-        s.EXP_DIM: cone_dims.exp,
-        s.PSD_DIM: cone_dims.psd,
+        'f': cone_dims.zero,
+        'l': cone_dims.nonneg,
+        'q': cone_dims.soc,
+        'ep': cone_dims.exp,
+        's': cone_dims.psd,
+        'p': cone_dims.p3d
     }
     return cones
 
@@ -114,9 +115,8 @@ class SCS(ConicSolver):
 
     # Solver capabilities.
     MIP_CAPABLE = False
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC,
-                                                                 ExpCone,
-                                                                 PSD]
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
+                            + [SOC, ExpCone, PSD, PowerCone3D]
     REQUIRES_CONSTR = True
 
     # Map of SCS status to CVXPY status.
@@ -192,6 +192,7 @@ class SCS(ConicSolver):
         # 3. soc
         # 4. psd
         # 5. exponential
+        # 6. three-dimensional power cones
         if not problem.formatted:
             problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
@@ -201,7 +202,7 @@ class SCS(ConicSolver):
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
-            constr_map[PSD] + constr_map[ExpCone]
+            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowerCone3D]
         return problem, data, inv_data
 
     def apply(self, problem):

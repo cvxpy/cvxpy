@@ -31,6 +31,7 @@ from cvxpy.tests.solver_test_helpers import (
     StandardTestMixedCPs,
     StandardTestSDPs,
     StandardTestSOCPs,
+    StandardTestPCPs
 )
 
 
@@ -355,6 +356,9 @@ class TestSCS(BaseTest):
 
     def test_scs_exp_soc_1(self):
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS')
+
+    def test_scs_pcp_1(self):
+        StandardTestPCPs.test_pcp_1(solver='SCS')
 
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')

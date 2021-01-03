@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PSD, Zero, NonNeg
+from cvxpy.constraints import SOC, ExpCone, PSD, Zero, NonNeg, PowerConeND, PowerCone3D
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -159,12 +159,12 @@ class ConicSolver(Solver):
         # variable entry.
         restruct_mat = []  # Form a block diagonal matrix.
         for constr in problem.constraints:
-            total_height = sum([arg.size for arg in constr.args])
             if type(constr) == Zero:
                 restruct_mat.append(-sp.eye(constr.size, format='csr'))
             elif type(constr) == NonNeg:
                 restruct_mat.append(sp.eye(constr.size, format='csr'))
             elif type(constr) == SOC:
+                total_height = sum([arg.size for arg in constr.args])
                 # Group each t row with appropriate X rows.
                 assert constr.axis == 0, 'SOC must be lowered to axis == 0'
 
@@ -189,6 +189,7 @@ class ConicSolver(Solver):
                 )
                 restruct_mat.append(sp.hstack([t_spacer, X_spacer]))
             elif type(constr) == ExpCone:
+                total_height = sum([arg.size for arg in constr.args])
                 arg_mats = []
                 for i, arg in enumerate(constr.args):
                     space_mat = ConicSolver.get_spacing_matrix(
@@ -197,6 +198,16 @@ class ConicSolver(Solver):
                         streak=1,
                         num_blocks=arg.size,
                         offset=exp_cone_order[i],
+                    )
+                    arg_mats.append(space_mat)
+                restruct_mat.append(sp.hstack(arg_mats))
+            elif type(constr) == PowerCone3D:
+                total_height = sum([arg.size for arg in constr.args[:3]])
+                arg_mats = []
+                for i, arg in enumerate(constr.args[:3]):
+                    space_mat = ConicSolver.get_spacing_matrix(
+                        shape=(total_height, arg.size), spacing=2,
+                        streak=1, num_blocks=arg.size, offset=i,
                     )
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
