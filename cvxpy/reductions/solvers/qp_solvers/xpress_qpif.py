@@ -91,7 +91,6 @@ class XPRESS(QpSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
 
         import xpress as xp
@@ -193,10 +192,7 @@ class XPRESS(QpSolver):
 
             rownames_ineq = ['ineq_{0:09d}'.format(i) for i in range(n_ineq)]
 
-            mclind=F.indices[F.data != 0]      # column indices
-            dmatval=F.data[F.data != 0]        # coefficient
-
-            self.prob_.addrows(# constraint types
+            self.prob_.addrows(  # constraint types
                 qrtype=['L'] * n_ineq,              # inequalities sign
                 rhs=g,                              # rhs
                 mstart=mstartIneq,                  # starting indices
