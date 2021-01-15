@@ -349,7 +349,7 @@ class TestPowND(BaseTest):
                  z := [x3, x4]
                  alpha := [[0.2, 0.4],
                           [0.8, 0.6]]
-                 (W, z) \in PowND(alpha, axis=0)
+                 (W, z) in PowND(alpha, axis=0)
         """
         x = cp.Variable(shape=(3,))
         expect_x = np.array([0.06393515, 0.78320961, 2.30571048])

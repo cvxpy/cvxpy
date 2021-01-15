@@ -3,7 +3,7 @@ import warnings
 
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC, NonNeg, \
-                              NonPos, Inequality, Equality, Zero, PowConeND, PowCone3D
+                              NonPos, Inequality, Equality, Zero, PowCone3D
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain

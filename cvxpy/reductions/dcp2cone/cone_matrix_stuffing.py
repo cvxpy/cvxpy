@@ -79,12 +79,13 @@ class ConeDims(object):
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
-                "SOC constraints: %s, PSD constraints: %s, 3d power cones %s.") % (self.zero,
-                                                                self.nonneg,
-                                                                self.exp,
-                                                                self.soc,
-                                                                self.psd,
-                                                                self.p3d)
+                "SOC constraints: %s, PSD constraints: %s,\n"
+                " 3d power cones %s.") % (self.zero,
+                                          self.nonneg,
+                                          self.exp,
+                                          self.soc,
+                                          self.psd,
+                                          self.p3d)
 
     def __getitem__(self, key):
         if key == self.EQ_DIM:
