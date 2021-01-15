@@ -28,54 +28,41 @@ class PowerCone3D(Constraint):
         x >= 0, y >= 0
         """
         Expression = cvxtypes.expression()
-        self.x = Expression.cast_to_const(x) #TODO: add checks that inputs are real
+        self.x = Expression.cast_to_const(x)  # TODO: add checks that inputs are real
         self.y = Expression.cast_to_const(y)
         self.z = Expression.cast_to_const(z)
         self.alpha = Expression.cast_to_const(alpha)  # cheat!!
-        super(PowerCone3D, self).__init__([self.x, self.y, self.z, self.alpha],
-                                      constr_id)
+        super(PowerCone3D, self).__init__([self.x, self.y, self.z],
+                                          constr_id)
         pass
 
-    # Override base class
-    def _construct_dual_variables(self, args):
-        self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args[:3]]
+    def __str__(self):
+        return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
-    # Override base class
+    def get_data(self):
+        return [self.alpha]
+
     def is_imag(self):
         return False
 
-    # Override base class
     def is_complex(self):
         return False
 
     @property
     def size(self):
-        """The number of entries in the combined cones.
-        """
         return 3 * self.num_cones()
 
     def num_cones(self):
-        """The number of elementwise cones.
-        """
         return self.x.size
 
     def cone_sizes(self):
-        """The dimensions of the power cones.
-
-        Returns
-        -------
-        list
-            A list of the sizes of the elementwise cones.
-        """
         return [3]*self.num_cones()
 
     def is_dcp(self, dpp=False):
-        """A power cone constraint is DCP if each argument is affine.
-        """
         if dpp:
             with scopes.dpp_scope():
-                return all(arg.is_affine() for arg in self.args[:3])
-        return all(arg.is_affine() for arg in self.args[:3])
+                return all(arg.is_affine() for arg in self.args)
+        return all(arg.is_affine() for arg in self.args)
 
     def is_dgp(self, dpp=False):
         return False
@@ -100,12 +87,90 @@ class PowerCone3D(Constraint):
         #   relative to ExpCone constraints.
 
 
-
 class PowerConeND(Constraint):
 
-    def __init__(self, w, z, alpha):
+    _TOL_ = 1e-6
+
+    def __init__(self, W, z, alpha, axis=0, constr_id=None):
         """
         \\prod_i w_i^{\\alpha_i} >= |z|
         w >= 0
         """
-        pass
+        if axis != 0:
+            raise NotImplementedError()
+        Expression = cvxtypes.expression()
+        W = Expression.cast_to_const(W)
+        if not (W.is_real() and W.is_affine()):
+            raise ValueError("Invalid first argument.")
+        z = Expression.cast_to_const(z)
+        if len(z.shape) > 1 or not (z.is_real() and z.is_affine()):
+            raise ValueError("Invalid second argument.")
+        # Check t has one entry per cone.
+        if (len(W.shape) <= 1 and z.size > 1) or \
+           (len(W.shape) == 2 and z.size != W.shape[1-axis]) or \
+           (len(W.shape) == 1 and axis == 1):
+            raise ValueError(
+                "Argument dimensions %s and %s, with axis=%i, are incompatible."
+                % (W.shape, z.shape, axis))
+        alpha = Expression.cast_to_const(alpha)
+        if alpha.shape != W.shape:
+            raise ValueError("Argument dimensions %s and %s are not equal."
+                             % (W.shape, alpha.shape))
+        if np.any(alpha.value <= 0):
+            raise ValueError("Argument alpha must be entry-wise positive.")
+        if np.any(np.abs(1 - np.sum(alpha.value, axis=axis)) > PowerConeND._TOL_):
+            raise ValueError("Argument alpha must sum to 1 along axis %s." % axis)
+        self.W = W
+        self.z = z
+        self.alpha = alpha
+        self.axis = axis
+        if len(z.shape) == 0:
+            z = z.flatten()
+        super(PowerConeND, self).__init__([W, z], constr_id)
+
+    def __str__(self):
+        return "PowND(%s, %s; %s)" % (self.W, self.z, self.alpha)
+
+    def is_imag(self):
+        return False
+
+    def is_complex(self):
+        return False
+
+    def get_data(self):
+        return [self.alpha, self.axis]
+
+    @property
+    def residual(self):
+        raise NotImplementedError()
+
+    def num_cones(self):
+        return self.z.size
+
+    @property
+    def size(self):
+        cone_size = 1 + self.args[0].shape[self.axis]
+        return cone_size * self.num_cones()
+
+    def cone_sizes(self):
+        cone_size = 1 + self.args[0].shape[self.axis]
+        return [cone_size] * self.num_cones()
+
+    def is_dcp(self, dpp=False):
+        """A power cone constraint is DCP if each argument is affine.
+        """
+        if dpp:
+            with scopes.dpp_scope():
+                args_ok = self.args[0].is_affine() and self.args[1].is_affine()
+                exps_ok = not isinstance(self.alpha, cvxtypes.parameter())
+                return args_ok and exps_ok
+        return True
+
+    def is_dgp(self, dpp=False):
+        return False
+
+    def is_dqcp(self):
+        return self.is_dcp()
+
+    def save_dual_value(self, value):
+        raise NotImplementedError()

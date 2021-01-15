@@ -116,7 +116,7 @@ class SCS(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-                            + [SOC, ExpCone, PSD, PowerCone3D]
+        + [SOC, ExpCone, PSD, PowerCone3D]
     REQUIRES_CONSTR = True
 
     # Map of SCS status to CVXPY status.

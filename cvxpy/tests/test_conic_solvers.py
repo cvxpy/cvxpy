@@ -187,6 +187,7 @@ class TestSCS(BaseTest):
         """Test complex matrices.
         """
         # Complex-valued matrix
+        np.random.seed(0)
         K = np.array(np.random.rand(2, 2) + 1j * np.random.rand(2, 2))  # example matrix
         n1 = la.svdvals(K).sum()  # trace norm of K
 
@@ -447,6 +448,7 @@ class TestMosek(unittest.TestCase):
             import mosek
             n = 10
             m = 4
+            np.random.seed(0)
             A = np.random.randn(m, n)
             x = np.random.randn(n)
             y = A.dot(x)
@@ -756,6 +758,7 @@ class TestCPLEX(BaseTest):
     def test_cplex_params(self):
         if cp.CPLEX in INSTALLED_SOLVERS:
             n, m = 10, 4
+            np.random.seed(0)
             A = np.random.randn(m, n)
             x = np.random.randn(n)
             y = A.dot(x)
@@ -1066,6 +1069,7 @@ class TestXPRESS(BaseTest):
     def test_xpress_params(self):
         if cp.XPRESS in INSTALLED_SOLVERS:
             n, m = 10, 4
+            np.random.seed(0)
             A = np.random.randn(m, n)
             x = np.random.randn(n)
             y = A.dot(x)

@@ -826,7 +826,7 @@ class Problem(u.Canonical):
         obtaining the gradient of a solution with respect to the Parameters.
         In other words, it calculates the sensitivities of the Parameters
         with respect to perturbations in the optimal Variable values. This
-        can be useful for integrating CVXPY into automatic differentation
+        can be useful for integrating CVXPY into automatic differentiation
         toolkits.
 
         ``backward()`` populates the ``gradient`` attribute of each Parameter

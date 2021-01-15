@@ -328,13 +328,7 @@ class ConeMatrixStuffing(MatrixStuffing):
 
         inverse_data.constraints = ordered_cons
         # Batch expressions together, then split apart.
-        expr_list = []
-        for c in ordered_cons:
-            if type(c) == PowerCone3D:
-                trunc = 3
-            else:
-                trunc = len(c.args)
-            expr_list.extend(arg for arg in c.args[:trunc])
+        expr_list = [arg for c in ordered_cons for arg in c.args]
         params_to_problem_data = extractor.affine(expr_list)
 
         inverse_data.minimize = type(problem.objective) == Minimize
