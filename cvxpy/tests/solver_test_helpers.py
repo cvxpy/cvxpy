@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
-
+import warnings
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
 
@@ -122,6 +122,10 @@ class SolverTestHelper(object):
             elif isinstance(con, (cp.constraints.Inequality,
                                   cp.constraints.Equality)):
                 comp = cp.scalar_product(con.expr, con.dual_value).value
+            elif isinstance(con, cp.constraints.PowerConeND):
+                msg = '\nPowerConeND dual variables not implemented;' \
+                       + '\nSkipping complementarity check.'
+                warnings.warn(msg)
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)

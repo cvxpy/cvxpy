@@ -39,6 +39,10 @@ class PowerCone3D(Constraint):
     def __str__(self):
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
+    def residual(self):
+        # TODO: implement
+        raise NotImplementedError()
+
     def get_data(self):
         return [self.alpha]
 
@@ -83,7 +87,7 @@ class PowerCone3D(Constraint):
         self.dual_variables[0].save_value(dv0)
         self.dual_variables[1].save_value(dv1)
         self.dual_variables[2].save_value(dv2)
-        # TODO(rileyjmurray): figure out why the reshaping had to be done differently,
+        # TODO: figure out why the reshaping had to be done differently,
         #   relative to ExpCone constraints.
 
 
@@ -96,22 +100,23 @@ class PowerConeND(Constraint):
         \\prod_i w_i^{\\alpha_i} >= |z|
         w >= 0
         """
-        if axis != 0:
-            raise NotImplementedError()
         Expression = cvxtypes.expression()
         W = Expression.cast_to_const(W)
         if not (W.is_real() and W.is_affine()):
             raise ValueError("Invalid first argument.")
         z = Expression.cast_to_const(z)
-        if len(z.shape) > 1 or not (z.is_real() and z.is_affine()):
+        if z.ndim > 1 or not (z.is_real() and z.is_affine()):
             raise ValueError("Invalid second argument.")
         # Check t has one entry per cone.
-        if (len(W.shape) <= 1 and z.size > 1) or \
-           (len(W.shape) == 2 and z.size != W.shape[1-axis]) or \
-           (len(W.shape) == 1 and axis == 1):
+        if (W.ndim <= 1 and z.size > 1) or \
+           (W.ndim == 2 and z.size != W.shape[1-axis]) or \
+           (W.ndim == 1 and axis == 1):
             raise ValueError(
                 "Argument dimensions %s and %s, with axis=%i, are incompatible."
                 % (W.shape, z.shape, axis))
+        if W.ndim == 2 and W.shape[axis] <= 1:
+            msg = "PowerConeND requires left-hand-side to have at least two terms."
+            raise ValueError(msg)
         alpha = Expression.cast_to_const(alpha)
         if alpha.shape != W.shape:
             raise ValueError("Argument dimensions %s and %s are not equal."
@@ -124,7 +129,7 @@ class PowerConeND(Constraint):
         self.z = z
         self.alpha = alpha
         self.axis = axis
-        if len(z.shape) == 0:
+        if z.ndim == 0:
             z = z.flatten()
         super(PowerConeND, self).__init__([W, z], constr_id)
 
@@ -142,6 +147,7 @@ class PowerConeND(Constraint):
 
     @property
     def residual(self):
+        # TODO: implement
         raise NotImplementedError()
 
     def num_cones(self):
@@ -173,4 +179,5 @@ class PowerConeND(Constraint):
         return self.is_dcp()
 
     def save_dual_value(self, value):
-        raise NotImplementedError()
+        # TODO: implement
+        pass

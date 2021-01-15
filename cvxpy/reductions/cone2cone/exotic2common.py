@@ -18,10 +18,7 @@ import numpy as np
 from cvxpy.expressions.variable import Variable
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.reductions.inverse_data import InverseData
-from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.reductions.solution import Solution
 from cvxpy.constraints.power import PowerCone3D, PowerConeND
 
 EXOTIC_CONES = {
@@ -45,13 +42,13 @@ def pow_nd_canon(con, args):
     """
     alpha, axis = con.get_data()
     alpha = alpha.value
-    if axis != 0:
-        raise NotImplementedError()
     W, z = args
+    if axis == 1:
+        W = W.T
+        alpha = alpha.T
     if W.ndim == 1:
         W = reshape(W, (W.size, 1))
-        # If this works, then can probably take a
-        # transpose to handle the axis argument.
+        alpha = np.reshape(alpha, (W.size, 1))
     n, k = W.shape
     if n == 2:
         can_con = PowerCone3D(W[0, :], W[1, :], z, alpha[0, :])
@@ -65,7 +62,8 @@ def pow_nd_canon(con, args):
             arg3.append(z[j])
             arg3.append(T[:, j])
             r_nums = alpha[:, j]
-            r_dens = np.cumsum(r_nums)[::-1]  # reverse the cumsum
+            r_dens = np.cumsum(r_nums[::-1])[::-1]
+            # ^ equivalent to [np.sum(alpha[i:, j]) for i in range(n)]
             r = r_nums / r_dens
             arg4.append(r[:n-1])
         arg1 = hstack(arg1)
@@ -88,6 +86,3 @@ class Exotic2Common(Canonicalization):
     def __init__(self, problem=None):
         super(Exotic2Common, self).__init__(
             problem=problem, canon_methods=Exotic2Common.CANON_METHODS)
-
-    def accepts(self, problem):
-        return True

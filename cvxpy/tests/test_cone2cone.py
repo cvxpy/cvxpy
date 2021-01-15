@@ -30,6 +30,7 @@ from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.power import PowerConeND
 
 
 class TestDualize(BaseTest):
@@ -326,3 +327,113 @@ class TestSlacks(BaseTest):
             TestSlacks.simulate_chain(sth.prob, affine)
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
+
+
+class TestPowND(BaseTest):
+
+    @staticmethod
+    def pcp_3(axis):
+        """
+        A modification of pcp_2. Reformulate
+
+            max  (x**0.2)*(y**0.8) + z**0.4 - x
+            s.t. x + y + z/2 == 2
+                 x, y, z >= 0
+        Into
+
+            max  x3 + x4 - x0
+            s.t. x0 + x1 + x2 / 2 == 2,
+
+                 W := [[x0, x2],
+                      [x1, 1.0]]
+                 z := [x3, x4]
+                 alpha := [[0.2, 0.4],
+                          [0.8, 0.6]]
+                 (W, z) \in PowND(alpha, axis=0)
+        """
+        x = cp.Variable(shape=(3,))
+        expect_x = np.array([0.06393515, 0.78320961, 2.30571048])
+        hypos = cp.Variable(shape=(2,))
+        expect_hypos = None
+        objective = cp.Maximize(cp.sum(hypos) - x[0])
+        W = cp.bmat([[x[0], x[2]],
+                     [x[1], 1.0]])
+        alpha = np.array([[0.2, 0.4],
+                          [0.8, 0.6]])
+        if axis == 1:
+            W = W.T
+            alpha = alpha.T
+        con_pairs = [
+            (x[0] + x[1] + 0.5 * x[2] == 2, None),
+            (cp.constraints.PowerConeND(W, hypos, alpha, axis=axis), None)
+        ]
+        obj_pair = (objective, 1.8073406786220672)
+        var_pairs = [
+            (x, expect_x),
+            (hypos, expect_hypos)
+        ]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_pcp_3a(self):
+        sth = TestPowND.pcp_3(axis=0)
+        sth.solve(solver='SCS', eps=1e-8)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_complementarity(places=3)
+        pass
+
+    def test_pcp_3b(self):
+        sth = TestPowND.pcp_3(axis=1)
+        sth.solve(solver='SCS', eps=1e-8)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_complementarity(places=3)
+        pass
+
+    @staticmethod
+    def pcp_4(ceei=True):
+        """
+        A power cone formulation of a Fisher market equilibrium pricing model.
+        ceei = Competitive Equilibrium from Equal Incomes
+        """
+        # Generate test data
+        np.random.seed(0)
+        n_buyer = 4
+        n_items = 6
+        V = np.random.rand(n_buyer, n_items)
+        X = cp.Variable(shape=(n_buyer, n_items), nonneg=True)
+        u = cp.sum(cp.multiply(V, X), axis=1)
+        if ceei:
+            b = np.ones(n_buyer) / n_buyer
+        else:
+            b = np.array([0.3, 0.15, 0.2, 0.35])
+        log_objective = cp.Maximize(cp.sum(cp.multiply(b, cp.log(u))))
+        log_cons = [cp.sum(X, axis=0) <= 1]
+        log_prob = cp.Problem(log_objective, log_cons)
+        log_prob.solve(solver='SCS', eps=1e-8)
+        expect_X = X.value
+
+        z = cp.Variable()
+        pow_objective = (cp.Maximize(z), np.exp(log_prob.value))
+        pow_cons = [(cp.sum(X, axis=0) <= 1, None),
+                    (PowerConeND(W=u, z=z, alpha=b), None)]
+        pow_vars = [(X, expect_X)]
+        sth = STH.SolverTestHelper(pow_objective, pow_vars, pow_cons)
+        return sth
+
+    def test_pcp_4a(self):
+        sth = TestPowND.pcp_4(ceei=True)
+        sth.solve(solver='SCS', eps=1e-8)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_complementarity(places=3)
+        pass
+
+    def test_pcp_4b(self):
+        sth = TestPowND.pcp_4(ceei=False)
+        sth.solve(solver='SCS', eps=1e-8)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_complementarity(places=3)
+        pass
