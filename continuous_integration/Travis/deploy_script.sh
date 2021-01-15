@@ -1,11 +1,9 @@
 #!/bin/bash
 
 source activate testenv
-conda config --add channels cvxgrp
 conda config --add channels conda-forge
-conda config --add channels oxfordcontrol
 conda install --yes requests twine
-pip install readme_renderer  # conda channels don't have a py3.5 version
+conda install --yes readme_renderer
 
 # We chose a somewhat arbitrary build configuration (a specially marked OSX configuration)
 # to be the designated uploader of source distributions.
@@ -28,14 +26,4 @@ cd ..
 if [ $UPDATE_PYPI_WHEEL == "True" ]; then
     python setup.py bdist_wheel
     twine upload --repository-url $PYPI_SERVER dist/* -u $PYPI_USER -p $PYPI_PASSWORD
-fi
-
-cd continuous_integration
-UPDATE_CONDA=`python -c "import versiongetter as vg; print(vg.update_conda('$PYTHON_VERSION','$TRAVIS_OS_NAME'))"`
-cd ..
-if [ $UPDATE_CONDA == "True" ]; then
-    conda install --yes conda-build
-    conda install --yes anaconda-client
-    conda config --set anaconda_upload yes
-    conda build conda-recipe --token=$CONDA_UPLOAD_TOKEN --user=$CONDA_USER --python=$PYTHON_VERSION
 fi

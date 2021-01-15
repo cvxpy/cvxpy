@@ -1,6 +1,6 @@
 def unique_list(duplicates_list):
     """Return unique list preserving the order.
-    https://stackoverflow.com/a/37163210/9753175
+    https://stackoverflow.com/a/58666031/1002277
     """
     used = set()
     unique = [x for x in duplicates_list
