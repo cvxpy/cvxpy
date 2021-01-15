@@ -20,7 +20,7 @@ from cvxpy.utilities import scopes
 import numpy as np
 
 
-class PowerCone3D(Constraint):
+class PowCone3D(Constraint):
 
     def __init__(self, x, y, z, alpha, constr_id=None):
         """
@@ -32,8 +32,8 @@ class PowerCone3D(Constraint):
         self.y = Expression.cast_to_const(y)
         self.z = Expression.cast_to_const(z)
         self.alpha = Expression.cast_to_const(alpha)  # cheat!!
-        super(PowerCone3D, self).__init__([self.x, self.y, self.z],
-                                          constr_id)
+        super(PowCone3D, self).__init__([self.x, self.y, self.z],
+                                        constr_id)
         pass
 
     def __str__(self):
@@ -91,7 +91,7 @@ class PowerCone3D(Constraint):
         #   relative to ExpCone constraints.
 
 
-class PowerConeND(Constraint):
+class PowConeND(Constraint):
 
     _TOL_ = 1e-6
 
@@ -123,7 +123,7 @@ class PowerConeND(Constraint):
                              % (W.shape, alpha.shape))
         if np.any(alpha.value <= 0):
             raise ValueError("Argument alpha must be entry-wise positive.")
-        if np.any(np.abs(1 - np.sum(alpha.value, axis=axis)) > PowerConeND._TOL_):
+        if np.any(np.abs(1 - np.sum(alpha.value, axis=axis)) > PowConeND._TOL_):
             raise ValueError("Argument alpha must sum to 1 along axis %s." % axis)
         self.W = W
         self.z = z
@@ -131,7 +131,7 @@ class PowerConeND(Constraint):
         self.axis = axis
         if z.ndim == 0:
             z = z.flatten()
-        super(PowerConeND, self).__init__([W, z], constr_id)
+        super(PowConeND, self).__init__([W, z], constr_id)
 
     def __str__(self):
         return "PowND(%s, %s; %s)" % (self.W, self.z, self.alpha)

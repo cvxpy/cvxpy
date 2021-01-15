@@ -20,7 +20,7 @@ from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
 from cvxpy.constraints.second_order import SOC as SOC_obj
 from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
 from cvxpy.constraints.psd import PSD as PSD_obj
-from cvxpy.constraints.power import PowerCone3D as PowerCone_obj
+from cvxpy.constraints.power import PowCone3D as PowerCone_obj
 import numpy as np
 import scipy as sp
 

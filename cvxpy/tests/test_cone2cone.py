@@ -30,7 +30,7 @@ from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.power import PowerConeND
+from cvxpy.constraints.power import PowConeND
 
 
 class TestDualize(BaseTest):
@@ -365,7 +365,7 @@ class TestPowND(BaseTest):
             alpha = alpha.T
         con_pairs = [
             (x[0] + x[1] + 0.5 * x[2] == 2, None),
-            (cp.constraints.PowerConeND(W, hypos, alpha, axis=axis), None)
+            (cp.constraints.PowConeND(W, hypos, alpha, axis=axis), None)
         ]
         obj_pair = (objective, 1.8073406786220672)
         var_pairs = [
@@ -417,7 +417,7 @@ class TestPowND(BaseTest):
         z = cp.Variable()
         pow_objective = (cp.Maximize(z), np.exp(log_prob.value))
         pow_cons = [(cp.sum(X, axis=0) <= 1, None),
-                    (PowerConeND(W=u, z=z, alpha=b), None)]
+                    (PowConeND(W=u, z=z, alpha=b), None)]
         pow_vars = [(X, expect_X)]
         sth = STH.SolverTestHelper(pow_objective, pow_vars, pow_cons)
         return sth

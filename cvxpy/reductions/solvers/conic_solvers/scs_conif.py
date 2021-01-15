@@ -16,7 +16,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone, PowerCone3D
+from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone, PowCone3D
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers import utilities
@@ -116,7 +116,7 @@ class SCS(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PSD, PowerCone3D]
+        + [SOC, ExpCone, PSD, PowCone3D]
     REQUIRES_CONSTR = True
 
     # Map of SCS status to CVXPY status.
@@ -202,7 +202,7 @@ class SCS(ConicSolver):
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
-            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowerCone3D]
+            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
         return problem, data, inv_data
 
     def apply(self, problem):

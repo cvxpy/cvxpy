@@ -19,10 +19,10 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.reductions.canonicalization import Canonicalization
-from cvxpy.constraints.power import PowerCone3D, PowerConeND
+from cvxpy.constraints.power import PowCone3D, PowConeND
 
 EXOTIC_CONES = {
-    PowerConeND: {PowerCone3D}
+    PowConeND: {PowCone3D}
 }
 """
 ^ An "exotic" cone is defined as any cone that isn't
@@ -51,7 +51,7 @@ def pow_nd_canon(con, args):
         alpha = np.reshape(alpha, (W.size, 1))
     n, k = W.shape
     if n == 2:
-        can_con = PowerCone3D(W[0, :], W[1, :], z, alpha[0, :])
+        can_con = PowCone3D(W[0, :], W[1, :], z, alpha[0, :])
     else:
         T = Variable(shape=(n-2, k))
         arg1, arg2, arg3, arg4 = [], [], [], []
@@ -70,7 +70,7 @@ def pow_nd_canon(con, args):
         arg2 = hstack(arg2)
         arg3 = hstack(arg3)
         arg4 = hstack(arg4)
-        can_con = PowerCone3D(arg1, arg2, arg3, arg4)
+        can_con = PowCone3D(arg1, arg2, arg3, arg4)
     # Return a single PowerCone3D constraint defined over all auxiliary
     # variables needed for the reduction to go through.
     # There are no "auxiliary constraints" beyond this one.
@@ -80,7 +80,7 @@ def pow_nd_canon(con, args):
 class Exotic2Common(Canonicalization):
 
     CANON_METHODS = {
-        PowerConeND: pow_nd_canon
+        PowConeND: pow_nd_canon
     }
 
     def __init__(self, problem=None):

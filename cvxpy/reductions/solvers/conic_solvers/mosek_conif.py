@@ -18,7 +18,7 @@ import numpy as np
 import scipy as sp
 from cvxpy.reductions.solvers.utilities import expcone_permutor
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, PowerCone3D
+from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.cone2cone import affine2direct as a2d
@@ -81,7 +81,7 @@ class MOSEK(ConicSolver):
         mosek  # For flake8
         if hasattr(mosek.conetype, 'pexp') and ExpCone not in MOSEK.SUPPORTED_CONSTRAINTS:
             MOSEK.SUPPORTED_CONSTRAINTS.append(ExpCone)
-            MOSEK.SUPPORTED_CONSTRAINTS.append(PowerCone3D)
+            MOSEK.SUPPORTED_CONSTRAINTS.append(PowCone3D)
 
     def name(self):
         """The name of the solver.

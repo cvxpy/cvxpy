@@ -3,7 +3,7 @@ import warnings
 
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC, NonNeg, \
-                              NonPos, Inequality, Equality, Zero, PowerConeND, PowerCone3D
+                              NonPos, Inequality, Equality, Zero, PowConeND, PowCone3D
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
@@ -216,11 +216,11 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
             or any(atom in PSD_ATOMS for atom in atoms) \
             or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
         cones.append(PSD)
-    if PowerCone3D in constr_types:
+    if PowCone3D in constr_types:
         # if we add in atoms that specifically use the 3D power cone
         # (rather than the ND power cone), then we'll need to check
         # for those atoms here as well.
-        cones.append(PowerCone3D)
+        cones.append(PowCone3D)
 
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.

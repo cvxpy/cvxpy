@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PSD, Zero, NonNeg, PowerConeND, PowerCone3D
+from cvxpy.constraints import SOC, ExpCone, PSD, Zero, NonNeg, PowConeND, PowCone3D
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -200,7 +200,7 @@ class ConicSolver(Solver):
                     )
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
-            elif type(constr) == PowerCone3D:
+            elif type(constr) == PowCone3D:
                 arg_mats = []
                 for i, arg in enumerate(constr.args):
                     space_mat = ConicSolver.get_spacing_matrix(

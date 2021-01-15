@@ -97,7 +97,7 @@ class SolverTestHelper(object):
                     self.tester.assertEqual(contents, float)
                 else:
                     self.tester.assertIsInstance(dv, float)
-            elif isinstance(con, cp.constraints.PowerCone3D):
+            elif isinstance(con, cp.constraints.PowCone3D):
                 raise NotImplementedError()
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
@@ -117,12 +117,12 @@ class SolverTestHelper(object):
                                   cp.constraints.NonPos,
                                   cp.constraints.Zero)):
                 comp = cp.scalar_product(con.args, con.dual_value).value
-            elif isinstance(con, cp.constraints.PowerCone3D):
+            elif isinstance(con, cp.constraints.PowCone3D):
                 comp = cp.scalar_product(con.args[:3], con.dual_value).value
             elif isinstance(con, (cp.constraints.Inequality,
                                   cp.constraints.Equality)):
                 comp = cp.scalar_product(con.expr, con.dual_value).value
-            elif isinstance(con, cp.constraints.PowerConeND):
+            elif isinstance(con, cp.constraints.PowConeND):
                 msg = '\nPowerConeND dual variables not implemented;' \
                        + '\nSkipping complementarity check.'
                 warnings.warn(msg)
@@ -473,7 +473,7 @@ def pcp_1():
     x = cp.Variable(shape=(3,))
     y_square = cp.Variable()
     epis = cp.Variable(shape=(3,))
-    constraints = [cp.constraints.PowerCone3D(np.ones(3), epis, x, cp.Constant([0.5,0.5,0.5])),
+    constraints = [cp.constraints.PowCone3D(np.ones(3), epis, x, cp.Constant([0.5, 0.5, 0.5])),
                    cp.sum(epis) <= y_square,
                    x[0] + x[1] + 3 * x[2] >= 1.0,
                    y_square <= 25]
@@ -520,7 +520,7 @@ def pcp_2():
     arg2 = cp.hstack(([x[1], 1.0]))
     con_pairs = [
         (x[0] + x[1] + 0.5 * x[2] == 2, None),
-        (cp.constraints.PowerCone3D(arg1, arg2, hypos, [0.2, 0.4]), None)
+        (cp.constraints.PowCone3D(arg1, arg2, hypos, [0.2, 0.4]), None)
     ]
     obj_pair = (objective, 1.8073406786220672)
     var_pairs = [

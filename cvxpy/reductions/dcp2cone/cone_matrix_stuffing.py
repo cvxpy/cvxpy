@@ -16,7 +16,7 @@ limitations under the License.
 
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.constraints import (Equality, ExpCone, Inequality,
-                               SOC, Zero, NonNeg, PSD, PowerCone3D)
+                               SOC, Zero, NonNeg, PSD, PowCone3D)
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
@@ -67,8 +67,8 @@ class ConeDims(object):
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
         self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
         p3d = []
-        if constr_map[PowerCone3D]:
-            p3d = np.concatenate([c.alpha.value for c in constr_map[PowerCone3D]]).tolist()
+        if constr_map[PowCone3D]:
+            p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
         self.p3d = p3d
 
     def __repr__(self):
@@ -323,7 +323,7 @@ class ConeMatrixStuffing(MatrixStuffing):
         # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowerCone3D
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + constr_map[PowerCone3D]
+            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
         inverse_data.constraints = ordered_cons
