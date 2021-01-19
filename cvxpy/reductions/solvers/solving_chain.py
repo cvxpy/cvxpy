@@ -198,7 +198,7 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
         constr_types.update(sim_cos)
         constr_types.remove(co)
     # We now go over individual elementary cones support by CVXPY (
-    # SOC, ExpCone, NonNeg, Zero, PSD, PowerCone3D) and check if
+    # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
     # they've appeared in constr_types or if the problem has an atom
     # requiring that cone.
     cones = []
@@ -231,10 +231,8 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
-                reductions += [Exotic2Common(),
-                               ConeMatrixStuffing(), solver_instance]
-            else:
-                reductions += [ConeMatrixStuffing(), solver_instance]
+                reductions.append(Exotic2Common())
+            reductions += [ConeMatrixStuffing(), solver_instance]
             return SolvingChain(reductions=reductions)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "

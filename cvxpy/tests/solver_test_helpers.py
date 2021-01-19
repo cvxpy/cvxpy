@@ -123,7 +123,7 @@ class SolverTestHelper(object):
                                   cp.constraints.Equality)):
                 comp = cp.scalar_product(con.expr, con.dual_value).value
             elif isinstance(con, cp.constraints.PowConeND):
-                msg = '\nPowerConeND dual variables not implemented;' \
+                msg = '\nPowConeND dual variables not implemented;' \
                        + '\nSkipping complementarity check.'
                 warnings.warn(msg)
             else:

@@ -321,7 +321,7 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
             cons.append(con)
-        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowerCone3D
+        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
             constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]

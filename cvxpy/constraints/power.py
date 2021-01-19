@@ -24,8 +24,19 @@ class PowCone3D(Constraint):
 
     def __init__(self, x, y, z, alpha, constr_id=None):
         """
-        x[i]**alpha * y[i]**(1-alpha) >= |z[i]|  for all i
-        x >= 0, y >= 0
+        An object representing a collection of 3D power cone constraints
+
+            x[i]**alpha[i] * y[i]**(1-alpha[i]) >= |z[i]|  for all i
+            x >= 0, y >= 0
+
+        If the parameter alpha is a scalar, it will be promoted to
+        a vector matching the (common) sizes of x, y, z. The numeric
+        value of alpha (or its components, in the vector case) must
+        be a number in the open interval (0, 1).
+
+        We store flattened representations of the arguments (x, y, z,
+        and alpha) as Expression objects. We construct dual variables
+        with respect to these flattened representations.
         """
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
@@ -34,7 +45,10 @@ class PowCone3D(Constraint):
         for val in [self.x, self.y, self.z]:
             if not (val.is_affine() and val.is_real()):
                 raise ValueError('All arguments must be affine and real.')
-        self.alpha = Expression.cast_to_const(alpha)
+        alpha = Expression.cast_to_const(alpha)
+        if alpha.is_scalar():
+            alpha = cvxtypes.promote()(alpha, self.x.shape)
+        self.alpha = alpha
         if np.any(self.alpha.value <= 0) or np.any(self.alpha.value >= 1):
             msg = "Argument alpha must have entries in the open interval (0, 1)."
             raise ValueError(msg)
@@ -45,7 +59,6 @@ class PowCone3D(Constraint):
             raise ValueError(msg)
         super(PowCone3D, self).__init__([self.x, self.y, self.z],
                                         constr_id)
-        pass
 
     def __str__(self):
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
@@ -110,16 +123,32 @@ class PowConeND(Constraint):
 
     def __init__(self, W, z, alpha, axis=0, constr_id=None):
         """
-        \\prod_i w_i^{\\alpha_i} >= |z|
-        w >= 0
+        Represents a collection of N-dimensional power cone constraints
+        that is *mathematically* equivalent to the following code
+        snippet (which makes incorrect use of numpy functions on cvxpy
+        objects):
+
+            np.prod(np.power(W, alpha), axis=axis) >= np.abs(z)
+            W >= 0
+
+        All arguments must be Expression-like, and z must satisfy
+        z.ndim <= 1. The columns (rows) of alpha must sum to 1 when
+        axis=0 (axis=1).
+
+        Note: unlike PowCone3D, we make no attempt to promote
+        alpha to the appropriate shape. The dimensions of W and
+        alpha must match exactly.
         """
         Expression = cvxtypes.expression()
         W = Expression.cast_to_const(W)
         if not (W.is_real() and W.is_affine()):
-            raise ValueError("Invalid first argument.")
+            msg = "Invalid first argument; W must be affine and real."
+            raise ValueError(msg)
         z = Expression.cast_to_const(z)
         if z.ndim > 1 or not (z.is_real() and z.is_affine()):
-            raise ValueError("Invalid second argument.")
+            msg = ("Invalid second argument. z must be affine, real, "
+                   "and have at most one z.ndim <= 1.")
+            raise ValueError(msg)
         # Check z has one entry per cone.
         if (W.ndim <= 1 and z.size > 1) or \
            (W.ndim == 2 and z.size != W.shape[1-axis]) or \
@@ -128,7 +157,7 @@ class PowConeND(Constraint):
                 "Argument dimensions %s and %s, with axis=%i, are incompatible."
                 % (W.shape, z.shape, axis))
         if W.ndim == 2 and W.shape[axis] <= 1:
-            msg = "PowerConeND requires left-hand-side to have at least two terms."
+            msg = "PowConeND requires left-hand-side to have at least two terms."
             raise ValueError(msg)
         alpha = Expression.cast_to_const(alpha)
         if alpha.shape != W.shape:
