@@ -359,7 +359,7 @@ class TestSCS(BaseTest):
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS')
 
     def test_scs_pcp_1(self):
-        StandardTestPCPs.test_pcp_1(solver='SCS')
+        StandardTestPCPs.test_pcp_1(solver='SCS', eps=1e-8)
 
     def test_scs_pcp_2(self):
         StandardTestPCPs.test_pcp_2(solver='SCS', eps=1e-8)

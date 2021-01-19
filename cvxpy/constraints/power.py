@@ -28,10 +28,21 @@ class PowCone3D(Constraint):
         x >= 0, y >= 0
         """
         Expression = cvxtypes.expression()
-        self.x = Expression.cast_to_const(x)  # TODO: add checks that inputs are real
+        self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
         self.z = Expression.cast_to_const(z)
-        self.alpha = Expression.cast_to_const(alpha)  # cheat!!
+        for val in [self.x, self.y, self.z]:
+            if not (val.is_affine() and val.is_real()):
+                raise ValueError('All arguments must be affine and real.')
+        self.alpha = Expression.cast_to_const(alpha)
+        if np.any(self.alpha.value <= 0) or np.any(self.alpha.value >= 1):
+            msg = "Argument alpha must have entries in the open interval (0, 1)."
+            raise ValueError(msg)
+        arg_sizes = [self.x.size, self.y.size, self.z.size, self.alpha.size]
+        if min(arg_sizes) != max(arg_sizes):
+            msg = ("All arguments must have the same size. Provided arguments are"
+                   "of size %s" % str(arg_sizes))
+            raise ValueError(msg)
         super(PowCone3D, self).__init__([self.x, self.y, self.z],
                                         constr_id)
         pass
@@ -65,7 +76,9 @@ class PowCone3D(Constraint):
     def is_dcp(self, dpp=False):
         if dpp:
             with scopes.dpp_scope():
-                return all(arg.is_affine() for arg in self.args)
+                args_ok = all(arg.is_affine() for arg in self.args)
+                exps_ok = not isinstance(self.alpha, cvxtypes.parameter())
+                return args_ok and exps_ok
         return all(arg.is_affine() for arg in self.args)
 
     def is_dgp(self, dpp=False):
@@ -107,7 +120,7 @@ class PowConeND(Constraint):
         z = Expression.cast_to_const(z)
         if z.ndim > 1 or not (z.is_real() and z.is_affine()):
             raise ValueError("Invalid second argument.")
-        # Check t has one entry per cone.
+        # Check z has one entry per cone.
         if (W.ndim <= 1 and z.size > 1) or \
            (W.ndim == 2 and z.size != W.shape[1-axis]) or \
            (W.ndim == 1 and axis == 1):

@@ -70,6 +70,10 @@ def pow_nd_canon(con, args):
         arg2 = hstack(arg2)
         arg3 = hstack(arg3)
         arg4 = hstack(arg4)
+        # TODO: Ideally we should construct arg1,...,arg4 by
+        #   applying suitable sparse matrices to W,z,T, rather
+        #   than using the hstack atom. (hstack will probably
+        #   result in longer compile times).
         can_con = PowCone3D(arg1, arg2, arg3, arg4)
     # Return a single PowerCone3D constraint defined over all auxiliary
     # variables needed for the reduction to go through.

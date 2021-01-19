@@ -488,7 +488,10 @@ def pcp_1():
                  (y_square, expect_y_square)]
     expect_ineq1 = 0.7793969212001993
     expect_ineq2 = 2.865602615049077 / 10
-    con_pairs = [(constraints[0], None),  # hard to find until later ...
+    expect_pc = [np.array([4.30209047, 1.29985494, 1.56211543]),
+                 np.array([0.28655796, 0.28655796, 0.28655796]),
+                 np.array([2.22062898, 1.22062899, -1.33811302])]
+    con_pairs = [(constraints[0], expect_pc),
                  (constraints[1], expect_ineq2),
                  (constraints[2], expect_ineq1),
                  (constraints[3], expect_ineq2)]
@@ -518,9 +521,13 @@ def pcp_2():
     objective = cp.Maximize(cp.sum(hypos) - x[0])
     arg1 = cp.hstack([x[0], x[2]])
     arg2 = cp.hstack(([x[1], 1.0]))
+    pc_con = cp.constraints.PowCone3D(arg1, arg2, hypos, [0.2, 0.4])
+    expect_pc_con = [np.array([1.48466366, 0.24233184]),
+                     np.array([0.48466367, 0.83801333]),
+                     np.array([-1., -1.])]
     con_pairs = [
-        (x[0] + x[1] + 0.5 * x[2] == 2, None),
-        (cp.constraints.PowCone3D(arg1, arg2, hypos, [0.2, 0.4]), None)
+        (x[0] + x[1] + 0.5 * x[2] == 2, 0.4846636697795672),
+        (pc_con, expect_pc_con)
     ]
     obj_pair = (objective, 1.8073406786220672)
     var_pairs = [
