@@ -30,7 +30,7 @@ from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.power import PowConeND
+from cvxpy.constraints.power import PowConeND, PowCone3D
 
 
 class TestDualize(BaseTest):
@@ -62,9 +62,17 @@ class TestDualize(BaseTest):
             constraints.append(SOC(y[i], y[i+1:i+dim]))
             i += dim
         if K_dir[a2d.DUAL_EXP]:
-            dual_prims[a2d.DUAL_EXP] = y[i:]
-            y_de = cp.reshape(y[i:], ((y.size - i)//3, 3), order='C')  # fill rows first
+            exp_len = 3 * K_dir[a2d.DUAL_EXP]
+            dual_prims[a2d.DUAL_EXP] = y[i:i+exp_len]
+            y_de = cp.reshape(y[i:i+exp_len], (exp_len//3, 3), order='C')  # fill rows first
             constraints.append(ExpCone(-y_de[:, 1], -y_de[:, 0], np.exp(1)*y_de[:, 2]))
+            i += exp_len
+        if K_dir[a2d.DUAL_POW3D]:
+            alpha = np.array(K_dir[a2d.DUAL_POW3D])
+            dual_prims[a2d.DUAL_POW3D] = y[i:]
+            y_dp = cp.reshape(y[i:], (alpha.size, 3), order='C')  # fill rows first
+            pow_con = PowCone3D(y_dp[:, 0] / alpha, y_dp[:, 1] / (1-alpha), y_dp[:, 2], alpha)
+            constraints.append(pow_con)
         objective = cp.Maximize(c @ y)
         dual_prob = cp.Problem(objective, constraints)
         dual_prob.solve(solver='SCS', eps=1e-8)
@@ -74,6 +82,8 @@ class TestDualize(BaseTest):
         dual_prims[a2d.SOC] = [expr.value for expr in dual_prims[a2d.SOC]]
         if K_dir[a2d.DUAL_EXP]:
             dual_prims[a2d.DUAL_EXP] = dual_prims[a2d.DUAL_EXP].value
+        if K_dir[a2d.DUAL_POW3D]:
+            dual_prims[a2d.DUAL_POW3D] = dual_prims[a2d.DUAL_POW3D].value
         dual_duals = {s.EQ_DUAL: constraints[0].dual_value}
         dual_sol = cp.Solution(dual_prob.status, dual_prob.value, dual_prims, dual_duals, dict())
         cone_sol = a2d.Dualize.invert(dual_sol, inv_data)
@@ -166,12 +176,20 @@ class TestDualize(BaseTest):
         sth.verify_primal_values(places=4)
         sth.verify_dual_values(places=4)
 
+    def test_pcp_2(self):
+        sth = STH.pcp_2()
+        TestDualize.simulate_chain(sth.prob)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.verify_dual_values(places=3)
+
 
 class TestSlacks(BaseTest):
 
     AFF_LP_CASES = [[a2d.NONNEG], []]
     AFF_SOCP_CASES = [[a2d.NONNEG, a2d.SOC], [a2d.NONNEG], [a2d.SOC], []]
     AFF_EXP_CASES = [[a2d.NONNEG, a2d.EXP], [a2d.NONNEG], [a2d.EXP], []]
+    AFF_PCP_CASES = [[a2d.NONNEG], [a2d.POW3D], []]
     AFF_MIXED_CASES = [[a2d.NONNEG], []]
 
     @staticmethod
@@ -220,9 +238,14 @@ class TestSlacks(BaseTest):
             constraints.append(SOC(expr[0], expr[1:]))
             i += dim
         if K_aff[a2d.EXP]:
-            dim = G.shape[0] - i
-            expr = cp.reshape(h[i:] - G[i:, :] @ y, (dim//3, 3), order='C')
+            dim = 3 * K_aff[a2d.EXP]
+            expr = cp.reshape(h[i:i+dim] - G[i:i+dim, :] @ y, (dim//3, 3), order='C')
             constraints.append(ExpCone(expr[:, 0], expr[:, 1], expr[:, 2]))
+            i += dim
+        if K_aff[a2d.POW3D]:
+            alpha = np.array(K_aff[a2d.POW3D])
+            expr = cp.reshape(h[i:] - G[i:, :] @ y, (alpha.size, 3), order='C')
+            constraints.append(PowCone3D(expr[:, 0], expr[:, 1], expr[:, 2], alpha))
         return constraints
 
     @staticmethod
@@ -237,9 +260,14 @@ class TestSlacks(BaseTest):
             constraints.append(SOC(y[i], y[i+1:i+dim]))
             i += dim
         if K_dir[a2d.EXP]:
-            dim = y.size - i
-            expr = cp.reshape(y[i:], (dim//3, 3), order='C')
+            dim = 3 * K_dir[a2d.EXP]
+            expr = cp.reshape(y[i:i+dim], (dim//3, 3), order='C')
             constraints.append(ExpCone(expr[:, 0], expr[:, 1], expr[:, 2]))
+            i += dim
+        if K_dir[a2d.POW3D]:
+            alpha = np.array(K_dir[a2d.POW3D])
+            expr = cp.reshape(y[i:], (alpha.size, 3), order='C')
+            constraints.append(PowCone3D(expr[:, 0], expr[:, 1], expr[:, 2], alpha))
         return constraints
 
     @staticmethod
@@ -304,6 +332,20 @@ class TestSlacks(BaseTest):
             TestSlacks.simulate_chain(sth.prob, affine, solver='ECOS')
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
+
+    def test_pcp_1(self):
+        sth = STH.pcp_1()
+        for affine in TestSlacks.AFF_PCP_CASES:
+            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS', eps=1e-8)
+            sth.verify_objective(places=3)
+            sth.verify_primal_values(places=3)
+
+    def test_pcp_2(self):
+        sth = STH.pcp_2()
+        for affine in TestSlacks.AFF_PCP_CASES:
+            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS', eps=1e-8)
+            sth.verify_objective(places=3)
+            sth.verify_primal_values(places=3)
 
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()

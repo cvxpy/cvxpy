@@ -363,6 +363,11 @@ class MOSEK(ConicSolver):
             conetypes = [mosek.conetype.pexp] * num_exp
             task.appendconesseq(conetypes, [0] * num_exp, [3] * num_exp, idx)
             idx += 3*num_exp
+        num_pow = len(K_dir[a2d.POW3D])
+        if num_pow > 0:
+            conetypes = [mosek.conetype.ppow] * num_pow
+            task.appendconesseq(conetypes, K_dir[a2d.POW3D], [3] * num_pow, idx)
+            idx += 3*num_pow
         # integrality constraints
         num_bool = len(data[s.BOOL_IDX])
         num_int = len(data[s.INT_IDX])

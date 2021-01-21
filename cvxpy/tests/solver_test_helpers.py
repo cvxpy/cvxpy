@@ -515,10 +515,8 @@ def pcp_2():
              (x2, 1.0, x4) in Pow3D(0.4)
     """
     x = cp.Variable(shape=(3,))
-    expect_x = np.array([0.06393515, 0.78320961, 2.30571048])
     hypos = cp.Variable(shape=(2,))
-    expect_hypos = None
-    objective = cp.Maximize(cp.sum(hypos) - x[0])
+    objective = cp.Minimize(-cp.sum(hypos) + x[0])
     arg1 = cp.hstack([x[0], x[2]])
     arg2 = cp.hstack(([x[1], 1.0]))
     pc_con = cp.constraints.PowCone3D(arg1, arg2, hypos, [0.2, 0.4])
@@ -529,10 +527,10 @@ def pcp_2():
         (x[0] + x[1] + 0.5 * x[2] == 2, 0.4846636697795672),
         (pc_con, expect_pc_con)
     ]
-    obj_pair = (objective, 1.8073406786220672)
+    obj_pair = (objective, -1.8073406786220672)
     var_pairs = [
-        (x, expect_x),
-        (hypos, expect_hypos)
+        (x, np.array([0.06393515, 0.78320961, 2.30571048])),
+        (hypos, None)
     ]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
@@ -664,6 +662,38 @@ def mi_socp_2():
                  (bool_var, 1),
                  (int_var, 3)]
     con_pairs = [(con, None) for con in constraints]
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
+
+
+def mi_pcp_0():
+    """
+    max  x3 + x4 - x0
+    s.t. x0 + x1 + x2 / 2 == 2,
+         (x0, x1, x3) in Pow3D(0.2)
+         (x2, q, x4) in Pow3D(0.4)
+         0.1 <= q <= 1.9,
+         q integer
+    """
+    x = cp.Variable(shape=(3,))
+    hypos = cp.Variable(shape=(2,))
+    q = cp.Variable(integer=True)
+    objective = cp.Minimize(-cp.sum(hypos) + x[0])
+    arg1 = cp.hstack([x[0], x[2]])
+    arg2 = cp.hstack(([x[1], q]))
+    pc_con = cp.constraints.PowCone3D(arg1, arg2, hypos, [0.2, 0.4])
+    con_pairs = [
+        (x[0] + x[1] + 0.5 * x[2] == 2, None),
+        (pc_con, None),
+        (0.1 <= q, None),
+        (q <= 1.9, None)
+    ]
+    obj_pair = (objective, -1.8073406786220672)
+    var_pairs = [
+        (x, np.array([0.06393515, 0.78320961, 2.30571048])),
+        (hypos, None),
+        (q, 1.0)
+    ]
     sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
     return sth
 
@@ -896,3 +926,10 @@ class StandardTestPCPs(object):
         if duals:
             sth.check_complementarity(places)
             sth.verify_dual_values(places)
+
+    @staticmethod
+    def test_mi_pcp_0(solver, places=3, **kwargs):
+        sth = mi_pcp_0()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)

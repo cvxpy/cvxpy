@@ -443,6 +443,9 @@ class TestMosek(unittest.TestCase):
     def test_mosek_mi_socp_2(self):
         StandardTestSOCPs.test_mi_socp_2(solver='MOSEK')
 
+    def test_mosek_mi_pcp_0(self):
+        StandardTestPCPs.test_mi_pcp_0(solver='MOSEK')
+
     def test_mosek_params(self):
         if cp.MOSEK in INSTALLED_SOLVERS:
             import mosek
