@@ -21,23 +21,23 @@ import numpy as np
 
 
 class PowCone3D(Constraint):
+    """
+    An object representing a collection of 3D power cone constraints
+
+        x[i]**alpha[i] * y[i]**(1-alpha[i]) >= |z[i]|  for all i
+        x >= 0, y >= 0
+
+    If the parameter alpha is a scalar, it will be promoted to
+    a vector matching the (common) sizes of x, y, z. The numeric
+    value of alpha (or its components, in the vector case) must
+    be a number in the open interval (0, 1).
+
+    We store flattened representations of the arguments (x, y, z,
+    and alpha) as Expression objects. We construct dual variables
+    with respect to these flattened representations.
+    """
 
     def __init__(self, x, y, z, alpha, constr_id=None):
-        """
-        An object representing a collection of 3D power cone constraints
-
-            x[i]**alpha[i] * y[i]**(1-alpha[i]) >= |z[i]|  for all i
-            x >= 0, y >= 0
-
-        If the parameter alpha is a scalar, it will be promoted to
-        a vector matching the (common) sizes of x, y, z. The numeric
-        value of alpha (or its components, in the vector case) must
-        be a number in the open interval (0, 1).
-
-        We store flattened representations of the arguments (x, y, z,
-        and alpha) as Expression objects. We construct dual variables
-        with respect to these flattened representations.
-        """
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
@@ -128,27 +128,27 @@ class PowCone3D(Constraint):
 
 
 class PowConeND(Constraint):
+    """
+    Represents a collection of N-dimensional power cone constraints
+    that is *mathematically* equivalent to the following code
+    snippet (which makes incorrect use of numpy functions on cvxpy
+    objects):
+
+        np.prod(np.power(W, alpha), axis=axis) >= np.abs(z),
+        W >= 0
+
+    All arguments must be Expression-like, and z must satisfy
+    z.ndim <= 1. The columns (rows) of alpha must sum to 1 when
+    axis=0 (axis=1).
+
+    Note: unlike PowCone3D, we make no attempt to promote
+    alpha to the appropriate shape. The dimensions of W and
+    alpha must match exactly.
+    """
 
     _TOL_ = 1e-6
 
     def __init__(self, W, z, alpha, axis=0, constr_id=None):
-        """
-        Represents a collection of N-dimensional power cone constraints
-        that is *mathematically* equivalent to the following code
-        snippet (which makes incorrect use of numpy functions on cvxpy
-        objects):
-
-            np.prod(np.power(W, alpha), axis=axis) >= np.abs(z)
-            W >= 0
-
-        All arguments must be Expression-like, and z must satisfy
-        z.ndim <= 1. The columns (rows) of alpha must sum to 1 when
-        axis=0 (axis=1).
-
-        Note: unlike PowCone3D, we make no attempt to promote
-        alpha to the appropriate shape. The dimensions of W and
-        alpha must match exactly.
-        """
         Expression = cvxtypes.expression()
         W = Expression.cast_to_const(W)
         if not (W.is_real() and W.is_affine()):

@@ -68,3 +68,19 @@ ExpCone
     :members: value, violation, is_dcp
     :undoc-members:
     :show-inheritance:
+
+PowCone3D
+--------------------------------------
+
+.. autoclass:: cvxpy.constraints.power.PowCone3D
+    :members: value, violation, is_dcp
+    :undoc-members:
+    :show-inheritance:
+
+PowConeND
+--------------------------------------
+
+.. autoclass:: cvxpy.constraints.power.PowConeND
+    :members: value, violation, is_dcp
+    :undoc-members:
+    :show-inheritance:
