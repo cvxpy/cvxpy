@@ -144,6 +144,9 @@ class PowConeND(Constraint):
     Note: unlike PowCone3D, we make no attempt to promote
     alpha to the appropriate shape. The dimensions of W and
     alpha must match exactly.
+
+    Note: Dual variables are not currently implemented for this type
+    of constraint.
     """
 
     _TOL_ = 1e-6

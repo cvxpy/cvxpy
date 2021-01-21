@@ -1,13 +1,14 @@
 Constraints
 ==========================
 A constraint is an equality or inequality that restricts the domain of
-an optimization problem. CVXPY has five types of constraints: non-positive,
-equality or zero, positive semidefinite, second-order cone, and exponential
-cone. The *vast* majority of users will need only create constraints of the
-first three types. Additionally, most users need not know anything more about
-constraints other than how to create them. The constraint APIs do nonetheless
-provide methods that advanced users may find useful; for example, some of the
-APIs allow you to inspect dual variable values and residuals.
+an optimization problem. CVXPY has seven types of constraints: non-positive,
+equality or zero, positive semidefinite, second-order cone, exponential
+cone, 3-dimensional power cones, and N-dimensional power cones. The *vast*
+majority of users will need only create constraints of the first three types.
+Additionally, most users need not know anything more about constraints other
+than how to create them. The constraint APIs do nonetheless provide methods that
+advanced users may find useful; for example, some of the APIs allow you to
+inspect dual variable values and residuals.
 
 .. contents:: :local:
 
