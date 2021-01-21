@@ -279,13 +279,19 @@ for any cone supported by a target solver, but the current elementary convex con
 
         (u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y>0\}.
 
+ 6. The 3-dimensional power cone, parameterized by a number :math:`\alpha\in (0, 1)`:
+
+    .. math::
+
+        (u,v) \in K_{\mathrm{pow}}^{\alpha} \doteq \{ (x,y,z) \,:\, x^{\alpha}y^{1-\alpha} \geq |z|, (x,y) \geq 0 \}.
+
 We address the vectorization options for the semidefinite cones later.
 For now it's useful to say that the ``Awesome(ConicSolver)`` class will access an
 explicit representation for problem :math:`(P)` in in ``apply``, with a code snippet like
 
 .. code::
 
-    # from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone
+    # from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone, PowCone3D
     #  ...
     if not problem.formatted:
         problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
@@ -294,8 +300,8 @@ explicit representation for problem :math:`(P)` in in ``apply``, with a code sni
     c, d, A, b = problem.apply_parameters()
 
 The variable ``constr_map`` is is a dict of lists of CVXPY Constraint objects.
-The dict is keyed by the references to CVXPY's Zero, NonNeg, SOC, PSD, and
-ExpCone classes. You will need to interact with these constraint classes during
+The dict is keyed by the references to CVXPY's Zero, NonNeg, SOC, PSD, ExpCone,
+and PowCone3D classes. You will need to interact with these constraint classes during
 dual variable recovery.
 For the other variables in that code snippet ...
  -  ``c, d`` define the objective function ``c @ x + d``, and
@@ -340,11 +346,14 @@ The rows of ``A`` and entries of ``b`` are given in a very specific order, as de
    You can also borrow from ``SCS.psd_format_mat`` which maps an order :math:`n` PSD constraint
    to :math:`n(n+1)/2` suitably scaled rows of :math:`A` and entries of :math:`b`, or
    ``MOSEK.psd_format_mat`` which behaves identically to SCS except for the scaling.
- - The last block of ``3 * cone_dims.exp`` rows in ``A, b`` correspond to consecutive
+ - The next block of ``3 * cone_dims.exp`` rows in ``A, b`` correspond to consecutive
    three-dimensional exponential cones, as defined by :math:`K_e` above.
+ - The final block of ``3 * len(cone_dims.p3d)`` rows in ``A, b`` correspond to
+   three-dimensional power cones defined by :math:`K_{\mathrm{pow}}^{\alpha}`, where the
+   i-th triple of rows has ``alpha = cone_dims.p3d[i]``.
 
-If *Awesome* supports nonlinear constraints like SOC, ExpCone, or PSD, then it's possible
-that you will need to transform data ``A, b`` in order to write these constraints in
+If *Awesome* supports nonlinear constraints like SOC, ExpCone, PSD, or PowCone3D, then
+it's possible that you will need to transform data ``A, b`` in order to write these constraints in
 the form expected by ``AwesomePy``.
 The most common situations are when ``AwesomePy`` parametrizes the second-order cone
 as :math:`K = \{ (x,t) \,:\, \|x\|\leq t \} \subset \mathbb{R}^n \times \mathbb{R}`,
@@ -378,17 +387,17 @@ Dual variable extraction should be handled in ``Awesome(ConicSolver).invert``.
 To perform this step correctly, it's necessary to consider how CVXPY forms
 a Lagrangian for the primal problem :math:`(P)`.
 Let's say that the affine map :math:`Ax + b` in the feasible set
-:math:`Ax + b \in K \subset \mathbb{R}^m` is broken up into five blocks of sizes
-:math:`m_1,\ldots,m_5` where the blocks correspond (in order) to zero-cone, nonnegative cone,
-second-order cone, vectorized PSD cone, and exponential cone constraints.
+:math:`Ax + b \in K \subset \mathbb{R}^m` is broken up into six blocks of sizes
+:math:`m_1,\ldots,m_6` where the blocks correspond (in order) to zero-cone, nonnegative cone,
+second-order cone, vectorized PSD cone, exponential cone, and 3D power cone constraints.
 Then CVXPY defines the dual to :math:`(P)` by forming a Lagrangian
 
 .. math::
 
-    \mathcal{L}(x,\mu_1,\ldots,\mu_5) = c^T x - \sum_{i=i}^5 \mu_i^T (A_i x + b_i)
+    \mathcal{L}(x,\mu_1,\ldots,\mu_6) = c^T x - \sum_{i=i}^6 \mu_i^T (A_i x + b_i)
 
 in dual variables :math:`\mu_1 \in \mathbb{R}^{m_1}`, :math:`\mu_2 \in \mathbb{R}^{m_2}_+`,
-and :math:`\mu_i \in K_i^* \subset \mathbb{R}^{m_i}` for :math:`i \in \{3,4,5\}`.
+and :math:`\mu_i \in K_i^* \subset \mathbb{R}^{m_i}` for :math:`i \in \{3,4,5,6\}`.
 Here, :math:`K_i^*` denotes the dual cone to :math:`K_i` under the standard inner product.
 
 More remarks on dual variables (particularly SOC dual variables) can be found in
@@ -474,7 +483,7 @@ which contains appropriate test data. The ``.solve`` function for the
 SolverTestHelper class is a simple wrapper around ``prob.solve`` where
 ``prob`` is a CVXPY Problem. In particular, any keyword arguments
 passed to ``sth.solve`` will be passed to ``prob.solve``. This allows you to
-call modifed versions of a test with different solver parameters, for example
+call modified versions of a test with different solver parameters, for example
 
 .. code::
 

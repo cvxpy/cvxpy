@@ -64,8 +64,18 @@ class PowCone3D(Constraint):
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
     def residual(self):
-        # TODO: implement
-        raise NotImplementedError()
+        # TODO: The projection should be implemented directly.
+        from cvxpy import Problem, Minimize, Variable, norm2, hstack
+        if self.x.value is None or self.y.value is None or self.z.value is None:
+            return None
+        x = Variable(self.x.shape)
+        y = Variable(self.y.shape)
+        z = Variable(self.z.shape)
+        constr = [PowCone3D(x, y, z, self.alpha)]
+        obj = Minimize(norm2(hstack([x, y, z]) -
+                             hstack([self.x.value, self.y.value, self.z.value])))
+        problem = Problem(obj, constr)
+        return problem.solve(solver='SCS', eps=1e-8)
 
     def get_data(self):
         return [self.alpha]
@@ -189,8 +199,17 @@ class PowConeND(Constraint):
 
     @property
     def residual(self):
-        # TODO: implement
-        raise NotImplementedError()
+        # TODO: The projection should be implemented directly.
+        from cvxpy import Problem, Minimize, Variable, norm2, hstack
+        if self.W.value is None or self.z.value is None:
+            return None
+        W = Variable(self.W.shape)
+        z = Variable(self.z.shape)
+        constr = [PowConeND(W, z, self.alpha, axis=self.axis)]
+        obj = Minimize(norm2(hstack([W.flatten(), z.flatten()]) -
+                             hstack([self.W.flatten().value, self.z.flatten().value])))
+        problem = Problem(obj, constr)
+        return problem.solve(solver='SCS', eps=1e-8)
 
     def num_cones(self):
         return self.z.size

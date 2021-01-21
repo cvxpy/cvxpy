@@ -15,11 +15,11 @@ limitations under the License.
 """
 
 from cvxpy.expressions.variable import Variable
+from cvxpy.atoms.affine.reshape import reshape as reshape_atom
 from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
-import sys
-PY2 = sys.version_info < (3, 0)
 
 
 class TestConstraints(BaseTest):
@@ -207,6 +207,57 @@ class TestConstraints(BaseTest):
             SOC(Variable(1), Variable((1, 4)))
         self.assertEqual(str(cm.exception), error_str)
 
+    def test_pow3d_constraint(self):
+        n = 3
+        np.random.seed(0)
+        alpha = 0.275
+        x, y, z = Variable(n), Variable(n), Variable(n)
+        con = PowCone3D(x, y, z, alpha)
+        # check violation against feasible values
+        x0, y0 = 0.1 + np.random.rand(n), 0.1 + np.random.rand(n)
+        z0 = x0**alpha * y0**(1-alpha)
+        z0[1] *= -1
+        x.value, y.value, z.value = x0, y0, z0
+        viol = con.residual()
+        self.assertLessEqual(viol, 1e-7)
+        # check violation against infeasible values
+        x1 = x0.copy()
+        x1[0] *= -0.9
+        x.value = x1
+        viol = con.residual()
+        self.assertGreaterEqual(viol, 0.99*abs(x1[0]))
+        # check invalid constraint data
+        with self.assertRaises(ValueError):
+            con = PowCone3D(x, y, z, 1.001)
+        with self.assertRaises(ValueError):
+            con = PowCone3D(x, y, z, -0.00001)
+
+    def test_pownd_constraint(self):
+        n = 4
+        W, z = Variable(n), Variable()
+        np.random.seed(0)
+        alpha = 0.5 + np.random.rand(n)
+        alpha /= np.sum(alpha)
+        with self.assertRaises(ValueError):
+            # entries don't sum to one
+            con = PowConeND(W, z, alpha+0.01)
+        with self.assertRaises(ValueError):
+            # shapes don't match exactly
+            con = PowConeND(W, z, alpha.reshape((n, 1)))
+        with self.assertRaises(ValueError):
+            # wrong axis
+            con = PowConeND(reshape_atom(W, (n, 1)), z,
+                            alpha.reshape((n, 1)),
+                            axis=1)
+        # Compute a violation
+        con = PowConeND(W, z, alpha)
+        W0 = 0.1 + np.random.rand(n)
+        z0 = np.prod(np.power(W0, alpha))+0.05
+        W.value, z.value = W0, z0
+        viol = con.violation()
+        self.assertGreaterEqual(viol, 0.01)
+        self.assertLessEqual(viol, 0.06)
+
     def test_chained_constraints(self):
         """Tests that chaining constraints raises an error.
         """
@@ -220,11 +271,6 @@ class TestConstraints(BaseTest):
             (self.x == self.z == 1)
         self.assertEqual(str(cm.exception), error_str)
 
-        if PY2:
-            with self.assertRaises(Exception) as cm:
-                (self.z <= self.x).__nonzero__()
-            self.assertEqual(str(cm.exception), error_str)
-        else:
-            with self.assertRaises(Exception) as cm:
-                (self.z <= self.x).__bool__()
-            self.assertEqual(str(cm.exception), error_str)
+        with self.assertRaises(Exception) as cm:
+            (self.z <= self.x).__bool__()
+        self.assertEqual(str(cm.exception), error_str)

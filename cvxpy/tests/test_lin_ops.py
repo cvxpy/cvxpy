@@ -22,8 +22,6 @@ from cvxpy.lin_ops.lin_op import (VARIABLE, PARAM, SCALAR_CONST, NEG,
 import numpy as np
 import scipy.sparse as sp
 from cvxpy.tests.base_test import BaseTest
-import sys
-PY2 = sys.version_info < (3, 0)
 
 
 class test_lin_ops(BaseTest):
@@ -95,10 +93,7 @@ class test_lin_ops(BaseTest):
         add_expr = sum_expr([x, y, A])
         vars_ = get_expr_vars(add_expr)
         ref = [(x.data, shape), (y.data, shape)]
-        if PY2:
-            self.assertItemsEqual(vars_, ref)
-        else:
-            self.assertCountEqual(vars_, ref)
+        self.assertCountEqual(vars_, ref)
 
     def test_neg_expr(self):
         """Test negating an expression.
@@ -123,10 +118,7 @@ class test_lin_ops(BaseTest):
         self.assertEqual(constr.shape, shape)
         vars_ = get_expr_vars(constr.expr)
         ref = [(x.data, shape), (y.data, shape)]
-        if PY2:
-            self.assertItemsEqual(vars_, ref)
-        else:
-            self.assertCountEqual(vars_, ref)
+        self.assertCountEqual(vars_, ref)
 
     def test_leq_constr(self):
         """Test creating a less than or equal constraint.
@@ -141,10 +133,7 @@ class test_lin_ops(BaseTest):
         self.assertEqual(constr.shape, shape)
         vars_ = get_expr_vars(constr.expr)
         ref = [(x.data, shape), (y.data, shape)]
-        if PY2:
-            self.assertItemsEqual(vars_, ref)
-        else:
-            self.assertCountEqual(vars_, ref)
+        self.assertCountEqual(vars_, ref)
 
     def test_sum(self):
         """Test sum entries op.
