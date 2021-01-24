@@ -19,3 +19,4 @@ from cvxpy.constraints.exponential import ExpCone
 from cvxpy.constraints.nonpos import Inequality, NonPos, NonNeg
 from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.power import PowConeND, PowCone3D

@@ -3,7 +3,7 @@ import warnings
 
 from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
 from cvxpy.constraints import ExpCone, PSD, SOC, NonNeg, \
-                              NonPos, Inequality, Equality, Zero
+                              NonPos, Inequality, Equality, Zero, PowCone3D
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
@@ -11,6 +11,7 @@ from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.cone2cone.exotic2common import EXOTIC_CONES, Exotic2Common
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
@@ -184,27 +185,42 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
                           "conic solvers exist among candidate solvers "
                           "(%s)." % candidates)
 
-    # Our choice of solver depends upon which atoms are present in the
-    # problem. The types of atoms to check for are SOC atoms, PSD atoms,
-    # and exponential atoms.
-    atoms = problem.atoms()
+    constr_types = set()
+    # ^ We use constr_types to infer an incomplete list of cones that
+    # the solver will need after canonicalization.
+    for c in problem.constraints:
+        constr_types.add(type(c))
+    ex_cos = [ct for ct in constr_types if ct in EXOTIC_CONES]
+    # ^ The way we populate "ex_cos" will need to change if and when
+    # we have atoms that require exotic cones.
+    for co in ex_cos:
+        sim_cos = EXOTIC_CONES[co]  # get the set of required simple cones
+        constr_types.update(sim_cos)
+        constr_types.remove(co)
+    # We now go over individual elementary cones support by CVXPY (
+    # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
+    # they've appeared in constr_types or if the problem has an atom
+    # requiring that cone.
     cones = []
-    if (any(atom in SOC_ATOMS for atom in atoms)
-            or any(type(c) == SOC for c in problem.constraints)):
+    atoms = problem.atoms()
+    if SOC in constr_types or any(atom in SOC_ATOMS for atom in atoms):
         cones.append(SOC)
-    if (any(atom in EXP_ATOMS for atom in atoms)
-            or any(type(c) == ExpCone for c in problem.constraints)):
+    if ExpCone in constr_types or any(atom in EXP_ATOMS for atom in atoms):
         cones.append(ExpCone)
-    if (any(atom in NONPOS_ATOMS for atom in atoms)
-            or any(type(c) in [Inequality, NonPos, NonNeg] for c in problem.constraints)):
+    if any(t in constr_types for t in [Inequality, NonPos, NonNeg]) \
+            or any(atom in NONPOS_ATOMS for atom in atoms):
         cones.append(NonNeg)
-    if (any(type(c) in [Equality, Zero] for c in problem.constraints)):
+    if Equality in constr_types or Zero in constr_types:
         cones.append(Zero)
-    if (any(atom in PSD_ATOMS for atom in atoms)
-            or any(type(c) == PSD for c in problem.constraints)
-            or any(v.is_psd() or v.is_nsd()
-                   for v in problem.variables())):
+    if PSD in constr_types \
+            or any(atom in PSD_ATOMS for atom in atoms) \
+            or any(v.is_psd() or v.is_nsd() for v in problem.variables()):
         cones.append(PSD)
+    if PowCone3D in constr_types:
+        # if we add in atoms that specifically use the 3D power cone
+        # (rather than the ND power cone), then we'll need to check
+        # for those atoms here as well.
+        cones.append(PowCone3D)
 
     # Here, we make use of the observation that canonicalization only
     # increases the number of constraints in our problem.
@@ -214,8 +230,9 @@ def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
         if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
-            reductions += [ConeMatrixStuffing(),
-                           solver_instance]
+            if ex_cos:
+                reductions.append(Exotic2Common())
+            reductions += [ConeMatrixStuffing(), solver_instance]
             return SolvingChain(reductions=reductions)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "

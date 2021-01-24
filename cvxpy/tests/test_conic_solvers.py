@@ -31,6 +31,7 @@ from cvxpy.tests.solver_test_helpers import (
     StandardTestMixedCPs,
     StandardTestSDPs,
     StandardTestSOCPs,
+    StandardTestPCPs
 )
 
 
@@ -186,6 +187,7 @@ class TestSCS(BaseTest):
         """Test complex matrices.
         """
         # Complex-valued matrix
+        np.random.seed(0)
         K = np.array(np.random.rand(2, 2) + 1j * np.random.rand(2, 2))  # example matrix
         n1 = la.svdvals(K).sum()  # trace norm of K
 
@@ -356,6 +358,12 @@ class TestSCS(BaseTest):
     def test_scs_exp_soc_1(self):
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS')
 
+    def test_scs_pcp_1(self):
+        StandardTestPCPs.test_pcp_1(solver='SCS', eps=1e-8)
+
+    def test_scs_pcp_2(self):
+        StandardTestPCPs.test_pcp_2(solver='SCS', eps=1e-8)
+
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
 class TestMosek(unittest.TestCase):
@@ -411,6 +419,12 @@ class TestMosek(unittest.TestCase):
     def test_mosek_exp_soc_1(self):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOSEK')
 
+    def test_mosek_pcp_1(self):
+        StandardTestPCPs.test_pcp_1(solver='MOSEK')
+
+    def test_mosek_pcp_2(self):
+        StandardTestPCPs.test_pcp_2(solver='MOSEK')
+
     def test_mosek_mi_lp_0(self):
         StandardTestLPs.test_mi_lp_0(solver='MOSEK')
 
@@ -429,11 +443,15 @@ class TestMosek(unittest.TestCase):
     def test_mosek_mi_socp_2(self):
         StandardTestSOCPs.test_mi_socp_2(solver='MOSEK')
 
+    def test_mosek_mi_pcp_0(self):
+        StandardTestPCPs.test_mi_pcp_0(solver='MOSEK')
+
     def test_mosek_params(self):
         if cp.MOSEK in INSTALLED_SOLVERS:
             import mosek
             n = 10
             m = 4
+            np.random.seed(0)
             A = np.random.randn(m, n)
             x = np.random.randn(n)
             y = A.dot(x)
@@ -743,6 +761,7 @@ class TestCPLEX(BaseTest):
     def test_cplex_params(self):
         if cp.CPLEX in INSTALLED_SOLVERS:
             n, m = 10, 4
+            np.random.seed(0)
             A = np.random.randn(m, n)
             x = np.random.randn(n)
             y = A.dot(x)
@@ -1053,6 +1072,7 @@ class TestXPRESS(BaseTest):
     def test_xpress_params(self):
         if cp.XPRESS in INSTALLED_SOLVERS:
             n, m = 10, 4
+            np.random.seed(0)
             A = np.random.randn(m, n)
             x = np.random.randn(n)
             y = A.dot(x)

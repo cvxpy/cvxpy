@@ -38,11 +38,7 @@ import pickle
 import scs
 import ecos
 import warnings
-PY2 = sys.version_info < (3, 0)
-if sys.version_info < (3, 0):
-    from cStringIO import StringIO
-else:
-    from io import StringIO
+from io import StringIO
 
 
 class TestProblem(BaseTest):
@@ -87,10 +83,7 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(self.a), [self.a <= self.x, self.b <= self.A + 2])
         vars_ = p.variables()
         ref = [self.a, self.x, self.b, self.A]
-        if PY2:
-            self.assertItemsEqual(vars_, ref)
-        else:
-            self.assertCountEqual(vars_, ref)
+        self.assertCountEqual(vars_, ref)
 
     def test_parameters(self):
         """Test the parameters method.
@@ -101,10 +94,7 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
         params = p.parameters()
         ref = [p1, p2, p3]
-        if PY2:
-            self.assertItemsEqual(params, ref)
-        else:
-            self.assertCountEqual(params, ref)
+        self.assertCountEqual(params, ref)
 
     def test_solving_a_problem_with_unspecified_parameters(self):
         param = cp.Parameter(name="lambda")
@@ -156,10 +146,7 @@ class TestProblem(BaseTest):
         # num_scalar_variables
         n_variables = p.size_metrics.num_scalar_variables
         ref = self.a.size + self.b.size + self.c.size
-        if PY2:
-            self.assertEqual(n_variables, ref)
-        else:
-            self.assertEqual(n_variables, ref)
+        self.assertEqual(n_variables, ref)
 
         # num_scalar_data
         n_data = p.size_metrics.num_scalar_data

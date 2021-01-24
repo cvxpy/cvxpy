@@ -20,6 +20,7 @@ from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
 from cvxpy.constraints.second_order import SOC as SOC_obj
 from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
 from cvxpy.constraints.psd import PSD as PSD_obj
+from cvxpy.constraints.power import PowCone3D as PowCone_obj
 import numpy as np
 import scipy as sp
 
@@ -29,8 +30,10 @@ ZERO = '0'
 NONNEG = '+'
 EXP = 'e'
 DUAL_EXP = 'de'
-SOC = 's'
-PSD = 'p'
+SOC = 'q'
+PSD = 's'
+POW3D = 'pp3'
+DUAL_POW3D = 'dp3'
 
 
 class Dualize(object):
@@ -97,7 +100,8 @@ class Dualize(object):
             NONNEG: Kp.nonneg,  # length of block of nonneg variables.
             SOC: Kp.soc,  # lengths of blocks of soc-constrained variables.
             PSD: Kp.psd,  # "orders" of PSD variables
-            DUAL_EXP: Kp.exp  # number of length-3 blocks of dual exp cone variables.
+            DUAL_EXP: Kp.exp,  # number of length-3 blocks of dual exp cone variables.
+            DUAL_POW3D: Kp.p3d  # scale parameters for dual 3d power cones
         }
         data = {
             s.A: A.T,
@@ -193,6 +197,10 @@ class Dualize(object):
                 dv = direct_prims[DUAL_EXP][i:i + con.size]
                 dual_vars[con.id] = dv
                 i += con.size
+            for con in constr_map[PowCone_obj]:
+                dv = direct_prims[DUAL_POW3D][i:i + con.size]
+                dual_vars[con.id] = dv
+                i += con.size
         elif status == s.INFEASIBLE:
             status = s.UNBOUNDED
             opt_val = -np.inf
@@ -286,7 +294,7 @@ class Slacks(object):
             raise NotImplementedError()
 
         for val in affine:
-            if val not in {ZERO, NONNEG, EXP, SOC}:
+            if val not in {ZERO, NONNEG, EXP, SOC, POW3D}:
                 raise NotImplementedError()
         if ZERO not in affine:
             affine.append(ZERO)
@@ -295,31 +303,33 @@ class Slacks(object):
             ZERO: cone_dims.zero,
             NONNEG: cone_dims.nonneg,
             SOC: sum(cone_dims.soc),
-            EXP: 3 * cone_dims.exp
+            EXP: 3 * cone_dims.exp,
+            POW3D: 3 * len(cone_dims.p3d)
         }
         row_offsets = {
             ZERO: 0,
             NONNEG: cone_lens[ZERO],
             SOC: cone_lens[ZERO] + cone_lens[NONNEG],
-            EXP: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC]
+            EXP: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC],
+            POW3D: cone_lens[ZERO] + cone_lens[NONNEG] + cone_lens[SOC] + cone_lens[EXP]
         }
         # ^ If the rows of A are formatted in an order different from
-        # zero -> nonneg -> soc -> exp, then the above block of code should
+        # zero -> nonneg -> soc -> exp -> pow, then the above block of code should
         # change. Right now there isn't enough data in (c, d, A, b, cone_dims,
         # constr_map) which allows us to figure out the ordering of these rows.
         A_aff, b_aff = [], []
         A_slk, b_slk = [], []
         total_slack = 0
-        for co_type in [ZERO, NONNEG, SOC, EXP]:
+        for co_type in [ZERO, NONNEG, SOC, EXP, POW3D]:
             # ^ The order of that list means that the matrix "G" in "G @ z <=_{K_aff} h"
             # will always have rows ordered by the zero cone, then the nonnegative orthant,
             # then second order cones, and finally exponential cones. Changing the order
             # of items in this list would change the order of row blocks in "G".
             #
             # If the order is changed, then this affects which columns of the final matrix
-            # "G" correspond to which types of cones. For example, [ZERO, SOC, EXP, NONNEG]
+            # "G" correspond to which types of cones. For example, [ZERO, SOC, EXP, POW3D, NONNEG]
             # and NONNEG is not in "affine", then the columns of G with nonnegative variables
-            # occur after all free variables and soc variables and exp variables.
+            # occur after all free variables, soc variables, exp variables, and pow3d variables.
             co_dim = cone_lens[co_type]
             if co_dim > 0:
                 r = row_offsets[co_type]
@@ -337,15 +347,18 @@ class Slacks(object):
             NONNEG: 0 if NONNEG in affine else cone_dims.nonneg,
             SOC: [] if SOC in affine else cone_dims.soc,
             EXP: 0 if EXP in affine else cone_dims.exp,
-            PSD: [],  # PSD currently not supported.
-            DUAL_EXP: 0
+            PSD: [],  # not currently supported in this reduction
+            DUAL_EXP: 0,  # not currently supported in cvxpy
+            POW3D: [] if POW3D in affine else cone_dims.p3d,
+            DUAL_POW3D: []  # not currently supported in cvxpy
         }
         K_aff = {
             NONNEG: cone_dims.nonneg if NONNEG in affine else 0,
             SOC: cone_dims.soc if SOC in affine else [],
             EXP: cone_dims.exp if EXP in affine else 0,
-            PSD: [],  # PSD currently not supported.
-            ZERO: cone_dims.zero + total_slack
+            PSD: [],  # currently not supported in this reduction
+            ZERO: cone_dims.zero + total_slack,
+            POW3D: cone_dims.p3d if POW3D in affine else []
         }
 
         data = dict()

@@ -16,7 +16,7 @@ limitations under the License.
 
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.constraints import (Equality, ExpCone, Inequality,
-                               SOC, Zero, NonNeg, PSD)
+                               SOC, Zero, NonNeg, PSD, PowCone3D)
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
@@ -52,38 +52,54 @@ class ConeDims(object):
         A list of the positive semidefinite cone dimensions, where the
         dimension of the PSD cone of k by k matrices is k.
     """
+
+    EQ_DIM = s.EQ_DIM
+    LEQ_DIM = s.LEQ_DIM
+    EXP_DIM = s.EXP_DIM
+    SOC_DIM = s.SOC_DIM
+    PSD_DIM = s.PSD_DIM
+    P3D_DIM = 'p3'
+
     def __init__(self, constr_map):
         self.zero = int(sum(c.size for c in constr_map[Zero]))
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
         self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
+        p3d = []
+        if constr_map[PowCone3D]:
+            p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
+        self.p3d = p3d
 
     def __repr__(self):
-        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4})".format(
-            self.zero, self.nonneg, self.exp, self.soc, self.psd)
+        return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5})".format(
+            self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d)
 
     def __str__(self):
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
-                "SOC constraints: %s, PSD constraints: %s.") % (self.zero,
-                                                                self.nonneg,
-                                                                self.exp,
-                                                                self.soc,
-                                                                self.psd)
+                "SOC constraints: %s, PSD constraints: %s,\n"
+                " 3d power cones %s.") % (self.zero,
+                                          self.nonneg,
+                                          self.exp,
+                                          self.soc,
+                                          self.psd,
+                                          self.p3d)
 
     def __getitem__(self, key):
-        if key == s.EQ_DIM:
+        if key == self.EQ_DIM:
             return self.zero
-        elif key == s.LEQ_DIM:
+        elif key == self.LEQ_DIM:
             return self.nonneg
-        elif key == s.EXP_DIM:
+        elif key == self.EXP_DIM:
             return self.exp
-        elif key == s.SOC_DIM:
+        elif key == self.SOC_DIM:
             return self.soc
-        elif key == s.PSD_DIM:
+        elif key == self.PSD_DIM:
             return self.psd
+        elif key == self.P3D_DIM:
+            return self.p3d
         else:
             raise KeyError(key)
 
@@ -305,10 +321,10 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)
             cons.append(con)
-        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP.
+        # Reorder constraints to Zero, NonNeg, SOC, PSD, EXP, PowCone3D
         constr_map = group_constraints(cons)
         ordered_cons = constr_map[Zero] + constr_map[NonNeg] + \
-            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone]
+            constr_map[SOC] + constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
         inverse_data.cons_id_map = {con.id: con.id for con in ordered_cons}
 
         inverse_data.constraints = ordered_cons

@@ -9,6 +9,15 @@ The latest release of CVXPY is version 1.1.
 Recent patches
 --------------
 
+.. _changes118:
+
+Changes in version 1.1.8
+ - We have added support for 3-dimensional and N-dimensional power cone constraints. Although,
+   we currently do not have any atoms that take advantage of this constraint. If you want
+   you want to use this type of constraint in your model, you will need to instantiate
+   ``PowCone3D`` and/or ``PowConeND`` objects manually. Dual variables are not yet implemented
+   for ``PowConeND`` objects. At present, only SCS and MOSEK support power cone constraints.
+
 .. _changes116:
 
 Changes in version 1.1.6

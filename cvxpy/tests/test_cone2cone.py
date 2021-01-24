@@ -30,6 +30,7 @@ from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.power import PowConeND, PowCone3D
 
 
 class TestDualize(BaseTest):
@@ -61,9 +62,17 @@ class TestDualize(BaseTest):
             constraints.append(SOC(y[i], y[i+1:i+dim]))
             i += dim
         if K_dir[a2d.DUAL_EXP]:
-            dual_prims[a2d.DUAL_EXP] = y[i:]
-            y_de = cp.reshape(y[i:], ((y.size - i)//3, 3), order='C')  # fill rows first
+            exp_len = 3 * K_dir[a2d.DUAL_EXP]
+            dual_prims[a2d.DUAL_EXP] = y[i:i+exp_len]
+            y_de = cp.reshape(y[i:i+exp_len], (exp_len//3, 3), order='C')  # fill rows first
             constraints.append(ExpCone(-y_de[:, 1], -y_de[:, 0], np.exp(1)*y_de[:, 2]))
+            i += exp_len
+        if K_dir[a2d.DUAL_POW3D]:
+            alpha = np.array(K_dir[a2d.DUAL_POW3D])
+            dual_prims[a2d.DUAL_POW3D] = y[i:]
+            y_dp = cp.reshape(y[i:], (alpha.size, 3), order='C')  # fill rows first
+            pow_con = PowCone3D(y_dp[:, 0] / alpha, y_dp[:, 1] / (1-alpha), y_dp[:, 2], alpha)
+            constraints.append(pow_con)
         objective = cp.Maximize(c @ y)
         dual_prob = cp.Problem(objective, constraints)
         dual_prob.solve(solver='SCS', eps=1e-8)
@@ -73,6 +82,8 @@ class TestDualize(BaseTest):
         dual_prims[a2d.SOC] = [expr.value for expr in dual_prims[a2d.SOC]]
         if K_dir[a2d.DUAL_EXP]:
             dual_prims[a2d.DUAL_EXP] = dual_prims[a2d.DUAL_EXP].value
+        if K_dir[a2d.DUAL_POW3D]:
+            dual_prims[a2d.DUAL_POW3D] = dual_prims[a2d.DUAL_POW3D].value
         dual_duals = {s.EQ_DUAL: constraints[0].dual_value}
         dual_sol = cp.Solution(dual_prob.status, dual_prob.value, dual_prims, dual_duals, dict())
         cone_sol = a2d.Dualize.invert(dual_sol, inv_data)
@@ -165,12 +176,20 @@ class TestDualize(BaseTest):
         sth.verify_primal_values(places=4)
         sth.verify_dual_values(places=4)
 
+    def test_pcp_2(self):
+        sth = STH.pcp_2()
+        TestDualize.simulate_chain(sth.prob)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.verify_dual_values(places=3)
+
 
 class TestSlacks(BaseTest):
 
     AFF_LP_CASES = [[a2d.NONNEG], []]
     AFF_SOCP_CASES = [[a2d.NONNEG, a2d.SOC], [a2d.NONNEG], [a2d.SOC], []]
     AFF_EXP_CASES = [[a2d.NONNEG, a2d.EXP], [a2d.NONNEG], [a2d.EXP], []]
+    AFF_PCP_CASES = [[a2d.NONNEG], [a2d.POW3D], []]
     AFF_MIXED_CASES = [[a2d.NONNEG], []]
 
     @staticmethod
@@ -219,9 +238,14 @@ class TestSlacks(BaseTest):
             constraints.append(SOC(expr[0], expr[1:]))
             i += dim
         if K_aff[a2d.EXP]:
-            dim = G.shape[0] - i
-            expr = cp.reshape(h[i:] - G[i:, :] @ y, (dim//3, 3), order='C')
+            dim = 3 * K_aff[a2d.EXP]
+            expr = cp.reshape(h[i:i+dim] - G[i:i+dim, :] @ y, (dim//3, 3), order='C')
             constraints.append(ExpCone(expr[:, 0], expr[:, 1], expr[:, 2]))
+            i += dim
+        if K_aff[a2d.POW3D]:
+            alpha = np.array(K_aff[a2d.POW3D])
+            expr = cp.reshape(h[i:] - G[i:, :] @ y, (alpha.size, 3), order='C')
+            constraints.append(PowCone3D(expr[:, 0], expr[:, 1], expr[:, 2], alpha))
         return constraints
 
     @staticmethod
@@ -236,9 +260,14 @@ class TestSlacks(BaseTest):
             constraints.append(SOC(y[i], y[i+1:i+dim]))
             i += dim
         if K_dir[a2d.EXP]:
-            dim = y.size - i
-            expr = cp.reshape(y[i:], (dim//3, 3), order='C')
+            dim = 3 * K_dir[a2d.EXP]
+            expr = cp.reshape(y[i:i+dim], (dim//3, 3), order='C')
             constraints.append(ExpCone(expr[:, 0], expr[:, 1], expr[:, 2]))
+            i += dim
+        if K_dir[a2d.POW3D]:
+            alpha = np.array(K_dir[a2d.POW3D])
+            expr = cp.reshape(y[i:], (alpha.size, 3), order='C')
+            constraints.append(PowCone3D(expr[:, 0], expr[:, 1], expr[:, 2], alpha))
         return constraints
 
     @staticmethod
@@ -304,6 +333,20 @@ class TestSlacks(BaseTest):
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
+    def test_pcp_1(self):
+        sth = STH.pcp_1()
+        for affine in TestSlacks.AFF_PCP_CASES:
+            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS', eps=1e-8)
+            sth.verify_objective(places=3)
+            sth.verify_primal_values(places=3)
+
+    def test_pcp_2(self):
+        sth = STH.pcp_2()
+        for affine in TestSlacks.AFF_PCP_CASES:
+            TestSlacks.simulate_chain(sth.prob, affine, solver='SCS', eps=1e-8)
+            sth.verify_objective(places=3)
+            sth.verify_primal_values(places=3)
+
     def test_mi_lp_1(self):
         sth = STH.mi_lp_1()
         for affine in TestSlacks.AFF_LP_CASES:
@@ -326,3 +369,113 @@ class TestSlacks(BaseTest):
             TestSlacks.simulate_chain(sth.prob, affine)
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
+
+
+class TestPowND(BaseTest):
+
+    @staticmethod
+    def pcp_3(axis):
+        """
+        A modification of pcp_2. Reformulate
+
+            max  (x**0.2)*(y**0.8) + z**0.4 - x
+            s.t. x + y + z/2 == 2
+                 x, y, z >= 0
+        Into
+
+            max  x3 + x4 - x0
+            s.t. x0 + x1 + x2 / 2 == 2,
+
+                 W := [[x0, x2],
+                      [x1, 1.0]]
+                 z := [x3, x4]
+                 alpha := [[0.2, 0.4],
+                          [0.8, 0.6]]
+                 (W, z) in PowND(alpha, axis=0)
+        """
+        x = cp.Variable(shape=(3,))
+        expect_x = np.array([0.06393515, 0.78320961, 2.30571048])
+        hypos = cp.Variable(shape=(2,))
+        expect_hypos = None
+        objective = cp.Maximize(cp.sum(hypos) - x[0])
+        W = cp.bmat([[x[0], x[2]],
+                     [x[1], 1.0]])
+        alpha = np.array([[0.2, 0.4],
+                          [0.8, 0.6]])
+        if axis == 1:
+            W = W.T
+            alpha = alpha.T
+        con_pairs = [
+            (x[0] + x[1] + 0.5 * x[2] == 2, None),
+            (cp.constraints.PowConeND(W, hypos, alpha, axis=axis), None)
+        ]
+        obj_pair = (objective, 1.8073406786220672)
+        var_pairs = [
+            (x, expect_x),
+            (hypos, expect_hypos)
+        ]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_pcp_3a(self):
+        sth = TestPowND.pcp_3(axis=0)
+        sth.solve(solver='SCS', eps=1e-8)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_complementarity(places=3)
+        pass
+
+    def test_pcp_3b(self):
+        sth = TestPowND.pcp_3(axis=1)
+        sth.solve(solver='SCS', eps=1e-8)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_complementarity(places=3)
+        pass
+
+    @staticmethod
+    def pcp_4(ceei=True):
+        """
+        A power cone formulation of a Fisher market equilibrium pricing model.
+        ceei = Competitive Equilibrium from Equal Incomes
+        """
+        # Generate test data
+        np.random.seed(0)
+        n_buyer = 4
+        n_items = 6
+        V = np.random.rand(n_buyer, n_items)
+        X = cp.Variable(shape=(n_buyer, n_items), nonneg=True)
+        u = cp.sum(cp.multiply(V, X), axis=1)
+        if ceei:
+            b = np.ones(n_buyer) / n_buyer
+        else:
+            b = np.array([0.3, 0.15, 0.2, 0.35])
+        log_objective = cp.Maximize(cp.sum(cp.multiply(b, cp.log(u))))
+        log_cons = [cp.sum(X, axis=0) <= 1]
+        log_prob = cp.Problem(log_objective, log_cons)
+        log_prob.solve(solver='SCS', eps=1e-8)
+        expect_X = X.value
+
+        z = cp.Variable()
+        pow_objective = (cp.Maximize(z), np.exp(log_prob.value))
+        pow_cons = [(cp.sum(X, axis=0) <= 1, None),
+                    (PowConeND(W=u, z=z, alpha=b), None)]
+        pow_vars = [(X, expect_X)]
+        sth = STH.SolverTestHelper(pow_objective, pow_vars, pow_cons)
+        return sth
+
+    def test_pcp_4a(self):
+        sth = TestPowND.pcp_4(ceei=True)
+        sth.solve(solver='SCS', eps=1e-8)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_complementarity(places=3)
+        pass
+
+    def test_pcp_4b(self):
+        sth = TestPowND.pcp_4(ceei=False)
+        sth.solve(solver='SCS', eps=1e-8)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_complementarity(places=3)
+        pass

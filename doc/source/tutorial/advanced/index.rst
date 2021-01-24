@@ -412,35 +412,35 @@ CVXPY is distributed with the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
-+--------------+----+----+------+-----+-----+-----+
-|              | LP | QP | SOCP | SDP | EXP | MIP |
-+==============+====+====+======+=====+=====+=====+
-| `CBC`_       | X  |    |      |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+
-| `GLPK`_      | X  |    |      |     |     |     |
-+--------------+----+----+------+-----+-----+-----+
-| `GLPK_MI`_   | X  |    |      |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+
-| `OSQP`_      | X  | X  |      |     |     |     |
-+--------------+----+----+------+-----+-----+-----+
-| `CPLEX`_     | X  | X  | X    |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+
-| `NAG`_       | X  | X  | X    |     |     |     |
-+--------------+----+----+------+-----+-----+-----+
-| `ECOS`_      | X  | X  | X    |     | X   |     |
-+--------------+----+----+------+-----+-----+-----+
-| `GUROBI`_    | X  | X  | X    |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+
-| `MOSEK`_     | X  | X  | X    | X   | X   | X*  |
-+--------------+----+----+------+-----+-----+-----+
-| `CVXOPT`_    | X  | X  | X    | X   |     |     |
-+--------------+----+----+------+-----+-----+-----+
-| `SCS`_       | X  | X  | X    | X   | X   |     |
-+--------------+----+----+------+-----+-----+-----+
-| `SCIP`_      | X  | X  | X    |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+
-| `XPRESS`_    | X  | X  | X    |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+
++--------------+----+----+------+-----+-----+-----+-----+
+|              | LP | QP | SOCP | SDP | EXP | POW | MIP |
++==============+====+====+======+=====+=====+=====+=====+
+| `CBC`_       | X  |    |      |     |     |     | X   |
++--------------+----+----+------+-----+-----+-----+-----+
+| `GLPK`_      | X  |    |      |     |     |     |     |
++--------------+----+----+------+-----+-----+-----+-----+
+| `GLPK_MI`_   | X  |    |      |     |     |     | X   |
++--------------+----+----+------+-----+-----+-----+-----+
+| `OSQP`_      | X  | X  |      |     |     |     |     |
++--------------+----+----+------+-----+-----+-----+-----+
+| `CPLEX`_     | X  | X  | X    |     |     |     | X   |
++--------------+----+----+------+-----+-----+-----+-----+
+| `NAG`_       | X  | X  | X    |     |     |     |     |
++--------------+----+----+------+-----+-----+-----+-----+
+| `ECOS`_      | X  | X  | X    |     | X   |     |     |
++--------------+----+----+------+-----+-----+-----+-----+
+| `GUROBI`_    | X  | X  | X    |     |     |     | X   |
++--------------+----+----+------+-----+-----+-----+-----+
+| `MOSEK`_     | X  | X  | X    | X   | X   | X   | X*  |
++--------------+----+----+------+-----+-----+-----+-----+
+| `CVXOPT`_    | X  | X  | X    | X   |     |     |     |
++--------------+----+----+------+-----+-----+-----+-----+
+| `SCS`_       | X  | X  | X    | X   | X   | X   |     |
++--------------+----+----+------+-----+-----+-----+-----+
+| `SCIP`_      | X  | X  | X    |     |     |     | X   |
++--------------+----+----+------+-----+-----+-----+-----+
+| `XPRESS`_    | X  | X  | X    |     |     |     | X   |
++--------------+----+----+------+-----+-----+-----+-----+
 
 (*) Except mixed-integer SDP.
 
@@ -449,7 +449,15 @@ Here EXP refers to problems with exponential cone constraints. The exponential c
     :math:`\{(x,y,z) \mid y > 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}`.
 
 Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
-converts the problem into standard form.
+converts the problem into standard form. The POW column refers to problems with 3-dimensional power
+cone constraints. The 3D power cone is defined as
+
+    :math:`\{(x,y,z) \mid x^{\alpha}y^{\alpha} \geq |z|, x \geq 0, y \geq 0 \}`.
+
+Support for power cone constraints is a recent addition (v1.1.8), and CVXPY currently does
+not have any atoms that take advantage of this constraint. If you want you want to use this
+type of constraint in your model, you will need to instantiate ``PowCone3D`` and/or ``PowConeND``
+objects manually.
 
 By default CVXPY calls the solver most specialized to the problem type. For example, `ECOS`_ is called for SOCPs.
 `SCS`_ can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use `OSQP`_.
