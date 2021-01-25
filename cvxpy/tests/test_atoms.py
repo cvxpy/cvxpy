@@ -1084,7 +1084,7 @@ class TestAtoms(BaseTest):
                 np.log(scipy.stats.norm.cdf(x)),
                 cp.log_normcdf(x).value,
                 places=None,
-                delta=1e-1,
+                delta=1e-2,
             )
 
         y = Variable((2, 2))
@@ -1092,5 +1092,5 @@ class TestAtoms(BaseTest):
         prob = Problem(obj, [y == 2])
         result = prob.solve()
         self.assertAlmostEqual(
-            -result, 4 * np.log(scipy.stats.norm.cdf(2)), places=None, delta=1e-1
+            -result, 4 * np.log(scipy.stats.norm.cdf(2)), places=None, delta=1e-2
         )
