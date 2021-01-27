@@ -16,6 +16,7 @@ import functools
 import scipy.sparse
 import numpy as np
 
+from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as sum_
 from cvxpy.atoms.elementwise.maximum import maximum
@@ -41,18 +42,11 @@ def log_normcdf(x):
     )
     b = np.array([[3.0, 2.0, 1.0, 0.0, -1.0, -2.5, -3.5]]).reshape(-1, 1)
 
-    is_scalar = not hasattr(x, "shape")
-    if is_scalar or not x.shape:
-        x_size = 1
-    else:
-        x_size = functools.reduce(lambda i, j: i * j, x.shape)
-
+    x = Expression.cast_to_const(x)
+    x_size = functools.reduce(lambda i, j: i * j, x.shape, 1)
     flat_x = reshape(x, (1, x_size))
 
     y = A @ (b @ np.ones(flat_x.shape) - np.ones(b.shape) @ flat_x)
     out = -sum_(maximum(y, 0) ** 2, axis=0)
 
-    if is_scalar:
-        return out[0]
-    else:
-        return reshape(out, x.shape)
+    return reshape(out, x.shape)
