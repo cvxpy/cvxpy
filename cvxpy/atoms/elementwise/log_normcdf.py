@@ -11,8 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import functools
-
 import scipy.sparse
 import numpy as np
 
@@ -43,8 +41,7 @@ def log_normcdf(x):
     b = np.array([[3.0, 2.0, 1.0, 0.0, -1.0, -2.5, -3.5]]).reshape(-1, 1)
 
     x = Expression.cast_to_const(x)
-    x_size = functools.reduce(lambda i, j: i * j, x.shape, 1)
-    flat_x = reshape(x, (1, x_size))
+    flat_x = reshape(x, (1, x.size))
 
     y = A @ (b @ np.ones(flat_x.shape) - np.ones(b.shape) @ flat_x)
     out = -sum_(maximum(y, 0) ** 2, axis=0)
