@@ -214,7 +214,7 @@ class Dualize(object):
             status = s.INFEASIBLE_INACCURATE
             opt_val = np.inf
         else:
-            status = s.UNKNOWN
+            status = s.SOLVER_ERROR
             opt_val = np.NaN
         sol = Solution(status, opt_val, primal_vars, dual_vars, prob_attr)
         return sol
