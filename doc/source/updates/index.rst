@@ -17,6 +17,10 @@ Changes in version 1.1.8
    you want to use this type of constraint in your model, you will need to instantiate
    ``PowCone3D`` and/or ``PowConeND`` objects manually. Dual variables are not yet implemented
    for ``PowConeND`` objects. At present, only SCS and MOSEK support power cone constraints.
+ - We fixed a bug in our MOSEK interface that was introduced in version 1.1.6. The "unknown"
+   status code was not being handled correctly, resulting in ValueErrors rather than SolverErrors.
+   Users can now expect a SolverError when MOSEK returns an "unknown" status code (as was
+   standard before).
 
 .. _changes116:
 
