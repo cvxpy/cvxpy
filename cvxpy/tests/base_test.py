@@ -34,8 +34,8 @@ class BaseTest(unittest.TestCase):
             self.assertAlmostEqual(a[i], b[i], places)
 
     # Overridden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places=5):
-        super(BaseTest, self).assertAlmostEqual(a, b, places=places)
+    def assertAlmostEqual(self, a, b, places=5, delta=None):
+        super(BaseTest, self).assertAlmostEqual(a, b, places=places, delta=delta)
 
     def mat_to_list(self, mat):
         """Convert a numpy matrix to a list.

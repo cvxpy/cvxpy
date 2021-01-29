@@ -25,6 +25,7 @@ from cvxpy import Problem, Minimize
 from cvxpy.tests.base_test import BaseTest
 import unittest
 import scipy.sparse as sp
+import scipy.stats
 
 
 class TestAtoms(BaseTest):
@@ -1073,3 +1074,23 @@ class TestAtoms(BaseTest):
                          np.diff(B, axis=0).shape)
         self.assertEqual(cp.diff(A, axis=1).shape,
                          np.diff(B, axis=1).shape)
+
+    def test_log_normcdf(self):
+        self.assertEqual(cp.log_normcdf(self.x).sign, s.NONPOS)
+        self.assertEqual(cp.log_normcdf(self.x).curvature, s.CONCAVE)
+
+        for x in range(-4, 5):
+            self.assertAlmostEqual(
+                np.log(scipy.stats.norm.cdf(x)),
+                cp.log_normcdf(x).value,
+                places=None,
+                delta=1e-2,
+            )
+
+        y = Variable((2, 2))
+        obj = Minimize(cp.sum(-cp.log_normcdf(y)))
+        prob = Problem(obj, [y == 2])
+        result = prob.solve()
+        self.assertAlmostEqual(
+            -result, 4 * np.log(scipy.stats.norm.cdf(2)), places=None, delta=1e-2
+        )
