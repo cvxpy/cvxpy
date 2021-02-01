@@ -17,7 +17,7 @@ limitations under the License.
 from __future__ import division, print_function, absolute_import
 
 import numpy as np
-from numpy.testing import assert_allclose
+from numpy.testing import assert_allclose, assert_equal
 import scipy.sparse as sp
 import cvxpy
 from cvxpy.settings import EIGVAL_TOL
