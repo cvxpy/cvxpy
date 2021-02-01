@@ -212,9 +212,9 @@ python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by
 
 CVXPY comes with ECOS_BB -- an open source mixed-integer nonlinear solver -- by default. However
 ECOS_BB will not be called automatically; you must explicitly call ``prob.solve(solver='ECOS_BB')``
-if you want to use it. This policy stems from the fact that there are recurring correctness issues
-with ECOS_BB. If you rely on this solver for some application then you need to be aware of the
-increased risks that come with using it.
+if you want to use it (:ref:`changed in CVXPY 1.1.6 <changes116>`). This policy stems from the fact
+that there are recurring correctness issues with ECOS_BB. If you rely on this solver for some
+application then you need to be aware of the increased risks that come with using it.
 
 If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
 model, then you will need to use a commercial solver such as CPLEX_, GUROBI_, XPRESS_, or MOSEK_.
@@ -1352,4 +1352,37 @@ on derivatives.
 .. _OSQP: https://osqp.org/
 .. _SCIP: https://scip.zib.de/
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
+
+Custom Solvers
+------------------------------------
+Although ``cvxpy`` supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.
+
+To do so, you have to implement a solver class that is a child of ``cvxpy.reductions.solvers.qp_solvers.qp_solver.QpSolver`` or ``cvxpy.reductions.solvers.conic_solvers.conic_solver.ConicSolver``. Then you pass an instance of this solver class to ``solver.solve(.)`` as following:
+
+.. code:: python3
+
+    import cvxpy as cp
+    from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP
+
+
+    class CUSTOM_OSQP(OSQP):
+        MIP_CAPABLE=False
+
+        def name(self):
+            return "CUSTOM_OSQP"
+
+        def solve_via_data(self, *args, **kwargs):
+            print("Solving with a custom QP solver!")
+            super().solve_via_data(*args, **kwargs)
+
+
+    x = cp.Variable()
+    quadratic = cp.square(x)
+    problem = cp.Problem(cp.Minimize(quadratic))
+    problem.solve(solver=CUSTOM_OSQP())
+
+You might also want to override the methods ``invert`` and ``import_solver`` of the ``Solver`` class.
+
+Note that the string returned by the ``name`` property should be different to all of the officially supported solvers (a list of which can be found in ``cvxpy.settings.SOLVERS``). Also, if your solver is mixed integer capable, you should set the class variable ``MIP_CAPABLE`` to ``True``.
+
 

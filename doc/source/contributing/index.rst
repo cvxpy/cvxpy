@@ -143,29 +143,29 @@ test.
 
 Running unit tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-We use ``nose`` to run our unit tests, which you can install with ``pip install nose``.
+We use ``pytest`` to run our unit tests, which you can install with ``pip install pytest``.
 To run all unit tests, ``cd`` into ``cvxpy/tests`` and run the following command:
 
   ::
 
-    nosetests
+    pytest
 
 To run tests in a specific file (e.g., ``test_dgp.py``), use
 
   ::
 
-    nosetests test_dgp.py
+    pytest test_dgp.py
 
 To run a specific test method (e.g., ``TestDgp.test_product``), use
 
   ::
 
-    nosetests test_dgp.py:TestDgp.test_product
+    pytest test_dgp.py::TestDgp::test_product
 
 Please make sure that your change doesn't cause any of the unit tests to fail.
 
-``nosetests`` suppresses stdout by default. To see stdout, pass the ``-s`` flag
-to ``nosetests``.
+``pytest`` suppresses stdout by default. To see stdout, pass the ``-s`` flag
+to ``pytest``.
 
 .. _contrib_run_benchmarks:
 
@@ -176,7 +176,7 @@ the time to canonicalize problems. Please run
 
   ::
 
-    nosetests -s test_benchmarks.py
+    pytest -s test_benchmarks.py
 
 with and without your change, to make sure no performance regressions are
 introduced. If you are making a code contribution, please include the output of

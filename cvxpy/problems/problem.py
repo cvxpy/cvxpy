@@ -22,10 +22,15 @@ from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.defines import SOLVER_MAP_QP, SOLVER_MAP_CONIC
+from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.settings import SOLVERS
 from cvxpy.utilities.deterministic import unique_list
 import cvxpy.utilities.performance_utils as perf
 from cvxpy.constraints import Equality, Inequality, NonPos, Zero, NonNeg
@@ -540,17 +545,18 @@ class Problem(u.Canonical):
                                 solver=None,
                                 gp=False):
         """
-        Find candiate solvers for the current problem. If solver
+        Find candidate solvers for the current problem. If solver
         is not None, it checks if the specified solver is compatible
         with the problem passed.
 
         Arguments
         ---------
-        solver : string
-            The name of the solver with which to solve the problem. If no
-            solver is supplied (i.e., if solver is None), then the targeted
-            solver may be any of those that are installed. If the problem
-            is variable-free, then this parameter is ignored.
+        solver : Union[string, Solver, None]
+            The name of the solver with which to solve the problem or an
+            instance of a custom solver. If no solver is supplied
+            (i.e., if solver is None), then the targeted solver may be any
+            of those that are installed. If the problem is variable-free,
+            then this parameter is ignored.
         gp : bool
             If True, the problem is parsed as a Disciplined Geometric Program
             instead of as a Disciplined Convex Program.
@@ -570,6 +576,8 @@ class Problem(u.Canonical):
         """
         candidates = {'qp_solvers': [],
                       'conic_solvers': []}
+        if isinstance(solver, Solver):
+            return self._add_custom_solver_candidates(solver)
 
         if solver is not None:
             if solver not in slv_def.INSTALLED_SOLVERS:
@@ -630,6 +638,40 @@ class Problem(u.Canonical):
 
         return candidates
 
+    def _add_custom_solver_candidates(self, custom_solver: Solver):
+        """
+        Returns a list of candidate solvers where custom_solver is the only potential option.
+
+        Arguments
+        ---------
+        custom_solver : Solver
+
+        Returns
+        -------
+        dict
+            A dictionary of compatible solvers divided in `qp_solvers`
+            and `conic_solvers`.
+
+        Raises
+        ------
+        cvxpy.error.SolverError
+            Raised if the name of the custom solver conflicts with the name of some officially
+            supported solver
+        """
+        if custom_solver.name() in SOLVERS:
+            message = "Custom solvers must have a different name than the officially supported ones"
+            raise(error.SolverError(message))
+
+        candidates = {'qp_solvers': [], 'conic_solvers': []}
+        if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
+            if isinstance(custom_solver, QpSolver):
+                SOLVER_MAP_QP[custom_solver.name()] = custom_solver
+                candidates['qp_solvers'] = [custom_solver.name()]
+            elif isinstance(custom_solver, ConicSolver):
+                SOLVER_MAP_CONIC[custom_solver.name()] = custom_solver
+                candidates['conic_solvers'] = [custom_solver.name()]
+        return candidates
+
     def _construct_chain(self, solver=None, gp=False, enforce_dpp=False):
         """
         Construct the chains required to reformulate and solve the problem.
@@ -655,8 +697,31 @@ class Problem(u.Canonical):
         A solving chain
         """
         candidate_solvers = self._find_candidate_solvers(solver=solver, gp=gp)
+        self._sort_candidate_solvers(candidate_solvers)
         return construct_solving_chain(self, candidate_solvers, gp=gp,
                                        enforce_dpp=enforce_dpp)
+
+    @staticmethod
+    def _sort_candidate_solvers(solvers):
+        """Sorts candidate solvers lists according to slv_def.CONIC_SOLVERS/QP_SOLVERS
+
+        Arguments
+        ---------
+        candidates : dict
+            Dictionary of candidate solvers divided in qp_solvers
+            and conic_solvers
+        Returns
+        -------
+        None
+        """
+        if len(solvers['conic_solvers']) > 1:
+            solvers['conic_solvers'] = sorted(
+                solvers['conic_solvers'], key=lambda s: slv_def.CONIC_SOLVERS.index(s)
+            )
+        if len(solvers['qp_solvers']) > 1:
+            solvers['qp_solvers'] = sorted(
+                solvers['qp_solvers'], key=lambda s: slv_def.QP_SOLVERS.index(s)
+            )
 
     def _invalidate_cache(self):
         self._cache_key = None

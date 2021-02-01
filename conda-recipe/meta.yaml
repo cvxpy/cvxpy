@@ -29,7 +29,7 @@ requirements:
 
 test:
   requires:
-    - nose
+    - pytest
 
   # Python imports
   imports:
@@ -66,7 +66,8 @@ test:
     - cvxpy.cvxcore.python
 
   commands:
-    - nosetests cvxpy
+    - pytest cvxpy/tests
+    - pytest cvxpy/performance_tests
 
 about:
   home: http://github.com/cvxgrp/cvxpy/

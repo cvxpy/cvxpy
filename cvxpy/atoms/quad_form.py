@@ -199,7 +199,10 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
         cond = factor[t] * np.finfo(t).eps
 
     scale = max(np.absolute(w))
-    w_scaled = w / scale
+    if scale == 0:
+        w_scaled = w
+    else:
+        w_scaled = w / scale
     maskp = w_scaled > cond
     maskn = w_scaled < -cond
     # TODO: allow indefinite quad_form
