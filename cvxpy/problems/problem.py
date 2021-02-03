@@ -608,7 +608,7 @@ class Problem(u.Canonical):
 
         if self.is_mixed_integer():
             # ECOS_BB must be called explicitly.
-            if len(slv_def.INSTALLED_MI_SOLVERS) == 1 and solver != s.ECOS_BB:
+            if slv_def.INSTALLED_MI_SOLVERS == [s.ECOS_BB] and solver != s.ECOS_BB:
                 msg = """
 
                     You need a mixed-integer solver for this model. Refer to the documentation
