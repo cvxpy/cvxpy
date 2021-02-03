@@ -74,5 +74,4 @@ setup(
                       "scs >= 1.1.6",
                       "numpy >= 1.15",
                       "scipy >= 1.1.0"],
-    setup_requires=["numpy >= 1.15"],
 )
