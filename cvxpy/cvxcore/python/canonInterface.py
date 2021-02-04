@@ -18,7 +18,6 @@ import cvxpy.cvxcore.python.cvxcore as cvxcore
 import numbers
 import numpy as np
 import scipy.sparse
-from collections import deque
 
 
 def get_parameter_vector(param_size,
@@ -107,17 +106,11 @@ def reduce_problem_data_tensor(A, var_length, quad_form=False):
     # construct a reduced COO matrix
     A.eliminate_zeros()
     A_coo = A.tocoo()
-    unique_old_row = np.sort(np.unique(A_coo.row))
-    old_row_to_new_row = {
-        unique_old_row[i]: i for i in range(unique_old_row.size)
-    }
+
+    unique_old_row, reduced_row = np.unique(A_coo.row, return_inverse=True)
     reduced_A_shape = (unique_old_row.size, A_coo.shape[1])
 
     # remap the rows
-    old_row = A_coo.row
-    reduced_row = np.zeros(old_row.shape)
-    for i in range(reduced_row.size):
-        reduced_row[i] = old_row_to_new_row[old_row[i]]
     reduced_A = scipy.sparse.coo_matrix(
         (A_coo.data, (reduced_row, A_coo.col)), shape=reduced_A_shape)
 
@@ -139,22 +132,11 @@ def reduce_problem_data_tensor(A, var_length, quad_form=False):
     # construction of the indptr: scan through cols, and find
     # the structure of the column index pointer
     indptr = np.zeros(n_cols + 1, dtype=np.int32)
-    i = 0
-    j = 1
-    nnz = cols.size
-    prev_col = 0
-    while i < nnz:
-        col = cols[i]
-        while col == prev_col and i < nnz - 1:
-            i += 1
-            col = cols[i]
-        if prev_col != col:
-            for k in range(col - prev_col):
-                indptr[j + k] = i
-            j += col - prev_col
-        prev_col = col
-        i += 1
-    indptr[j:] = nnz
+    positions, counts = np.unique(cols, return_counts=True)
+    indptr[positions+1] = counts
+    indptr = np.cumsum(indptr)
+    # assert np.all(indptr == indptr_bak)
+
     return reduced_A, indices, indptr, shape
 
 
