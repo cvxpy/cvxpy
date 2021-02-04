@@ -135,7 +135,6 @@ def reduce_problem_data_tensor(A, var_length, quad_form=False):
     positions, counts = np.unique(cols, return_counts=True)
     indptr[positions+1] = counts
     indptr = np.cumsum(indptr)
-    # assert np.all(indptr == indptr_bak)
 
     return reduced_A, indices, indptr, shape
 
