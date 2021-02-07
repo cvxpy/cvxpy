@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contributing &#8212; CVXPY 1.1.7 documentation</title>
+    <title>Contributing &#8212; CVXPY 1.1.10 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -292,11 +292,17 @@ for any cone supported by a target solver, but the current elementary convex con
 <div><div class="math notranslate nohighlight">
 \[(u,v,w) \in K_e \doteq \mathrm{cl}\{(x,y,z) |  z \geq y \exp(x/y), y&gt;0\}.\]</div>
 </div></blockquote>
+<ol class="arabic" start="6">
+<li><p>The 3-dimensional power cone, parameterized by a number <span class="math notranslate nohighlight">\(\alpha\in (0, 1)\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[(u,v) \in K_{\mathrm{pow}}^{\alpha} \doteq \{ (x,y,z) \,:\, x^{\alpha}y^{1-\alpha} \geq |z|, (x,y) \geq 0 \}.\]</div>
+</li>
+</ol>
 </div></blockquote>
 <p>We address the vectorization options for the semidefinite cones later.
 For now it’s useful to say that the <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code> class will access an
 explicit representation for problem <span class="math notranslate nohighlight">\((P)\)</span> in in <code class="docutils literal notranslate"><span class="pre">apply</span></code>, with a code snippet like</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># from cvxpy.constraints import Zero, NonNeg, SOC, PSD, ExpCone, PowCone3D</span>
 <span class="c1">#  ...</span>
 <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">formatted</span><span class="p">:</span>
     <span class="n">problem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">format_constraints</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">EXP_CONE_ORDER</span><span class="p">)</span>
@@ -306,8 +312,8 @@ explicit representation for problem <span class="math notranslate nohighlight">\
 </pre></div>
 </div>
 <p>The variable <code class="docutils literal notranslate"><span class="pre">constr_map</span></code> is is a dict of lists of CVXPY Constraint objects.
-The dict is keyed by the references to CVXPY’s Zero, NonNeg, SOC, PSD, and
-ExpCone classes. You will need to interact with these constraint classes during
+The dict is keyed by the references to CVXPY’s Zero, NonNeg, SOC, PSD, ExpCone,
+and PowCone3D classes. You will need to interact with these constraint classes during
 dual variable recovery.
 For the other variables in that code snippet …</p>
 <blockquote>
@@ -357,12 +363,15 @@ entries of <span class="math notranslate nohighlight">\(b\)</span>.
 You can also borrow from <code class="docutils literal notranslate"><span class="pre">SCS.psd_format_mat</span></code> which maps an order <span class="math notranslate nohighlight">\(n\)</span> PSD constraint
 to <span class="math notranslate nohighlight">\(n(n+1)/2\)</span> suitably scaled rows of <span class="math notranslate nohighlight">\(A\)</span> and entries of <span class="math notranslate nohighlight">\(b\)</span>, or
 <code class="docutils literal notranslate"><span class="pre">MOSEK.psd_format_mat</span></code> which behaves identically to SCS except for the scaling.</p></li>
-<li><p>The last block of <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">*</span> <span class="pre">cone_dims.exp</span></code> rows in <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> correspond to consecutive
+<li><p>The next block of <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">*</span> <span class="pre">cone_dims.exp</span></code> rows in <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> correspond to consecutive
 three-dimensional exponential cones, as defined by <span class="math notranslate nohighlight">\(K_e\)</span> above.</p></li>
+<li><p>The final block of <code class="docutils literal notranslate"><span class="pre">3</span> <span class="pre">*</span> <span class="pre">len(cone_dims.p3d)</span></code> rows in <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> correspond to
+three-dimensional power cones defined by <span class="math notranslate nohighlight">\(K_{\mathrm{pow}}^{\alpha}\)</span>, where the
+i-th triple of rows has <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">cone_dims.p3d[i]</span></code>.</p></li>
 </ul>
 </div></blockquote>
-<p>If <em>Awesome</em> supports nonlinear constraints like SOC, ExpCone, or PSD, then it’s possible
-that you will need to transform data <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> in order to write these constraints in
+<p>If <em>Awesome</em> supports nonlinear constraints like SOC, ExpCone, PSD, or PowCone3D, then
+it’s possible that you will need to transform data <code class="docutils literal notranslate"><span class="pre">A,</span> <span class="pre">b</span></code> in order to write these constraints in
 the form expected by <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code>.
 The most common situations are when <code class="docutils literal notranslate"><span class="pre">AwesomePy</span></code> parametrizes the second-order cone
 as <span class="math notranslate nohighlight">\(K = \{ (x,t) \,:\, \|x\|\leq t \} \subset \mathbb{R}^n \times \mathbb{R}\)</span>,
@@ -390,14 +399,14 @@ Therefore if your solver supports integer constraints, make sure to also use the
 To perform this step correctly, it’s necessary to consider how CVXPY forms
 a Lagrangian for the primal problem <span class="math notranslate nohighlight">\((P)\)</span>.
 Let’s say that the affine map <span class="math notranslate nohighlight">\(Ax + b\)</span> in the feasible set
-<span class="math notranslate nohighlight">\(Ax + b \in K \subset \mathbb{R}^m\)</span> is broken up into five blocks of sizes
-<span class="math notranslate nohighlight">\(m_1,\ldots,m_5\)</span> where the blocks correspond (in order) to zero-cone, nonnegative cone,
-second-order cone, vectorized PSD cone, and exponential cone constraints.
+<span class="math notranslate nohighlight">\(Ax + b \in K \subset \mathbb{R}^m\)</span> is broken up into six blocks of sizes
+<span class="math notranslate nohighlight">\(m_1,\ldots,m_6\)</span> where the blocks correspond (in order) to zero-cone, nonnegative cone,
+second-order cone, vectorized PSD cone, exponential cone, and 3D power cone constraints.
 Then CVXPY defines the dual to <span class="math notranslate nohighlight">\((P)\)</span> by forming a Lagrangian</p>
 <div class="math notranslate nohighlight">
-\[\mathcal{L}(x,\mu_1,\ldots,\mu_5) = c^T x - \sum_{i=i}^5 \mu_i^T (A_i x + b_i)\]</div>
+\[\mathcal{L}(x,\mu_1,\ldots,\mu_6) = c^T x - \sum_{i=i}^6 \mu_i^T (A_i x + b_i)\]</div>
 <p>in dual variables <span class="math notranslate nohighlight">\(\mu_1 \in \mathbb{R}^{m_1}\)</span>, <span class="math notranslate nohighlight">\(\mu_2 \in \mathbb{R}^{m_2}_+\)</span>,
-and <span class="math notranslate nohighlight">\(\mu_i \in K_i^* \subset \mathbb{R}^{m_i}\)</span> for <span class="math notranslate nohighlight">\(i \in \{3,4,5\}\)</span>.
+and <span class="math notranslate nohighlight">\(\mu_i \in K_i^* \subset \mathbb{R}^{m_i}\)</span> for <span class="math notranslate nohighlight">\(i \in \{3,4,5,6\}\)</span>.
 Here, <span class="math notranslate nohighlight">\(K_i^*\)</span> denotes the dual cone to <span class="math notranslate nohighlight">\(K_i\)</span> under the standard inner product.</p>
 <p>More remarks on dual variables (particularly SOC dual variables) can be found in
 <a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675">this comment on a GitHub thread</a>.</p>
@@ -475,7 +484,7 @@ which contains appropriate test data. The <code class="docutils literal notransl
 SolverTestHelper class is a simple wrapper around <code class="docutils literal notranslate"><span class="pre">prob.solve</span></code> where
 <code class="docutils literal notranslate"><span class="pre">prob</span></code> is a CVXPY Problem. In particular, any keyword arguments
 passed to <code class="docutils literal notranslate"><span class="pre">sth.solve</span></code> will be passed to <code class="docutils literal notranslate"><span class="pre">prob.solve</span></code>. This allows you to
-call modifed versions of a test with different solver parameters, for example</p>
+call modified versions of a test with different solver parameters, for example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">test_mosek_lp_1</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="c1"># default settings</span>
     <span class="n">StandardTestLPs</span><span class="o">.</span><span class="n">test_lp_1</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="s1">&#39;MOSEK&#39;</span><span class="p">)</span>  <span class="c1"># 4 places</span>

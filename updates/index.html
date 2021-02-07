@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Changes to CVXPY &#8212; CVXPY 1.1.7 documentation</title>
+    <title>Changes to CVXPY &#8212; CVXPY 1.1.10 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -40,6 +40,20 @@
 The latest release of CVXPY is version 1.1.</p>
 <div class="section" id="recent-patches">
 <h2>Recent patches<a class="headerlink" href="#recent-patches" title="Permalink to this headline">¶</a></h2>
+<dl class="simple" id="changes118">
+<dt>Changes in version 1.1.8</dt><dd><ul class="simple">
+<li><p>We have added support for 3-dimensional and N-dimensional power cone constraints. Although,
+we currently do not have any atoms that take advantage of this constraint. If you want
+you want to use this type of constraint in your model, you will need to instantiate
+<code class="docutils literal notranslate"><span class="pre">PowCone3D</span></code> and/or <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code> objects manually. Dual variables are not yet implemented
+for <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code> objects. At present, only SCS and MOSEK support power cone constraints.</p></li>
+<li><p>We fixed a bug in our MOSEK interface that was introduced in version 1.1.6. The “unknown”
+status code was not being handled correctly, resulting in ValueErrors rather than SolverErrors.
+Users can now expect a SolverError when MOSEK returns an “unknown” status code (as was
+standard before).</p></li>
+</ul>
+</dd>
+</dl>
 <dl class="simple" id="changes116">
 <dt>Changes in version 1.1.6</dt><dd><ul class="simple">
 <li><p>The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not

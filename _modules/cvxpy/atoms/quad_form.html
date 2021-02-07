@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.atoms.quad_form &#8212; CVXPY 1.1.7 documentation</title>
+    <title>cvxpy.atoms.quad_form &#8212; CVXPY 1.1.10 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -234,7 +234,10 @@
         <span class="n">cond</span> <span class="o">=</span> <span class="n">factor</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
 
     <span class="n">scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">w</span><span class="p">))</span>
-    <span class="n">w_scaled</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="n">scale</span>
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">w_scaled</span> <span class="o">=</span> <span class="n">w</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">w_scaled</span> <span class="o">=</span> <span class="n">w</span> <span class="o">/</span> <span class="n">scale</span>
     <span class="n">maskp</span> <span class="o">=</span> <span class="n">w_scaled</span> <span class="o">&gt;</span> <span class="n">cond</span>
     <span class="n">maskn</span> <span class="o">=</span> <span class="n">w_scaled</span> <span class="o">&lt;</span> <span class="o">-</span><span class="n">cond</span>
     <span class="c1"># TODO: allow indefinite quad_form</span>

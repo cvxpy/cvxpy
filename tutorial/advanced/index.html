@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Advanced Features &#8212; CVXPY 1.1.7 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.1.10 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
@@ -373,13 +373,14 @@ Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 33%" />
-<col style="width: 9%" />
-<col style="width: 9%" />
-<col style="width: 14%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
-<col style="width: 12%" />
+<col style="width: 29%" />
+<col style="width: 8%" />
+<col style="width: 8%" />
+<col style="width: 13%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
+<col style="width: 10%" />
 </colgroup>
 <thead>
 <tr class="row-odd"><th class="head"></th>
@@ -388,12 +389,14 @@ The table below shows the types of problems the supported solvers can handle.</p
 <th class="head"><p>SOCP</p></th>
 <th class="head"><p>SDP</p></th>
 <th class="head"><p>EXP</p></th>
+<th class="head"><p>POW</p></th>
 <th class="head"><p>MIP</p></th>
 </tr>
 </thead>
 <tbody>
 <tr class="row-even"><td><p><a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a></p></td>
 <td><p>X</p></td>
+<td></td>
 <td></td>
 <td></td>
 <td></td>
@@ -407,9 +410,11 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a></p></td>
 <td><p>X</p></td>
+<td></td>
 <td></td>
 <td></td>
 <td></td>
@@ -423,11 +428,13 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference external" href="https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/">CPLEX</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
+<td></td>
 <td></td>
 <td></td>
 <td><p>X</p></td>
@@ -439,6 +446,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a></p></td>
 <td><p>X</p></td>
@@ -447,6 +455,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 <td></td>
+<td></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference external" href="http://www.gurobi.com/">GUROBI</a></p></td>
 <td><p>X</p></td>
@@ -454,9 +463,11 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td></td>
 <td></td>
+<td></td>
 <td><p>X</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference external" href="https://www.mosek.com/">MOSEK</a></p></td>
+<td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -471,8 +482,10 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td></td>
 <td></td>
+<td></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
+<td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -486,12 +499,14 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td><p>X</p></td>
 <td></td>
 <td></td>
+<td></td>
 <td><p>X</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
+<td></td>
 <td></td>
 <td></td>
 <td><p>X</p></td>
@@ -504,7 +519,15 @@ The table below shows the types of problems the supported solvers can handle.</p
 <div><p><span class="math notranslate nohighlight">\(\{(x,y,z) \mid y &gt; 0, y\exp(x/y) \leq z \} \cup \{ (x,y,z) \mid x \leq 0, y = 0, z \geq 0\}\)</span>.</p>
 </div></blockquote>
 <p>Most users will never specify cone constraints directly. Instead, cone constraints are added when CVXPY
-converts the problem into standard form.</p>
+converts the problem into standard form. The POW column refers to problems with 3-dimensional power
+cone constraints. The 3D power cone is defined as</p>
+<blockquote>
+<div><p><span class="math notranslate nohighlight">\(\{(x,y,z) \mid x^{\alpha}y^{\alpha} \geq |z|, x \geq 0, y \geq 0 \}\)</span>.</p>
+</div></blockquote>
+<p>Support for power cone constraints is a recent addition (v1.1.8), and CVXPY currently does
+not have any atoms that take advantage of this constraint. If you want you want to use this
+type of constraint in your model, you will need to instantiate <code class="docutils literal notranslate"><span class="pre">PowCone3D</span></code> and/or <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code>
+objects manually.</p>
 <p>By default CVXPY calls the solver most specialized to the problem type. For example, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> is called for SOCPs.
 <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use <a class="reference external" href="https://osqp.org/">OSQP</a>.</p>
 <p>You can change the solver called by CVXPY using the <code class="docutils literal notranslate"><span class="pre">solver</span></code> keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here’s example code solving the same problem with different solvers.</p>

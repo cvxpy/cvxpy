@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.solvers.solving_chain &#8212; CVXPY 1.1.7 documentation</title>
+    <title>cvxpy.reductions.solvers.solving_chain &#8212; CVXPY 1.1.10 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -38,7 +38,7 @@
 
 <span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="kn">import</span> <span class="n">EXP_ATOMS</span><span class="p">,</span> <span class="n">PSD_ATOMS</span><span class="p">,</span> <span class="n">SOC_ATOMS</span><span class="p">,</span> <span class="n">NONPOS_ATOMS</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="n">ExpCone</span><span class="p">,</span> <span class="n">PSD</span><span class="p">,</span> <span class="n">SOC</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span> \
-                              <span class="n">NonPos</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span>
+                              <span class="n">NonPos</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">PowCone3D</span>
 <span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="kn">import</span> <span class="n">DCPError</span><span class="p">,</span> <span class="n">DGPError</span><span class="p">,</span> <span class="n">DPPError</span><span class="p">,</span> <span class="n">SolverError</span>
 <span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="kn">import</span> <span class="n">Maximize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.chain</span> <span class="kn">import</span> <span class="n">Chain</span>
@@ -46,6 +46,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.cvx_attr2constr</span> <span class="kn">import</span> <span class="n">CvxAttr2Constr</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dcp2cone.cone_matrix_stuffing</span> <span class="kn">import</span> <span class="n">ConeMatrixStuffing</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dcp2cone.dcp2cone</span> <span class="kn">import</span> <span class="n">Dcp2Cone</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.cone2cone.exotic2common</span> <span class="kn">import</span> <span class="n">EXOTIC_CONES</span><span class="p">,</span> <span class="n">Exotic2Common</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dgp2dcp.dgp2dcp</span> <span class="kn">import</span> <span class="n">Dgp2Dcp</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.eval_params</span> <span class="kn">import</span> <span class="n">EvalParams</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.flip_objective</span> <span class="kn">import</span> <span class="n">FlipObjective</span>
@@ -219,27 +220,42 @@
                           <span class="s2">&quot;conic solvers exist among candidate solvers &quot;</span>
                           <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span> <span class="n">candidates</span><span class="p">)</span>
 
-    <span class="c1"># Our choice of solver depends upon which atoms are present in the</span>
-    <span class="c1"># problem. The types of atoms to check for are SOC atoms, PSD atoms,</span>
-    <span class="c1"># and exponential atoms.</span>
-    <span class="n">atoms</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>
+    <span class="n">constr_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="c1"># ^ We use constr_types to infer an incomplete list of cones that</span>
+    <span class="c1"># the solver will need after canonicalization.</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">:</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+    <span class="n">ex_cos</span> <span class="o">=</span> <span class="p">[</span><span class="n">ct</span> <span class="k">for</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="k">if</span> <span class="n">ct</span> <span class="ow">in</span> <span class="n">EXOTIC_CONES</span><span class="p">]</span>
+    <span class="c1"># ^ The way we populate &quot;ex_cos&quot; will need to change if and when</span>
+    <span class="c1"># we have atoms that require exotic cones.</span>
+    <span class="k">for</span> <span class="n">co</span> <span class="ow">in</span> <span class="n">ex_cos</span><span class="p">:</span>
+        <span class="n">sim_cos</span> <span class="o">=</span> <span class="n">EXOTIC_CONES</span><span class="p">[</span><span class="n">co</span><span class="p">]</span>  <span class="c1"># get the set of required simple cones</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">sim_cos</span><span class="p">)</span>
+        <span class="n">constr_types</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">co</span><span class="p">)</span>
+    <span class="c1"># We now go over individual elementary cones support by CVXPY (</span>
+    <span class="c1"># SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if</span>
+    <span class="c1"># they&#39;ve appeared in constr_types or if the problem has an atom</span>
+    <span class="c1"># requiring that cone.</span>
     <span class="n">cones</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">SOC_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="n">SOC</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)):</span>
+    <span class="n">atoms</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">atoms</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">SOC</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">SOC_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">):</span>
         <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SOC</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">EXP_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="n">ExpCone</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="n">ExpCone</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">EXP_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">):</span>
         <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ExpCone</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">NONPOS_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">t</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">])</span> \
+            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">NONPOS_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">):</span>
         <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NonNeg</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="n">Equality</span><span class="p">,</span> <span class="n">Zero</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)):</span>
+    <span class="k">if</span> <span class="n">Equality</span> <span class="ow">in</span> <span class="n">constr_types</span> <span class="ow">or</span> <span class="n">Zero</span> <span class="ow">in</span> <span class="n">constr_types</span><span class="p">:</span>
         <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Zero</span><span class="p">)</span>
-    <span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">PSD_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">==</span> <span class="n">PSD</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
-            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">()</span>
-                   <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">())):</span>
+    <span class="k">if</span> <span class="n">PSD</span> <span class="ow">in</span> <span class="n">constr_types</span> \
+            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">atom</span> <span class="ow">in</span> <span class="n">PSD_ATOMS</span> <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">atoms</span><span class="p">)</span> \
+            <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">()</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">()):</span>
         <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PSD</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">PowCone3D</span> <span class="ow">in</span> <span class="n">constr_types</span><span class="p">:</span>
+        <span class="c1"># if we add in atoms that specifically use the 3D power cone</span>
+        <span class="c1"># (rather than the ND power cone), then we&#39;ll need to check</span>
+        <span class="c1"># for those atoms here as well.</span>
+        <span class="n">cones</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PowCone3D</span><span class="p">)</span>
 
     <span class="c1"># Here, we make use of the observation that canonicalization only</span>
     <span class="c1"># increases the number of constraints in our problem.</span>
@@ -249,8 +265,9 @@
         <span class="n">solver_instance</span> <span class="o">=</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_CONIC</span><span class="p">[</span><span class="n">solver</span><span class="p">]</span>
         <span class="k">if</span> <span class="p">(</span><span class="nb">all</span><span class="p">(</span><span class="n">c</span> <span class="ow">in</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">SUPPORTED_CONSTRAINTS</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cones</span><span class="p">)</span>
                 <span class="ow">and</span> <span class="p">(</span><span class="n">has_constr</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">solver_instance</span><span class="o">.</span><span class="n">REQUIRES_CONSTR</span><span class="p">)):</span>
-            <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ConeMatrixStuffing</span><span class="p">(),</span>
-                           <span class="n">solver_instance</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">ex_cos</span><span class="p">:</span>
+                <span class="n">reductions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Exotic2Common</span><span class="p">())</span>
+            <span class="n">reductions</span> <span class="o">+=</span> <span class="p">[</span><span class="n">ConeMatrixStuffing</span><span class="p">(),</span> <span class="n">solver_instance</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
 
     <span class="k">raise</span> <span class="n">SolverError</span><span class="p">(</span><span class="s2">&quot;Either candidate conic solvers (</span><span class="si">%s</span><span class="s2">) do not support the &quot;</span>

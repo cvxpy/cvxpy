@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.7 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.10 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -643,7 +643,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_mixed_integer</span><span class="p">():</span>
             <span class="c1"># ECOS_BB must be called explicitly.</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_MI_SOLVERS</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">solver</span> <span class="o">!=</span> <span class="n">s</span><span class="o">.</span><span class="n">ECOS_BB</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_MI_SOLVERS</span> <span class="o">==</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">ECOS_BB</span><span class="p">]</span> <span class="ow">and</span> <span class="n">solver</span> <span class="o">!=</span> <span class="n">s</span><span class="o">.</span><span class="n">ECOS_BB</span><span class="p">:</span>
                 <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 
 <span class="s2">                    You need a mixed-integer solver for this model. Refer to the documentation</span>
@@ -861,7 +861,7 @@
 <span class="sd">        obtaining the gradient of a solution with respect to the Parameters.</span>
 <span class="sd">        In other words, it calculates the sensitivities of the Parameters</span>
 <span class="sd">        with respect to perturbations in the optimal Variable values. This</span>
-<span class="sd">        can be useful for integrating CVXPY into automatic differentation</span>
+<span class="sd">        can be useful for integrating CVXPY into automatic differentiation</span>
 <span class="sd">        toolkits.</span>
 
 <span class="sd">        ``backward()`` populates the ``gradient`` attribute of each Parameter</span>
