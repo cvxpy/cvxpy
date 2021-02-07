@@ -36,6 +36,7 @@ class CoeffExtractor(object):
         self.id_map = inverse_data.var_offsets
         self.x_length = inverse_data.x_length
         self.var_shapes = inverse_data.var_shapes
+        self.var_names = inverse_data.var_names
         self.param_shapes = inverse_data.param_shapes
         self.param_to_size = inverse_data.param_to_size
         self.param_id_map = inverse_data.param_id_map
@@ -46,7 +47,8 @@ class CoeffExtractor(object):
         elif expr.is_affine():
             return self.affine(expr)
         elif expr.is_quadratic():
-            return self.quad_form(expr)
+            P, q, _ = self.quad_form(expr)
+            return P, q
         else:
             raise Exception("Unknown expression type %s." % type(expr))
 
@@ -100,7 +102,7 @@ class CoeffExtractor(object):
         # [c1 c2 ...]
         # [d1 d2 ...]
         # where ci,di are the vector and constant for the ith parameter.
-        affine_id_map, affine_offsets, x_length, affine_var_shapes = \
+        affine_id_map, affine_offsets, var_names, x_length, affine_var_shapes = \
             InverseData.get_var_offsets(affine_expr.variables())
         op_list = [affine_expr.canonical_form[0]]
         param_coeffs = canonInterface.get_problem_matrix(op_list,
@@ -205,10 +207,12 @@ class CoeffExtractor(object):
         num_params = constant.shape[1]
         P_list = []
         q_list = []
+        q_names_list = []
         P_height = 0
         P_entries = 0
         for var_id, offset in offsets:
             shape = self.var_shapes[var_id]
+            var_name = self.var_names[var_id]
             size = np.prod(shape, dtype=int)
             if var_id in coeffs and 'P' in coeffs[var_id]:
                 P = coeffs[var_id]['P']
@@ -220,8 +224,14 @@ class CoeffExtractor(object):
             else:
                 q = np.zeros((size, num_params))
 
+            if size == 1:
+                q_names = [var_name]
+            else:
+                q_names = ["{}[{}]".format(var_name, i) for i in range(size)]
+
             P_list.append(P)
             q_list.append(q)
+            q_names_list += q_names
             P_height += size
 
         if P_height != self.x_length:
@@ -272,4 +282,4 @@ class CoeffExtractor(object):
         q = np.vstack(q_list)
         q = np.vstack([q, constant.A])
         q = sp.csr_matrix(q)
-        return P, q
+        return P, q, q_names_list

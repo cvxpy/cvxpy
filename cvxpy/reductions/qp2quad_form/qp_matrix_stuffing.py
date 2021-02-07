@@ -105,6 +105,7 @@ class ParamQuadProg(ParamProb):
                  constraints,
                  parameters,
                  param_id_to_col,
+                 q_names,
                  formatted=False):
         self.P = P
         self.q = q
@@ -148,6 +149,7 @@ class ParamQuadProg(ParamProb):
         self.variables = variables
         self.var_id_to_col = var_id_to_col
         self.id_to_var = {v.id: v for v in self.variables}
+        self.q_names = q_names
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
 
@@ -244,7 +246,7 @@ class QpMatrixStuffing(MatrixStuffing):
     def stuffed_objective(self, problem, extractor):
         # extract to 0.5 * x.T * P * x + q.T * x + r
         expr = problem.objective.expr.copy()
-        params_to_P, params_to_q = extractor.quad_form(expr)
+        params_to_P, params_to_q, q_names = extractor.quad_form(expr)
         # Handle 0.5 factor.
         params_to_P = 2*params_to_P
 
@@ -252,14 +254,14 @@ class QpMatrixStuffing(MatrixStuffing):
         boolean, integer = extract_mip_idx(problem.variables())
         x = Variable(extractor.x_length, boolean=boolean, integer=integer)
 
-        return params_to_P, params_to_q, x
+        return params_to_P, params_to_q, q_names, x
 
     def apply(self, problem):
         """See docstring for MatrixStuffing.apply"""
         inverse_data = InverseData(problem)
         # Form the constraints
         extractor = CoeffExtractor(inverse_data)
-        params_to_P, params_to_q, flattened_variable = self.stuffed_objective(
+        params_to_P, params_to_q, q_names, flattened_variable = self.stuffed_objective(
             problem, extractor)
         # Lower equality and inequality to Zero and NonPos.
         cons = []
@@ -289,7 +291,8 @@ class QpMatrixStuffing(MatrixStuffing):
                                  inverse_data.var_offsets,
                                  ordered_cons,
                                  problem.parameters(),
-                                 inverse_data.param_id_map)
+                                 inverse_data.param_id_map,
+                                 q_names)
         return new_prob, inverse_data
 
     def invert(self, solution, inverse_data):
