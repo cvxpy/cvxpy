@@ -52,7 +52,7 @@ def update_pypi_wheel(python_version, operating_system, server):
     major_minor = python_version.split('.')
     py_ver = 'cp' + major_minor[0] + major_minor[1]
     if 'linux' in operating_system:
-        operating_system = 'manylinux'
+        return False
     if r.ok:
         data = r.json()
         relevant_versions = ['0.0.0']
