@@ -546,9 +546,9 @@ class Expression(u.Canonical):
                     warnings.warn("Forming a nonconvex expression.")
             # Because we want to discourage using ``*`` to call matmul, we
             # raise a warning to the user.
-            warnings.resetwarnings()
-            warnings.warn(__STAR_MATMUL_WARNING__, UserWarning)
-            warnings.resetwarnings()
+            with warnings.catch_warnings():
+                warnings.simplefilter("always", error.MatmulWarning, append=True)
+                warnings.warn(__STAR_MATMUL_WARNING__, error.MatmulWarning)
             return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other

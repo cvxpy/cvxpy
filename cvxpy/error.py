@@ -66,3 +66,9 @@ class ParameterError(Exception):
     """Error thrown for accessing the value of an unspecified parameter.
     """
     pass
+
+
+class MatmulWarning(Warning):
+    """Warning raised for accessing matmul by the * operator.
+    """
+    pass
