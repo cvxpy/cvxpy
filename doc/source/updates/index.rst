@@ -9,6 +9,13 @@ The latest release of CVXPY is version 1.1.
 Recent patches
 --------------
 
+Changes in version 1.1.10
+ - When NumPy 1.20 was released many users encountered errors in installing or importing
+   CVXPY. Users would see errors like ``RuntimeError: module compiled
+   against API version 0xe but this version of numpy is 0xd``. We changed our build files
+   to avoid this problem, and it should be fixed as of CVXPY 1.1.10. For more information
+   you can refer to this `GitHub issue <https://github.com/cvxgrp/cvxpy/issues/1229>`_.
+
 .. _changes118:
 
 Changes in version 1.1.8
