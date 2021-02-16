@@ -22,13 +22,11 @@ from cvxpy.expressions.constants import Parameter
 from cvxpy import Problem, Minimize
 import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
-import cvxpy.error as cperr
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
 import scipy.sparse as sp
 import warnings
 import sys
-PY35 = sys.version_info >= (3, 5)
 
 
 class TestExpressions(BaseTest):
@@ -596,24 +594,25 @@ class TestExpressions(BaseTest):
         c = Constant([[2], [2]])
         with warnings.catch_warnings(record=True) as w:
             c * self.x
-            self.assertEqual(len(w), 1)
-            self.assertEqual(w[0].category, cperr.MatmulWarning)
+            self.assertEqual(2, len(w))
+            self.assertEqual(w[0].category, UserWarning)
+            self.assertEqual(w[1].category, DeprecationWarning)
             # repeat, to make sure warnings continue to be displayed
             c * self.x
-            self.assertEqual(len(w), 2)
-            self.assertEqual(w[1].category, cperr.MatmulWarning)
-            # make sure a warning is displayed if a user
-            # says to suppress some other (unrelated) warning.
+            self.assertEqual(4, len(w))
+            self.assertEqual(w[2].category, UserWarning)
+            self.assertEqual(w[3].category, DeprecationWarning)
+            # suppress one of the two warnings
+            warnings.simplefilter('ignore', DeprecationWarning)
+            c * self.x
+            self.assertEqual(5, len(w))
+            # suppress both warnings
             warnings.simplefilter('ignore', UserWarning)
             c * self.x
-            self.assertEqual(len(w), 3)
-            # explicitly ignore MatmulWarning
-            warnings.simplefilter('ignore', cperr.MatmulWarning)
-            c * self.x
-            self.assertEqual(len(w), 3)  # the count hasn't changed
+            self.assertEqual(len(w), 5)
             # verify that an error can be raised.
-            warnings.simplefilter("error", cperr.MatmulWarning)
-            with self.assertRaises(cperr.MatmulWarning):
+            warnings.simplefilter("error", UserWarning)
+            with self.assertRaises(UserWarning):
                 c * self.x
 
     def test_matmul_expression(self):

@@ -48,12 +48,15 @@ def _cast_other(binary_op):
     return cast_op
 
 
+__STAR_MATMUL_COUNT__ = 1
+
 __STAR_MATMUL_WARNING__ = """
 This use of ``*`` has resulted in matrix multiplication.
 Using ``*`` for matrix multiplication has been deprecated since CVXPY 1.1.
     Use ``*`` for matrix-scalar and vector-scalar multiplication.
     Use ``@`` for matrix-matrix and matrix-vector multiplication.
     Use ``multiply`` for elementwise multiplication.
+This code path has been hit %s times so far.
 """
 
 
@@ -547,8 +550,12 @@ class Expression(u.Canonical):
             # Because we want to discourage using ``*`` to call matmul, we
             # raise a warning to the user.
             with warnings.catch_warnings():
-                warnings.simplefilter("always", error.MatmulWarning, append=True)
-                warnings.warn(__STAR_MATMUL_WARNING__, error.MatmulWarning)
+                global __STAR_MATMUL_COUNT__
+                warnings.simplefilter("always", UserWarning, append=True)
+                msg = __STAR_MATMUL_WARNING__ % __STAR_MATMUL_COUNT__
+                warnings.warn(msg, UserWarning)
+                warnings.warn(msg, DeprecationWarning)
+                __STAR_MATMUL_COUNT__ += 1
             return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
