@@ -26,8 +26,6 @@ from cvxpy.tests.base_test import BaseTest
 import numpy as np
 import scipy.sparse as sp
 import warnings
-import sys
-PY35 = sys.version_info >= (3, 5)
 
 
 class TestExpressions(BaseTest):
@@ -590,6 +588,31 @@ class TestExpressions(BaseTest):
         c = Constant([[2], [2], [-2]])
         exp = [[1], [2]] + c @ self.C
         self.assertEqual(exp.sign, s.UNKNOWN)
+
+        # By default, warnings are raised if we access matmul from *.
+        c = Constant([[2], [2]])
+        with warnings.catch_warnings(record=True) as w:
+            c * self.x
+            self.assertEqual(2, len(w))
+            self.assertEqual(w[0].category, UserWarning)
+            self.assertEqual(w[1].category, DeprecationWarning)
+            # repeat, to make sure warnings continue to be displayed
+            c * self.x
+            self.assertEqual(4, len(w))
+            self.assertEqual(w[2].category, UserWarning)
+            self.assertEqual(w[3].category, DeprecationWarning)
+            # suppress one of the two warnings
+            warnings.simplefilter('ignore', DeprecationWarning)
+            c * self.x
+            self.assertEqual(5, len(w))
+            # suppress both warnings
+            warnings.simplefilter('ignore', UserWarning)
+            c * self.x
+            self.assertEqual(len(w), 5)
+            # verify that an error can be raised.
+            warnings.simplefilter("error", UserWarning)
+            with self.assertRaises(UserWarning):
+                c * self.x
 
     def test_matmul_expression(self):
         """Test matmul function, corresponding to .__matmul__( operator.
