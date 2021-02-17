@@ -576,6 +576,12 @@ class TestAtoms(BaseTest):
         self.assertEqual(expr.curvature, s.AFFINE)
         self.assertEqual(expr.shape, (2, 2))
 
+        psd_matrix = np.array([[1, -1], [-1, 1]])
+        expr = cp.diag(psd_matrix)
+        self.assertEqual(expr.sign, s.NONNEG)
+        self.assertEqual(expr.curvature, s.CONSTANT)
+        self.assertEqual(expr.shape, (2,))
+
         with self.assertRaises(Exception) as cm:
             cp.diag(self.C)
         self.assertEqual(str(cm.exception),
