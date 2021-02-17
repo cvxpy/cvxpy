@@ -140,6 +140,11 @@ class diag_mat(AffAtom):
         rows, _ = self.args[0].shape
         return (rows,)
 
+    def is_nonneg(self):
+        """Is the expression nonnegative?
+        """
+        return self.args[0].is_nonneg() or self.args[0].is_psd()
+
     def graph_implementation(self, arg_objs, shape, data=None):
         """Extracts the diagonal of a matrix.
 
