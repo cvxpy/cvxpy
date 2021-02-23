@@ -54,9 +54,23 @@ class GUROBI(QpSolver):
         constraints_grb = model.getConstrs()
         m = len(constraints_grb)
 
+        # Note: Gurobi does not always fill BarIterCount
+        # and IterCount so better using try/except
+        try:
+            bar_iter_count = model.BarIterCount
+        except AttributeError:
+            bar_iter_count = 0
+        try:
+            simplex_iter_count = model.IterCount
+        except AttributeError:
+            simplex_iter_count = 0
+        # Take the sum in case they both appear. One of them
+        # will be 0 anyway
+        iter_count = bar_iter_count + simplex_iter_count
+
         # Start populating attribute dictionary
         attr = {s.SOLVE_TIME: model.Runtime,
-                s.NUM_ITERS: model.BarIterCount,
+                s.NUM_ITERS: iter_count,
                 s.EXTRA_STATS: model}
 
         # Map GUROBI statuses back to CVXPY statuses
