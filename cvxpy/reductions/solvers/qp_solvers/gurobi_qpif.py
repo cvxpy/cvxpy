@@ -54,7 +54,6 @@ class GUROBI(QpSolver):
         constraints_grb = model.getConstrs()
         m = len(constraints_grb)
 
-
         # Note: Gurobi does not always fill BarIterCount
         # and IterCount so better using try/except
         try:
