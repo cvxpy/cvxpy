@@ -134,11 +134,11 @@ class GUROBI(QpSolver):
                               lb={i: -grb.GRB.INFINITY for i in range(n)},
                               vtype=vtypes)
 
-        # Warm start variables if option provided
-        if 'start' in solver_opts:
-            start = solver_opts.pop('start')
+        if warm_start and solver_cache is not None \
+                and self.name() in solver_cache:
+            old_x_grb = solver_cache[self.name()].getVars()
             for idx in range(len(x_grb)):
-                x_grb[idx].start = start[idx]
+                x_grb[idx].start = old_x_grb[idx].X
         model.update()
 
         x = np.array(model.getVars(), copy=False)
@@ -225,5 +225,8 @@ class GUROBI(QpSolver):
             results_dict["status"] = s.SOLVER_ERROR
 
         results_dict["model"] = model
+
+        if solver_cache is not None:
+            solver_cache[self.name()] = model
 
         return results_dict
