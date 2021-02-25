@@ -129,11 +129,18 @@ class GUROBI(QpSolver):
         for i in range(n):
             if i not in vtypes:
                 vtypes[i] = grb.GRB.CONTINUOUS
-        model.addVars(int(n),
-                      ub={i: grb.GRB.INFINITY for i in range(n)},
-                      lb={i: -grb.GRB.INFINITY for i in range(n)},
-                      vtype=vtypes)
+        x_grb = model.addVars(int(n),
+                              ub={i: grb.GRB.INFINITY for i in range(n)},
+                              lb={i: -grb.GRB.INFINITY for i in range(n)},
+                              vtype=vtypes)
+
+        # Warm start variables if option provided
+        if 'start' in solver_opts:
+            start = solver_opts.pop('start')
+            for idx in range(len(x_grb)):
+                x_grb[idx].start = start[idx]
         model.update()
+
         x = np.array(model.getVars(), copy=False)
 
         if A.shape[0] > 0:
