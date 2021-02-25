@@ -136,9 +136,13 @@ class GUROBI(QpSolver):
 
         if warm_start and solver_cache is not None \
                 and self.name() in solver_cache:
-            old_x_grb = solver_cache[self.name()].getVars()
-            for idx in range(len(x_grb)):
-                x_grb[idx].start = old_x_grb[idx].X
+            old_model = solver_cache[self.name()]
+            old_status = self.STATUS_MAP.get(old_model.Status,
+                                             s.SOLVER_ERROR)
+            if (old_status in s.SOLUTION_PRESENT) or (old_model.solCount > 0):
+                old_x_grb = old_model.getVars()
+                for idx in range(len(x_grb)):
+                    x_grb[idx].start = old_x_grb[idx].X
         model.update()
 
         x = np.array(model.getVars(), copy=False)
