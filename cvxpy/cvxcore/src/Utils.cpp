@@ -22,7 +22,7 @@ std::vector<Matrix> mat_vec_mul(const std::vector<Matrix> &lh_vec,
   result.reserve(lh_vec.size() * rh_vec.size());
   for (unsigned i = 0; i < lh_vec.size(); ++i) {
     for (unsigned j = 0; j < rh_vec.size(); ++j) {
-      result.push_back(lh_vec[i] * rh_vec[j]);
+      result.push_back((lh_vec[i] * rh_vec[j]).pruned());
     }
   }
   return result;
@@ -54,11 +54,10 @@ DictMat dict_mat_mul(const DictMat &lh_dm, const DictMat &rh_dm) {
     for (it_type jit = rh_dm.begin(); jit != rh_dm.end(); ++jit) {
       int rh_var_id = jit->first;
       std::vector<Matrix> rh_mat_vec = jit->second;
-      std::vector<Matrix> prod_mat_vec = mat_vec_mul(lh_mat_vec, rh_mat_vec);
       if (result.count(rh_var_id) == 0) {
-        result[rh_var_id] = prod_mat_vec;
+        result[rh_var_id] = mat_vec_mul(lh_mat_vec, rh_mat_vec);
       } else { // Sum matrices.
-        acc_mat_vec(result[rh_var_id], prod_mat_vec);
+        acc_mat_vec(result[rh_var_id], mat_vec_mul(lh_mat_vec, rh_mat_vec));
       }
     }
   }
@@ -73,6 +72,7 @@ void acc_dict_mat(DictMat &lh_dm, const DictMat &rh_dm) {
     int rh_var_id = it->first;
     std::vector<Matrix> rh_mat_vec = it->second;
     if (lh_dm.count(rh_var_id) == 0) {
+      // TODO swap?
       lh_dm[rh_var_id] = rh_mat_vec;
     } else { // Accumulate into lh_dm vector<Matrix>.
       acc_mat_vec(lh_dm[rh_var_id], rh_mat_vec);
@@ -89,13 +89,12 @@ void acc_dict_mat(DictMat &lh_dm, const DictMat &rh_dm) {
 //    under key key1*key2 (constant * key = key)
 Tensor tensor_mul(const Tensor &lh_ten, const Tensor &rh_ten) {
   Tensor result;
-  typedef Tensor::const_iterator it_type;
-  for (it_type it = lh_ten.begin(); it != lh_ten.end(); ++it) {
+  for (auto it = lh_ten.begin(); it != lh_ten.end(); ++it) {
     int lh_param_id = it->first;
-    DictMat lh_var_map = it->second;
-    for (it_type jit = rh_ten.begin(); jit != rh_ten.end(); ++jit) {
+    const DictMat& lh_var_map = it->second;
+    for (auto jit = rh_ten.begin(); jit != rh_ten.end(); ++jit) {
       int rh_param_id = jit->first;
-      DictMat rh_var_map = jit->second;
+      const DictMat& rh_var_map = jit->second;
       // No cross terms allowed.
       assert(lh_param_id == CONSTANT_ID || rh_param_id == CONSTANT_ID);
       int cross_id;
@@ -104,11 +103,10 @@ Tensor tensor_mul(const Tensor &lh_ten, const Tensor &rh_ten) {
       } else {
         cross_id = lh_param_id;
       }
-      DictMat prod_var_map = dict_mat_mul(lh_var_map, rh_var_map);
       if (result.count(cross_id) == 0) {
-        result[cross_id] = prod_var_map;
+        result[cross_id] = dict_mat_mul(lh_var_map, rh_var_map);
       } else { // Accumulate cross_id DictMat.
-        acc_dict_mat(result[cross_id], prod_var_map);
+        acc_dict_mat(result[cross_id], dict_mat_mul(lh_var_map, rh_var_map));
       }
     }
   }

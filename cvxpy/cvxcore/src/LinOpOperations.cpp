@@ -162,14 +162,18 @@ Tensor lin_to_tensor(const LinOp &lin) {
 
 /**
  * Returns a vector containing the sparse matrix MAT
+ *
+ * TODO this always copies ...!
  */
-Tensor build_tensor(const Matrix &mat) {
+Tensor build_tensor(Matrix &mat) {
   Tensor ten;
-  DictMat dm;
-  std::vector<Matrix> mat_vec;
-  mat_vec.push_back(mat);
-  dm[CONSTANT_ID] = mat_vec;
-  ten[CONSTANT_ID] = dm;
+  ten[CONSTANT_ID] = DictMat();
+  DictMat* dm = &(ten[CONSTANT_ID]);
+  (*dm)[CONSTANT_ID] = std::vector<Matrix>();
+
+  std::vector<Matrix>* mat_vec = &(*dm)[CONSTANT_ID];
+  mat_vec->push_back(Matrix());
+  (*mat_vec)[0].swap(mat);
   return ten;
 }
 
