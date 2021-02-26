@@ -308,19 +308,13 @@ def get_problem_matrix(linOps,
         build_lin_op_tree(lin, linPy_to_linC)
         tree = linPy_to_linC[lin]
         lin_vec.push_back(tree)
-    print("# linOps: ", len(linOps))
-    import sys
-    sys.stdout.flush()
-    import time
-    start = time.time()
+
     problemData = cvxcore.build_matrix(lin_vec,
                                        int(var_length),
                                        id_to_col_C,
                                        param_to_size_C)
-    print(time.time() - start, ' seconds')
 
     # Populate tensors with info from problemData.
-    start = time.time()
     tensor_V = {}
     tensor_I = {}
     tensor_J = {}
@@ -335,8 +329,6 @@ def get_problem_matrix(linOps,
             tensor_V[param_id].append(problemData.getV(prob_len))
             tensor_I[param_id].append(problemData.getI(prob_len))
             tensor_J[param_id].append(problemData.getJ(prob_len))
-    end = time.time()
-    print(end - start, 'seconds to copy VIJ')
 
     # Reduce tensors to a single sparse CSR matrix.
     V = []
@@ -344,7 +336,6 @@ def get_problem_matrix(linOps,
     J = []
     # one of the 'parameters' in param_to_col is a constant scalar offset,
     # hence 'plus_one'
-    start = time.time()
     param_size_plus_one = 0
     for param_id, col in param_to_col.items():
         size = param_to_size[param_id]
@@ -354,18 +345,13 @@ def get_problem_matrix(linOps,
             I.append(tensor_I[param_id][i] +
                      tensor_J[param_id][i]*constr_length)
             J.append(tensor_J[param_id][i]*0 + (i + col))
-    end = time.time()
-    print(end - start, 'seconds to stack VIJ')
     V = np.concatenate(V)
     I = np.concatenate(I)
     J = np.concatenate(J)
-    start = time.time()
     A = scipy.sparse.csc_matrix(
         (V, (I, J)),
         shape=(np.int64(constr_length)*np.int64(var_length+1),
                param_size_plus_one))
-    end = time.time()
-    print(end - start, 'seconds to make CSC matrix')
     return A
 
 

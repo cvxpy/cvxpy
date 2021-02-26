@@ -19,10 +19,9 @@
 #include "Utils.hpp"
 #include <iostream>
 #include <map>
-
-#include <execution>
-#include <mutex>
 #include <utility>
+
+#include "omp.h"
 
 
 /* function: add_matrix_to_vectors
@@ -53,10 +52,10 @@ void add_matrix_to_vectors(const Matrix &block, std::vector<double> &V,
 
 void process_constraint(const LinOp &lin, ProblemData &problemData,
                         int vert_offset, int var_length,
-                        const std::map<int, int> &id_to_col,
-                        std::mutex &m) {
+                        const std::map<int, int> &id_to_col) {
   /* Get the coefficient for the current constraint */
   Tensor coeffs = lin_to_tensor(lin);
+
   // Convert variable ids into column offsets.
   // Parameter IDs and vectors of matrices remain.
   for (auto it = coeffs.begin(); it != coeffs.end(); ++it) {
@@ -73,12 +72,15 @@ void process_constraint(const LinOp &lin, ProblemData &problemData,
         } else {
           horiz_offset = id_to_col.at(var_id);
         }
-        // grab mutex here
-        //const std::lock_guard<std::mutex> lock{m};
-        add_matrix_to_vectors(blocks[i], problemData.TensorV[param_id][i],
-                              problemData.TensorI[param_id][i],
-                              problemData.TensorJ[param_id][i], vert_offset,
-                              horiz_offset);
+
+        #pragma omp critical
+        {
+          add_matrix_to_vectors(blocks[i], problemData.TensorV[param_id][i],
+                                problemData.TensorI[param_id][i],
+                                problemData.TensorJ[param_id][i], vert_offset,
+                                horiz_offset);
+        }
+
       }
     }
   }
@@ -150,12 +152,13 @@ ProblemData init_data_tensor(std::map<int, int> param_to_size) {
  * and maps containing our mapping from variables, and a map from the rows of
  * our matrix to their corresponding constraint.
  *
+ * TODO: the number of threads to use should be exposed as a parameter,
+ * or otherwise chosen intelligently to make sure that we don't OOM the machine
  */
 ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
                          std::map<int, int> id_to_col,
                          std::map<int, int> param_to_size) {
   /* Build matrix one constraint at a time */
-  std::cout << "# constraints: " << constraints.size() << std::endl;
   ProblemData prob_data = init_data_tensor(param_to_size);
 
   int vert_offset = 0;
@@ -167,18 +170,17 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
     vert_offset += vecprod(constraint->get_shape());
   }
 
-  std::mutex m;
-  std::for_each(
-    std::execution::par_unseq,
-    std::begin(constraints_and_offsets),
-    std::end(constraints_and_offsets),
-    [&](std::pair<const LinOp*, int> pair) -> void {
-      const LinOp* constraint = pair.first;
-      int vert_offset = pair.second;
-      process_constraint(
-          *constraint, prob_data, vert_offset, var_length, id_to_col, m);
-  });
-
+  // TODO: to get full parallelism, each thread should use its own ProblemData;
+  // the ProblemData objects could be reduced afterwards (specifically
+  // the V, I, and J arrays would be merged)
+  #pragma omp parallel for
+  for (int i = 0; i < constraints_and_offsets.size(); ++i) {
+    const std::pair<const LinOp*, int>& pair = constraints_and_offsets[i];
+    const LinOp* constraint = pair.first;
+    int vert_offset = pair.second;
+    process_constraint(
+      *constraint, prob_data, vert_offset, var_length, id_to_col);
+  }
   return prob_data;
 }
 
@@ -198,11 +200,10 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
   ProblemData prob_data = init_data_tensor(param_to_size);
 
   /* Build matrix one constraint at a time */
-  std::mutex m;
   for (unsigned i = 0; i < constraints.size(); i++) {
     LinOp constr = *constraints[i];
     int vert_offset = constr_offsets[i];
-    process_constraint(constr, prob_data, vert_offset, var_length, id_to_col, m);
+    process_constraint(constr, prob_data, vert_offset, var_length, id_to_col);
   }
   return prob_data;
 }
