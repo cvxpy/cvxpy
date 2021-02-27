@@ -13,6 +13,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
+import sys
+
+
+LOGGER = logging.getLogger("__cvxpy__")
+LOGGER.propagate = False
+LOGGER.setLevel(logging.INFO)
+_stream_handler = logging.StreamHandler(sys.stdout)
+_stream_handler.setLevel(logging.INFO)
+_formatter = logging.Formatter(
+    fmt="%(asctime)s: %(message)s", datefmt="%b %d %I:%M:%S %p"
+)
+_stream_handler.setFormatter(_formatter)
+LOGGER.addHandler(_stream_handler)
+
 
 # Constants for operators.
 PLUS = "+"

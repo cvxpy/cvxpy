@@ -1,3 +1,4 @@
+from cvxpy import settings as s
 from cvxpy.reductions.reduction import Reduction
 
 
@@ -50,13 +51,15 @@ class Chain(Reduction):
             problem, _ = r.apply(problem)
         return True
 
-    def apply(self, problem):
+    def apply(self, problem, verbose=False):
         """Applies the chain to a problem and returns an equivalent problem.
 
         Parameters
         ----------
         problem : Problem
             The problem to which the chain will be applied.
+        verbose : bool, optional
+            Whehter to print verbose output.
 
         Returns
         -------
@@ -68,6 +71,8 @@ class Chain(Reduction):
         """
         inverse_data = []
         for r in self.reductions:
+            if verbose:
+                s.LOGGER.info(f'Applying reduction {type(r).__name__}')
             problem, inv = r.apply(problem)
             inverse_data.append(inv)
         return problem, inverse_data

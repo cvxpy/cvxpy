@@ -17,6 +17,11 @@ limitations under the License.
 # Utility functions to solve circular imports.
 
 
+def version():
+    from cvxpy import __version__
+    return __version__
+
+
 def expression():
     from cvxpy.expressions import expression
     return expression.Expression
