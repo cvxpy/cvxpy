@@ -21,7 +21,9 @@
 #include <map>
 #include <utility>
 
+#ifdef _OPENMP
 #include "omp.h"
+#endif
 
 
 /* function: add_matrix_to_vectors
@@ -73,7 +75,9 @@ void process_constraint(const LinOp &lin, ProblemData &problemData,
           horiz_offset = id_to_col.at(var_id);
         }
 
+        #ifdef _OPENMP
         #pragma omp critical
+        #endif
         {
           add_matrix_to_vectors(blocks[i], problemData.TensorV[param_id][i],
                                 problemData.TensorI[param_id][i],
@@ -170,8 +174,10 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
   // TODO: to get full parallelism, each thread should use its own ProblemData;
   // the ProblemData objects could be reduced afterwards (specifically
   // the V, I, and J arrays would be merged)
+  #ifdef _OPENMP
   omp_set_num_threads(num_threads);
   #pragma omp parallel for
+  #endif
   for (int i = 0; i < constraints_and_offsets.size(); ++i) {
     const std::pair<const LinOp*, int>& pair = constraints_and_offsets.at(i);
     const LinOp* constraint = pair.first;
