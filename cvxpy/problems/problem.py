@@ -843,7 +843,7 @@ class Problem(u.Canonical):
                 curvatures.append('DQCP')
             s.LOGGER.info(
                     f'It is compliant with the following grammars: '
-                    f'{", ".join(curvatures)}\n')
+                    f'{", ".join(curvatures)}')
             s.LOGGER.info(
                     'CVXPY will first compile your problem; then, it will '
                     'invoke a numerical solver to obtain a solution.')
