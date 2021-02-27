@@ -28,6 +28,7 @@ from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP, NAG,
                             ECOS, SCS, DIFFCP, GUROBI, MOSEK, XPRESS, SCIP, ECOS_BB,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE)
+from cvxpy.settings import get_num_threads, set_num_threads
 from cvxpy.transforms import linearize, partial_optimize, suppfunc
 from cvxpy.reductions import *
 from cvxpy.reductions.solvers.defines import installed_solvers

@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import multiprocessing
 import sys
 
 
@@ -168,3 +169,15 @@ EIGVAL_TOL = 1e-10
 PSD_NSD_PROJECTION_TOL = 1e-8
 GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
+
+# threads to use during compilation
+NUM_THREADS = multiprocessing.cpu_count()
+
+
+def set_num_threads(num_threads):
+    global NUM_THREADS
+    NUM_THREADS = num_threads
+
+
+def get_num_threads():
+    return NUM_THREADS

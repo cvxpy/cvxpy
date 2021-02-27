@@ -161,9 +161,9 @@ Tensor lin_to_tensor(const LinOp &lin) {
  *******************/
 
 /**
- * Returns a vector containing the sparse matrix MAT
+ * Returns a vector containing the sparse matrix mat
  *
- * TODO this always copies ...!
+ * NB: This function takes ownership of mat!
  */
 Tensor build_tensor(Matrix &mat) {
   Tensor ten;

@@ -3385,7 +3385,7 @@ SWIG_AsVal_int (PyObject * obj, int *val)
     if (PyInstance_Check(py_obj)) return "instance"    ;
 #endif
 
-    return "unkown type";
+    return "unknown type";
   }
 
   /* Given a NumPy typecode, return a string describing the type.
@@ -20193,11 +20193,14 @@ SWIGINTERN PyObject *_wrap_build_matrix__SWIG_0(PyObject *SWIGUNUSEDPARM(self), 
   int arg2 ;
   std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > arg3 ;
   std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > > arg4 ;
+  int arg5 ;
   int val2 ;
   int ecode2 = 0 ;
+  int val5 ;
+  int ecode5 = 0 ;
   ProblemData result;
   
-  if ((nobjs < 4) || (nobjs > 4)) SWIG_fail;
+  if ((nobjs < 5) || (nobjs > 5)) SWIG_fail;
   {
     std::vector< LinOp const*,std::allocator< LinOp const * > > *ptr = (std::vector< LinOp const*,std::allocator< LinOp const * > > *)0;
     int res = swig::asptr(swig_obj[0], &ptr);
@@ -20230,7 +20233,12 @@ SWIGINTERN PyObject *_wrap_build_matrix__SWIG_0(PyObject *SWIGUNUSEDPARM(self), 
     arg4 = *ptr;
     if (SWIG_IsNewObj(res)) delete ptr;
   }
-  result = build_matrix(arg1,arg2,arg3,arg4);
+  ecode5 = SWIG_AsVal_int(swig_obj[4], &val5);
+  if (!SWIG_IsOK(ecode5)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "build_matrix" "', argument " "5"" of type '" "int""'");
+  } 
+  arg5 = static_cast< int >(val5);
+  result = build_matrix(arg1,arg2,arg3,arg4,arg5);
   resultobj = SWIG_NewPointerObj((new ProblemData(static_cast< const ProblemData& >(result))), SWIGTYPE_p_ProblemData, SWIG_POINTER_OWN |  0 );
   return resultobj;
 fail:
@@ -20307,7 +20315,7 @@ SWIGINTERN PyObject *_wrap_build_matrix(PyObject *self, PyObject *args) {
   
   if (!(argc = SWIG_Python_UnpackTuple(args, "build_matrix", 0, 5, argv))) SWIG_fail;
   --argc;
-  if (argc == 4) {
+  if (argc == 5) {
     int _v;
     int res = swig::asptr(argv[0], (std::vector< LinOp const*,std::allocator< LinOp const * > >**)(0));
     _v = SWIG_CheckState(res);
@@ -20323,7 +20331,13 @@ SWIGINTERN PyObject *_wrap_build_matrix(PyObject *self, PyObject *args) {
           int res = swig::asptr(argv[3], (std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >**)(0));
           _v = SWIG_CheckState(res);
           if (_v) {
-            return _wrap_build_matrix__SWIG_0(self, argc, argv);
+            {
+              int res = SWIG_AsVal_int(argv[4], NULL);
+              _v = SWIG_CheckState(res);
+            }
+            if (_v) {
+              return _wrap_build_matrix__SWIG_0(self, argc, argv);
+            }
           }
         }
       }
@@ -20359,7 +20373,7 @@ SWIGINTERN PyObject *_wrap_build_matrix(PyObject *self, PyObject *args) {
 fail:
   SWIG_Python_RaiseOrModifyTypeError("Wrong number or type of arguments for overloaded function 'build_matrix'.\n"
     "  Possible C/C++ prototypes are:\n"
-    "    build_matrix(std::vector< LinOp const *,std::allocator< LinOp const * > >,int,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >)\n"
+    "    build_matrix(std::vector< LinOp const *,std::allocator< LinOp const * > >,int,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,int)\n"
     "    build_matrix(std::vector< LinOp const *,std::allocator< LinOp const * > >,int,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,std::map< int,int,std::less< int >,std::allocator< std::pair< int const,int > > >,std::vector< int,std::allocator< int > >)\n");
   return 0;
 }
