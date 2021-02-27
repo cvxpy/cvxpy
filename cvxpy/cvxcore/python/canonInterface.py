@@ -15,6 +15,7 @@ Copyright 2017 Steven Diamond
 """
 from cvxpy.lin_ops import lin_op as lo
 import cvxpy.cvxcore.python.cvxcore as cvxcore
+import cvxpy.settings as s
 import numbers
 import numpy as np
 import scipy.sparse
@@ -312,7 +313,8 @@ def get_problem_matrix(linOps,
     problemData = cvxcore.build_matrix(lin_vec,
                                        int(var_length),
                                        id_to_col_C,
-                                       param_to_size_C)
+                                       param_to_size_C,
+                                       s.get_num_threads())
 
     # Populate tensors with info from problemData.
     tensor_V = {}

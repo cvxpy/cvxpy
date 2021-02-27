@@ -151,13 +151,10 @@ ProblemData init_data_tensor(std::map<int, int> param_to_size) {
  * of the coefficient matrix, a dense representation of the constant vector,
  * and maps containing our mapping from variables, and a map from the rows of
  * our matrix to their corresponding constraint.
- *
- * TODO: the number of threads to use should be exposed as a parameter,
- * or otherwise chosen intelligently to make sure that we don't OOM the machine
  */
 ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
                          std::map<int, int> id_to_col,
-                         std::map<int, int> param_to_size) {
+                         std::map<int, int> param_to_size, int num_threads) {
   /* Build matrix one constraint at a time */
   ProblemData prob_data = init_data_tensor(param_to_size);
 
@@ -173,9 +170,10 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
   // TODO: to get full parallelism, each thread should use its own ProblemData;
   // the ProblemData objects could be reduced afterwards (specifically
   // the V, I, and J arrays would be merged)
+  omp_set_num_threads(num_threads);
   #pragma omp parallel for
   for (int i = 0; i < constraints_and_offsets.size(); ++i) {
-    const std::pair<const LinOp*, int>& pair = constraints_and_offsets[i];
+    const std::pair<const LinOp*, int>& pair = constraints_and_offsets.at(i);
     const LinOp* constraint = pair.first;
     int vert_offset = pair.second;
     process_constraint(

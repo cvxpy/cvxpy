@@ -25,7 +25,8 @@ typedef std::map<int, std::vector<ProblemData> > ProblemTensor;
 // Top Level Entry point
 ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
                          std::map<int, int> id_to_col,
-                         std::map<int, int> param_to_size);
+                         std::map<int, int> param_to_size,
+                         int num_threads);
 ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
                          std::map<int, int> id_to_col,
                          std::map<int, int> param_to_size,

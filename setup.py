@@ -41,8 +41,9 @@ if is_platform_mac():
         if python_target < '10.9' and current_system >= '10.9':
             os.environ['MACOSX_DEPLOYMENT_TARGET'] = '10.9'
 
-# TODO: make compiling with openmp optional/flags may be system dependent
-# wheels, however, should be compiled with openmp ...
+# TODO: openmp optional/flags may be system dependent, and some systems
+# may not have openmp, so compiling with it should be optional
+# TODO wheels, however, should be compiled with openmp ...
 canon = Extension(
     '_cvxcore',
     sources=['cvxpy/cvxcore/src/cvxcore.cpp',
