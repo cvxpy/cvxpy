@@ -934,7 +934,9 @@ class Problem(u.Canonical):
             s.LOGGER.info(f'Problem status: {self.status}')
             s.LOGGER.info(f'Optimal value: {self.value:.3e}')
             s.LOGGER.info(f'Compilation took {self._compilation_time:.3e} seconds')
-            s.LOGGER.info(f'Solver took {self._solve_time:.3e} seconds')
+            s.LOGGER.info(
+                    f'Solver (including time spent in interface) took '
+                    f'{self._solve_time:.3e} seconds')
         return self.value
 
     def backward(self):
