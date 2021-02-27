@@ -50,11 +50,32 @@ SolveResult = namedtuple(
 
 _COL_WIDTH = 79
 _HEADER = (
-    '-'*_COL_WIDTH +
+    '='*_COL_WIDTH +
     '\n' +
     ('CVXPY').center(_COL_WIDTH) +
     '\n' +
     (f'v{cvxtypes.version()}').center(_COL_WIDTH) +
+    '\n' +
+    '='*_COL_WIDTH
+)
+_COMPILATION_STR = (
+    '-'*_COL_WIDTH +
+    '\n' +
+    ('Compilation').center(_COL_WIDTH) +
+    '\n' +
+    '-'*_COL_WIDTH
+)
+_NUM_SOLVER_STR = (
+    '-'*_COL_WIDTH +
+    '\n' +
+    ('Numerical solver').center(_COL_WIDTH) +
+    '\n' +
+    '-'*_COL_WIDTH
+)
+_FOOTER = (
+    '-'*_COL_WIDTH +
+    '\n' +
+    ('Summary').center(_COL_WIDTH) +
     '\n' +
     '-'*_COL_WIDTH
 )
@@ -526,6 +547,9 @@ class Problem(u.Canonical):
         else:
             solving_chain = self._cache.solving_chain
 
+        if verbose:
+            print(_COMPILATION_STR)
+
         if self._cache.param_prog is not None:
             # fast path, bypasses application of reductions
             if verbose:
@@ -548,12 +572,15 @@ class Problem(u.Canonical):
             data, solver_inverse_data = solving_chain.solver.apply(
                 self._cache.param_prog)
             inverse_data = self._cache.inverse_data + [solver_inverse_data]
+            self._compilation_time = time.time() - start
             if verbose:
-                s.LOGGER.info('Finished compilation.')
+                s.LOGGER.info(
+                        'Finished problem compilation '
+                        f'(took {self._compilation_time:.3e} seconds).')
         else:
             if verbose:
                 solver_name = solving_chain.reductions[-1].name()
-                reduction_chain_str = ', '.join(
+                reduction_chain_str = ' -> '.join(
                         type(r).__name__ for r in solving_chain.reductions)
                 s.LOGGER.info(
                          f'Compiling problem (target solver={solver_name}).')
@@ -568,8 +595,11 @@ class Problem(u.Canonical):
                 and not any(isinstance(reduction, EvalParams)
                             for reduction in solving_chain.reductions)
             )
+            self._compilation_time = time.time() - start
             if verbose:
-                s.LOGGER.info('Finished problem compilation.')
+                s.LOGGER.info(
+                        'Finished problem compilation '
+                        f'(took {self._compilation_time:.3e} seconds).')
             if safe_to_cache:
                 if verbose:
                     s.LOGGER.info(
@@ -579,8 +609,6 @@ class Problem(u.Canonical):
                 # the last datum in inverse_data corresponds to the solver,
                 # so we shouldn't cache it
                 self._cache.inverse_data = inverse_data[:-1]
-        end = time.time()
-        self._compilation_time = end - start
         return data, solving_chain, inverse_data
 
     def _find_candidate_solvers(self,
@@ -814,7 +842,7 @@ class Problem(u.Canonical):
             why the problem could not be solved.
         """
         if verbose:
-            s.LOGGER.info('\n' + _HEADER)
+            print(_HEADER)
 
         for parameter in self.parameters():
             if parameter.value is None:
@@ -827,13 +855,9 @@ class Problem(u.Canonical):
             n_variables = sum(np.prod(v.shape) for v in self.variables())
             n_parameters = sum(np.prod(p.shape) for p in self.parameters())
             s.LOGGER.info(
-                    f'Your problem with {n_variables} variables, '
+                    f'Your problem has {n_variables} variables, '
                     f'{len(self.constraints)} constraints, and '
                     f'{n_parameters} parameters.')
-            if n_parameters == 0:
-                s.LOGGER.info(
-                    '(If you need to solve this problem multiple times, '
-                    'but with different data, consider using parameters.)')
             curvatures = []
             if self.is_dcp():
                 curvatures.append('DCP')
@@ -844,6 +868,10 @@ class Problem(u.Canonical):
             s.LOGGER.info(
                     f'It is compliant with the following grammars: '
                     f'{", ".join(curvatures)}')
+            if n_parameters == 0:
+                s.LOGGER.info(
+                    '(If you need to solve this problem multiple times, '
+                    'but with different data, consider using parameters.)')
             s.LOGGER.info(
                     'CVXPY will first compile your problem; then, it will '
                     'invoke a numerical solver to obtain a solution.')
@@ -878,10 +906,10 @@ class Problem(u.Canonical):
                             'Reducing DQCP problem to a one-parameter '
                             'family of DCP problems, for bisection.')
                 reductions = [dqcp2dcp.Dqcp2Dcp()]
+                start = time.time()
                 if type(self.objective) == Maximize:
                     reductions = [FlipObjective()] + reductions
                 chain = Chain(problem=self, reductions=reductions)
-                s.LOGGER.info('Finished compilation.')
                 soln = bisection.bisect(
                     chain.reduce(), solver=solver, verbose=verbose, **kwargs)
                 self.unpack(chain.retrieve(soln))
@@ -891,6 +919,7 @@ class Problem(u.Canonical):
             solver, gp, enforce_dpp, verbose)
 
         if verbose:
+            print(_NUM_SOLVER_STR)
             s.LOGGER.info(
                     f'Invoking solver {solving_chain.reductions[-1].name()} '
                     'to obtain a solution.')
@@ -901,7 +930,7 @@ class Problem(u.Canonical):
         self._solve_time = end - start
         self.unpack_results(solution, solving_chain, inverse_data)
         if verbose:
-            s.LOGGER.info('Summary:')
+            print(_FOOTER)
             s.LOGGER.info(f'Problem status: {self.status}')
             s.LOGGER.info(f'Optimal value: {self.value:.3e}')
             s.LOGGER.info(f'Compilation took {self._compilation_time:.3e} seconds')

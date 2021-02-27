@@ -23,7 +23,7 @@ LOGGER.setLevel(logging.INFO)
 _stream_handler = logging.StreamHandler(sys.stdout)
 _stream_handler.setLevel(logging.INFO)
 _formatter = logging.Formatter(
-    fmt="%(asctime)s: %(message)s", datefmt="%b %d %I:%M:%S %p"
+    fmt="(CVXPY) %(asctime)s: %(message)s", datefmt="%b %d %I:%M:%S %p"
 )
 _stream_handler.setFormatter(_formatter)
 LOGGER.addHandler(_stream_handler)
