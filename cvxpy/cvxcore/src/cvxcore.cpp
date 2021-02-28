@@ -163,7 +163,7 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
   ProblemData prob_data = init_data_tensor(param_to_size);
 
   int vert_offset = 0;
-  std::vector<std::pair<const LinOp*, int>> constraints_and_offsets;
+  std::vector<std::pair<const LinOp*, int> > constraints_and_offsets;
   constraints_and_offsets.reserve(constraints.size());
   for (const LinOp* constraint : constraints) {
     auto pair = std::make_pair(constraint, vert_offset);

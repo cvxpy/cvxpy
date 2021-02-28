@@ -173,6 +173,8 @@ Tensor build_tensor(Matrix &mat) {
 
   std::vector<Matrix>* mat_vec = &(*dm)[CONSTANT_ID];
   mat_vec->push_back(Matrix());
+  // swap the contents of &mat with the newly constructed matrix,
+  // instead of copying it into the vector.
   (*mat_vec)[0].swap(mat);
   return ten;
 }
