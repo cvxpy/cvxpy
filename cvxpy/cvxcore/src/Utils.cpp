@@ -12,6 +12,10 @@ int vecprod_before(const std::vector<int> &vec, int end) {
                          std::multiplies<int>());
 }
 
+// TODO: Several loops in this file are trivially parallelizable;
+//       consider parallelizing some (parallelism will be nested inside
+//       build_matrix)
+//
 // multiply two vectors of matrices
 // get a new vector of matrices
 std::vector<Matrix> mat_vec_mul(const std::vector<Matrix> &lh_vec,
@@ -46,14 +50,13 @@ void acc_mat_vec(std::vector<Matrix> &lh_mat_vec,
 //    under key key1*key2 (constant * key = key)
 DictMat dict_mat_mul(const DictMat &lh_dm, const DictMat &rh_dm) {
   DictMat result;
-  typedef DictMat::const_iterator it_type;
-  for (it_type it = lh_dm.begin(); it != lh_dm.end(); ++it) {
+  for (auto it = lh_dm.begin(); it != lh_dm.end(); ++it) {
     // Left hand is always constant.
     assert(it->first == CONSTANT_ID);
-    std::vector<Matrix> lh_mat_vec = it->second;
-    for (it_type jit = rh_dm.begin(); jit != rh_dm.end(); ++jit) {
+    const std::vector<Matrix> &lh_mat_vec = it->second;
+    for (auto jit = rh_dm.begin(); jit != rh_dm.end(); ++jit) {
       int rh_var_id = jit->first;
-      std::vector<Matrix> rh_mat_vec = jit->second;
+      const std::vector<Matrix> &rh_mat_vec = jit->second;
       if (result.count(rh_var_id) == 0) {
         result[rh_var_id] = mat_vec_mul(lh_mat_vec, rh_mat_vec);
       } else { // Sum matrices.
@@ -67,10 +70,9 @@ DictMat dict_mat_mul(const DictMat &lh_dm, const DictMat &rh_dm) {
 // Accumulate right hand DictMat
 // into left hand by addition.
 void acc_dict_mat(DictMat &lh_dm, const DictMat &rh_dm) {
-  typedef DictMat::const_iterator it_type;
-  for (it_type it = rh_dm.begin(); it != rh_dm.end(); ++it) {
+  for (auto it = rh_dm.begin(); it != rh_dm.end(); ++it) {
     int rh_var_id = it->first;
-    std::vector<Matrix> rh_mat_vec = it->second;
+    const std::vector<Matrix> &rh_mat_vec = it->second;
     if (lh_dm.count(rh_var_id) == 0) {
       // TODO swap?
       lh_dm[rh_var_id] = rh_mat_vec;
@@ -91,10 +93,10 @@ Tensor tensor_mul(const Tensor &lh_ten, const Tensor &rh_ten) {
   Tensor result;
   for (auto it = lh_ten.begin(); it != lh_ten.end(); ++it) {
     int lh_param_id = it->first;
-    const DictMat& lh_var_map = it->second;
+    const DictMat &lh_var_map = it->second;
     for (auto jit = rh_ten.begin(); jit != rh_ten.end(); ++jit) {
       int rh_param_id = jit->first;
-      const DictMat& rh_var_map = jit->second;
+      const DictMat &rh_var_map = jit->second;
       // No cross terms allowed.
       assert(lh_param_id == CONSTANT_ID || rh_param_id == CONSTANT_ID);
       int cross_id;
@@ -115,10 +117,9 @@ Tensor tensor_mul(const Tensor &lh_ten, const Tensor &rh_ten) {
 
 // Accumulate right hand Tensor into left hand by addition.
 void acc_tensor(Tensor &lh_ten, const Tensor &rh_ten) {
-  typedef Tensor::const_iterator it_type;
-  for (it_type it = rh_ten.begin(); it != rh_ten.end(); ++it) {
+  for (auto it = rh_ten.begin(); it != rh_ten.end(); ++it) {
     int rh_param_id = it->first;
-    DictMat rh_dm = it->second;
+    const DictMat &rh_dm = it->second;
     if (lh_ten.count(rh_param_id) == 0) {
       lh_ten[rh_param_id] = rh_dm;
     } else { // Accumulate into lh_dm vector<Matrix>.
