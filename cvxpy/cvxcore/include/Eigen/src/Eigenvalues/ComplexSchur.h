@@ -63,7 +63,7 @@ template<typename _MatrixType> class ComplexSchur
     /** \brief Scalar type for matrices of type \p _MatrixType. */
     typedef typename MatrixType::Scalar Scalar;
     typedef typename NumTraits<Scalar>::Real RealScalar;
-    typedef typename MatrixType::Index Index;
+    typedef Eigen::Index Index; ///< \deprecated since Eigen 3.3
 
     /** \brief Complex scalar type for \p _MatrixType. 
       *
@@ -91,7 +91,7 @@ template<typename _MatrixType> class ComplexSchur
       *
       * \sa compute() for an example.
       */
-    ComplexSchur(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
+    explicit ComplexSchur(Index size = RowsAtCompileTime==Dynamic ? 1 : RowsAtCompileTime)
       : m_matT(size,size),
         m_matU(size,size),
         m_hess(size),
@@ -109,7 +109,8 @@ template<typename _MatrixType> class ComplexSchur
       *
       * \sa matrixT() and matrixU() for examples.
       */
-    ComplexSchur(const MatrixType& matrix, bool computeU = true)
+    template<typename InputType>
+    explicit ComplexSchur(const EigenBase<InputType>& matrix, bool computeU = true)
       : m_matT(matrix.rows(),matrix.cols()),
         m_matU(matrix.rows(),matrix.cols()),
         m_hess(matrix.rows()),
@@ -117,7 +118,7 @@ template<typename _MatrixType> class ComplexSchur
         m_matUisUptodate(false),
         m_maxIters(-1)
     {
-      compute(matrix, computeU);
+      compute(matrix.derived(), computeU);
     }
 
     /** \brief Returns the unitary matrix in the Schur decomposition. 
@@ -186,7 +187,8 @@ template<typename _MatrixType> class ComplexSchur
       *
       * \sa compute(const MatrixType&, bool, Index)
       */
-    ComplexSchur& compute(const MatrixType& matrix, bool computeU = true);
+    template<typename InputType>
+    ComplexSchur& compute(const EigenBase<InputType>& matrix, bool computeU = true);
     
     /** \brief Compute Schur decomposition from a given Hessenberg matrix
      *  \param[in] matrixH Matrix in Hessenberg form H
@@ -298,10 +300,13 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
   ComplexScalar trace = t.coeff(0,0) + t.coeff(1,1);
   ComplexScalar eival1 = (trace + disc) / RealScalar(2);
   ComplexScalar eival2 = (trace - disc) / RealScalar(2);
-
-  if(numext::norm1(eival1) > numext::norm1(eival2))
+  RealScalar eival1_norm = numext::norm1(eival1);
+  RealScalar eival2_norm = numext::norm1(eival2);
+  // A division by zero can only occur if eival1==eival2==0.
+  // In this case, det==0, and all we have to do is checking that eival2_norm!=0
+  if(eival1_norm > eival2_norm)
     eival2 = det / eival1;
-  else
+  else if(eival2_norm!=RealScalar(0))
     eival1 = det / eival2;
 
   // choose the eigenvalue closest to the bottom entry of the diagonal
@@ -313,14 +318,15 @@ typename ComplexSchur<MatrixType>::ComplexScalar ComplexSchur<MatrixType>::compu
 
 
 template<typename MatrixType>
-ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const MatrixType& matrix, bool computeU)
+template<typename InputType>
+ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const EigenBase<InputType>& matrix, bool computeU)
 {
   m_matUisUptodate = false;
   eigen_assert(matrix.cols() == matrix.rows());
 
   if(matrix.cols() == 1)
   {
-    m_matT = matrix.template cast<ComplexScalar>();
+    m_matT = matrix.derived().template cast<ComplexScalar>();
     if(computeU)  m_matU = ComplexMatrixType::Identity(1,1);
     m_info = Success;
     m_isInitialized = true;
@@ -328,7 +334,7 @@ ComplexSchur<MatrixType>& ComplexSchur<MatrixType>::compute(const MatrixType& ma
     return *this;
   }
 
-  internal::complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>::run(*this, matrix, computeU);
+  internal::complex_schur_reduce_to_hessenberg<MatrixType, NumTraits<Scalar>::IsComplex>::run(*this, matrix.derived(), computeU);
   computeFromHessenberg(m_matT, m_matU, computeU);
   return *this;
 }
