@@ -175,7 +175,9 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
   // the ProblemData objects could be reduced afterwards (specifically
   // the V, I, and J arrays would be merged)
   #ifdef _OPENMP
-  omp_set_num_threads(num_threads);
+  if (num_threads > 0) {
+    omp_set_num_threads(num_threads);
+  }
   #pragma omp parallel for
   #endif
   for (int i = 0; i < constraints_and_offsets.size(); ++i) {

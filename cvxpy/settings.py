@@ -14,7 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
-import multiprocessing
 import sys
 
 
@@ -171,7 +170,9 @@ GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 
 # threads to use during compilation
-NUM_THREADS = multiprocessing.cpu_count()
+# -1 defaults to system default (configurable via the OMP_NUM_THREADS
+# environment variable)
+NUM_THREADS = -1
 
 
 def set_num_threads(num_threads):
