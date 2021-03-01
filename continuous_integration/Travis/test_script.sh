@@ -10,8 +10,11 @@ python --version
 python -c "import numpy; print('numpy %s' % numpy.__version__)"
 python -c "import scipy; print('scipy %s' % scipy.__version__)"
 
-if [[ "$USE_OPENMP" == "True" ]]; then
+if [ $USE_OPENMP == "True" ] && [ $TRAVIS_OS_NAME == "linux" ]; then
     CFLAGS="-fopenmp" LDFLAGS="-lgomp" python setup.py install
+    export OMP_NUM_THREADS=4
+if [ $USE_OPENMP == "True" ] && [ $TRAVIS_OS_NAME == "osx" ]; then
+    CFLAGS="-fopenmp" LDFLAGS="-lomp" python setup.py install
     export OMP_NUM_THREADS=4
 else
     python setup.py install
