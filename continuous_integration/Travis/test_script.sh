@@ -9,7 +9,14 @@ set -e
 python --version
 python -c "import numpy; print('numpy %s' % numpy.__version__)"
 python -c "import scipy; print('scipy %s' % scipy.__version__)"
-python setup.py install
+
+if [[ "$USE_OPENMP" == "True" ]]; then
+    CFLAGS="-fopenmp" LDFLAGS="-lgomp" python setup.py install
+    export OMP_NUM_THREADS=4
+else
+    python setup.py install
+fi
+
 python -c "import cvxpy; print(cvxpy.installed_solvers())"
 python $(dirname ${BASH_SOURCE[0]})/../osqp_version.py
 

@@ -46,6 +46,10 @@ elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   pip install osqp
 fi
 
+if [[ "$USE_OPENMP" == "true" ]]; then
+    conda install -c conda-forge openmp
+fi
+
 pip install diffcp
 
 if [[ "$COVERAGE" == "true" ]]; then
