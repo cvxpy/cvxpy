@@ -46,6 +46,9 @@ Tensor get_variable_coeffs(const LinOp &lin, int arg_idx);
 Tensor get_const_coeffs(const LinOp &lin, int arg_idx);
 Tensor get_param_coeffs(const LinOp &lin, int arg_idx);
 
+// TODO: Many functions in this file make unnecessary copies of data;
+//       these copies should be eliminated.
+
 /**
  * Computes a vector of coefficient matrices for the linOp LIN based on the
  * type of linOp.
@@ -251,10 +254,15 @@ Matrix sparse_reshape_to_vec(const Matrix &mat) {
  *
  * Returns: sparse eigen matrix COEFFS
  *
+ * TODO: this function unnecessarily copies data out of lin; instead of
+ *       returning a Matrix, this function should take a pointer to a Matrix,
+ *       and it should make the Matrix point to the data in lin (without
+ *       copying it)
+ *
  */
 Matrix get_constant_data(const LinOp &lin, bool column) {
-  Matrix coeffs;
   assert(lin.has_numerical_data());
+  Matrix coeffs;
   if (lin.is_sparse()) {
     if (column) {
       coeffs = sparse_reshape_to_vec(lin.get_sparse_data());
@@ -696,14 +704,12 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
   // Interpret as row or column vector as needed.
   if (lin.get_data_ndim() == 1 && lin.get_args()[0]->get_shape()[0] != 1) {
     // Transpose matrices.
-    typedef Tensor::iterator it_type;
-    for (it_type it = rmul_ten.begin(); it != rmul_ten.end(); ++it) {
+    for (auto it = rmul_ten.begin(); it != rmul_ten.end(); ++it) {
       int param_id = it->first;
-      DictMat var_map = it->second;
-      typedef DictMat::iterator jit_type;
-      for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
+      const DictMat &var_map = it->second;
+      for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
         int var_id = jit->first;
-        std::vector<Matrix> mat_vec = jit->second;
+        const std::vector<Matrix> &mat_vec = jit->second;
         for (unsigned i = 0; i < mat_vec.size(); ++i) {
           // Transpose matrix.
           rmul_ten[param_id][var_id][i] = mat_vec[i].transpose();
@@ -734,14 +740,12 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
   }
   int n = (lin.get_shape().size() > 0) ? result_rows : 1;
 
-  typedef Tensor::iterator it_type;
-  for (it_type it = rmul_ten.begin(); it != rmul_ten.end(); ++it) {
+  for (auto it = rmul_ten.begin(); it != rmul_ten.end(); ++it) {
     int param_id = it->first;
-    DictMat var_map = it->second;
-    typedef DictMat::iterator jit_type;
-    for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
+    const DictMat &var_map = it->second;
+    for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
       int var_id = jit->first;
-      std::vector<Matrix> mat_vec = jit->second;
+      const std::vector<Matrix> &mat_vec = jit->second;
       for (unsigned i = 0; i < mat_vec.size(); ++i) {
         // Form coefficient matrix.
         Matrix coeffs(data_cols * n, data_rows * n);
@@ -781,7 +785,7 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
         coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
         coeffs.makeCompressed();
         // Set block diagonal matrix.
-        rmul_ten[param_id][var_id][i] = coeffs;
+        rmul_ten[param_id][var_id][i].swap(coeffs);
       }
     }
   }
@@ -821,36 +825,31 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
     block_cols = data_rows;
   }
 
-  LinOp data = *lin.get_linOp_data();
+  const LinOp *data = lin.get_linOp_data();
   Tensor mul_ten;
   bool data_flattened = true;
-  if (data.get_type() == SPARSE_CONST || data.get_type() == DENSE_CONST) {
+  if (data->get_type() == SPARSE_CONST || data->get_type() == DENSE_CONST) {
     // Fast path for when data is a sparse matrix.
     // Needed because sparse matrices don't support
     // vectorized views.
     data_flattened = data_rows == 1 || data_cols == 1;
-    Matrix coeffs = get_constant_data(data, false);
-    DictMat id_to_coeffs;
-    std::vector<Matrix> mat_vec;
-    mat_vec.push_back(coeffs);
-    id_to_coeffs[CONSTANT_ID] = mat_vec;
-    mul_ten[CONSTANT_ID] = id_to_coeffs;
+    Matrix coeffs = get_constant_data(*data, false);
+    mul_ten = build_tensor(coeffs); 
   } else {
-    mul_ten = lin_to_tensor(*lin.get_linOp_data());
+    mul_ten = lin_to_tensor(*data);
   }
   // Interpret as row or column vector as needed.
   if (lin.get_data_ndim() == 1 && lin.get_args()[0]->get_shape()[0] != 1) {
     // Transpose matrices.
-    typedef Tensor::iterator it_type;
-    for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it) {
+    for (auto it = mul_ten.begin(); it != mul_ten.end(); ++it) {
       int param_id = it->first;
-      DictMat var_map = it->second;
-      typedef DictMat::iterator jit_type;
-      for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
+      const DictMat &var_map = it->second;
+      for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
         int var_id = jit->first;
-        std::vector<Matrix> mat_vec = jit->second;
+        const std::vector<Matrix> &mat_vec = jit->second;
         for (unsigned i = 0; i < mat_vec.size(); ++i) {
           // Transpose matrix.
+          // TODO this will copy (unnecessarily?)
           mul_ten[param_id][var_id][i] = mat_vec[i].transpose();
         }
       }
@@ -859,14 +858,12 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
 
   // TODO may need to speed up. Copying data.
   // Replace every matrix with a block diagonal matrix.
-  typedef Tensor::iterator it_type;
-  for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it) {
+  for (auto it = mul_ten.begin(); it != mul_ten.end(); ++it) {
     int param_id = it->first;
-    DictMat var_map = it->second;
-    typedef DictMat::iterator jit_type;
-    for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
+    const DictMat &var_map = it->second;
+    for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
       int var_id = jit->first;
-      std::vector<Matrix> mat_vec = jit->second;
+      const std::vector<Matrix> &mat_vec = jit->second;
       for (unsigned i = 0; i < mat_vec.size(); ++i) {
         // Form block matrix matrix.
         // TODO(akshayka): Fast path for num_blocks=1
@@ -903,7 +900,7 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
         block_diag.setFromTriplets(tripletList.begin(), tripletList.end());
         block_diag.makeCompressed();
         // Set block diagonal matrix.
-        mul_ten[param_id][var_id][i] = block_diag;
+        mul_ten[param_id][var_id][i].swap(block_diag);
       }
     }
   }
@@ -1055,18 +1052,19 @@ Tensor get_sum_coefficients(const LinOp &lin, int arg_idx) {
  */
 Tensor get_variable_coeffs(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == VARIABLE);
-  Tensor ten;
-  DictMat id_to_coeffs;
   int id = get_id_data(lin, arg_idx);
+
+  Tensor ten;
+  DictMat &id_to_coeffs = ten[CONSTANT_ID];
+  std::vector<Matrix> &mat_vec = id_to_coeffs[id];
 
   // create a giant identity matrix
   int n = vecprod(lin.get_shape());
   Matrix coeffs = sparse_eye(n);
   coeffs.makeCompressed();
-  std::vector<Matrix> mat_vec;
-  mat_vec.push_back(coeffs);
-  id_to_coeffs[id] = mat_vec;
-  ten[CONSTANT_ID] = id_to_coeffs;
+  mat_vec.push_back(Matrix());
+  mat_vec[0].swap(coeffs);
+
   return ten;
 }
 
@@ -1085,19 +1083,18 @@ Tensor get_param_coeffs(const LinOp &lin, int arg_idx) {
   // create a giant identity matrix
   unsigned m = (lin.get_shape().size() >= 1) ? lin.get_shape()[0] : 1;
   unsigned n = (lin.get_shape().size() >= 2) ? lin.get_shape()[1] : 1;
+
   Tensor ten;
-  DictMat dm;
-  std::vector<Matrix> mat_vec;
+  DictMat &dm = ten[id];
+  std::vector<Matrix> &mat_vec = dm[CONSTANT_ID];
+
   // Make mxn matrices with one zero,
   // stack them in column major order.
   for (unsigned j = 0; j < n; ++j) {
     for (unsigned i = 0; i < m; ++i) {
-      Matrix mat = sparse_selector(m, n, i, j);
-      mat_vec.push_back(mat);
+      mat_vec.push_back(sparse_selector(m, n, i, j));
     }
   }
-  dm[CONSTANT_ID] = mat_vec;
-  ten[id] = dm;
   return ten;
 }
 
@@ -1115,15 +1112,15 @@ Tensor get_param_coeffs(const LinOp &lin, int arg_idx) {
 Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
   assert(lin.is_constant());
   Tensor ten;
-  DictMat id_to_coeffs;
+  DictMat &id_to_coeffs = ten[CONSTANT_ID];
+  std::vector<Matrix> &mat_vec = id_to_coeffs[CONSTANT_ID];
 
   // get coeffs as a column vector
   assert(lin.get_linOp_data() == nullptr);
   Matrix coeffs = get_constant_data(lin, true);
   coeffs.makeCompressed();
-  std::vector<Matrix> mat_vec;
-  mat_vec.push_back(coeffs);
-  id_to_coeffs[CONSTANT_ID] = mat_vec;
-  ten[CONSTANT_ID] = id_to_coeffs;
+  mat_vec.push_back(Matrix());
+  mat_vec[0].swap(coeffs);
+
   return ten;
 }
