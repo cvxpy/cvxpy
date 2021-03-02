@@ -199,8 +199,7 @@ Matrix sparse_eye(int n) {
  */
 Matrix sparse_ones(int rows, int cols) {
   Eigen::MatrixXd ones = Eigen::MatrixXd::Ones(rows, cols);
-  Matrix mat = ones.sparseView();
-  return mat;
+  return ones.sparseView();
 }
 
 // Returns a sparse rows x cols matrix with matrix[row_sel, col_sel] = 1.
@@ -644,6 +643,7 @@ Tensor get_index_mat(const LinOp &lin, int arg_idx) {
   /* Set the index coefficients by looping over the column selection
    * first to remain consistent with CVXPY. */
   std::vector<Triplet> tripletList;
+  tripletList.reserve(coeffs.rows());
   std::vector<int> dims = lin.get_args()[0]->get_shape();
   assert(lin.get_slice().size() == dims.size());
   add_triplets(tripletList, lin.get_slice(), dims, lin.get_slice().size() - 1,
@@ -665,17 +665,17 @@ Tensor get_index_mat(const LinOp &lin, int arg_idx) {
  */
 Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == MUL_ELEM);
+  // TODO because get_constant_data copies data, this will also
+  // copy data ...
   Tensor mul_ten = lin_to_tensor(*lin.get_linOp_data());
   // Convert all the Tensor matrices into diagonal matrices.
   // Replace them in-place.
-  typedef Tensor::iterator it_type;
-  for (it_type it = mul_ten.begin(); it != mul_ten.end(); ++it) {
+  for (auto it = mul_ten.begin(); it != mul_ten.end(); ++it) {
     int param_id = it->first;
-    DictMat var_map = it->second;
-    typedef DictMat::iterator jit_type;
-    for (jit_type jit = var_map.begin(); jit != var_map.end(); ++jit) {
+    const DictMat &var_map = it->second;
+    for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
       int var_id = jit->first;
-      std::vector<Matrix> mat_vec = jit->second;
+      const std::vector<Matrix> &mat_vec = jit->second;
       for (unsigned i = 0; i < mat_vec.size(); ++i) {
         // Diagonalize matrix.
         mul_ten[param_id][var_id][i] = diagonalize(mat_vec[i]);
@@ -1000,10 +1000,13 @@ Tensor get_neg_mat(const LinOp &lin, int arg_idx) {
 Tensor get_trace_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == TRACE);
   int rows = lin.get_args()[0]->get_shape()[0];
-  Matrix coeffs(1, rows * rows);
+  std::vector<Triplet> tripletList;
+  tripletList.reserve(rows);
   for (int i = 0; i < rows; ++i) {
-    coeffs.insert(0, i * rows + i) = 1;
+    tripletList.push_back(Triplet(0, i * rows + i, 1.0));
   }
+  Matrix coeffs(1, rows * rows);
+  coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
   return build_tensor(coeffs);
 }
@@ -1117,6 +1120,7 @@ Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
 
   // get coeffs as a column vector
   assert(lin.get_linOp_data() == nullptr);
+  // TODO this copies data
   Matrix coeffs = get_constant_data(lin, true);
   coeffs.makeCompressed();
   mat_vec.push_back(Matrix());
