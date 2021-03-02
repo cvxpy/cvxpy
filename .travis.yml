@@ -23,7 +23,7 @@ env:
 matrix:
   exclude:
     - os: osx
-      env: USE_OPENMP="True"
+      env: PYTHON_VERSION="3.8" COVERAGE="false" USE_OPENMP="True" DEPLOY_PYPI_SOURCE="false"
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CC=gcc ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CXX=g++; fi
