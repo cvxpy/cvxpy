@@ -20,6 +20,10 @@ env:
       COVERAGE="false"
       USE_OPENMP="True"
       DEPLOY_PYPI_SOURCE="false"
+matrix:
+  exclude:
+    - os: osx
+      env: USE_OPENMP="True"
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CC=gcc ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then CXX=g++; fi
