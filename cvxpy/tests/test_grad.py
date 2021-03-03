@@ -234,6 +234,27 @@ class TestGrad(BaseTest):
         self.assertItemsAlmostEqual(expr.grad[self.y].toarray(), [1, 2])
         self.assertAlmostEqual(expr.grad[self.a], [-2.5])
 
+    def test_quad_form(self):
+        """Test gradient for quad_form.
+        """
+        # Issue 1260
+        n = 10
+        np.random.seed(1)
+        P = np.random.randn(n, n)
+        P = P.T @ P
+        q = np.random.randn(n)
+
+        # define the optimization problem with the 2nd constraint as a quad_form constraint
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Maximize(q.T @ x - (1/2)*cp.quad_form(x, P)),
+                          [cp.norm(x, 1) <= 1.0,
+                           cp.quad_form(x, P) <= 10,   # quad form constraint
+                           cp.abs(x) <= 0.01])
+        prob.solve()
+
+        # access quad_form.expr.grad without error
+        prob.constraints[1].expr.grad
+
     def test_max(self):
         """Test gradient for max
         """
