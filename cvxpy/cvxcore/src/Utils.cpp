@@ -147,7 +147,6 @@ Matrix diagonalize(const Matrix &mat) {
 }
 
 AbstractLinOp from_matrix(std::shared_ptr<const Matrix> matrix) {
-  // TODO: two copies here, one for each lambda
   const MatrixFn matmul = [matrix](const Matrix &other) -> Matrix {
     return *matrix * other;
   };

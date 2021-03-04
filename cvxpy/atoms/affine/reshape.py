@@ -106,7 +106,6 @@ class reshape(AffAtom):
         if data[1] == 'F':
             return (lu.reshape(arg_objs[0], shape), [])
         else:  # 'C':
-            print(shape)
             if len(shape) <= 1:
                 arg = lu.transpose(arg_objs[0])
                 return (lu.reshape(arg, shape), [])

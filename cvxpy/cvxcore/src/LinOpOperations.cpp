@@ -174,7 +174,6 @@ Tensor build_tensor(const AbstractLinOp &op) {
   DictMat &dm = ten[CONSTANT_ID];
   std::vector<AbstractLinOp> &mat_vec = dm[CONSTANT_ID];
 
-  // TODO: if op has a matrix, swap its contents instead of copying it
   mat_vec.push_back(op);
   return ten;
 }
@@ -205,8 +204,22 @@ AbstractLinOp sparse_eye_op(int n) {
  * which might not be extremely efficient, but does make it easier downstream.
  */
 AbstractLinOp sparse_ones(int rows, int cols) {
+  // TODO make abstract ?
   Eigen::MatrixXd ones = Eigen::MatrixXd::Ones(rows, cols);
   return from_matrix(std::make_shared<const Matrix>(ones.sparseView()));
+}
+
+AbstractLinOp dense_ones(int rows, int cols) {
+  Eigen::MatrixXd ones = Eigen::MatrixXd::Ones(rows, cols);
+  MatrixFn matmul = [ones](const Matrix &other) -> Matrix {
+    Eigen::MatrixXd dense_product = ones * other;
+    return dense_product.sparseView();
+  };
+  MatrixFn rmatmul = [ones](const Matrix &other) -> Matrix {
+    Eigen::MatrixXd dense_product = ones.transpose() * other;
+    return dense_product.sparseView();
+  };
+  return AbstractLinOp(rows, cols, matmul, rmatmul);
 }
 
 // Returns a sparse rows x cols matrix with matrix[row_sel, col_sel] = 1.
@@ -357,7 +370,7 @@ Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
 Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == VSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().size());
+  assert(arg_idx <= int(lin.get_args().size()));
   std::vector<Triplet> tripletList;
   const LinOp &arg = *lin.get_args()[arg_idx];
   tripletList.reserve(vecprod(arg.get_shape()));
@@ -374,6 +387,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
       (prev_arg.get_shape().size() >= 2) ? prev_arg.get_shape()[0] : 1;
   }
 
+  // TODO make abstract
   for (int i = 0; i < arg_rows; ++i) {
     for (int j = 0; j < arg_cols; ++j) {
       int row_idx = i + (j * column_offset) + row_offset;
@@ -397,7 +411,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == HSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().size());
+  assert(arg_idx <= int(lin.get_args().size()));
   std::vector<Triplet> tripletList;
   tripletList.reserve(vecprod(lin.get_shape()));
   const LinOp &arg = *lin.get_args()[arg_idx];
@@ -410,6 +424,7 @@ Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
     row_offset += vecprod(lin.get_args()[idx]->get_shape());
   }
 
+  // TODO make abstract
   for (int i = 0; i < arg_rows; ++i) {
     for (int j = 0; j < arg_cols; ++j) {
       int row_idx = i + (j * column_offset) + row_offset;
@@ -643,8 +658,7 @@ Tensor get_index_mat(const LinOp &lin, int arg_idx) {
     return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
     // Special case for scalars.
   } else if (coeffs.rows() * coeffs.cols() == 1) {
-    AbstractLinOp coeffs = sparse_eye(1);
-    return build_tensor(coeffs);
+    return build_tensor(sparse_eye_op(1));
   }
 
   /* Set the index coefficients by looping over the column selection
@@ -675,6 +689,7 @@ Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == MUL_ELEM);
   // TODO because get_constant_data copies data, this will also
   // copy data ...
+  // TODO say data is a dense const .... can we do something better?
   Tensor mul_ten = lin_to_tensor(*lin.get_linOp_data());
   // Convert all the Tensor matrices into diagonal matrices.
   // Replace them in-place.
@@ -685,9 +700,34 @@ Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx) {
       int var_id = jit->first;
       const std::vector<AbstractLinOp> &mat_vec = jit->second;
       for (unsigned i = 0; i < mat_vec.size(); ++i) {
-        // Diagonalize matrix.
         assert(mat_vec[i].has_matrix());
-        mul_ten[param_id][var_id][i] = from_matrix(std::make_shared<const Matrix>(diagonalize(mat_vec[i].get_matrix())));
+        const AbstractLinOp &alo = mat_vec[i];
+
+        if (alo.rows() == 1 && alo.cols() == 1) {
+          // scalar multiplication
+          double value;
+          if (alo.get_matrix().nonZeros() == 0) {
+            value = 0;
+          } else {
+            value = alo.get_matrix().valuePtr()[0];
+          }
+          MatrixFn matmul = [value](const Matrix &other) -> Matrix {
+            if (value == 0) {
+              return Matrix(1, other.cols());
+            }
+            return value * other;
+          };
+          int shape = alo.rows() * alo.cols();
+          mul_ten[param_id][var_id][i] = AbstractLinOp(
+              shape, shape, matmul, matmul);
+        } else {
+          // create an N x N diagonal matrix to represent the elementwise
+          // multiplication
+          // TODO make abstract ?
+          mul_ten[param_id][var_id][i] = from_matrix(
+              std::make_shared<const Matrix>(
+                diagonalize(mat_vec[i].get_matrix())));
+        }
       }
     }
   }
@@ -949,8 +989,7 @@ Tensor get_promote_mat(const LinOp &lin, int arg_idx) {
 Tensor get_reshape_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == RESHAPE);
   int n = vecprod(lin.get_shape());
-  AbstractLinOp coeffs = sparse_eye(n);
-  return build_tensor(coeffs);
+  return build_tensor(sparse_eye_op(n));
 }
 
 /**
@@ -991,8 +1030,7 @@ Tensor get_div_mat(const LinOp &lin, int arg_idx) {
 Tensor get_neg_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == NEG);
   int n = vecprod(lin.get_shape());
-  AbstractLinOp coeffs = sparse_neg_eye_op(n);
-  return build_tensor(coeffs);
+  return build_tensor(sparse_neg_eye_op(n));
 }
 
 /**
@@ -1031,7 +1069,9 @@ Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == SUM_ENTRIES);
   // assumes all args have the same size
   int size = vecprod(lin.get_args()[0]->get_shape());
+  // TODO make abstract ?
   AbstractLinOp coeffs = sparse_ones(1, size);
+  // AbstractLinOp coeffs = dense_ones(1, size);
   return build_tensor(coeffs);
 }
 
@@ -1045,8 +1085,7 @@ Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx) {
 Tensor get_sum_coefficients(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == SUM);
   int n = vecprod(lin.get_shape());
-  AbstractLinOp coeffs = sparse_eye(n);
-  return build_tensor(coeffs);
+  return build_tensor(sparse_eye_op(n));
 }
 
 /**
@@ -1069,9 +1108,8 @@ Tensor get_variable_coeffs(const LinOp &lin, int arg_idx) {
 
   // create a giant identity matrix
   int n = vecprod(lin.get_shape());
-  AbstractLinOp coeffs = sparse_eye(n);
   // TODO copies
-  mat_vec.push_back(coeffs);
+  mat_vec.push_back(sparse_eye(n));
 
   return ten;
 }

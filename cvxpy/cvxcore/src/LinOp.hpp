@@ -22,31 +22,31 @@
 
 /* TYPE of each LinOP */
 enum operatortype {
-  VARIABLE,
-  PARAM,
-  PROMOTE,
-  MUL,
-  RMUL,
-  MUL_ELEM,
-  DIV,
-  SUM,
-  NEG,
-  INDEX,
-  TRANSPOSE,
-  SUM_ENTRIES,
-  TRACE,
-  RESHAPE,
-  DIAG_VEC,
-  DIAG_MAT,
-  UPPER_TRI,
-  CONV,
-  HSTACK,
-  VSTACK,
-  SCALAR_CONST,
-  DENSE_CONST,
-  SPARSE_CONST,
-  NO_OP,
-  KRON
+  VARIABLE, // 0
+  PARAM, // 1
+  PROMOTE, // 2
+  MUL, // 3
+  RMUL, // 4
+  MUL_ELEM, // 5
+  DIV, // 6
+  SUM, // 7
+  NEG, // 8
+  INDEX, // 9
+  TRANSPOSE, // 10
+  SUM_ENTRIES, // 11
+  TRACE, // 12
+  RESHAPE, // 13
+  DIAG_VEC, // 14
+  DIAG_MAT, // 15
+  UPPER_TRI, // 16
+  CONV, // 17
+  HSTACK, // 18
+  VSTACK,  // 19
+  SCALAR_CONST, // 20
+  DENSE_CONST, // 21
+  SPARSE_CONST, // 22
+  NO_OP, // 23
+  KRON // 24
 };
 
 /* linOp TYPE */

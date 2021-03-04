@@ -317,7 +317,6 @@ def get_problem_matrix(linOps,
                                        id_to_col_C,
                                        param_to_size_C,
                                        s.get_num_threads())
-    #print(time.time() - start, ' seconds')
 
     # Populate tensors with info from problemData.
     tensor_V = {}
@@ -359,7 +358,6 @@ def get_problem_matrix(linOps,
         shape=(np.int64(constr_length)*np.int64(var_length+1),
                param_size_plus_one))
     end = time.time()
-    #print(end - start, 's build csc')
     return A
 
 

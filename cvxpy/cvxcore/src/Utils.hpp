@@ -61,6 +61,7 @@ public:
     has_matrix_ = true;
   }
   const Matrix& get_matrix() const { return *matrix_; }
+  std::shared_ptr<const Matrix> get_matrix_ptr() const { return matrix_; }
 
 private:
   int rows_;
