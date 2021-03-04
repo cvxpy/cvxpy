@@ -168,7 +168,7 @@ class ParamConeProg(ParamProb):
           keep_zeros: (optional) if True, store explicit zeros in A where
                         parameters are affected
         """
-        if self.reduced_A is None:
+        if self.reduced_A is None and self.parameters:
             # Form a reduced representation of A, for faster application of
             # parameters.
             if np.prod(self.A.shape) != 0:
@@ -180,6 +180,9 @@ class ParamConeProg(ParamProb):
             else:
                 self.reduced_A = self.A
                 self.problem_data_index = None
+        else:
+            self.reduced_A = self.A
+            self.problem_data_index = None
 
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value

@@ -310,11 +310,14 @@ def get_problem_matrix(linOps,
         tree = linPy_to_linC[lin]
         lin_vec.push_back(tree)
 
+    import time
+    start = time.time()
     problemData = cvxcore.build_matrix(lin_vec,
                                        int(var_length),
                                        id_to_col_C,
                                        param_to_size_C,
                                        s.get_num_threads())
+    #print(time.time() - start, ' seconds')
 
     # Populate tensors with info from problemData.
     tensor_V = {}
@@ -332,7 +335,7 @@ def get_problem_matrix(linOps,
             tensor_I[param_id].append(problemData.getI(prob_len))
             tensor_J[param_id].append(problemData.getJ(prob_len))
 
-    # Reduce tensors to a single sparse CSR matrix.
+    # Reduce tensors to a single sparse CSC matrix.
     V = []
     I = []
     J = []
@@ -350,10 +353,13 @@ def get_problem_matrix(linOps,
     V = np.concatenate(V)
     I = np.concatenate(I)
     J = np.concatenate(J)
+    start = time.time()
     A = scipy.sparse.csc_matrix(
         (V, (I, J)),
         shape=(np.int64(constr_length)*np.int64(var_length+1),
                param_size_plus_one))
+    end = time.time()
+    #print(end - start, 's build csc')
     return A
 
 

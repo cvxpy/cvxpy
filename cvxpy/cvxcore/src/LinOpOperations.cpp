@@ -18,11 +18,12 @@
 #include <cassert>
 #include <iostream>
 #include <map>
+#include <memory>
 
 /***********************
  * FUNCTION PROTOTYPES *
  ***********************/
-Tensor build_tensor(const Matrix &mat);
+Tensor build_tensor(const AbstractLinOp &op);
 Tensor get_sum_coefficients(const LinOp &lin, int arg_idx);
 Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx);
 Tensor get_trace_mat(const LinOp &lin, int arg_idx);
@@ -168,27 +169,33 @@ Tensor lin_to_tensor(const LinOp &lin) {
  *
  * NB: This function takes ownership of mat!
  */
-Tensor build_tensor(Matrix &mat) {
+Tensor build_tensor(const AbstractLinOp &op) {
   Tensor ten;
-  ten[CONSTANT_ID] = DictMat();
-  DictMat* dm = &(ten[CONSTANT_ID]);
-  (*dm)[CONSTANT_ID] = std::vector<Matrix>();
+  DictMat &dm = ten[CONSTANT_ID];
+  std::vector<AbstractLinOp> &mat_vec = dm[CONSTANT_ID];
 
-  std::vector<Matrix>* mat_vec = &(*dm)[CONSTANT_ID];
-  mat_vec->push_back(Matrix());
-  // swap the contents of &mat with the newly constructed matrix,
-  // instead of copying it into the vector.
-  (*mat_vec)[0].swap(mat);
+  // TODO: if op has a matrix, swap its contents instead of copying it
+  mat_vec.push_back(op);
   return ten;
 }
 
 /**
  * Returns an N x N sparse identity matrix.
  */
-Matrix sparse_eye(int n) {
+AbstractLinOp sparse_eye(int n) {
   Matrix eye_n(n, n);
   eye_n.setIdentity();
-  return eye_n;
+  return from_matrix(std::make_shared<const Matrix>(eye_n));
+}
+
+AbstractLinOp sparse_neg_eye_op(int n) {
+  MatrixFn matmul = [](const Matrix &other) -> Matrix { return -1 * other; };
+  return AbstractLinOp(n, n, matmul, matmul);
+}
+
+AbstractLinOp sparse_eye_op(int n) {
+  MatrixFn matmul = [](const Matrix &other) -> Matrix { return other; };
+  return AbstractLinOp(n, n, matmul, matmul);
 }
 
 /**
@@ -197,16 +204,16 @@ Matrix sparse_eye(int n) {
  * TODO: This function returns a sparse representation of a dense matrix,
  * which might not be extremely efficient, but does make it easier downstream.
  */
-Matrix sparse_ones(int rows, int cols) {
+AbstractLinOp sparse_ones(int rows, int cols) {
   Eigen::MatrixXd ones = Eigen::MatrixXd::Ones(rows, cols);
-  return ones.sparseView();
+  return from_matrix(std::make_shared<const Matrix>(ones.sparseView()));
 }
 
 // Returns a sparse rows x cols matrix with matrix[row_sel, col_sel] = 1.
-Matrix sparse_selector(int rows, int cols, int row_sel, int col_sel) {
+AbstractLinOp sparse_selector(int rows, int cols, int row_sel, int col_sel) {
   Matrix selector(rows * cols, 1);
   selector.insert(row_sel + rows * col_sel, 0) = 1.0;
-  return selector;
+  return from_matrix(std::make_shared<const Matrix>(selector));
 }
 
 /**
@@ -306,7 +313,7 @@ int get_id_data(const LinOp &lin, int arg_idx) {
  *
  * Parameters: linOp LIN with type KRON
  * Returns: vector containing the coefficient matrix for the Kronecker
-                                                product.
+ product.
  */
 Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == KRON);
@@ -325,7 +332,7 @@ Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
   for (int k = 0; k < constant.outerSize(); ++k) {
     for (Matrix::InnerIterator it(constant, k); it; ++it) {
       int row =
-          (rh_rows * rh_cols * (lh_rows * it.col())) + (it.row() * rh_rows);
+        (rh_rows * rh_cols * (lh_rows * it.col())) + (it.row() * rh_rows);
       int col = 0;
       for (int j = 0; j < rh_cols; ++j) {
         for (int i = 0; i < rh_rows; ++i) {
@@ -338,7 +345,7 @@ Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
   }
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
 }
 
 /**
@@ -357,14 +364,14 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
 
   int arg_rows = (arg.get_shape().size() >= 2) ? arg.get_shape()[0] : 1;
   int arg_cols = (arg.get_shape().size() >= 1)
-                     ? arg.get_shape()[arg.get_shape().size() - 1]
-                     : 1;
+    ? arg.get_shape()[arg.get_shape().size() - 1]
+    : 1;
   /* Columns are interleaved. */
   int column_offset = lin.get_shape()[0];
   for (int idx = 0; idx < arg_idx; ++idx) {
     const LinOp &prev_arg = *lin.get_args()[idx];
     row_offset +=
-        (prev_arg.get_shape().size() >= 2) ? prev_arg.get_shape()[0] : 1;
+      (prev_arg.get_shape().size() >= 2) ? prev_arg.get_shape()[0] : 1;
   }
 
   for (int i = 0; i < arg_rows; ++i) {
@@ -378,7 +385,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
   Matrix coeff(vecprod(lin.get_shape()), vecprod(arg.get_shape()));
   coeff.setFromTriplets(tripletList.begin(), tripletList.end());
   coeff.makeCompressed();
-  return build_tensor(coeff);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeff)));
 }
 
 /**
@@ -390,7 +397,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == HSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().get_shape());
+  assert(arg_idx <= lin.get_args().size());
   std::vector<Triplet> tripletList;
   tripletList.reserve(vecprod(lin.get_shape()));
   const LinOp &arg = *lin.get_args()[arg_idx];
@@ -414,7 +421,7 @@ Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
   Matrix coeff(vecprod(lin.get_shape()), vecprod(arg.get_shape()));
   coeff.setFromTriplets(tripletList.begin(), tripletList.end());
   coeff.makeCompressed();
-  return build_tensor(coeff);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeff)));
 }
 
 /**
@@ -451,7 +458,7 @@ Tensor get_conv_mat(const LinOp &lin, int arg_idx) {
   }
   toeplitz.setFromTriplets(tripletList.begin(), tripletList.end());
   toeplitz.makeCompressed();
-  return build_tensor(toeplitz);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(toeplitz)));
 }
 
 /**
@@ -487,7 +494,7 @@ Tensor get_upper_tri_mat(const LinOp &lin, int arg_idx) {
   }
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
 }
 
 /**
@@ -517,7 +524,7 @@ Tensor get_diag_matrix_mat(const LinOp &lin, int arg_idx) {
 
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
 }
 
 /**
@@ -546,7 +553,7 @@ Tensor get_diag_vec_mat(const LinOp &lin, int arg_idx) {
   }
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
 }
 
 /**
@@ -577,7 +584,7 @@ Tensor get_transpose_mat(const LinOp &lin, int arg_idx) {
   }
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
 }
 
 /**
@@ -589,9 +596,9 @@ Tensor get_transpose_mat(const LinOp &lin, int arg_idx) {
  *
  */
 int add_triplets(std::vector<Triplet> &tripletList,
-                 const std::vector<std::vector<int> > &slices,
-                 const std::vector<int> &dims, int axis, int col_offset,
-                 int row_offset) {
+    const std::vector<std::vector<int> > &slices,
+    const std::vector<int> &dims, int axis, int col_offset,
+    int row_offset) {
   if (axis < 0) {
     tripletList.push_back(Triplet(row_offset, col_offset, 1.0));
     return row_offset + 1;
@@ -606,7 +613,7 @@ int add_triplets(std::vector<Triplet> &tripletList,
     }
     int new_offset = col_offset + pointer * vecprod_before(dims, axis);
     row_offset = add_triplets(tripletList, slices, dims, axis - 1, new_offset,
-                              row_offset);
+        row_offset);
     pointer += step;
     if ((step > 0 && pointer >= end) || (step < 0 && pointer <= end)) {
       break;
@@ -629,14 +636,14 @@ int add_triplets(std::vector<Triplet> &tripletList,
 Tensor get_index_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == INDEX);
   Matrix coeffs(vecprod(lin.get_shape()),
-                vecprod(lin.get_args()[0]->get_shape()));
+      vecprod(lin.get_args()[0]->get_shape()));
 
   /* If slice is empty, return empty matrix */
   if (coeffs.rows() == 0 || coeffs.cols() == 0) {
-    return build_tensor(coeffs);
+    return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
     // Special case for scalars.
   } else if (coeffs.rows() * coeffs.cols() == 1) {
-    Matrix coeffs = sparse_eye(1);
+    AbstractLinOp coeffs = sparse_eye(1);
     return build_tensor(coeffs);
   }
 
@@ -647,10 +654,10 @@ Tensor get_index_mat(const LinOp &lin, int arg_idx) {
   std::vector<int> dims = lin.get_args()[0]->get_shape();
   assert(lin.get_slice().size() == dims.size());
   add_triplets(tripletList, lin.get_slice(), dims, lin.get_slice().size() - 1,
-               0, 0);
+      0, 0);
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
 }
 
 /**
@@ -675,10 +682,11 @@ Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx) {
     const DictMat &var_map = it->second;
     for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
       int var_id = jit->first;
-      const std::vector<Matrix> &mat_vec = jit->second;
+      const std::vector<AbstractLinOp> &mat_vec = jit->second;
       for (unsigned i = 0; i < mat_vec.size(); ++i) {
         // Diagonalize matrix.
-        mul_ten[param_id][var_id][i] = diagonalize(mat_vec[i]);
+        assert(mat_vec[i].has_matrix());
+        mul_ten[param_id][var_id][i] = from_matrix(std::make_shared<const Matrix>(diagonalize(mat_vec[i].get_matrix())));
       }
     }
   }
@@ -709,7 +717,7 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
       const DictMat &var_map = it->second;
       for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
         int var_id = jit->first;
-        const std::vector<Matrix> &mat_vec = jit->second;
+        const std::vector<AbstractLinOp> &mat_vec = jit->second;
         for (unsigned i = 0; i < mat_vec.size(); ++i) {
           // Transpose matrix.
           rmul_ten[param_id][var_id][i] = mat_vec[i].transpose();
@@ -719,23 +727,19 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
   }
   // Get rows and cols of data (1 if not present).
   int data_rows = (lin.get_linOp_data()->get_shape().size() >= 1)
-                      ? lin.get_linOp_data()->get_shape()[0]
-                      : 1;
+    ? lin.get_linOp_data()->get_shape()[0]
+    : 1;
   int data_cols = (lin.get_linOp_data()->get_shape().size() >= 2)
-                      ? lin.get_linOp_data()->get_shape()[1]
-                      : 1;
+    ? lin.get_linOp_data()->get_shape()[1]
+    : 1;
 
   // Interpret as row or column vector as needed.
-  int arg_cols;
   int result_rows;
   if (lin.get_args()[0]->get_shape().size() == 0) {
-    arg_cols = 1;
     result_rows = 1;
   } else if (lin.get_args()[0]->get_shape().size() == 1) {
-    arg_cols = lin.get_args()[0]->get_shape()[0];
     result_rows = 1;
   } else {
-    arg_cols = lin.get_args()[0]->get_shape()[1];
     result_rows = lin.get_args()[0]->get_shape()[0];
   }
   int n = (lin.get_shape().size() > 0) ? result_rows : 1;
@@ -745,14 +749,16 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
     const DictMat &var_map = it->second;
     for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
       int var_id = jit->first;
-      const std::vector<Matrix> &mat_vec = jit->second;
+      const std::vector<AbstractLinOp> &mat_vec = jit->second;
       for (unsigned i = 0; i < mat_vec.size(); ++i) {
         // Form coefficient matrix.
         Matrix coeffs(data_cols * n, data_rows * n);
 
         std::vector<Triplet> tripletList;
-        tripletList.reserve(n * mat_vec[i].nonZeros());
-        const Matrix &curr_matrix = mat_vec[i];
+        // TODO this might not work ... need some kind of block diag linOp?
+        assert(mat_vec[i].has_matrix());
+        const Matrix &curr_matrix = mat_vec[i].get_matrix();
+        tripletList.reserve(n * curr_matrix.nonZeros());
         for (int k = 0; k < curr_matrix.outerSize(); ++k) {
           for (Matrix::InnerIterator it(curr_matrix, k); it; ++it) {
             double val = it.value();
@@ -785,7 +791,7 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
         coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
         coeffs.makeCompressed();
         // Set block diagonal matrix.
-        rmul_ten[param_id][var_id][i].swap(coeffs);
+        rmul_ten[param_id][var_id][i] = from_matrix(std::make_shared<const Matrix>(coeffs));
       }
     }
   }
@@ -834,7 +840,7 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
     // vectorized views.
     data_flattened = data_rows == 1 || data_cols == 1;
     Matrix coeffs = get_constant_data(*data, false);
-    mul_ten = build_tensor(coeffs); 
+    mul_ten = build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
   } else {
     mul_ten = lin_to_tensor(*data);
   }
@@ -846,7 +852,7 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
       const DictMat &var_map = it->second;
       for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
         int var_id = jit->first;
-        const std::vector<Matrix> &mat_vec = jit->second;
+        const std::vector<AbstractLinOp> &mat_vec = jit->second;
         for (unsigned i = 0; i < mat_vec.size(); ++i) {
           // Transpose matrix.
           // TODO this will copy (unnecessarily?)
@@ -863,18 +869,20 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
     const DictMat &var_map = it->second;
     for (auto jit = var_map.begin(); jit != var_map.end(); ++jit) {
       int var_id = jit->first;
-      const std::vector<Matrix> &mat_vec = jit->second;
+      const std::vector<AbstractLinOp> &mat_vec = jit->second;
       for (unsigned i = 0; i < mat_vec.size(); ++i) {
         // Form block matrix matrix.
         // TODO(akshayka): Fast path for num_blocks=1
         Matrix block_diag(num_blocks * block_rows, num_blocks * block_cols);
 
         std::vector<Triplet> tripletList;
-        tripletList.reserve(num_blocks * mat_vec[i].nonZeros());
+        // TODO this might not work ... need some kind of block diag linOp?
+        assert(mat_vec[i].has_matrix());
+        const Matrix &curr_matrix = mat_vec[i].get_matrix();
+        tripletList.reserve(num_blocks * curr_matrix.nonZeros());
         for (int curr_block = 0; curr_block < num_blocks; curr_block++) {
           int start_i = curr_block * block_rows;
           int start_j = curr_block * block_cols;
-          const Matrix &curr_matrix = mat_vec[i];
           for (int k = 0; k < curr_matrix.outerSize(); ++k) {
             for (Matrix::InnerIterator it(curr_matrix, k); it; ++it) {
               // Data is flattened.
@@ -900,7 +908,8 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
         block_diag.setFromTriplets(tripletList.begin(), tripletList.end());
         block_diag.makeCompressed();
         // Set block diagonal matrix.
-        mul_ten[param_id][var_id][i].swap(block_diag);
+        // TODO copy
+        mul_ten[param_id][var_id][i] = from_matrix(std::make_shared<const Matrix>(block_diag));
       }
     }
   }
@@ -920,8 +929,7 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
 Tensor get_promote_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == PROMOTE);
   int num_entries = vecprod(lin.get_shape());
-  Matrix ones = sparse_ones(num_entries, 1);
-  ones.makeCompressed();
+  AbstractLinOp ones = sparse_ones(num_entries, 1);
   return build_tensor(ones);
 }
 
@@ -938,8 +946,7 @@ Tensor get_promote_mat(const LinOp &lin, int arg_idx) {
 Tensor get_reshape_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == RESHAPE);
   int n = vecprod(lin.get_shape());
-  Matrix coeffs = sparse_eye(n);
-  coeffs.makeCompressed();
+  AbstractLinOp coeffs = sparse_eye(n);
   return build_tensor(coeffs);
 }
 
@@ -968,7 +975,7 @@ Tensor get_div_mat(const LinOp &lin, int arg_idx) {
   Matrix coeffs(n, n);
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
 }
 
 /**
@@ -981,9 +988,7 @@ Tensor get_div_mat(const LinOp &lin, int arg_idx) {
 Tensor get_neg_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == NEG);
   int n = vecprod(lin.get_shape());
-  Matrix coeffs = sparse_eye(n);
-  coeffs *= -1.0;
-  coeffs.makeCompressed();
+  AbstractLinOp coeffs = sparse_neg_eye_op(n);
   return build_tensor(coeffs);
 }
 
@@ -1008,7 +1013,7 @@ Tensor get_trace_mat(const LinOp &lin, int arg_idx) {
   Matrix coeffs(1, rows * rows);
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
   coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  return build_tensor(from_matrix(std::make_shared<const Matrix>(coeffs)));
 }
 
 /**
@@ -1023,8 +1028,7 @@ Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == SUM_ENTRIES);
   // assumes all args have the same size
   int size = vecprod(lin.get_args()[0]->get_shape());
-  Matrix coeffs = sparse_ones(1, size);
-  coeffs.makeCompressed();
+  AbstractLinOp coeffs = sparse_ones(1, size);
   return build_tensor(coeffs);
 }
 
@@ -1038,8 +1042,7 @@ Tensor get_sum_entries_mat(const LinOp &lin, int arg_idx) {
 Tensor get_sum_coefficients(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == SUM);
   int n = vecprod(lin.get_shape());
-  Matrix coeffs = sparse_eye(n);
-  coeffs.makeCompressed();
+  AbstractLinOp coeffs = sparse_eye(n);
   return build_tensor(coeffs);
 }
 
@@ -1059,14 +1062,13 @@ Tensor get_variable_coeffs(const LinOp &lin, int arg_idx) {
 
   Tensor ten;
   DictMat &id_to_coeffs = ten[CONSTANT_ID];
-  std::vector<Matrix> &mat_vec = id_to_coeffs[id];
+  std::vector<AbstractLinOp> &mat_vec = id_to_coeffs[id];
 
   // create a giant identity matrix
   int n = vecprod(lin.get_shape());
-  Matrix coeffs = sparse_eye(n);
-  coeffs.makeCompressed();
-  mat_vec.push_back(Matrix());
-  mat_vec[0].swap(coeffs);
+  AbstractLinOp coeffs = sparse_eye(n);
+  // TODO copies
+  mat_vec.push_back(coeffs);
 
   return ten;
 }
@@ -1089,7 +1091,7 @@ Tensor get_param_coeffs(const LinOp &lin, int arg_idx) {
 
   Tensor ten;
   DictMat &dm = ten[id];
-  std::vector<Matrix> &mat_vec = dm[CONSTANT_ID];
+  std::vector<AbstractLinOp> &mat_vec = dm[CONSTANT_ID];
 
   // Make mxn matrices with one zero,
   // stack them in column major order.
@@ -1116,15 +1118,14 @@ Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
   assert(lin.is_constant());
   Tensor ten;
   DictMat &id_to_coeffs = ten[CONSTANT_ID];
-  std::vector<Matrix> &mat_vec = id_to_coeffs[CONSTANT_ID];
+  std::vector<AbstractLinOp> &mat_vec = id_to_coeffs[CONSTANT_ID];
 
   // get coeffs as a column vector
   assert(lin.get_linOp_data() == nullptr);
   // TODO this copies data
   Matrix coeffs = get_constant_data(lin, true);
   coeffs.makeCompressed();
-  mat_vec.push_back(Matrix());
-  mat_vec[0].swap(coeffs);
+  mat_vec.push_back(from_matrix(std::make_shared<const Matrix>(coeffs)));
 
   return ten;
 }

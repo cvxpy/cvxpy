@@ -65,7 +65,7 @@ void process_constraint(const LinOp &lin, ProblemData &problemData,
     const DictMat& var_map = it->second;
     for (auto in_it = var_map.begin(); in_it != var_map.end(); ++in_it) {
       int var_id = in_it->first; // Horiz offset determined by the id
-      const std::vector<Matrix>& blocks = in_it->second;
+      const std::vector<AbstractLinOp>& blocks = in_it->second;
       // Constant term is last column.
       for (unsigned i = 0; i < blocks.size(); ++i) {
         int horiz_offset;
@@ -79,12 +79,15 @@ void process_constraint(const LinOp &lin, ProblemData &problemData,
         #pragma omp critical
         #endif
         {
-          add_matrix_to_vectors(blocks[i], problemData.TensorV[param_id][i],
+          const AbstractLinOp block_op = blocks[i];
+          // TODO make sure asserts called!!!
+          assert(block_op.has_matrix());
+          const Matrix &block = block_op.get_matrix();
+          add_matrix_to_vectors(block, problemData.TensorV[param_id][i],
                                 problemData.TensorI[param_id][i],
                                 problemData.TensorJ[param_id][i], vert_offset,
                                 horiz_offset);
         }
-
       }
     }
   }
@@ -171,6 +174,7 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
     vert_offset += vecprod(constraint->get_shape());
   }
 
+  // std::cout << constraints.size() << " CONSTRAINTS " << std::endl;
   // TODO: to get full parallelism, each thread should use its own ProblemData;
   // the ProblemData objects could be reduced afterwards (specifically
   // the V, I, and J arrays would be merged)

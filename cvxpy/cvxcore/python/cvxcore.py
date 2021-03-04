@@ -206,6 +206,53 @@ class LinOp(object):
 # Register LinOp in _cvxcore:
 _cvxcore.LinOp_swigregister(LinOp)
 
+class AbstractLinOp(object):
+    thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
+    __repr__ = _swig_repr
+
+    def __init__(self, rows, cols, matmul, rmatmul):
+        _cvxcore.AbstractLinOp_swiginit(self, _cvxcore.new_AbstractLinOp(rows, cols, matmul, rmatmul))
+
+    def __add__(self, obj):
+        return _cvxcore.AbstractLinOp___add__(self, obj)
+
+    def __sub__(self, obj):
+        return _cvxcore.AbstractLinOp___sub__(self, obj)
+
+    def __mul__(self, obj):
+        return _cvxcore.AbstractLinOp___mul__(self, obj)
+
+    def transpose(self):
+        return _cvxcore.AbstractLinOp_transpose(self)
+
+    def rows(self):
+        return _cvxcore.AbstractLinOp_rows(self)
+
+    def cols(self):
+        return _cvxcore.AbstractLinOp_cols(self)
+
+    def matmul(self, matrix):
+        return _cvxcore.AbstractLinOp_matmul(self, matrix)
+
+    def rmatmul(self, matrix):
+        return _cvxcore.AbstractLinOp_rmatmul(self, matrix)
+
+    def has_matrix(self):
+        return _cvxcore.AbstractLinOp_has_matrix(self)
+
+    def set_matrix(self, matrix):
+        return _cvxcore.AbstractLinOp_set_matrix(self, matrix)
+
+    def get_matrix(self):
+        return _cvxcore.AbstractLinOp_get_matrix(self)
+    __swig_destroy__ = _cvxcore.delete_AbstractLinOp
+
+# Register AbstractLinOp in _cvxcore:
+_cvxcore.AbstractLinOp_swigregister(AbstractLinOp)
+
+
+def from_matrix(matrix):
+    return _cvxcore.from_matrix(matrix)
 
 def vecprod(vec):
     return _cvxcore.vecprod(vec)
