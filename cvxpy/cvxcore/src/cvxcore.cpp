@@ -136,6 +136,7 @@ int get_total_constraint_length(std::vector<LinOp *> &constraints,
 ProblemData init_data_tensor(std::map<int, int> param_to_size) {
   ProblemData output;
   // Get CONSTANT_ID.
+  // TODO: maybe delete this line ...
   output.init_id(CONSTANT_ID, 1);
   typedef std::map<int, int>::iterator it_type;
   for (it_type it = param_to_size.begin(); it != param_to_size.end(); ++it) {

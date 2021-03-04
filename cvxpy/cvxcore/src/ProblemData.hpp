@@ -34,7 +34,8 @@ public:
 
   // Initialize TensorV/I/J for the given parameter.
   void init_id(int new_param_id, int param_size) {
-    assert(TensorV.count(new_param_id) == 0);
+    // std::cout << "count " << TensorV.count(new_param_id) << std::endl;
+    // assert(TensorV.count(new_param_id) == 0);
     std::vector<std::vector<double> > vecV(param_size);
     std::vector<std::vector<int> > vecI(param_size);
     std::vector<std::vector<int> > vecJ(param_size);

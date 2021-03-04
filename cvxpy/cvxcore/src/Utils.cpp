@@ -163,15 +163,24 @@ AbstractLinOp AbstractLinOp::operator+(const AbstractLinOp &obj) const {
   assert(rows_ == obj.rows());
   assert(cols_ == obj.cols());
 
-  assert(!has_matrix() && !obj.has_matrix());
-  const AbstractLinOp this_op = *this;
-  const MatrixFn result_matmul = [this_op, obj](const Matrix &other) -> Matrix {
-    return this_op.matmul(other) + obj.matmul(other);
-  };
-  const MatrixFn result_rmatmul = [this_op, obj](const Matrix &other) -> Matrix {
-    return this_op.rmatmul(other) + obj.rmatmul(other);
-  };
-  return AbstractLinOp(rows_, cols_, result_matmul, result_rmatmul);
+  if (has_matrix() && obj.has_matrix()) {
+    std::shared_ptr<const Matrix> sum = std::make_shared<const Matrix>(
+        get_matrix() + obj.get_matrix());
+    return from_matrix(sum);
+  } else {
+    // TODO would be weird if one op had a matrix but the other didn't ...
+    // but might be fine
+    // TODO in fact maybe assert this branch never happens ...
+    assert(!has_matrix() && !obj.has_matrix());
+    const AbstractLinOp this_op = *this;
+    const MatrixFn result_matmul = [this_op, obj](const Matrix &other) -> Matrix {
+      return this_op.matmul(other) + obj.matmul(other);
+    };
+    const MatrixFn result_rmatmul = [this_op, obj](const Matrix &other) -> Matrix {
+      return this_op.rmatmul(other) + obj.rmatmul(other);
+    };
+    return AbstractLinOp(rows_, cols_, result_matmul, result_rmatmul);
+  } 
 }
 
 AbstractLinOp AbstractLinOp::operator-(const AbstractLinOp &obj) const {

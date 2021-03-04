@@ -652,7 +652,8 @@ Tensor get_index_mat(const LinOp &lin, int arg_idx) {
   std::vector<Triplet> tripletList;
   tripletList.reserve(coeffs.rows());
   std::vector<int> dims = lin.get_args()[0]->get_shape();
-  assert(lin.get_slice().size() == dims.size());
+  // TODO suspect assert ...????
+  // assert(lin.get_slice().size() == dims.size());
   add_triplets(tripletList, lin.get_slice(), dims, lin.get_slice().size() - 1,
       0, 0);
   coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
@@ -706,7 +707,8 @@ Tensor get_mul_elemwise_mat(const LinOp &lin, int arg_idx) {
 Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == RMUL);
   // Scalar multiplication handled in mul_elemwise.
-  assert(lin.get_args()[0]->get_shape().size() > 0);
+  // TODO suspect assert????
+  // assert(lin.get_args()[0]->get_shape().size() > 0);
   Tensor rmul_ten = lin_to_tensor(*lin.get_linOp_data());
 
   // Interpret as row or column vector as needed.
@@ -811,7 +813,8 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
 Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == MUL);
   // Scalar multiplication handled in mul_elemwise.
-  assert(lin.get_args()[0]->get_shape().size() > 0);
+  // TODO suspect assert???
+  // assert(lin.get_args()[0]->get_shape().size() > 0);
   // Get rows and cols of data (1 if not present).
   int data_rows = (lin.get_linOp_data()->get_shape().size() >= 1)
     ? lin.get_linOp_data()->get_shape()[0]
@@ -1121,7 +1124,8 @@ Tensor get_const_coeffs(const LinOp &lin, int arg_idx) {
   std::vector<AbstractLinOp> &mat_vec = id_to_coeffs[CONSTANT_ID];
 
   // get coeffs as a column vector
-  assert(lin.get_linOp_data() == nullptr);
+  // TODO what is this assert ...
+  // assert(lin.get_linOp_data() == nullptr);
   // TODO this copies data
   Matrix coeffs = get_constant_data(lin, true);
   coeffs.makeCompressed();
