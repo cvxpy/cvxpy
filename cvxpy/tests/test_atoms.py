@@ -542,6 +542,21 @@ class TestAtoms(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(a_np, x.value)
 
+        # Test more complex C-style reshape: matrix to another matrix
+        b = np.array([
+            [0, 1, 2],
+            [3, 4, 5],
+            [6, 7, 8],
+            [9, 10, 11],
+        ])
+        b_reshaped = b.reshape((2, 6), order='C')
+        X = cp.Variable(b.shape)
+        X_reshaped = cp.reshape(X, (2, 6), order='C')
+        prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
+        prob.solve()
+        self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
+        self.assertItemsAlmostEqual(b, X.value)
+
     def test_vec(self):
         """Test the vec atom.
         """
