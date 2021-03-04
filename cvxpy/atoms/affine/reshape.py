@@ -86,7 +86,7 @@ class reshape(AffAtom):
         return [self._shape, self.order]
 
     def graph_implementation(self, arg_objs, shape, data=None):
-        """Convolve two vectors.
+        """Reshape
 
         Parameters
         ----------
@@ -104,11 +104,10 @@ class reshape(AffAtom):
         """
         arg = arg_objs[0]
         if data[1] == 'F':
-            return (lu.reshape(arg_objs[0], shape), [])
+            return (lu.reshape(arg, shape), [])
         else:  # 'C':
-            print(shape)
+            arg = lu.transpose(arg)
             if len(shape) <= 1:
-                arg = lu.transpose(arg_objs[0])
                 return (lu.reshape(arg, shape), [])
             else:
                 result = lu.reshape(arg, (shape[1], shape[0]))
