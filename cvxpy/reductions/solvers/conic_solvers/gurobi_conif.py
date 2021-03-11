@@ -52,7 +52,7 @@ class GUROBI(SCS):
                   8: s.SOLVER_ERROR,
                   # TODO could be anything.
                   # means time expired.
-                  9: s.OPTIMAL_INACCURATE,
+                  9: s.USER_LIMIT,
                   10: s.SOLVER_ERROR,
                   11: s.SOLVER_ERROR,
                   12: s.SOLVER_ERROR,
@@ -246,6 +246,8 @@ class GUROBI(SCS):
                                                  s.SOLVER_ERROR)
         if solution["status"] == s.SOLVER_ERROR and model.SolCount:
             solution["status"] = s.OPTIMAL_INACCURATE
+        if solution["status"] == s.USER_LIMIT and not model.SolCount:
+            solution["status"] = s.INFEASIBLE_INACCURATE
         solution["model"] = model
 
         return solution
