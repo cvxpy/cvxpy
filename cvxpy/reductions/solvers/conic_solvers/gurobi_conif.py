@@ -124,7 +124,7 @@ class GUROBI(SCS):
                 dual_vars = eq_dual
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status)
+            return failure_solution(status, attr)
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
