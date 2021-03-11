@@ -126,8 +126,6 @@ class GUROBI(SCS):
         else:
             return failure_solution(status, attr)
 
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
-
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         """Returns the result of the call to the solver.
 
