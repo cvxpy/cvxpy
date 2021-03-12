@@ -110,7 +110,7 @@ class Leaf(expression.Expression):
                            'symmetric': symmetric, 'diag': diag,
                            'PSD': PSD, 'NSD': NSD,
                            'hermitian': hermitian, 'boolean': bool(boolean),
-                           'integer':  integer, 'sparsity': sparsity}
+                           'integer':  bool(integer), 'sparsity': sparsity}
 
         if boolean:
             self.boolean_idx = boolean if not type(boolean) == bool else list(
@@ -455,6 +455,16 @@ class Leaf(expression.Expression):
            context: dcp or dgp
         """
         return True
+
+    def is_boolean(self):
+        """Is the expression constrained to be boolean?
+        """
+        return self.attributes['boolean']
+
+    def is_integer(self):
+        """Is the expression constrained to be integral?
+        """
+        return self.attributes['integer']
 
     def atoms(self):
         return []

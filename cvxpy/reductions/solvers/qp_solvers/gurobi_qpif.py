@@ -100,6 +100,30 @@ class GUROBI(QpSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
+    def _build_model(self, vars_offsets, offsets_to_vars, id2var, verbose):
+        import gurobipy as grb
+        model = grb.Model()
+        model.setParam("OutputFlag", verbose)
+        model.setParam("QCPDual", True)
+
+        curr_offset = 0
+        num_groups = len(vars_offsets)
+        for gid in range(num_groups):
+            var_id = offsets_to_vars[curr_offset]
+            variable = id2var[var_id]
+            sz = int(variable.size)
+            if variable.is_boolean():
+                mvar = model.addMVar(sz, ub=1.0, lb=0.0, vtype=grb.GRB.BINARY)
+            elif variable.is_integer():
+                mvar = model.addMVar(sz, ub=grb.GRB.INFINITY, lb=-grb.GRB.INFINITY, vtype=grb.GRB.INTEGER)
+            else:
+                mvar = model.addMVar(sz, ub=grb.GRB.INFINITY, lb=-grb.GRB.INFINITY, vtype=grb.GRB.CONTINUOUS)
+            if variable.value is not None:
+                st = variable.value
+                mvar.setAttr("Start", st.flatten('F'))
+            curr_offset += sz
+        return model
+
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
         import gurobipy as grb
         # N.B. Here we assume that the matrices in data are in csc format
@@ -110,103 +134,35 @@ class GUROBI(QpSolver):
         F = data[s.F].tocsr()       # Convert F matrix to csr format
         g = data[s.G]
         n = data['n_var']
+        vars_offsets = data['var_id_to_offset']
+        offsets_to_vars = {v: k for k,v in vars_offsets.items()}
+        id2var = data['id_to_var']
 
-        # Constrain values between bounds
         constrain_gurobi_infty(b)
         constrain_gurobi_infty(g)
 
-        # Create a new model
-        model = grb.Model()
-        # Pass through verbosity
-        model.setParam("OutputFlag", verbose)
-
-        # Add variables
-        vtypes = {}
-        for ind in data[s.BOOL_IDX]:
-            vtypes[ind] = grb.GRB.BINARY
-        for ind in data[s.INT_IDX]:
-            vtypes[ind] = grb.GRB.INTEGER
-        for i in range(n):
-            if i not in vtypes:
-                vtypes[i] = grb.GRB.CONTINUOUS
-        model.addVars(int(n),
-                      ub={i: grb.GRB.INFINITY for i in range(n)},
-                      lb={i: -grb.GRB.INFINITY for i in range(n)},
-                      vtype=vtypes)
-        model.update()
-        x = np.array(model.getVars(), copy=False)
-
-        if A.shape[0] > 0:
-            if hasattr(model, 'addMConstrs'):
-                # We can pass all of A @ x == b at once, use stable API
-                # introduced with Gurobi v9
-                model.addMConstrs(A, None, grb.GRB.EQUAL, b)
-            elif hasattr(model, '_v811_addMConstrs'):
-                # We can pass all of A @ x == b at once, API only for Gurobi
-                # v811
-                A.eliminate_zeros()  # Work around bug in gurobipy v811
-                sense = np.repeat(grb.GRB.EQUAL, A.shape[0])
-                model._v811_addMConstrs(A, sense, b)
-            else:
-                # Add equality constraints: iterate over the rows of A
-                # adding each row into the model
-                for i in range(A.shape[0]):
-                    start = A.indptr[i]
-                    end = A.indptr[i+1]
-                    variables = x[A.indices[start:end]]
-                    coeff = A.data[start:end]
-                    expr = grb.LinExpr(coeff, variables)
-                    model.addConstr(expr, grb.GRB.EQUAL, b[i])
-        model.update()
-
-        if F.shape[0] > 0:
-            if hasattr(model, 'addMConstrs'):
-                # We can pass all of F @ x <= g at once, use stable API
-                # introduced with Gurobi v9
-                model.addMConstrs(F, None, grb.GRB.LESS_EQUAL, g)
-            elif hasattr(model, '_v811_addMConstrs'):
-                # We can pass all of F @ x <= g at once, API only for Gurobi
-                # v811.
-                F.eliminate_zeros()  # Work around bug in gurobipy v811
-                sense = np.repeat(grb.GRB.LESS_EQUAL, F.shape[0])
-                model._v811_addMConstrs(F, sense, g)
-            else:
-                # Add inequality constraints: iterate over the rows of F
-                # adding each row into the model
-                for i in range(F.shape[0]):
-                    start = F.indptr[i]
-                    end = F.indptr[i+1]
-                    variables = x[F.indices[start:end]]
-                    coeff = F.data[start:end]
-                    expr = grb.LinExpr(coeff, variables)
-                    model.addConstr(expr, grb.GRB.LESS_EQUAL, g[i])
-        model.update()
-
-        # Define objective
-        if hasattr(model, 'setMObjective'):
-            # Use stable API starting in Gurobi v9
-            P = P.tocoo()
-            model.setMObjective(0.5 * P, q, 0.0)
-        elif hasattr(model, '_v811_setMObjective'):
-            # Use temporary API for Gurobi v811 only
-            P = P.tocoo()
-            model._v811_setMObjective(0.5 * P, q)
+        if 'model' not in solver_cache:
+            model = self._build_model(vars_offsets, offsets_to_vars, id2var, verbose)
+            solver_cache['model'] = model
+            if A.shape[0] > 0:
+                mconstrs_eq = model.addMConstr(A, None, grb.GRB.EQUAL, b)
+                solver_cache['mconstrs_eq'] = mconstrs_eq
+            if F.shape[0] > 0:
+                mconstrs_le = model.addMConstr(F, None, grb.GRB.LESS_EQUAL, g)
+                solver_cache['mconstrs_le'] = mconstrs_le
         else:
-            obj = grb.QuadExpr()
-            if P.count_nonzero():  # If there are any nonzero elms in P
-                P = P.tocoo()
-                obj.addTerms(0.5*P.data, vars=list(x[P.row]),
-                             vars2=list(x[P.col]))
-            obj.add(grb.LinExpr(q, x))  # Add linear part
-            model.setObjective(obj)  # Set objective
-        model.update()
+            model = solver_cache['model']
+            if A.shape[0] > 0:
+                mconstrs_eq = solver_cache['mconstrs_eq']
+                mconstrs_eq.setAttr(grb.GRB.Attr.RHS, b)
+            if F.shape[0] > 0:
+                mconstrs_le = solver_cache['mconstrs_le']
+                mconstrs_le.setAttr(grb.GRB.Attr.RHS, g)
+        mobj = model.setMObjective(0.5 * P, q, 0.0)
 
-        # Set parameters
-        model.setParam("QCPDual", True)
         for key, value in solver_opts.items():
             model.setParam(key, value)
 
-        # Update model
         model.update()
 
         # Solve problem

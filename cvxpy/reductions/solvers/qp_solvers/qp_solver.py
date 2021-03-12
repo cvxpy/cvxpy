@@ -70,6 +70,8 @@ class QpSolver(Solver):
 
         """
         problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+        data['var_id_to_offset'] = problem.var_id_to_col
+        data['id_to_var'] = problem.id_to_var
 
         P, q, d, AF, bg = problem.apply_parameters()
         inv_data[s.OFFSET] = d
