@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reductions &#8212; CVXPY 1.1.10 documentation</title>
+    <title>Reductions &#8212; CVXPY 1.1.11 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -320,11 +320,14 @@ in the sequence taking as input the supplied problem.</p>
 
 <dl class="py method">
 <dt id="cvxpy.reductions.chain.Chain.apply">
-<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies the chain to a problem and returns an equivalent problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code>) – The problem to which the chain will be applied.</p>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>problem</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code>) – The problem to which the chain will be applied.</p></li>
+<li><p><strong>verbose</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – Whehter to print verbose output.</p></li>
+</ul>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">

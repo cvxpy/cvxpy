@@ -89,7 +89,7 @@ CVXPY is a community project, built from the contributions of many
 researchers and engineers.
 
 CVXPY is developed and maintained by
-`Steven Diamond <http://web.stanford.edu/~stevend2/>`_,
+`Steven Diamond <https://stevendiamond.me/>`_,
 `Akshay Agrawal <https://akshayagrawal.com>`_, and
 `Riley Murray <https://rileyjmurray.wordpress.com/>`_, with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the

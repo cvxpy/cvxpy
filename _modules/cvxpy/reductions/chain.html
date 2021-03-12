@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.chain &#8212; CVXPY 1.1.10 documentation</title>
+    <title>cvxpy.reductions.chain &#8212; CVXPY 1.1.11 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -33,7 +33,8 @@
           <div class="body" role="main">
             
   <h1>Source code for cvxpy.reductions.chain</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">cvxpy.reductions.reduction</span> <span class="kn">import</span> <span class="n">Reduction</span>
+<span></span><span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">s</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.reduction</span> <span class="kn">import</span> <span class="n">Reduction</span>
 
 
 <div class="viewcode-block" id="Chain"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.chain.Chain">[docs]</a><span class="k">class</span> <span class="nc">Chain</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>
@@ -85,13 +86,15 @@
             <span class="n">problem</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
-<div class="viewcode-block" id="Chain.apply"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.chain.Chain.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+<div class="viewcode-block" id="Chain.apply"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.chain.Chain.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Applies the chain to a problem and returns an equivalent problem.</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
 <span class="sd">        problem : Problem</span>
 <span class="sd">            The problem to which the chain will be applied.</span>
+<span class="sd">        verbose : bool, optional</span>
+<span class="sd">            Whehter to print verbose output.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -103,6 +106,8 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">inverse_data</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reductions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+                <span class="n">s</span><span class="o">.</span><span class="n">LOGGER</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Applying reduction </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">r</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
             <span class="n">problem</span><span class="p">,</span> <span class="n">inv</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
             <span class="n">inverse_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inv</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">problem</span><span class="p">,</span> <span class="n">inverse_data</span></div>

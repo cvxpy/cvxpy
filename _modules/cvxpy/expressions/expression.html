@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.expressions.expression &#8212; CVXPY 1.1.10 documentation</title>
+    <title>cvxpy.expressions.expression &#8212; CVXPY 1.1.11 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -83,12 +83,15 @@
     <span class="k">return</span> <span class="n">cast_op</span>
 
 
+<span class="n">__STAR_MATMUL_COUNT__</span> <span class="o">=</span> <span class="mi">1</span>
+
 <span class="n">__STAR_MATMUL_WARNING__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2">This use of ``*`` has resulted in matrix multiplication.</span>
 <span class="s2">Using ``*`` for matrix multiplication has been deprecated since CVXPY 1.1.</span>
 <span class="s2">    Use ``*`` for matrix-scalar and vector-scalar multiplication.</span>
 <span class="s2">    Use ``@`` for matrix-matrix and matrix-vector multiplication.</span>
 <span class="s2">    Use ``multiply`` for elementwise multiplication.</span>
+<span class="s2">This code path has been hit </span><span class="si">%s</span><span class="s2"> times so far.</span>
 <span class="s2">&quot;&quot;&quot;</span>
 
 
@@ -581,9 +584,13 @@
                     <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Forming a nonconvex expression.&quot;</span><span class="p">)</span>
             <span class="c1"># Because we want to discourage using ``*`` to call matmul, we</span>
             <span class="c1"># raise a warning to the user.</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">resetwarnings</span><span class="p">()</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">__STAR_MATMUL_WARNING__</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">resetwarnings</span><span class="p">()</span>
+            <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                <span class="k">global</span> <span class="n">__STAR_MATMUL_COUNT__</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;always&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">__STAR_MATMUL_WARNING__</span> <span class="o">%</span> <span class="n">__STAR_MATMUL_COUNT__</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+                <span class="n">__STAR_MATMUL_COUNT__</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">matmul_expr</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Expression.__matmul__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__matmul__">[docs]</a>    <span class="nd">@_cast_other</span>

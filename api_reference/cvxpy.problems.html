@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Problems &#8212; CVXPY 1.1.10 documentation</title>
+    <title>Problems &#8212; CVXPY 1.1.11 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -467,7 +467,7 @@ problems (that are also DPP-compliant).</p>
 
 <dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.get_problem_data">
-<code class="sig-name descname">get_problem_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span></em>, <em class="sig-param"><span class="n">gp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">enforce_dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.get_problem_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.get_problem_data" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_problem_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span></em>, <em class="sig-param"><span class="n">gp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">enforce_dpp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.get_problem_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.get_problem_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the problem data used in the call to the solver.</p>
 <p>When a problem is solved, CVXPY creates a chain of reductions enclosed
 in a <a class="reference internal" href="cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code></a>,
@@ -529,6 +529,7 @@ solver. For details, consult the solver interfaces in
 instead of a disciplined convex program.</p></li>
 <li><p><strong>enforce_dpp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – When True, a DPPError will be thrown when trying to parse a non-DPP
 problem (instead of just a warning). Defaults to False.</p></li>
+<li><p><strong>verbose</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – If True, print verbose output related to problem compilation.</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -682,14 +683,15 @@ take as its first argument the problem instance to solve.</p></li>
 <dl class="py method">
 <dt id="cvxpy.problems.problem.Problem.solve">
 <code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.solve" title="Permalink to this definition">¶</a></dt>
-<dd><p>Solves the problem using the specified method.</p>
+<dd><p>Compiles and solves the problem using the specified method.</p>
 <p>Populates the <code class="code docutils literal notranslate"><span class="pre">status</span></code> and <code class="code docutils literal notranslate"><span class="pre">value</span></code> attributes on the
 problem object as a side-effect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>solver</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>optional</em>) – The solver to use. For example, ‘ECOS’, ‘SCS’, or ‘OSQP’.</p></li>
-<li><p><strong>verbose</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – Overrides the default of hiding solver output.</p></li>
+<li><p><strong>verbose</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – Overrides the default of hiding solver output, and prints
+logging information describing CVXPY’s compilation process.</p></li>
 <li><p><strong>gp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – If True, parses the problem as a disciplined geometric program
 instead of a disciplined convex program.</p></li>
 <li><p><strong>qcp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – If True, parses the problem as a disciplined quasiconvex program
