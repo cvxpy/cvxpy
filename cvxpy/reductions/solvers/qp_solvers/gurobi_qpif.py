@@ -75,6 +75,8 @@ class GUROBI(QpSolver):
 
         # Map GUROBI statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(model.Status, s.SOLVER_ERROR)
+        if status == s.USER_LIMIT and not model.SolCount:
+            status = s.INFEASIBLE_INACCURATE
 
         if (status in s.SOLUTION_PRESENT) or (model.solCount > 0):
             opt_val = model.objVal + inverse_data[s.OFFSET]
