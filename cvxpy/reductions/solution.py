@@ -18,7 +18,7 @@ import numpy as np
 import cvxpy.settings as s
 
 
-def failure_solution(status):
+def failure_solution(status, attr=None):
     """Factory function for infeasible or unbounded solutions.
 
     Parameters
@@ -37,7 +37,9 @@ def failure_solution(status):
         opt_val = -np.inf
     else:
         opt_val = None
-    return Solution(status, opt_val, {}, {}, {})
+    if attr is None:
+        attr = {}
+    return Solution(status, opt_val, {}, {}, attr)
 
 
 class Solution(object):
