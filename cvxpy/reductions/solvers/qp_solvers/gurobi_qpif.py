@@ -129,11 +129,22 @@ class GUROBI(QpSolver):
         for i in range(n):
             if i not in vtypes:
                 vtypes[i] = grb.GRB.CONTINUOUS
-        model.addVars(int(n),
-                      ub={i: grb.GRB.INFINITY for i in range(n)},
-                      lb={i: -grb.GRB.INFINITY for i in range(n)},
-                      vtype=vtypes)
+        x_grb = model.addVars(int(n),
+                              ub={i: grb.GRB.INFINITY for i in range(n)},
+                              lb={i: -grb.GRB.INFINITY for i in range(n)},
+                              vtype=vtypes)
+
+        if warm_start and solver_cache is not None \
+                and self.name() in solver_cache:
+            old_model = solver_cache[self.name()]
+            old_status = self.STATUS_MAP.get(old_model.Status,
+                                             s.SOLVER_ERROR)
+            if (old_status in s.SOLUTION_PRESENT) or (old_model.solCount > 0):
+                old_x_grb = old_model.getVars()
+                for idx in range(len(x_grb)):
+                    x_grb[idx].start = old_x_grb[idx].X
         model.update()
+
         x = np.array(model.getVars(), copy=False)
 
         if A.shape[0] > 0:
@@ -218,5 +229,8 @@ class GUROBI(QpSolver):
             results_dict["status"] = s.SOLVER_ERROR
 
         results_dict["model"] = model
+
+        if solver_cache is not None:
+            solver_cache[self.name()] = model
 
         return results_dict
