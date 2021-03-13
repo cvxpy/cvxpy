@@ -280,8 +280,8 @@ class TestConstraints(BaseTest):
         """Tests the NonPos constraint for correctness.
         """
         n = 3
-        x = cp.Variable(3)
-        c = np.arange(3)
+        x = cp.Variable(n)
+        c = np.arange(n)
         prob = cp.Problem(cp.Maximize(cp.sum(x)),
                           [cp.NonPos(x - c)])
         # Solve through cone program path.
@@ -296,8 +296,8 @@ class TestConstraints(BaseTest):
         """Test dual variables work for NonPos.
         """
         n = 3
-        x = cp.Variable(3)
-        c = np.arange(3)
+        x = cp.Variable(n)
+        c = np.arange(n)
         prob = cp.Problem(cp.Maximize(cp.sum(x)),
                           [(x - c) <= 0])
         prob.solve()
