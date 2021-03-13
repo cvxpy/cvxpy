@@ -16,7 +16,8 @@ limitations under the License.
 
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.constraints import (Equality, ExpCone, Inequality,
-                               SOC, Zero, NonNeg, PSD, PowCone3D)
+                               SOC, Zero, NonNeg, NonPos,
+                               PSD, PowCone3D)
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
@@ -25,7 +26,8 @@ from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
 from cvxpy.reductions.utilities import (are_args_affine,
                                         group_constraints,
                                         lower_equality,
-                                        lower_ineq_to_nonneg)
+                                        lower_ineq_to_nonneg,
+                                        nonpos2nonneg)
 import cvxpy.settings as s
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
@@ -317,6 +319,8 @@ class ConeMatrixStuffing(MatrixStuffing):
                 con = lower_equality(con)
             elif isinstance(con, Inequality):
                 con = lower_ineq_to_nonneg(con)
+            elif isinstance(con, NonPos):
+                con = nonpos2nonneg(con)
             elif isinstance(con, SOC) and con.axis == 1:
                 con = SOC(con.args[0], con.args[1].T, axis=0,
                           constr_id=con.constr_id)

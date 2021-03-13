@@ -19,6 +19,7 @@ from cvxpy.atoms.affine.reshape import reshape as reshape_atom
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.tests.base_test import BaseTest
+import cvxpy as cp
 import numpy as np
 
 
@@ -274,3 +275,39 @@ class TestConstraints(BaseTest):
         with self.assertRaises(Exception) as cm:
             (self.z <= self.x).__bool__()
         self.assertEqual(str(cm.exception), error_str)
+
+    def test_nonpos(self):
+        """Tests the NonPos constraint for correctness.
+        """
+        n = 3
+        x = cp.Variable(n)
+        c = np.arange(n)
+        prob = cp.Problem(cp.Maximize(cp.sum(x)),
+                          [cp.NonPos(x - c)])
+        # Solve through cone program path.
+        prob.solve(solver=cp.ECOS)
+        self.assertItemsAlmostEqual(x.value, c)
+
+        # Solve through QP path.
+        prob.solve(solver=cp.OSQP)
+        self.assertItemsAlmostEqual(x.value, c)
+
+    def test_nonpos_dual(self):
+        """Test dual variables work for NonPos.
+        """
+        n = 3
+        x = cp.Variable(n)
+        c = np.arange(n)
+        prob = cp.Problem(cp.Maximize(cp.sum(x)),
+                          [(x - c) <= 0])
+        prob.solve()
+        dual = prob.constraints[0].dual_value
+        prob = cp.Problem(cp.Maximize(cp.sum(x)),
+                          [cp.NonPos(x - c)])
+        # Solve through cone program path.
+        prob.solve(solver=cp.ECOS)
+        self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)
+
+        # Solve through QP path.
+        prob.solve(solver=cp.OSQP)
+        self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)
