@@ -186,14 +186,14 @@ class Problem(u.Canonical):
         """
         Expose all parameters as a dictionary
         """
-        return {parameters.name(): parameters for parameters in self.problem.parameters()}
+        return {parameters.name(): parameters for parameters in self.parameters()}
 
     @property
     def var_dict(self):
         """
         Expose all variables as a dictionary
         """
-        return {variable.name(): variable for variable in self.problem.variables()}
+        return {variable.name(): variable for variable in self.variables()}
 
 
     @perf.compute_once
