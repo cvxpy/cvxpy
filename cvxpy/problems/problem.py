@@ -356,6 +356,14 @@ class Problem(u.Canonical):
         """
         return self._solver_stats
 
+    @property
+    def parameters(self):
+        return {parameter.name(): parameter for parameter in self.problem.parameters()}
+
+    @property
+    def variables(self):
+        return {variable.name(): variable for variable in self.problem.variables()}
+    
     def solve(self, *args, **kwargs):
         """Compiles and solves the problem using the specified method.
 
