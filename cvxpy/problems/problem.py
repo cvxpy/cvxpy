@@ -181,6 +181,21 @@ class Problem(u.Canonical):
         """
         return self._constraints[:]
 
+    @property
+    def param_dict(self):
+        """
+        Expose all parameters as a dictionary
+        """
+        return {parameters.name(): parameters for parameters in self.problem.parameters()}
+
+    @property
+    def var_dict(self):
+        """
+        Expose all variables as a dictionary
+        """
+        return {variable.name(): variable for variable in self.problem.variables()}
+
+
     @perf.compute_once
     def is_dcp(self, dpp=False):
         """Does the problem satisfy DCP rules?
