@@ -84,7 +84,11 @@ class TestProblem(BaseTest):
         vars_ = p.variables()
         ref = [self.a, self.x, self.b, self.A]
         self.assertCountEqual(vars_, ref)
-
+    
+    def test_var_dict(self):
+        p = Problem(cp.Minimize(self.a), [self.a <= self.x, self.b <= self.A + 2])
+        assert p.var_dict == {"a": self.a, "x": self.x, "b": self.b, "A": self.A}
+        
     def test_parameters(self):
         """Test the parameters method.
         """
@@ -95,6 +99,13 @@ class TestProblem(BaseTest):
         params = p.parameters()
         ref = [p1, p2, p3]
         self.assertCountEqual(params, ref)
+    
+    def test_param_dict(self):
+        p1 = Parameter(name="p1")
+        p2 = Parameter(3, nonpos=True, name="p2")
+        p3 = Parameter((4, 4), nonneg=True, name="p3")
+        p = Problem(cp.Minimize(p1), [self.a + p1 <= p2, self.b <= p3 + p3 + 2])
+        assert p.param_dict == {"p1": p1, "p2": p2, "p3": p3}
 
     def test_solving_a_problem_with_unspecified_parameters(self):
         param = cp.Parameter(name="lambda")
