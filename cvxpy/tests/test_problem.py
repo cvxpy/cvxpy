@@ -84,11 +84,11 @@ class TestProblem(BaseTest):
         vars_ = p.variables()
         ref = [self.a, self.x, self.b, self.A]
         self.assertCountEqual(vars_, ref)
-    
+
     def test_var_dict(self):
         p = Problem(cp.Minimize(self.a), [self.a <= self.x, self.b <= self.A + 2])
         assert p.var_dict == {"a": self.a, "x": self.x, "b": self.b, "A": self.A}
-        
+
     def test_parameters(self):
         """Test the parameters method.
         """
@@ -99,7 +99,7 @@ class TestProblem(BaseTest):
         params = p.parameters()
         ref = [p1, p2, p3]
         self.assertCountEqual(params, ref)
-    
+
     def test_param_dict(self):
         p1 = Parameter(name="p1")
         p2 = Parameter(3, nonpos=True, name="p2")
@@ -1763,7 +1763,27 @@ class TestProblem(BaseTest):
     def test_bool_constr(self):
         """Test constraints that evaluate to booleans.
         """
-        pass
+        x = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x), [True])
+        prob.solve()
+        self.assertAlmostEqual(x.value, 0)
+
+        x = cp.Variable(pos=True)
+        prob = cp.Problem(cp.Minimize(x), [True]*10)
+        prob.solve()
+        self.assertAlmostEqual(x.value, 0)
+
+        prob = cp.Problem(cp.Minimize(x), [False])
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+
+        prob = cp.Problem(cp.Minimize(x), [False]*10)
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+
+        prob = cp.Problem(cp.Minimize(x), [True]*10 + [False] + [True]*10)
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
 
     def test_pos(self):
         """Test the pos and neg attributes.
