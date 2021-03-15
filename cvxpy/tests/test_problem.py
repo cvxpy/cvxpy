@@ -1773,6 +1773,14 @@ class TestProblem(BaseTest):
         prob.solve()
         self.assertAlmostEqual(x.value, 0)
 
+        prob = cp.Problem(cp.Minimize(x), [42 <= x] + [True]*10)
+        prob.solve()
+        self.assertAlmostEqual(x.value, 42)
+
+        prob = cp.Problem(cp.Minimize(x), [True] + [42 <= x] + [True] * 10)
+        prob.solve()
+        self.assertAlmostEqual(x.value, 42)
+
         prob = cp.Problem(cp.Minimize(x), [False])
         prob.solve()
         self.assertEqual(prob.status, s.INFEASIBLE)
@@ -1782,6 +1790,15 @@ class TestProblem(BaseTest):
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [True]*10 + [False] + [True]*10)
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+
+        prob = cp.Problem(cp.Minimize(x), [42 <= x] + [True]*10 + [False])
+        prob.solve()
+        self.assertEqual(prob.status, s.INFEASIBLE)
+
+        # only Trues, but infeasible solution since x must be non-negative.
+        prob = cp.Problem(cp.Minimize(x), [True] + [x <= -42] + [True]*10)
         prob.solve()
         self.assertEqual(prob.status, s.INFEASIBLE)
 
