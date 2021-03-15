@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import settings as s
+from cvxpy import settings as s, Constant
 from cvxpy import error
 from cvxpy.expressions import cvxtypes
 from cvxpy.problems.objective import Minimize, Maximize
@@ -126,7 +126,14 @@ class Problem(u.Canonical):
             raise error.DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
-        self._constraints = [c for c in constraints]
+
+        def bool_value_filter(cstr_expr):
+            if not isinstance(cstr_expr, bool):
+                return cstr_expr
+            # replace `True` or `False` values with equivalent Expressions.
+            return Constant(0) <= Constant(1) if cstr_expr else Constant(1) <= Constant(0)
+
+        self._constraints = list(map(bool_value_filter, constraints))
         self._value = None
         self._status = None
         self._solution = None
@@ -194,7 +201,6 @@ class Problem(u.Canonical):
         Expose all variables as a dictionary
         """
         return {variable.name(): variable for variable in self.variables()}
-
 
     @perf.compute_once
     def is_dcp(self, dpp=False):
