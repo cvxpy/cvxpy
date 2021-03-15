@@ -622,7 +622,7 @@ class Problem(u.Canonical):
                         'Finished problem compilation '
                         f'(took {self._compilation_time:.3e} seconds).')
             if safe_to_cache:
-                if verbose:
+                if verbose and self.parameters():
                     s.LOGGER.info(
                         '(Subsequent compilations of this problem, using the '
                         'same arguments, should ' 'take less time.)')
