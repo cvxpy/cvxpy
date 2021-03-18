@@ -74,7 +74,7 @@ setup(
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization '
                 'problems in Python.',
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=["osqp >= 0.4.1",
                       "ecos >= 2",
                       "scs >= 1.1.6",
