@@ -23,6 +23,8 @@ from cvxpy.expressions.expression import Expression
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities import performance_utils as perf
+from typing import List
+
 import abc
 import numpy as np
 
@@ -33,7 +35,7 @@ class Atom(Expression):
     _allow_complex = False
     # args are the expressions passed into the Atom constructor.
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         self.id = lu.get_id()
         # Throws error if args is empty.
         if len(args) == 0:
@@ -47,7 +49,7 @@ class Atom(Expression):
         if len(self._shape) > 2:
             raise ValueError("Atoms must be at most 2D.")
 
-    def name(self):
+    def name(self) -> str:
         """Returns the string representation of the function call.
         """
         if self.get_data() is None:
@@ -57,7 +59,7 @@ class Atom(Expression):
         return "%s(%s)" % (self.__class__.__name__,
                            ", ".join([arg.name() for arg in self.args] + data))
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Raises an error if the arguments are invalid.
         """
         if not self._allow_complex and any(arg.is_complex() for arg in self.args):
@@ -82,87 +84,87 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @perf.compute_once
-    def is_nonneg(self):
+    def is_nonneg(self) -> bool:
         """Is the expression nonnegative?
         """
         return self.sign_from_args()[0]
 
     @perf.compute_once
-    def is_nonpos(self):
+    def is_nonpos(self) -> bool:
         """Is the expression nonpositive?
         """
         return self.sign_from_args()[1]
 
     @perf.compute_once
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the expression imaginary?
         """
         # Default is false.
         return False
 
     @perf.compute_once
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the expression complex valued?
         """
         # Default is false.
         return False
 
     @abc.abstractmethod
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         raise NotImplementedError()
 
-    def is_atom_affine(self):
+    def is_atom_affine(self) -> bool:
         """Is the atom affine?
         """
         return self.is_atom_concave() and self.is_atom_convex()
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return False
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_atom_quasiconvex(self):
+    def is_atom_quasiconvex(self) -> bool:
         """Is the atom quasiconvex?
         """
         return self.is_atom_convex()
 
-    def is_atom_quasiconcave(self):
+    def is_atom_quasiconcave(self) -> bool:
         """Is the atom quasiconcave?
         """
         return self.is_atom_concave()
 
-    def is_atom_log_log_affine(self):
+    def is_atom_log_log_affine(self) -> bool:
         """Is the atom log-log affine?
         """
         return self.is_atom_log_log_concave() and self.is_atom_log_log_convex()
 
     @abc.abstractmethod
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         raise NotImplementedError()
 
     @perf.compute_once
-    def is_convex(self):
+    def is_convex(self) -> bool:
         """Is the expression convex?
         """
         # Applies DCP composition rule.
@@ -179,7 +181,7 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
-    def is_concave(self):
+    def is_concave(self) -> bool:
         """Is the expression concave?
         """
         # Applies DCP composition rule.
@@ -195,7 +197,7 @@ class Atom(Expression):
         else:
             return False
 
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context='dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
         if context.lower() == 'dcp':
@@ -206,7 +208,7 @@ class Atom(Expression):
             raise ValueError('Unsupported context ', context)
 
     @perf.compute_once
-    def is_log_log_convex(self):
+    def is_log_log_convex(self) -> bool:
         """Is the expression log-log convex?
         """
         # Verifies DGP composition rule.
@@ -223,7 +225,7 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
-    def is_log_log_concave(self):
+    def is_log_log_concave(self) -> bool:
         """Is the expression log-log concave?
         """
         # Verifies DGP composition rule.
@@ -240,11 +242,11 @@ class Atom(Expression):
             return False
 
     @perf.compute_once
-    def _non_const_idx(self):
+    def _non_const_idx(self) -> List[int]:
         return [i for i, arg in enumerate(self.args) if not arg.is_constant()]
 
     @perf.compute_once
-    def _is_real(self):
+    def _is_real(self) -> bool:
         # returns true if this atom is a real function:
         #   the atom must have exactly one argument that is not a constant
         #   that argument must be a scalar
@@ -254,7 +256,7 @@ class Atom(Expression):
                 self.args[non_const[0]].is_scalar())
 
     @perf.compute_once
-    def is_quasiconvex(self):
+    def is_quasiconvex(self) -> bool:
         """Is the expression quaisconvex?
         """
         from cvxpy.atoms.max import max as max_atom
@@ -278,7 +280,7 @@ class Atom(Expression):
         return False
 
     @perf.compute_once
-    def is_quasiconcave(self):
+    def is_quasiconcave(self) -> bool:
         """Is the expression quasiconcave?
         """
         from cvxpy.atoms.min import min as min_atom

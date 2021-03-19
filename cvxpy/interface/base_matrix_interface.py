@@ -96,7 +96,7 @@ class BaseMatrixInterface(object):
         raise NotImplementedError()
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
-                  vert_step=1, horiz_step=1):
+                  vert_step: int=1, horiz_step: int=1) -> None:
         """Add the block to a slice of the matrix.
 
         Args:

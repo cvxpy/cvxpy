@@ -19,13 +19,13 @@ import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import scopes
 
 
-def is_param_affine(expr):
+def is_param_affine(expr) -> bool:
     """Returns true if expression is parameters-affine (and variable-free)"""
     with scopes.dpp_scope():
         return not expr.variables() and expr.is_affine()
 
 
-def is_param_free(expr):
+def is_param_free(expr) -> bool:
     """Returns true if expression is not parametrized."""
     return not expr.parameters()
 
@@ -65,7 +65,7 @@ class Parameter(Leaf):
     def name(self):
         return self._name
 
-    def is_constant(self):
+    def is_constant(self) -> bool:
         if scopes.dpp_scope_active():
             return False
         return True

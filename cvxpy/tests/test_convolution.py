@@ -25,7 +25,7 @@ import numpy as np
 class TestConvolution(BaseTest):
     """ Unit tests for convolution. """
 
-    def test_1D_conv(self):
+    def test_1D_conv(self) -> None:
         """Test 1D convolution.
         """
         n = 3
@@ -54,7 +54,7 @@ class TestConvolution(BaseTest):
         # result = prob.solve(solver=SCS, expr_tree=True, verbose=True)
         # self.assertAlmostEqual(result, 0, places=1)
 
-    def prob_mat_vs_mul_funcs(self, prob):
+    def prob_mat_vs_mul_funcs(self, prob) -> None:
         data, dims = prob.get_problem_data(solver=cvx.SCS)
         A = data["A"]
         objective, constr_map, dims, solver = prob.canonicalize(cvx.SCS)
@@ -97,7 +97,7 @@ class TestConvolution(BaseTest):
 
         return matrix
 
-    def test_conv_prob(self):
+    def test_conv_prob(self) -> None:
         """Test a problem with convolution.
         """
         import numpy as np

@@ -22,6 +22,8 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.constants import Constant
 from cvxpy.utilities import performance_utils as perf
+from typing import Any, List
+
 import scipy.sparse as sp
 
 
@@ -35,52 +37,52 @@ class AffAtom(Atom):
         """
         return u.sign.sum_signs([arg for arg in self.args])
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the expression imaginary?
         """
         # Default is most generic argument.
         return all(arg.is_imag() for arg in self.args)
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the expression complex valued?
         """
         # Default is most generic argument.
         return any(arg.is_complex() for arg in self.args)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         # Defaults to increasing.
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         # Defaults to increasing.
         return False
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         return all(arg.is_quadratic() for arg in self.args)
 
-    def is_qpwa(self):
+    def is_qpwa(self) -> bool:
         return all(arg.is_qpwa() for arg in self.args)
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         return all(arg.is_pwl() for arg in self.args)
 
     # TODO is this right?
     @perf.compute_once
-    def is_psd(self):
+    def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
         """
         for idx, arg in enumerate(self.args):
@@ -90,7 +92,7 @@ class AffAtom(Atom):
         return True
 
     @perf.compute_once
-    def is_nsd(self):
+    def is_nsd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
         """
         for idx, arg in enumerate(self.args):
@@ -99,7 +101,7 @@ class AffAtom(Atom):
                 return False
         return True
 
-    def _grad(self, values):
+    def _grad(self, values) -> List[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

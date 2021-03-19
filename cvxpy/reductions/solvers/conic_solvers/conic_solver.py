@@ -32,7 +32,7 @@ import scipy.sparse as sp
 
 class LinearOperator(object):
     """A wrapper for linear operators."""
-    def __init__(self, linear_op, shape):
+    def __init__(self, linear_op, shape) -> None:
         if sp.issparse(linear_op):
             self._matmul = lambda X: linear_op @ X
         else:
@@ -50,7 +50,7 @@ def as_linear_operator(linear_op):
         return LinearOperator(linear_op, linear_op.shape)
 
 
-def as_block_diag_linear_operator(matrices):
+def as_block_diag_linear_operator(matrices) -> LinearOperator:
     """Block diag of SciPy sparse matrices or linear operators."""
     linear_operators = [as_linear_operator(op) for op in matrices]
     nrows = [op.shape[0] for op in linear_operators]

@@ -21,7 +21,7 @@ from cvxpy.tests.base_test import BaseTest
 
 class SolverTestHelper(object):
 
-    def __init__(self, obj_pair, var_pairs, con_pairs):
+    def __init__(self, obj_pair, var_pairs, con_pairs) -> None:
         self.objective = obj_pair[0]
         self.constraints = [c for c, _ in con_pairs]
         self.prob = cp.Problem(self.objective, self.constraints)
@@ -32,10 +32,10 @@ class SolverTestHelper(object):
         self.expect_prim_vars = [pv for _, pv in var_pairs]
         self.tester = BaseTest()
 
-    def solve(self, solver, **kwargs):
+    def solve(self, solver, **kwargs) -> None:
         self.prob.solve(solver=solver, **kwargs)
 
-    def check_primal_feasibility(self, places):
+    def check_primal_feasibility(self, places) -> None:
         all_cons = [c for c in self.constraints]  # shallow copy
         for x in self.prob.variables():
             attrs = x.attributes
@@ -64,7 +64,7 @@ class SolverTestHelper(object):
                 viol = np.linalg.norm(viol, ord=2)
             self.tester.assertAlmostEqual(viol, 0, places)
 
-    def check_dual_domains(self, places):
+    def check_dual_domains(self, places) -> None:
         # A full "dual feasibility" check would involve checking a stationary Lagrangian.
         # No such test is planned here.
         #
@@ -102,7 +102,7 @@ class SolverTestHelper(object):
             else:
                 raise ValueError('Unknown constraint type %s.' % type(con))
 
-    def check_complementarity(self, places):
+    def check_complementarity(self, places) -> None:
         # TODO: once dual variables are stored for attributes
         #   (e.g. X = Variable(shape=(n,n), PSD=True)), check
         #   complementarity against the dual variable of the
@@ -130,20 +130,20 @@ class SolverTestHelper(object):
                 raise ValueError('Unknown constraint type %s.' % type(con))
             self.tester.assertAlmostEqual(comp, 0, places)
 
-    def verify_objective(self, places):
+    def verify_objective(self, places) -> None:
         actual = self.prob.value
         expect = self.expect_val
         if expect is not None:
             self.tester.assertAlmostEqual(actual, expect, places)
 
-    def verify_primal_values(self, places):
+    def verify_primal_values(self, places) -> None:
         for idx in range(len(self.variables)):
             actual = self.variables[idx].value
             expect = self.expect_prim_vars[idx]
             if expect is not None:
                 self.tester.assertItemsAlmostEqual(actual, expect, places)
 
-    def verify_dual_values(self, places):
+    def verify_dual_values(self, places) -> None:
         for idx in range(len(self.constraints)):
             actual = self.constraints[idx].dual_value
             expect = self.expect_dual_vars[idx]
@@ -157,7 +157,7 @@ class SolverTestHelper(object):
                     self.tester.assertItemsAlmostEqual(actual, expect, places)
 
 
-def lp_0():
+def lp_0() -> SolverTestHelper:
     x = cp.Variable(shape=(2,))
     con_pairs = [(x == 0, None)]
     obj_pair = (cp.Minimize(cp.norm(x, 1) + 1.0), 1)
@@ -166,7 +166,7 @@ def lp_0():
     return sth
 
 
-def lp_1():
+def lp_1() -> SolverTestHelper:
     # Example from
     # http://cvxopt.org/userguide/coneprog.html?highlight=solvers.lp#cvxopt.solvers.lp
     x = cp.Variable(shape=(2,), name='x')
@@ -185,7 +185,7 @@ def lp_1():
     return sth
 
 
-def lp_2():
+def lp_2() -> SolverTestHelper:
     x = cp.Variable(shape=(2,), name='x')
     objective = cp.Minimize(x[0] + 0.5 * x[1])
     constraints = [x[0] >= -100, x[0] <= -10, x[1] == 1]
@@ -198,7 +198,7 @@ def lp_2():
     return sth
 
 
-def lp_3():
+def lp_3() -> SolverTestHelper:
     # an unbounded problem
     x = cp.Variable(5)
     objective = (cp.Minimize(cp.sum(x)), -np.inf)
@@ -208,7 +208,7 @@ def lp_3():
     return sth
 
 
-def lp_4():
+def lp_4() -> SolverTestHelper:
     # an infeasible problem
     x = cp.Variable(5)
     objective = (cp.Minimize(cp.sum(x)), np.inf)
@@ -219,7 +219,7 @@ def lp_4():
     return sth
 
 
-def lp_5():
+def lp_5() -> SolverTestHelper:
     # a problem with redundant equality constraints.
     #
     # 10 variables, 6 equality constraints A @ x == b (two redundant)
@@ -243,7 +243,7 @@ def lp_5():
     return sth
 
 
-def socp_0():
+def socp_0() -> SolverTestHelper:
     x = cp.Variable(shape=(2,))
     obj_pair = (cp.Minimize(cp.norm(x, 2) + 1), 1)
     con_pairs = [(x == 0, None)]
@@ -252,7 +252,7 @@ def socp_0():
     return sth
 
 
-def socp_1():
+def socp_1() -> SolverTestHelper:
     """
     min 3 * x[0] + 2 * x[1] + x[2]
     s.t. norm(x,2) <= y
@@ -282,7 +282,7 @@ def socp_1():
     return sth
 
 
-def socp_2():
+def socp_2() -> SolverTestHelper:
     """
     An (unnecessarily) SOCP-based reformulation of LP_1.
     """
@@ -303,7 +303,7 @@ def socp_2():
     return sth
 
 
-def socp_3(axis):
+def socp_3(axis) -> SolverTestHelper:
     x = cp.Variable(shape=(2,))
     c = np.array([-1, 2])
     root2 = np.sqrt(2)
@@ -337,7 +337,7 @@ def socp_3(axis):
     return sth
 
 
-def sdp_1(objective_sense):
+def sdp_1(objective_sense) -> SolverTestHelper:
     """
     Solve "Example 8.3" from Convex Optimization by Boyd & Vandenberghe.
 
@@ -366,7 +366,7 @@ def sdp_1(objective_sense):
     return sth
 
 
-def sdp_2():
+def sdp_2() -> SolverTestHelper:
     """
     Example SDO2 from MOSEK 9.2 documentation.
     """
@@ -402,7 +402,7 @@ def sdp_2():
     return sth
 
 
-def expcone_1():
+def expcone_1() -> SolverTestHelper:
     """
     min   3 * x[0] + 2 * x[1] + x[2]
     s.t.  0.1 <= x[0] + x[1] + x[2] <= 1
@@ -428,7 +428,7 @@ def expcone_1():
     return sth
 
 
-def expcone_socp_1():
+def expcone_socp_1() -> SolverTestHelper:
     """
     A random risk-parity portfolio optimization problem.
     """
@@ -461,7 +461,7 @@ def expcone_socp_1():
     return sth
 
 
-def pcp_1():
+def pcp_1() -> SolverTestHelper:
     """
     Use a 3D power cone formulation for
 
@@ -500,7 +500,7 @@ def pcp_1():
     return sth
 
 
-def pcp_2():
+def pcp_2() -> SolverTestHelper:
     """
     Reformulate
 
@@ -536,7 +536,7 @@ def pcp_2():
     return sth
 
 
-def mi_lp_0():
+def mi_lp_0() -> SolverTestHelper:
     x = cp.Variable(shape=(2,))
     bool_var = cp.Variable(boolean=True)
     con_pairs = [(x == bool_var, None),
@@ -548,7 +548,7 @@ def mi_lp_0():
     return sth
 
 
-def mi_lp_1():
+def mi_lp_1() -> SolverTestHelper:
     x = cp.Variable(2, name='x')
     boolvar = cp.Variable(boolean=True)
     intvar = cp.Variable(integer=True)
@@ -567,7 +567,7 @@ def mi_lp_1():
     return sth
 
 
-def mi_lp_2():
+def mi_lp_2() -> SolverTestHelper:
     # Instance "knapPI_1_50_1000_1" from "http://www.diku.dk/~pisinger/genhard.c"
     n = 50
     c = 995
@@ -599,7 +599,7 @@ def mi_lp_2():
     return sth
 
 
-def mi_lp_3():
+def mi_lp_3() -> SolverTestHelper:
     # infeasible (but relaxable) test case
     x = cp.Variable(4, boolean=True)
     from cvxpy.expressions.constants import Constant
@@ -619,7 +619,7 @@ def mi_lp_3():
     return sth
 
 
-def mi_socp_1():
+def mi_socp_1() -> SolverTestHelper:
     """
     Formulate the following mixed-integer SOCP with cvxpy
         min 3 * x[0] + 2 * x[1] + x[2] +  y[0] + 2 * y[1]
@@ -643,7 +643,7 @@ def mi_socp_1():
     return sth
 
 
-def mi_socp_2():
+def mi_socp_2() -> SolverTestHelper:
     """
     An (unnecessarily) SOCP-based reformulation of MI_LP_1.
     Doesn't use SOC objects.
@@ -666,7 +666,7 @@ def mi_socp_2():
     return sth
 
 
-def mi_pcp_0():
+def mi_pcp_0() -> SolverTestHelper:
     """
     max  x3 + x4 - x0
     s.t. x0 + x1 + x2 / 2 == 2,
@@ -701,7 +701,7 @@ def mi_pcp_0():
 class StandardTestLPs(object):
 
     @staticmethod
-    def test_lp_0(solver, places=4, duals=True, **kwargs):
+    def test_lp_0(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = lp_0()
         sth.solve(solver, **kwargs)
         sth.verify_primal_values(places)
@@ -710,7 +710,7 @@ class StandardTestLPs(object):
             sth.check_complementarity(places)
 
     @staticmethod
-    def test_lp_1(solver, places=4, duals=True, **kwargs):
+    def test_lp_1(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = lp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -719,7 +719,7 @@ class StandardTestLPs(object):
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_lp_2(solver, places=4, duals=True, **kwargs):
+    def test_lp_2(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = lp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -728,19 +728,19 @@ class StandardTestLPs(object):
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_lp_3(solver, places=4, **kwargs):
+    def test_lp_3(solver, places: int=4, **kwargs) -> None:
         sth = lp_3()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
 
     @staticmethod
-    def test_lp_4(solver, places=4, **kwargs):
+    def test_lp_4(solver, places: int=4, **kwargs) -> None:
         sth = lp_4()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
 
     @staticmethod
-    def test_lp_5(solver, places=4, duals=True,  **kwargs):
+    def test_lp_5(solver, places: int=4, duals: bool=True,  **kwargs) -> None:
         sth = lp_5()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -750,28 +750,28 @@ class StandardTestLPs(object):
             sth.check_dual_domains(places)
 
     @staticmethod
-    def test_mi_lp_0(solver, places=4, **kwargs):
+    def test_mi_lp_0(solver, places: int=4, **kwargs) -> None:
         sth = mi_lp_0()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
 
     @staticmethod
-    def test_mi_lp_1(solver, places=4, **kwargs):
+    def test_mi_lp_1(solver, places: int=4, **kwargs) -> None:
         sth = mi_lp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
 
     @staticmethod
-    def test_mi_lp_2(solver, places=4, **kwargs):
+    def test_mi_lp_2(solver, places: int=4, **kwargs) -> None:
         sth = mi_lp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
 
     @staticmethod
-    def test_mi_lp_3(solver, places=4, **kwargs):
+    def test_mi_lp_3(solver, places: int=4, **kwargs) -> None:
         sth = mi_lp_3()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -781,7 +781,7 @@ class StandardTestLPs(object):
 class StandardTestSOCPs(object):
 
     @staticmethod
-    def test_socp_0(solver, places=4, duals=True, **kwargs):
+    def test_socp_0(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = socp_0()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -790,7 +790,7 @@ class StandardTestSOCPs(object):
             sth.check_complementarity(places)
 
     @staticmethod
-    def test_socp_1(solver, places=4, duals=True, **kwargs):
+    def test_socp_1(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = socp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -800,7 +800,7 @@ class StandardTestSOCPs(object):
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_socp_2(solver, places=4, duals=True, **kwargs):
+    def test_socp_2(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = socp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -810,7 +810,7 @@ class StandardTestSOCPs(object):
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_socp_3ax0(solver, places=3, duals=True, **kwargs):
+    def test_socp_3ax0(solver, places: int=3, duals: bool=True, **kwargs) -> None:
         sth = socp_3(axis=0)
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -820,7 +820,7 @@ class StandardTestSOCPs(object):
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_socp_3ax1(solver, places=3, duals=True, **kwargs):
+    def test_socp_3ax1(solver, places: int=3, duals: bool=True, **kwargs) -> None:
         sth = socp_3(axis=1)
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -830,14 +830,14 @@ class StandardTestSOCPs(object):
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_mi_socp_1(solver, places=4, **kwargs):
+    def test_mi_socp_1(solver, places: int=4, **kwargs) -> None:
         sth = mi_socp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
 
     @staticmethod
-    def test_mi_socp_2(solver, places=4, **kwargs):
+    def test_mi_socp_2(solver, places: int=4, **kwargs) -> None:
         sth = mi_socp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -847,7 +847,7 @@ class StandardTestSOCPs(object):
 class StandardTestSDPs(object):
 
     @staticmethod
-    def test_sdp_1min(solver, places=4, duals=True, **kwargs):
+    def test_sdp_1min(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = sdp_1('min')
         sth.solve(solver, **kwargs)
         sth.verify_objective(places=2)  # only 2 digits recorded.
@@ -857,7 +857,7 @@ class StandardTestSDPs(object):
             sth.check_dual_domains(places)
 
     @staticmethod
-    def test_sdp_1max(solver, places=4, duals=True, **kwargs):
+    def test_sdp_1max(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = sdp_1('max')
         sth.solve(solver, **kwargs)
         sth.verify_objective(places=2)  # only 2 digits recorded.
@@ -867,7 +867,7 @@ class StandardTestSDPs(object):
             sth.check_dual_domains(places)
 
     @staticmethod
-    def test_sdp_2(solver, places=3, duals=True, **kwargs):
+    def test_sdp_2(solver, places: int=3, duals: bool=True, **kwargs) -> None:
         # places is set to 3 rather than 4, because analytic solution isn't known.
         sth = sdp_2()
         sth.solve(solver, **kwargs)
@@ -882,7 +882,7 @@ class StandardTestSDPs(object):
 class StandardTestECPs(object):
 
     @staticmethod
-    def test_expcone_1(solver, places=4, duals=True, **kwargs):
+    def test_expcone_1(solver, places: int=4, duals: bool=True, **kwargs) -> None:
         sth = expcone_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -895,7 +895,7 @@ class StandardTestECPs(object):
 class StandardTestMixedCPs(object):
 
     @staticmethod
-    def test_exp_soc_1(solver, places=3, duals=True, **kwargs):
+    def test_exp_soc_1(solver, places: int=3, duals: bool=True, **kwargs) -> None:
         sth = expcone_socp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -908,7 +908,7 @@ class StandardTestMixedCPs(object):
 class StandardTestPCPs(object):
 
     @staticmethod
-    def test_pcp_1(solver, places=3, duals=True, **kwargs):
+    def test_pcp_1(solver, places: int=3, duals: bool=True, **kwargs) -> None:
         sth = pcp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -918,7 +918,7 @@ class StandardTestPCPs(object):
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_pcp_2(solver, places=3, duals=True, **kwargs):
+    def test_pcp_2(solver, places: int=3, duals: bool=True, **kwargs) -> None:
         sth = pcp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -928,7 +928,7 @@ class StandardTestPCPs(object):
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_mi_pcp_0(solver, places=3, **kwargs):
+    def test_mi_pcp_0(solver, places: int=3, **kwargs) -> None:
         sth = mi_pcp_0()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)

@@ -23,10 +23,10 @@ from cvxpy.tests.base_test import BaseTest
 class TestInterfaces(BaseTest):
     """ Unit tests for matrix interfaces. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         pass
 
-    def sign_for_intf(self, interface):
+    def sign_for_intf(self, interface) -> None:
         """Test sign for a given interface.
         """
         mat = interface.const_to_matrix([[1, 2, 3, 4], [3, 4, 5, 6]])
@@ -37,7 +37,7 @@ class TestInterfaces(BaseTest):
         self.assertEqual(intf.sign(mat), (False, False))  # Unknown.
 
     # Test numpy ndarray interface.
-    def test_ndarray(self):
+    def test_ndarray(self) -> None:
         interface = intf.get_matrix_interface(np.ndarray)
         # const_to_matrix
         mat = interface.const_to_matrix([1, 2, 3])
@@ -71,7 +71,7 @@ class TestInterfaces(BaseTest):
         self.assertEqual(interface.shape(np.array([1, 2, 3])), (3,))
 
     # Test numpy matrix interface.
-    def test_numpy_matrix(self):
+    def test_numpy_matrix(self) -> None:
         interface = intf.get_matrix_interface(np.matrix)
         # const_to_matrix
         mat = interface.const_to_matrix([1, 2, 3])
@@ -95,7 +95,7 @@ class TestInterfaces(BaseTest):
         # Sign
         self.sign_for_intf(interface)
 
-    def test_scipy_sparse(self):
+    def test_scipy_sparse(self) -> None:
         """Test cvxopt sparse interface.
         """
         interface = intf.get_matrix_interface(sp.csc_matrix)
@@ -143,7 +143,7 @@ class TestInterfaces(BaseTest):
         self.assertEqual(mat[0, 1], 1j)
         self.assertEqual(mat[1, 0], -1j)
 
-    def test_conversion_between_intf(self):
+    def test_conversion_between_intf(self) -> None:
         """Test conversion between every pair of interfaces.
         """
         interfaces = [intf.get_matrix_interface(np.ndarray),

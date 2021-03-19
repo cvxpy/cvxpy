@@ -24,7 +24,7 @@ def replace_params_with_consts(expr):
 class EvalParams(Reduction):
     """Replaces symbolic parameters with their constant values."""
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         return True
 
     def apply(self, problem):

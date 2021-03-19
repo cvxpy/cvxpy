@@ -23,7 +23,7 @@ import numpy as np
 class TestNonlinearAtoms(BaseTest):
     """ Unit tests for the nonlinear atoms module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.x = cvx.Variable(2, name='x')
         self.y = cvx.Variable(2, name='y')
 
@@ -31,7 +31,7 @@ class TestNonlinearAtoms(BaseTest):
         self.B = cvx.Variable((2, 2), name='B')
         self.C = cvx.Variable((3, 2), name='C')
 
-    def test_log_problem(self):
+    def test_log_problem(self) -> None:
         # Log in objective.
         obj = cvx.Maximize(cvx.sum(cvx.log(self.x)))
         constr = [self.x <= [1, math.e]]
@@ -62,13 +62,13 @@ class TestNonlinearAtoms(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 1)
 
-    def test_entr(self):
+    def test_entr(self) -> None:
         """Test the entr atom.
         """
         self.assertEqual(cvx.entr(0).value, 0)
         assert np.isneginf(cvx.entr(-1).value)
 
-    def test_kl_div(self):
+    def test_kl_div(self) -> None:
         """Test a problem with kl_div.
         """
         import numpy as np
@@ -97,7 +97,7 @@ class TestNonlinearAtoms(BaseTest):
         klprob.solve(solver=cvx.ECOS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
-    def test_entr_prob(self):
+    def test_entr_prob(self) -> None:
         """Test a problem with entr.
         """
         for n in [5, 10, 25]:
@@ -110,7 +110,7 @@ class TestNonlinearAtoms(BaseTest):
             p.solve(solver=cvx.SCS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n], places=3)
 
-    def test_exp(self):
+    def test_exp(self) -> None:
         """Test a problem with exp.
         """
         for n in [5, 10, 25]:
@@ -123,7 +123,7 @@ class TestNonlinearAtoms(BaseTest):
             p.solve(solver=cvx.ECOS, verbose=True)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
-    def test_log(self):
+    def test_log(self) -> None:
         """Test a problem with log.
         """
         for n in [5, 10, 25]:

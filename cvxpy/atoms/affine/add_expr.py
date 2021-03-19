@@ -27,7 +27,7 @@ class AddExpression(AffAtom):
     """The sum of any number of expressions.
     """
 
-    def __init__(self, arg_groups):
+    def __init__(self, arg_groups) -> None:
         # For efficiency group args as sums.
         self._arg_groups = arg_groups
         super(AddExpression, self).__init__(*arg_groups)
@@ -57,23 +57,23 @@ class AddExpression(AffAtom):
     def numeric(self, values):
         return reduce(op.add, values)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         symm_args = all(arg.is_symmetric() for arg in self.args)
         return self.shape[0] == self.shape[1] and symm_args
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the expression Hermitian?
         """
         herm_args = all(arg.is_hermitian() for arg in self.args)

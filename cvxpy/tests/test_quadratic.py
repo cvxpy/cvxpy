@@ -26,11 +26,11 @@ import warnings
 class TestExpressions(BaseTest):
     """ Unit tests for the expression/expression module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         pass
 
     # Test elementwise power
-    def test_power(self):
+    def test_power(self) -> None:
         x = Variable(3)
         y = Variable(3)
         self.assertFalse(x.is_constant())
@@ -61,7 +61,7 @@ class TestExpressions(BaseTest):
         self.assertTrue(w.is_quadratic())
         self.assertTrue(w.is_dcp())
 
-    def test_matrix_multiplication(self):
+    def test_matrix_multiplication(self) -> None:
         x = Variable((3, 5))
         y = Variable((3, 5))
         self.assertFalse(x.is_constant())
@@ -76,7 +76,7 @@ class TestExpressions(BaseTest):
         self.assertTrue(s.is_quadratic())
         self.assertFalse(s.is_dcp())
 
-    def test_quad_over_lin(self):
+    def test_quad_over_lin(self) -> None:
         x = Variable((3, 5))
         y = Variable((3, 5))
         z = Variable()
@@ -92,7 +92,7 @@ class TestExpressions(BaseTest):
         self.assertTrue(t.is_quadratic())
         self.assertTrue(t.is_dcp())
 
-    def test_matrix_frac(self):
+    def test_matrix_frac(self) -> None:
         x = Variable(5)
         M = np.eye(5)
         P = M.T @ M
@@ -102,7 +102,7 @@ class TestExpressions(BaseTest):
         self.assertTrue(s.is_quadratic())
         self.assertTrue(s.is_dcp())
 
-    def test_quadratic_form(self):
+    def test_quadratic_form(self) -> None:
         x = Variable(5)
         P = np.eye(5) - 2*np.ones((5, 5))
         q = np.ones((5, 1))
@@ -114,7 +114,7 @@ class TestExpressions(BaseTest):
         self.assertTrue(s.is_quadratic())
         self.assertFalse(s.is_dcp())
 
-    def test_sum_squares(self):
+    def test_sum_squares(self) -> None:
         X = Variable((5, 4))
         P = np.ones((3, 5))
         Q = np.ones((4, 7))
@@ -140,7 +140,7 @@ class TestExpressions(BaseTest):
         self.assertFalse(t.is_quadratic())
         self.assertTrue(t.is_dcp())
 
-    def test_indefinite_quadratic(self):
+    def test_indefinite_quadratic(self) -> None:
         x = Variable()
         y = Variable()
         z = Variable()
@@ -154,7 +154,7 @@ class TestExpressions(BaseTest):
             self.assertTrue(t.is_quadratic())
             self.assertFalse(t.is_dcp())
 
-    def test_non_quadratic(self):
+    def test_non_quadratic(self) -> None:
         x = Variable()
         y = Variable()
         z = Variable()
@@ -165,7 +165,7 @@ class TestExpressions(BaseTest):
         t = cp.max(vstack([x**2, power(y, 2), z]))
         self.assertFalse(t.is_quadratic())
 
-    def test_affine_prod(self):
+    def test_affine_prod(self) -> None:
         x = Variable((3, 5))
         y = Variable((5, 4))
 

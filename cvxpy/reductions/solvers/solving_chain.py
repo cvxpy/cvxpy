@@ -21,6 +21,7 @@ from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
+from typing import Any, List
 
 
 def _is_lp(self):
@@ -45,7 +46,7 @@ def _solve_as_qp(problem, candidates):
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
 
-def _reductions_for_problem_class(problem, candidates, gp=False):
+def _reductions_for_problem_class(problem, candidates, gp: bool=False) -> List[Any]:
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
@@ -116,7 +117,7 @@ def _reductions_for_problem_class(problem, candidates, gp=False):
     return reductions
 
 
-def construct_solving_chain(problem, candidates, gp=False, enforce_dpp=False):
+def construct_solving_chain(problem, candidates, gp: bool=False, enforce_dpp: bool=False) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -259,14 +260,14 @@ class SolvingChain(Chain):
         The solver, i.e., reductions[-1].
     """
 
-    def __init__(self, problem=None, reductions=[]):
+    def __init__(self, problem=None, reductions=[]) -> None:
         super(SolvingChain, self).__init__(problem=problem,
                                            reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
             raise ValueError("Solving chains must terminate with a Solver.")
         self.solver = self.reductions[-1]
 
-    def prepend(self, chain):
+    def prepend(self, chain) -> "SolvingChain":
         """
         Create and return a new SolvingChain by concatenating
         chain with this instance.

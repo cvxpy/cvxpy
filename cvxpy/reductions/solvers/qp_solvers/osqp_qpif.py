@@ -24,7 +24,7 @@ class OSQP(QpSolver):
     def name(self):
         return s.OSQP
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         import osqp
         osqp
 

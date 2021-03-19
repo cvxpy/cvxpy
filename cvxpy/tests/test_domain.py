@@ -25,7 +25,7 @@ from cvxpy.tests.base_test import BaseTest
 class TestDomain(BaseTest):
     """ Unit tests for the domain module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = Variable(name='a')
 
         self.x = Variable(2, name='x')
@@ -36,7 +36,7 @@ class TestDomain(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
-    def test_partial_problem(self):
+    def test_partial_problem(self) -> None:
         """Test domain for partial minimization/maximization problems.
         """
         for obj in [Minimize((self.a)**-1), Maximize(cp.log(self.a))]:
@@ -70,7 +70,7 @@ class TestDomain(BaseTest):
             self.assertAlmostEqual(self.a.value, -100)
             self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
-    def test_geo_mean(self):
+    def test_geo_mean(self) -> None:
         """Test domain for geo_mean
         """
         dom = cp.geo_mean(self.x).domain
@@ -91,7 +91,7 @@ class TestDomain(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(self.z.value, [-1, 0, 0])
 
-    def test_quad_over_lin(self):
+    def test_quad_over_lin(self) -> None:
         """Test domain for quad_over_lin
         """
         dom = cp.quad_over_lin(self.x, self.a).domain
@@ -107,7 +107,7 @@ class TestDomain(BaseTest):
     #     Problem(Minimize(norm2(self.A-A0)), dom).solve()
     #     self.assertItemsAlmostEqual(self.A.value, np.array([[1, 2.5], [2.5, 4]]))
 
-    def test_pnorm(self):
+    def test_pnorm(self) -> None:
         """ Test domain for pnorm.
         """
         dom = cp.pnorm(self.a, -0.5).domain
@@ -115,28 +115,28 @@ class TestDomain(BaseTest):
         prob.solve()
         self.assertAlmostEqual(prob.value, 0)
 
-    def test_log(self):
+    def test_log(self) -> None:
         """Test domain for log.
         """
         dom = cp.log(self.a).domain
         Problem(Minimize(self.a), dom).solve()
         self.assertAlmostEqual(self.a.value, 0)
 
-    def test_log1p(self):
+    def test_log1p(self) -> None:
         """Test domain for log1p.
         """
         dom = cp.log1p(self.a).domain
         Problem(Minimize(self.a), dom).solve()
         self.assertAlmostEqual(self.a.value, -1)
 
-    def test_entr(self):
+    def test_entr(self) -> None:
         """Test domain for entr.
         """
         dom = cp.entr(self.a).domain
         Problem(Minimize(self.a), dom).solve()
         self.assertAlmostEqual(self.a.value, 0)
 
-    def test_kl_div(self):
+    def test_kl_div(self) -> None:
         """Test domain for kl_div.
         """
         b = Variable()
@@ -145,7 +145,7 @@ class TestDomain(BaseTest):
         self.assertAlmostEqual(self.a.value, 0)
         self.assertAlmostEqual(b.value, 0)
 
-    def test_power(self):
+    def test_power(self) -> None:
         """Test domain for power.
         """
         dom = cp.sqrt(self.a).domain
@@ -164,7 +164,7 @@ class TestDomain(BaseTest):
         Problem(Minimize(self.a), dom + [self.a >= -100]).solve()
         self.assertAlmostEqual(self.a.value, 0)
 
-    def test_log_det(self):
+    def test_log_det(self) -> None:
         """Test domain for log_det.
         """
         dom = cp.log_det(self.A + np.eye(2)).domain
@@ -172,7 +172,7 @@ class TestDomain(BaseTest):
         prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(prob.value, -2, places=3)
 
-    def test_matrix_frac(self):
+    def test_matrix_frac(self) -> None:
         """Test domain for matrix_frac.
         """
         dom = cp.matrix_frac(self.x, self.A + np.eye(2)).domain

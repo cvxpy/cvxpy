@@ -39,7 +39,7 @@ def solve_wrapper(solver, param_cone_prog):
 class TestLinearCone(BaseTest):
     """ Unit tests for the domain module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = Variable(name='a')
         self.b = Variable(name='b')
         self.c = Variable(name='c')
@@ -54,7 +54,7 @@ class TestLinearCone(BaseTest):
 
         self.solvers = [ECOS()]
 
-    def test_scalar_lp(self):
+    def test_scalar_lp(self) -> None:
         """Test scalar LP problems.
         """
         for solver in self.solvers:
@@ -132,7 +132,7 @@ class TestLinearCone(BaseTest):
             self.assertAlmostEqual(inv_flipped_sltn.opt_val, result)
 
     # Test vector LP problems.
-    def test_vector_lp(self):
+    def test_vector_lp(self) -> None:
         for solver in self.solvers:
             c = Constant(np.array([1, 2]))
             p = Problem(Minimize(c.T @ self.x), [self.x >= c])
@@ -174,7 +174,7 @@ class TestLinearCone(BaseTest):
                                             var.value, places=1)
 
     # Test matrix LP problems.
-    def test_matrix_lp(self):
+    def test_matrix_lp(self) -> None:
         for solver in self.solvers:
             T = Constant(np.ones((2, 2))).value
             p = Problem(Minimize(self.a), [self.A == T + self.a, self.a >= 0])
@@ -203,7 +203,7 @@ class TestLinearCone(BaseTest):
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
                                             var.value)
 
-    def test_socp(self):
+    def test_socp(self) -> None:
         """Test SOCP problems.
         """
         for solver in self.solvers:
@@ -239,7 +239,7 @@ class TestLinearCone(BaseTest):
                 self.assertItemsAlmostEqual(inv_sltn.primal_vars[var.id],
                                             var.value, places=2)
 
-    def exp_cone(self):
+    def exp_cone(self) -> None:
         """Test exponential cone problems.
         """
         for solver in self.solvers:
@@ -276,7 +276,7 @@ class TestLinearCone(BaseTest):
                                             var.value, places=0)
 
     # Test positive definite constraints.
-    def test_psd_constraints(self):
+    def test_psd_constraints(self) -> None:
         """ Test positive semi-definite constraints
         """
         C = Variable((3, 3))
@@ -305,7 +305,7 @@ class TestLinearCone(BaseTest):
         prob, _ = CvxAttr2Constr().apply(Problem(obj, constraints))
         self.assertTrue(ConeMatrixStuffing().accepts(prob))
 
-    def test_nonneg_constraints_backend(self):
+    def test_nonneg_constraints_backend(self) -> None:
         x = Variable(shape=(2,), name='x')
         objective = Maximize(-4 * x[0] - 5 * x[1])
         constr_expr = hstack([3 - (2 * x[0] + x[1]),
@@ -319,7 +319,7 @@ class TestLinearCone(BaseTest):
         p_min = FlipObjective().apply(prob)
         self.assertTrue(ConeMatrixStuffing().accepts(p_min[0]))
 
-    def test_nonneg_constraints_end_user(self):
+    def test_nonneg_constraints_end_user(self) -> None:
         x = Variable(shape=(2,), name='x')
         objective = Minimize(-4 * x[0] - 5 * x[1])
         constr_expr = hstack([3 - (2 * x[0] + x[1]),

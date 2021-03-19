@@ -1,3 +1,5 @@
+from typing import Generator
+
 """
 Copyright, the CVXPY authors
 
@@ -20,7 +22,7 @@ _dpp_scope_active = False
 
 
 @contextlib.contextmanager
-def dpp_scope():
+def dpp_scope() -> Generator[None, None, None]:
     """Context manager for DPP curvature analysis
 
     When this scope is active, parameters are affine, not constant. The
@@ -44,6 +46,6 @@ def dpp_scope():
     _dpp_scope_active = prev_state
 
 
-def dpp_scope_active():
+def dpp_scope_active() -> bool:
     """Returns True if a `dpp_scope` is active. """
     return _dpp_scope_active

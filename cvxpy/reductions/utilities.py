@@ -56,7 +56,7 @@ def special_index_canon(expr, args):
     return lowered, []
 
 
-def are_args_affine(constraints):
+def are_args_affine(constraints) -> bool:
     return all(arg.is_affine() for constr in constraints
                for arg in constr.args)
 

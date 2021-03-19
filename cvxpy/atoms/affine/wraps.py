@@ -20,13 +20,13 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 class Wrap(AffAtom):
     """A no-op wrapper to assert properties.
     """
-    def __init__(self, arg):
+    def __init__(self, arg) -> None:
         return super(Wrap, self).__init__(arg)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         return True
 
     def numeric(self, values):
@@ -63,8 +63,8 @@ class psd_wrap(Wrap):
     """Asserts argument is PSD.
     """
 
-    def is_psd(self):
+    def is_psd(self) -> bool:
         return True
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         return True
