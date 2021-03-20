@@ -16,6 +16,7 @@ limitations under the License.
 
 from cvxpy.atoms.axis_atom import AxisAtom
 import numpy as np
+import scipy.sparse as sp
 
 
 class norm_inf(AxisAtom):
@@ -25,7 +26,10 @@ class norm_inf(AxisAtom):
         """Returns the inf norm of x.
         """
         if self.axis is None:
-            values = np.array(values[0]).flatten()
+            if sp.issparse(values[0]):
+                values = values[0].todense().A.flatten()
+            else:
+                values = np.array(values[0]).flatten()
         else:
             values = np.array(values[0])
         return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=self.keepdims)

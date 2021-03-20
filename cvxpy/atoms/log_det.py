@@ -104,7 +104,10 @@ class log_det(Atom):
 
     @property
     def value(self):
-        if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
+        if not np.allclose(self.args[0].value,
+                           self.args[0].value.T.conj(),
+                           rtol=1e-3,
+                           atol=1e-3):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
         if any([p.value is None for p in self.parameters()]):
             return None

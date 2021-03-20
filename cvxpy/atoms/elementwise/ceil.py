@@ -26,7 +26,7 @@ class ceil(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        return np.ceil(values[0])
+        return np.ceil(np.around(values[0], decimals=4))
 
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
