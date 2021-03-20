@@ -54,7 +54,7 @@ _HEADER = (
     '\n' +
     ('CVXPY').center(_COL_WIDTH) +
     '\n' +
-    (f'v{cvxtypes.version()}').center(_COL_WIDTH) +
+    ('v%s' % cvxtypes.version()).center(_COL_WIDTH) +
     '\n' +
     '='*_COL_WIDTH
 )
@@ -1226,16 +1226,18 @@ class Problem(u.Canonical):
             for c in self.constraints:
                 if c.id in solution.dual_vars:
                     c.save_dual_value(solution.dual_vars[c.id])
+            # Eliminate confusion of problem.value versus objective.value.
+            self._value = self.objective.value
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)
             for constr in self.constraints:
                 for dv in constr.dual_variables:
                     dv.save_value(None)
+            self._value = solution.opt_val
         else:
             raise ValueError("Cannot unpack invalid solution: %s" % solution)
 
-        self._value = solution.opt_val
         self._status = solution.status
         self._solution = solution
 

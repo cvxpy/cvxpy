@@ -35,7 +35,7 @@ class log_det(Atom):
         and is equivalent to the nuclear norm of the matrix logarithm of A.
         """
         sign, logdet = LA.slogdet(values[0])
-        if sign == 1:
+        if np.abs(sign) == 1:
             return logdet
         else:
             return -np.inf
