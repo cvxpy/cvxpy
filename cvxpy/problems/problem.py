@@ -54,7 +54,7 @@ _HEADER = (
     '\n' +
     ('CVXPY').center(_COL_WIDTH) +
     '\n' +
-    ('v%s' % cvxtypes.version()).center(_COL_WIDTH) +
+    (f'v{cvxtypes.version()}').center(_COL_WIDTH) +
     '\n' +
     '='*_COL_WIDTH
 )
