@@ -328,7 +328,7 @@ class power(Elementwise):
 
         if self.p_rational is not None:
             p = self.p_rational
-        elif p.value is not None:
+        elif self.p.value is not None:
             p = self.p.value
         else:
             raise ValueError("Cannot compute grad of parametrized power when "
