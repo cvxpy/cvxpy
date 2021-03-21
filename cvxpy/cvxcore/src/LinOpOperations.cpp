@@ -390,7 +390,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == HSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().get_shape());
+  assert(arg_idx <= lin.get_args().size());
   std::vector<Triplet> tripletList;
   tripletList.reserve(vecprod(lin.get_shape()));
   const LinOp &arg = *lin.get_args()[arg_idx];
