@@ -1295,10 +1295,10 @@ a first-order approximation (which is ``dx/dp * p.delta``).
 .. code:: python3
 
     p.delta = 1e-5
-    problem.backward()
+    problem.derivative()
     print("x.delta is {0:2.1g}.".format(x.delta))
 
-In this case the solution is trivial and its derivative is just ``2*p``, we
+In this case the solution is trivial and its derivative is just ``2*p``, so we
 know that the delta in ``x`` should be ``2e-5``. As expected, the output is
 
 .. code::
