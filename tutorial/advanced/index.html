@@ -1247,11 +1247,11 @@ setting <code class="docutils literal notranslate"><span class="pre">p.delta</sp
 the <code class="docutils literal notranslate"><span class="pre">delta</span></code> attribute of <code class="docutils literal notranslate"><span class="pre">x</span></code> with the the change in <code class="docutils literal notranslate"><span class="pre">x</span></code> predicted by
 a first-order approximation (which is <code class="docutils literal notranslate"><span class="pre">dx/dp</span> <span class="pre">*</span> <span class="pre">p.delta</span></code>).</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="n">p</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-5</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">derivative</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x.delta is </span><span class="si">{0:2.1g}</span><span class="s2">.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">delta</span><span class="p">))</span>
 </pre></div>
 </div>
-<p>In this case the solution is trivial and its derivative is just <code class="docutils literal notranslate"><span class="pre">2*p</span></code>, we
+<p>In this case the solution is trivial and its derivative is just <code class="docutils literal notranslate"><span class="pre">2*p</span></code>, so we
 know that the delta in <code class="docutils literal notranslate"><span class="pre">x</span></code> should be <code class="docutils literal notranslate"><span class="pre">2e-5</span></code>. As expected, the output is</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="o">.</span><span class="n">delta</span> <span class="ow">is</span> <span class="mf">2e-05</span><span class="o">.</span>
 </pre></div>

@@ -53,7 +53,7 @@
 <span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
 
 
-<span class="k">def</span> <span class="nf">failure_solution</span><span class="p">(</span><span class="n">status</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">failure_solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Factory function for infeasible or unbounded solutions.</span>
 
 <span class="sd">    Parameters</span>
@@ -72,7 +72,9 @@
         <span class="n">opt_val</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">opt_val</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="p">{},</span> <span class="p">{},</span> <span class="p">{})</span>
+    <span class="k">if</span> <span class="n">attr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">attr</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="p">{},</span> <span class="p">{},</span> <span class="n">attr</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="Solution"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solution.Solution">[docs]</a><span class="k">class</span> <span class="nc">Solution</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
