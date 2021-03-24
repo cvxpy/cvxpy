@@ -54,7 +54,7 @@ _HEADER = (
     '\n' +
     ('CVXPY').center(_COL_WIDTH) +
     '\n' +
-    (f'v{cvxtypes.version()}').center(_COL_WIDTH) +
+    ('v' + cvxtypes.version()).center(_COL_WIDTH) +
     '\n' +
     '='*_COL_WIDTH
 )
@@ -597,18 +597,15 @@ class Problem(u.Canonical):
             if verbose:
                 s.LOGGER.info(
                         'Finished problem compilation '
-                        f'(took {self._compilation_time:.3e} seconds).')
+                        '(took %.3e seconds).' % self._compilation_time)
         else:
             if verbose:
                 solver_name = solving_chain.reductions[-1].name()
                 reduction_chain_str = ' -> '.join(
                         type(r).__name__ for r in solving_chain.reductions)
                 s.LOGGER.info(
-                         f'Compiling problem (target solver={solver_name}).')
-                s.LOGGER.info(
-                    f'Reduction chain: '
-                    f'{reduction_chain_str}'
-                )
+                         'Compiling problem (target solver=%s).' % solver_name)
+                s.LOGGER.info('Reduction chain: ' + reduction_chain_str)
             data, inverse_data = solving_chain.apply(self, verbose)
             safe_to_cache = (
                 isinstance(data, dict)
@@ -620,7 +617,7 @@ class Problem(u.Canonical):
             if verbose:
                 s.LOGGER.info(
                         'Finished problem compilation '
-                        f'(took {self._compilation_time:.3e} seconds).')
+                        '(took %.3e seconds).' % self._compilation_time)
             if safe_to_cache:
                 if verbose and self.parameters():
                     s.LOGGER.info(
@@ -876,9 +873,9 @@ class Problem(u.Canonical):
             n_variables = sum(np.prod(v.shape) for v in self.variables())
             n_parameters = sum(np.prod(p.shape) for p in self.parameters())
             s.LOGGER.info(
-                    f'Your problem has {n_variables} variables, '
-                    f'{len(self.constraints)} constraints, and '
-                    f'{n_parameters} parameters.')
+                    'Your problem has %d variables, '
+                    '%d constraints, and ' '%d parameters.' % (
+                        n_variables, len(self.constraints), n_parameters))
             curvatures = []
             if self.is_dcp():
                 curvatures.append('DCP')
@@ -887,8 +884,8 @@ class Problem(u.Canonical):
             if self.is_dqcp():
                 curvatures.append('DQCP')
             s.LOGGER.info(
-                    f'It is compliant with the following grammars: '
-                    f'{", ".join(curvatures)}')
+                    'It is compliant with the following grammars: ' +
+                    ', '.join(curvatures))
             if n_parameters == 0:
                 s.LOGGER.info(
                     '(If you need to solve this problem multiple times, '
@@ -942,8 +939,8 @@ class Problem(u.Canonical):
         if verbose:
             print(_NUM_SOLVER_STR)
             s.LOGGER.info(
-                    f'Invoking solver {solving_chain.reductions[-1].name()} '
-                    'to obtain a solution.')
+                    'Invoking solver %s  to obtain a solution.' % (
+                        solving_chain.reductions[-1].name()))
         start = time.time()
         solution = solving_chain.solve_via_data(
             self, data, warm_start, verbose, kwargs)
@@ -952,12 +949,12 @@ class Problem(u.Canonical):
         self.unpack_results(solution, solving_chain, inverse_data)
         if verbose:
             print(_FOOTER)
-            s.LOGGER.info(f'Problem status: {self.status}')
-            s.LOGGER.info(f'Optimal value: {self.value:.3e}')
-            s.LOGGER.info(f'Compilation took {self._compilation_time:.3e} seconds')
+            s.LOGGER.info('Problem status: ' + self.status)
+            s.LOGGER.info('Optimal value: %.3e' % self.value)
+            s.LOGGER.info('Compilation took %.3e seconds' % self._compilation_time)
             s.LOGGER.info(
-                    f'Solver (including time spent in interface) took '
-                    f'{self._solve_time:.3e} seconds')
+                    'Solver (including time spent in interface) took '
+                    '%.3e seconds' % self._solve_time)
         return self.value
 
     def backward(self):
