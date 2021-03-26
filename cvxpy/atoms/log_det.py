@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import cvxpy.settings as s
 from cvxpy.atoms.atom import Atom
 import numpy as np
 from numpy import linalg as LA
@@ -88,7 +89,7 @@ class log_det(Atom):
             A list of SciPy CSC sparse matrices or None.
         """
         X = values[0]
-        eigen_val = LA.eigvals(X)
+        eigen_val = LA.eigvalsh(X)
         if np.min(eigen_val) > 0:
             # Grad: X^{-1}.T
             D = np.linalg.inv(X).T
@@ -106,8 +107,8 @@ class log_det(Atom):
     def value(self):
         if not np.allclose(self.args[0].value,
                            self.args[0].value.T.conj(),
-                           rtol=1e-3,
-                           atol=1e-3):
+                           rtol=s.ATOM_EVAL_TOL,
+                           atol=s.ATOM_EVAL_TOL):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
         if any([p.value is None for p in self.parameters()]):
             return None
