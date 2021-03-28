@@ -115,4 +115,4 @@ class AxisAtom(Atom):
         Returns:
             A SciPy sparse matrix or None.
         """
-        return NotImplemented
+        raise NotImplementedError()

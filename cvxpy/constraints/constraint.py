@@ -97,7 +97,7 @@ class Constraint(u.Canonical):
         bool
             True if the constraint is DCP, False otherwise.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def is_dgp(self, dpp=False):
@@ -108,7 +108,7 @@ class Constraint(u.Canonical):
         bool
             True if the constraint is DGP, False otherwise.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def is_dpp(self, context='dcp'):
         if context.lower() == 'dcp':
@@ -128,7 +128,7 @@ class Constraint(u.Canonical):
             The residual, or None if the constrained expression does not have
             a value.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def violation(self):
         """The numeric residual of the constraint.

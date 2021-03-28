@@ -48,7 +48,7 @@ class NonCvxVariable(cvxpy.Variable):
     # Returns the updated matrix.
     @abc.abstractmethod
     def _round(self, matrix):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Wrapper to validate matrix and update curvature.
     def fix(self, matrix):
@@ -58,4 +58,4 @@ class NonCvxVariable(cvxpy.Variable):
     # Fix the variable so it obeys the non-convex constraint.
     @abc.abstractmethod
     def _fix(self, matrix):
-        return NotImplemented
+        raise NotImplementedError()

@@ -1297,7 +1297,7 @@ class Problem(u.Canonical):
         if other == 0:
             return self
         elif not isinstance(other, Problem):
-            return NotImplemented
+            raise NotImplementedError()
         return Problem(self.objective + other.objective,
                        unique_list(self.constraints + other.constraints))
 
@@ -1305,11 +1305,11 @@ class Problem(u.Canonical):
         if other == 0:
             return self
         else:
-            return NotImplemented
+            raise NotImplementedError()
 
     def __sub__(self, other):
         if not isinstance(other, Problem):
-            return NotImplemented
+            raise NotImplementedError()
         return Problem(self.objective - other.objective,
                        unique_list(self.constraints + other.constraints))
 
@@ -1317,18 +1317,18 @@ class Problem(u.Canonical):
         if other == 0:
             return -self
         else:
-            return NotImplemented
+            raise NotImplementedError()
 
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         return Problem(self.objective * other, self.constraints)
 
     __rmul__ = __mul__
 
     def __div__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         return Problem(self.objective * (1.0 / other), self.constraints)
 
     def is_constant(self):

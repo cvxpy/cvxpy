@@ -124,4 +124,4 @@ class indicator(Expression):
             A map of variable to SciPy CSC sparse matrix or None.
         """
         # TODO
-        return NotImplemented
+        raise NotImplementedError()

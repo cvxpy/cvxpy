@@ -76,7 +76,7 @@ class Expression(u.Canonical):
     def value(self):
         """NumPy.ndarray or None : The numeric value of the expression.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def _value_impl(self):
         """Implementation of .value.
@@ -95,14 +95,14 @@ class Expression(u.Canonical):
             A map of variable to SciPy CSC sparse matrix; None if a variable
             value is missing.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractproperty
     def domain(self):
         """list : The constraints describing the closure of the region
            where the expression is finite.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def __str__(self):
         """Returns a string showing the mathematical expression.
@@ -120,7 +120,7 @@ class Expression(u.Canonical):
     def name(self):
         """str : The string representation of the expression.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @property
     def expr(self):
@@ -183,13 +183,13 @@ class Expression(u.Canonical):
     def is_convex(self):
         """Is the expression convex?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def is_concave(self):
         """Is the expression concave?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @perf.compute_once
     def is_dcp(self, dpp=False):
@@ -233,13 +233,13 @@ class Expression(u.Canonical):
     def is_log_log_convex(self):
         """Is the expression log-log convex?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def is_log_log_concave(self):
         """Is the expression log-log concave?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def is_dgp(self, dpp=False):
         """Checks whether the Expression is log-log DCP.
@@ -258,7 +258,7 @@ class Expression(u.Canonical):
     def is_dpp(self, context='dcp'):
         """The expression is a disciplined parameterized expression.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def is_quasiconvex(self):
         return self.is_convex()
@@ -346,19 +346,19 @@ class Expression(u.Canonical):
     def is_nonneg(self):
         """Is the expression positive?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def is_nonpos(self):
         """Is the expression negative?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractproperty
     def shape(self):
         """tuple : The expression dimensions.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def is_real(self):
         """Is the Leaf real valued?
@@ -369,13 +369,13 @@ class Expression(u.Canonical):
     def is_imag(self):
         """Is the Leaf imaginary?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractproperty
     def is_complex(self):
         """Is the Leaf complex valued?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @property
     def size(self):

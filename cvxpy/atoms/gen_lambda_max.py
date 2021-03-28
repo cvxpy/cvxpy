@@ -52,7 +52,7 @@ class gen_lambda_max(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def validate_arguments(self):
         """Verify that the argument A, B are square and of the same dimension.

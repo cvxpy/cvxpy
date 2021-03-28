@@ -56,11 +56,11 @@ class Objective(u.Canonical):
         if other == 0:
             return self
         else:
-            return NotImplemented
+            raise NotImplementedError()
 
     def __sub__(self, other):
         if not isinstance(other, (Minimize, Maximize)):
-            return NotImplemented
+            raise NotImplementedError()
         # Objectives must opposites
         return self + (-other)
 
@@ -68,11 +68,11 @@ class Objective(u.Canonical):
         if other == 0:
             return -self
         else:
-            return NotImplemented
+            raise NotImplementedError()
 
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         # If negative, reverse the direction of objective
         if (type(self) == Maximize) == (other < 0.0):
             return Minimize(self.args[0] * other)
@@ -83,7 +83,7 @@ class Objective(u.Canonical):
 
     def __div__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         return self * (1.0/other)
 
     __truediv__ = __div__
@@ -130,7 +130,7 @@ class Minimize(Objective):
 
     def __add__(self, other):
         if not isinstance(other, (Minimize, Maximize)):
-            return NotImplemented
+            raise NotImplementedError()
         # Objectives must both be Minimize.
         if type(other) is Minimize:
             return Minimize(self.args[0] + other.args[0])
@@ -200,7 +200,7 @@ class Maximize(Objective):
 
     def __add__(self, other):
         if not isinstance(other, (Minimize, Maximize)):
-            return NotImplemented
+            raise NotImplementedError()
         # Objectives must both be Maximize.
         if type(other) is Maximize:
             return Maximize(self.args[0] + other.args[0])
