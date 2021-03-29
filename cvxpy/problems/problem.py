@@ -143,6 +143,8 @@ class Problem(u.Canonical):
         self._size_metrics = None
         # Benchmarks reported by the solver:
         self._solver_stats = None
+        self._compilation_time = None
+        self._solve_time = None
         self.args = [self._objective, self._constraints]
 
     @property
