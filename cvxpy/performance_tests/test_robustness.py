@@ -31,7 +31,7 @@ import unittest
 class TestProblem(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = Variable(name='a')
         self.b = Variable(name='b')
         self.c = Variable(name='c')
@@ -45,7 +45,7 @@ class TestProblem(unittest.TestCase):
         self.C = Variable((3, 2), name='C')
 
     # Overridden method to handle lists and lower accuracy.
-    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF):
+    def assertAlmostEqual(self, a, b, interface=intf.DEFAULT_INTF) -> None:
         try:
             a = list(a)
             b = list(b)
@@ -54,7 +54,7 @@ class TestProblem(unittest.TestCase):
         except Exception:
             super(TestProblem, self).assertAlmostEqual(a, b, places=1)
 
-    def test_large_sum(self):
+    def test_large_sum(self) -> None:
         """Test large number of variables summed.
         """
         self.skipTest("Too slow.")
@@ -68,7 +68,7 @@ class TestProblem(unittest.TestCase):
             print(result - answer)
             self.assertAlmostEqual(result, answer)
 
-    def test_large_square(self):
+    def test_large_square(self) -> None:
         """Test large number of variables squared.
         """
         self.skipTest("Too slow.")
@@ -81,7 +81,7 @@ class TestProblem(unittest.TestCase):
             result = p.solve()
             self.assertAlmostEqual(result, 0)
 
-    def test_sdp(self):
+    def test_sdp(self) -> None:
         """Test a problem with semidefinite cones.
         """
         self.skipTest("Too slow.")
@@ -92,7 +92,7 @@ class TestProblem(unittest.TestCase):
         p = Problem(cp.Minimize(obj))
         p.solve(solver="SCS")
 
-    def test_large_sdp(self):
+    def test_large_sdp(self) -> None:
         """Test for bug where large PSD caused integer overflow in cvxcore.
         """
         self.skipTest("Too slow.")

@@ -23,11 +23,11 @@ from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
 class EliminatePwl(Canonicalization):
     """Eliminates piecewise linear atoms."""
 
-    def __init__(self, problem=None):
+    def __init__(self, problem=None) -> None:
         super(EliminatePwl, self).__init__(
           problem=problem, canon_methods=elim_pwl_methods)
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         atom_types = [type(atom) for atom in problem.atoms()]
         pwl_types = [abs, maximum, sum_largest, max, norm1, norm_inf]
         return any(atom in pwl_types for atom in atom_types)

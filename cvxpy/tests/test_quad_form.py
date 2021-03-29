@@ -27,7 +27,7 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestNonOptimal(BaseTest):
-    def test_singular_quad_form(self):
+    def test_singular_quad_form(self) -> None:
         """Test quad form with a singular matrix.
         """
         # Solve a quadratic program.
@@ -72,7 +72,7 @@ class TestNonOptimal(BaseTest):
                     assert_allclose(yopt, 0, atol=1e-3)
                     assert_allclose(xopt, v, atol=1e-3)
 
-    def test_sparse_quad_form(self):
+    def test_sparse_quad_form(self) -> None:
         """Test quad form with a sparse matrix.
         """
         Q = sp.eye(2)
@@ -96,7 +96,7 @@ class TestNonOptimal(BaseTest):
         problem.solve()
         self.assertEqual(len(function.value), 1)
 
-    def test_param_quad_form(self):
+    def test_param_quad_form(self) -> None:
         """Test quad form with a parameter.
         """
         P = cvxpy.Parameter((2, 2), PSD=True)
@@ -109,7 +109,7 @@ class TestNonOptimal(BaseTest):
             warnings.simplefilter('ignore')
             self.assertAlmostEqual(prob.solve(), 5)
 
-    def test_non_symmetric(self):
+    def test_non_symmetric(self) -> None:
         """Test when P is constant and not symmetric.
         """
         P = np.array([[2, 2], [3, 4]])
@@ -119,7 +119,7 @@ class TestNonOptimal(BaseTest):
         self.assertTrue("P must be symmetric/Hermitian."
                         in str(cm.exception))
 
-    def test_non_psd(self):
+    def test_non_psd(self) -> None:
         """Test error when P is symmetric but not definite.
         """
         P = np.array([[1, 0], [0, -1]])
@@ -134,7 +134,7 @@ class TestNonOptimal(BaseTest):
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
 
-    def test_psd_exactly_tolerance(self):
+    def test_psd_exactly_tolerance(self) -> None:
         """Test that PSD check when eigenvalue is exactly -EIGVAL_TOL
         """
         P = np.array([[-EIGVAL_TOL, 0], [0, 10]])
@@ -146,7 +146,7 @@ class TestNonOptimal(BaseTest):
             prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
             prob.solve()
 
-    def test_nsd_exactly_tolerance(self):
+    def test_nsd_exactly_tolerance(self) -> None:
         """Test that NSD check when eigenvalue is exactly EIGVAL_TOL
         """
         P = np.array([[EIGVAL_TOL, 0], [0, -10]])
@@ -158,7 +158,7 @@ class TestNonOptimal(BaseTest):
             prob = cvxpy.Problem(cvxpy.Maximize(cost), [x == [1, 2]])
             prob.solve()
 
-    def test_obj_eval(self):
+    def test_obj_eval(self) -> None:
         """Test case where objective evaluation differs from result.
         """
         x = cvxpy.Variable((2, 1))
@@ -170,7 +170,7 @@ class TestNonOptimal(BaseTest):
         prob.solve()
         self.assertAlmostEqual(prob.value, prob.objective.value)
 
-    def test_zero_term(self):
+    def test_zero_term(self) -> None:
         """Test a quad form multiplied by zero.
         """
         data_norm = np.random.random(5)
@@ -187,7 +187,7 @@ class TestNonOptimal(BaseTest):
         prob = cvxpy.Problem(objective, constraints)
         prob.solve()
 
-    def test_zero_matrix(self):
+    def test_zero_matrix(self) -> None:
         """Test quad_form with P = 0.
         """
         x = cvxpy.Variable(3)

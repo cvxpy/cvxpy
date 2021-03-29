@@ -86,7 +86,7 @@ def lower_value(variable, value):
 class CvxAttr2Constr(Reduction):
     """Expand convex variable attributes into constraints."""
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         return True
 
     def apply(self, problem):

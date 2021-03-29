@@ -393,7 +393,7 @@ def prune_constants(constraints):
     return pruned_constraints
 
 
-def prune_expr(lin_op):
+def prune_expr(lin_op) -> bool:
     """Prunes constant branches from the expression.
 
     Parameters

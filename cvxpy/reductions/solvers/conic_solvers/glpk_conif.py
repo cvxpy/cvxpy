@@ -34,7 +34,7 @@ class GLPK(CVXOPT):
         """
         return s.GLPK
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         from cvxopt import glpk
@@ -134,7 +134,7 @@ class GLPK(CVXOPT):
         return solution
 
     @staticmethod
-    def _restore_solver_options(old_options):
+    def _restore_solver_options(old_options) -> None:
         import cvxopt.solvers
         for key, value in list(cvxopt.solvers.options.items()):
             if key in old_options:

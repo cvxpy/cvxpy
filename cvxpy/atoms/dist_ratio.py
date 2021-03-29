@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy.atoms.atom import Atom
+from typing import Tuple
+
 import numpy as np
 
 
@@ -22,7 +24,7 @@ class dist_ratio(Atom):
 
     `a` and `b` must be constants.
     """
-    def __init__(self, x, a, b):
+    def __init__(self, x, a, b) -> None:
         super(dist_ratio, self).__init__(x, a, b)
         if not self.args[1].is_constant():
             raise ValueError("`a` must be a constant.")
@@ -42,41 +44,41 @@ class dist_ratio(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always nonnegative.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_quasiconvex(self):
+    def is_atom_quasiconvex(self) -> bool:
         """Is the atom quasiconvex?
         """
         return True
 
-    def is_atom_quasiconcave(self):
+    def is_atom_quasiconcave(self) -> bool:
         """Is the atom quasiconvex?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
 
-    def _grad(self, values):
+    def _grad(self, values) -> None:
         return None

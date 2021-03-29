@@ -33,7 +33,7 @@ from cvxpy.tests.base_test import BaseTest
 class TestQp(BaseTest):
     """ Unit tests for the domain module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = Variable(name='a')
         self.b = Variable(name='b')
         self.c = Variable(name='c')
@@ -68,7 +68,7 @@ class TestQp(BaseTest):
     def solve_QP(self, problem, solver_name):
         return problem.solve(solver=solver_name, verbose=False)
 
-    def test_all_solvers(self):
+    def test_all_solvers(self) -> None:
         for solver in self.solvers:
             self.quad_over_lin(solver)
             self.power(solver)
@@ -99,7 +99,7 @@ class TestQp(BaseTest):
             self.equivalent_forms_2(solver)
             self.equivalent_forms_3(solver)
 
-    def quad_over_lin(self, solver):
+    def quad_over_lin(self, solver) -> None:
         p = Problem(Minimize(0.5 * quad_over_lin(abs(self.x-1), 1)),
                     [self.x <= -1])
         self.solve_QP(p, solver)
@@ -110,7 +110,7 @@ class TestQp(BaseTest):
             self.assertItemsAlmostEqual(np.array([2., 2.]),
                                         con.dual_value, places=4)
 
-    def abs(self, solver):
+    def abs(self, solver) -> None:
         u = Variable(2)
         constr = []
         constr += [abs(u[1] - u[0]) <= 100]
@@ -120,20 +120,20 @@ class TestQp(BaseTest):
         result = prob.solve(solver=solver)
         self.assertAlmostEqual(result, 0)
 
-    def power(self, solver):
+    def power(self, solver) -> None:
         p = Problem(Minimize(sum(power(self.x, 2))), [])
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], var.value, places=4)
 
-    def power_matrix(self, solver):
+    def power_matrix(self, solver) -> None:
         p = Problem(Minimize(sum(power(self.A - 3., 2))), [])
         self.solve_QP(p, solver)
         for var in p.variables():
             self.assertItemsAlmostEqual([3., 3., 3., 3.],
                                         var.value, places=4)
 
-    def square_affine(self, solver):
+    def square_affine(self, solver) -> None:
         A = np.random.randn(10, 2)
         b = np.random.randn(10)
         p = Problem(Minimize(sum_squares(A @ self.x - b)))
@@ -143,7 +143,7 @@ class TestQp(BaseTest):
                                         var.value,
                                         places=1)
 
-    def quad_form(self, solver):
+    def quad_form(self, solver) -> None:
         np.random.seed(0)
         A = np.random.randn(5, 5)
         z = np.random.randn(5)
@@ -154,7 +154,7 @@ class TestQp(BaseTest):
         for var in p.variables():
             self.assertItemsAlmostEqual(z, var.value, places=4)
 
-    def rep_quad_form(self, solver):
+    def rep_quad_form(self, solver) -> None:
         """A problem where the quad_form term is used multiple times.
         """
         np.random.seed(0)
@@ -168,7 +168,7 @@ class TestQp(BaseTest):
         for var in p.variables():
             self.assertItemsAlmostEqual(z, var.value, places=4)
 
-    def affine_problem(self, solver):
+    def affine_problem(self, solver) -> None:
         A = np.random.randn(5, 2)
         A = np.maximum(A, 0)
         b = np.random.randn(5)
@@ -178,7 +178,7 @@ class TestQp(BaseTest):
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
 
-    def maximize_problem(self, solver):
+    def maximize_problem(self, solver) -> None:
         A = np.random.randn(5, 2)
         A = np.maximum(A, 0)
         b = np.random.randn(5)
@@ -188,7 +188,7 @@ class TestQp(BaseTest):
         for var in p.variables():
             self.assertItemsAlmostEqual([0., 0.], var.value, places=3)
 
-    def norm_2(self, solver):
+    def norm_2(self, solver) -> None:
         A = np.random.randn(10, 5)
         b = np.random.randn(10)
         p = Problem(Minimize(norm(A @ self.w - b, 2)))
@@ -197,7 +197,7 @@ class TestQp(BaseTest):
             self.assertItemsAlmostEqual(lstsq(A, b)[0].flatten(), var.value,
                                         places=1)
 
-    def mat_norm_2(self, solver):
+    def mat_norm_2(self, solver) -> None:
         A = np.random.randn(5, 3)
         B = np.random.randn(5, 2)
         p = Problem(Minimize(norm(A @ self.C - B, 2)))
@@ -206,7 +206,7 @@ class TestQp(BaseTest):
             self.assertItemsAlmostEqual(lstsq(A, B)[0],
                                         s.primal_vars[var.id], places=1)
 
-    def quad_form_coeff(self, solver):
+    def quad_form_coeff(self, solver) -> None:
         np.random.seed(0)
         A = np.random.randn(5, 5)
         z = np.random.randn(5)
@@ -217,7 +217,7 @@ class TestQp(BaseTest):
         for var in p.variables():
             self.assertItemsAlmostEqual(z, var.value, places=4)
 
-    def quad_form_bound(self, solver):
+    def quad_form_bound(self, solver) -> None:
         P = np.array([[13, 12, -2], [12, 17, 6], [-2, 6, 12]])
         q = np.array([[-22], [-14.5], [13]])
         r = 1
@@ -228,7 +228,7 @@ class TestQp(BaseTest):
         for var in p.variables():
             self.assertItemsAlmostEqual(y_star, var.value, places=4)
 
-    def regression_1(self, solver):
+    def regression_1(self, solver) -> None:
         np.random.seed(1)
         # Number of examples to use
         n = 100
@@ -250,7 +250,7 @@ class TestQp(BaseTest):
         self.solve_QP(p, solver)
         self.assertAlmostEqual(1171.60037715, p.value, places=4)
 
-    def regression_2(self, solver):
+    def regression_2(self, solver) -> None:
         np.random.seed(1)
         # Number of examples to use
         n = 100
@@ -272,7 +272,7 @@ class TestQp(BaseTest):
 
         self.assertAlmostEqual(139.225660756, p.value, places=4)
 
-    def control(self, solver):
+    def control(self, solver) -> None:
         # Some constraints on our motion
         # The object should start from the origin, and end at rest
         initial_velocity = np.array([-20, 100])
@@ -304,7 +304,7 @@ class TestQp(BaseTest):
         self.solve_QP(p, solver)
         self.assertAlmostEqual(178.500, p.value, places=1)
 
-    def sparse_system(self, solver):
+    def sparse_system(self, solver) -> None:
         m = 100
         n = 80
         np.random.seed(1)
@@ -316,7 +316,7 @@ class TestQp(BaseTest):
         self.solve_QP(p, solver)
         self.assertAlmostEqual(b.T.dot(b), p.value, places=4)
 
-    def smooth_ridge(self, solver):
+    def smooth_ridge(self, solver) -> None:
         np.random.seed(1)
         n = 200
         k = 50
@@ -330,7 +330,7 @@ class TestQp(BaseTest):
         self.solve_QP(p, solver)
         self.assertAlmostEqual(0, p.value, places=4)
 
-    def huber_small(self, solver):
+    def huber_small(self, solver) -> None:
         # Solve the Huber regression problem
         x = Variable(3)
         objective = sum(huber(x))
@@ -341,7 +341,7 @@ class TestQp(BaseTest):
         self.assertAlmostEqual(3, x.value[2], places=4)
         self.assertAlmostEqual(5, objective.value, places=4)
 
-    def huber(self, solver):
+    def huber(self, solver) -> None:
         # Generate problem data
         np.random.seed(2)
         n = 3
@@ -364,7 +364,7 @@ class TestQp(BaseTest):
                                     [-1.03751745, 0.86657204, -0.9649172],
                                     places=3)
 
-    def equivalent_forms_1(self, solver):
+    def equivalent_forms_1(self, solver) -> None:
         m = 100
         n = 80
         r = 70
@@ -381,7 +381,7 @@ class TestQp(BaseTest):
         self.solve_QP(p1, solver)
         self.assertAlmostEqual(p1.value, 68.1119420108, places=4)
 
-    def equivalent_forms_2(self, solver):
+    def equivalent_forms_2(self, solver) -> None:
         m = 100
         n = 80
         r = 70
@@ -403,7 +403,7 @@ class TestQp(BaseTest):
         self.solve_QP(p2, solver)
         self.assertAlmostEqual(p2.value, 68.1119420108, places=4)
 
-    def equivalent_forms_3(self, solver):
+    def equivalent_forms_3(self, solver) -> None:
         m = 100
         n = 80
         r = 70
@@ -426,7 +426,7 @@ class TestQp(BaseTest):
         self.solve_QP(p3, solver)
         self.assertAlmostEqual(p3.value, 68.1119420108, places=4)
 
-    def test_warm_start(self):
+    def test_warm_start(self) -> None:
         """Test warm start.
         """
         m = 200
@@ -449,7 +449,7 @@ class TestQp(BaseTest):
         self.assertAlmostEqual(result, result2)
         pass
 
-    def test_parametric(self):
+    def test_parametric(self) -> None:
         """Test solve parametric problem vs full problem"""
         x = Variable()
         a = 10
@@ -489,7 +489,7 @@ class TestQp(BaseTest):
                 self.assertItemsAlmostEqual(x_full[i], x_param[i], places=3)
                 self.assertAlmostEqual(obj_full[i], obj_param[i])
 
-    def test_square_param(self):
+    def test_square_param(self) -> None:
         """Test issue arising with square plus parameter.
         """
         a = Parameter(value=1)
@@ -500,7 +500,7 @@ class TestQp(BaseTest):
         prob.solve()
         self.assertAlmostEqual(obj.value, 1.0)
 
-    def test_gurobi_time_limit_no_solution(self):
+    def test_gurobi_time_limit_no_solution(self) -> None:
         """Make sure that if Gurobi terminates due to a time limit before finding a solution:
             1) no error is raised,
             2) solver stats are returned.

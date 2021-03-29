@@ -23,7 +23,7 @@ from cvxpy.settings import UNKNOWN, QUASILINEAR
 class TestCurvature(unittest.TestCase):
     """ Unit tests for the expression/curvature class. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.cvx = Variable()**2
         self.ccv = Variable()**0.5
         self.aff = Variable()
@@ -35,21 +35,21 @@ class TestCurvature(unittest.TestCase):
         self.zero = Constant(0)
         self.unknown_sign = self.pos + self.neg
 
-    def test_add(self):
+    def test_add(self) -> None:
         self.assertEqual((self.const + self.cvx).curvature, self.cvx.curvature)
         self.assertEqual((self.unknown_curv + self.ccv).curvature, UNKNOWN)
         self.assertEqual((self.cvx + self.ccv).curvature, UNKNOWN)
         self.assertEqual((self.cvx + self.cvx).curvature, self.cvx.curvature)
         self.assertEqual((self.aff + self.ccv).curvature, self.ccv.curvature)
 
-    def test_sub(self):
+    def test_sub(self) -> None:
         self.assertEqual((self.const - self.cvx).curvature, self.ccv.curvature)
         self.assertEqual((self.unknown_curv - self.ccv).curvature, UNKNOWN)
         self.assertEqual((self.cvx - self.ccv).curvature, self.cvx.curvature)
         self.assertEqual((self.cvx - self.cvx).curvature, UNKNOWN)
         self.assertEqual((self.aff - self.ccv).curvature, self.cvx.curvature)
 
-    def test_sign_mult(self):
+    def test_sign_mult(self) -> None:
         self.assertEqual((self.zero * self.cvx).curvature, self.aff.curvature)
         self.assertEqual((self.neg*self.cvx).curvature, self.ccv.curvature)
         self.assertEqual((self.neg*self.ccv).curvature, self.cvx.curvature)
@@ -59,12 +59,12 @@ class TestCurvature(unittest.TestCase):
         self.assertEqual((self.unknown_sign*self.const).curvature, self.const.curvature)
         self.assertEqual((self.unknown_sign*self.ccv).curvature, UNKNOWN)
 
-    def test_neg(self):
+    def test_neg(self) -> None:
         self.assertEqual((-self.cvx).curvature, self.ccv.curvature)
         self.assertEqual((-self.aff).curvature, self.aff.curvature)
 
     # Tests the is_affine, is_convex, and is_concave methods
-    def test_is_curvature(self):
+    def test_is_curvature(self) -> None:
         assert self.const.is_affine()
         assert self.aff.is_affine()
         assert not self.cvx.is_affine()

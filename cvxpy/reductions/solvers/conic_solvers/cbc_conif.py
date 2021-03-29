@@ -53,13 +53,13 @@ class CBC(SCS):
         """
         return s.CBC
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         from cylp.cy import CyClpSimplex
         CyClpSimplex  # For flake8
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can Cbc solve the problem?
         """
         # TODO check if is matrix stuffed.

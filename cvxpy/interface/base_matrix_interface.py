@@ -37,7 +37,7 @@ class BaseMatrixInterface(object):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     # Adds a case for scalars to const_to_matrix methods.
     @staticmethod
@@ -52,7 +52,7 @@ class BaseMatrixInterface(object):
     # Return an identity matrix.
     @abc.abstractmethod
     def identity(self, size):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Return the number of elements of the matrix.
     def size(self, matrix):
@@ -61,12 +61,12 @@ class BaseMatrixInterface(object):
     # Return the dimensions of the matrix.
     @abc.abstractmethod
     def shape(self, matrix):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Get the matrix interpreted as a scalar.
     @abc.abstractmethod
     def scalar_value(self, matrix):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Return a matrix with all 0's.
     def zeros(self, shape):
@@ -79,7 +79,7 @@ class BaseMatrixInterface(object):
     # A matrix with all entries equal to the given scalar value.
     @abc.abstractmethod
     def scalar_matrix(self, value, shape):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Return the value at the given index in the matrix.
     def index(self, matrix, key):
@@ -93,10 +93,10 @@ class BaseMatrixInterface(object):
     # Coerce the matrix into the given shape.
     @abc.abstractmethod
     def reshape(self, matrix, shape):
-        return NotImplemented
+        raise NotImplementedError()
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
-                  vert_step=1, horiz_step=1):
+                  vert_step: int=1, horiz_step: int=1) -> None:
         """Add the block to a slice of the matrix.
 
         Args:

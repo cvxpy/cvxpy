@@ -37,44 +37,44 @@ class indicator(Expression):
         super(indicator, self).__init__()
 
     @perf.compute_once
-    def is_constant(self):
+    def is_constant(self) -> bool:
         """The Indicator is constant if all constraints have constant args.
         """
         all_args = sum([c.args for c in self.args], [])
         return all([arg.is_constant() for arg in all_args])
 
-    def is_convex(self):
+    def is_convex(self) -> bool:
         """Is the expression convex?
         """
         return True
 
-    def is_concave(self):
+    def is_concave(self) -> bool:
         """Is the expression concave?
         """
         return False
 
-    def is_log_log_convex(self):
+    def is_log_log_convex(self) -> bool:
         return False
 
-    def is_log_log_concave(self):
+    def is_log_log_concave(self) -> bool:
         return False
 
-    def is_nonneg(self):
+    def is_nonneg(self) -> bool:
         """Is the expression positive?
         """
         return True
 
-    def is_nonpos(self):
+    def is_nonpos(self) -> bool:
         """Is the expression negative?
         """
         return False
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
         return False
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the Leaf complex valued?
         """
         return False
@@ -124,4 +124,4 @@ class indicator(Expression):
             A map of variable to SciPy CSC sparse matrix or None.
         """
         # TODO
-        return NotImplemented
+        raise NotImplementedError()

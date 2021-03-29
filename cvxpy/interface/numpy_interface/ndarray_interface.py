@@ -16,6 +16,8 @@ limitations under the License.
 
 
 from .. import base_matrix_interface as base
+from typing import Tuple
+
 import numpy
 import scipy.sparse
 
@@ -54,7 +56,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return numpy.eye(size)
 
     # Return the dimensions of the matrix.
-    def shape(self, matrix):
+    def shape(self, matrix) -> Tuple[int, ...]:
         return tuple(int(d) for d in matrix.shape)
 
     def size(self, matrix):

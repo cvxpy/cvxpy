@@ -1,3 +1,5 @@
+from typing import Tuple
+
 """
 Copyright 2013 Steven Diamond
 
@@ -15,7 +17,7 @@ limitations under the License.
 """
 
 
-def sum_signs(exprs):
+def sum_signs(exprs) -> Tuple[bool, bool]:
     """Give the sign resulting from summing a list of expressions.
 
     Args:
@@ -29,7 +31,7 @@ def sum_signs(exprs):
     return (is_pos, is_neg)
 
 
-def mul_sign(lh_expr, rh_expr):
+def mul_sign(lh_expr, rh_expr) -> Tuple[bool, bool]:
     """Give the sign resulting from multiplying two expressions.
 
     Args:

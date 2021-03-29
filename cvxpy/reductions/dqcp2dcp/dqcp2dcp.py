@@ -32,6 +32,7 @@ from cvxpy.reductions.solution import Solution
 import cvxpy.settings as s
 
 from collections import namedtuple
+from typing import Any, List, Tuple
 
 import numpy as np
 
@@ -65,7 +66,7 @@ class Dqcp2Dcp(Canonicalization):
     Problems emitted by this reduction can be solved with the `cp.bisect`
     function.
    """
-    def __init__(self, problem=None):
+    def __init__(self, problem=None) -> None:
         super(Dqcp2Dcp, self).__init__(
             canon_methods=CANON_METHODS, problem=problem)
         self._bisection_data = None
@@ -112,7 +113,7 @@ class Dqcp2Dcp(Canonicalization):
         constrs += c
         return canon_expr, constrs
 
-    def _canon_args(self, expr):
+    def _canon_args(self, expr) -> Tuple[List[Any], List[Any]]:
         """Canonicalize arguments of an expression.
 
         Like Canonicalization.canonicalize_tree, but preserves signs.

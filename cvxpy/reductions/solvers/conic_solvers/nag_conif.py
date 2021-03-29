@@ -40,7 +40,7 @@ class NAG(ConicSolver):
                   51: s.INFEASIBLE,
                   52: s.UNBOUNDED}
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         from naginterfaces.library import opt
@@ -51,7 +51,7 @@ class NAG(ConicSolver):
         """
         return s.NAG
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can NAG solve the problem?
         """
         if not problem.objective.args[0].is_affine():

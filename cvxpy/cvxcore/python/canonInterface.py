@@ -411,7 +411,7 @@ def get_type(linPy):
         raise NotImplementedError("Type %s is not supported." % ty)
 
 
-def set_matrix_data(linC, linPy):
+def set_matrix_data(linC, linPy) -> None:
     """Calls the appropriate cvxcore function to set the matrix data field of
        our C++ linOp.
     """
@@ -425,7 +425,7 @@ def set_matrix_data(linC, linPy):
         linC.set_data_ndim(len(linPy.data.shape))
 
 
-def set_slice_data(linC, linPy):
+def set_slice_data(linC, linPy) -> None:
     """
     Loads the slice data, start, stop, and step into our C++ linOp.
     The semantics of the slice operator is treated exactly the same as in
@@ -439,7 +439,7 @@ def set_slice_data(linC, linPy):
         linC.push_back_slice_vec(slice_vec)
 
 
-def set_linC_data(linC, linPy):
+def set_linC_data(linC, linPy) -> None:
     """Sets numerical data fields in linC."""
     assert linPy.data is not None
     if isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
@@ -452,7 +452,7 @@ def set_linC_data(linC, linPy):
         set_matrix_data(linC, linPy)
 
 
-def make_linC_from_linPy(linPy, linPy_to_linC):
+def make_linC_from_linPy(linPy, linPy_to_linC) -> None:
     """Construct a C++ LinOp corresponding to LinPy.
 
     Children of linPy are retrieved from linPy_to_linC.
@@ -478,7 +478,7 @@ def make_linC_from_linPy(linPy, linPy_to_linC):
             set_linC_data(linC, linPy)
 
 
-def build_lin_op_tree(root_linPy, linPy_to_linC):
+def build_lin_op_tree(root_linPy, linPy_to_linC) -> None:
     """Construct C++ LinOp tree from Python LinOp tree.
 
     Constructed C++ linOps are stored in the linPy_to_linC dict,

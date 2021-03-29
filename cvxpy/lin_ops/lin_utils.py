@@ -33,14 +33,14 @@ class Counter(object):
         The current count.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.count = 0
 
 
 ID_COUNTER = Counter()
 
 
-def get_id():
+def get_id() -> int:
     """Returns a new id and updates the id counter.
 
     Returns
@@ -123,7 +123,7 @@ def create_const(value, shape, sparse=False):
     return lo.LinOp(op_type, shape, [], value)
 
 
-def is_scalar(operator):
+def is_scalar(operator) -> bool:
     """Returns whether a LinOp is a scalar.
 
     Parameters
@@ -138,7 +138,7 @@ def is_scalar(operator):
     return len(operator.shape) == 0 or np.prod(operator.shape, dtype=int) == 1
 
 
-def is_const(operator):
+def is_const(operator) -> bool:
     """Returns whether a LinOp is constant.
 
     Parameters
@@ -438,7 +438,7 @@ def transpose(operator):
     if len(operator.shape) < 2:
         return operator
     elif len(operator.shape) > 2:
-        return NotImplemented
+        raise NotImplementedError()
     else:
         shape = (operator.shape[1], operator.shape[0])
         return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)

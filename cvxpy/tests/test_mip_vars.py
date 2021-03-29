@@ -25,7 +25,7 @@ from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as MIP_SOLVERS
 class TestMIPVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.x_bool = cp.Variable(boolean=True)
         self.y_int = cp.Variable(integer=True)
         self.A_bool = cp.Variable((3, 2), boolean=True)
@@ -33,7 +33,7 @@ class TestMIPVariable(BaseTest):
         # Check for all installed QP solvers
         self.solvers = MIP_SOLVERS
 
-    def test_all_solvers(self):
+    def test_all_solvers(self) -> None:
         for solver in self.solvers:
             self.bool_prob(solver)
             self.int_prob(solver)
@@ -41,7 +41,7 @@ class TestMIPVariable(BaseTest):
                 self.bool_socp(solver)
                 self.int_socp(solver)
 
-    def bool_prob(self, solver):
+    def bool_prob(self, solver) -> None:
         # Bool in objective.
         obj = cp.Minimize(cp.abs(self.x_bool - 0.2))
         p = cp.Problem(obj, [])
@@ -77,7 +77,7 @@ class TestMIPVariable(BaseTest):
 
         self.assertItemsAlmostEqual(self.A_bool.value, C, places=4)
 
-    def int_prob(self, solver):
+    def int_prob(self, solver) -> None:
         # Int in objective.
         obj = cp.Minimize(cp.abs(self.y_int - 0.2))
         p = cp.Problem(obj, [])
@@ -93,7 +93,7 @@ class TestMIPVariable(BaseTest):
         result = p.solve(solver=solver)
         self.assertEqual(p.status in s.INF_OR_UNB, True)
 
-    def int_socp(self, solver):
+    def int_socp(self, solver) -> None:
         # Int in objective.
         t = cp.Variable()
         obj = cp.Minimize(t)
@@ -103,7 +103,7 @@ class TestMIPVariable(BaseTest):
 
         self.assertAlmostEqual(self.y_int.value, 0)
 
-    def bool_socp(self, solver):
+    def bool_socp(self, solver) -> None:
         # Int in objective.
         t = cp.Variable()
         obj = cp.Minimize(t)

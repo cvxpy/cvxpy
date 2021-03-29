@@ -105,14 +105,14 @@ def override(name):
             print(y)
             if isinstance(y, Bar1) or \
                isinstance(y, np.ndarray) and isinstance(y[0], Bar1):
-                return NotImplemented
+                raise NotImplementedError()
             return getattr(np, name)(x, y)
         return ufunc
     else:
         def ufunc(x, y):
             print(y)
             if isinstance(y, Bar1):
-                return NotImplemented
+                raise NotImplementedError()
             return getattr(np, name)(x, y)
         return ufunc
 
