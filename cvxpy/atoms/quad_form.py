@@ -129,7 +129,7 @@ class SymbolicQuadForm(Atom):
         return [self.original_expression]
 
     def _grad(self, values):
-        return NotImplemented
+        raise NotImplementedError()
 
     def is_atom_concave(self):
         return self.original_expression.is_atom_concave()

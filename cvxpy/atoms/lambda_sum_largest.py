@@ -62,7 +62,7 @@ class lambda_sum_largest(lambda_max):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @property
     def value(self):

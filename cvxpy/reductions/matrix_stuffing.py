@@ -74,7 +74,7 @@ class MatrixStuffing(Reduction):
             Data for solution retrieval
         """
     def invert(self, solution, inverse_data):
-        return NotImplementedError
+        raise NotImplementedError()
 
     def stuffed_objective(self, problem, inverse_data):
-        return NotImplementedError
+        raise NotImplementedError()

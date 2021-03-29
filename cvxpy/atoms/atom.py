@@ -69,7 +69,7 @@ class Atom(Expression):
     def shape_from_args(self):
         """Returns the shape of the expression.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @property
     def shape(self):
@@ -79,7 +79,7 @@ class Atom(Expression):
     def sign_from_args(self):
         """Returns sign (is positive, is negative) of the expression.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @perf.compute_once
     def is_nonneg(self):
@@ -111,13 +111,13 @@ class Atom(Expression):
     def is_atom_convex(self):
         """Is the atom convex?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def is_atom_concave(self):
         """Is the atom concave?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def is_atom_affine(self):
         """Is the atom affine?
@@ -153,13 +153,13 @@ class Atom(Expression):
     def is_incr(self, idx):
         """Is the composition non-decreasing in argument idx?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def is_decr(self, idx):
         """Is the composition non-increasing in argument idx?
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @perf.compute_once
     def is_convex(self):
@@ -339,7 +339,7 @@ class Atom(Expression):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @property
     def value(self):
@@ -426,7 +426,7 @@ class Atom(Expression):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @property
     def domain(self):

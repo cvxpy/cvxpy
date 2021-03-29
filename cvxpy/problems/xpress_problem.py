@@ -89,22 +89,22 @@ class XpressProblem (Problem):
         if other == 0:
             return self
         elif not isinstance(other, XpressProblem):
-            return NotImplemented
+            raise NotImplementedError()
         return XpressProblem(self.objective + other.objective,
                              unique_list(self.constraints + other.constraints))
 
     def __sub__(self, other):
         if not isinstance(other, XpressProblem):
-            return NotImplemented
+            raise NotImplementedError()
         return XpressProblem(self.objective - other.objective,
                              unique_list(self.constraints + other.constraints))
 
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         return XpressProblem(self.objective * other, self.constraints)
 
     def __div__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         return XpressProblem(self.objective * (1.0 / other), self.constraints)

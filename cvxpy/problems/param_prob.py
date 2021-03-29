@@ -27,7 +27,7 @@ class ParamProb(object):
     @abc.abstractproperty
     def is_mixed_integer(self):
         """Is the problem mixed-integer?"""
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractproperty
     def apply_parameters(self, id_to_param_value=None, zero_offset=False,
@@ -41,4 +41,4 @@ class ParamProb(object):
           keep_zeros: (optional) if True, store explicit zeros in A where
                         parameters are affected
         """
-        return NotImplemented
+        raise NotImplementedError()

@@ -438,7 +438,7 @@ def transpose(operator):
     if len(operator.shape) < 2:
         return operator
     elif len(operator.shape) > 2:
-        return NotImplemented
+        raise NotImplementedError()
     else:
         shape = (operator.shape[1], operator.shape[0])
         return lo.LinOp(lo.TRANSPOSE, shape, [operator], None)

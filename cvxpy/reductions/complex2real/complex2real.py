@@ -128,7 +128,7 @@ class Complex2Real(Reduction):
     def canonicalize_tree(self, expr, real2imag, leaf_map):
         # TODO don't copy affine expressions?
         if type(expr) == cvxtypes.partial_problem():
-            return NotImplemented
+            raise NotImplementedError()
         else:
             real_args = []
             imag_args = []

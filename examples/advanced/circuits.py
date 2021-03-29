@@ -45,12 +45,12 @@ class Device(object):
     # The voltage drop on the device.
     @abc.abstractmethod
     def voltage(self):
-        return NotImplemented
+        raise NotImplementedError()
 
     # The current through the device.
     @abc.abstractmethod
     def current(self):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Every path between two nodes has the same voltage drop.
     def constraints(self):
