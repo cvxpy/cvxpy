@@ -260,7 +260,7 @@ class SolvingChain(Chain):
         The solver, i.e., reductions[-1].
     """
 
-    def __init__(self, problem=None, reductions=[]) -> None:
+    def __init__(self, problem=None, reductions=None) -> None:
         super(SolvingChain, self).__init__(problem=problem,
                                            reductions=reductions)
         if not isinstance(self.reductions[-1], Solver):
