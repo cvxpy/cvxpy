@@ -23,7 +23,7 @@ class log1p(log):
     """Elementwise :math:`\\log (1 + x)`.
     """
 
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         super(log1p, self).__init__(x)
 
     @log.numpy_numeric

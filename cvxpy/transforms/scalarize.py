@@ -13,14 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List
 
-from cvxpy import Constant
 import cvxpy.atoms as atoms
-from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy import Constant
+from cvxpy.expressions.expression import Expression
+from cvxpy.problems.objective import Minimize, Maximize, Objective
 from cvxpy.transforms import indicator
 
 
-def weighted_sum(objectives, weights):
+def weighted_sum(objectives: List[Objective], weights) -> Expression:
     """Combines objectives as a weighted sum.
 
     Args:

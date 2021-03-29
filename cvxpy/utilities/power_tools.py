@@ -122,7 +122,7 @@ def pow_neg(p, max_denom=1024):
     return p/(p-1), (p, 1-p)
 
 
-def is_power2(num):
+def is_power2(num) -> bool:
     """ Test if num is a positive integer power of 2.
 
     .. note::
@@ -148,7 +148,7 @@ def is_power2(num):
     return isinstance(num, numbers.Integral) and num > 0 and not (num & (num - 1))
 
 
-def is_dyad(frac):
+def is_dyad(frac) -> bool:
     """ Test if frac is a nonnegative dyadic fraction or integer.
 
     Examples
@@ -175,7 +175,7 @@ def is_dyad(frac):
         return False
 
 
-def is_dyad_weight(w):
+def is_dyad_weight(w) -> bool:
     """ Test if a vector is a valid dyadic weight vector.
 
         w must be nonnegative, sum to 1, and have integer or dyadic fractional elements.
@@ -192,7 +192,7 @@ def is_dyad_weight(w):
     return is_weight(w) and all(is_dyad(f) for f in w)
 
 
-def is_weight(w):
+def is_weight(w) -> bool:
     """ Test if w is a valid weight vector.
         w must have nonnegative integer or fractional elements, and sum to 1.
 

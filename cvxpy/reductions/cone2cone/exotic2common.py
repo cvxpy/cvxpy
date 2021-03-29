@@ -87,6 +87,6 @@ class Exotic2Common(Canonicalization):
         PowConeND: pow_nd_canon
     }
 
-    def __init__(self, problem=None):
+    def __init__(self, problem=None) -> None:
         super(Exotic2Common, self).__init__(
             problem=problem, canon_methods=Exotic2Common.CANON_METHODS)

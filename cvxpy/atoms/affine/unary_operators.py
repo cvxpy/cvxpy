@@ -24,7 +24,7 @@ class UnaryOperator(AffAtom):
     Base class for expressions involving unary operators.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(UnaryOperator, self).__init__(expr)
 
     def name(self):
@@ -51,22 +51,22 @@ class NegExpression(UnaryOperator):
         """
         return (self.args[0].is_nonpos(), self.args[0].is_nonneg())
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return True
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         return self.args[0].is_symmetric()
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the expression Hermitian?
         """
         return self.args[0].is_hermitian()

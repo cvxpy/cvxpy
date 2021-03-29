@@ -19,7 +19,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
 
 
-def hstack(arg_list):
+def hstack(arg_list) -> "Hstack":
     """Horizontal concatenation of an arbitrary number of Expressions.
 
     Parameters
@@ -36,10 +36,10 @@ def hstack(arg_list):
 
 class Hstack(AffAtom):
     """ Horizontal concatenation """
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         return True
 
     # Returns the hstack of the values.
@@ -55,7 +55,7 @@ class Hstack(AffAtom):
             return (self.args[0].shape[0], cols) + self.args[0].shape[2:]
 
     # All arguments must have the same width.
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         model = self.args[0].shape
         error = ValueError(("All the input dimensions except"
                             " for axis 1 must match exactly."))

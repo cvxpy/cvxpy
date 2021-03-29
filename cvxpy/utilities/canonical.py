@@ -96,7 +96,7 @@ class Canonical(object):
         else:
             return type(self)(*args)
 
-    def get_data(self):
+    def get_data(self) -> None:
         """Returns info needed to reconstruct the object besides the args.
 
         Returns

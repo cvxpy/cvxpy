@@ -48,7 +48,7 @@ class Reduction(object):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, problem=None):
+    def __init__(self, problem=None) -> None:
         """Construct a reduction for reducing `problem`.
 
         If `problem` is not None, then a subsequent invocation of `reduce()`

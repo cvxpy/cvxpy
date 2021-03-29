@@ -17,6 +17,7 @@ limitations under the License.
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
 from scipy.special import xlogy
+from typing import Tuple
 
 # TODO(akshayka): DGP support.
 
@@ -25,7 +26,7 @@ class entr(Elementwise):
     """Elementwise :math:`-x\\log x`.
     """
 
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         super(entr, self).__init__(x)
 
     def numeric(self, values):
@@ -39,28 +40,28 @@ class entr(Elementwise):
             results[np.isnan(results)] = -np.inf
         return results
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always unknown.
         return (False, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

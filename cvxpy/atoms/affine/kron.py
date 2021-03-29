@@ -26,7 +26,7 @@ class kron(AffAtom):
     # TODO work with right hand constant.
     # TODO(akshayka): make DGP-compatible
 
-    def __init__(self, lh_expr, rh_expr):
+    def __init__(self, lh_expr, rh_expr) -> None:
         super(kron, self).__init__(lh_expr, rh_expr)
 
     @AffAtom.numpy_numeric
@@ -35,7 +35,7 @@ class kron(AffAtom):
         """
         return np.kron(values[0], values[1])
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant.
         """
         if not self.args[0].is_constant():
@@ -55,12 +55,12 @@ class kron(AffAtom):
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.args[0].is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return self.args[0].is_nonpos()

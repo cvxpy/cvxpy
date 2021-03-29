@@ -51,7 +51,7 @@ class Solver(Reduction):
         """
         raise NotImplementedError()
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
         """Is the solver installed?
         """
         try:

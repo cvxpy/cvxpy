@@ -23,7 +23,7 @@ class FlipObjective(Reduction):
     """Flip a minimization objective to a maximization and vice versa.
      """
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         return True
 
     def apply(self, problem):

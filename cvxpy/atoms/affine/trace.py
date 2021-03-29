@@ -28,7 +28,7 @@ class trace(AffAtom):
         The expression to sum the diagonal of.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(trace, self).__init__(expr)
 
     @AffAtom.numpy_numeric
@@ -37,7 +37,7 @@ class trace(AffAtom):
         """
         return np.trace(values[0])
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.
         """
         shape = self.args[0].shape
@@ -49,12 +49,12 @@ class trace(AffAtom):
         """
         return tuple()
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False

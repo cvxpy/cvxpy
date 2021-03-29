@@ -25,7 +25,7 @@ SOLVER = cp.ECOS
 
 
 class TestDqcp(base_test.BaseTest):
-    def test_basic_with_interval(self):
+    def test_basic_with_interval(self) -> None:
         x = cp.Variable()
         expr = cp.ceil(x)
 
@@ -53,7 +53,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(soln.opt_val, problem.value)
         self.assertAlmostEqual(x.value, 12.0, places=3)
 
-    def test_basic_without_interval(self):
+    def test_basic_without_interval(self) -> None:
         x = cp.Variable()
         expr = cp.ceil(x)
 
@@ -81,7 +81,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(soln.opt_val, problem.value)
         self.assertAlmostEqual(x.value, 12.0, places=3)
 
-    def test_basic_solve(self):
+    def test_basic_solve(self) -> None:
         x = cp.Variable()
         expr = cp.ceil(x)
 
@@ -121,7 +121,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(problem.value, 12.0, places=3)
         self.assertAlmostEqual(x.value, 12.0, places=3)
 
-    def test_basic_maximization_with_interval(self):
+    def test_basic_maximization_with_interval(self) -> None:
         x = cp.Variable()
         expr = cp.ceil(x)
 
@@ -141,7 +141,7 @@ class TestDqcp(base_test.BaseTest):
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(x.value, 17.0, places=3)
 
-    def test_basic_maximum(self):
+    def test_basic_maximum(self) -> None:
         x, y = cp.Variable(2)
         expr = cp.maximum(cp.ceil(x), cp.ceil(y))
 
@@ -153,7 +153,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertGreater(x.value, 11.9)
         self.assertGreater(y.value, 17.3)
 
-    def test_basic_minimum(self):
+    def test_basic_minimum(self) -> None:
         x, y = cp.Variable(2)
         expr = cp.minimum(cp.ceil(x), cp.ceil(y))
 
@@ -165,7 +165,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertGreater(x.value, 14.9)
         self.assertGreater(y.value, 17.3)
 
-    def test_basic_composition(self):
+    def test_basic_composition(self) -> None:
         x, y = cp.Variable(2)
         expr = cp.maximum(cp.ceil(cp.ceil(x)), cp.ceil(cp.ceil(y)))
 
@@ -187,7 +187,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertGreater(x.value, 11.9)
         self.assertGreater(y.value, 17.3)
 
-    def test_basic_floor(self):
+    def test_basic_floor(self) -> None:
         x = cp.Variable()
         expr = cp.floor(x)
 
@@ -208,7 +208,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(problem.objective.value, 11.0)
         self.assertGreater(x.value, 11.7)
 
-    def test_basic_multiply_nonneg(self):
+    def test_basic_multiply_nonneg(self) -> None:
         x, y = cp.Variable(2, nonneg=True)
         expr = x * y
         self.assertTrue(expr.is_dqcp())
@@ -227,7 +227,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, 12, places=1)
         self.assertAlmostEqual(y.value, 6, places=1)
 
-    def test_basic_multiply_nonpos(self):
+    def test_basic_multiply_nonpos(self) -> None:
         x, y = cp.Variable(2, nonpos=True)
         expr = x * y
         self.assertTrue(expr.is_dqcp())
@@ -246,7 +246,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, -12, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
 
-    def test_basic_multiply_qcvx(self):
+    def test_basic_multiply_qcvx(self) -> None:
         x = cp.Variable(nonneg=True)
         y = cp.Variable(nonpos=True)
         expr = x * y
@@ -285,7 +285,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, 7, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
 
-    def test_concave_multiply(self):
+    def test_concave_multiply(self) -> None:
         x, y = cp.Variable(2, nonneg=True)
         expr = cp.sqrt(x) * cp.sqrt(y)
         self.assertTrue(expr.is_dqcp())
@@ -311,7 +311,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, 4, places=1)
         self.assertAlmostEqual(y.value, 9, places=1)
 
-    def test_basic_ratio(self):
+    def test_basic_ratio(self) -> None:
         x = cp.Variable()
         y = cp.Variable(nonneg=True)
         expr = x / y
@@ -342,7 +342,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, 12, places=1)
         self.assertAlmostEqual(y.value, -6, places=1)
 
-    def test_lin_frac(self):
+    def test_lin_frac(self) -> None:
         x = cp.Variable((2,), nonneg=True)
         A = np.array([[1.0, 2.0], [3.0, 4.0]])
         b = np.arange(2)
@@ -359,7 +359,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(problem.objective.value, 0, places=1)
         np.testing.assert_almost_equal(x.value, 0, decimal=5)
 
-    def test_concave_frac(self):
+    def test_concave_frac(self) -> None:
         x = cp.Variable(nonneg=True)
         concave_frac = cp.sqrt(x) / cp.exp(x)
         self.assertTrue(concave_frac.is_dqcp())
@@ -372,7 +372,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(problem.objective.value, 0.428, places=1)
         self.assertAlmostEqual(x.value, 0.5, places=1)
 
-    def test_length(self):
+    def test_length(self) -> None:
         x = cp.Variable(5)
         expr = cp.length(x)
         self.assertTrue(expr.is_dqcp())
@@ -384,14 +384,14 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(problem.objective.value, 2)
         np.testing.assert_almost_equal(x.value, np.array([2, 1, 0, 0, 0]))
 
-    def test_infeasible(self):
+    def test_infeasible(self) -> None:
         x = cp.Variable(2)
         problem = cp.Problem(
             cp.Minimize(cp.length(x)), [x == -1, cp.ceil(x) >= 1])
         problem.solve(SOLVER, qcp=True)
         self.assertIn(problem.status, (s.INFEASIBLE, s.INFEASIBLE_INACCURATE))
 
-    def test_sign(self):
+    def test_sign(self) -> None:
         x = cp.Variable()
         problem = cp.Problem(cp.Minimize(cp.sign(x)), [-2 <= x, x <= -0.5])
         problem.solve(SOLVER, qcp=True)
@@ -414,7 +414,7 @@ class TestDqcp(base_test.BaseTest):
         cp.sign(variable).value
         self.assertItemsAlmostEqual(value, variable.value)
 
-    def test_dist_ratio(self):
+    def test_dist_ratio(self) -> None:
         x = cp.Variable(2)
         a = np.ones(2)
         b = np.zeros(2)
@@ -423,49 +423,49 @@ class TestDqcp(base_test.BaseTest):
         np.testing.assert_almost_equal(problem.objective.value, 0.25)
         np.testing.assert_almost_equal(x.value, np.array([0.8, 0.8]))
 
-    def test_infeasible_exp_constr(self):
+    def test_infeasible_exp_constr(self) -> None:
         x = cp.Variable()
         constr = [cp.exp(cp.ceil(x)) <= -5]
         problem = cp.Problem(cp.Minimize(0), constr)
         problem.solve(SOLVER, qcp=True)
         self.assertEqual(problem.status, s.INFEASIBLE)
 
-    def test_infeasible_inv_pos_constr(self):
+    def test_infeasible_inv_pos_constr(self) -> None:
         x = cp.Variable(nonneg=True)
         constr = [cp.inv_pos(cp.ceil(x)) <= -5]
         problem = cp.Problem(cp.Minimize(0), constr)
         problem.solve(SOLVER, qcp=True)
         self.assertEqual(problem.status, s.INFEASIBLE)
 
-    def test_infeasible_logistic_constr(self):
+    def test_infeasible_logistic_constr(self) -> None:
         x = cp.Variable(nonneg=True)
         constr = [cp.logistic(cp.ceil(x)) <= -5]
         problem = cp.Problem(cp.Minimize(0), constr)
         problem.solve(SOLVER, qcp=True)
         self.assertEqual(problem.status, s.INFEASIBLE)
 
-    def test_noop_exp_constr(self):
+    def test_noop_exp_constr(self) -> None:
         x = cp.Variable()
         constr = [cp.exp(cp.ceil(x)) >= -5]
         problem = cp.Problem(cp.Minimize(0), constr)
         problem.solve(SOLVER, qcp=True)
         self.assertEqual(problem.status, s.OPTIMAL)
 
-    def test_noop_inv_pos_constr(self):
+    def test_noop_inv_pos_constr(self) -> None:
         x = cp.Variable()
         constr = [cp.inv_pos(cp.ceil(x)) >= -5]
         problem = cp.Problem(cp.Minimize(0), constr)
         problem.solve(SOLVER, qcp=True)
         self.assertEqual(problem.status, s.OPTIMAL)
 
-    def test_noop_logistic_constr(self):
+    def test_noop_logistic_constr(self) -> None:
         x = cp.Variable(nonneg=True)
         constr = [cp.logistic(cp.ceil(x)) >= -5]
         problem = cp.Problem(cp.Minimize(0), constr)
         problem.solve(SOLVER, qcp=True)
         self.assertEqual(problem.status, s.OPTIMAL)
 
-    def test_gen_lambda_max_matrix_completion(self):
+    def test_gen_lambda_max_matrix_completion(self) -> None:
         A = cp.Variable((3, 3))
         B = cp.Variable((3, 3), PSD=True)
         gen_lambda_max = cp.gen_lambda_max(A, B)
@@ -479,7 +479,7 @@ class TestDqcp(base_test.BaseTest):
         # smoke test
         problem.solve(cp.SCS, qcp=True)
 
-    def test_card_ls(self):
+    def test_card_ls(self) -> None:
         n = 10
         np.random.seed(0)
         A = np.random.randn(n, n)
@@ -494,7 +494,7 @@ class TestDqcp(base_test.BaseTest):
         # smoke test
         problem.solve(SOLVER, qcp=True)
 
-    def test_multiply_const(self):
+    def test_multiply_const(self) -> None:
         x = cp.Variable()
         obj = cp.Minimize(0.5 * cp.ceil(x))
         problem = cp.Problem(obj, [x >= 10])
@@ -523,7 +523,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, 10, places=1)
         self.assertAlmostEqual(problem.value, -5, places=1)
 
-    def test_div_const(self):
+    def test_div_const(self) -> None:
         x = cp.Variable()
         obj = cp.Minimize(cp.ceil(x) / 0.5)
         problem = cp.Problem(obj, [x >= 10])
@@ -538,7 +538,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, 10, places=1)
         self.assertAlmostEqual(problem.value, -20, places=1)
 
-    def test_tutorial_example(self):
+    def test_tutorial_example(self) -> None:
         x = cp.Variable()
         y = cp.Variable(pos=True)
         objective_fn = -cp.sqrt(x) / y
@@ -546,7 +546,7 @@ class TestDqcp(base_test.BaseTest):
         # smoke test
         problem.solve(SOLVER, qcp=True)
 
-    def test_curvature(self):
+    def test_curvature(self) -> None:
         x = cp.Variable(3)
         expr = cp.length(x)
         self.assertEqual(expr.curvature, s.QUASICONVEX)
@@ -556,7 +556,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(expr.curvature, s.QUASILINEAR)
         self.assertTrue(expr.is_quasilinear())
 
-    def test_tutorial_dqcp(self):
+    def test_tutorial_dqcp(self) -> None:
         # The sign of variables affects curvature analysis.
         x = cp.Variable(nonneg=True)
         concave_frac = x * cp.sqrt(x)
@@ -572,7 +572,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertFalse(fn.is_dqcp())
         self.assertFalse(problem.is_dqcp())
 
-    def test_add_constant(self):
+    def test_add_constant(self) -> None:
         # The sign of variables affects curvature analysis.
         x = cp.Variable()
         problem = cp.Problem(cp.Minimize(cp.ceil(x) + 5), [x >= 2])
@@ -580,7 +580,7 @@ class TestDqcp(base_test.BaseTest):
         np.testing.assert_almost_equal(x.value, 2)
         np.testing.assert_almost_equal(problem.objective.value, 7)
 
-    def test_max(self):
+    def test_max(self) -> None:
         x = cp.Variable(2, pos=True)
         obj = cp.max((1 - 2*cp.sqrt(x) + x) / x)
         problem = cp.Problem(cp.Minimize(obj), [x[0] <= 0.5, x[1] <= 0.9])
@@ -588,7 +588,7 @@ class TestDqcp(base_test.BaseTest):
         problem.solve(SOLVER, qcp=True)
         self.assertAlmostEqual(problem.objective.value, 0.1715, places=3)
 
-    def test_min(self):
+    def test_min(self) -> None:
         x = cp.Variable(2)
         expr = cp.min(cp.ceil(x))
         problem = cp.Problem(cp.Maximize(expr),
@@ -600,7 +600,7 @@ class TestDqcp(base_test.BaseTest):
         self.assertGreater(x[0].value, 14.9)
         self.assertGreater(x[1].value, 17.3)
 
-    def test_sum_of_qccv_not_dqcp(self):
+    def test_sum_of_qccv_not_dqcp(self) -> None:
         t = cp.Variable(5, pos=True)
         expr = cp.sum(cp.square(t) / t)
         self.assertFalse(expr.is_dqcp())

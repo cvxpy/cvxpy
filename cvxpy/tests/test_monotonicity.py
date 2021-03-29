@@ -23,7 +23,7 @@ class TestMonotonicity(BaseTest):
     """ Unit tests for the utilities/monotonicity class. """
     # Test application of DCP composition rules to determine curvature.
 
-    def test_dcp_curvature(self):
+    def test_dcp_curvature(self) -> None:
         expr = 1 + cvx.exp(cvx.Variable())
         self.assertEqual(expr.curvature, s.CONVEX)
 
@@ -56,7 +56,7 @@ class TestMonotonicity(BaseTest):
         self.assertEqual(expr.curvature, s.CONSTANT)
 
     # Test DCP composition rules with signed monotonicity.
-    def test_signed_curvature(self):
+    def test_signed_curvature(self) -> None:
         # Convex argument.
         expr = cvx.abs(1 + cvx.exp(cvx.Variable()))
         self.assertEqual(expr.curvature, s.CONVEX)

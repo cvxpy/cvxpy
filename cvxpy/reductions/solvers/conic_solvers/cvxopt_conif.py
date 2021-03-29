@@ -24,14 +24,16 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
 from cvxpy.expressions.constants.constant import extremal_eig_near_ref
+from typing import Dict, List, Union
+
 import scipy.sparse as sp
 import scipy
 import numpy as np
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
-# that can be supplied to ecos.
-def dims_to_solver_dict(cone_dims):
+# that can be supplied to cvxopt.
+def dims_to_solver_dict(cone_dims) -> Dict[str, Union[List[int], int]]:
     cones = {
         "l": int(cone_dims.nonneg),
         "q": [int(v) for v in cone_dims.soc],
@@ -67,13 +69,13 @@ class CVXOPT(ECOS):
         """
         return s.CVXOPT
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         import cvxopt
         cvxopt  # For flake8
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can CVXOPT solve the problem?
         """
         # TODO check if is matrix stuffed.
@@ -333,7 +335,7 @@ class CVXOPT(ECOS):
         return s.OPTIMAL
 
     @staticmethod
-    def _restore_solver_options(old_options):
+    def _restore_solver_options(old_options) -> None:
         import cvxopt.solvers
         for key, value in list(cvxopt.solvers.options.items()):
             if key in old_options:

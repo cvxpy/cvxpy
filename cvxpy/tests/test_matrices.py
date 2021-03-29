@@ -28,13 +28,13 @@ PY35 = sys.version_info >= (3, 5)
 class TestMatrices(unittest.TestCase):
     """ Unit tests for testing different forms of matrices as constants. """
 
-    def assertExpression(self, expr, shape):
+    def assertExpression(self, expr, shape) -> None:
         """Asserts that expr is an Expression with dimension shape.
         """
         assert isinstance(expr, Expression) or isinstance(expr, Constraint)
         self.assertEqual(expr.shape, shape)
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = Variable(name='a')
         self.b = Variable(name='b')
         self.c = Variable(name='c')
@@ -48,7 +48,7 @@ class TestMatrices(unittest.TestCase):
         self.C = Variable((3, 2), name='C')
 
     # Test numpy arrays
-    def test_numpy_arrays(self):
+    def test_numpy_arrays(self) -> None:
         # Vector
         v = numpy.arange(2)
         self.assertExpression(self.x + v, (2,))
@@ -68,7 +68,7 @@ class TestMatrices(unittest.TestCase):
         self.assertExpression(A >> self.A, (2, 2))
 
     # Test numpy matrices
-    def test_numpy_matrices(self):
+    def test_numpy_matrices(self) -> None:
         # Vector
         v = numpy.arange(2)
         self.assertExpression(self.x + v, (2,))
@@ -88,7 +88,7 @@ class TestMatrices(unittest.TestCase):
         self.assertExpression(A << self.A, (2, 2))
         self.assertExpression(A >> self.A, (2, 2))
 
-    def test_numpy_scalars(self):
+    def test_numpy_scalars(self) -> None:
         """Test numpy scalars."""
         v = numpy.float64(2.0)
         self.assertExpression(self.x + v, (2,))
@@ -104,7 +104,7 @@ class TestMatrices(unittest.TestCase):
         self.assertExpression(v << self.A, (2, 2))
         self.assertExpression(v >> self.A, (2, 2))
 
-    def test_scipy_sparse(self):
+    def test_scipy_sparse(self) -> None:
         """Test scipy sparse matrices."""
         # Constants.
         A = numpy.arange(8).reshape((4, 2))

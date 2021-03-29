@@ -45,7 +45,7 @@ class XPRESS(SCS):
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Main member of this class: an Xpress problem. Marked with a
         # trailing "_" to denote a member
         self.prob_ = None
@@ -55,13 +55,13 @@ class XPRESS(SCS):
         """
         return s.XPRESS
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         import xpress
         self.version = xpress.getversion()
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can Xpress solve the problem?
         """
         # TODO check if is matrix stuffed.

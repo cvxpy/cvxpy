@@ -30,7 +30,7 @@ class DIFFCP(scs_conif.SCS):
         """
         return s.DIFFCP
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         import diffcp

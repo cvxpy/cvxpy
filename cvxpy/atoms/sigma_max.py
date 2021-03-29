@@ -17,6 +17,8 @@ limitations under the License.
 from cvxpy.atoms.atom import Atom
 import scipy.sparse as sp
 from numpy import linalg as LA
+from typing import Tuple
+
 import numpy as np
 
 
@@ -24,7 +26,7 @@ class sigma_max(Atom):
     """ Maximum singular value. """
     _allow_complex = True
 
-    def __init__(self, A):
+    def __init__(self, A) -> None:
         super(sigma_max, self).__init__(A)
 
     @Atom.numpy_numeric
@@ -56,28 +58,28 @@ class sigma_max(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

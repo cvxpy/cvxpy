@@ -19,7 +19,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
 
 
-def vstack(arg_list):
+def vstack(arg_list) -> "Vstack":
     """Wrapper on vstack to ensure list argument.
     """
     return Vstack(*arg_list)
@@ -27,12 +27,12 @@ def vstack(arg_list):
 
 class Vstack(AffAtom):
     """ Vertical concatenation """
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
@@ -54,7 +54,7 @@ class Vstack(AffAtom):
             return (rows,) + self.args[0].shape[1:]
 
     # All arguments must have the same width.
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         model = self.args[0].shape
         for arg in self.args[1:]:
             if len(arg.shape) != len(model) or \

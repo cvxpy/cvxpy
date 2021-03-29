@@ -18,17 +18,17 @@ limitations under the License.
 WARN = False
 
 
-def disable_warnings():
+def disable_warnings() -> None:
     global WARN
     WARN = False
 
 
-def enable_warnings():
+def enable_warnings() -> None:
     global WARN
     WARN = True
 
 
-def warnings_enabled():
+def warnings_enabled() -> bool:
     return WARN
 
 

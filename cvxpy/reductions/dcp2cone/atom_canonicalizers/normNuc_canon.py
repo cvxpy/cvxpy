@@ -15,11 +15,13 @@ limitations under the License.
 """
 
 from cvxpy.atoms.affine.trace import trace
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.variable import Variable
 from cvxpy.atoms.affine.bmat import bmat
+from typing import List, Tuple
 
 
-def normNuc_canon(expr, args):
+def normNuc_canon(expr, args) -> Tuple[float, List[Constraint]]:
     A = args[0]
     m, n = A.shape
     # Create the equivalent problem:
