@@ -32,7 +32,7 @@ from cvxpy.utilities.coeff_extractor import CoeffExtractor
 import numpy as np
 
 
-class ConeDims(object):
+class ConeDims:
     """Summary of cone dimensions present in constraints.
 
     Constraints must be formatted as dictionary that maps from

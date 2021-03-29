@@ -19,7 +19,7 @@ from cvxpy.utilities import performance_utils as pu
 from cvxpy.utilities.deterministic import unique_list
 
 
-class Canonical(object):
+class Canonical:
     """
     An interface for objects that can be canonicalized.
     """

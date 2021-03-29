@@ -30,7 +30,7 @@ import scipy.sparse as sp
 # make sure to run cvxpy/tests/test_benchmarks.py to ensure that you have
 # not introduced a regression.
 
-class LinearOperator(object):
+class LinearOperator:
     """A wrapper for linear operators."""
     def __init__(self, linear_op, shape):
         if sp.issparse(linear_op):

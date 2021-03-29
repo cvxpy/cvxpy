@@ -17,7 +17,7 @@ limitations under the License.
 import cvxpy.lin_ops.lin_op as lo
 
 
-class InverseData(object):
+class InverseData:
     """Stores data useful for solution retrieval."""
 
     def __init__(self, problem):

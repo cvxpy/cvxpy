@@ -34,7 +34,7 @@ import numpy as np
 import scipy.sparse as sp
 
 
-class ConeDims(object):
+class ConeDims:
     """Summary of cone dimensions present in constraints.
 
     Constraints must be formatted as dictionary that maps from

@@ -20,7 +20,7 @@ DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 
 # A linear operator applied to a variable
 # or a constant or function of parameters.
-class LinOp(object):
+class LinOp:
     def __init__(self, type, shape, args, data):
         self.type = type
         self.shape = shape

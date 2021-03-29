@@ -59,7 +59,7 @@ class MyMeta(type):
         return 0
 
 
-class Exp(object):
+class Exp:
     def __add__(self, other):
         return 0
 
@@ -75,7 +75,7 @@ import numpy as np
 a = np.random.random((2,2))
 
 
-class Bar1(object):
+class Bar1:
     __metaclass__ = MyMeta
     def __add__(self, rhs): return 0
     def __radd__(self, rhs): return 1

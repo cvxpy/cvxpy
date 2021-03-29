@@ -81,7 +81,7 @@ _FOOTER = (
 )
 
 
-class Cache(object):
+class Cache:
     def __init__(self):
         self.key = None
         self.solving_chain = None
@@ -1337,7 +1337,7 @@ class Problem(u.Canonical):
     __truediv__ = __div__
 
 
-class SolverStats(object):
+class SolverStats:
     """Reports some of the miscellaneous information that is returned
     by the solver after solving but that is not captured directly by
     the Problem instance.
@@ -1374,7 +1374,7 @@ class SolverStats(object):
             self.extra_stats = results_dict[s.EXTRA_STATS]
 
 
-class SizeMetrics(object):
+class SizeMetrics:
     """Reports various metrics regarding the problem.
 
     Attributes

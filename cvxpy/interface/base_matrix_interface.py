@@ -19,7 +19,7 @@ import abc
 import numpy as np
 
 
-class BaseMatrixInterface(object):
+class BaseMatrixInterface:
     """
     An interface between constants' internal values
     and the target matrix used internally.
