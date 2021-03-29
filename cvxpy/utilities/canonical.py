@@ -86,7 +86,8 @@ class Canonical(object):
         -------
         Expression
         """
-        if id_objects is not None and id(self) in id_objects:
+        id_objects = {} if id_objects is None else id_objects
+        if id(self) in id_objects:
             return id_objects[id(self)]
         if args is None:
             args = self.args
