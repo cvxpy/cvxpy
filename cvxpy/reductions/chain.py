@@ -11,9 +11,9 @@ class Chain(Reduction):
         A list of reductions.
     """
 
-    def __init__(self, problem=None, reductions=[]) -> None:
+    def __init__(self, problem=None, reductions=None) -> None:
         super(Chain, self).__init__(problem=problem)
-        self.reductions = reductions
+        self.reductions = [] if reductions is None else reductions
 
     def __str__(self):
         return str(self.reductions)

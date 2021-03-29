@@ -81,7 +81,7 @@ class AddExpression(AffAtom):
 
     # As __init__ takes in the arg_groups instead of args, we need a special
     # copy() function.
-    def copy(self, args=None, id_objects={}):
+    def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the AddExpression atom.
 
         Parameters
