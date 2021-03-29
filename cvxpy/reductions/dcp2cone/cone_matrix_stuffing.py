@@ -178,10 +178,10 @@ class ParamConeProg(ParamProb):
                     canonInterface.reduce_problem_data_tensor(
                         self.A, self.x.size))
                 self.reduced_A = reduced_A
-                self.problem_data_index = (indices, indptr, shape)
+                problem_data_index = (indices, indptr, shape)
             else:
                 self.reduced_A = self.A
-                self.problem_data_index = None
+                problem_data_index = None
 
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value
@@ -202,7 +202,7 @@ class ParamConeProg(ParamProb):
         A, b = canonInterface.get_matrix_from_tensor(
             self.reduced_A, param_vec, self.x.size,
             nonzero_rows=self._A_mapping_nonzero, with_offset=True,
-            problem_data_index=self.problem_data_index)
+            problem_data_index=problem_data_index)
         return c, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
