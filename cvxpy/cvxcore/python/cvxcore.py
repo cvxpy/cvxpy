@@ -61,7 +61,7 @@ class _SwigNonDynamicMeta(type):
     __setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)
 
 
-class SwigPyIterator(object):
+class SwigPyIterator:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
 
     def __init__(self, *args, **kwargs):
@@ -147,7 +147,7 @@ DENSE_CONST = _cvxcore.DENSE_CONST
 SPARSE_CONST = _cvxcore.SPARSE_CONST
 NO_OP = _cvxcore.NO_OP
 KRON = _cvxcore.KRON
-class LinOp(object):
+class LinOp:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -221,7 +221,7 @@ def acc_tensor(lh_ten, rh_ten):
 
 def diagonalize(mat):
     return _cvxcore.diagonalize(mat)
-class ProblemData(object):
+class ProblemData:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
     TensorV = property(_cvxcore.ProblemData_TensorV_get, _cvxcore.ProblemData_TensorV_set)
@@ -254,7 +254,7 @@ _cvxcore.ProblemData_swigregister(ProblemData)
 cvar = _cvxcore.cvar
 CONSTANT_ID = cvar.CONSTANT_ID
 
-class IntVector(object):
+class IntVector:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -360,7 +360,7 @@ class IntVector(object):
 # Register IntVector in _cvxcore:
 _cvxcore.IntVector_swigregister(IntVector)
 
-class DoubleVector(object):
+class DoubleVector:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -466,7 +466,7 @@ class DoubleVector(object):
 # Register DoubleVector in _cvxcore:
 _cvxcore.DoubleVector_swigregister(DoubleVector)
 
-class IntVector2D(object):
+class IntVector2D:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -572,7 +572,7 @@ class IntVector2D(object):
 # Register IntVector2D in _cvxcore:
 _cvxcore.IntVector2D_swigregister(IntVector2D)
 
-class DoubleVector2D(object):
+class DoubleVector2D:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -678,7 +678,7 @@ class DoubleVector2D(object):
 # Register DoubleVector2D in _cvxcore:
 _cvxcore.DoubleVector2D_swigregister(DoubleVector2D)
 
-class IntIntMap(object):
+class IntIntMap:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -786,7 +786,7 @@ class IntIntMap(object):
 # Register IntIntMap in _cvxcore:
 _cvxcore.IntIntMap_swigregister(IntIntMap)
 
-class LinOpVector(object):
+class LinOpVector:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -892,7 +892,7 @@ class LinOpVector(object):
 # Register LinOpVector in _cvxcore:
 _cvxcore.LinOpVector_swigregister(LinOpVector)
 
-class ConstLinOpVector(object):
+class ConstLinOpVector:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 

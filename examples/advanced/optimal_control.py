@@ -25,7 +25,7 @@ x_init = cvxopt.normal(n)
 x_final = cvxopt.normal(n)
 
 # Object oriented optimal control problem.
-class Stage(object):
+class Stage:
     def __init__(self, A, B, x_prev):
         self.x = Variable(n)
         self.u = Variable(p)

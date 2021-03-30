@@ -42,7 +42,7 @@ def failure_solution(status, attr=None) -> "Solution":
     return Solution(status, opt_val, {}, {}, attr)
 
 
-class Solution(object):
+class Solution:
     """A solution to an optimization problem.
 
     Attributes

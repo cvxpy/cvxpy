@@ -93,7 +93,7 @@ def scs_cone_selectors(K):
     return selectors
 
 
-class SuppFunc(object):
+class SuppFunc:
 
     def __init__(self, x, constraints) -> None:
         """

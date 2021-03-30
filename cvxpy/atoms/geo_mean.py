@@ -316,7 +316,7 @@ class geo_mean(Atom):
     def get_data(self):
         return [self.w, self.w_dyad, self.tree]
 
-    def copy(self, args=None, id_objects={}):
+    def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the geo_mean atom.
 
         Parameters

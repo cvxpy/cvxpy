@@ -16,7 +16,7 @@ limitations under the License.
 import abc
 
 
-class ParamProb(object):
+class ParamProb:
     """An abstract base class for parameterized problems.
 
     Parameterized problems are produced during the first canonicalization

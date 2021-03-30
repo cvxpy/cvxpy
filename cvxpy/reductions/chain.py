@@ -11,9 +11,9 @@ class Chain(Reduction):
         A list of reductions.
     """
 
-    def __init__(self, problem=None, reductions=[]) -> None:
+    def __init__(self, problem=None, reductions=None) -> None:
         super(Chain, self).__init__(problem=problem)
-        self.reductions = reductions
+        self.reductions = [] if reductions is None else reductions
 
     def __str__(self):
         return str(self.reductions)
@@ -72,7 +72,7 @@ class Chain(Reduction):
         inverse_data = []
         for r in self.reductions:
             if verbose:
-                s.LOGGER.info('Applying reduction %s' % (type(r).__name__))
+                s.LOGGER.info('Applying reduction %s', type(r).__name__)
             problem, inv = r.apply(problem)
             inverse_data.append(inv)
         return problem, inverse_data

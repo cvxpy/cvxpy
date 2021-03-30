@@ -51,6 +51,7 @@ class Constant(Leaf):
         self._herm = None
         self._top_eig = None
         self._bottom_eig = None
+        self._cached_is_pos = None
         super(Constant, self).__init__(intf.shape(self.value))
 
     def name(self) -> str:
@@ -75,7 +76,7 @@ class Constant(Leaf):
     def is_pos(self) -> bool:
         """Returns whether the constant is elementwise positive.
         """
-        if not hasattr(self, '._cached_is_pos'):
+        if self._cached_is_pos is None:
             self._cached_is_pos = np.all(self._value > 0)
         return self._cached_is_pos
 

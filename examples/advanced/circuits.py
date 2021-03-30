@@ -18,7 +18,7 @@ limitations under the License.
 import cvxpy as cp
 import abc
 
-class Node(object):
+class Node:
     """ A node connecting devices. """
     def __init__(self):
         self.voltage = cp.Variable()
@@ -33,7 +33,7 @@ class Ground(Node):
     def constraints(self):
         return [self.voltage == 0] + super(Ground, self).constraints()
 
-class Device(object):
+class Device:
     __metaclass__ = abc.ABCMeta
     """ A device on a circuit. """
     def __init__(self, pos_node, neg_node):

@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 
 
-class Reduction(object):
+class Reduction:
     """Abstract base class for reductions.
 
     A reduction is an actor that transforms a problem into an

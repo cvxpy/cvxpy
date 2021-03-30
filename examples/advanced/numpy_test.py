@@ -16,7 +16,7 @@ limitations under the License.
 
 import numpy
 import abc
-class Meta(object):
+class Meta:
     def __subclasscheck__(self, subclass):
         print("hello")
 
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     print(issubclass(Meta, numpy.ndarray))
     print(issubclass(Test, numpy.ndarray))
     print(issubclass(numpy.ndarray, Test))
-    
+
     a = numpy.arange(2)
     t = Test(1)
     a + t

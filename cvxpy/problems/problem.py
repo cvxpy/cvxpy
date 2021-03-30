@@ -81,7 +81,7 @@ _FOOTER = (
 )
 
 
-class Cache(object):
+class Cache:
     def __init__(self) -> None:
         self.key = None
         self.solving_chain = None
@@ -143,6 +143,8 @@ class Problem(u.Canonical):
         self._size_metrics = None
         # Benchmarks reported by the solver:
         self._solver_stats = None
+        self._compilation_time = None
+        self._solve_time = None
         self.args = [self._objective, self._constraints]
 
     @property
@@ -597,15 +599,15 @@ class Problem(u.Canonical):
             if verbose:
                 s.LOGGER.info(
                         'Finished problem compilation '
-                        '(took %.3e seconds).' % self._compilation_time)
+                        '(took %.3e seconds).', self._compilation_time)
         else:
             if verbose:
                 solver_name = solving_chain.reductions[-1].name()
                 reduction_chain_str = ' -> '.join(
                         type(r).__name__ for r in solving_chain.reductions)
                 s.LOGGER.info(
-                         'Compiling problem (target solver=%s).' % solver_name)
-                s.LOGGER.info('Reduction chain: ' + reduction_chain_str)
+                         'Compiling problem (target solver=%s).', solver_name)
+                s.LOGGER.info('Reduction chain: %s', reduction_chain_str)
             data, inverse_data = solving_chain.apply(self, verbose)
             safe_to_cache = (
                 isinstance(data, dict)
@@ -617,7 +619,7 @@ class Problem(u.Canonical):
             if verbose:
                 s.LOGGER.info(
                         'Finished problem compilation '
-                        '(took %.3e seconds).' % self._compilation_time)
+                        '(took %.3e seconds).', self._compilation_time)
             if safe_to_cache:
                 if verbose and self.parameters():
                     s.LOGGER.info(
@@ -874,8 +876,8 @@ class Problem(u.Canonical):
             n_parameters = sum(np.prod(p.shape) for p in self.parameters())
             s.LOGGER.info(
                     'Your problem has %d variables, '
-                    '%d constraints, and ' '%d parameters.' % (
-                        n_variables, len(self.constraints), n_parameters))
+                    '%d constraints, and ' '%d parameters.',
+                        n_variables, len(self.constraints), n_parameters)
             curvatures = []
             if self.is_dcp():
                 curvatures.append('DCP')
@@ -884,7 +886,7 @@ class Problem(u.Canonical):
             if self.is_dqcp():
                 curvatures.append('DQCP')
             s.LOGGER.info(
-                    'It is compliant with the following grammars: ' +
+                    'It is compliant with the following grammars: %s',
                     ', '.join(curvatures))
             if n_parameters == 0:
                 s.LOGGER.info(
@@ -939,8 +941,8 @@ class Problem(u.Canonical):
         if verbose:
             print(_NUM_SOLVER_STR)
             s.LOGGER.info(
-                    'Invoking solver %s  to obtain a solution.' % (
-                        solving_chain.reductions[-1].name()))
+                    'Invoking solver %s  to obtain a solution.',
+                        solving_chain.reductions[-1].name())
         start = time.time()
         solution = solving_chain.solve_via_data(
             self, data, warm_start, verbose, kwargs)
@@ -949,12 +951,12 @@ class Problem(u.Canonical):
         self.unpack_results(solution, solving_chain, inverse_data)
         if verbose:
             print(_FOOTER)
-            s.LOGGER.info('Problem status: ' + self.status)
-            s.LOGGER.info('Optimal value: %.3e' % self.value)
-            s.LOGGER.info('Compilation took %.3e seconds' % self._compilation_time)
+            s.LOGGER.info('Problem status: %s', self.status)
+            s.LOGGER.info('Optimal value: %.3e', self.value)
+            s.LOGGER.info('Compilation took %.3e seconds', self._compilation_time)
             s.LOGGER.info(
                     'Solver (including time spent in interface) took '
-                    '%.3e seconds' % self._solve_time)
+                    '%.3e seconds', self._solve_time)
         return self.value
 
     def backward(self) -> None:
@@ -1339,7 +1341,7 @@ class Problem(u.Canonical):
     __truediv__ = __div__
 
 
-class SolverStats(object):
+class SolverStats:
     """Reports some of the miscellaneous information that is returned
     by the solver after solving but that is not captured directly by
     the Problem instance.
@@ -1376,7 +1378,7 @@ class SolverStats(object):
             self.extra_stats = results_dict[s.EXTRA_STATS]
 
 
-class SizeMetrics(object):
+class SizeMetrics:
     """Reports various metrics regarding the problem.
 
     Attributes
