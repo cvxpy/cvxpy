@@ -109,7 +109,7 @@ class Expression(u.Canonical):
         """
         return self.name()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a string with information about the expression.
         """
         return "Expression(%s, %s, %s)" % (self.curvature,
@@ -167,32 +167,32 @@ class Expression(u.Canonical):
         return curvature_str
 
     @perf.compute_once
-    def is_constant(self):
+    def is_constant(self) -> bool:
         """Is the expression constant?
         """
         return 0 in self.shape or all(
             arg.is_constant() for arg in self.args)
 
     @perf.compute_once
-    def is_affine(self):
+    def is_affine(self) -> bool:
         """Is the expression affine?
         """
         return self.is_constant() or (self.is_convex() and self.is_concave())
 
     @abc.abstractmethod
-    def is_convex(self):
+    def is_convex(self) -> bool:
         """Is the expression convex?
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def is_concave(self):
+    def is_concave(self) -> bool:
         """Is the expression concave?
         """
         raise NotImplementedError()
 
     @perf.compute_once
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp=False) -> bool:
         """Checks whether the Expression is DCP.
 
         Parameters
@@ -211,7 +211,7 @@ class Expression(u.Canonical):
                 return self.is_convex() or self.is_concave()
         return self.is_convex() or self.is_concave()
 
-    def is_log_log_constant(self):
+    def is_log_log_constant(self) -> bool:
         """Is the expression log-log constant, ie, elementwise positive?
         """
         if not self.is_constant():
@@ -223,25 +223,25 @@ class Expression(u.Canonical):
             return self.value is not None and np.all(self.value > 0)
 
     @perf.compute_once
-    def is_log_log_affine(self):
+    def is_log_log_affine(self) -> bool:
         """Is the expression affine?
         """
         return (self.is_log_log_constant()
                 or (self.is_log_log_convex() and self.is_log_log_concave()))
 
     @abc.abstractmethod
-    def is_log_log_convex(self):
+    def is_log_log_convex(self) -> bool:
         """Is the expression log-log convex?
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def is_log_log_concave(self):
+    def is_log_log_concave(self) -> bool:
         """Is the expression log-log concave?
         """
         raise NotImplementedError()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp=False) -> bool:
         """Checks whether the Expression is log-log DCP.
 
         Returns
@@ -255,22 +255,22 @@ class Expression(u.Canonical):
         return self.is_log_log_convex() or self.is_log_log_concave()
 
     @abc.abstractmethod
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context='dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
         raise NotImplementedError()
 
-    def is_quasiconvex(self):
+    def is_quasiconvex(self) -> bool:
         return self.is_convex()
 
-    def is_quasiconcave(self):
+    def is_quasiconcave(self) -> bool:
         return self.is_concave()
 
-    def is_quasilinear(self):
+    def is_quasilinear(self) -> bool:
         return self.is_quasiconvex() and self.is_quasiconcave()
 
     @perf.compute_once
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         """Checks whether the Expression is DQCP.
 
         Returns
@@ -280,42 +280,42 @@ class Expression(u.Canonical):
         """
         return self.is_quasiconvex() or self.is_quasiconcave()
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the expression a Hermitian matrix?
         """
         return (self.is_real() and self.is_symmetric())
 
-    def is_psd(self):
+    def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
         """
         # Default to False.
         return False
 
-    def is_nsd(self):
+    def is_nsd(self) -> bool:
         """Is the expression a negative semidefinite matrix?
         """
         # Default to False.
         return False
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         """Is the expression quadratic?
         """
         # Defaults to is constant.
         return self.is_constant()
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         # Defaults to false unless scalar.
         return self.is_scalar()
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         """Is the expression piecewise linear?
         """
         # Defaults to constant.
         return self.is_constant()
 
-    def is_qpwa(self):
+    def is_qpwa(self) -> bool:
         """Is the expression quadratic of piecewise affine?
         """
         return self.is_quadratic() or self.is_pwl()
@@ -337,19 +337,19 @@ class Expression(u.Canonical):
         return sign_str
 
     @perf.compute_once
-    def is_zero(self):
+    def is_zero(self) -> bool:
         """Is the expression all zero?
         """
         return self.is_nonneg() and self.is_nonpos()
 
     @abc.abstractmethod
-    def is_nonneg(self):
+    def is_nonneg(self) -> bool:
         """Is the expression positive?
         """
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def is_nonpos(self):
+    def is_nonpos(self) -> bool:
         """Is the expression negative?
         """
         raise NotImplementedError()
@@ -360,19 +360,19 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    def is_real(self):
+    def is_real(self) -> bool:
         """Is the Leaf real valued?
         """
         return not self.is_complex()
 
     @abc.abstractproperty
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
         raise NotImplementedError()
 
     @abc.abstractproperty
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the Leaf complex valued?
         """
         raise NotImplementedError()
@@ -384,7 +384,7 @@ class Expression(u.Canonical):
         return np.prod(self.shape, dtype=int)
 
     @property
-    def ndim(self):
+    def ndim(self) -> int:
         """int : The number of dimensions in the expression's shape.
         """
         return len(self.shape)
@@ -394,17 +394,17 @@ class Expression(u.Canonical):
         """
         return cvxtypes.vec()(self)
 
-    def is_scalar(self):
+    def is_scalar(self) -> bool:
         """Is the expression a scalar?
         """
         return all(d == 1 for d in self.shape)
 
-    def is_vector(self):
+    def is_vector(self) -> bool:
         """Is the expression a column or row vector?
         """
         return self.ndim <= 1 or (self.ndim == 2 and min(self.shape) == 1)
 
-    def is_matrix(self):
+    def is_matrix(self) -> bool:
         """Is the expression a matrix?
         """
         return self.ndim == 2 and self.shape[0] > 1 and self.shape[1] > 1
@@ -639,7 +639,7 @@ class Expression(u.Canonical):
         return PSD(self - other)
 
     # Needed for Python3:
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)
 
     # Comparison operators.

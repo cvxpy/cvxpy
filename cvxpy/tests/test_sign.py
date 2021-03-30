@@ -21,24 +21,24 @@ from cvxpy.tests.base_test import BaseTest
 class TestSign(BaseTest):
     """ Unit tests for the expression/sign class. """
     @classmethod
-    def setUpClass(self):
+    def setUpClass(self) -> None:
         self.pos = Constant(1)
         self.neg = Constant(-1)
         self.zero = Constant(0)
         self.unknown = Variable()
 
-    def test_add(self):
+    def test_add(self) -> None:
         self.assertEqual((self.pos + self.neg).sign, self.unknown.sign)
         self.assertEqual((self.neg + self.zero).sign, self.neg.sign)
         self.assertEqual((self.pos + self.pos).sign, self.pos.sign)
         self.assertEqual((self.unknown + self.zero).sign, self.unknown.sign)
 
-    def test_sub(self):
+    def test_sub(self) -> None:
         self.assertEqual((self.pos - self.neg).sign, self.pos.sign)
         self.assertEqual((self.neg - self.zero).sign, self.neg.sign)
         self.assertEqual((self.pos - self.pos).sign, self.unknown.sign)
 
-    def test_mult(self):
+    def test_mult(self) -> None:
         self.assertEqual((self.zero * self.pos).sign, self.zero.sign)
         self.assertEqual((self.unknown * self.pos).sign, self.unknown.sign)
         self.assertEqual((self.pos * self.neg).sign, self.neg.sign)
@@ -47,12 +47,12 @@ class TestSign(BaseTest):
         self.assertEqual((self.neg * self.neg).sign, self.pos.sign)
         self.assertEqual((self.zero * self.unknown).sign, self.zero.sign)
 
-    def test_neg(self):
+    def test_neg(self) -> None:
         self.assertEqual((-self.zero).sign, self.zero.sign)
         self.assertEqual((-self.pos).sign, self.neg.sign)
 
     # Tests the is_nonneg and is_nonpos methods.
-    def test_is_sign(self):
+    def test_is_sign(self) -> None:
         assert self.pos.is_nonneg()
         assert not self.neg.is_nonneg()
         assert not self.unknown.is_nonneg()

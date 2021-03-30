@@ -35,15 +35,15 @@ class Sum(AxisAtom, AffAtom):
         Whether to drop dimensions after summing.
     """
 
-    def __init__(self, expr, axis=None, keepdims=False):
+    def __init__(self, expr, axis=None, keepdims: bool=False) -> None:
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False

@@ -14,9 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.atoms.atom import Atom
 import numpy as np
 from numpy import linalg as LA
+from typing import List, Tuple
+
 import scipy.sparse as sp
 
 
@@ -25,7 +28,7 @@ class log_det(Atom):
 
     """
 
-    def __init__(self, A):
+    def __init__(self, A) -> None:
         super(log_det, self).__init__(A)
 
     def numeric(self, values):
@@ -41,7 +44,7 @@ class log_det(Atom):
             return -np.inf
 
     # Any argument shape is valid.
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         X = self.args[0]
         if len(X.shape) == 1 or X.shape[0] != X.shape[1]:
             raise TypeError("The argument to log_det must be a square matrix.")
@@ -51,27 +54,27 @@ class log_det(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
@@ -97,7 +100,7 @@ class log_det(Atom):
         else:
             return [None]
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >> 0]

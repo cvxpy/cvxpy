@@ -27,7 +27,7 @@ class TestExamples(BaseTest):
     """ Unit tests using example problems. """
 
     # Find the largest Euclidean ball in the polyhedron.
-    def test_chebyshev_center(self):
+    def test_chebyshev_center(self) -> None:
         # The goal is to find the largest Euclidean ball (i.e. its center and
         # radius) that lies in a polyhedron described by linear inequalities in this
         # fashion: P = {x : a_i'*x <= b_i, i=1,...,m} where x is in R^2
@@ -57,7 +57,7 @@ class TestExamples(BaseTest):
         self.assertItemsAlmostEqual(x_c.value, [0, 0])
 
     # Test issue with numpy scalars.
-    def test_numpy_scalars(self):
+    def test_numpy_scalars(self) -> None:
         n = 6
         eps = 1e-6
         np.random.seed(10)
@@ -115,7 +115,7 @@ class TestExamples(BaseTest):
         self.assertEqual(intf.shape(dual_result), (1, 1))
 
     # Tests examples from the README.
-    def test_readme_examples(self):
+    def test_readme_examples(self) -> None:
         import numpy
         numpy.random.seed(1)
         # cvx.Problem data.
@@ -269,7 +269,7 @@ class TestExamples(BaseTest):
         print(a.value)
         print(b.value)
 
-    def test_advanced1(self):
+    def test_advanced1(self) -> None:
         """Code from the advanced tutorial.
         """
         # Solving a problem with different solvers.
@@ -325,7 +325,7 @@ class TestExamples(BaseTest):
 
         print(cvx.installed_solvers())
 
-    def test_log_det(self):
+    def test_log_det(self) -> None:
         # Generate data
         x = np.array([[0.55, 0.0],
                       [0.25, 0.35],
@@ -346,7 +346,7 @@ class TestExamples(BaseTest):
         result = p.solve()
         self.assertAlmostEqual(result, 1.9746, places=2)
 
-    def test_portfolio_problem(self):
+    def test_portfolio_problem(self) -> None:
         """Test portfolio problem that caused dcp_attr errors.
         """
         import numpy as np
@@ -369,7 +369,7 @@ class TestExamples(BaseTest):
         # is scalar.
         cvx.square(cvx.norm(D @ x)) + cvx.square(Z @ y)
 
-    def test_intro(self):
+    def test_intro(self) -> None:
         """Test examples from cvxpy.org introduction.
         """
         import numpy
@@ -582,7 +582,7 @@ class TestExamples(BaseTest):
         except ValueError as e:
             print(e)
 
-    def test_inpainting(self):
+    def test_inpainting(self) -> None:
         """Test image in-painting.
         """
         import numpy as np
@@ -608,7 +608,7 @@ class TestExamples(BaseTest):
         prob = cvx.Problem(obj, constraints)
         prob.solve(solver=cvx.SCS)
 
-    def test_advanced2(self):
+    def test_advanced2(self) -> None:
         """Test code from the advanced section of the tutorial.
         """
         x = cvx.Variable()
@@ -633,7 +633,7 @@ class TestExamples(BaseTest):
         # Unpack raw solver output.
         prob.unpack_results(solution, chain, inverse)
 
-    def test_log_sum_exp(self):
+    def test_log_sum_exp(self) -> None:
         """Test log_sum_exp function that failed in Github issue.
         """
         import numpy as np

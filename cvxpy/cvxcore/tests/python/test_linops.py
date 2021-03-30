@@ -6,7 +6,7 @@ import scipy.sparse as sp
 
 
 class TestLinOps(BaseTest):
-    def assertDataEqual(self, original_data, canon_data):
+    def assertDataEqual(self, original_data, canon_data) -> None:
         for key in ['A', 'b', 'c', 'G', 'h']:
             M1, M2 = original_data[key], canon_data[key]
             if isinstance(M1, sp.csc.csc_matrix):
@@ -14,7 +14,7 @@ class TestLinOps(BaseTest):
             else:
                 self.assertTrue(np.allclose(M1, M2))
 
-    def assertConstraintsMatch(self, constraints):
+    def assertConstraintsMatch(self, constraints) -> None:
         settings.USE_CVXCANON = False
         p = Problem(Minimize(0), constraints)
         cvxpy_data = p.get_problem_data(ECOS)
@@ -25,27 +25,27 @@ class TestLinOps(BaseTest):
 
         self.assertDataEqual(cvxpy_data, cvx_canon_data)
 
-    def test_sum_dense(self):
+    def test_sum_dense(self) -> None:
         rows, cols = 3, 3
         x1 = Variable(rows, cols)
         x2 = Variable(rows, cols)
         A = np.random.randn(rows, cols)
         self.assertConstraintsMatch([x1 + x2 == A])
 
-    def test_sum_sparse(self):
+    def test_sum_sparse(self) -> None:
         rows, cols = 75, 100
         x1 = Variable(rows, cols)
         x2 = Variable(rows, cols)
         A_sp = sp.rand(rows, cols, density=0.01)
         self.assertConstraintsMatch([x1 + x2 == A_sp])
 
-    def test_promote(self):
+    def test_promote(self) -> None:
         rows = 10
         b = Variable()
         v1 = Variable(rows, 1)
         self.assertConstraintsMatch([v1 == b])
 
-    def test_mul_dense(self):
+    def test_mul_dense(self) -> None:
         rows, cols = 15, 17
 
         A = np.random.randn(rows, cols)
@@ -54,7 +54,7 @@ class TestLinOps(BaseTest):
         y = Variable(rows, 1)
         self.assertConstraintsMatch([A*x == b, A*x == y])
 
-    def test_mul_sparse(self):
+    def test_mul_sparse(self) -> None:
         rows, cols = 75, 100
 
         A_sp = Constant(sp.rand(rows, cols, density=0.01))
@@ -63,7 +63,7 @@ class TestLinOps(BaseTest):
         y = Variable(rows, 1)
         self.assertConstraintsMatch([A_sp*x == b, A_sp*x == y])
 
-    def test_rmul_dense(self):
+    def test_rmul_dense(self) -> None:
         rows, cols = 15, 17
         A = np.random.randn(rows, cols)
         b = Variable(1, cols)
@@ -71,7 +71,7 @@ class TestLinOps(BaseTest):
         y = Variable(1, cols)
         self.assertConstraintsMatch([x * A == b, x * A == y])
 
-    def test_rmul_sparse(self):
+    def test_rmul_sparse(self) -> None:
         rows, cols = 75, 100
         A_sp = Constant(sp.rand(rows, cols, density=0.01))
         b = Variable(1, cols)
@@ -79,39 +79,39 @@ class TestLinOps(BaseTest):
         y = Variable(1, cols)
         self.assertConstraintsMatch([x * A_sp == b, x * A_sp == y])
 
-    def test_mul_elemwise_dense(self):
+    def test_mul_elemwise_dense(self) -> None:
         rows, cols = 15, 17
         A = np.random.randn(rows, cols)
         x1 = Variable(rows, cols)
         M = Variable(rows, cols)
         self.assertConstraintsMatch([mul_elemwise(A, x1) == M])
 
-    def test_mul_elemwise_sparse(self):
+    def test_mul_elemwise_sparse(self) -> None:
         rows, cols = 75, 100
         A_sp = Constant(sp.rand(rows, cols, density=0.01))
         x1 = Variable(rows, cols)
         M = Variable(rows, cols)
         self.assertConstraintsMatch([mul_elemwise(A_sp, x1) == M])
 
-    def test_div(self):
+    def test_div(self) -> None:
         x = Variable()
         self.assertConstraintsMatch([x / 4 == 3])
 
-    def test_neg_dense(self):
+    def test_neg_dense(self) -> None:
         rows, cols = 3, 3
         x1 = Variable(rows, cols)
         x2 = Variable(rows, cols)
         A = np.random.randn(rows, cols)
         self.assertConstraintsMatch([x1 - x2 == A])
 
-    def test_neg_sparse(self):
+    def test_neg_sparse(self) -> None:
         rows, cols = 3, 3
         x1 = Variable(rows, cols)
         x2 = Variable(rows, cols)
         A_sp = sp.rand(rows, cols, density=0.01)
         self.assertConstraintsMatch([x1 - x2 == A_sp])
 
-    def test_index(self):
+    def test_index(self) -> None:
         rows, cols = 15, 17
         X = Variable(rows, cols)
 
@@ -137,29 +137,29 @@ class TestLinOps(BaseTest):
             constr = [X[xi:xj:xk, ry] == 0, X[rx, yi:yj:yk] == 0]
             self.assertConstraintsMatch(constr)
 
-    def test_transpose_dense(self):
+    def test_transpose_dense(self) -> None:
         rows, cols = 15, 17
         X = Variable(rows, cols)
         A = np.random.randn(rows, cols)
         self.assertConstraintsMatch([X.T == A.T])
 
-    def test_transpose_sparse(self):
+    def test_transpose_sparse(self) -> None:
         rows, cols = 75, 100
         X = Variable(rows, cols)
         A_sp = sp.rand(rows, cols, density=0.01)
         self.assertConstraintsMatch([X.T == A_sp.T])
 
-    def test_sum_entries(self):
+    def test_sum_entries(self) -> None:
         rows, cols = 15, 17
         X = Variable(rows, cols)
         self.assertConstraintsMatch([sum_entries(X) == 4.5])
 
-    def test_trace(self):
+    def test_trace(self) -> None:
         n = 15
         X = Variable(n, n)
         self.assertConstraintsMatch([trace(X) == 3])
 
-    def test_reshape_dense(self):
+    def test_reshape_dense(self) -> None:
         rows, cols = 15, 17
         X = Variable(rows, cols)
 
@@ -176,7 +176,7 @@ class TestLinOps(BaseTest):
         constr = [reshape(X, m, n) == A]
         self.assertConstraintsMatch(constr)
 
-    def test_reshape_sparse(self):
+    def test_reshape_sparse(self) -> None:
         rows, cols = 75, 100
         X = Variable(rows, cols)
 
@@ -193,39 +193,39 @@ class TestLinOps(BaseTest):
         constr = [reshape(X, m, n) == A]
         self.assertConstraintsMatch(constr)
 
-    def test_diag_vec_dense(self):
+    def test_diag_vec_dense(self) -> None:
         n = 15
         x = Variable(n, 1)
         constr = [diag(x) == np.eye(n)]
         self.assertConstraintsMatch(constr)
 
-    def test_diag_vec_sparse(self):
+    def test_diag_vec_sparse(self) -> None:
         n = 15
         x = Variable(n, 1)
         constr = [diag(x) == sp.eye(n)]
         self.assertConstraintsMatch(constr)
 
-    def test_diag_mat_dense(self):
+    def test_diag_mat_dense(self) -> None:
         n = 15
         X = Variable(n, n)
         v = np.random.randn(n)
         constr = [diag(X) == v]
         self.assertConstraintsMatch(constr)
 
-    def test_diag_mat_sparse(self):
+    def test_diag_mat_sparse(self) -> None:
         n = 15
         X = Variable(n, n)
         v = sp.rand(n, 1, density=0.01)
         constr = [diag(X) == v]
         self.assertConstraintsMatch(constr)
 
-    def test_upper_tri(self):
+    def test_upper_tri(self) -> None:
         n = 15
         X = Variable(n, n)
         constr = [upper_tri(X) == 0]
         self.assertConstraintsMatch(constr)
 
-    def test_conv(self):
+    def test_conv(self) -> None:
         n, m = 15, 17
         c = np.random.randn(m, 1)
         x = Variable(n, 1)
@@ -234,7 +234,7 @@ class TestLinOps(BaseTest):
         constr = [conv(c, x) == y]
         self.assertConstraintsMatch(constr)
 
-    def test_hstack_dense(self):
+    def test_hstack_dense(self) -> None:
         rows, cols = 15, 17
         X1 = Variable(rows, cols)
         X2 = Variable(rows, cols)
@@ -246,7 +246,7 @@ class TestLinOps(BaseTest):
         constr = [hstack(X1, X2, X3, X4, X5) == A]
         self.assertConstraintsMatch(constr)
 
-    def test_hstack_sparse(self):
+    def test_hstack_sparse(self) -> None:
         rows, cols = 15, 17
         X1 = Variable(rows, cols)
         X2 = Variable(rows, cols)
@@ -258,7 +258,7 @@ class TestLinOps(BaseTest):
         constr = [hstack(X1, X2, X3, X4, X5) == A_sp]
         self.assertConstraintsMatch(constr)
 
-    def test_vstack_dense(self):
+    def test_vstack_dense(self) -> None:
         rows, cols = 15, 17
         X1 = Variable(rows, cols)
         X2 = Variable(rows, cols)
@@ -270,7 +270,7 @@ class TestLinOps(BaseTest):
         constr = [vstack(X1, X2, X3, X4, X5) == A]
         self.assertConstraintsMatch(constr)
 
-    def test_vstack_sparse(self):
+    def test_vstack_sparse(self) -> None:
         rows, cols = 75, 100
         X1 = Variable(rows, cols)
         X2 = Variable(rows, cols)
@@ -282,7 +282,7 @@ class TestLinOps(BaseTest):
         constr = [vstack(X1, X2, X3, X4, X5) == A_sp]
         self.assertConstraintsMatch(constr)
 
-    def test_kron_dense(self):
+    def test_kron_dense(self) -> None:
         m, n = 3, 5
         p, q = 7, 9
         X = Variable(m, n)
@@ -291,7 +291,7 @@ class TestLinOps(BaseTest):
         constr = [kron(C, X) == A]
         self.assertConstraintsMatch(constr)
 
-    def test_kron_sparse(self):
+    def test_kron_sparse(self) -> None:
         m, n = 13, 15
         p, q = 17, 19
         X = Variable(m, n)

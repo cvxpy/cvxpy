@@ -69,7 +69,7 @@ class ECOS(ConicSolver):
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 2, 1]
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         import ecos

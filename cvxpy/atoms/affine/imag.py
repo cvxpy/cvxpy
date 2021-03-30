@@ -21,7 +21,7 @@ import numpy as np
 class imag(AffAtom):
     """Extracts the imaginary part of an expression.
     """
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(imag, self).__init__(expr)
 
     def numeric(self, values):
@@ -34,17 +34,17 @@ class imag(AffAtom):
         """
         return self.args[0].shape
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the expression imaginary?
         """
         return False
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the expression complex valued?
         """
         return False
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         return self.args[0].is_hermitian()

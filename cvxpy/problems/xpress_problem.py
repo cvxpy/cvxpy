@@ -45,44 +45,23 @@ class XpressProblem (Problem):
     # The solve methods available.
     REGISTERED_SOLVE_METHODS = {}
 
-    def __init__(self, objective, constraints=None):
+    def __init__(self, objective, constraints=None) -> None:
 
         super(XpressProblem, self).__init__(objective, constraints)
         self._iis = None
 
-    def _reset_iis(self):
+    def _reset_iis(self) -> None:
         """Clears the iis information
         """
 
         self._iis = None
         self._transferRow = None
 
-    def _update_problem_state(self, results_dict, sym_data, solver):
-        """Updates the problem state given the solver results.
-
-        Updates problem.status, problem.value and value of
-        primal and dual variables.
-
-        Parameters
-        ----------
-        results_dict : dict
-            A dictionary containing the solver results.
-        sym_data : SymData
-            The symbolic data for the problem.
-        solver : Solver
-            The solver type used to obtain the results.
-        """
-
-        super(XpressProblem, self)._update_problem_state(results_dict, sym_data, solver)
-
-        self._iis = results_dict[s.XPRESS_IIS]
-        self._transferRow = results_dict[s.XPRESS_TROW]
-
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "XpressProblem(%s, %s)" % (repr(self.objective),
                                           repr(self.constraints))
 
-    def __neg__(self):
+    def __neg__(self) -> "XpressProblem":
         return XpressProblem(-self.objective, self.constraints)
 
     def __add__(self, other):

@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from typing import Tuple
+
 import numpy as np
 
 
@@ -22,7 +24,7 @@ class exp(Elementwise):
     """Elementwise :math:`e^{x}`.
     """
 
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         super(exp, self).__init__(x)
 
     # Returns the matrix e^x[i, j].
@@ -30,38 +32,38 @@ class exp(Elementwise):
     def numeric(self, values):
         return np.exp(values[0])
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

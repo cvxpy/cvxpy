@@ -24,11 +24,11 @@ class sum_largest(Atom):
     """Sum of the largest k values in the matrix X.
     """
 
-    def __init__(self, x, k):
+    def __init__(self, x, k) -> None:
         self.k = k
         super(sum_largest, self).__init__(x)
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Verify that k is a positive integer.
         """
         if int(self.k) != self.k or self.k <= 0:
@@ -71,22 +71,22 @@ class sum_largest(Atom):
         # Same as argument.
         return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

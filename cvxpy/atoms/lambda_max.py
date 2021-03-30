@@ -16,6 +16,8 @@ limitations under the License.
 
 from cvxpy.atoms.atom import Atom
 from scipy import linalg as LA
+from typing import Tuple
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -24,7 +26,7 @@ class lambda_max(Atom):
     """ Maximum eigenvalue; :math:`\\lambda_{\\max}(A)`.
     """
 
-    def __init__(self, A):
+    def __init__(self, A) -> None:
         super(lambda_max, self).__init__(A)
 
     def numeric(self, values):
@@ -58,7 +60,7 @@ class lambda_max(Atom):
         D = v.dot(d).dot(v.T)
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Verify that the argument A is square.
         """
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
@@ -70,27 +72,27 @@ class lambda_max(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (False, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

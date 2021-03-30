@@ -18,6 +18,7 @@ from __future__ import division
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
 from scipy.special import xlogy
+from typing import Any, List, Tuple
 
 
 class kl_div(Elementwise):
@@ -25,7 +26,7 @@ class kl_div(Elementwise):
 
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y) -> None:
         super(kl_div, self).__init__(x, y)
 
     @Elementwise.numpy_numeric
@@ -35,33 +36,33 @@ class kl_div(Elementwise):
         # TODO return inf outside the domain
         return xlogy(x, x/y) - x + y
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
 
-    def _grad(self, values):
+    def _grad(self, values) -> List[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

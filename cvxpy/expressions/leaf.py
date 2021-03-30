@@ -19,6 +19,8 @@ from cvxpy.expressions import expression
 from cvxpy.settings import (GENERAL_PROJECTION_TOL,
                             PSD_NSD_PROJECTION_TOL,
                             SPARSE_PROJECTION_TOL)
+from typing import Tuple
+
 import cvxpy.interface as intf
 import numbers
 import numpy as np
@@ -82,12 +84,12 @@ class Leaf(expression.Expression):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, shape, value=None, nonneg=False, nonpos=False,
-                 complex=False, imag=False,
-                 symmetric=False, diag=False, PSD=False,
-                 NSD=False, hermitian=False,
-                 boolean=False, integer=False,
-                 sparsity=None, pos=False, neg=False):
+    def __init__(self, shape: Tuple[int], value=None, nonneg: bool=False, nonpos: bool=False,
+                 complex: bool=False, imag: bool=False,
+                 symmetric: bool=False, diag: bool=False, PSD: bool=False,
+                 NSD: bool=False, hermitian: bool=False,
+                 boolean: bool=False, integer: bool=False,
+                 sparsity=None, pos: bool=False, neg: bool=False) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         elif len(shape) > 2:
@@ -137,7 +139,7 @@ class Leaf(expression.Expression):
 
         self.args = []
 
-    def _get_attr_str(self):
+    def _get_attr_str(self) -> str:
         """Get a string representing the attributes.
         """
         attr_str = ""
@@ -146,7 +148,7 @@ class Leaf(expression.Expression):
                 attr_str += ", %s=%s" % (attr, val)
         return attr_str
 
-    def copy(self, args=None, id_objects={}):
+    def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the object.
 
         Used to reconstruct an object tree.
@@ -161,11 +163,12 @@ class Leaf(expression.Expression):
         -------
         Expression
         """
+        id_objects = {} if id_objects is None else id_objects
         if id(self) in id_objects:
             return id_objects[id(self)]
         return self  # Leaves are not deep copied.
 
-    def get_data(self):
+    def get_data(self) -> None:
         """Leaves are not copied.
         """
         pass
@@ -191,65 +194,65 @@ class Leaf(expression.Expression):
         """
         return []
 
-    def is_convex(self):
+    def is_convex(self) -> bool:
         """Is the expression convex?
         """
         return True
 
-    def is_concave(self):
+    def is_concave(self) -> bool:
         """Is the expression concave?
         """
         return True
 
-    def is_log_log_convex(self):
+    def is_log_log_convex(self) -> bool:
         """Is the expression log-log convex?
         """
         return self.is_pos()
 
-    def is_log_log_concave(self):
+    def is_log_log_concave(self) -> bool:
         """Is the expression log-log concave?
         """
         return self.is_pos()
 
-    def is_nonneg(self):
+    def is_nonneg(self) -> bool:
         """Is the expression nonnegative?
         """
         return (self.attributes['nonneg'] or self.attributes['pos'] or
                 self.attributes['boolean'])
 
-    def is_nonpos(self):
+    def is_nonpos(self) -> bool:
         """Is the expression nonpositive?
         """
         return self.attributes['nonpos'] or self.attributes['neg']
 
-    def is_pos(self):
+    def is_pos(self) -> bool:
         """Is the expression positive?
         """
         return self.attributes['pos']
 
-    def is_neg(self):
+    def is_neg(self) -> bool:
         """Is the expression negative?
         """
         return self.attributes['neg']
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the Leaf hermitian?
         """
         return (self.is_real() and self.is_symmetric()) or \
             self.attributes['hermitian'] or self.is_psd() or self.is_nsd()
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the Leaf symmetric?
         """
         return self.is_scalar() or \
             any(self.attributes[key] for key in ['diag', 'symmetric', 'PSD', 'NSD'])
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
         return self.attributes['imag']
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the Leaf complex valued?
         """
         return self.attributes['complex'] or self.is_imag() or self.attributes['hermitian']
@@ -341,20 +344,20 @@ class Leaf(expression.Expression):
             return val
 
     # Getter and setter for parameter value.
-    def save_value(self, val):
+    def save_value(self, val) -> None:
         self._value = val
 
     @property
-    def value(self):
+    def value(self) -> None:
         """NumPy.ndarray or None: The numeric value of the parameter.
         """
         return self._value
 
     @value.setter
-    def value(self, val):
+    def value(self, val) -> None:
         self.save_value(self._validate_value(val))
 
-    def project_and_assign(self, val):
+    def project_and_assign(self, val) -> None:
         """Project and assign a value to the variable.
         """
         self.save_value(self.project(val))
@@ -429,27 +432,27 @@ class Leaf(expression.Expression):
                 )
         return val
 
-    def is_psd(self):
+    def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
         """
         return self.attributes['PSD']
 
-    def is_nsd(self):
+    def is_nsd(self) -> bool:
         """Is the expression a negative semidefinite matrix?
         """
         return self.attributes['NSD']
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         """Leaf nodes are always quadratic.
         """
         return True
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         """Leaf nodes are always piecewise linear.
         """
         return True
 
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context: str='dcp') -> bool:
         """The expression is a disciplined parameterized expression.
 
            context: dcp or dgp

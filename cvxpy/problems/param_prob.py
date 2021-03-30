@@ -25,7 +25,7 @@ class ParamProb:
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
-    def is_mixed_integer(self):
+    def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
         raise NotImplementedError()
 

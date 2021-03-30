@@ -25,11 +25,11 @@ class lambda_sum_largest(lambda_max):
     """
     _allow_complex = True
 
-    def __init__(self, X, k):
+    def __init__(self, X, k) -> None:
         self.k = k
         super(lambda_sum_largest, self).__init__(X)
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Verify that the argument A is square.
         """
         X = self.args[0]

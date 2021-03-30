@@ -74,7 +74,7 @@ class MOSEK(ConicSolver):
     with this convention, EXP_CONE_ORDER should be should be [2, 1, 0].
     """
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver (updates the set of supported constraints, if applicable).
         """
         import mosek
@@ -88,7 +88,7 @@ class MOSEK(ConicSolver):
         """
         return s.MOSEK
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can the installed version of Mosek solve the problem?
         """
         # TODO check if is matrix stuffed.

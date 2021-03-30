@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from typing import Tuple
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -21,14 +23,14 @@ import scipy.sparse as sp
 class ceil(Elementwise):
     """Elementwise ceiling."""
 
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         return super(ceil, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.ceil(values[0])
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         if self.args[0].is_nonneg() and self.args[0].is_nonpos():
@@ -40,42 +42,42 @@ class ceil(Elementwise):
         else:
             return (False, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return False
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_atom_quasiconvex(self):
+    def is_atom_quasiconvex(self) -> bool:
         """Is the atom quasiconvex?
         """
         return True
 
-    def is_atom_quasiconcave(self):
+    def is_atom_quasiconcave(self) -> bool:
         """Is the atom quasiconcave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
@@ -97,14 +99,14 @@ class ceil(Elementwise):
 class floor(Elementwise):
     """Elementwise floor."""
 
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         return super(floor, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
         return np.floor(values[0])
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         if self.args[0].is_nonneg() and self.args[0].is_nonpos():
@@ -116,42 +118,42 @@ class floor(Elementwise):
         else:
             return (False, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return False
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_atom_quasiconvex(self):
+    def is_atom_quasiconvex(self) -> bool:
         """Is the atom quasiconvex?
         """
         return True
 
-    def is_atom_quasiconcave(self):
+    def is_atom_quasiconcave(self) -> bool:
         """Is the atom quasiconcave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

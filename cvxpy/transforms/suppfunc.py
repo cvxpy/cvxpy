@@ -95,7 +95,7 @@ def scs_cone_selectors(K):
 
 class SuppFunc:
 
-    def __init__(self, x, constraints):
+    def __init__(self, x, constraints) -> None:
         """
         A callable python object, representing the support function of the convex set:
 
@@ -140,7 +140,7 @@ class SuppFunc:
         sigma_at_y = SuppFuncAtom(y, self)
         return sigma_at_y
 
-    def _compute_conic_repr_of_set(self):
+    def _compute_conic_repr_of_set(self) -> None:
         if len(self.constraints) == 0:
             dummy = Variable()
             constrs = [dummy == 1]

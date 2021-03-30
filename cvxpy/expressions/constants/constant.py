@@ -22,6 +22,7 @@ from cvxpy.utilities import performance_utils as perf
 from scipy.sparse.linalg import eigsh
 from scipy.sparse.linalg.eigen.arpack.arpack import ArpackError
 import numpy as np
+from typing import List
 
 
 class Constant(Leaf):
@@ -35,7 +36,7 @@ class Constant(Leaf):
     casting ``c`` to a Constant.
     """
 
-    def __init__(self, value):
+    def __init__(self, value) -> None:
         # Keep sparse matrices sparse.
         if intf.is_sparse(value):
             self._value = intf.DEFAULT_SPARSE_INTF.const_to_matrix(
@@ -50,19 +51,20 @@ class Constant(Leaf):
         self._herm = None
         self._top_eig = None
         self._bottom_eig = None
+        self._cached_is_pos = None
         super(Constant, self).__init__(intf.shape(self.value))
 
-    def name(self):
+    def name(self) -> str:
         """The value as a string.
         """
         return str(self.value)
 
-    def constants(self):
+    def constants(self) -> List["Constant"]:
         """Returns self as a constant.
         """
         return [self]
 
-    def is_constant(self):
+    def is_constant(self) -> bool:
         return True
 
     @property
@@ -71,10 +73,10 @@ class Constant(Leaf):
         """
         return self._value
 
-    def is_pos(self):
+    def is_pos(self) -> bool:
         """Returns whether the constant is elementwise positive.
         """
-        if not hasattr(self, '._cached_is_pos'):
+        if self._cached_is_pos is None:
             self._cached_is_pos = np.all(self._value > 0)
         return self._cached_is_pos
 
@@ -104,28 +106,28 @@ class Constant(Leaf):
         obj = lu.create_const(self.value, self.shape, self._sparse)
         return (obj, [])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a string with information about the expression.
         """
         return "Constant(%s, %s, %s)" % (self.curvature,
                                          self.sign,
                                          self.shape)
 
-    def is_nonneg(self):
+    def is_nonneg(self) -> bool:
         """Is the expression nonnegative?
         """
         if self._nonneg is None:
             self._compute_attr()
         return self._nonneg
 
-    def is_nonpos(self):
+    def is_nonpos(self) -> bool:
         """Is the expression nonpositive?
         """
         if self._nonpos is None:
             self._compute_attr()
         return self._nonpos
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
         if self._imag is None:
@@ -133,13 +135,13 @@ class Constant(Leaf):
         return self._imag
 
     @perf.compute_once
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the Leaf complex valued?
         """
         return np.iscomplexobj(self.value)
 
     @perf.compute_once
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         if self.is_scalar():
@@ -152,7 +154,7 @@ class Constant(Leaf):
             return False
 
     @perf.compute_once
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the expression a Hermitian matrix?
         """
         if self.is_scalar() and self.is_real():
@@ -164,7 +166,7 @@ class Constant(Leaf):
         else:
             return False
 
-    def _compute_attr(self):
+    def _compute_attr(self) -> None:
         """Compute the attributes of the constant related to complex/real, sign.
         """
         # Set DCP attributes.
@@ -177,7 +179,7 @@ class Constant(Leaf):
         self._nonpos = is_nonpos
         self._nonneg = is_nonneg
 
-    def _compute_symm_attr(self):
+    def _compute_symm_attr(self) -> None:
         """Determine whether the constant is symmetric/Hermitian.
         """
         # Set DCP attributes.
@@ -186,7 +188,7 @@ class Constant(Leaf):
         self._herm = is_herm
 
     @perf.compute_once
-    def is_psd(self):
+    def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
         """
         # Symbolic only cases.
@@ -209,7 +211,7 @@ class Constant(Leaf):
         return self._bottom_eig >= -EIGVAL_TOL
 
     @perf.compute_once
-    def is_nsd(self):
+    def is_nsd(self) -> bool:
         """Is the expression a negative semidefinite matrix?
         """
         # Symbolic only cases.
@@ -232,7 +234,7 @@ class Constant(Leaf):
         return self._top_eig <= EIGVAL_TOL
 
 
-def extremal_eig_near_ref(A, ref, low=True):
+def extremal_eig_near_ref(A, ref, low: bool = True):
 
     def SA_eigsh(sigma):
         return eigsh(A, k=1, sigma=sigma, return_eigenvectors=False)

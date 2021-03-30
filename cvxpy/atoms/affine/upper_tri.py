@@ -19,6 +19,7 @@ from cvxpy.atoms.affine.reshape import reshape
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from scipy.sparse import csc_matrix
+from typing import Tuple
 
 
 class upper_tri(AffAtom):
@@ -38,7 +39,7 @@ class upper_tri(AffAtom):
     ```
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(upper_tri, self).__init__(expr)
 
     @AffAtom.numpy_numeric
@@ -54,7 +55,7 @@ class upper_tri(AffAtom):
                     count += 1
         return value
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.
         """
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
@@ -62,18 +63,18 @@ class upper_tri(AffAtom):
                 "Argument to upper_tri must be a square matrix."
             )
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, int]:
         """A vector.
         """
         rows, cols = self.args[0].shape
         return (rows*(cols-1)//2, 1)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True

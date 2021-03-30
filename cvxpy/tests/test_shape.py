@@ -23,17 +23,17 @@ import unittest
 class TestShape(unittest.TestCase):
     """ Unit tests for the expressions/shape module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         pass
 
     # Test adding two shapes.
-    def test_add_matching(self):
+    def test_add_matching(self) -> None:
         """Test addition of matching shapes.
         """
         self.assertEqual(shape.sum_shapes([(3, 4), (3, 4)]), (3, 4))
         self.assertEqual(shape.sum_shapes([(3, 4)] * 5), (3, 4))
 
-    def test_add_broadcasting(self):
+    def test_add_broadcasting(self) -> None:
         """Test broadcasting of shapes during addition.
         """
         # Broadcasting with scalars is permitted.
@@ -65,13 +65,13 @@ class TestShape(unittest.TestCase):
         with self.assertRaises(ValueError):
             shape.sum_shapes([(4, 1), (4, 2)])
 
-    def test_add_incompatible(self):
+    def test_add_incompatible(self) -> None:
         """Test addition of incompatible shapes raises a ValueError.
         """
         with self.assertRaises(ValueError):
             shape.sum_shapes([(4, 2), (4,)])
 
-    def test_mul_scalars(self):
+    def test_mul_scalars(self) -> None:
         """Test multiplication by scalars raises a ValueError.
         """
         with self.assertRaises(ValueError):
@@ -81,7 +81,7 @@ class TestShape(unittest.TestCase):
         with self.assertRaises(ValueError):
             shape.mul_shapes(tuple(), tuple())
 
-    def test_mul_2d(self):
+    def test_mul_2d(self) -> None:
         """Test multiplication where at least one of the shapes is >= 2D.
         """
         self.assertEqual(shape.mul_shapes((5, 9), (9, 2)), (5, 2))
@@ -97,7 +97,7 @@ class TestShape(unittest.TestCase):
         self.assertEqual(str(cm.exception),
                          "Incompatible dimensions (3, 5, 9) (4, 9, 2)")
 
-    def test_reshape_with_lists(self):
+    def test_reshape_with_lists(self) -> None:
         n = 2
         a = Variable([n, n])
         b = Variable(n**2)

@@ -16,17 +16,19 @@ limitations under the License.
 
 from functools import wraps
 from cvxpy.atoms.atom import Atom
+from cvxpy.constraints.constraint import Constraint
 from numpy import linalg as LA
 import numpy as np
 import scipy.sparse as sp
 from cvxpy.atoms.quad_form import QuadForm
+from typing import List, Tuple
 
 
 class MatrixFrac(Atom):
     """ tr X.T*P^-1*X """
     _allow_complex = True
 
-    def __init__(self, X, P):
+    def __init__(self, X, P) -> None:
         super(MatrixFrac, self).__init__(X, P)
 
     def numeric(self, values):
@@ -41,7 +43,7 @@ class MatrixFrac(Atom):
             product = X.T.dot(LA.inv(P)).dot(X)
         return product.trace() if len(product.shape) == 2 else product
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[1] >> 0]
@@ -80,7 +82,7 @@ class MatrixFrac(Atom):
             DP = sp.csc_matrix(DP.T.ravel(order='F')).T
             return [DX, DP]
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that the dimensions of x and P match.
         """
         X = self.args[0]
@@ -99,37 +101,37 @@ class MatrixFrac(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         """Quadratic if x is affine and P is constant.
         """
         return self.args[0].is_affine() and self.args[1].is_constant()
 
-    def is_qpwa(self):
+    def is_qpwa(self) -> bool:
         """Quadratic of piecewise affine if x is PWL and P is constant.
         """
         return self.args[0].is_pwl() and self.args[1].is_constant()

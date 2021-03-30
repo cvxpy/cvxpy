@@ -52,18 +52,18 @@ class ConeDims:
         A list of the positive semidefinite cone dimensions, where the
         dimension of the PSD cone of k by k matrices is k.
     """
-    def __init__(self, constr_map):
+    def __init__(self, constr_map) -> None:
         self.zero = int(sum(c.size for c in constr_map[Zero]))
         self.nonpos = int(sum(c.size for c in constr_map[NonPos]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
         self.soc = [int(dim) for c in constr_map[SOC] for dim in c.cone_sizes()]
         self.psd = [int(c.shape[0]) for c in constr_map[PSD]]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "(zero: {0}, nonpos: {1}, exp: {2}, soc: {3}, psd: {4})".format(
             self.zero, self.nonpos, self.exp, self.soc, self.psd)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
@@ -105,7 +105,7 @@ class ParamQuadProg(ParamProb):
                  constraints,
                  parameters,
                  param_id_to_col,
-                 formatted=False):
+                 formatted: bool=False) -> None:
         self.P = P
         self.q = q
         self.x = x
@@ -151,7 +151,7 @@ class ParamQuadProg(ParamProb):
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
 
-    def is_mixed_integer(self):
+    def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']

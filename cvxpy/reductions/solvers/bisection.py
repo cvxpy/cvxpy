@@ -33,7 +33,7 @@ def _lower_problem(problem):
     return problems.problem.Problem(Minimize(0), constrs)
 
 
-def _solve(problem, solver):
+def _solve(problem, solver) -> None:
     if problem is None:
         return
     with warnings.catch_warnings():
@@ -42,7 +42,7 @@ def _solve(problem, solver):
         problem.solve(solver=solver)
 
 
-def _infeasible(problem):
+def _infeasible(problem) -> bool:
     return problem is None or problem.status in (s.INFEASIBLE,
                                                  s.INFEASIBLE_INACCURATE)
 

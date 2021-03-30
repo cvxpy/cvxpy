@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 """
 Copyright 2013 Steven Diamond
 
@@ -18,7 +20,7 @@ import cvxpy.interface as intf
 import numpy as np
 
 
-def expcone_permutor(n_cones, exp_cone_order):
+def expcone_permutor(n_cones, exp_cone_order) -> np.ndarray:
     order = np.tile(np.array(exp_cone_order), n_cones)  # e.g. [1,0,2, 1,0,2, 1,0,2,...
     offsets = 3 * np.repeat(np.arange(n_cones), 3)  # [0,0,0, 3,3,3, 6,6,6, ...
     perm = order + offsets
@@ -33,7 +35,7 @@ def extract_dual_value(result_vec, offset, constraint):
     return value, offset
 
 
-def get_dual_values(result_vec, parse_func, constraints):
+def get_dual_values(result_vec, parse_func, constraints) -> Dict[Any, Any]:
     """Gets the values of the dual variables.
 
     Parameters

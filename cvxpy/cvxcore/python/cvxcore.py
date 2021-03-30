@@ -19,7 +19,7 @@ try:
 except ImportError:
     import __builtin__
 
-def _swig_repr(self):
+def _swig_repr(self) -> str:
     try:
         strthis = "proxy of " + self.this.__repr__()
     except __builtin__.Exception:
@@ -151,13 +151,13 @@ class LinOp:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
-    def __init__(self, type, shape, args):
+    def __init__(self, type, shape, args) -> None:
         _cvxcore.LinOp_swiginit(self, _cvxcore.new_LinOp(type, shape, args))
 
     def get_type(self):
         return _cvxcore.LinOp_get_type(self)
 
-    def is_constant(self):
+    def is_constant(self) -> bool:
         return _cvxcore.LinOp_is_constant(self)
 
     def get_shape(self):
@@ -187,7 +187,7 @@ class LinOp:
     def set_data_ndim(self, ndim):
         return _cvxcore.LinOp_set_data_ndim(self, ndim)
 
-    def is_sparse(self):
+    def is_sparse(self) -> bool:
         return _cvxcore.LinOp_is_sparse(self)
 
     def get_sparse_data(self):
@@ -245,7 +245,7 @@ class ProblemData:
     def getJ(self, values):
         return _cvxcore.ProblemData_getJ(self, values)
 
-    def __init__(self):
+    def __init__(self) -> None:
         _cvxcore.ProblemData_swiginit(self, _cvxcore.new_ProblemData())
     __swig_destroy__ = _cvxcore.delete_ProblemData
 
@@ -329,7 +329,7 @@ class IntVector:
     def erase(self, *args):
         return _cvxcore.IntVector_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.IntVector_swiginit(self, _cvxcore.new_IntVector(*args))
 
     def push_back(self, x):
@@ -435,7 +435,7 @@ class DoubleVector:
     def erase(self, *args):
         return _cvxcore.DoubleVector_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.DoubleVector_swiginit(self, _cvxcore.new_DoubleVector(*args))
 
     def push_back(self, x):
@@ -541,7 +541,7 @@ class IntVector2D:
     def erase(self, *args):
         return _cvxcore.IntVector2D_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.IntVector2D_swiginit(self, _cvxcore.new_IntVector2D(*args))
 
     def push_back(self, x):
@@ -647,7 +647,7 @@ class DoubleVector2D:
     def erase(self, *args):
         return _cvxcore.DoubleVector2D_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.DoubleVector2D_swiginit(self, _cvxcore.new_DoubleVector2D(*args))
 
     def push_back(self, x):
@@ -737,7 +737,7 @@ class IntIntMap:
     def asdict(self):
         return _cvxcore.IntIntMap_asdict(self)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.IntIntMap_swiginit(self, _cvxcore.new_IntIntMap(*args))
 
     def empty(self):
@@ -861,7 +861,7 @@ class LinOpVector:
     def erase(self, *args):
         return _cvxcore.LinOpVector_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.LinOpVector_swiginit(self, _cvxcore.new_LinOpVector(*args))
 
     def push_back(self, x):
@@ -967,7 +967,7 @@ class ConstLinOpVector:
     def erase(self, *args):
         return _cvxcore.ConstLinOpVector_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.ConstLinOpVector_swiginit(self, _cvxcore.new_ConstLinOpVector(*args))
 
     def push_back(self, x):

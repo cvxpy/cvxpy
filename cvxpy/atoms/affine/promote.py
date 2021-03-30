@@ -56,7 +56,7 @@ class Promote(AffAtom):
         The shape to promote to.
     """
 
-    def __init__(self, expr, shape):
+    def __init__(self, expr, shape) -> None:
         self.promoted_shape = shape
         super(Promote, self).__init__(expr)
 
@@ -66,16 +66,16 @@ class Promote(AffAtom):
         """
         return np.ones(self.promoted_shape) * values[0]
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?"""
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?"""
         return True
 

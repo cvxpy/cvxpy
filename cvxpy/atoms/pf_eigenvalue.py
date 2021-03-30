@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
+from typing import Tuple
+
 import numpy as np
 
 
@@ -33,7 +35,7 @@ class pf_eigenvalue(Atom):
     X : cvxpy.Expression
         A positive square matrix.
     """
-    def __init__(self, X):
+    def __init__(self, X) -> None:
         super(pf_eigenvalue, self).__init__(X)
         if len(X.shape) != 2 or X.shape[0] != X.shape[1]:
             raise ValueError("Argument to `spectral radius` must be a "
@@ -43,7 +45,7 @@ class pf_eigenvalue(Atom):
     def numeric(self, values):
         return np.max(np.abs(np.linalg.eig(values[0])[0]))
 
-    def name(self):
+    def name(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, self.args[0])
 
     def shape_from_args(self):
@@ -51,40 +53,40 @@ class pf_eigenvalue(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
 
-    def _grad(self, values):
+    def _grad(self, values) -> None:
         return None

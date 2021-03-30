@@ -11,53 +11,53 @@ SOLVER = cp.ECOS
 
 
 class TestDcp(BaseTest):
-    def test_multiply_scalar_params_not_dpp(self):
+    def test_multiply_scalar_params_not_dpp(self) -> None:
         x = cp.Parameter()
         product = x * x
         self.assertFalse(product.is_dpp())
         self.assertTrue(product.is_dcp())
 
-    def test_matmul_params_not_dpp(self):
+    def test_matmul_params_not_dpp(self) -> None:
         X = cp.Parameter((4, 4))
         product = X @ X
         self.assertTrue(product.is_dcp())
         self.assertFalse(product.is_dpp())
 
-    def test_multiply_param_and_variable_is_dpp(self):
+    def test_multiply_param_and_variable_is_dpp(self) -> None:
         x = cp.Parameter()
         y = cp.Variable()
         product = x * y
         self.assertTrue(product.is_dpp())
         self.assertTrue(product.is_dcp())
 
-    def test_multiply_variable_and_param_is_dpp(self):
+    def test_multiply_variable_and_param_is_dpp(self) -> None:
         x = cp.Parameter()
         y = cp.Variable()
         product = cp.multiply(y, x)
         self.assertTrue(product.is_dpp())
         self.assertTrue(product.is_dcp())
 
-    def test_multiply_nonlinear_param_and_variable_is_not_dpp(self):
+    def test_multiply_nonlinear_param_and_variable_is_not_dpp(self) -> None:
         x = cp.Parameter()
         y = cp.Variable()
         product = cp.exp(x) * y
         self.assertFalse(product.is_dpp())
 
-    def test_multiply_nonlinear_nonneg_param_and_nonneg_variable_is_not_dpp(self):
+    def test_multiply_nonlinear_nonneg_param_and_nonneg_variable_is_not_dpp(self) -> None:
         x = cp.Parameter(nonneg=True)
         y = cp.Variable(nonneg=True)
         product = cp.exp(x) * y
         self.assertFalse(product.is_dpp())
         self.assertTrue(product.is_dcp())
 
-    def test_multiply_affine_param_and_variable_is_dpp(self):
+    def test_multiply_affine_param_and_variable_is_dpp(self) -> None:
         x = cp.Parameter()
         y = cp.Variable()
         product = (x + x) * y
         self.assertTrue(product.is_dpp())
         self.assertTrue(product.is_dcp())
 
-    def test_multiply_param_plus_var_times_const(self):
+    def test_multiply_param_plus_var_times_const(self) -> None:
         x = cp.Parameter()
         y = cp.Variable()
         product = (x + y) * 5
@@ -65,7 +65,7 @@ class TestDcp(BaseTest):
         self.assertTrue(product.is_dcp())
         self.assertTrue(product.is_dpp())
 
-    def test_multiply_param_and_nonlinear_variable_is_dpp(self):
+    def test_multiply_param_and_nonlinear_variable_is_dpp(self) -> None:
         x = cp.Parameter(nonneg=True)
         y = cp.Variable()
         product = x * cp.exp(y)
@@ -73,7 +73,7 @@ class TestDcp(BaseTest):
         self.assertTrue(product.is_dcp())
         self.assertTrue(product.is_dpp())
 
-    def test_nonlinear_equality_not_dpp(self):
+    def test_nonlinear_equality_not_dpp(self) -> None:
         x = cp.Variable()
         a = cp.Parameter()
         constraint = [x == cp.norm(a)]
@@ -81,7 +81,7 @@ class TestDcp(BaseTest):
         problem = cp.Problem(cp.Minimize(0), constraint)
         self.assertFalse(problem.is_dcp(dpp=True))
 
-    def test_nonconvex_inequality_not_dpp(self):
+    def test_nonconvex_inequality_not_dpp(self) -> None:
         x = cp.Variable()
         a = cp.Parameter()
         constraint = [x <= cp.norm(a)]
@@ -89,7 +89,7 @@ class TestDcp(BaseTest):
         problem = cp.Problem(cp.Minimize(0), constraint)
         self.assertFalse(problem.is_dcp(dpp=True))
 
-    def test_solve_multiply_param_plus_var_times_const(self):
+    def test_solve_multiply_param_plus_var_times_const(self) -> None:
         x = cp.Parameter()
         y = cp.Variable()
         product = (x + y) * 5
@@ -99,7 +99,7 @@ class TestDcp(BaseTest):
         value = problem.solve(cp.SCS)
         self.assertAlmostEqual(value, 15)
 
-    def test_paper_example_is_dpp(self):
+    def test_paper_example_is_dpp(self) -> None:
         F = cp.Parameter((2, 2))
         x = cp.Variable((2, 1))
         g = cp.Parameter((2, 1))
@@ -111,12 +111,12 @@ class TestDcp(BaseTest):
         self.assertTrue(constraints[0].is_dpp())
         self.assertTrue(problem.is_dpp())
 
-    def test_non_dcp_expression_is_not_dpp(self):
+    def test_non_dcp_expression_is_not_dpp(self) -> None:
         x = cp.Parameter()
         expr = cp.exp(cp.log(x))
         self.assertFalse(expr.is_dpp())
 
-    def test_can_solve_non_dpp_problem(self):
+    def test_can_solve_non_dpp_problem(self) -> None:
         x = cp.Parameter()
         x.value = 5
         y = cp.Variable()
@@ -131,7 +131,7 @@ class TestDcp(BaseTest):
             warnings.simplefilter('ignore')
             self.assertEqual(problem.solve(cp.SCS), 9)
 
-    def test_solve_dpp_problem(self):
+    def test_solve_dpp_problem(self) -> None:
         x = cp.Parameter()
         x.value = 5
         y = cp.Variable()
@@ -142,7 +142,7 @@ class TestDcp(BaseTest):
         x.value = 3
         self.assertAlmostEqual(problem.solve(cp.SCS), 6)
 
-    def test_chain_data_for_non_dpp_problem_evals_params(self):
+    def test_chain_data_for_non_dpp_problem_evals_params(self) -> None:
         x = cp.Parameter()
         x.value = 5
         y = cp.Variable()
@@ -154,7 +154,7 @@ class TestDcp(BaseTest):
         self.assertTrue(cp.reductions.eval_params.EvalParams in
                         [type(r) for r in chain.reductions])
 
-    def test_chain_data_for_dpp_problem_does_not_eval_params(self):
+    def test_chain_data_for_dpp_problem_does_not_eval_params(self) -> None:
         x = cp.Parameter()
         x.value = 5
         y = cp.Variable()
@@ -163,7 +163,7 @@ class TestDcp(BaseTest):
         self.assertFalse(cp.reductions.eval_params.EvalParams
                          in [type(r) for r in chain.reductions])
 
-    def test_param_quad_form_not_dpp(self):
+    def test_param_quad_form_not_dpp(self) -> None:
         x = cp.Variable((2, 1))
         P = cp.Parameter((2, 2), PSD=True)
         P.value = np.eye(2)
@@ -171,14 +171,14 @@ class TestDcp(BaseTest):
         self.assertFalse(y.is_dpp())
         self.assertTrue(y.is_dcp())
 
-    def test_const_quad_form_is_dpp(self):
+    def test_const_quad_form_is_dpp(self) -> None:
         x = cp.Variable((2, 1))
         P = np.eye(2)
         y = cp.quad_form(x, P)
         self.assertTrue(y.is_dpp())
         self.assertTrue(y.is_dcp())
 
-    def test_paper_example_logreg_is_dpp(self):
+    def test_paper_example_logreg_is_dpp(self) -> None:
         N, n = 3, 2
         beta = cp.Variable((n, 1))
         b = cp.Variable((1, 1))
@@ -196,7 +196,7 @@ class TestDcp(BaseTest):
         self.assertTrue(problem.is_dcp())
         self.assertTrue(problem.is_dpp())
 
-    def test_paper_example_stoch_control(self):
+    def test_paper_example_stoch_control(self) -> None:
         n, m = 3, 3
         x = cp.Parameter((n, 1))
         P_sqrt = cp.Parameter((m, m))
@@ -210,7 +210,7 @@ class TestDcp(BaseTest):
         self.assertTrue(problem.is_dpp())
         self.assertTrue(problem.is_dcp())
 
-    def test_paper_example_relu(self):
+    def test_paper_example_relu(self) -> None:
         n = 2
         x = cp.Parameter(n)
         y = cp.Variable(n)
@@ -225,7 +225,7 @@ class TestDcp(BaseTest):
         problem.solve(cp.SCS, eps=1e-8)
         self.assertItemsAlmostEqual(y.value, np.zeros(2))
 
-    def test_paper_example_opt_net_qp(self):
+    def test_paper_example_opt_net_qp(self) -> None:
         m, n = 3, 2
         G = cp.Parameter((m, n))
         h = cp.Parameter((m, 1))
@@ -236,7 +236,7 @@ class TestDcp(BaseTest):
         problem = cp.Problem(objective, constraints)
         self.assertTrue(problem.is_dpp())
 
-    def test_paper_example_ellipsoidal_constraints(self):
+    def test_paper_example_ellipsoidal_constraints(self) -> None:
         n = 2
         A_sqrt = cp.Parameter((n, n))
         z = cp.Parameter(n)
@@ -249,7 +249,7 @@ class TestDcp(BaseTest):
         problem = cp.Problem(objective, constraints)
         self.assertTrue(problem.is_dpp())
 
-    def test_non_dpp_powers(self):
+    def test_non_dpp_powers(self) -> None:
         s = cp.Parameter(1, nonneg=True)
         x = cp.Variable(1)
         obj = cp.Maximize(x+s)
@@ -285,7 +285,7 @@ class TestDcp(BaseTest):
 
 
 class TestDgp(BaseTest):
-    def test_basic_equality_constraint(self):
+    def test_basic_equality_constraint(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0)
         x = cp.Variable(pos=True)
         dgp = cp.Problem(cp.Minimize(x), [x == alpha])
@@ -305,28 +305,28 @@ class TestDgp(BaseTest):
         dgp.solve(gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 2.0)
 
-    def test_basic_inequality_constraint(self):
+    def test_basic_inequality_constraint(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0)
         x = cp.Variable(pos=True)
         constraint = [x + alpha <= x]
         self.assertTrue(constraint[0].is_dgp(dpp=True))
         self.assertTrue(cp.Problem(cp.Minimize(1), constraint).is_dgp(dpp=True))
 
-    def test_nonlla_equality_constraint_not_dpp(self):
+    def test_nonlla_equality_constraint_not_dpp(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0)
         x = cp.Variable(pos=True)
         constraint = [x == x + alpha]
         self.assertFalse(constraint[0].is_dgp(dpp=True))
         self.assertFalse(cp.Problem(cp.Minimize(1), constraint).is_dgp(dpp=True))
 
-    def test_nonllcvx_inequality_constraint_not_dpp(self):
+    def test_nonllcvx_inequality_constraint_not_dpp(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0)
         x = cp.Variable(pos=True)
         constraint = [x <= x + alpha]
         self.assertFalse(constraint[0].is_dgp(dpp=True))
         self.assertFalse(cp.Problem(cp.Minimize(1), constraint).is_dgp(dpp=True))
 
-    def test_param_monomial_is_dpp(self):
+    def test_param_monomial_is_dpp(self) -> None:
         alpha = cp.Parameter(pos=True)
         beta = cp.Parameter(pos=True)
         kappa = cp.Parameter(pos=True)
@@ -334,7 +334,7 @@ class TestDgp(BaseTest):
         monomial = alpha**1.2 * beta**0.5 * kappa**3 * kappa**2
         self.assertTrue(monomial.is_dgp(dpp=True))
 
-    def test_param_posynomial_is_dpp(self):
+    def test_param_posynomial_is_dpp(self) -> None:
         alpha = cp.Parameter(pos=True)
         beta = cp.Parameter(pos=True)
         kappa = cp.Parameter(pos=True)
@@ -343,7 +343,7 @@ class TestDgp(BaseTest):
         posynomial = monomial + alpha**2 * beta**3
         self.assertTrue(posynomial.is_dgp(dpp=True))
 
-    def test_mixed_monomial_is_dpp(self):
+    def test_mixed_monomial_is_dpp(self) -> None:
         alpha = cp.Parameter(pos=True)
         beta = cp.Variable(pos=True)
         kappa = cp.Parameter(pos=True)
@@ -352,7 +352,7 @@ class TestDgp(BaseTest):
         monomial = alpha**1.2 * beta**0.5 * kappa**3 * kappa**2 * tau
         self.assertTrue(monomial.is_dgp(dpp=True))
 
-    def test_mixed_posynomial_is_dpp(self):
+    def test_mixed_posynomial_is_dpp(self) -> None:
         alpha = cp.Parameter(pos=True)
         beta = cp.Variable(pos=True)
         kappa = cp.Parameter(pos=True)
@@ -362,7 +362,7 @@ class TestDgp(BaseTest):
         posynomial = (monomial + monomial)**3
         self.assertTrue(posynomial.is_dgp(dpp=True))
 
-    def test_nested_power_not_dpp(self):
+    def test_nested_power_not_dpp(self) -> None:
         alpha = cp.Parameter(value=1.0)
         x = cp.Variable(pos=True)
 
@@ -372,7 +372,7 @@ class TestDgp(BaseTest):
         pow2 = pow1**alpha
         self.assertFalse(pow2.is_dgp(dpp=True))
 
-    def test_non_dpp_problem_raises_error(self):
+    def test_non_dpp_problem_raises_error(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0)
         x = cp.Variable(pos=True)
         dgp = cp.Problem(cp.Minimize((alpha*x)**(alpha)), [x == alpha])
@@ -387,7 +387,7 @@ class TestDgp(BaseTest):
             dgp.solve(gp=True, enforce_dpp=False)
             self.assertAlmostEqual(x.value, 1.0)
 
-    def test_basic_monomial(self):
+    def test_basic_monomial(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0)
         beta = cp.Parameter(pos=True, value=2.0)
         x = cp.Variable(pos=True)
@@ -408,7 +408,7 @@ class TestDgp(BaseTest):
         # 3 * 2 * 3 == 18
         self.assertAlmostEqual(problem.value, 18.0)
 
-    def test_basic_posynomial(self):
+    def test_basic_posynomial(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0)
         beta = cp.Parameter(pos=True, value=2.0)
         kappa = cp.Parameter(pos=True, value=3.0)
@@ -439,7 +439,7 @@ class TestDgp(BaseTest):
         # 4*5*4 + 5*3*4*5 == 80 + 300 == 380
         self.assertAlmostEqual(problem.value, 380.0, places=3)
 
-    def test_basic_gp(self):
+    def test_basic_gp(self) -> None:
         x, y, z = cp.Variable((3,), pos=True)
         a = cp.Parameter(pos=True, value=2.0)
         b = cp.Parameter(pos=True, value=1.0)
@@ -449,7 +449,7 @@ class TestDgp(BaseTest):
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(15.59, problem.value, places=2)
 
-    def test_maximum(self):
+    def test_maximum(self) -> None:
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
 
@@ -481,7 +481,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(x.value, 2.0)
         self.assertAlmostEqual(y.value, 3.0)
 
-    def test_max(self):
+    def test_max(self) -> None:
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
 
@@ -513,7 +513,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(x.value, 2.0)
         self.assertAlmostEqual(y.value, 3.0)
 
-    def test_param_in_exponent_and_elsewhere(self):
+    def test_param_in_exponent_and_elsewhere(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0, name='alpha')
         x = cp.Variable(pos=True)
         problem = cp.Problem(cp.Minimize(x**alpha), [x == alpha])
@@ -533,7 +533,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(problem.value, 27.0)
         self.assertAlmostEqual(x.value, 3.0)
 
-    def test_minimum(self):
+    def test_minimum(self) -> None:
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
 
@@ -559,7 +559,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(x.value, 2.0)
         self.assertAlmostEqual(y.value, 4.0)
 
-    def test_min(self):
+    def test_min(self) -> None:
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
 
@@ -585,7 +585,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(x.value, 2.0)
         self.assertAlmostEqual(y.value, 4.0)
 
-    def test_div(self):
+    def test_div(self) -> None:
         alpha = cp.Parameter(pos=True, value=3.0)
         beta = cp.Parameter(pos=True, value=1.0)
         x = cp.Variable(pos=True)
@@ -604,7 +604,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(x.value, 2.0 / 3.0)
         self.assertAlmostEqual(y.value, 2.0)
 
-    def test_one_minus_pos(self):
+    def test_one_minus_pos(self) -> None:
         x = cp.Variable(pos=True)
         obj = cp.Maximize(x)
         alpha = cp.Parameter(pos=True, value=0.1)
@@ -619,7 +619,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(problem.value, 0.2)
         self.assertAlmostEqual(x.value, 0.2)
 
-    def test_pf_matrix_completion(self):
+    def test_pf_matrix_completion(self) -> None:
         X = cp.Variable((3, 3), pos=True)
         obj = cp.Minimize(cp.pf_eigenvalue(X))
         known_indices = tuple(zip(*[[0, 0], [0, 2], [1, 1], [2, 0], [2, 1]]))
@@ -648,7 +648,7 @@ class TestDgp(BaseTest):
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(problem.value, optimal_value)
 
-    def test_rank_one_nmf(self):
+    def test_rank_one_nmf(self) -> None:
         X = cp.Variable((3, 3), pos=True)
         x = cp.Variable((3,), pos=True)
         y = cp.Variable((3,), pos=True)
@@ -684,7 +684,7 @@ class TestDgp(BaseTest):
         prob.solve(SOLVER, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(prob.value, optimal_value)
 
-    def test_documentation_prob(self):
+    def test_documentation_prob(self) -> None:
         x = cp.Variable(pos=True)
         y = cp.Variable(pos=True)
         z = cp.Variable(pos=True)
@@ -700,7 +700,7 @@ class TestDgp(BaseTest):
         # Smoke test.
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
 
-    def test_sum_scalar(self):
+    def test_sum_scalar(self) -> None:
         alpha = cp.Parameter(pos=True, value=1.0)
         w = cp.Variable(pos=True)
         h = cp.Variable(pos=True)
@@ -717,7 +717,7 @@ class TestDgp(BaseTest):
         self.assertAlmostEqual(h.value, 8)
         self.assertAlmostEqual(w.value, 1)
 
-    def test_sum_vector(self):
+    def test_sum_vector(self) -> None:
         alpha = cp.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
         w = cp.Variable(2, pos=True)
         h = cp.Variable(2, pos=True)
@@ -735,7 +735,7 @@ class TestDgp(BaseTest):
         np.testing.assert_almost_equal(h.value, np.array([20, 20]), decimal=3)
         np.testing.assert_almost_equal(w.value, np.array([1, 1]), decimal=3)
 
-    def test_sum_squares_vector(self):
+    def test_sum_squares_vector(self) -> None:
         alpha = cp.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
         w = cp.Variable(2, pos=True)
         h = cp.Variable(2, pos=True)
@@ -753,7 +753,7 @@ class TestDgp(BaseTest):
         np.testing.assert_almost_equal(h.value, np.array([20, 20]), decimal=3)
         np.testing.assert_almost_equal(problem.value, 24**2 + 24**2, decimal=3)
 
-    def test_sum_matrix(self):
+    def test_sum_matrix(self) -> None:
         w = cp.Variable((2, 2), pos=True)
         h = cp.Variable((2, 2), pos=True)
         alpha = cp.Parameter(pos=True, value=1.0)
@@ -785,7 +785,7 @@ class TestDgp(BaseTest):
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         np.testing.assert_almost_equal(problem.value, 12.0)
 
-    def test_exp(self):
+    def test_exp(self) -> None:
         x = cp.Variable(4, pos=True)
         c = cp.Parameter(4, pos=True)
         expr = cp.exp(cp.multiply(c, x))
@@ -794,7 +794,7 @@ class TestDgp(BaseTest):
         expr = cp.exp(c.T @ x)
         self.assertTrue(expr.is_dgp(dpp=True))
 
-    def test_log(self):
+    def test_log(self) -> None:
         x = cp.Variable(4, pos=True)
         c = cp.Parameter(4, pos=True)
         expr = cp.log(cp.multiply(c, x))
@@ -803,7 +803,7 @@ class TestDgp(BaseTest):
         expr = cp.log(c.T @ x)
         self.assertFalse(expr.is_dgp(dpp=True))
 
-    def test_gmatmul(self):
+    def test_gmatmul(self) -> None:
         x = cp.Variable(2, pos=True)
         A = cp.Parameter(shape=(2, 2))
         A.value = np.array([[-5, 2], [1, -3]])

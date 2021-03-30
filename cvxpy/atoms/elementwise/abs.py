@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from .elementwise import Elementwise
+from typing import Tuple
+
 import numpy as np
 
 
@@ -22,7 +24,7 @@ class abs(Elementwise):
     """ Elementwise absolute value """
     _allow_complex = True
 
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         super(abs, self).__init__(x)
 
     # Returns the elementwise absolute value of x.
@@ -30,33 +32,33 @@ class abs(Elementwise):
     def numeric(self, values):
         return np.absolute(values[0])
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.args[idx].is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return self.args[idx].is_nonpos()
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
         return self.args[0].is_pwl() and \

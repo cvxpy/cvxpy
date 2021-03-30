@@ -18,11 +18,12 @@ limitations under the License.
 import abc
 
 from cvxpy.reductions.reduction import Reduction
+from typing import Any, List, Tuple, Type
 
 import numpy as np
 
 
-def extract_mip_idx(variables):
+def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:
     """Coalesces bool, int indices for variables.
 
        The indexing scheme assumes that the variables will be coalesced into
@@ -53,7 +54,7 @@ class MatrixStuffing(Reduction):
 
     __metaclass__ = abc.ABCMeta
 
-    def apply(self, problem):
+    def apply(self, problem) -> None:
         """Returns a stuffed problem.
 
         The returned problem is a minimization problem in which every

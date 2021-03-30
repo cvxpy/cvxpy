@@ -24,7 +24,7 @@ import cvxpy as cvx
 
 class TestParamCache(unittest.TestCase):
 
-    def test_param_timings(self):
+    def test_param_timings(self) -> None:
         """Test that it is faster to solve a parameterized
         problem after the first solve.
         """

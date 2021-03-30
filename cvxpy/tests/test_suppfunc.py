@@ -30,7 +30,7 @@ class TestSupportFunctions(BaseTest):
         cvxpy.reductions.dcp2cone.atom_canonicalizers.suppfunc_canon
     """
 
-    def test_Rn(self):
+    def test_Rn(self) -> None:
         np.random.seed(0)
         n = 5
         x = cp.Variable(shape=(n,))
@@ -50,7 +50,7 @@ class TestSupportFunctions(BaseTest):
         viol = cons[0].violation()
         self.assertLessEqual(viol, 1e-8)
 
-    def test_vector1norm(self):
+    def test_vector1norm(self) -> None:
         n = 3
         np.random.seed(1)
         a = np.random.randn(n,)
@@ -65,7 +65,7 @@ class TestSupportFunctions(BaseTest):
         self.assertLessEqual(abs(actual - expected), 1e-6)
         self.assertLessEqual(abs(prob.objective.expr.value - prob.value), 1e-6)
 
-    def test_vector2norm(self):
+    def test_vector2norm(self) -> None:
         n = 3
         np.random.seed(1)
         a = np.random.randn(n,)
@@ -80,7 +80,7 @@ class TestSupportFunctions(BaseTest):
         self.assertLessEqual(abs(actual - expected), 1e-6)
         self.assertLessEqual(abs(prob.objective.expr.value - prob.value), 1e-6)
 
-    def test_rectangular_variable(self):
+    def test_rectangular_variable(self) -> None:
         np.random.seed(2)
         rows, cols = 4, 2
         a = np.random.randn(rows, cols)
@@ -97,7 +97,7 @@ class TestSupportFunctions(BaseTest):
         viol = cons[0].violation()
         self.assertLessEqual(viol, 1e-6)
 
-    def test_psd_dualcone(self):
+    def test_psd_dualcone(self) -> None:
         np.random.seed(5)
         n = 3
         X = cp.Variable(shape=(n, n))
@@ -113,7 +113,7 @@ class TestSupportFunctions(BaseTest):
         eigs = np.linalg.eigh(Y.value)[0]
         self.assertLessEqual(np.max(eigs), 1e-6)
 
-    def test_largest_singvalue(self):
+    def test_largest_singvalue(self) -> None:
         np.random.seed(3)
         rows, cols = 3, 4
         A = np.random.randn(rows, cols)
@@ -128,7 +128,7 @@ class TestSupportFunctions(BaseTest):
         expect = np.sum(A_sv)
         self.assertLessEqual(abs(actual - expect), 1e-6)
 
-    def test_expcone_1(self):
+    def test_expcone_1(self) -> None:
         x = cp.Variable(shape=(1,))
         tempcons = [cp.exp(x[0]) <= np.exp(1), cp.exp(-x[0]) <= np.exp(1)]
         sigma = cp.suppfunc(x, tempcons)
@@ -142,7 +142,7 @@ class TestSupportFunctions(BaseTest):
         self.assertLessEqual(viol, 1e-6)
         self.assertLessEqual(abs(y.value - (-1)), 1e-6)
 
-    def test_expcone_2(self):
+    def test_expcone_2(self) -> None:
         x = cp.Variable(shape=(3,))
         tempcons = [cp.sum(x) <= 1.0, cp.sum(x) >= 0.1, x >= 0.01,
                     cp.kl_div(x[1], x[0]) + x[1] - x[0] + x[2] <= 0]
@@ -161,7 +161,7 @@ class TestSupportFunctions(BaseTest):
         self.assertLessEqual(abs(epi_actual - expect), 1e-6)
         self.assertLessEqual(abs(direct_actual - expect), 1e-6)
 
-    def test_basic_lmi(self):
+    def test_basic_lmi(self) -> None:
         np.random.seed(4)
         n = 3
         A = np.random.randn(n, n)
@@ -179,7 +179,7 @@ class TestSupportFunctions(BaseTest):
         expect = np.trace(A)
         self.assertLessEqual(abs(actual1 - expect), 1e-4)
 
-    def test_invalid_solver(self):
+    def test_invalid_solver(self) -> None:
         n = 3
         x = cp.Variable(shape=(n,))
         sigma = cp.suppfunc(x, [cp.norm(x - np.random.randn(n,), 2) <= 1])
@@ -189,12 +189,12 @@ class TestSupportFunctions(BaseTest):
                 SolverError, ".*could not be reduced to a QP.*"):
             prob.solve(solver='OSQP')
 
-    def test_invalid_variable(self):
+    def test_invalid_variable(self) -> None:
         x = cp.Variable(shape=(2, 2), symmetric=True)
         with self.assertRaises(ValueError):
             cp.suppfunc(x, [])
 
-    def test_invalid_constraint(self):
+    def test_invalid_constraint(self) -> None:
         x = cp.Variable(shape=(3,))
         a = cp.Parameter(shape=(3,))
         cons = [a @ x == 1]

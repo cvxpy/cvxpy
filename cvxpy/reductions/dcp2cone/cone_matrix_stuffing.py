@@ -62,7 +62,7 @@ class ConeDims:
     PSD_DIM = s.PSD_DIM
     P3D_DIM = 'p3'
 
-    def __init__(self, constr_map):
+    def __init__(self, constr_map) -> None:
         self.zero = int(sum(c.size for c in constr_map[Zero]))
         self.nonneg = int(sum(c.size for c in constr_map[NonNeg]))
         self.exp = int(sum(c.num_cones() for c in constr_map[ExpCone]))
@@ -73,11 +73,11 @@ class ConeDims:
             p3d = np.concatenate([c.alpha.value for c in constr_map[PowCone3D]]).tolist()
         self.p3d = p3d
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "(zero: {0}, nonneg: {1}, exp: {2}, soc: {3}, psd: {4}, p3d: {5})".format(
             self.zero, self.nonneg, self.exp, self.soc, self.psd, self.p3d)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """String representation.
         """
         return ("%i equalities, %i inequalities, %i exponential cones, \n"
@@ -154,7 +154,7 @@ class ParamConeProg(ParamProb):
         # whether this param cone prog has been formatted for a solver
         self.formatted = formatted
 
-    def is_mixed_integer(self):
+    def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']

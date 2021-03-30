@@ -23,12 +23,12 @@ import unittest
 class TestObjectives(unittest.TestCase):
     """ Unit tests for the expression/expression module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.x = Variable(name='x')
         self.y = Variable(3, name='y')
         self.z = Variable(name='z')
 
-    def test_str(self):
+    def test_str(self) -> None:
         """Test string representations.
         """
         obj = cp.Minimize(self.x)
@@ -42,7 +42,7 @@ class TestObjectives(unittest.TestCase):
         self.assertEqual(repr(obj), "Maximize(%s)" % repr(2*self.x))
 
     # Test the Minimize class.
-    def test_minimize(self):
+    def test_minimize(self) -> None:
         exp = self.x + self.z
         obj = cp.Minimize(exp)
         self.assertEqual(str(obj), "minimize %s" % exp.name())
@@ -69,7 +69,7 @@ class TestObjectives(unittest.TestCase):
         self.assertTrue(copy.args[0].args[0] is self.z)
 
     # Test the Maximize class.
-    def test_maximize(self):
+    def test_maximize(self) -> None:
         exp = self.x + self.z
         obj = cp.Maximize(exp)
         self.assertEqual(str(obj), "maximize %s" % exp.name())
@@ -96,14 +96,14 @@ class TestObjectives(unittest.TestCase):
         self.assertTrue(copy.args[0].args[0].args[0] is self.x)
 
     # Test is_dcp for Minimize and Maximize
-    def test_is_dcp(self):
+    def test_is_dcp(self) -> None:
         self.assertEqual(cp.Minimize(cp.norm_inf(self.x)).is_dcp(), True)
         self.assertEqual(cp.Minimize(-cp.norm_inf(self.x)).is_dcp(), False)
 
         self.assertEqual(cp.Maximize(cp.norm_inf(self.x)).is_dcp(), False)
         self.assertEqual(cp.Maximize(-cp.norm_inf(self.x)).is_dcp(), True)
 
-    def test_add_problems(self):
+    def test_add_problems(self) -> None:
         """Test adding objectives.
         """
         expr1 = self.x**2

@@ -80,12 +80,12 @@ class Reader:
 
     def read_to_next_empty_line(self):
         self.seek_next_non_empty_line()
-        def is_empty(line):
+        def is_empty(line) -> bool:
             return not line.strip()
         return self.read_to_condition(is_empty)
 
     def read_to_next_unindented_line(self):
-        def is_unindented(line):
+        def is_unindented(line) -> bool:
             return (line.strip() and (len(line.lstrip()) == len(line)))
         return self.read_to_condition(is_unindented)
 
@@ -95,7 +95,7 @@ class Reader:
         else:
             return ''
 
-    def is_empty(self):
+    def is_empty(self) -> bool:
         return not ''.join(self._str).strip()
 
 
