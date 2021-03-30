@@ -72,7 +72,7 @@ class Chain(Reduction):
         inverse_data = []
         for r in self.reductions:
             if verbose:
-                s.LOGGER.info('Applying reduction %s' % (type(r).__name__))
+                s.LOGGER.info('Applying reduction %s', type(r).__name__)
             problem, inv = r.apply(problem)
             inverse_data.append(inv)
         return problem, inverse_data
