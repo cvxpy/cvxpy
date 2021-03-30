@@ -24,7 +24,7 @@ import numpy as np
 # Utility functions for dealing with LinOp.
 
 
-class Counter(object):
+class Counter:
     """A counter for ids.
 
     Attributes

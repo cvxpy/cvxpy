@@ -19,7 +19,7 @@ import pylab
 import math
 
 # Based on http://cvxopt.org/examples/book/floorplan.html
-class Box(object):
+class Box:
     """ A box in a floor packing problem. """
     ASPECT_RATIO = 5.0
     def __init__(self, min_area):
@@ -53,7 +53,7 @@ class Box(object):
     def top(self):
         return self.y + self.height
 
-class FloorPlan(object):
+class FloorPlan:
     """ A minimum perimeter floor plan. """
     MARGIN = 1.0
     ASPECT_RATIO = 5.0

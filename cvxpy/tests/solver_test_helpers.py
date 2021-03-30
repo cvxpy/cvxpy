@@ -19,7 +19,7 @@ import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
 
 
-class SolverTestHelper(object):
+class SolverTestHelper:
 
     def __init__(self, obj_pair, var_pairs, con_pairs) -> None:
         self.objective = obj_pair[0]
@@ -698,7 +698,7 @@ def mi_pcp_0() -> SolverTestHelper:
     return sth
 
 
-class StandardTestLPs(object):
+class StandardTestLPs:
 
     @staticmethod
     def test_lp_0(solver, places: int=4, duals: bool=True, **kwargs) -> None:
@@ -778,7 +778,7 @@ class StandardTestLPs(object):
         sth.verify_primal_values(places)
 
 
-class StandardTestSOCPs(object):
+class StandardTestSOCPs:
 
     @staticmethod
     def test_socp_0(solver, places: int=4, duals: bool=True, **kwargs) -> None:
@@ -844,7 +844,7 @@ class StandardTestSOCPs(object):
         sth.verify_primal_values(places)
 
 
-class StandardTestSDPs(object):
+class StandardTestSDPs:
 
     @staticmethod
     def test_sdp_1min(solver, places: int=4, duals: bool=True, **kwargs) -> None:
@@ -879,7 +879,7 @@ class StandardTestSDPs(object):
             sth.check_dual_domains(places)
 
 
-class StandardTestECPs(object):
+class StandardTestECPs:
 
     @staticmethod
     def test_expcone_1(solver, places: int=4, duals: bool=True, **kwargs) -> None:
@@ -892,7 +892,7 @@ class StandardTestECPs(object):
             sth.verify_dual_values(places)
 
 
-class StandardTestMixedCPs(object):
+class StandardTestMixedCPs:
 
     @staticmethod
     def test_exp_soc_1(solver, places: int=3, duals: bool=True, **kwargs) -> None:
@@ -905,7 +905,7 @@ class StandardTestMixedCPs(object):
             sth.verify_dual_values(places)
 
 
-class StandardTestPCPs(object):
+class StandardTestPCPs:
 
     @staticmethod
     def test_pcp_1(solver, places: int=3, duals: bool=True, **kwargs) -> None:

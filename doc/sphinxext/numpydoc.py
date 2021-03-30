@@ -128,7 +128,7 @@ from docutils.statemachine import ViewList
 from sphinx.domains.c import CDomain
 from sphinx.domains.python import PythonDomain
 
-class ManglingDomainBase(object):
+class ManglingDomainBase:
     directive_mangling_map = {}
 
     def __init__(self, *a, **kw):
@@ -182,4 +182,3 @@ def wrap_mangling_directive(base_directive, objtype):
             return base_directive.run(self)
 
     return directive
-

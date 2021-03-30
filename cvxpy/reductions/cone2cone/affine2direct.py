@@ -36,7 +36,7 @@ POW3D = 'pp3'
 DUAL_POW3D = 'dp3'
 
 
-class Dualize(object):
+class Dualize:
     """
     CVXPY represents cone programs as
 
@@ -220,7 +220,7 @@ class Dualize(object):
         return sol
 
 
-class Slacks(object):
+class Slacks:
     """
     CVXPY represents mixed-integer cone programs as
 

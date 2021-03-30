@@ -19,7 +19,7 @@ from .create_graph import FILE, NODE_COUNT_KEY, EDGES_KEY
 import pickle
 
 # An object oriented max-flow problem.
-class Edge(object):
+class Edge:
     """ An undirected, capacity limited edge. """
     def __init__(self, capacity):
         self.capacity = capacity
@@ -34,7 +34,7 @@ class Edge(object):
     def constraints(self):
         return [abs(self.flow) <= self.capacity]
 
-class Node(object):
+class Node:
     """ A node with accumulation. """
     def __init__(self, accumulation=0):
         self.accumulation = accumulation
