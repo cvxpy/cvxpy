@@ -57,27 +57,6 @@ class XpressProblem (Problem):
         self._iis = None
         self._transferRow = None
 
-    def _update_problem_state(self, results_dict, sym_data, solver) -> None:
-        """Updates the problem state given the solver results.
-
-        Updates problem.status, problem.value and value of
-        primal and dual variables.
-
-        Parameters
-        ----------
-        results_dict : dict
-            A dictionary containing the solver results.
-        sym_data : SymData
-            The symbolic data for the problem.
-        solver : Solver
-            The solver type used to obtain the results.
-        """
-
-        super(XpressProblem, self)._update_problem_state(results_dict, sym_data, solver)
-
-        self._iis = results_dict[s.XPRESS_IIS]
-        self._transferRow = results_dict[s.XPRESS_TROW]
-
     def __repr__(self) -> str:
         return "XpressProblem(%s, %s)" % (repr(self.objective),
                                           repr(self.constraints))
