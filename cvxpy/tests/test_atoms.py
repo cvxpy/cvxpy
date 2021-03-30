@@ -1016,7 +1016,8 @@ class TestAtoms(BaseTest):
         """Minimize the 1-norm in the usual way
         """
         dims = 3
-        x, t = Variable(dims), Variable(dims)
+        x = Variable(dims, name='x')
+        t = Variable(dims, name='t')
         p1 = Problem(Minimize(cp.sum(t)), [-t <= x, x <= t])
 
         # Minimize the 1-norm via partial_optimize

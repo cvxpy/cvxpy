@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import cvxpy.settings as s
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.atoms.atom import Atom
 import numpy as np
@@ -37,7 +38,9 @@ class log_det(Atom):
         For PSD matrix A, this is the sum of logs of eigenvalues of A
         and is equivalent to the nuclear norm of the matrix logarithm of A.
         """
-        sign, logdet = LA.slogdet(values[0])
+        # take symmetric part of the input.
+        symm = (values[0] + values[0].T)/2
+        sign, logdet = LA.slogdet(symm)
         if sign == 1:
             return logdet
         else:
@@ -49,7 +52,7 @@ class log_det(Atom):
         if len(X.shape) == 1 or X.shape[0] != X.shape[1]:
             raise TypeError("The argument to log_det must be a square matrix.")
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
@@ -91,7 +94,7 @@ class log_det(Atom):
             A list of SciPy CSC sparse matrices or None.
         """
         X = values[0]
-        eigen_val = LA.eigvals(X)
+        eigen_val = LA.eigvalsh(X)
         if np.min(eigen_val) > 0:
             # Grad: X^{-1}.T
             D = np.linalg.inv(X).T
@@ -106,8 +109,11 @@ class log_det(Atom):
         return [self.args[0] >> 0]
 
     @property
-    def value(self):
-        if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
+    def value(self) -> float:
+        if not np.allclose(self.args[0].value,
+                           self.args[0].value.T.conj(),
+                           rtol=s.ATOM_EVAL_TOL,
+                           atol=s.ATOM_EVAL_TOL):
             raise ValueError("Input matrix was not Hermitian/symmetric.")
         if any([p.value is None for p in self.parameters()]):
             return None

@@ -928,13 +928,6 @@ class TestProblem(BaseTest):
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
-        # Test with float.
-        cost = self.x[numpy.float32(0)]
-        p = Problem(cp.Minimize(cost), [self.x == 1])
-        result = p.solve()
-        self.assertAlmostEqual(result, 1)
-        self.assertItemsAlmostEqual(self.x.value, [1, 1])
-
     # Test problems with slicing.
     def test_slicing(self) -> None:
         p = Problem(cp.Maximize(cp.sum(self.C)), [self.C[1:3, :] <= 2, self.C[0, :] == 1])

@@ -272,11 +272,13 @@ class PartialProblem(Expression):
             else:
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
-        result = prob.solve(solver=self.solver)
+        prob.solve(solver=self.solver)
         # Restore the original values to the variables.
         for var in self.variables():
             var.value = old_vals[var.id]
-        return result
+        # Need to get value returned by solver
+        # in case of stacked partial_optimizes.
+        return prob._solution.opt_val
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

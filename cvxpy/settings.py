@@ -168,6 +168,7 @@ EIGVAL_TOL = 1e-10
 PSD_NSD_PROJECTION_TOL = 1e-8
 GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
+ATOM_EVAL_TOL = 1e-4
 
 # threads to use during compilation
 # -1 defaults to system default (configurable via the OMP_NUM_THREADS

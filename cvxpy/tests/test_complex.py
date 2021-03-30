@@ -197,7 +197,7 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(x.value, 1j)
 
         x = Variable(2)
-        expr = x/1j
+        expr = x*1j
         prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) >= 1])
         result = prob.solve()
         self.assertAlmostEqual(result, -np.inf)

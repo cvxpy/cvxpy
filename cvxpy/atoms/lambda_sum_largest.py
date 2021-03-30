@@ -43,7 +43,7 @@ class lambda_sum_largest(lambda_max):
 
         Requires that A be symmetric.
         """
-        eigs = LA.eigvals(values[0])
+        eigs = LA.eigvalsh(values[0])
         return sum_largest(eigs, self.k).value
 
     def get_data(self):
