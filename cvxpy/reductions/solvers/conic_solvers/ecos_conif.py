@@ -173,4 +173,4 @@ class ECOS(ConicSolver):
             dual_vars.update(eq_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status)
+            return failure_solution(status, attr)
