@@ -32,9 +32,10 @@ class gen_lambda_max(Atom):
         Requires that A is symmetric, B is positive semidefinite.
         """
         lo = hi = self.args[0].shape[0]-1
-        return LA.eigvalsh(a=values[0],
-                           b=values[1],
-                           subset_by_index=(lo, hi))[0]
+        return LA.eigh(a=values[0],
+                       b=values[1],
+                       eigvals_only=True,
+                       eigvals=(lo, hi))[0]
 
     def _domain(self):
         """Returns constraints describing the domain of the node.
