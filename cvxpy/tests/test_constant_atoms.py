@@ -296,7 +296,7 @@ def check_solver(prob, solver_name) -> bool:
 
 
 # Tests numeric version of atoms.
-def run_atom(atom, problem, obj_val, solver, verbose: bool=False) -> None:
+def run_atom(atom, problem, obj_val, solver, verbose: bool = False) -> None:
     assert problem.is_dcp()
     print(problem)
     if verbose:

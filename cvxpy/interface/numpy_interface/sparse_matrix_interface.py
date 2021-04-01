@@ -74,7 +74,7 @@ class SparseMatrixInterface(NDArrayInterface):
         return self.const_to_matrix(matrix, convert_scalars=True)
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
-                  vert_step: int=1, horiz_step: int=1) -> None:
+                  vert_step: int = 1, horiz_step: int = 1) -> None:
         """Add the block to a slice of the matrix.
 
         Args:

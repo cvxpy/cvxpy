@@ -84,12 +84,12 @@ class Leaf(expression.Expression):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, shape: Tuple[int], value=None, nonneg: bool=False, nonpos: bool=False,
-                 complex: bool=False, imag: bool=False,
-                 symmetric: bool=False, diag: bool=False, PSD: bool=False,
-                 NSD: bool=False, hermitian: bool=False,
-                 boolean: bool=False, integer: bool=False,
-                 sparsity=None, pos: bool=False, neg: bool=False) -> None:
+    def __init__(self, shape: Tuple[int], value=None, nonneg: bool = False, nonpos: bool = False,
+                 complex: bool = False, imag: bool = False,
+                 symmetric: bool = False, diag: bool = False, PSD: bool = False,
+                 NSD: bool = False, hermitian: bool = False,
+                 boolean: bool = False, integer: bool = False,
+                 sparsity=None, pos: bool = False, neg: bool = False) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         elif len(shape) > 2:
@@ -452,7 +452,7 @@ class Leaf(expression.Expression):
         """
         return True
 
-    def is_dpp(self, context: str='dcp') -> bool:
+    def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.
 
            context: dcp or dgp

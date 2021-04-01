@@ -27,7 +27,7 @@ class AxisAtom(Atom):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, expr, axis=None, keepdims: bool=False) -> None:
+    def __init__(self, expr, axis=None, keepdims: bool = False) -> None:
         self.axis = axis
         self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)

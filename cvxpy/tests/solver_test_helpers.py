@@ -701,7 +701,7 @@ def mi_pcp_0() -> SolverTestHelper:
 class StandardTestLPs:
 
     @staticmethod
-    def test_lp_0(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_lp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = lp_0()
         sth.solve(solver, **kwargs)
         sth.verify_primal_values(places)
@@ -710,7 +710,7 @@ class StandardTestLPs:
             sth.check_complementarity(places)
 
     @staticmethod
-    def test_lp_1(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_lp_1(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = lp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -719,7 +719,7 @@ class StandardTestLPs:
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_lp_2(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_lp_2(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = lp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -728,19 +728,19 @@ class StandardTestLPs:
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_lp_3(solver, places: int=4, **kwargs) -> None:
+    def test_lp_3(solver, places: int = 4, **kwargs) -> None:
         sth = lp_3()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
 
     @staticmethod
-    def test_lp_4(solver, places: int=4, **kwargs) -> None:
+    def test_lp_4(solver, places: int = 4, **kwargs) -> None:
         sth = lp_4()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
 
     @staticmethod
-    def test_lp_5(solver, places: int=4, duals: bool=True,  **kwargs) -> None:
+    def test_lp_5(solver, places: int = 4, duals: bool = True,  **kwargs) -> None:
         sth = lp_5()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -750,28 +750,28 @@ class StandardTestLPs:
             sth.check_dual_domains(places)
 
     @staticmethod
-    def test_mi_lp_0(solver, places: int=4, **kwargs) -> None:
+    def test_mi_lp_0(solver, places: int = 4, **kwargs) -> None:
         sth = mi_lp_0()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
 
     @staticmethod
-    def test_mi_lp_1(solver, places: int=4, **kwargs) -> None:
+    def test_mi_lp_1(solver, places: int = 4, **kwargs) -> None:
         sth = mi_lp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
 
     @staticmethod
-    def test_mi_lp_2(solver, places: int=4, **kwargs) -> None:
+    def test_mi_lp_2(solver, places: int = 4, **kwargs) -> None:
         sth = mi_lp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
 
     @staticmethod
-    def test_mi_lp_3(solver, places: int=4, **kwargs) -> None:
+    def test_mi_lp_3(solver, places: int = 4, **kwargs) -> None:
         sth = mi_lp_3()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -781,7 +781,7 @@ class StandardTestLPs:
 class StandardTestSOCPs:
 
     @staticmethod
-    def test_socp_0(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_socp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = socp_0()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -790,7 +790,7 @@ class StandardTestSOCPs:
             sth.check_complementarity(places)
 
     @staticmethod
-    def test_socp_1(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_socp_1(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = socp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -800,7 +800,7 @@ class StandardTestSOCPs:
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_socp_2(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_socp_2(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = socp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -810,7 +810,7 @@ class StandardTestSOCPs:
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_socp_3ax0(solver, places: int=3, duals: bool=True, **kwargs) -> None:
+    def test_socp_3ax0(solver, places: int = 3, duals: bool = True, **kwargs) -> None:
         sth = socp_3(axis=0)
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -820,7 +820,7 @@ class StandardTestSOCPs:
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_socp_3ax1(solver, places: int=3, duals: bool=True, **kwargs) -> None:
+    def test_socp_3ax1(solver, places: int = 3, duals: bool = True, **kwargs) -> None:
         sth = socp_3(axis=1)
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -830,14 +830,14 @@ class StandardTestSOCPs:
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_mi_socp_1(solver, places: int=4, **kwargs) -> None:
+    def test_mi_socp_1(solver, places: int = 4, **kwargs) -> None:
         sth = mi_socp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
 
     @staticmethod
-    def test_mi_socp_2(solver, places: int=4, **kwargs) -> None:
+    def test_mi_socp_2(solver, places: int = 4, **kwargs) -> None:
         sth = mi_socp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -847,7 +847,7 @@ class StandardTestSOCPs:
 class StandardTestSDPs:
 
     @staticmethod
-    def test_sdp_1min(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_sdp_1min(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = sdp_1('min')
         sth.solve(solver, **kwargs)
         sth.verify_objective(places=2)  # only 2 digits recorded.
@@ -857,7 +857,7 @@ class StandardTestSDPs:
             sth.check_dual_domains(places)
 
     @staticmethod
-    def test_sdp_1max(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_sdp_1max(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = sdp_1('max')
         sth.solve(solver, **kwargs)
         sth.verify_objective(places=2)  # only 2 digits recorded.
@@ -867,7 +867,7 @@ class StandardTestSDPs:
             sth.check_dual_domains(places)
 
     @staticmethod
-    def test_sdp_2(solver, places: int=3, duals: bool=True, **kwargs) -> None:
+    def test_sdp_2(solver, places: int = 3, duals: bool = True, **kwargs) -> None:
         # places is set to 3 rather than 4, because analytic solution isn't known.
         sth = sdp_2()
         sth.solve(solver, **kwargs)
@@ -882,7 +882,7 @@ class StandardTestSDPs:
 class StandardTestECPs:
 
     @staticmethod
-    def test_expcone_1(solver, places: int=4, duals: bool=True, **kwargs) -> None:
+    def test_expcone_1(solver, places: int = 4, duals: bool = True, **kwargs) -> None:
         sth = expcone_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -895,7 +895,7 @@ class StandardTestECPs:
 class StandardTestMixedCPs:
 
     @staticmethod
-    def test_exp_soc_1(solver, places: int=3, duals: bool=True, **kwargs) -> None:
+    def test_exp_soc_1(solver, places: int = 3, duals: bool = True, **kwargs) -> None:
         sth = expcone_socp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -908,7 +908,7 @@ class StandardTestMixedCPs:
 class StandardTestPCPs:
 
     @staticmethod
-    def test_pcp_1(solver, places: int=3, duals: bool=True, **kwargs) -> None:
+    def test_pcp_1(solver, places: int = 3, duals: bool = True, **kwargs) -> None:
         sth = pcp_1()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -918,7 +918,7 @@ class StandardTestPCPs:
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_pcp_2(solver, places: int=3, duals: bool=True, **kwargs) -> None:
+    def test_pcp_2(solver, places: int = 3, duals: bool = True, **kwargs) -> None:
         sth = pcp_2()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
@@ -928,7 +928,7 @@ class StandardTestPCPs:
             sth.verify_dual_values(places)
 
     @staticmethod
-    def test_mi_pcp_0(solver, places: int=3, **kwargs) -> None:
+    def test_mi_pcp_0(solver, places: int = 3, **kwargs) -> None:
         sth = mi_pcp_0()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)

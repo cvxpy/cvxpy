@@ -24,11 +24,11 @@ import numpy as np
 
 class TestParamConeProg(BaseTest):
     # Overridden method to assume lower accuracy.
-    def assertItemsAlmostEqual(self, a, b, places: int=2) -> None:
+    def assertItemsAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestParamConeProg, self).assertItemsAlmostEqual(a, b, places=places)
 
     # Overridden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places: int=2) -> None:
+    def assertAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestParamConeProg, self).assertAlmostEqual(a, b, places=places)
 
     def test_log_problem(self) -> None:

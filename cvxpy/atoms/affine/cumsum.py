@@ -69,7 +69,7 @@ class cumsum(AffAtom, AxisAtom):
     axis : int
         The axis to sum across if 2D.
     """
-    def __init__(self, expr, axis: int=0) -> None:
+    def __init__(self, expr, axis: int = 0) -> None:
         super(cumsum, self).__init__(expr, axis)
 
     @AffAtom.numpy_numeric

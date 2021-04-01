@@ -23,7 +23,7 @@ class cummax(AxisAtom):
     """Cumulative maximum.
     """
 
-    def __init__(self, x, axis: int=0) -> None:
+    def __init__(self, x, axis: int = 0) -> None:
         super(cummax, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric

@@ -7,7 +7,8 @@ import warnings
 warnings.filterwarnings("ignore")
 
 
-def perturbcheck(problem, gp: bool=False, delta: float=1e-5, atol: float=1e-8, eps: float=1e-10, **kwargs) -> None:
+def perturbcheck(problem, gp: bool = False, delta: float = 1e-5,
+                 atol: float = 1e-8, eps: float = 1e-10, **kwargs) -> None:
     """Checks the analytical derivative against a numerical computation."""
     np.random.seed(0)
     if not problem.parameters():
@@ -41,7 +42,8 @@ def perturbcheck(problem, gp: bool=False, delta: float=1e-5, atol: float=1e-8, e
         param.value = old_values[param]
 
 
-def gradcheck(problem, gp: bool=False, delta: float=1e-5, atol: float=1e-5, eps: float=1e-10, **kwargs) -> None:
+def gradcheck(problem, gp: bool = False, delta: float = 1e-5,
+              atol: float = 1e-5, eps: float = 1e-10, **kwargs) -> None:
     """Checks the analytical adjoint derivative against a numerical computation."""
     size = sum(p.size for p in problem.parameters())
     values = np.zeros(size)

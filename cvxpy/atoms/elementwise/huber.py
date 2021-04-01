@@ -44,7 +44,7 @@ class huber(Elementwise):
         A scalar constant.
     """
 
-    def __init__(self, x, M: int=1) -> None:
+    def __init__(self, x, M: int = 1) -> None:
         self.M = self.cast_to_const(M)
         super(huber, self).__init__(x)
 

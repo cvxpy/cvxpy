@@ -65,7 +65,7 @@ class PSD(Constraint):
                 return self.args[0].is_affine()
         return self.args[0].is_affine()
 
-    def is_dgp(self, dpp: bool=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
     def is_dqcp(self) -> bool:

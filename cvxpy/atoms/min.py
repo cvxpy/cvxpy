@@ -23,7 +23,7 @@ class min(AxisAtom):
     """:math:`\\min{i,j}\\{X_{i,j}\\}`.
     """
 
-    def __init__(self, x, axis=None, keepdims: bool=False) -> None:
+    def __init__(self, x, axis=None, keepdims: bool = False) -> None:
         super(min, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric

@@ -118,11 +118,11 @@ class TestSCS(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     # Overridden method to assume lower accuracy.
-    def assertItemsAlmostEqual(self, a, b, places: int=2) -> None:
+    def assertItemsAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestSCS, self).assertItemsAlmostEqual(a, b, places=places)
 
     # Overridden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places: int=2) -> None:
+    def assertAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestSCS, self).assertAlmostEqual(a, b, places=places)
 
     def test_scs_options(self) -> None:

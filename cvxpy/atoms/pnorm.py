@@ -116,7 +116,8 @@ class Pnorm(AxisAtom):
     """
     _allow_complex = True
 
-    def __init__(self, x, p: int=2, axis=None, keepdims: bool=False, max_denom: int=1024) -> None:
+    def __init__(self, x, p: int = 2, axis=None,
+                 keepdims: bool = False, max_denom: int = 1024) -> None:
         if p < 0:
             # TODO(akshayka): Why do we accept p < 0?
             self.p, _ = pow_neg(p, max_denom)

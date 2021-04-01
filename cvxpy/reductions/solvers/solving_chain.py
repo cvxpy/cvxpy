@@ -46,7 +46,7 @@ def _solve_as_qp(problem, candidates):
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool=False) -> List[Any]:
+def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List[Any]:
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
@@ -117,7 +117,9 @@ def _reductions_for_problem_class(problem, candidates, gp: bool=False) -> List[A
     return reductions
 
 
-def construct_solving_chain(problem, candidates, gp: bool=False, enforce_dpp: bool=False) -> "SolvingChain":
+def construct_solving_chain(problem, candidates,
+                            gp: bool = False,
+                            enforce_dpp: bool = False) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver

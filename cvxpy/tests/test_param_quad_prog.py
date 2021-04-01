@@ -26,11 +26,11 @@ class TestParamQuadProg(BaseTest):
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
 
     # Overridden method to assume lower accuracy.
-    def assertItemsAlmostEqual(self, a, b, places: int=2) -> None:
+    def assertItemsAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestParamQuadProg, self).assertItemsAlmostEqual(a, b, places=places)
 
     # Overridden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places: int=2) -> None:
+    def assertAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestParamQuadProg, self).assertAlmostEqual(a, b, places=places)
 
     def test_param_data(self) -> None:

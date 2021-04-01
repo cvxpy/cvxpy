@@ -98,7 +98,7 @@ class PowCone3D(Constraint):
     def cone_sizes(self) -> List[int]:
         return [3]*self.num_cones()
 
-    def is_dcp(self, dpp: bool=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         if dpp:
             with scopes.dpp_scope():
                 args_ok = all(arg.is_affine() for arg in self.args)
@@ -106,7 +106,7 @@ class PowCone3D(Constraint):
                 return args_ok and exps_ok
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dgp(self, dpp: bool=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
     def is_dqcp(self) -> bool:
@@ -153,7 +153,7 @@ class PowConeND(Constraint):
 
     _TOL_ = 1e-6
 
-    def __init__(self, W, z, alpha, axis: int=0, constr_id=None) -> None:
+    def __init__(self, W, z, alpha, axis: int = 0, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         W = Expression.cast_to_const(W)
         if not (W.is_real() and W.is_affine()):
@@ -238,7 +238,7 @@ class PowConeND(Constraint):
                 return args_ok and exps_ok
         return True
 
-    def is_dgp(self, dpp: bool=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
     def is_dqcp(self) -> bool:

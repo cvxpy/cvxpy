@@ -14,10 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.settings as s
-
 from collections import namedtuple
-
 from cvxpy.problems.problem import Problem
 from cvxpy.utilities.deterministic import unique_list
 
