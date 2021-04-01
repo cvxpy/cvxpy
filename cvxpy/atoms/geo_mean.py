@@ -166,7 +166,7 @@ class geo_mean(Atom):
         :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
     """
 
-    def __init__(self, x, p: Optional[List[int]]=None, max_denom: int=1024) -> None:
+    def __init__(self, x, p: Optional[List[int]] = None, max_denom: int = 1024) -> None:
         """ Implementation details of geo_mean.
 
         Attributes

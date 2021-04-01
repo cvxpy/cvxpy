@@ -105,7 +105,7 @@ class ParamQuadProg(ParamProb):
                  constraints,
                  parameters,
                  param_id_to_col,
-                 formatted: bool=False) -> None:
+                 formatted: bool = False) -> None:
         self.P = P
         self.q = q
         self.x = x

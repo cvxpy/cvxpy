@@ -205,7 +205,7 @@ class Problem(u.Canonical):
         return {variable.name(): variable for variable in self.variables()}
 
     @perf.compute_once
-    def is_dcp(self, dpp: bool=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """Does the problem satisfy DCP rules?
 
         Arguments
@@ -228,7 +228,7 @@ class Problem(u.Canonical):
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dgp(self, dpp: bool=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         """Does the problem satisfy DGP rules?
 
         Arguments
@@ -877,7 +877,7 @@ class Problem(u.Canonical):
             s.LOGGER.info(
                     'Your problem has %d variables, '
                     '%d constraints, and ' '%d parameters.',
-                        n_variables, len(self.constraints), n_parameters)
+                    n_variables, len(self.constraints), n_parameters)
             curvatures = []
             if self.is_dcp():
                 curvatures.append('DCP')
@@ -942,7 +942,7 @@ class Problem(u.Canonical):
             print(_NUM_SOLVER_STR)
             s.LOGGER.info(
                     'Invoking solver %s  to obtain a solution.',
-                        solving_chain.reductions[-1].name())
+                    solving_chain.reductions[-1].name())
         start = time.time()
         solution = solving_chain.solve_via_data(
             self, data, warm_start, verbose, kwargs)

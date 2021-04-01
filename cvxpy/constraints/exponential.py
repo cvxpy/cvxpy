@@ -102,7 +102,7 @@ class ExpCone(Constraint):
         """
         return [3]*self.num_cones()
 
-    def is_dcp(self, dpp: bool=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """An exponential constraint is DCP if each argument is affine.
         """
         if dpp:
@@ -110,7 +110,7 @@ class ExpCone(Constraint):
                 return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dgp(self, dpp: bool=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
     def is_dqcp(self) -> bool:

@@ -40,7 +40,7 @@ class reshape(AffAtom):
     order : F(ortran) or C
     """
 
-    def __init__(self, expr, shape: Tuple[int], order: str='F') -> None:
+    def __init__(self, expr, shape: Tuple[int], order: str = 'F') -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         if len(shape) > 2:

@@ -21,7 +21,7 @@ import numpy as np
 
 class BaseTest(unittest.TestCase):
     # AssertAlmostEqual for lists.
-    def assertItemsAlmostEqual(self, a, b, places: int=5) -> None:
+    def assertItemsAlmostEqual(self, a, b, places: int = 5) -> None:
         if np.isscalar(a):
             a = [a]
         else:
@@ -34,7 +34,7 @@ class BaseTest(unittest.TestCase):
             self.assertAlmostEqual(a[i], b[i], places)
 
     # Overridden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places: int=5, delta=None) -> None:
+    def assertAlmostEqual(self, a, b, places: int = 5, delta=None) -> None:
         super(BaseTest, self).assertAlmostEqual(a, b, places=places, delta=delta)
 
     def mat_to_list(self, mat):

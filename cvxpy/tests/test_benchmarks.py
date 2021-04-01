@@ -7,7 +7,7 @@ import os
 import time
 
 
-def benchmark(func, iters: int=1, name=None) -> None:
+def benchmark(func, iters: int = 1, name=None) -> None:
     vals = []
     for _ in range(iters):
         start = time.time()

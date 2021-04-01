@@ -18,7 +18,7 @@ limitations under the License.
 import abc
 
 from cvxpy.reductions.reduction import Reduction
-from typing import Any, List, Tuple, Type
+from typing import List, Tuple
 
 import numpy as np
 

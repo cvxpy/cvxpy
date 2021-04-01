@@ -34,7 +34,7 @@ class SOC(Constraint):
         axis: Slice by column 0 or row 1.
     """
 
-    def __init__(self, t, X, axis: int=0, constr_id=None) -> None:
+    def __init__(self, t, X, axis: int = 0, constr_id=None) -> None:
         t = cvxtypes.expression().cast_to_const(t)
         if len(t.shape) >= 2 or not t.is_real():
             raise ValueError("Invalid first argument.")
@@ -108,7 +108,7 @@ class SOC(Constraint):
         cone_size = 1 + self.args[1].shape[self.axis]
         return [cone_size] * self.num_cones()
 
-    def is_dcp(self, dpp: bool=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """An SOC constraint is DCP if each of its arguments is affine.
         """
         if dpp:
@@ -116,7 +116,7 @@ class SOC(Constraint):
                 return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dgp(self, dpp: bool=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
     def is_dqcp(self) -> bool:
