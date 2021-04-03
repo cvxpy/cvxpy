@@ -93,7 +93,7 @@ numpy.random.seed(1)
 
 # Min sum_squares(A*x + B*z - c)
 # z boolean.
-def example(n, get_vals=False):
+def example(n, get_vals: bool = False):
     print ("n = %d #################" % n)
     m = 2*n
     A = numpy.matrix(numpy.random.randn(m, n))

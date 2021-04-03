@@ -312,7 +312,7 @@ class TestProblem(BaseTest):
         result = p.solve(method="test")
         self.assertEqual(result, 1)
 
-        def test(self, a, b=2):
+        def test(self, a, b: int = 2):
             return (a, b)
         Problem.register_solve("test", test)
         p = Problem(cp.Minimize(0))

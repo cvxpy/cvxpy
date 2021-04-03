@@ -54,7 +54,7 @@ class Zero(Constraint):
     def name(self) -> str:
         return "%s == 0" % self.args[0]
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A zero constraint is DCP if its argument is affine."""
         if dpp:
             with scopes.dpp_scope():
@@ -133,14 +133,14 @@ class Equality(Constraint):
     def name(self) -> str:
         return "%s == %s" % (self.args[0], self.args[1])
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """An equality constraint is DCP if its argument is affine."""
         if dpp:
             with scopes.dpp_scope():
                 return self.expr.is_affine()
         return self.expr.is_affine()
 
-    def is_dgp(self, dpp=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         if dpp:
             with scopes.dpp_scope():
                 return (self.args[0].is_log_log_affine() and

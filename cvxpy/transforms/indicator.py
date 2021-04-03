@@ -31,7 +31,7 @@ class indicator(Expression):
        A numeric tolerance for determining whether the constraints hold.
     """
 
-    def __init__(self, constraints, err_tol=1e-3):
+    def __init__(self, constraints, err_tol: float = 1e-3):
         self.args = constraints
         self.err_tol = err_tol
         super(indicator, self).__init__()

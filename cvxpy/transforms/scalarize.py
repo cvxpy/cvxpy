@@ -36,7 +36,7 @@ def weighted_sum(objectives: List[Objective], weights) -> Expression:
     return sum(objectives[i]*weights[i] for i in range(num_objs))
 
 
-def targets_and_priorities(objectives, priorities, targets, limits=None, off_target=1e-5):
+def targets_and_priorities(objectives, priorities, targets, limits=None, off_target: float = 1e-5):
     """Combines objectives with penalties within a range between target and limit.
 
     Each Minimize objective i has value
@@ -101,7 +101,7 @@ def max(objectives, weights):
     return Minimize(expr)
 
 
-def log_sum_exp(objectives, weights, gamma=1):
+def log_sum_exp(objectives, weights, gamma: float = 1.0):
     """Combines objectives as log_sum_exp of weighted terms.
 
 

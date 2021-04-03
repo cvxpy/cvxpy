@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import Union
+
 import numpy as np
 import cvxpy
 from cvxpy.expressions.expression import Expression
@@ -25,7 +27,7 @@ from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.affine.vec import vec
 
 
-def norm(x, p=2, axis=None):
+def norm(x, p: Union[int, str] = 2, axis=None):
     """Wrapper on the different norm atoms.
 
     Parameters

@@ -108,7 +108,7 @@ def to_int(val, none_val=None):
         return int(val)
 
 
-def wrap_neg_index(index, dim, neg_step=False):
+def wrap_neg_index(index, dim, neg_step: bool = False):
     """Converts a negative index into a positive index.
 
     Args:

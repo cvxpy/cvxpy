@@ -83,7 +83,7 @@ def gm_constrs(t, x_list, p):
     return constraints
 
 
-def pow_high(p, max_denom=1024):
+def pow_high(p, max_denom: int = 1024):
     """ Return (t,1,x) power tuple
 
         x <= t^(1/p) 1^(1-1/p)
@@ -97,7 +97,7 @@ def pow_high(p, max_denom=1024):
     return 1/p, (p, 1-p)
 
 
-def pow_mid(p, max_denom=1024):
+def pow_mid(p, max_denom: int = 1024):
     """ Return (x,1,t) power tuple
 
         t <= x^p 1^(1-p)
@@ -109,7 +109,7 @@ def pow_mid(p, max_denom=1024):
     return p, (p, 1-p)
 
 
-def pow_neg(p, max_denom=1024):
+def pow_neg(p, max_denom: int = 1024):
     """ Return (x,t,1) power tuple
 
         1 <= x^(p/(p-1)) t^(-1/(p-1))
@@ -223,7 +223,7 @@ def is_weight(w) -> bool:
     return valid_elems and sum(w) == 1
 
 
-def fracify(a, max_denom=1024, force_dyad=False):
+def fracify(a, max_denom: int = 1024, force_dyad: bool = False):
     """ Return a valid fractional weight tuple (and its dyadic completion)
         to represent the weights given by ``a``.
 

@@ -93,7 +93,7 @@ def create_param(shape, param_id=None):
     return lo.LinOp(lo.PARAM, shape, [], param_id)
 
 
-def create_const(value, shape, sparse=False):
+def create_const(value, shape, sparse: bool = False):
     """Wraps a constant.
 
     Parameters

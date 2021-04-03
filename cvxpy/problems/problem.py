@@ -472,7 +472,7 @@ class Problem(u.Canonical):
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
-    def get_problem_data(self, solver, gp=False, enforce_dpp=False, verbose=False):
+    def get_problem_data(self, solver, gp: bool = False, enforce_dpp: bool = False, verbose: bool = False):
         """Returns the problem data used in the call to the solver.
 
         When a problem is solved, CVXPY creates a chain of reductions enclosed
@@ -633,7 +633,7 @@ class Problem(u.Canonical):
 
     def _find_candidate_solvers(self,
                                 solver=None,
-                                gp=False):
+                                gp: bool = False):
         """
         Find candidate solvers for the current problem. If solver
         is not None, it checks if the specified solver is compatible
@@ -762,7 +762,7 @@ class Problem(u.Canonical):
                 candidates['conic_solvers'] = [custom_solver.name()]
         return candidates
 
-    def _construct_chain(self, solver=None, gp=False, enforce_dpp=False):
+    def _construct_chain(self, solver=None, gp: bool = False, enforce_dpp: bool = False):
         """
         Construct the chains required to reformulate and solve the problem.
 
@@ -822,8 +822,8 @@ class Problem(u.Canonical):
     def _solve(self,
                solver=None,
                warm_start=True,
-               verbose=False,
-               gp=False, qcp=False, requires_grad=False, enforce_dpp=False, **kwargs):
+               verbose: bool = False,
+               gp: bool = False, qcp: bool = False, requires_grad: bool = False, enforce_dpp: bool = False, **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable

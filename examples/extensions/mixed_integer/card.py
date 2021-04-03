@@ -21,7 +21,7 @@ from itertools import product
 class Card(NonCvxVariable):
     """ A variable with constrained cardinality. """
     # k - the maximum cardinality of the variable.
-    def __init__(self, rows=1, cols=1, k=None, *args, **kwargs):
+    def __init__(self, rows: int = 1, cols: int = 1, k=None, *args, **kwargs):
         self.k = k
         super(Card, self).__init__(rows, cols, *args, **kwargs)
 

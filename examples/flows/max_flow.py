@@ -36,7 +36,7 @@ class Edge:
 
 class Node:
     """ A node with accumulation. """
-    def __init__(self, accumulation=0):
+    def __init__(self, accumulation: float = 0.0):
         self.accumulation = accumulation
         self.edge_flows = []
 

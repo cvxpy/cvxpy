@@ -69,7 +69,7 @@ def join(expr, lh_arg, rh_arg):
         return expr.copy([lh_arg, rh_arg])
 
 
-def add(lh_arg, rh_arg, neg=False):
+def add(lh_arg, rh_arg, neg: bool = False):
     """Helper function to sum arguments.
        Negates rh_arg if neg is True.
     """

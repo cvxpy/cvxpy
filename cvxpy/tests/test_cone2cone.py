@@ -434,7 +434,7 @@ class TestPowND(BaseTest):
         pass
 
     @staticmethod
-    def pcp_4(ceei=True):
+    def pcp_4(ceei: bool = True):
         """
         A power cone formulation of a Fisher market equilibrium pricing model.
         ceei = Competitive Equilibrium from Equal Incomes

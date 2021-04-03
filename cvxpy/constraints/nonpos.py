@@ -44,7 +44,7 @@ class NonPos(Constraint):
     def name(self) -> str:
         return "%s <= 0" % self.args[0]
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A non-positive constraint is DCP if its argument is convex."""
         if dpp:
             with scopes.dpp_scope():
@@ -103,7 +103,7 @@ class NonNeg(Constraint):
     def name(self) -> str:
         return "0 <= %s" % self.args[0]
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A non-negative constraint is DCP if its argument is concave."""
         if dpp:
             with scopes.dpp_scope():
@@ -176,14 +176,14 @@ class Inequality(Constraint):
         """int : The size of the constrained expression."""
         return self.expr.size
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A non-positive constraint is DCP if its argument is convex."""
         if dpp:
             with scopes.dpp_scope():
                 return self.expr.is_convex()
         return self.expr.is_convex()
 
-    def is_dgp(self, dpp=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         if dpp:
             with scopes.dpp_scope():
                 return (self.args[0].is_log_log_convex() and

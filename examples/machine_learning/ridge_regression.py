@@ -19,7 +19,7 @@ def mse(X, Y, beta):
     return (1.0 / X.shape[0]) * loss_fn(X, Y, beta).value
 
 
-def generate_data(m=1000, n=30, sigma=40):
+def generate_data(m: int = 1000, n: int = 30, sigma: int = 40):
     """Generates data for regression.
 
     To experiment with your own data, just replace the contents of this
