@@ -200,6 +200,7 @@ class MOSEK(ConicSolver):
                 data['A_bar_data'] = []
                 data['c_bar_data'] = []
 
+        data[s.PARAM_PROB] = problem
         return data, inv_data
 
     def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
