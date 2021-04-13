@@ -1,6 +1,7 @@
 import cvxpy
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
+import scipy.sparse as sp
 
 
 class TestDgp(BaseTest):
@@ -202,3 +203,7 @@ class TestDgp(BaseTest):
         x = cvxpy.Variable(pos=True)
         self.assertTrue((x**1).is_nonneg())
         self.assertFalse((x**1).is_nonpos())
+
+    def test_sparse_constant_not_allowed(self) -> None:
+        sparse_matrix = cvxpy.Constant(sp.csc_matrix(np.array([1.0, 2.0])))
+        self.assertFalse(sparse_matrix.is_log_log_constant())

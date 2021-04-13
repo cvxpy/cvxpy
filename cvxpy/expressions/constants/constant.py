@@ -19,6 +19,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.interface as intf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
+import scipy.sparse as sp
 from scipy.sparse.linalg import eigsh
 from scipy.sparse.linalg.eigen.arpack.arpack import ArpackError
 import numpy as np
@@ -77,7 +78,12 @@ class Constant(Leaf):
         """Returns whether the constant is elementwise positive.
         """
         if self._cached_is_pos is None:
-            self._cached_is_pos = np.all(self._value > 0)
+            if sp.issparse(self._value):
+                # sparse constants cannot be elementwise positive,
+                # since they (typically) have many entries which are zero.
+                self._cached_is_pos = False
+            else:
+                self._cached_is_pos = np.all(self._value > 0)
         return self._cached_is_pos
 
     @property
