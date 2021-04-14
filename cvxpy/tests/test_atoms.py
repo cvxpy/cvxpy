@@ -500,6 +500,10 @@ class TestAtoms(BaseTest):
         with self.assertRaises(TypeError) as cm:
             cp.vstack()
 
+        # Test scalars with variables of shape (1,)
+        expr = cp.vstack([2, Variable((1,))])
+        self.assertEqual(expr.shape, (2, 1))
+
     def test_reshape(self) -> None:
         """Test the reshape class.
         """
