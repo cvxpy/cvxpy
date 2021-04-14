@@ -56,10 +56,12 @@ class Vstack(AffAtom):
     # All arguments must have the same width.
     def validate_arguments(self) -> None:
         model = self.args[0].shape
+        # Promote scalars.
         if model == ():
             model = (1,)
         for arg in self.args[1:]:
             arg_shape = arg.shape
+            # Promote scalars.
             if arg_shape == ():
                 arg_shape = (1,)
             if len(arg_shape) != len(model) or \
