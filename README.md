@@ -1,6 +1,6 @@
 CVXPY
 =====================
-[![Build Status](https://travis-ci.com/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.com/github/cvxgrp/cvxpy)
+[![Build Status](https://travis-ci.com/cvxpy/cvxpy.png?branch=master)](https://travis-ci.com/github/cvxpy/cvxpy)
 [![Build status](https://ci.appveyor.com/api/projects/status/jo7tkvc58c3hgfd7?svg=true)](https://ci.appveyor.com/project/StevenDiamond/cvxpy)
 
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
