@@ -1929,3 +1929,10 @@ class TestProblem(BaseTest):
         problem = cp.Problem(cp.Maximize(obj), [x == 1, y == 2])
         result = problem.solve()
         self.assertAlmostEqual(result, 10)
+
+    def test_constant_infeasible(self) -> None:
+        """Test a problem with constant values only that is infeasible.
+        """
+        p = cp.Problem(cp.Maximize(0), [cp.Constant(0) == 1])
+        p.solve()
+        self.assertEquals(p.status, cp.INFEASIBLE)

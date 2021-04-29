@@ -31,7 +31,7 @@ class ConstantSolver(Solver):
         return self.solve(data, warm_start, verbose, solver_opts)
 
     def solve(self, problem, warm_start, verbose, solver_opts):
-        if all(c.value for c in problem.constraints):
+        if all(c.value() for c in problem.constraints):
             return Solution(s.OPTIMAL, problem.objective.value, {}, {}, {})
         else:
             return Solution(s.INFEASIBLE, None, {}, {}, {})
