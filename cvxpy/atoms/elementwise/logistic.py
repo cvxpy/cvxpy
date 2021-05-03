@@ -75,6 +75,5 @@ class logistic(Elementwise):
         """
         rows = self.args[0].size
         cols = self.size
-        exp_val = np.exp(values[0])
-        grad_vals = exp_val/(1 + exp_val)
+        grad_vals = np.exp(values[0] - np.logaddexp(0, values[0]))
         return [logistic.elemwise_grad_to_diag(grad_vals, rows, cols)]
