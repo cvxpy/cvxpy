@@ -276,7 +276,7 @@ class SolvingChain(Chain):
         """
         return SolvingChain(reductions=chain.reductions + self.reductions)
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
+    def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
         """Solves the problem by applying the chain.
 
         Applies each reduction in the chain to the problem, solves it,

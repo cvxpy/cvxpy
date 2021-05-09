@@ -27,10 +27,10 @@ class ConstantSolver(Solver):
     def is_installed(self) -> bool:
         return True
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         return self.solve(data, warm_start, verbose, solver_opts)
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
+    def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
         if all(c.value() for c in problem.constraints):
             return Solution(s.OPTIMAL, problem.objective.value, {}, {}, {})
         else:
