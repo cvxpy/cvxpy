@@ -13,9 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import abc
+from typing import Tuple
 
 import cvxpy.interface.matrix_utilities
-import abc
 import numpy as np
 
 
@@ -69,16 +70,16 @@ class BaseMatrixInterface:
         raise NotImplementedError()
 
     # Return a matrix with all 0's.
-    def zeros(self, shape):
+    def zeros(self, shape: Tuple[int, ...]):
         return self.scalar_matrix(0, shape)
 
     # Return a matrix with all 1's.
-    def ones(self, shape):
+    def ones(self, shape: Tuple[int, ...]):
         return self.scalar_matrix(1, shape)
 
     # A matrix with all entries equal to the given scalar value.
     @abc.abstractmethod
-    def scalar_matrix(self, value, shape):
+    def scalar_matrix(self, value, shape: Tuple[int, ...]):
         raise NotImplementedError()
 
     # Return the value at the given index in the matrix.
@@ -92,7 +93,7 @@ class BaseMatrixInterface:
 
     # Coerce the matrix into the given shape.
     @abc.abstractmethod
-    def reshape(self, matrix, shape):
+    def reshape(self, matrix, shape: Tuple[int, ...]):
         raise NotImplementedError()
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,

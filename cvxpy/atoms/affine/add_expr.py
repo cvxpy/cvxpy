@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 import sys
 from cvxpy.atoms.affine.affine_atom import AffAtom
@@ -101,7 +102,7 @@ class AddExpression(AffAtom):
         copy.__init__(args)
         return copy
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Sum the linear expressions.
 
         Parameters

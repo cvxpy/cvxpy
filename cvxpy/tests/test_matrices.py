@@ -13,6 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import unittest
+import sys
+from typing import Tuple
 
 from cvxpy.expressions.expression import Expression
 from cvxpy.constraints.constraint import Constraint
@@ -20,15 +23,14 @@ from cvxpy.expressions.variable import Variable
 import cvxpy.interface.matrix_utilities as intf
 import numpy
 import scipy.sparse as sp
-import unittest
-import sys
+
 PY35 = sys.version_info >= (3, 5)
 
 
 class TestMatrices(unittest.TestCase):
     """ Unit tests for testing different forms of matrices as constants. """
 
-    def assertExpression(self, expr, shape) -> None:
+    def assertExpression(self, expr, shape: Tuple[int, ...]) -> None:
         """Asserts that expr is an Expression with dimension shape.
         """
         assert isinstance(expr, Expression) or isinstance(expr, Constraint)

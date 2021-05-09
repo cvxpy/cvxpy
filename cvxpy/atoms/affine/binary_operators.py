@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from __future__ import division
+from typing import Tuple
 import sys
 
 import cvxpy.interface as intf
@@ -197,7 +198,7 @@ class MulExpression(BinaryOperator):
 
         return [DX, DY]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Multiply the linear expressions.
 
         Parameters
@@ -283,7 +284,7 @@ class multiply(MulExpression):
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Multiply the expressions elementwise.
 
         Parameters
@@ -385,7 +386,7 @@ class DivExpression(BinaryOperator):
         else:
             return self.args[0].is_nonneg()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Multiply the linear expressions.
 
         Parameters

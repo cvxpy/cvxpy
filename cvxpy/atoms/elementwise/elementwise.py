@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 import abc
+from typing import Tuple
+
 from cvxpy.atoms.atom import Atom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
@@ -60,7 +62,7 @@ class Elementwise(Atom):
         return sp.dia_matrix((value, [0]), shape=(rows, cols)).tocsc()
 
     @staticmethod
-    def _promote(arg, shape):
+    def _promote(arg, shape: Tuple[int, ...]):
         """Promotes the lin op if necessary.
 
         Parameters

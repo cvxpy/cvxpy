@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, ExpCone, PSD, Zero, NonNeg, PowCone3D
@@ -32,7 +33,7 @@ import scipy.sparse as sp
 
 class LinearOperator:
     """A wrapper for linear operators."""
-    def __init__(self, linear_op, shape) -> None:
+    def __init__(self, linear_op, shape: Tuple[int, ...]) -> None:
         if sp.issparse(linear_op):
             self._matmul = lambda X: linear_op @ X
         else:
@@ -91,7 +92,7 @@ class ConicSolver(Solver):
                         problem.constraints))
 
     @staticmethod
-    def get_spacing_matrix(shape, spacing, streak, num_blocks, offset):
+    def get_spacing_matrix(shape: Tuple[int, ...], spacing, streak, num_blocks, offset):
         """Returns a sparse matrix that spaces out an expression.
 
         Parameters
