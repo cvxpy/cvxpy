@@ -72,10 +72,10 @@ class SwigPyIterator:
     def value(self):
         return _cvxcore.SwigPyIterator_value(self)
 
-    def incr(self, n=1):
+    def incr(self, n: int = 1):
         return _cvxcore.SwigPyIterator_incr(self, n)
 
-    def decr(self, n=1):
+    def decr(self, n: int = 1):
         return _cvxcore.SwigPyIterator_decr(self, n)
 
     def distance(self, x):

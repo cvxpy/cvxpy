@@ -192,7 +192,7 @@ class Expression(u.Canonical):
         raise NotImplementedError()
 
     @perf.compute_once
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """Checks whether the Expression is DCP.
 
         Parameters
@@ -241,7 +241,7 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    def is_dgp(self, dpp=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         """Checks whether the Expression is log-log DCP.
 
         Returns

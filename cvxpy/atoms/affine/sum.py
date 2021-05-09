@@ -99,7 +99,7 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis=None, keepdims=False):
+def sum(expr, axis=None, keepdims: bool = False):
     """Wrapper for Sum class.
     """
     if isinstance(expr, list):

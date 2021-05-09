@@ -99,7 +99,7 @@ class upper_tri(AffAtom):
         return (lu.upper_tri(arg_objs[0]), [])
 
 
-def vec_to_upper_tri(expr, strict=False):
+def vec_to_upper_tri(expr, strict: bool = False):
     expr = Expression.cast_to_const(expr)
     ell = expr.shape[0]
     if strict:

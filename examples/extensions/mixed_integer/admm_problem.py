@@ -20,7 +20,7 @@ from cvxpy import settings as s
 import numpy as np
 
 # Use ADMM to attempt non-convex problem.
-def admm(self, rho=0.5, iterations=5, *args, **kwargs):
+def admm(self, rho: float = 0.5, iterations: int = 5, *args, **kwargs):
     noncvx_vars = []
     for var in self.variables():
         if getattr(var, "noncvx", False):
@@ -40,7 +40,7 @@ def admm(self, rho=0.5, iterations=5, *args, **kwargs):
     return polish(self, noncvx_vars, *args, **kwargs)
 
 # Use ADMM to attempt non-convex problem.
-def admm2(self, rho=0.5, iterations=5, *args, **kwargs):
+def admm2(self, rho: float = 0.5, iterations: int = 5, *args, **kwargs):
     noncvx_vars = []
     for var in self.variables():
         if getattr(var, "noncvx", False):

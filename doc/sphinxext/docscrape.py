@@ -410,7 +410,7 @@ class NumpyDocString:
         return '\n'.join(out)
 
 
-def indent(str,indent=4):
+def indent(str, indent: int = 4):
     indent_str = ' '*indent
     if str is None:
         return indent_str

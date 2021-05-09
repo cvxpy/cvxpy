@@ -138,8 +138,8 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
     raise error.SolverError("Max iters hit during bisection.")
 
 
-def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
-           max_iters=100, max_iters_interval_search=100):
+def bisect(problem, solver=None, low=None, high=None, eps: float = 1e-6, verbose: bool = False,
+           max_iters: int = 100, max_iters_interval_search: int = 100):
     """Bisection on a one-parameter family of DCP problems.
 
     Bisects on a one-parameter family of DCP problems emitted by `Dqcp2Dcp`.

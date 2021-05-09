@@ -89,7 +89,7 @@ class Constraint(u.Canonical):
         return any(arg.is_complex() for arg in self.args)
 
     @abc.abstractmethod
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """Checks whether the constraint is DCP.
 
         Returns
@@ -100,7 +100,7 @@ class Constraint(u.Canonical):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def is_dgp(self, dpp=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         """Checks whether the constraint is DGP.
 
         Returns
@@ -161,7 +161,7 @@ class Constraint(u.Canonical):
                              "whose expression is None-valued.")
         return residual
 
-    def value(self, tolerance=1e-8):
+    def value(self, tolerance: float = 1e-8):
         """Checks whether the constraint violation is less than a tolerance.
 
         Parameters

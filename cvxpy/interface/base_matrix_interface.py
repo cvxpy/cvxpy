@@ -27,7 +27,7 @@ class BaseMatrixInterface:
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def const_to_matrix(self, value, convert_scalars=False):
+    def const_to_matrix(self, value, convert_scalars: bool = False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
 
         Args:
@@ -42,7 +42,7 @@ class BaseMatrixInterface:
     # Adds a case for scalars to const_to_matrix methods.
     @staticmethod
     def scalar_const(converter):
-        def new_converter(self, value, convert_scalars=False):
+        def new_converter(self, value, convert_scalars: bool = False):
             if not convert_scalars and cvxpy.interface.matrix_utilities.is_scalar(value):
                 return cvxpy.interface.matrix_utilities.scalar_value(value)
             else:

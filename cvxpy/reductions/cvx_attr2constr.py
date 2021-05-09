@@ -59,7 +59,7 @@ def attributes_present(variables, attr_map):
                                              in variables)]
 
 
-def recover_value_for_variable(variable, lowered_value, project=True):
+def recover_value_for_variable(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
         return sp.diags(lowered_value.flatten())
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):

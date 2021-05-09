@@ -26,7 +26,7 @@ def get_row_nnz(mat, row):
     return mat.indptr[row+1] - mat.indptr[row]
 
 
-def compress_matrix(A, b, equil_eps=1e-10):
+def compress_matrix(A, b, equil_eps: float = 1e-10):
     """Compresses A and b by eliminating redundant rows.
 
     Identifies rows that are multiples of another row.

@@ -32,7 +32,7 @@ def antiadjacency(g):
         a[x].append(y)
   return a
 
-def FMMC(g,verbose=False):
+def FMMC(g,verbose: bool = False):
   # Fastest-mixing Markov chain on the graph g
   # this is formulation (5), p.672
   # Boyd, Diaconis, and Xiao SIAM Rev. 46 (2004) 667-689
@@ -50,7 +50,7 @@ def FMMC(g,verbose=False):
   if verbose: print('status: %s.'%prob.status,'optimal value=%.6f'%prob.value)
   return prob.status,prob.value,P.value
 
-def print_result(P,n,eps=1e-8):
+def print_result(P, n, eps: float = 1e-8):
   for row in P:
     for i in range(n):
       x=row[0,i]

@@ -28,7 +28,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
     """
     TARGET_MATRIX = numpy.ndarray
 
-    def const_to_matrix(self, value, convert_scalars=False):
+    def const_to_matrix(self, value, convert_scalars: bool = False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
 
         Args:

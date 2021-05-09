@@ -159,7 +159,7 @@ class ParamConeProg(ParamProb):
         return self.x.attributes['boolean'] or \
             self.x.attributes['integer']
 
-    def apply_parameters(self, id_to_param_value=None, zero_offset=False,
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros=False):
         """Returns A, b after applying parameters (and reshaping).
 

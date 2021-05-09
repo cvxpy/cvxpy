@@ -57,7 +57,7 @@ class PSD(Constraint):
     def name(self) -> str:
         return "%s >> 0" % self.args[0]
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A PSD constraint is DCP if the constrained expression is affine.
         """
         if dpp:

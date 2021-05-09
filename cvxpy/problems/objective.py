@@ -142,7 +142,7 @@ class Minimize(Objective):
         """
         return self.args[0].canonical_form
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """The objective must be convex.
         """
         if dpp:
@@ -150,7 +150,7 @@ class Minimize(Objective):
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
-    def is_dgp(self, dpp=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log convex.
         """
         if dpp:
@@ -213,7 +213,7 @@ class Maximize(Objective):
         obj, constraints = self.args[0].canonical_form
         return (lu.neg_expr(obj), constraints)
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """The objective must be concave.
         """
         if dpp:
@@ -221,7 +221,7 @@ class Maximize(Objective):
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
 
-    def is_dgp(self, dpp=False) -> bool:
+    def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log concave.
         """
         if dpp:

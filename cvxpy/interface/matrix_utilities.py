@@ -165,7 +165,7 @@ def from_1D_to_2D(constant):
         return constant
 
 
-def convert(constant, sparse=False, convert_scalars=False):
+def convert(constant, sparse=False, convert_scalars: bool = False):
     """Convert to appropriate type.
     """
     if isinstance(constant, (list, np.matrix)):
@@ -222,7 +222,7 @@ def sign(constant):
     return (min_val >= 0, max_val <= 0)
 
 
-def is_complex(constant, tol=1e-5) -> bool:
+def is_complex(constant, tol: float = 1e-5) -> bool:
     """Return (is real, is imaginary).
 
     Parameters
@@ -287,7 +287,7 @@ def is_hermitian(constant) -> bool:
     return is_symm, is_herm
 
 
-def is_sparse_symmetric(m, complex=False) -> bool:
+def is_sparse_symmetric(m, complex: bool = False) -> bool:
     """Check if a sparse matrix is symmetric
 
     Parameters

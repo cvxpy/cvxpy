@@ -58,7 +58,7 @@ def get_parameter_vector(param_size,
     return param_vec
 
 
-def reduce_problem_data_tensor(A, var_length, quad_form=False):
+def reduce_problem_data_tensor(A, var_length, quad_form: bool = False):
     """Reduce a problem data tensor, for efficient construction of the problem data
 
     If quad_form=False, the problem data tensor A is a matrix of shape (m, p), where p is the

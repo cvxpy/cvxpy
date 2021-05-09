@@ -154,7 +154,7 @@ class SymbolicQuadForm(Atom):
         return True
 
 
-def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
+def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True):
     """
     Compute a matrix decomposition.
 

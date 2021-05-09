@@ -24,7 +24,7 @@ from cvxpy.reductions.solvers import utilities
 import numpy as np
 
 
-def makeMstart(A, n, ifCol=1):
+def makeMstart(A, n, ifCol: int = 1):
     mstart = np.bincount(A.nonzero()[ifCol])
     mstart = np.concatenate((np.array([0], dtype=np.int64),
                              mstart,

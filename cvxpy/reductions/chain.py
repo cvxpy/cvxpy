@@ -51,7 +51,7 @@ class Chain(Reduction):
             problem, _ = r.apply(problem)
         return True
 
-    def apply(self, problem, verbose=False):
+    def apply(self, problem, verbose: bool = False):
         """Applies the chain to a problem and returns an equivalent problem.
 
         Parameters

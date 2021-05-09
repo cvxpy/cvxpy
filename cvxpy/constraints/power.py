@@ -228,7 +228,7 @@ class PowConeND(Constraint):
         cone_size = 1 + self.args[0].shape[self.axis]
         return [cone_size] * self.num_cones()
 
-    def is_dcp(self, dpp=False) -> bool:
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A power cone constraint is DCP if each argument is affine.
         """
         if dpp:

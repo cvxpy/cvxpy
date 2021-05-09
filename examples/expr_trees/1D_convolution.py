@@ -22,7 +22,7 @@ import random
 
 from math import pi, sqrt, exp
 
-def gauss(n=11,sigma=1):
+def gauss(n: float = 11, sigma: float = 1):
     r = range(-int(n/2),int(n/2)+1)
     return [1 / (sigma * sqrt(2*pi)) * exp(-float(x)**2/(2*sigma**2)) for x in r]
 

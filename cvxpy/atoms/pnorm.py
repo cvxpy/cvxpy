@@ -20,10 +20,10 @@ from cvxpy.atoms.norm_inf import norm_inf
 import numpy as np
 import scipy.sparse as sp
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
-from typing import Tuple
+from typing import Tuple, Union
 
 
-def pnorm(x, p=2, axis=None, keepdims=False, max_denom=1024):
+def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False, max_denom: int = 1024):
     """Factory function for a mathematical p-norm.
 
     Parameters

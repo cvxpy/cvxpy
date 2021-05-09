@@ -22,7 +22,7 @@ import numpy as np
 import cvxpy as cvx
 
 '''
-Input parameters   
+Input parameters
   n: number of receivers
   a_val: Positive bit rate coefficient for each receiver
   b_val: Positive signal to noise ratio coefficient for each receiver
@@ -30,7 +30,7 @@ Input parameters
   W_tot: Total bandwidth available to all channels
 '''
 
-def optimal_power(n, a_val, b_val, P_tot=1.0, W_tot=1.0):
+def optimal_power(n, a_val, b_val, P_tot: float = 1.0, W_tot: float = 1.0):
   '''
 Boyd and Vandenberghe, Convex Optimization, exercise 4.62 page 210
 Optimal power and bandwidth allocation in a Gaussian broadcast channel.

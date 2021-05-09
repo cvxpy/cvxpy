@@ -26,7 +26,7 @@ class SparseMatrixInterface(NDArrayInterface):
     TARGET_MATRIX = sp.csc_matrix
 
     @NDArrayInterface.scalar_const
-    def const_to_matrix(self, value, convert_scalars=False):
+    def const_to_matrix(self, value, convert_scalars: bool = False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
 
         Args:
