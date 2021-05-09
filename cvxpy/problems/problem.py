@@ -820,10 +820,14 @@ class Problem(u.Canonical):
         self._inverse_data = None
 
     def _solve(self,
-               solver=None,
-               warm_start=True,
+               solver: str = None,
+               warm_start: bool = True,
                verbose: bool = False,
-               gp: bool = False, qcp: bool = False, requires_grad: bool = False, enforce_dpp: bool = False, **kwargs):
+               gp: bool = False,
+               qcp: bool = False,
+               requires_grad: bool = False,
+               enforce_dpp: bool = False,
+               **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable

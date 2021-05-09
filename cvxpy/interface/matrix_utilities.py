@@ -165,7 +165,7 @@ def from_1D_to_2D(constant):
         return constant
 
 
-def convert(constant, sparse=False, convert_scalars: bool = False):
+def convert(constant, sparse: bool = False, convert_scalars: bool = False):
     """Convert to appropriate type.
     """
     if isinstance(constant, (list, np.matrix)):
