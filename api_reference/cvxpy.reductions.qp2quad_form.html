@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.qp2quad_form package &#8212; CVXPY 1.1.11 documentation</title>
+    <title>cvxpy.reductions.qp2quad_form package &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -168,7 +168,7 @@ dimension of the PSD cone of k by k matrices is k.</p>
 
 <dl class="py class">
 <dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</code><code class="sig-name descname">ParamQuadProg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">P</span></em>, <em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">A</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">var_id_to_col</span></em>, <em class="sig-param"><span class="n">constraints</span></em>, <em class="sig-param"><span class="n">parameters</span></em>, <em class="sig-param"><span class="n">param_id_to_col</span></em>, <em class="sig-param"><span class="n">formatted</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.</code><code class="sig-name descname">ParamQuadProg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">P</span></em>, <em class="sig-param"><span class="n">q</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">A</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">var_id_to_col</span></em>, <em class="sig-param"><span class="n">constraints</span></em>, <em class="sig-param"><span class="n">parameters</span></em>, <em class="sig-param"><span class="n">param_id_to_col</span></em>, <em class="sig-param"><span class="n">formatted</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.param_prob.ParamProb</span></code></p>
 <p>Represents a parameterized quadratic program.</p>
 <p>minimize   x’Px  + q^Tx + d
@@ -192,7 +192,7 @@ subject to (in)equality_constr1(A_1*x + b_1, …)</p>
 
 <dl class="py method">
 <dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_parameters">
-<code class="sig-name descname">apply_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id_to_param_value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">zero_offset</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">keep_zeros</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.apply_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_parameters" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">apply_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id_to_param_value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">zero_offset</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">keep_zeros</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.apply_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_parameters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns A, b after applying parameters (and reshaping).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -209,7 +209,7 @@ parameters are affected</p></li>
 
 <dl class="py method">
 <dt id="cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.is_mixed_integer">
-<code class="sig-name descname">is_mixed_integer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.is_mixed_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.is_mixed_integer" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_mixed_integer</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp_matrix_stuffing.html#ParamQuadProg.is_mixed_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.is_mixed_integer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the problem mixed-integer?</p>
 </dd></dl>
 

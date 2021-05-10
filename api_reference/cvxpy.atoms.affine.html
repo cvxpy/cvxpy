@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Affine Atoms &#8212; CVXPY 1.1.11 documentation</title>
+    <title>Affine Atoms &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -155,7 +155,7 @@ vector where</p>
 <span id="id3"></span><h2><a class="toc-backref" href="#id31">cumsum</a><a class="headerlink" href="#cumsum" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cvxpy.atoms.affine.cumsum.cumsum">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.affine.cumsum.</code><code class="sig-name descname">cumsum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/cumsum.html#cumsum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.cumsum.cumsum" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.affine.cumsum.</code><code class="sig-name descname">cumsum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="n">axis</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/cumsum.html#cumsum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.cumsum.cumsum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.axis_atom.AxisAtom</span></code></p>
 <p>Cumulative sum.</p>
 <dl class="py attribute">
@@ -187,7 +187,7 @@ vector where</p>
 <span id="id4"></span><h2><a class="toc-backref" href="#id32">diag</a><a class="headerlink" href="#diag" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="cvxpy.atoms.affine.diag.diag">
-<code class="sig-prename descclassname">cvxpy.atoms.affine.diag.</code><code class="sig-name descname">diag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/diag.html#diag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.diag.diag" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cvxpy.atoms.affine.diag.</code><code class="sig-name descname">diag</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span>cvxpy.atoms.affine.diag.diag_mat<span class="p">, </span>cvxpy.atoms.affine.diag.diag_vec<span class="p">]</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/diag.html#diag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.diag.diag" title="Permalink to this definition">¶</a></dt>
 <dd><p>Extracts the diagonal from a matrix or makes a vector a diagonal matrix.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -207,7 +207,7 @@ vector where</p>
 <span id="id5"></span><h2><a class="toc-backref" href="#id33">diff</a><a class="headerlink" href="#diff" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="cvxpy.atoms.affine.diff.diff">
-<code class="sig-prename descclassname">cvxpy.atoms.affine.diff.</code><code class="sig-name descname">diff</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">k</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/diff.html#diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.diff.diff" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cvxpy.atoms.affine.diff.</code><code class="sig-name descname">diff</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">k</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em>, <em class="sig-param"><span class="n">axis</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/diff.html#diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.diff.diff" title="Permalink to this definition">¶</a></dt>
 <dd><p>Vector of kth order differences.</p>
 <p>Takes in a vector of length n and returns a vector
 of length n-k of the kth order differences.</p>
@@ -224,7 +224,7 @@ equivalently diff(diff(x))</p>
 <span id="id6"></span><h2><a class="toc-backref" href="#id34">hstack</a><a class="headerlink" href="#hstack" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="cvxpy.atoms.affine.hstack.hstack">
-<code class="sig-prename descclassname">cvxpy.atoms.affine.hstack.</code><code class="sig-name descname">hstack</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/hstack.html#hstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.hstack.hstack" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cvxpy.atoms.affine.hstack.</code><code class="sig-name descname">hstack</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg_list</span></em><span class="sig-paren">)</span> &#x2192; cvxpy.atoms.affine.hstack.Hstack<a class="reference internal" href="../_modules/cvxpy/atoms/affine/hstack.html#hstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.hstack.hstack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Horizontal concatenation of an arbitrary number of Expressions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -269,7 +269,7 @@ constructed by that operator, and it should not be instantiated directly.</p>
 <span id="id9"></span><h2><a class="toc-backref" href="#id37">matmul</a><a class="headerlink" href="#matmul" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="cvxpy.atoms.affine.binary_operators.matmul">
-<code class="sig-prename descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="sig-name descname">matmul</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lh_exp</span></em>, <em class="sig-param"><span class="n">rh_exp</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#matmul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.matmul" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cvxpy.atoms.affine.binary_operators.</code><code class="sig-name descname">matmul</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lh_exp</span></em>, <em class="sig-param"><span class="n">rh_exp</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.atoms.affine.binary_operators.MulExpression" title="cvxpy.atoms.affine.binary_operators.MulExpression">cvxpy.atoms.affine.binary_operators.MulExpression</a><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#matmul"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.matmul" title="Permalink to this definition">¶</a></dt>
 <dd><p>Matrix multiplication.</p>
 </dd></dl>
 
@@ -308,7 +308,7 @@ constructed by that operator, and it should not be instantiated directly.</p>
 <span id="id12"></span><h2><a class="toc-backref" href="#id40">reshape</a><a class="headerlink" href="#reshape" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cvxpy.atoms.affine.reshape.reshape">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.affine.reshape.</code><code class="sig-name descname">reshape</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="n">shape</span></em>, <em class="sig-param"><span class="n">order</span><span class="o">=</span><span class="default_value">'F'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/reshape.html#reshape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.reshape.reshape" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.affine.reshape.</code><code class="sig-name descname">reshape</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">]</span></span></em>, <em class="sig-param"><span class="n">order</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'F'</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/reshape.html#reshape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.reshape.reshape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
 <p>Reshapes the expression.</p>
 <p>Vectorizes the expression then unvectorizes it into the new shape.
@@ -330,7 +330,7 @@ as Fortran order.</p>
 <span id="id13"></span><h2><a class="toc-backref" href="#id41">sum</a><a class="headerlink" href="#sum" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="cvxpy.atoms.affine.sum.sum">
-<code class="sig-prename descclassname">cvxpy.atoms.affine.sum.</code><code class="sig-name descname">sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepdims</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/sum.html#sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.sum.sum" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cvxpy.atoms.affine.sum.</code><code class="sig-name descname">sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">keepdims</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/atoms/affine/sum.html#sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.sum.sum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sum the entries of an expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -427,7 +427,7 @@ upper_tri(A).value == np.array([11, 12, 13, 16, 17, 21])
 <span id="id25"></span><h2><a class="toc-backref" href="#id47">vstack</a><a class="headerlink" href="#vstack" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="cvxpy.atoms.affine.vstack.vstack">
-<code class="sig-prename descclassname">cvxpy.atoms.affine.vstack.</code><code class="sig-name descname">vstack</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg_list</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vstack.html#vstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.vstack.vstack" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cvxpy.atoms.affine.vstack.</code><code class="sig-name descname">vstack</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg_list</span></em><span class="sig-paren">)</span> &#x2192; cvxpy.atoms.affine.vstack.Vstack<a class="reference internal" href="../_modules/cvxpy/atoms/affine/vstack.html#vstack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.affine.vstack.vstack" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper on vstack to ensure list argument.</p>
 </dd></dl>
 

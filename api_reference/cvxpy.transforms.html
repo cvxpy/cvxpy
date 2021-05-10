@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Transforms &#8212; CVXPY 1.1.11 documentation</title>
+    <title>Transforms &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -47,7 +47,7 @@ for example a weighted sum. All scalarizations are monotone in each objective, w
 Moreover, all points on the Pareto curve except for boundary points can be attained given some weighting of the objectives.</p>
 <dl class="py method">
 <dt id="cvxpy.transforms.scalarize.weighted_sum">
-<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">weighted_sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.weighted_sum" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">weighted_sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="headerlink" href="#cvxpy.transforms.scalarize.weighted_sum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives as a weighted sum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -81,7 +81,7 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 
 <dl class="py method">
 <dt id="cvxpy.transforms.scalarize.log_sum_exp">
-<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">log_sum_exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.log_sum_exp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">log_sum_exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.log_sum_exp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives as log_sum_exp of weighted terms.</p>
 <dl class="simple">
 <dt>The objective takes the form</dt><dd><p>log(sum_{i=1}^n exp(gamma*weights[i]*objectives[i]))/gamma</p>
@@ -105,7 +105,7 @@ log_sum_exp approaches max.</p>
 
 <dl class="py method">
 <dt id="cvxpy.transforms.scalarize.targets_and_priorities">
-<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">targets_and_priorities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">priorities</span></em>, <em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">limits</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">off_target</span><span class="o">=</span><span class="default_value">1e-05</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.targets_and_priorities" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">targets_and_priorities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">priorities</span></em>, <em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">limits</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">off_target</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-05</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.scalarize.targets_and_priorities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives with penalties within a range between target and limit.</p>
 <p>Each Minimize objective i has value</p>
 <blockquote>
@@ -139,7 +139,7 @@ log_sum_exp approaches max.</p>
 <p>Here we list other available transforms.</p>
 <dl class="py class">
 <dt id="cvxpy.transforms.indicator">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.transforms.</code><code class="sig-name descname">indicator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">constraints</span></em>, <em class="sig-param"><span class="n">err_tol</span><span class="o">=</span><span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/transforms/indicator.html#indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.transforms.indicator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.transforms.</code><code class="sig-name descname">indicator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">constraints</span></em>, <em class="sig-param"><span class="n">err_tol</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/transforms/indicator.html#indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.transforms.indicator" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>An expression representing the convex function I(constraints) = 0</dt><dd><p>if constraints hold, +infty otherwise.</p>
 </dd>

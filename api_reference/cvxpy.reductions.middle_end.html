@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Middle-End Reductions &#8212; CVXPY 1.1.11 documentation</title>
+    <title>Middle-End Reductions &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -57,7 +57,7 @@ a quadratic program solver or a conic solver.</p>
 <p>Lifts complex numbers to a real representation.</p>
 <dl class="py method">
 <dt id="cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts">
-<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/complex2real/complex2real.html#Complex2Real.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/reductions/complex2real/complex2real.html#Complex2Real.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts" title="Permalink to this definition">¶</a></dt>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -123,7 +123,7 @@ application.</p></li>
 <p>Expand convex variable attributes into constraints.</p>
 <dl class="py method">
 <dt id="cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts">
-<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/cvx_attr2constr.html#CvxAttr2Constr.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/reductions/cvx_attr2constr.html#CvxAttr2Constr.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts" title="Permalink to this definition">¶</a></dt>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -265,7 +265,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <p>Replaces symbolic parameters with their constant values.</p>
 <dl class="py method">
 <dt id="cvxpy.reductions.eval_params.EvalParams.accepts">
-<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/eval_params.html#EvalParams.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.eval_params.EvalParams.accepts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/reductions/eval_params.html#EvalParams.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.eval_params.EvalParams.accepts" title="Permalink to this definition">¶</a></dt>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -319,7 +319,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <p>Flip a minimization objective to a maximization and vice versa.</p>
 <dl class="py method">
 <dt id="cvxpy.reductions.flip_objective.FlipObjective.accepts">
-<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/flip_objective.html#FlipObjective.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.flip_objective.FlipObjective.accepts" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/reductions/flip_objective.html#FlipObjective.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.flip_objective.FlipObjective.accepts" title="Permalink to this definition">¶</a></dt>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>

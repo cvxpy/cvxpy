@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.solution &#8212; CVXPY 1.1.11 documentation</title>
+    <title>cvxpy.reductions.solution &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -53,7 +53,7 @@
 <span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
 
 
-<span class="k">def</span> <span class="nf">failure_solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">failure_solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">attr</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Solution&quot;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Factory function for infeasible or unbounded solutions.</span>
 
 <span class="sd">    Parameters</span>
@@ -77,7 +77,7 @@
     <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="p">{},</span> <span class="p">{},</span> <span class="n">attr</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="Solution"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solution.Solution">[docs]</a><span class="k">class</span> <span class="nc">Solution</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Solution"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solution.Solution">[docs]</a><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;A solution to an optimization problem.</span>
 
 <span class="sd">    Attributes</span>
@@ -93,25 +93,25 @@
 <span class="sd">    attr : dict</span>
 <span class="sd">        Miscelleneous information propagated up from a solver.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="n">primal_vars</span><span class="p">,</span> <span class="n">dual_vars</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">opt_val</span><span class="p">,</span> <span class="n">primal_vars</span><span class="p">,</span> <span class="n">dual_vars</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">opt_val</span> <span class="o">=</span> <span class="n">opt_val</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">primal_vars</span> <span class="o">=</span> <span class="n">primal_vars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">dual_vars</span> <span class="o">=</span> <span class="n">dual_vars</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">attr</span> <span class="o">=</span> <span class="n">attr</span>
 
-    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Solution&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Solution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">opt_val</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">,</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;Solution(status=</span><span class="si">%s</span><span class="s2">, opt_val=</span><span class="si">%s</span><span class="s2">, primal_vars=</span><span class="si">%s</span><span class="s2">, dual_vars=</span><span class="si">%s</span><span class="s2">, attr=</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">opt_val</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attr</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="s2">&quot;Solution(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span>
                                              <span class="bp">self</span><span class="o">.</span><span class="n">primal_vars</span><span class="p">,</span>
                                              <span class="bp">self</span><span class="o">.</span><span class="n">dual_vars</span><span class="p">,</span>

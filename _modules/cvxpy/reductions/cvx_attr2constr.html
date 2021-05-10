@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.cvx_attr2constr &#8212; CVXPY 1.1.11 documentation</title>
+    <title>cvxpy.reductions.cvx_attr2constr &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -94,7 +94,7 @@
                                              <span class="ow">in</span> <span class="n">variables</span><span class="p">)]</span>
 
 
-<span class="k">def</span> <span class="nf">recover_value_for_variable</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">lowered_value</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">recover_value_for_variable</span><span class="p">(</span><span class="n">variable</span><span class="p">,</span> <span class="n">lowered_value</span><span class="p">,</span> <span class="n">project</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">variable</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;diag&#39;</span><span class="p">]:</span>
         <span class="k">return</span> <span class="n">sp</span><span class="o">.</span><span class="n">diags</span><span class="p">(</span><span class="n">lowered_value</span><span class="o">.</span><span class="n">flatten</span><span class="p">())</span>
     <span class="k">elif</span> <span class="n">attributes_present</span><span class="p">([</span><span class="n">variable</span><span class="p">],</span> <span class="n">SYMMETRIC_ATTRIBUTES</span><span class="p">):</span>
@@ -121,7 +121,7 @@
 <div class="viewcode-block" id="CvxAttr2Constr"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr">[docs]</a><span class="k">class</span> <span class="nc">CvxAttr2Constr</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Expand convex variable attributes into constraints.&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="CvxAttr2Constr.accepts"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+<div class="viewcode-block" id="CvxAttr2Constr.accepts"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="CvxAttr2Constr.apply"><a class="viewcode-back" href="../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>

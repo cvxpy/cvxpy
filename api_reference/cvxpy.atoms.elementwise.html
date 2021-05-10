@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.atoms.elementwise package &#8212; CVXPY 1.1.11 documentation</title>
+    <title>cvxpy.atoms.elementwise package &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -73,7 +73,7 @@ expressions that are supplied to it.</p>
 <span id="id4"></span><h2>huber<a class="headerlink" href="#huber" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cvxpy.atoms.elementwise.huber.huber">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.huber.</code><code class="sig-name descname">huber</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">M</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/huber.html#huber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.huber.huber" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.huber.</code><code class="sig-name descname">huber</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">M</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/huber.html#huber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.huber.huber" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>The Huber function</p>
 <div class="math notranslate nohighlight">
@@ -159,7 +159,7 @@ than to a scalar which is useful for logistic regression.</p>
 <span id="id11"></span><h2>minimum<a class="headerlink" href="#minimum" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="cvxpy.atoms.elementwise.minimum.minimum">
-<code class="sig-prename descclassname">cvxpy.atoms.elementwise.minimum.</code><code class="sig-name descname">minimum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg1</span></em>, <em class="sig-param"><span class="n">arg2</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/minimum.html#minimum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.minimum.minimum" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">cvxpy.atoms.elementwise.minimum.</code><code class="sig-name descname">minimum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg1</span></em>, <em class="sig-param"><span class="n">arg2</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/minimum.html#minimum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.minimum.minimum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Elementwise minimum of a sequence of expressions.</p>
 </dd></dl>
 
@@ -186,7 +186,7 @@ than to a scalar which is useful for logistic regression.</p>
 <span id="id14"></span><h2>power<a class="headerlink" href="#power" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cvxpy.atoms.elementwise.power.power">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.power.</code><code class="sig-name descname">power</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">max_denom</span><span class="o">=</span><span class="default_value">1024</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/power.html#power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.power.power" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.power.</code><code class="sig-name descname">power</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">max_denom</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1024</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/power.html#power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.power.power" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>Elementwise power function <span class="math notranslate nohighlight">\(f(x) = x^p\)</span>.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">expr</span></code> is a CVXPY expression, then <code class="docutils literal notranslate"><span class="pre">expr**p</span></code>

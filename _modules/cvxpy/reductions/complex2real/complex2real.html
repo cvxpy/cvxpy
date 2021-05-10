@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.complex2real.complex2real &#8212; CVXPY 1.1.11 documentation</title>
+    <title>cvxpy.reductions.complex2real.complex2real &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -62,7 +62,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">s</span>
 
 
-<span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
     <span class="n">leaves</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span> <span class="o">+</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span> <span class="o">+</span> <span class="n">problem</span><span class="o">.</span><span class="n">constants</span><span class="p">()</span>
     <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">leaf</span><span class="o">.</span><span class="n">is_complex</span><span class="p">()</span> <span class="k">for</span> <span class="n">leaf</span> <span class="ow">in</span> <span class="n">leaves</span><span class="p">)</span>
 
@@ -70,7 +70,7 @@
 <div class="viewcode-block" id="Complex2Real"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real">[docs]</a><span class="k">class</span> <span class="nc">Complex2Real</span><span class="p">(</span><span class="n">Reduction</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Lifts complex numbers to a real representation.&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Complex2Real.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+<div class="viewcode-block" id="Complex2Real.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Complex2Real.apply"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
@@ -163,7 +163,7 @@
     <span class="k">def</span> <span class="nf">canonicalize_tree</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">real2imag</span><span class="p">,</span> <span class="n">leaf_map</span><span class="p">):</span>
         <span class="c1"># TODO don&#39;t copy affine expressions?</span>
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">==</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">partial_problem</span><span class="p">():</span>
-            <span class="k">return</span> <span class="bp">NotImplemented</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">real_args</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">imag_args</span> <span class="o">=</span> <span class="p">[]</span>

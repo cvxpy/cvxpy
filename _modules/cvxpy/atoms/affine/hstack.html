@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.atoms.affine.hstack &#8212; CVXPY 1.1.11 documentation</title>
+    <title>cvxpy.atoms.affine.hstack &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -54,7 +54,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
-<div class="viewcode-block" id="hstack"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.hstack.hstack">[docs]</a><span class="k">def</span> <span class="nf">hstack</span><span class="p">(</span><span class="n">arg_list</span><span class="p">):</span>
+<div class="viewcode-block" id="hstack"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.hstack.hstack">[docs]</a><span class="k">def</span> <span class="nf">hstack</span><span class="p">(</span><span class="n">arg_list</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Hstack&quot;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Horizontal concatenation of an arbitrary number of Expressions.</span>
 
 <span class="sd">    Parameters</span>
@@ -71,10 +71,10 @@
 
 <span class="k">class</span> <span class="nc">Hstack</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Horizontal concatenation &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">is_atom_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="k">def</span> <span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">is_atom_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="kc">True</span>
 
     <span class="c1"># Returns the hstack of the values.</span>
@@ -90,7 +90,7 @@
             <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cols</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span>
 
     <span class="c1"># All arguments must have the same width.</span>
-    <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">validate_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
         <span class="n">error</span> <span class="o">=</span> <span class="ne">ValueError</span><span class="p">((</span><span class="s2">&quot;All the input dimensions except&quot;</span>
                             <span class="s2">&quot; for axis 1 must match exactly.&quot;</span><span class="p">))</span>

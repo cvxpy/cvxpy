@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contributing &#8212; CVXPY 1.1.11 documentation</title>
+    <title>Contributing &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -494,6 +494,34 @@ call modified versions of a test with different solver parameters, for example</
 </div>
 </div>
 </div>
+<div class="section" id="development-roadmap">
+<span id="contrib-roadmap"></span><h2>Development roadmap<a class="headerlink" href="#development-roadmap" title="Permalink to this headline">¶</a></h2>
+<p>This roadmap highlights the development goals for the next minor and major release of CVXPY.
+New contributors are encouraged to focus on the development goals marked [Small].
+If you are interested in working on a [Large] development goal, please contact a project maintainer.</p>
+<div class="section" id="cvxpy-1-2">
+<h3>CVXPY 1.2<a class="headerlink" href="#cvxpy-1-2" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Move CI from Travis-CI to Github actions. [Large]</p></li>
+<li><p>Add CI for Gurobi, CPLEX, GLPK, Cbc, and SCIP. [Small]</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/582">Post-solver feasibility checks</a>. [Small]</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/582">Developer documentation for key reduction files</a>. [Small]</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/574">State required cone types for atoms</a>. [Small]</p></li>
+</ul>
+</div>
+<div class="section" id="cvxpy-2-0">
+<h3>CVXPY 2.0<a class="headerlink" href="#cvxpy-2-0" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><p>Problem serialization [<a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/532">532</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1333">1333</a>] [Large]</p></li>
+<li><p>Pretty print method for summarizing a solution and its dual variables. [Large]</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1273">Code generation for quadratic programs and cone programs</a>. [Large]</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/198">Support for n-dimensional expressions, variables, parameters, etc</a>. [Large]</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/708">10x improvement in the speed and memory usage of cvxcore</a>, <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1332">especially for DPP problems</a>. [Large]</p></li>
+<li><p>Sophisticated affine transformations: [<a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/457">457</a>, <a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/563">563</a>, <a class="reference external" href="https://github.com/cvxgrp/cvxpy/issues/808">808</a>]. [Small]</p></li>
+<li><p>Full compatibility with NumPy broadcasting rules. [Large]</p></li>
+</ul>
+</div>
+</div>
 </div>
 
 
@@ -557,6 +585,11 @@ call modified versions of a test with different solver parameters, for example</
 <li class="toctree-l3"><a class="reference internal" href="#dual-variables">Dual variables</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#registering-a-solver">Registering a solver</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#writing-tests">Writing tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#development-roadmap">Development roadmap</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cvxpy-1-2">CVXPY 1.2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cvxpy-2-0">CVXPY 2.0</a></li>
 </ul>
 </li>
 </ul>

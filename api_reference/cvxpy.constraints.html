@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Constraints &#8212; CVXPY 1.1.11 documentation</title>
+    <title>Constraints &#8212; CVXPY 1.1.12 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
@@ -77,7 +77,7 @@ thereof.</p>
 </dl>
 <dl class="py method">
 <dt id="cvxpy.constraints.constraint.Constraint.is_dcp">
-<em class="property">abstract </em><code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/constraint.html#Constraint.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.constraint.Constraint.is_dcp" title="Permalink to this definition">¶</a></dt>
+<em class="property">abstract </em><code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/constraints/constraint.html#Constraint.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.constraint.Constraint.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint is DCP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -91,7 +91,7 @@ thereof.</p>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.constraint.Constraint.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/constraint.html#Constraint.value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.constraint.Constraint.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/constraint.html#Constraint.value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.constraint.Constraint.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint violation is less than a tolerance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -174,7 +174,7 @@ numerical setting.</p>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.nonpos.NonPos.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/nonpos.html#NonPos.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/constraints/nonpos.html#NonPos.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A non-positive constraint is DCP if its argument is convex.</p>
 </dd></dl>
 
@@ -202,7 +202,7 @@ numerical setting.</p>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.nonpos.NonPos.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.nonpos.NonPos.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint violation is less than a tolerance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -263,13 +263,13 @@ simply write <code class="docutils literal notranslate"><span class="pre">x</spa
 <code class="docutils literal notranslate"><span class="pre">x</span></code> as its argument.</p>
 <dl class="py method">
 <dt id="cvxpy.constraints.zero.Zero.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/zero.html#Zero.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.zero.Zero.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/constraints/zero.html#Zero.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.zero.Zero.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A zero constraint is DCP if its argument is affine.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.zero.Zero.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.zero.Zero.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.zero.Zero.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint violation is less than a tolerance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -345,13 +345,13 @@ as they do not make sense in a numerical setting.</p>
 </dl>
 <dl class="py method">
 <dt id="cvxpy.constraints.psd.PSD.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/psd.html#PSD.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.psd.PSD.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/constraints/psd.html#PSD.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.psd.PSD.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A PSD constraint is DCP if the constrained expression is affine.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.psd.PSD.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.psd.PSD.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.psd.PSD.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint violation is less than a tolerance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -403,7 +403,7 @@ constraint:</p>
 <h2><a class="toc-backref" href="#id12">SOC</a><a class="headerlink" href="#soc" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cvxpy.constraints.second_order.SOC">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.constraints.second_order.</code><code class="sig-name descname">SOC</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span></em>, <em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">constr_id</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/second_order.html#SOC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.second_order.SOC" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.constraints.second_order.</code><code class="sig-name descname">SOC</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">t</span></em>, <em class="sig-param"><span class="n">X</span></em>, <em class="sig-param"><span class="n">axis</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">constr_id</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/second_order.html#SOC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.second_order.SOC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
 <p>A second-order cone constraint for each row/column.</p>
 <p>Assumes <code class="docutils literal notranslate"><span class="pre">t</span></code> is a vector the same length as <code class="docutils literal notranslate"><span class="pre">X</span></code>’s columns (rows) for
@@ -428,13 +428,13 @@ constraint:</p>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.second_order.SOC.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/second_order.html#SOC.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.second_order.SOC.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/constraints/second_order.html#SOC.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.second_order.SOC.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>An SOC constraint is DCP if each of its arguments is affine.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.second_order.SOC.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.second_order.SOC.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.second_order.SOC.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint violation is less than a tolerance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -509,13 +509,13 @@ constraint:</p>
 </dl>
 <dl class="py method">
 <dt id="cvxpy.constraints.exponential.ExpCone.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#ExpCone.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.exponential.ExpCone.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/constraints/exponential.html#ExpCone.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.exponential.ExpCone.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>An exponential constraint is DCP if each argument is affine.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.exponential.ExpCone.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.exponential.ExpCone.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.exponential.ExpCone.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint violation is less than a tolerance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -583,7 +583,7 @@ and alpha) as Expression objects. We construct dual variables
 with respect to these flattened representations.</p>
 <dl class="py method">
 <dt id="cvxpy.constraints.power.PowCone3D.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/power.html#PowCone3D.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.power.PowCone3D.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/constraints/power.html#PowCone3D.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.power.PowCone3D.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint is DCP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -597,7 +597,7 @@ with respect to these flattened representations.</p>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.power.PowCone3D.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.power.PowCone3D.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.power.PowCone3D.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint violation is less than a tolerance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -649,7 +649,7 @@ constraint:</p>
 <h2><a class="toc-backref" href="#id15">PowConeND</a><a class="headerlink" href="#powconend" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="cvxpy.constraints.power.PowConeND">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.constraints.power.</code><code class="sig-name descname">PowConeND</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">W</span></em>, <em class="sig-param"><span class="n">z</span></em>, <em class="sig-param"><span class="n">alpha</span></em>, <em class="sig-param"><span class="n">axis</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="n">constr_id</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/power.html#PowConeND"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.power.PowConeND" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.constraints.power.</code><code class="sig-name descname">PowConeND</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">W</span></em>, <em class="sig-param"><span class="n">z</span></em>, <em class="sig-param"><span class="n">alpha</span></em>, <em class="sig-param"><span class="n">axis</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">0</span></em>, <em class="sig-param"><span class="n">constr_id</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/power.html#PowConeND"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.power.PowConeND" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
 <p>Represents a collection of N-dimensional power cone constraints
 that is <em>mathematically</em> equivalent to the following code
@@ -669,13 +669,13 @@ alpha must match exactly.</p>
 of constraint.</p>
 <dl class="py method">
 <dt id="cvxpy.constraints.power.PowConeND.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/power.html#PowConeND.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.power.PowConeND.is_dcp" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/constraints/power.html#PowConeND.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.constraints.power.PowConeND.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>A power cone constraint is DCP if each argument is affine.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt id="cvxpy.constraints.power.PowConeND.value">
-<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="o">=</span><span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.power.PowConeND.value" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">value</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">tolerance</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-08</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.power.PowConeND.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the constraint violation is less than a tolerance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
