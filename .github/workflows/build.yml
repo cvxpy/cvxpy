@@ -65,5 +65,5 @@ jobs:
       - name: coverage
         run: if [[ "$COVERAGE" == "True" ]]; then coveralls; fi
       - name: deploy
-        if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+        if: "startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/master'"
         run: bash continuous_integration/GitHub/deploy_script.sh
