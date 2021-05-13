@@ -10,7 +10,11 @@ if [[ "$RUNNER_OS" == "Linux" ]]; then
     sudo apt-get install -qq gfortran libgfortran3
 fi
 
-if [[ "$PYTHON_VERSION" == "3.7" ]]; then
+if [[ "$PYTHON_VERSION" == "3.5" ]]; then
+  conda install mkl pip pytest scipy=1.1 numpy=1.15 lapack ecos scs osqp flake8 cvxopt
+elif [[ "$PYTHON_VERSION" == "3.6" ]]; then
+  conda install mkl pip pytest scipy=1.1 numpy=1.15 lapack ecos scs osqp flake8 cvxopt
+elif [[ "$PYTHON_VERSION" == "3.7" ]]; then
   conda install mkl pip pytest scipy=1.1 numpy=1.15 lapack ecos scs osqp flake8 cvxopt
 elif [[ "$PYTHON_VERSION" == "3.8" ]]; then
   # There is a config that works with numpy 1.14, but not 1.15!
