@@ -30,7 +30,7 @@ def map_runner_os_name_to_os(runner_os_name: str) -> str:
     elif runner_os_name.lower() == 'win':
         operating_system = 'win'
     else:
-        raise Exception(f'Unknown runner_os {runner_os_name}.')
+        raise Exception('Unknown runner_os: ' + runner_os_name)
     return operating_system
 
 
