@@ -103,6 +103,7 @@ SOC_ATOMS = [
     QuadForm,
     quad_over_lin,
     power,
+    huber,
 ]
 
 EXP_ATOMS = [
@@ -127,5 +128,6 @@ PSD_ATOMS = [
 
 NONPOS_ATOMS = [
     norm1,
-    abs
+    abs,
+    huber,
 ]

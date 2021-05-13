@@ -1936,3 +1936,24 @@ class TestProblem(BaseTest):
         p = cp.Problem(cp.Maximize(0), [cp.Constant(0) == 1])
         p.solve()
         self.assertEquals(p.status, cp.INFEASIBLE)
+
+    def test_huber_scs(self) -> None:
+        """Test that huber regression works with SCS.
+           See issue #1370.
+        """
+        np.random.seed(1)
+        m = 5
+        n = 2
+
+        x0 = np.random.randn(n)
+        A = np.random.randn(m, n)
+        b = A.dot(x0) + 0.01 * np.random.randn(m)
+        # Add outlier noise.
+        k = int(0.02 * m)
+        idx = np.random.randint(m, size=k)
+        b[idx] += 10 * np.random.randn(k)
+
+        x = cp.Variable(n)
+        prob = cp.Problem(cp.Minimize(cp.sum(cp.huber(A @ x - b))))
+
+        prob.solve(solver=cp.SCS)
