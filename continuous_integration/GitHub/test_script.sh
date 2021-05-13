@@ -9,7 +9,7 @@ python --version
 python -c "import numpy; print('numpy %s' % numpy.__version__)"
 python -c "import scipy; print('scipy %s' % scipy.__version__)"
 
-if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "linux" ]; then
+if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
     CFLAGS="-fopenmp" LDFLAGS="-lgomp" python setup.py install
     export OMP_NUM_THREADS=4
 else
