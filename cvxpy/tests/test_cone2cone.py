@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import unittest
+import pytest
 import numpy as np
 import cvxpy as cp
 import scipy as sp
@@ -354,6 +355,7 @@ class TestSlacks(BaseTest):
             sth.verify_objective(places=4)
             sth.verify_primal_values(places=4)
 
+    @pytest.mark.skip(reason="Known bug in ECOS BB")
     def test_mi_socp_1(self):
         sth = STH.mi_socp_1()
         for affine in TestSlacks.AFF_SOCP_CASES:

@@ -25,5 +25,5 @@ else
     export WITH_COVERAGE=""
 fi
 
-# pytest $WITH_COVERAGE cvxpy/tests
-# pytest $WITH_COVERAGE cvxpy/performance_tests
+pytest $WITH_COVERAGE cvxpy/tests
+pytest $WITH_COVERAGE cvxpy/performance_tests
