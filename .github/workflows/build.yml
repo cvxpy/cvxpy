@@ -1,0 +1,68 @@
+name: build
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+
+jobs:
+  cleanup-runs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: rokroskar/workflow-run-cleanup-action@master
+      env:
+        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+  build:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04, macos-10.15 ]
+        python-version: [ 3.7, 3.9 ]
+        include:
+          - os: ubuntu-18.04
+            python-version: 3.8
+            openmp: "True"
+          - os: ubuntu-18.04
+            python-version: 3.8
+            openmp: "False"
+            deploy_pypi_source : "True"
+          - os: macos-10.15
+            python-version: 3.8
+            openmp: "False"
+    env:
+      RUNNER_OS: ${{ matrix.os }}
+      PYTHON_VERSION: ${{ matrix.python-version }}
+      COVERAGE: "False"
+      DEPLOY_PYPI_SOURCE: "${{ matrix.deploy_pypi_source == 'True' && 'True' || 'False' }}"
+      USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
+      PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
+      PYPI_USER: ${{ secrets.PYPI_USER }}
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      PYPI_API_ENDPOINT: ${{ secrets.PYPI_API_ENDPOINT }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge,anaconda
+      - name: install
+        run: |
+          if [ "$RUNNER_OS" = "macOS" ]; then CC=gcc ; fi
+          if [ "$RUNNER_OS" = "macOS" ]; then CXX=g++; fi
+          source continuous_integration/GitHub/install_dependencies.sh
+      - name: test
+        run: |
+          flake8 .
+          bash continuous_integration/GitHub/test_script.sh
+      - name: coverage
+        run: if [[ "$COVERAGE" == "True" ]]; then coveralls; fi
+      - name: deploy
+        run: bash continuous_integration/GitHub/deploy_script.sh

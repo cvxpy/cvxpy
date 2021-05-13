@@ -2,7 +2,7 @@ import requests
 from pkg_resources import parse_version
 
 
-def update_pypi_source(server):
+def update_pypi_source(server: str) -> bool:
     # Gets the latest version on PyPi accompanied by a source distribution
     url = server + '/cvxpy/json'
     r = requests.get(url)
@@ -22,14 +22,26 @@ def update_pypi_source(server):
         raise RuntimeError(msg)
 
 
-def update_pypi_wheel(python_version, operating_system, server):
+def map_runner_os_name_to_os(runner_os_name: str) -> str:
+    if runner_os_name.lower() == 'linux':
+        operating_system = 'linux'
+    elif runner_os_name.lower() in {'osx', 'macos'}:
+        operating_system = 'osx'
+    elif runner_os_name.lower() == 'win':
+        operating_system = 'win'
+    else:
+        raise Exception(f'Unknown runner_os {runner_os_name}.')
+    return operating_system
+
+
+def update_pypi_wheel(python_version: str, runner_os_name: str, server: str) -> bool:
     # python_version is expected to be
     #
     #   '2.7', '3.5', '3.6', '3.7', ... etc..
     #
-    # operating system is expected to be
+    # runner_os_name is expected to be
     #
-    #   'win' or 'osx' or 'linux'
+    #   'win' or 'osx' or 'macOS' or 'linux' or 'Linux'
     #
     # server is expected to be
     #
@@ -51,6 +63,7 @@ def update_pypi_wheel(python_version, operating_system, server):
     r = requests.get(url)
     major_minor = python_version.split('.')
     py_ver = 'cp' + major_minor[0] + major_minor[1]
+    operating_system = map_runner_os_name_to_os(runner_os_name)
     if 'linux' in operating_system:
         return False
     if r.ok:
