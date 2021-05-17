@@ -44,8 +44,8 @@ conda
 2. Create a new conda environment,
   ::
 
-      conda create --name cvxpy
-      conda activate cvxpy
+      conda create --name cvxpy_env
+      conda activate cvxpy_env
 
  or activate an existing one
 
