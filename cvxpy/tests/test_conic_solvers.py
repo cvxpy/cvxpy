@@ -1419,11 +1419,13 @@ class TestECOS_BB(unittest.TestCase):
     def test_ecos_bb_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='ECOS_BB')
 
+    @pytest.mark.skip(reason="Known bug in ECOS BB")
     def test_ecos_bb_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='ECOS_BB')
 
     def test_ecos_bb_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='ECOS_BB')
 
+    @pytest.mark.skip(reason="Known bug in ECOS BB")
     def test_ecos_bb_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='ECOS_BB')
