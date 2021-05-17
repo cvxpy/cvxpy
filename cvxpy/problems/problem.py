@@ -472,7 +472,8 @@ class Problem(u.Canonical):
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
-    def get_problem_data(self, solver, gp: bool = False, enforce_dpp: bool = False, verbose: bool = False):
+    def get_problem_data(self, solver, gp: bool = False, enforce_dpp: bool = False,
+                         verbose: bool = False):
         """Returns the problem data used in the call to the solver.
 
         When a problem is solved, CVXPY creates a chain of reductions enclosed
