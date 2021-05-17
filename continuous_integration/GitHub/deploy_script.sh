@@ -3,7 +3,7 @@
 source activate testenv
 conda config --add channels conda-forge
 conda install --yes requests twine
-conda install --yes readme_renderer
+pip install readme_renderer
 
 # We chose a somewhat arbitrary build configuration (a specially marked OSX configuration)
 # to be the designated uploader of source distributions.
