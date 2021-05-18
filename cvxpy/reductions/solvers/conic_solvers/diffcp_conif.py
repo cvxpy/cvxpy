@@ -52,7 +52,7 @@ class DIFFCP(scs_conif.SCS):
         data[s.B] = b
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts,
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
                        solver_cache=None):
         """Returns the result of the call to the solver.
 

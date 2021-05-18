@@ -87,7 +87,7 @@ class reshape(AffAtom):
         """
         return [self._shape, self.order]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Reshape
 
         Parameters

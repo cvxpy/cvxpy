@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.affine.affine_atom import AffAtom
@@ -112,7 +113,7 @@ class cumsum(AffAtom, AxisAtom):
         """
         return [self.axis]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Cumulative sum via difference matrix.
 
         Parameters

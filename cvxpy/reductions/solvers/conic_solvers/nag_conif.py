@@ -186,7 +186,7 @@ class NAG(ConicSolver):
             dual_vars = None
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from naginterfaces.library import opt
         from naginterfaces.base import utils
 

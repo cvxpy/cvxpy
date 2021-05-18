@@ -13,19 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import abc
+from typing import List, Tuple
 
-
-from cvxpy import utilities as u
 from cvxpy import interface as intf
+from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
-import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.utilities.deterministic import unique_list
 from cvxpy.utilities import performance_utils as perf
-from typing import List
+from cvxpy.utilities.deterministic import unique_list
+import cvxpy.lin_ops.lin_utils as lu
 
-import abc
 import numpy as np
 
 
@@ -324,7 +323,7 @@ class Atom(Expression):
                                                                 data)
             return graph_obj, constraints + graph_constr
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
@@ -79,7 +80,7 @@ class index(AffAtom):
         """
         return [self.key, self._orig_key]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Index/slice into the expression.
 
         Parameters
@@ -167,7 +168,7 @@ class special_index(AffAtom):
           identity[select_vec] @ vec(self.args[0]), self._shape)
         return lowered.grad
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Index/slice into the expression.
 
         Parameters

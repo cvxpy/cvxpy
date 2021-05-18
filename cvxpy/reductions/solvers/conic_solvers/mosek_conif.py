@@ -203,7 +203,7 @@ class MOSEK(ConicSolver):
         data[s.PARAM_PROB] = problem
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import mosek
 
         if 'dualized' in data:
@@ -529,7 +529,7 @@ class MOSEK(ConicSolver):
         return prim_vars
 
     @staticmethod
-    def handle_options(env, task, verbose, solver_opts):
+    def handle_options(env, task, verbose: bool, solver_opts):
         # If verbose, then set default logging parameters.
         import mosek
 

@@ -85,7 +85,7 @@ class conv(AffAtom):
         """
         return self.args[0].is_nonpos()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Convolve two vectors.
 
         Parameters

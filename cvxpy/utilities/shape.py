@@ -13,13 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List, Tuple
 
 
-def squeezed(shape):
+def squeezed(shape: Tuple[int, ...]) -> Tuple[int, ...]:
     return tuple(dim for dim in shape if dim != 1)
 
 
-def sum_shapes(shapes):
+def sum_shapes(shapes: List[Tuple[int, ...]]) -> Tuple[int, ...]:
     """Give the shape resulting from summing a list of shapes.
 
     Summation semantics are exactly the same as NumPy's, including
@@ -64,7 +65,9 @@ def sum_shapes(shapes):
     return tuple(shape)
 
 
-def mul_shapes_promote(lh_shape, rh_shape):
+def mul_shapes_promote(
+    lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]
+) -> Tuple[Tuple[int, ...], Tuple[int, ...], Tuple[int, ...]]:
     """Promotes shapes as necessary and returns promoted shape of product.
 
     If lh_shape is of length one, prepend a one to it.
@@ -111,7 +114,7 @@ def mul_shapes_promote(lh_shape, rh_shape):
             tuple(list(lh_shape[:-2]) + [lh_mat_shape[0]] + [rh_mat_shape[1]]))
 
 
-def mul_shapes(lh_shape, rh_shape):
+def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[int, ...]:
     """Give the shape resulting from multiplying two shapes.
 
     Adheres the semantics of np.matmul and additionally permits multiplication

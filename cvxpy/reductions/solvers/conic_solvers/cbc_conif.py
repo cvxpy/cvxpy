@@ -100,7 +100,7 @@ class CBC(SCS):
         else:
             return failure_solution(status)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         # Import basic modelling tools of cylp
         from cylp.cy import CyClpSimplex
         from cylp.py.modeling.CyLPModel import CyLPModel, CyLPArray

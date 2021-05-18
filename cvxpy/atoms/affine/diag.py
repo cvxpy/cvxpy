@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
@@ -92,7 +93,7 @@ class diag_vec(AffAtom):
         """
         return self.is_nonpos()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Convolve two vectors.
 
         Parameters
@@ -147,7 +148,7 @@ class diag_mat(AffAtom):
         """
         return self.args[0].is_nonneg() or self.args[0].is_psd()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Extracts the diagonal of a matrix.
 
         Parameters

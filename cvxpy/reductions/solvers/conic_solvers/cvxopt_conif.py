@@ -152,7 +152,7 @@ class CVXOPT(ECOS):
         else:
             return failure_solution(status)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cvxopt.solvers
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()

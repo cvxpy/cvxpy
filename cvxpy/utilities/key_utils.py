@@ -17,7 +17,7 @@ limitations under the License.
 # Utility functions to handle indexing/slicing into an expression.
 
 from __future__ import division
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 import numbers
@@ -25,7 +25,7 @@ import numbers
 
 # TODO(akshayka): This module needs to be updated in order to handle
 # NumPy 0/1D arrays.
-def validate_key(key, shape):
+def validate_key(key, shape: Tuple[int, ...]):
     """Check if the key is a valid index.
 
     Args:
@@ -168,7 +168,7 @@ def is_single_index(slc) -> bool:
         slc.start + step >= slc.stop
 
 
-def shape(key, orig_key, shape):
+def shape(key, orig_key, shape: Tuple[int, ...]):
     """Finds the dimensions of a sliced expression.
 
     Args:
