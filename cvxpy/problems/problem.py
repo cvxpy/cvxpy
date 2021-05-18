@@ -14,33 +14,36 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import settings as s, Constant
+import time
+import warnings
+from typing import Optional
+from collections import namedtuple
+
+import cvxpy.utilities as u
+import cvxpy.utilities.performance_utils as perf
 from cvxpy import error
+from cvxpy import settings as s, Constant
+from cvxpy.constraints import Equality, Inequality, NonPos, Zero, NonNeg
 from cvxpy.expressions import cvxtypes
+from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dqcp2dcp import dqcp2dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-from cvxpy.reductions.solvers.defines import SOLVER_MAP_QP, SOLVER_MAP_CONIC
-from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers.solving_chain import construct_solving_chain
-from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.defines import SOLVER_MAP_QP, SOLVER_MAP_CONIC
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
+from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.solvers.solving_chain import construct_solving_chain, SolvingChain
 from cvxpy.settings import SOLVERS
 from cvxpy.utilities.deterministic import unique_list
-import cvxpy.utilities.performance_utils as perf
-from cvxpy.constraints import Equality, Inequality, NonPos, Zero, NonNeg
-import cvxpy.utilities as u
 
-from collections import namedtuple
 import numpy as np
-import time
-import warnings
 
 
 SolveResult = namedtuple(
@@ -84,9 +87,9 @@ _FOOTER = (
 class Cache:
     def __init__(self) -> None:
         self.key = None
-        self.solving_chain = None
+        self.solving_chain: Optional[SolvingChain] = None
         self.param_prog = None
-        self.inverse_data = None
+        self.inverse_data: Optional[InverseData] = None
 
     def invalidate(self) -> None:
         self.key = None
@@ -764,7 +767,9 @@ class Problem(u.Canonical):
                 candidates['conic_solvers'] = [custom_solver.name()]
         return candidates
 
-    def _construct_chain(self, solver=None, gp: bool = False, enforce_dpp: bool = False):
+    def _construct_chain(
+        self, solver: Optional[str] = None, gp: bool = False, enforce_dpp: bool = False
+    ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
 
@@ -1246,7 +1251,7 @@ class Problem(u.Canonical):
         self._status = solution.status
         self._solution = solution
 
-    def unpack_results(self, solution, chain, inverse_data) -> None:
+    def unpack_results(self, solution, chain: SolvingChain, inverse_data) -> None:
         """Updates the problem state given the solver results.
 
         Updates problem.status, problem.value and value of

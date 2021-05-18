@@ -62,7 +62,7 @@ class Variable(Leaf):
     """The optimization variables in a problem.
     """
 
-    def __init__(self, shape=(), name=None, var_id=None, **kwargs):
+    def __init__(self, shape=(), name=None, var_id=None, **kwargs) -> None:
         if var_id is None:
             self.id = lu.get_id()
         else:

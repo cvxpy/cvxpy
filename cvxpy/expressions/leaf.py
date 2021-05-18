@@ -348,7 +348,7 @@ class Leaf(expression.Expression):
         self._value = val
 
     @property
-    def value(self) -> None:
+    def value(self):
         """NumPy.ndarray or None: The numeric value of the parameter.
         """
         return self._value

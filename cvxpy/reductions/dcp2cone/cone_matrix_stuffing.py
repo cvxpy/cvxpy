@@ -124,7 +124,7 @@ class ParamConeProg(ParamProb):
                  constraints,
                  parameters,
                  param_id_to_col,
-                 formatted=False):
+                 formatted: bool = False) -> None:
         # The problem data tensors; c is for the constraint, and A for
         # the problem data matrix
         self.c = c
@@ -160,7 +160,7 @@ class ParamConeProg(ParamProb):
             self.x.attributes['integer']
 
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros=False):
+                         keep_zeros: bool = False):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:

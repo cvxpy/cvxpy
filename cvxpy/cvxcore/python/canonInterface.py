@@ -25,7 +25,7 @@ def get_parameter_vector(param_size,
                          param_id_to_col,
                          param_id_to_size,
                          param_id_to_value_fn,
-                         zero_offset=False):
+                         zero_offset: bool = False):
     """Returns a flattened parameter vector
 
     The flattened vector includes a constant offset (i.e, a 1).
