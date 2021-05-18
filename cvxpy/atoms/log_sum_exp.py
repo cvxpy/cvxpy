@@ -18,6 +18,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
 import numpy as np
 from scipy.special import logsumexp
+from typing import Tuple
 
 
 class log_sum_exp(AxisAtom):
@@ -25,7 +26,7 @@ class log_sum_exp(AxisAtom):
 
     """
 
-    def __init__(self, x, axis=None, keepdims=False):
+    def __init__(self, x, axis=None, keepdims: bool = False) -> None:
         super(log_sum_exp, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric
@@ -63,27 +64,27 @@ class log_sum_exp(AxisAtom):
         D = nom/denom
         return D
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (False, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

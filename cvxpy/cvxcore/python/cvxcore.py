@@ -19,7 +19,7 @@ try:
 except ImportError:
     import __builtin__
 
-def _swig_repr(self):
+def _swig_repr(self) -> str:
     try:
         strthis = "proxy of " + self.this.__repr__()
     except __builtin__.Exception:
@@ -61,7 +61,7 @@ class _SwigNonDynamicMeta(type):
     __setattr__ = _swig_setattr_nondynamic_class_variable(type.__setattr__)
 
 
-class SwigPyIterator(object):
+class SwigPyIterator:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
 
     def __init__(self, *args, **kwargs):
@@ -72,10 +72,10 @@ class SwigPyIterator(object):
     def value(self):
         return _cvxcore.SwigPyIterator_value(self)
 
-    def incr(self, n=1):
+    def incr(self, n: int = 1):
         return _cvxcore.SwigPyIterator_incr(self, n)
 
-    def decr(self, n=1):
+    def decr(self, n: int = 1):
         return _cvxcore.SwigPyIterator_decr(self, n)
 
     def distance(self, x):
@@ -147,17 +147,17 @@ DENSE_CONST = _cvxcore.DENSE_CONST
 SPARSE_CONST = _cvxcore.SPARSE_CONST
 NO_OP = _cvxcore.NO_OP
 KRON = _cvxcore.KRON
-class LinOp(object):
+class LinOp:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
-    def __init__(self, type, shape, args):
+    def __init__(self, type, shape, args) -> None:
         _cvxcore.LinOp_swiginit(self, _cvxcore.new_LinOp(type, shape, args))
 
     def get_type(self):
         return _cvxcore.LinOp_get_type(self)
 
-    def is_constant(self):
+    def is_constant(self) -> bool:
         return _cvxcore.LinOp_is_constant(self)
 
     def get_shape(self):
@@ -187,7 +187,7 @@ class LinOp(object):
     def set_data_ndim(self, ndim):
         return _cvxcore.LinOp_set_data_ndim(self, ndim)
 
-    def is_sparse(self):
+    def is_sparse(self) -> bool:
         return _cvxcore.LinOp_is_sparse(self)
 
     def get_sparse_data(self):
@@ -221,7 +221,7 @@ def acc_tensor(lh_ten, rh_ten):
 
 def diagonalize(mat):
     return _cvxcore.diagonalize(mat)
-class ProblemData(object):
+class ProblemData:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
     TensorV = property(_cvxcore.ProblemData_TensorV_get, _cvxcore.ProblemData_TensorV_set)
@@ -245,7 +245,7 @@ class ProblemData(object):
     def getJ(self, values):
         return _cvxcore.ProblemData_getJ(self, values)
 
-    def __init__(self):
+    def __init__(self) -> None:
         _cvxcore.ProblemData_swiginit(self, _cvxcore.new_ProblemData())
     __swig_destroy__ = _cvxcore.delete_ProblemData
 
@@ -254,7 +254,7 @@ _cvxcore.ProblemData_swigregister(ProblemData)
 cvar = _cvxcore.cvar
 CONSTANT_ID = cvar.CONSTANT_ID
 
-class IntVector(object):
+class IntVector:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -329,7 +329,7 @@ class IntVector(object):
     def erase(self, *args):
         return _cvxcore.IntVector_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.IntVector_swiginit(self, _cvxcore.new_IntVector(*args))
 
     def push_back(self, x):
@@ -360,7 +360,7 @@ class IntVector(object):
 # Register IntVector in _cvxcore:
 _cvxcore.IntVector_swigregister(IntVector)
 
-class DoubleVector(object):
+class DoubleVector:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -435,7 +435,7 @@ class DoubleVector(object):
     def erase(self, *args):
         return _cvxcore.DoubleVector_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.DoubleVector_swiginit(self, _cvxcore.new_DoubleVector(*args))
 
     def push_back(self, x):
@@ -466,7 +466,7 @@ class DoubleVector(object):
 # Register DoubleVector in _cvxcore:
 _cvxcore.DoubleVector_swigregister(DoubleVector)
 
-class IntVector2D(object):
+class IntVector2D:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -541,7 +541,7 @@ class IntVector2D(object):
     def erase(self, *args):
         return _cvxcore.IntVector2D_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.IntVector2D_swiginit(self, _cvxcore.new_IntVector2D(*args))
 
     def push_back(self, x):
@@ -572,7 +572,7 @@ class IntVector2D(object):
 # Register IntVector2D in _cvxcore:
 _cvxcore.IntVector2D_swigregister(IntVector2D)
 
-class DoubleVector2D(object):
+class DoubleVector2D:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -647,7 +647,7 @@ class DoubleVector2D(object):
     def erase(self, *args):
         return _cvxcore.DoubleVector2D_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.DoubleVector2D_swiginit(self, _cvxcore.new_DoubleVector2D(*args))
 
     def push_back(self, x):
@@ -678,7 +678,7 @@ class DoubleVector2D(object):
 # Register DoubleVector2D in _cvxcore:
 _cvxcore.DoubleVector2D_swigregister(DoubleVector2D)
 
-class IntIntMap(object):
+class IntIntMap:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -737,7 +737,7 @@ class IntIntMap(object):
     def asdict(self):
         return _cvxcore.IntIntMap_asdict(self)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.IntIntMap_swiginit(self, _cvxcore.new_IntIntMap(*args))
 
     def empty(self):
@@ -786,7 +786,7 @@ class IntIntMap(object):
 # Register IntIntMap in _cvxcore:
 _cvxcore.IntIntMap_swigregister(IntIntMap)
 
-class LinOpVector(object):
+class LinOpVector:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -861,7 +861,7 @@ class LinOpVector(object):
     def erase(self, *args):
         return _cvxcore.LinOpVector_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.LinOpVector_swiginit(self, _cvxcore.new_LinOpVector(*args))
 
     def push_back(self, x):
@@ -892,7 +892,7 @@ class LinOpVector(object):
 # Register LinOpVector in _cvxcore:
 _cvxcore.LinOpVector_swigregister(LinOpVector)
 
-class ConstLinOpVector(object):
+class ConstLinOpVector:
     thisown = property(lambda x: x.this.own(), lambda x, v: x.this.own(v), doc="The membership flag")
     __repr__ = _swig_repr
 
@@ -967,7 +967,7 @@ class ConstLinOpVector(object):
     def erase(self, *args):
         return _cvxcore.ConstLinOpVector_erase(self, *args)
 
-    def __init__(self, *args):
+    def __init__(self, *args) -> None:
         _cvxcore.ConstLinOpVector_swiginit(self, _cvxcore.new_ConstLinOpVector(*args))
 
     def push_back(self, x):
@@ -1001,5 +1001,3 @@ _cvxcore.ConstLinOpVector_swigregister(ConstLinOpVector)
 
 def build_matrix(*args):
     return _cvxcore.build_matrix(*args)
-
-

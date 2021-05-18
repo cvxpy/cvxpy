@@ -1,13 +1,15 @@
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.variable import Variable
+from typing import Tuple
+
 import scipy.sparse as sp
 import numpy as np
 
 
 class SuppFuncAtom(Atom):
 
-    def __init__(self, y, parent):
+    def __init__(self, y, parent) -> None:
         """
         Parameters
         ----------
@@ -24,7 +26,7 @@ class SuppFuncAtom(Atom):
         self._shape = tuple()
         self.validate_arguments()
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         if self.args[0].is_complex():
             raise ValueError("Arguments to SuppFuncAtom cannot be complex.")
         if not self.args[0].is_affine():
@@ -43,63 +45,63 @@ class SuppFuncAtom(Atom):
     def shape_from_args(self):
         return self._shape
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         return (False, False)
 
-    def is_nonneg(self):
+    def is_nonneg(self) -> bool:
         return False
 
-    def is_nonpos(self):
+    def is_nonpos(self) -> bool:
         return False
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         return False
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         return False
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         return False
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         return False
 
-    def is_atom_quasiconvex(self):
+    def is_atom_quasiconvex(self) -> bool:
         return True
 
-    def is_atom_quasiconcave(self):
+    def is_atom_quasiconcave(self) -> bool:
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         return False
 
-    def is_convex(self):
+    def is_convex(self) -> bool:
         # The argument "y" is restricted to being affine.
         return True
 
-    def is_concave(self):
+    def is_concave(self) -> bool:
         return False
 
-    def is_log_log_convex(self):
+    def is_log_log_convex(self) -> bool:
         return False
 
-    def is_log_log_concave(self):
+    def is_log_log_concave(self) -> bool:
         return False
 
-    def is_quasiconvex(self):
+    def is_quasiconvex(self) -> bool:
         # The argument "y" is restricted to being affine.
         return True
 
-    def is_quasiconcave(self):
+    def is_quasiconcave(self) -> bool:
         return False
 
     def _value_impl(self):

@@ -390,7 +390,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == HSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().get_shape());
+  assert(arg_idx <= lin.get_args().size());
   std::vector<Triplet> tripletList;
   tripletList.reserve(vecprod(lin.get_shape()));
   const LinOp &arg = *lin.get_args()[arg_idx];
@@ -726,16 +726,12 @@ Tensor get_rmul_mat(const LinOp &lin, int arg_idx) {
                       : 1;
 
   // Interpret as row or column vector as needed.
-  int arg_cols;
   int result_rows;
   if (lin.get_args()[0]->get_shape().size() == 0) {
-    arg_cols = 1;
     result_rows = 1;
   } else if (lin.get_args()[0]->get_shape().size() == 1) {
-    arg_cols = lin.get_args()[0]->get_shape()[0];
     result_rows = 1;
   } else {
-    arg_cols = lin.get_args()[0]->get_shape()[1];
     result_rows = lin.get_args()[0]->get_shape()[0];
   }
   int n = (lin.get_shape().size() > 0) ? result_rows : 1;
@@ -834,7 +830,7 @@ Tensor get_mul_mat(const LinOp &lin, int arg_idx) {
     // vectorized views.
     data_flattened = data_rows == 1 || data_cols == 1;
     Matrix coeffs = get_constant_data(*data, false);
-    mul_ten = build_tensor(coeffs); 
+    mul_ten = build_tensor(coeffs);
   } else {
     mul_ten = lin_to_tensor(*data);
   }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import settings as s
+from cvxpy import settings as s, Constant
 from cvxpy import error
 from cvxpy.expressions import cvxtypes
 from cvxpy.problems.objective import Minimize, Maximize
@@ -54,7 +54,7 @@ _HEADER = (
     '\n' +
     ('CVXPY').center(_COL_WIDTH) +
     '\n' +
-    (f'v{cvxtypes.version()}').center(_COL_WIDTH) +
+    ('v' + cvxtypes.version()).center(_COL_WIDTH) +
     '\n' +
     '='*_COL_WIDTH
 )
@@ -81,14 +81,14 @@ _FOOTER = (
 )
 
 
-class Cache(object):
-    def __init__(self):
+class Cache:
+    def __init__(self) -> None:
         self.key = None
         self.solving_chain = None
         self.param_prog = None
         self.inverse_data = None
 
-    def invalidate(self):
+    def invalidate(self) -> None:
         self.key = None
         self.solving_chain = None
         self.param_prog = None
@@ -118,7 +118,7 @@ class Problem(u.Canonical):
     # The solve methods available.
     REGISTERED_SOLVE_METHODS = {}
 
-    def __init__(self, objective, constraints=None):
+    def __init__(self, objective, constraints=None) -> None:
         if constraints is None:
             constraints = []
         # Check that objective is Minimize or Maximize.
@@ -126,7 +126,14 @@ class Problem(u.Canonical):
             raise error.DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
-        self._constraints = [c for c in constraints]
+
+        def bool_value_filter(cstr_expr):
+            if not isinstance(cstr_expr, bool):
+                return cstr_expr
+            # replace `True` or `False` values with equivalent Expressions.
+            return Constant(0) <= Constant(1) if cstr_expr else Constant(1) <= Constant(0)
+
+        self._constraints = list(map(bool_value_filter, constraints))
         self._value = None
         self._status = None
         self._solution = None
@@ -136,6 +143,8 @@ class Problem(u.Canonical):
         self._size_metrics = None
         # Benchmarks reported by the solver:
         self._solver_stats = None
+        self._compilation_time = None
+        self._solve_time = None
         self.args = [self._objective, self._constraints]
 
     @property
@@ -181,8 +190,22 @@ class Problem(u.Canonical):
         """
         return self._constraints[:]
 
+    @property
+    def param_dict(self):
+        """
+        Expose all parameters as a dictionary
+        """
+        return {parameters.name(): parameters for parameters in self.parameters()}
+
+    @property
+    def var_dict(self):
+        """
+        Expose all variables as a dictionary
+        """
+        return {variable.name(): variable for variable in self.variables()}
+
     @perf.compute_once
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """Does the problem satisfy DCP rules?
 
         Arguments
@@ -205,7 +228,7 @@ class Problem(u.Canonical):
           expr.is_dcp(dpp) for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         """Does the problem satisfy DGP rules?
 
         Arguments
@@ -228,14 +251,14 @@ class Problem(u.Canonical):
           expr.is_dgp(dpp) for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         """Does the problem satisfy the DQCP rules?
         """
         return all(
           expr.is_dqcp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context='dcp') -> bool:
         """Does the problem satisfy DPP rules?
 
         DPP is a mild restriction of DGP. When a problem involving
@@ -266,7 +289,7 @@ class Problem(u.Canonical):
             raise ValueError("Unsupported context ", context)
 
     @perf.compute_once
-    def is_qp(self):
+    def is_qp(self) -> bool:
         """Is problem a quadratic program?
         """
         for c in self.constraints:
@@ -278,7 +301,7 @@ class Problem(u.Canonical):
         return (self.is_dcp() and self.objective.args[0].is_qpwa())
 
     @perf.compute_once
-    def is_mixed_integer(self):
+    def is_mixed_integer(self) -> bool:
         return any(v.attributes['boolean'] or v.attributes['integer']
                    for v in self.variables())
 
@@ -436,7 +459,7 @@ class Problem(u.Canonical):
         return solve_func(self, *args, **kwargs)
 
     @classmethod
-    def register_solve(cls, name, func):
+    def register_solve(cls, name, func) -> None:
         """Adds a solve method to the Problem class.
 
         Arguments
@@ -449,7 +472,9 @@ class Problem(u.Canonical):
         """
         cls.REGISTERED_SOLVE_METHODS[name] = func
 
-    def get_problem_data(self, solver, gp=False, enforce_dpp=False, verbose=False):
+    def get_problem_data(
+        self, solver, gp: bool = False, enforce_dpp: bool = False, verbose: bool = False
+    ):
         """Returns the problem data used in the call to the solver.
 
         When a problem is solved, CVXPY creates a chain of reductions enclosed
@@ -576,18 +601,15 @@ class Problem(u.Canonical):
             if verbose:
                 s.LOGGER.info(
                         'Finished problem compilation '
-                        f'(took {self._compilation_time:.3e} seconds).')
+                        '(took %.3e seconds).', self._compilation_time)
         else:
             if verbose:
                 solver_name = solving_chain.reductions[-1].name()
                 reduction_chain_str = ' -> '.join(
                         type(r).__name__ for r in solving_chain.reductions)
                 s.LOGGER.info(
-                         f'Compiling problem (target solver={solver_name}).')
-                s.LOGGER.info(
-                    f'Reduction chain: '
-                    f'{reduction_chain_str}'
-                )
+                         'Compiling problem (target solver=%s).', solver_name)
+                s.LOGGER.info('Reduction chain: %s', reduction_chain_str)
             data, inverse_data = solving_chain.apply(self, verbose)
             safe_to_cache = (
                 isinstance(data, dict)
@@ -599,9 +621,9 @@ class Problem(u.Canonical):
             if verbose:
                 s.LOGGER.info(
                         'Finished problem compilation '
-                        f'(took {self._compilation_time:.3e} seconds).')
+                        '(took %.3e seconds).', self._compilation_time)
             if safe_to_cache:
-                if verbose:
+                if verbose and self.parameters():
                     s.LOGGER.info(
                         '(Subsequent compilations of this problem, using the '
                         'same arguments, should ' 'take less time.)')
@@ -613,7 +635,7 @@ class Problem(u.Canonical):
 
     def _find_candidate_solvers(self,
                                 solver=None,
-                                gp=False):
+                                gp: bool = False):
         """
         Find candidate solvers for the current problem. If solver
         is not None, it checks if the specified solver is compatible
@@ -742,7 +764,7 @@ class Problem(u.Canonical):
                 candidates['conic_solvers'] = [custom_solver.name()]
         return candidates
 
-    def _construct_chain(self, solver=None, gp=False, enforce_dpp=False):
+    def _construct_chain(self, solver=None, gp: bool = False, enforce_dpp: bool = False):
         """
         Construct the chains required to reformulate and solve the problem.
 
@@ -772,7 +794,7 @@ class Problem(u.Canonical):
                                        enforce_dpp=enforce_dpp)
 
     @staticmethod
-    def _sort_candidate_solvers(solvers):
+    def _sort_candidate_solvers(solvers) -> None:
         """Sorts candidate solvers lists according to slv_def.CONIC_SOLVERS/QP_SOLVERS
 
         Arguments
@@ -793,17 +815,21 @@ class Problem(u.Canonical):
                 solvers['qp_solvers'], key=lambda s: slv_def.QP_SOLVERS.index(s)
             )
 
-    def _invalidate_cache(self):
+    def _invalidate_cache(self) -> None:
         self._cache_key = None
         self._solving_chain = None
         self._param_prog = None
         self._inverse_data = None
 
     def _solve(self,
-               solver=None,
-               warm_start=True,
-               verbose=False,
-               gp=False, qcp=False, requires_grad=False, enforce_dpp=False, **kwargs):
+               solver: str = None,
+               warm_start: bool = True,
+               verbose: bool = False,
+               gp: bool = False,
+               qcp: bool = False,
+               requires_grad: bool = False,
+               enforce_dpp: bool = False,
+               **kwargs):
         """Solves a DCP compliant optimization problem.
 
         Saves the values of primal and dual variables in the variable
@@ -855,9 +881,9 @@ class Problem(u.Canonical):
             n_variables = sum(np.prod(v.shape) for v in self.variables())
             n_parameters = sum(np.prod(p.shape) for p in self.parameters())
             s.LOGGER.info(
-                    f'Your problem has {n_variables} variables, '
-                    f'{len(self.constraints)} constraints, and '
-                    f'{n_parameters} parameters.')
+                    'Your problem has %d variables, '
+                    '%d constraints, and ' '%d parameters.',
+                    n_variables, len(self.constraints), n_parameters)
             curvatures = []
             if self.is_dcp():
                 curvatures.append('DCP')
@@ -866,8 +892,8 @@ class Problem(u.Canonical):
             if self.is_dqcp():
                 curvatures.append('DQCP')
             s.LOGGER.info(
-                    f'It is compliant with the following grammars: '
-                    f'{", ".join(curvatures)}')
+                    'It is compliant with the following grammars: %s',
+                    ', '.join(curvatures))
             if n_parameters == 0:
                 s.LOGGER.info(
                     '(If you need to solve this problem multiple times, '
@@ -921,8 +947,8 @@ class Problem(u.Canonical):
         if verbose:
             print(_NUM_SOLVER_STR)
             s.LOGGER.info(
-                    f'Invoking solver {solving_chain.reductions[-1].name()} '
-                    'to obtain a solution.')
+                    'Invoking solver %s  to obtain a solution.',
+                    solving_chain.reductions[-1].name())
         start = time.time()
         solution = solving_chain.solve_via_data(
             self, data, warm_start, verbose, kwargs)
@@ -931,15 +957,15 @@ class Problem(u.Canonical):
         self.unpack_results(solution, solving_chain, inverse_data)
         if verbose:
             print(_FOOTER)
-            s.LOGGER.info(f'Problem status: {self.status}')
-            s.LOGGER.info(f'Optimal value: {self.value:.3e}')
-            s.LOGGER.info(f'Compilation took {self._compilation_time:.3e} seconds')
+            s.LOGGER.info('Problem status: %s', self.status)
+            s.LOGGER.info('Optimal value: %.3e', self.value)
+            s.LOGGER.info('Compilation took %.3e seconds', self._compilation_time)
             s.LOGGER.info(
-                    f'Solver (including time spent in interface) took '
-                    f'{self._solve_time:.3e} seconds')
+                    'Solver (including time spent in interface) took '
+                    '%.3e seconds', self._solve_time)
         return self.value
 
-    def backward(self):
+    def backward(self) -> None:
         """Compute the gradient of a solution with respect to Parameters.
 
         This method differentiates through the solution map of the problem,
@@ -1074,7 +1100,7 @@ class Problem(u.Canonical):
                     grad += (1.0 / param.value) * dparams[new_param.id]
                 param.gradient = grad
 
-    def derivative(self):
+    def derivative(self) -> None:
         """Apply the derivative of the solution map to perturbations in the Parameters
 
         This method applies the derivative of the solution map to perturbations
@@ -1172,7 +1198,7 @@ class Problem(u.Canonical):
                 # dx_gp/d x_cone_program = exp(x_cone_program) = x_gp
                 variable.delta *= variable.value
 
-    def _clear_solution(self):
+    def _clear_solution(self) -> None:
         for v in self.variables():
             v.save_value(None)
         for c in self.constraints:
@@ -1182,7 +1208,7 @@ class Problem(u.Canonical):
         self._status = None
         self._solution = None
 
-    def unpack(self, solution):
+    def unpack(self, solution) -> None:
         """Updates the problem state given a Solution.
 
         Updates problem.status, problem.value and value of primal and dual
@@ -1205,20 +1231,22 @@ class Problem(u.Canonical):
             for c in self.constraints:
                 if c.id in solution.dual_vars:
                     c.save_dual_value(solution.dual_vars[c.id])
+            # Eliminate confusion of problem.value versus objective.value.
+            self._value = self.objective.value
         elif solution.status in s.INF_OR_UNB:
             for v in self.variables():
                 v.save_value(None)
             for constr in self.constraints:
                 for dv in constr.dual_variables:
                     dv.save_value(None)
+            self._value = solution.opt_val
         else:
             raise ValueError("Cannot unpack invalid solution: %s" % solution)
 
-        self._value = solution.opt_val
         self._status = solution.status
         self._solution = solution
 
-    def unpack_results(self, solution, chain, inverse_data):
+    def unpack_results(self, solution, chain, inverse_data) -> None:
         """Updates the problem state given the solver results.
 
         Updates problem.status, problem.value and value of
@@ -1268,18 +1296,18 @@ class Problem(u.Canonical):
                 lines += [len(subject_to) * " " + str(constr)]
             return '\n'.join(lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Problem(%s, %s)" % (repr(self.objective),
                                     repr(self.constraints))
 
-    def __neg__(self):
+    def __neg__(self) -> "Problem":
         return Problem(-self.objective, self.constraints)
 
     def __add__(self, other):
         if other == 0:
             return self
         elif not isinstance(other, Problem):
-            return NotImplemented
+            raise NotImplementedError()
         return Problem(self.objective + other.objective,
                        unique_list(self.constraints + other.constraints))
 
@@ -1287,11 +1315,11 @@ class Problem(u.Canonical):
         if other == 0:
             return self
         else:
-            return NotImplemented
+            raise NotImplementedError()
 
     def __sub__(self, other):
         if not isinstance(other, Problem):
-            return NotImplemented
+            raise NotImplementedError()
         return Problem(self.objective - other.objective,
                        unique_list(self.constraints + other.constraints))
 
@@ -1299,27 +1327,27 @@ class Problem(u.Canonical):
         if other == 0:
             return -self
         else:
-            return NotImplemented
+            raise NotImplementedError()
 
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         return Problem(self.objective * other, self.constraints)
 
     __rmul__ = __mul__
 
     def __div__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         return Problem(self.objective * (1.0 / other), self.constraints)
 
-    def is_constant(self):
+    def is_constant(self) -> bool:
         return False
 
     __truediv__ = __div__
 
 
-class SolverStats(object):
+class SolverStats:
     """Reports some of the miscellaneous information that is returned
     by the solver after solving but that is not captured directly by
     the Problem instance.
@@ -1339,7 +1367,7 @@ class SolverStats(object):
         returned directly from the solver, without modification by CVXPY.
         This object may be a dict, or a custom Python object.
     """
-    def __init__(self, results_dict, solver_name):
+    def __init__(self, results_dict, solver_name) -> None:
         self.solver_name = solver_name
         self.solve_time = None
         self.setup_time = None
@@ -1356,7 +1384,7 @@ class SolverStats(object):
             self.extra_stats = results_dict[s.EXTRA_STATS]
 
 
-class SizeMetrics(object):
+class SizeMetrics:
     """Reports various metrics regarding the problem.
 
     Attributes
@@ -1383,7 +1411,7 @@ class SizeMetrics(object):
         for each data block.
     """
 
-    def __init__(self, problem):
+    def __init__(self, problem) -> None:
         # num_scalar_variables
         self.num_scalar_variables = 0
         for var in problem.variables():

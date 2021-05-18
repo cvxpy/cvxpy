@@ -10,7 +10,7 @@ from setuptools.command.build_ext import build_ext
 
 # inject numpy headers
 class build_ext_cvxpy(build_ext):
-    def finalize_options(self):
+    def finalize_options(self) -> None:
         build_ext.finalize_options(self)
         # Prevent numpy from thinking it is still in its setup process:
         # `__builtins__` can be a dict
@@ -24,7 +24,7 @@ class build_ext_cvxpy(build_ext):
         self.include_dirs.append(numpy.get_include())
 
 
-def is_platform_mac():
+def is_platform_mac() -> bool:
     return sys.platform == 'darwin'
 
 
@@ -62,7 +62,7 @@ canon = Extension(
 
 setup(
     name='cvxpy',
-    version='1.1.11',
+    version='1.1.12',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
                  'echu508@stanford.edu, boyd@stanford.edu',

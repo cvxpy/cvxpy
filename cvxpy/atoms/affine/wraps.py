@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 
@@ -20,13 +21,13 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 class Wrap(AffAtom):
     """A no-op wrapper to assert properties.
     """
-    def __init__(self, arg):
+    def __init__(self, arg) -> None:
         return super(Wrap, self).__init__(arg)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         return True
 
     def numeric(self, values):
@@ -39,7 +40,7 @@ class Wrap(AffAtom):
         """
         return self.args[0].shape
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Stack the expressions horizontally.
 
         Parameters
@@ -63,8 +64,8 @@ class psd_wrap(Wrap):
     """Asserts argument is PSD.
     """
 
-    def is_psd(self):
+    def is_psd(self) -> bool:
         return True
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         return True

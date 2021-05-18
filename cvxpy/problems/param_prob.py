@@ -16,7 +16,7 @@ limitations under the License.
 import abc
 
 
-class ParamProb(object):
+class ParamProb:
     """An abstract base class for parameterized problems.
 
     Parameterized problems are produced during the first canonicalization
@@ -25,12 +25,12 @@ class ParamProb(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractproperty
-    def is_mixed_integer(self):
+    def is_mixed_integer(self) -> bool:
         """Is the problem mixed-integer?"""
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractproperty
-    def apply_parameters(self, id_to_param_value=None, zero_offset=False,
+    def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
                          keep_zeros=False):
         """Returns A, b after applying parameters (and reshaping).
 
@@ -41,4 +41,4 @@ class ParamProb(object):
           keep_zeros: (optional) if True, store explicit zeros in A where
                         parameters are affected
         """
-        return NotImplemented
+        raise NotImplementedError()

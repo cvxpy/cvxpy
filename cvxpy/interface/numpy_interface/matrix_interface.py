@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+from typing import Tuple
 
 from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 import scipy.sparse as sp
@@ -27,7 +27,7 @@ class MatrixInterface(NDArrayInterface):
     TARGET_MATRIX = np.matrix
 
     @NDArrayInterface.scalar_const
-    def const_to_matrix(self, value, convert_scalars=False):
+    def const_to_matrix(self, value, convert_scalars: bool = False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
 
         Args:
@@ -51,7 +51,7 @@ class MatrixInterface(NDArrayInterface):
         return np.asmatrix(np.eye(size))
 
     # A matrix with all entries equal to the given scalar value.
-    def scalar_matrix(self, value, shape):
+    def scalar_matrix(self, value, shape: Tuple[int, ...]):
         mat = np.zeros(shape, dtype='float64') + value
         return np.asmatrix(mat)
 

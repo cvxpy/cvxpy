@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from typing import Tuple
+
 import scipy.special
 import numpy as np
 
@@ -42,43 +44,43 @@ class huber(Elementwise):
         A scalar constant.
     """
 
-    def __init__(self, x, M=1):
+    def __init__(self, x, M: int = 1) -> None:
         self.M = self.cast_to_const(M)
         super(huber, self).__init__(x)
 
     @Elementwise.numpy_numeric
-    def numeric(self, values):
+    def numeric(self, values) -> float:
         """Returns the huber function applied elementwise to x.
         """
         return 2*scipy.special.huber(self.M.value, values[0])
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.args[idx].is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return self.args[idx].is_nonpos()
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         """Quadratic if x is affine.
         """
         return self.args[0].is_affine()
@@ -88,7 +90,7 @@ class huber(Elementwise):
         """
         return [self.M]
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that M >= 0 and is constant.
         """
         if not (self.M.is_nonneg() and

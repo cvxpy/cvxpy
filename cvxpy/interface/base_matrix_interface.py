@@ -13,13 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import abc
+from typing import Tuple
 
 import cvxpy.interface.matrix_utilities
-import abc
 import numpy as np
 
 
-class BaseMatrixInterface(object):
+class BaseMatrixInterface:
     """
     An interface between constants' internal values
     and the target matrix used internally.
@@ -27,7 +28,7 @@ class BaseMatrixInterface(object):
     __metaclass__ = abc.ABCMeta
 
     @abc.abstractmethod
-    def const_to_matrix(self, value, convert_scalars=False):
+    def const_to_matrix(self, value, convert_scalars: bool = False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
 
         Args:
@@ -37,12 +38,12 @@ class BaseMatrixInterface(object):
         Returns:
             A matrix of type self.target_matrix or a scalar.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     # Adds a case for scalars to const_to_matrix methods.
     @staticmethod
     def scalar_const(converter):
-        def new_converter(self, value, convert_scalars=False):
+        def new_converter(self, value, convert_scalars: bool = False):
             if not convert_scalars and cvxpy.interface.matrix_utilities.is_scalar(value):
                 return cvxpy.interface.matrix_utilities.scalar_value(value)
             else:
@@ -52,7 +53,7 @@ class BaseMatrixInterface(object):
     # Return an identity matrix.
     @abc.abstractmethod
     def identity(self, size):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Return the number of elements of the matrix.
     def size(self, matrix):
@@ -61,25 +62,25 @@ class BaseMatrixInterface(object):
     # Return the dimensions of the matrix.
     @abc.abstractmethod
     def shape(self, matrix):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Get the matrix interpreted as a scalar.
     @abc.abstractmethod
     def scalar_value(self, matrix):
-        return NotImplemented
+        raise NotImplementedError()
 
     # Return a matrix with all 0's.
-    def zeros(self, shape):
+    def zeros(self, shape: Tuple[int, ...]):
         return self.scalar_matrix(0, shape)
 
     # Return a matrix with all 1's.
-    def ones(self, shape):
+    def ones(self, shape: Tuple[int, ...]):
         return self.scalar_matrix(1, shape)
 
     # A matrix with all entries equal to the given scalar value.
     @abc.abstractmethod
-    def scalar_matrix(self, value, shape):
-        return NotImplemented
+    def scalar_matrix(self, value, shape: Tuple[int, ...]):
+        raise NotImplementedError()
 
     # Return the value at the given index in the matrix.
     def index(self, matrix, key):
@@ -92,11 +93,11 @@ class BaseMatrixInterface(object):
 
     # Coerce the matrix into the given shape.
     @abc.abstractmethod
-    def reshape(self, matrix, shape):
-        return NotImplemented
+    def reshape(self, matrix, shape: Tuple[int, ...]):
+        raise NotImplementedError()
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
-                  vert_step=1, horiz_step=1):
+                  vert_step: int = 1, horiz_step: int = 1) -> None:
         """Add the block to a slice of the matrix.
 
         Args:

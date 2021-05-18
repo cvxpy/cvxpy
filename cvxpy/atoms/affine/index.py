@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
@@ -38,7 +39,7 @@ class index(AffAtom):
         The index/slicing key (i.e. expr[key[0],key[1]]).
     """
 
-    def __init__(self, expr, key, orig_key=None):
+    def __init__(self, expr, key, orig_key=None) -> None:
         # Format and validate key.
         if orig_key is None:
             self._orig_key = key
@@ -48,12 +49,12 @@ class index(AffAtom):
             self.key = key
         super(index, self).__init__(expr)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
@@ -79,7 +80,7 @@ class index(AffAtom):
         """
         return [self.key, self._orig_key]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Index/slice into the expression.
 
         Parameters
@@ -111,7 +112,7 @@ class special_index(AffAtom):
         ndarrays or lists.
     """
 
-    def __init__(self, expr, key):
+    def __init__(self, expr, key) -> None:
         self.key = key
         # Order the entries of expr and select them using key.
         expr = index.cast_to_const(expr)
@@ -121,12 +122,12 @@ class special_index(AffAtom):
         self._shape = self._select_mat.shape
         super(special_index, self).__init__(expr)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
@@ -167,7 +168,7 @@ class special_index(AffAtom):
           identity[select_vec] @ vec(self.args[0]), self._shape)
         return lowered.grad
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Index/slice into the expression.
 
         Parameters

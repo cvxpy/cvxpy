@@ -16,6 +16,8 @@ limitations under the License.
 
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.axis_atom import AxisAtom
+from typing import Tuple
+
 import cvxpy.interface as intf
 import numpy as np
 
@@ -37,42 +39,42 @@ class Prod(AxisAtom):
         Whether to drop dimensions after summing.
     """
 
-    def __init__(self, expr, axis=None, keepdims=False):
+    def __init__(self, expr, axis=None, keepdims: bool = False) -> None:
         super(Prod, self).__init__(expr, axis=axis, keepdims=keepdims)
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         if self.args[0].is_nonneg():
             return (True, False)
         return (False, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.args[0].is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
@@ -115,7 +117,7 @@ class Prod(AxisAtom):
         return self._axis_grad(values)
 
 
-def prod(expr, axis=None, keepdims=False):
+def prod(expr, axis=None, keepdims: bool = False) -> Prod:
     """Multiply the entries of an expression.
 
     The semantics of this atom are the same as np.prod.

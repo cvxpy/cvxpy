@@ -19,6 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 from cvxpy.utilities.power_tools import (fracify, decompose, approx_error, lower_bound,
                                          over_bound, prettydict)
+from typing import List, Optional, Tuple
 
 
 class geo_mean(Atom):
@@ -165,7 +166,7 @@ class geo_mean(Atom):
         :math:`\\|p/\\mathbf{1}^T p - w \\|_\\infty`
     """
 
-    def __init__(self, x, p=None, max_denom=1024):
+    def __init__(self, x, p: Optional[List[int]] = None, max_denom: int = 1024) -> None:
         """ Implementation details of geo_mean.
 
         Attributes
@@ -228,7 +229,7 @@ class geo_mean(Atom):
         self.cone_num = self.cone_lb + self.cone_num_over
 
     # Returns the (weighted) geometric mean of the elements of x.
-    def numeric(self, values):
+    def numeric(self, values) -> float:
         values = np.array(values[0]).flatten()
         val = 1.0
         for x, p in zip(values, self.w):
@@ -263,12 +264,12 @@ class geo_mean(Atom):
             D = w_arr/x.ravel(order='F')*self.numeric(values)
             return [sp.csc_matrix(D).T]
 
-    def name(self):
+    def name(self) -> str:
         return "%s(%s, (%s))" % (self.__class__.__name__,
                                  self.args[0].name(),
                                  ', '.join(str(v) for v in self.w))
 
-    def pretty_tree(self):
+    def pretty_tree(self) -> None:
         print(prettydict(self.tree))
 
     def shape_from_args(self):
@@ -276,38 +277,38 @@ class geo_mean(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return True
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
@@ -315,7 +316,7 @@ class geo_mean(Atom):
     def get_data(self):
         return [self.w, self.w_dyad, self.tree]
 
-    def copy(self, args=None, id_objects={}):
+    def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the geo_mean atom.
 
         Parameters

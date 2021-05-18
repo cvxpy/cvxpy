@@ -17,7 +17,7 @@ limitations under the License.
 from cvxpy.expressions.expression import Expression
 
 
-def diff(x, k=1, axis=0):
+def diff(x, k: int = 1, axis: int = 0):
     """Vector of kth order differences.
 
     Takes in a vector of length n and returns a vector

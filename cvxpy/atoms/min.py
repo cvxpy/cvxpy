@@ -23,7 +23,7 @@ class min(AxisAtom):
     """:math:`\\min{i,j}\\{X_{i,j}\\}`.
     """
 
-    def __init__(self, x, axis=None, keepdims=False):
+    def __init__(self, x, axis=None, keepdims: bool = False) -> None:
         super(min, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric
@@ -69,37 +69,37 @@ class min(AxisAtom):
         # Same as argument.
         return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return True
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return False
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
         return self.args[0].is_pwl()

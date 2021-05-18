@@ -59,7 +59,7 @@ def attributes_present(variables, attr_map):
                                              in variables)]
 
 
-def recover_value_for_variable(variable, lowered_value, project=True):
+def recover_value_for_variable(variable, lowered_value, project: bool = True):
     if variable.attributes['diag']:
         return sp.diags(lowered_value.flatten())
     elif attributes_present([variable], SYMMETRIC_ATTRIBUTES):
@@ -86,7 +86,7 @@ def lower_value(variable, value):
 class CvxAttr2Constr(Reduction):
     """Expand convex variable attributes into constraints."""
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         return True
 
     def apply(self, problem):

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 # Utility functions for constraints.
 
@@ -93,7 +94,7 @@ def format_elemwise(vars_):
     return [lu.create_geq(lu.sum_expr(terms))]
 
 
-def get_spacing_matrix(shape, spacing, offset):
+def get_spacing_matrix(shape: Tuple[int, ...], spacing, offset):
     """Returns a sparse matrix LinOp that spaces out an expression.
 
     Parameters

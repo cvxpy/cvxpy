@@ -18,6 +18,8 @@ limitations under the License.
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+from typing import List, Tuple
+
 import numpy as np
 
 
@@ -50,7 +52,7 @@ class ExpCone(Constraint):
         z in the exponential cone.
     """
 
-    def __init__(self, x, y, z, constr_id=None):
+    def __init__(self, x, y, z, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
@@ -58,10 +60,10 @@ class ExpCone(Constraint):
         super(ExpCone, self).__init__([self.x, self.y, self.z],
                                       constr_id)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
 
     @property
@@ -80,7 +82,7 @@ class ExpCone(Constraint):
         return problem.solve()
 
     @property
-    def size(self):
+    def size(self) -> int:
         """The number of entries in the combined cones.
         """
         return 3 * self.num_cones()
@@ -90,7 +92,7 @@ class ExpCone(Constraint):
         """
         return self.x.size
 
-    def cone_sizes(self):
+    def cone_sizes(self) -> List[int]:
         """The dimensions of the exponential cones.
 
         Returns
@@ -100,7 +102,7 @@ class ExpCone(Constraint):
         """
         return [3]*self.num_cones()
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """An exponential constraint is DCP if each argument is affine.
         """
         if dpp:
@@ -108,18 +110,18 @@ class ExpCone(Constraint):
                 return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.is_dcp()
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         s = (3,) + self.x.shape
         return s
 
-    def save_dual_value(self, value):
+    def save_dual_value(self, value) -> None:
         # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
         value = np.reshape(value, newshape=(-1, 3))
         dv0 = np.reshape(value[:, 0], newshape=self.x.shape)

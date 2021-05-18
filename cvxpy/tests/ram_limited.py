@@ -29,7 +29,7 @@ The tests here are run on a case-by-case basis by CVXPY developers.
 """
 
 
-def issue826():
+def issue826() -> None:
     # In GitHub issue #826, it was discovered that cvxcore's C++
     # implementation implicitly limited problem data (such as a
     # constraint matrix) to have at most 2^(32)-1 nonzero entries.

@@ -26,14 +26,14 @@ import numpy as np
 
 def get_mul_funcs(sym_data):
 
-    def accAmul(x, y, is_abs=False):
+    def accAmul(x, y, is_abs: bool = False):
         # y += A*x
         rows = y.shape[0]
         var_dict = vec_to_dict(x, sym_data.var_offsets,
                                sym_data.var_sizes)
         y += constr_mul(sym_data.constraints, var_dict, rows, is_abs)
 
-    def accATmul(x, y, is_abs=False):
+    def accATmul(x, y, is_abs: bool = False):
         # y += A.T*x
         terms = constr_unpack(sym_data.constraints, x)
         val_dict = constr_tmul(sym_data.constraints, terms, is_abs)

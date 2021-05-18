@@ -38,23 +38,23 @@ class NonPos(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
-    def __init__(self, expr, constr_id=None):
+    def __init__(self, expr, constr_id=None) -> None:
         super(NonPos, self).__init__([expr], constr_id)
 
-    def name(self):
+    def name(self) -> str:
         return "%s <= 0" % self.args[0]
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A non-positive constraint is DCP if its argument is convex."""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.args[0].is_quasiconvex()
 
     @property
@@ -97,23 +97,23 @@ class NonNeg(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
-    def __init__(self, expr, constr_id=None):
+    def __init__(self, expr, constr_id=None) -> None:
         super(NonNeg, self).__init__([expr], constr_id)
 
-    def name(self):
+    def name(self) -> str:
         return "0 <= %s" % self.args[0]
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A non-negative constraint is DCP if its argument is concave."""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.args[0].is_quasiconcave()
 
     @property
@@ -149,21 +149,21 @@ class Inequality(Constraint):
     constr_id : int
         A unique id for the constraint.
     """
-    def __init__(self, lhs, rhs, constr_id=None):
+    def __init__(self, lhs, rhs, constr_id=None) -> None:
         self._expr = lhs - rhs
         # TODO remove this restriction.
         if self._expr.is_complex():
             raise ValueError("Inequality constraints cannot be complex.")
         super(Inequality, self).__init__([lhs, rhs], constr_id)
 
-    def _construct_dual_variables(self, args):
+    def _construct_dual_variables(self, args) -> None:
         super(Inequality, self)._construct_dual_variables([self._expr])
 
     @property
     def expr(self):
         return self._expr
 
-    def name(self):
+    def name(self) -> str:
         return "%s <= %s" % (self.args[0], self.args[1])
 
     @property
@@ -176,14 +176,14 @@ class Inequality(Constraint):
         """int : The size of the constrained expression."""
         return self.expr.size
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A non-positive constraint is DCP if its argument is convex."""
         if dpp:
             with scopes.dpp_scope():
                 return self.expr.is_convex()
         return self.expr.is_convex()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         if dpp:
             with scopes.dpp_scope():
                 return (self.args[0].is_log_log_convex() and
@@ -191,7 +191,7 @@ class Inequality(Constraint):
         return (self.args[0].is_log_log_convex() and
                 self.args[1].is_log_log_concave())
 
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context='dcp') -> bool:
         if context.lower() == 'dcp':
             return self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
@@ -199,7 +199,7 @@ class Inequality(Constraint):
         else:
             raise ValueError('Unsupported context ', context)
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return (
             self.is_dcp() or
             (self.args[0].is_quasiconvex() and self.args[1].is_constant()) or

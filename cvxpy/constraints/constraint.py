@@ -38,7 +38,7 @@ class Constraint(u.Canonical):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, args, constr_id=None):
+    def __init__(self, args, constr_id=None) -> None:
         # TODO cast constants.
         # self.args = [cvxtypes.expression().cast_to_const(arg) for arg in args]
         self.args = args
@@ -54,13 +54,13 @@ class Constraint(u.Canonical):
         """
         return self.name()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a string with information about the constraint.
         """
         return "%s(%s)" % (self.__class__.__name__,
                            repr(self.args[0]))
 
-    def _construct_dual_variables(self, args):
+    def _construct_dual_variables(self, args) -> None:
         self.dual_variables = [cvxtypes.variable()(arg.shape) for arg in args]
 
     @property
@@ -73,23 +73,23 @@ class Constraint(u.Canonical):
         """int : The size of the constrained expression."""
         return self.args[0].size
 
-    def is_real(self):
+    def is_real(self) -> bool:
         """Is the Leaf real valued?
         """
         return not self.is_complex()
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
         return all(arg.is_imag() for arg in self.args)
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the Leaf complex valued?
         """
         return any(arg.is_complex() for arg in self.args)
 
     @abc.abstractmethod
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """Checks whether the constraint is DCP.
 
         Returns
@@ -97,10 +97,10 @@ class Constraint(u.Canonical):
         bool
             True if the constraint is DCP, False otherwise.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         """Checks whether the constraint is DGP.
 
         Returns
@@ -108,9 +108,9 @@ class Constraint(u.Canonical):
         bool
             True if the constraint is DGP, False otherwise.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context='dcp') -> bool:
         if context.lower() == 'dcp':
             return self.is_dcp(dpp=True)
         elif context.lower() == 'dgp':
@@ -128,7 +128,7 @@ class Constraint(u.Canonical):
             The residual, or None if the constrained expression does not have
             a value.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def violation(self):
         """The numeric residual of the constraint.
@@ -161,7 +161,7 @@ class Constraint(u.Canonical):
                              "whose expression is None-valued.")
         return residual
 
-    def value(self, tolerance=1e-8):
+    def value(self, tolerance: float = 1e-8):
         """Checks whether the constraint violation is less than a tolerance.
 
         Parameters
@@ -238,7 +238,7 @@ class Constraint(u.Canonical):
         else:
             return dual_vals
 
-    def save_dual_value(self, value):
+    def save_dual_value(self, value) -> None:
         """Save the value of the dual variable for the constraint's parent.
         Args:
             value: The value of the dual variable.

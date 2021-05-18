@@ -22,18 +22,18 @@ import numpy as np
 
 class TestParamQuadProg(BaseTest):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.solvers = [x for x in QP_SOLVERS if x in INSTALLED_SOLVERS]
 
     # Overridden method to assume lower accuracy.
-    def assertItemsAlmostEqual(self, a, b, places=2):
+    def assertItemsAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestParamQuadProg, self).assertItemsAlmostEqual(a, b, places=places)
 
     # Overridden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places=2):
+    def assertAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestParamQuadProg, self).assertAlmostEqual(a, b, places=places)
 
-    def test_param_data(self):
+    def test_param_data(self) -> None:
         for solver in self.solvers:
             np.random.seed(0)
             m = 30
@@ -73,7 +73,7 @@ class TestParamQuadProg(BaseTest):
             # Check if solutions match
             np.testing.assert_allclose(x_gamma_new, x_scratch, rtol=1e-02, atol=1e-02)
 
-    def test_qp_problem(self):
+    def test_qp_problem(self) -> None:
         for solver in self.solvers:
             m = 30
             n = 20

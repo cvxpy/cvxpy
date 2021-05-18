@@ -16,13 +16,13 @@ class XPRESS(QpSolver):
 
     MIP_CAPABLE = True
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.prob_ = None
 
     def name(self):
         return s.XPRESS
 
-    def import_solver(self):
+    def import_solver(self) -> None:
 
         import xpress
         xpress  # Prevents flake8 warning
@@ -91,7 +91,7 @@ class XPRESS(QpSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
 
         import xpress as xp
 

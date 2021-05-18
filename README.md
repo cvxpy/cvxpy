@@ -1,6 +1,6 @@
 CVXPY
 =====================
-[![Build Status](https://travis-ci.org/cvxgrp/cvxpy.png?branch=master)](https://travis-ci.org/cvxgrp/cvxpy)
+[![Build Status](http://github.com/cvxpy/cvxpy/workflows/build/badge.svg?event=push)](https://github.com/cvxpy/cvxpy/actions/workflows/build.yml)
 [![Build status](https://ci.appveyor.com/api/projects/status/jo7tkvc58c3hgfd7?svg=true)](https://ci.appveyor.com/project/StevenDiamond/cvxpy)
 
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
@@ -68,7 +68,7 @@ conda install -c conda-forge cvxpy
 
 CVXPY has the following dependencies:
 
-- Python 3.5, 3.6, or 3.7.
+- Python >= 3.5
 - multiprocess
 - OSQP
 - ECOS >= 2

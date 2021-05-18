@@ -105,7 +105,7 @@ def solve_wrapper(prob, i, booleans, depth, epsilon):
     # return best guess so far
     return solution
 
-def branch_and_bound(self, depth=5, epsilon=1e-3):
+def branch_and_bound(self, depth: int = 5, epsilon: float = 1e-3):
     objective, constr_map = self.canonicalize()
     dims = self._format_for_solver(constr_map, s.ECOS)
 

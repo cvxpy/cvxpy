@@ -16,6 +16,8 @@ limitations under the License.
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.affine.binary_operators import multiply
+from typing import Tuple
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -45,7 +47,7 @@ class one_minus_pos(Atom):
     x : :class:`~cvxpy.expressions.expression.Expression`
         An Expression.
     """
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         super(one_minus_pos, self).__init__(x)
         self.args[0] = x
         self._ones = np.ones(self.args[0].shape)
@@ -57,7 +59,7 @@ class one_minus_pos(Atom):
         del values
         return sp.csc_matrix(-1.0 * self._ones)
 
-    def name(self):
+    def name(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, self.args[0])
 
     def shape_from_args(self):
@@ -65,37 +67,37 @@ class one_minus_pos(Atom):
         """
         return self.args[0].shape
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return False
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return True

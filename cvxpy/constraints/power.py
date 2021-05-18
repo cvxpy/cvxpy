@@ -17,6 +17,8 @@ limitations under the License.
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+from typing import List, Tuple
+
 import numpy as np
 
 
@@ -37,7 +39,7 @@ class PowCone3D(Constraint):
     with respect to these flattened representations.
     """
 
-    def __init__(self, x, y, z, alpha, constr_id=None):
+    def __init__(self, x, y, z, alpha, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
@@ -60,7 +62,7 @@ class PowCone3D(Constraint):
         super(PowCone3D, self).__init__([self.x, self.y, self.z],
                                         constr_id)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "Pow3D(%s, %s, %s; %s)" % (self.x, self.y, self.z, self.alpha)
 
     def residual(self):
@@ -80,23 +82,23 @@ class PowCone3D(Constraint):
     def get_data(self):
         return [self.alpha]
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         return False
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         return False
 
     @property
-    def size(self):
+    def size(self) -> int:
         return 3 * self.num_cones()
 
     def num_cones(self):
         return self.x.size
 
-    def cone_sizes(self):
+    def cone_sizes(self) -> List[int]:
         return [3]*self.num_cones()
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         if dpp:
             with scopes.dpp_scope():
                 args_ok = all(arg.is_affine() for arg in self.args)
@@ -104,18 +106,18 @@ class PowCone3D(Constraint):
                 return args_ok and exps_ok
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.is_dcp()
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         s = (3,) + self.x.shape
         return s
 
-    def save_dual_value(self, value):
+    def save_dual_value(self, value) -> None:
         value = np.reshape(value, newshape=(3, -1))
         dv0 = np.reshape(value[0, :], newshape=self.x.shape)
         dv1 = np.reshape(value[1, :], newshape=self.y.shape)
@@ -151,7 +153,7 @@ class PowConeND(Constraint):
 
     _TOL_ = 1e-6
 
-    def __init__(self, W, z, alpha, axis=0, constr_id=None):
+    def __init__(self, W, z, alpha, axis: int = 0, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         W = Expression.cast_to_const(W)
         if not (W.is_real() and W.is_affine()):
@@ -188,13 +190,13 @@ class PowConeND(Constraint):
             z = z.flatten()
         super(PowConeND, self).__init__([W, z], constr_id)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "PowND(%s, %s; %s)" % (self.W, self.z, self.alpha)
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         return False
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         return False
 
     def get_data(self):
@@ -218,15 +220,15 @@ class PowConeND(Constraint):
         return self.z.size
 
     @property
-    def size(self):
+    def size(self) -> int:
         cone_size = 1 + self.args[0].shape[self.axis]
         return cone_size * self.num_cones()
 
-    def cone_sizes(self):
+    def cone_sizes(self) -> List[int]:
         cone_size = 1 + self.args[0].shape[self.axis]
         return [cone_size] * self.num_cones()
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A power cone constraint is DCP if each argument is affine.
         """
         if dpp:
@@ -236,12 +238,12 @@ class PowConeND(Constraint):
                 return args_ok and exps_ok
         return True
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.is_dcp()
 
-    def save_dual_value(self, value):
+    def save_dual_value(self, value) -> None:
         # TODO: implement
         pass

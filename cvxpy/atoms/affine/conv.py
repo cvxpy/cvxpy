@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from typing import Tuple
+
 import cvxpy.utilities as u
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
@@ -42,7 +44,7 @@ class conv(AffAtom):
     # TODO work with right hand constant.
     # TODO(akshayka): make DGP-compatible
 
-    def __init__(self, lh_expr, rh_expr):
+    def __init__(self, lh_expr, rh_expr) -> None:
         super(conv, self).__init__(lh_expr, rh_expr)
 
     @AffAtom.numpy_numeric
@@ -53,7 +55,7 @@ class conv(AffAtom):
         values = list(map(intf.from_2D_to_1D, values))
         return np.convolve(values[0], values[1])
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant.
         """
         if not self.args[0].is_vector() or not self.args[1].is_vector():
@@ -61,7 +63,7 @@ class conv(AffAtom):
         if not self.args[0].is_constant():
             raise ValueError("The first argument to conv must be constant.")
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, int]:
         """The sum of the argument dimensions - 1.
         """
         lh_length = self.args[0].shape[0]
@@ -73,17 +75,17 @@ class conv(AffAtom):
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.args[0].is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return self.args[0].is_nonpos()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Convolve two vectors.
 
         Parameters

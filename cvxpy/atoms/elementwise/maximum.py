@@ -16,6 +16,8 @@ limitations under the License.
 
 import sys
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from typing import Any, List, Tuple
+
 import numpy as np
 if sys.version_info >= (3, 0):
     from functools import reduce
@@ -25,7 +27,7 @@ class maximum(Elementwise):
     """Elementwise maximum of a sequence of expressions.
     """
 
-    def __init__(self, arg1, arg2, *args):
+    def __init__(self, arg1, arg2, *args) -> None:
         """Requires at least 2 arguments.
         """
         super(maximum, self).__init__(arg1, arg2, *args)
@@ -36,7 +38,7 @@ class maximum(Elementwise):
         """
         return reduce(np.maximum, values)
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Reduces the list of argument signs according to the following rules:
@@ -50,42 +52,42 @@ class maximum(Elementwise):
         is_neg = all(arg.is_nonpos() for arg in self.args)
         return (is_pos, is_neg)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
         return all(arg.is_pwl() for arg in self.args)
 
-    def _grad(self, values):
+    def _grad(self, values) -> List[Any]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

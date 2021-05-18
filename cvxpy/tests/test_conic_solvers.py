@@ -37,7 +37,7 @@ from cvxpy.tests.solver_test_helpers import (
 
 class TestECOS(BaseTest):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
@@ -50,7 +50,7 @@ class TestECOS(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    def test_ecos_options(self):
+    def test_ecos_options(self) -> None:
         """Test that all the ECOS solver options work.
         """
         # Test ecos
@@ -66,50 +66,50 @@ class TestECOS(BaseTest):
         self.assertAlmostEqual(prob.value, 1.0)
         self.assertItemsAlmostEqual(self.x.value, [0, 0])
 
-    def test_ecos_lp_0(self):
+    def test_ecos_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='ECOS')
 
-    def test_ecos_lp_1(self):
+    def test_ecos_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='ECOS')
 
-    def test_ecos_lp_2(self):
+    def test_ecos_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='ECOS')
 
-    def test_ecos_lp_3(self):
+    def test_ecos_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='ECOS')
 
-    def test_ecos_lp_4(self):
+    def test_ecos_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='ECOS')
 
-    def test_ecos_lp_5(self):
+    def test_ecos_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='ECOS')
 
-    def test_ecos_socp_0(self):
+    def test_ecos_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='ECOS')
 
-    def test_ecos_socp_1(self):
+    def test_ecos_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='ECOS')
 
-    def test_ecos_socp_2(self):
+    def test_ecos_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='ECOS')
 
-    def test_ecos_socp_3(self):
+    def test_ecos_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='ECOS')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='ECOS')
 
-    def test_ecos_expcone_1(self):
+    def test_ecos_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='ECOS')
 
-    def test_ecos_exp_soc_1(self):
+    def test_ecos_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='ECOS')
 
 
 class TestSCS(BaseTest):
 
     """ Unit tests for SCS. """
-    def setUp(self):
+    def setUp(self) -> None:
         self.x = cp.Variable(2, name='x')
         self.y = cp.Variable(2, name='y')
 
@@ -118,14 +118,14 @@ class TestSCS(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     # Overridden method to assume lower accuracy.
-    def assertItemsAlmostEqual(self, a, b, places=2):
+    def assertItemsAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestSCS, self).assertItemsAlmostEqual(a, b, places=places)
 
     # Overridden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places=2):
+    def assertAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestSCS, self).assertAlmostEqual(a, b, places=places)
 
-    def test_scs_options(self):
+    def test_scs_options(self) -> None:
         """Test that all the SCS solver options work.
         """
         # Test SCS
@@ -141,7 +141,7 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(prob.value, 1.0, places=2)
         self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
 
-    def test_log_problem(self):
+    def test_log_problem(self) -> None:
         # Log in objective.
         obj = cp.Maximize(cp.sum(cp.log(self.x)))
         constr = [self.x <= [1, math.e]]
@@ -164,7 +164,7 @@ class TestSCS(BaseTest):
         p = cp.Problem(obj, constr)
         result = p.solve(solver=cp.SCS)
 
-    def test_sigma_max(self):
+    def test_sigma_max(self) -> None:
         """Test sigma_max.
         """
         const = cp.Constant([[1, 2, 3], [4, 5, 6]])
@@ -174,7 +174,7 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(result, cp.norm(const, 2).value)
         self.assertItemsAlmostEqual(self.C.value, const.value)
 
-    def test_sdp_var(self):
+    def test_sdp_var(self) -> None:
         """Test sdp var.
         """
         const = cp.Constant([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
@@ -183,7 +183,7 @@ class TestSCS(BaseTest):
         prob.solve(solver=cp.SCS)
         self.assertEqual(prob.status, cp.INFEASIBLE)
 
-    def test_complex_matrices(self):
+    def test_complex_matrices(self) -> None:
         """Test complex matrices.
         """
         # Complex-valued matrix
@@ -211,7 +211,7 @@ class TestSCS(BaseTest):
         self.assertEqual(constraints[2].dual_value.shape, (2, 2))
         self.assertAlmostEqual(sol_scs, n1)
 
-    def test_kl_div(self):
+    def test_kl_div(self) -> None:
         """Test a problem with kl_div.
         """
         kK = 50
@@ -236,7 +236,7 @@ class TestSCS(BaseTest):
         klprob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
-    def test_entr(self):
+    def test_entr(self) -> None:
         """Test a problem with entr.
         """
         for n in [5, 10, 25]:
@@ -247,7 +247,7 @@ class TestSCS(BaseTest):
             p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
-    def test_exp(self):
+    def test_exp(self) -> None:
         """Test a problem with exp.
         """
         for n in [5, 10, 25]:
@@ -258,7 +258,7 @@ class TestSCS(BaseTest):
             p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
-    def test_log(self):
+    def test_log(self) -> None:
         """Test a problem with log.
         """
         for n in [5, 10, 25]:
@@ -269,7 +269,7 @@ class TestSCS(BaseTest):
             p.solve(solver=cp.SCS)
             self.assertItemsAlmostEqual(x.value, n*[1./n])
 
-    def test_solve_problem_twice(self):
+    def test_solve_problem_twice(self) -> None:
         """Test a problem with log.
         """
         n = 5
@@ -284,7 +284,7 @@ class TestSCS(BaseTest):
         second_value = x.value
         self.assertItemsAlmostEqual(first_value, second_value)
 
-    def test_warm_start(self):
+    def test_warm_start(self) -> None:
         """Test warm starting.
         """
         x = cp.Variable(10)
@@ -297,7 +297,7 @@ class TestSCS(BaseTest):
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
 
-    def test_warm_start_diffcp(self):
+    def test_warm_start_diffcp(self) -> None:
         """Test warm starting in diffcvx.
         """
         try:
@@ -312,7 +312,7 @@ class TestSCS(BaseTest):
         result2 = prob.solve(solver=cp.DIFFCP, warm_start=True, eps=1e-4)
         self.assertAlmostEqual(result2, result, places=2)
 
-    def test_psd_constraint(self):
+    def test_psd_constraint(self) -> None:
         """Test PSD constraint.
         """
         s = cp.Variable((2, 2))
@@ -328,125 +328,125 @@ class TestSCS(BaseTest):
         eigs = np.linalg.eig(s + s.T)[0]
         self.assertEqual(np.all(eigs >= 0), True)
 
-    def test_scs_lp_3(self):
+    def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
 
-    def test_scs_lp_4(self):
+    def test_scs_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='SCS')
 
-    def test_scs_lp_5(self):
+    def test_scs_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='SCS')
 
-    def test_scs_socp_1(self):
+    def test_scs_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='SCS')
 
-    def test_scs_socp_3(self):
+    def test_scs_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='SCS')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='SCS')
 
-    def test_scs_sdp_1min(self):
+    def test_scs_sdp_1min(self) -> None:
         StandardTestSDPs.test_sdp_1min(solver='SCS')
 
-    def test_scs_sdp_2(self):
+    def test_scs_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-8)
 
-    def test_scs_expcone_1(self):
+    def test_scs_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='SCS')
 
-    def test_scs_exp_soc_1(self):
+    def test_scs_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='SCS')
 
-    def test_scs_pcp_1(self):
+    def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS', eps=1e-8)
 
-    def test_scs_pcp_2(self):
+    def test_scs_pcp_2(self) -> None:
         StandardTestPCPs.test_pcp_2(solver='SCS', eps=1e-8)
 
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
 class TestMosek(unittest.TestCase):
 
-    def test_mosek_lp_0(self):
+    def test_mosek_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='MOSEK')
 
-    def test_mosek_lp_1(self):
+    def test_mosek_lp_1(self) -> None:
         # default settings
         StandardTestLPs.test_lp_1(solver='MOSEK')
         # require a basic feasible solution
         StandardTestLPs.test_lp_1(solver='MOSEK', places=6, bfs=True)
 
-    def test_mosek_lp_2(self):
+    def test_mosek_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='MOSEK')
 
-    def test_mosek_lp_3(self):
+    def test_mosek_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='MOSEK')
 
-    def test_mosek_lp_4(self):
+    def test_mosek_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='MOSEK')
 
-    def test_mosek_lp_5(self):
+    def test_mosek_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='MOSEK')
 
-    def test_mosek_socp_0(self):
+    def test_mosek_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='MOSEK')
 
-    def test_mosek_socp_1(self):
+    def test_mosek_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='MOSEK')
 
-    def test_mosek_socp_2(self):
+    def test_mosek_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='MOSEK')
 
-    def test_mosek_socp_3(self):
+    def test_mosek_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='MOSEK')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='MOSEK')
 
-    def test_mosek_sdp_1(self):
+    def test_mosek_sdp_1(self) -> None:
         # minimization
         StandardTestSDPs.test_sdp_1min(solver='MOSEK')
         # maximization
         StandardTestSDPs.test_sdp_1max(solver='MOSEK')
 
-    def test_mosek_sdp_2(self):
+    def test_mosek_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='MOSEK')
 
-    def test_mosek_expcone_1(self):
+    def test_mosek_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='MOSEK')
 
-    def test_mosek_exp_soc_1(self):
+    def test_mosek_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='MOSEK')
 
-    def test_mosek_pcp_1(self):
+    def test_mosek_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='MOSEK')
 
-    def test_mosek_pcp_2(self):
+    def test_mosek_pcp_2(self) -> None:
         StandardTestPCPs.test_pcp_2(solver='MOSEK')
 
-    def test_mosek_mi_lp_0(self):
+    def test_mosek_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='MOSEK')
 
-    def test_mosek_mi_lp_1(self):
+    def test_mosek_mi_lp_1(self) -> None:
         StandardTestLPs.test_mi_lp_1(solver='MOSEK')
 
-    def test_mosek_mi_lp_2(self):
+    def test_mosek_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='MOSEK')
 
-    def test_mosek_mi_lp_3(self):
+    def test_mosek_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='MOSEK')
 
-    def test_mosek_mi_socp_1(self):
+    def test_mosek_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='MOSEK')
 
-    def test_mosek_mi_socp_2(self):
+    def test_mosek_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='MOSEK')
 
-    def test_mosek_mi_pcp_0(self):
+    def test_mosek_mi_pcp_0(self) -> None:
         StandardTestPCPs.test_mi_pcp_0(solver='MOSEK')
 
-    def test_mosek_params(self):
+    def test_mosek_params(self) -> None:
         if cp.MOSEK in INSTALLED_SOLVERS:
             import mosek
             n = 10
@@ -481,7 +481,7 @@ class TestMosek(unittest.TestCase):
 @unittest.skipUnless('CVXOPT' in INSTALLED_SOLVERS, 'CVXOPT is not installed.')
 class TestCVXOPT(BaseTest):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
@@ -494,7 +494,7 @@ class TestCVXOPT(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    def test_cvxopt_options(self):
+    def test_cvxopt_options(self) -> None:
         """Test that all the CVXOPT solver options work.
         """
         # 'maxiters'
@@ -527,55 +527,55 @@ class TestCVXOPT(BaseTest):
             prob.solve(solver='CVXOPT', kktsolver=setup_dummy_factor)
         self.assertEqual(msg, str(nix.exception))
 
-    def test_cvxopt_lp_0(self):
+    def test_cvxopt_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='CVXOPT')
 
-    def test_cvxopt_lp_1(self):
+    def test_cvxopt_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='CVXOPT')
 
-    def test_cvxopt_lp_2(self):
+    def test_cvxopt_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='CVXOPT')
 
-    def test_cvxopt_lp_3(self):
+    def test_cvxopt_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='CVXOPT')
 
-    def test_cvxopt_lp_4(self):
+    def test_cvxopt_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='CVXOPT')
 
-    def test_cvxopt_lp_5(self):
+    def test_cvxopt_lp_5(self) -> None:
         from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
         StandardTestLPs.test_lp_5(solver='CVXOPT', kktsolver=setup_ldl_factor)
         StandardTestLPs.test_lp_5(solver='CVXOPT', kktsolver='chol')
 
-    def test_cvxopt_socp_0(self):
+    def test_cvxopt_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='CVXOPT')
 
-    def test_cvxopt_socp_1(self):
+    def test_cvxopt_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='CVXOPT')
 
-    def test_cvxopt_socp_2(self):
+    def test_cvxopt_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CVXOPT')
 
-    def test_cvxopt_socp_3(self):
+    def test_cvxopt_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='CVXOPT')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='CVXOPT')
 
-    def test_cvxopt_sdp_1(self):
+    def test_cvxopt_sdp_1(self) -> None:
         # minimization
         StandardTestSDPs.test_sdp_1min(solver='CVXOPT')
         # maximization
         StandardTestSDPs.test_sdp_1max(solver='CVXOPT')
 
-    def test_cvxopt_sdp_2(self):
+    def test_cvxopt_sdp_2(self) -> None:
         StandardTestSDPs.test_sdp_2(solver='CVXOPT')
 
 
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 class TestCBC(BaseTest):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
@@ -588,7 +588,7 @@ class TestCBC(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    def test_options(self):
+    def test_options(self) -> None:
         """Test that all the cvx.CBC solver options work.
         """
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)),
@@ -609,68 +609,68 @@ class TestCBC(BaseTest):
                 prob.solve(solver=cp.CBC)
                 self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.CBC)
 
-    def test_cbc_lp_0(self):
+    def test_cbc_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='CBC', duals=False)
 
-    def test_cbc_lp_1(self):
+    def test_cbc_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='CBC', duals=False)
 
-    def test_cbc_lp_2(self):
+    def test_cbc_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='CBC', duals=False)
 
-    def test_cbc_lp_3(self):
+    def test_cbc_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='CBC')
 
-    def test_cbc_lp_4(self):
+    def test_cbc_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='CBC')
 
-    def test_cbc_lp_5(self):
+    def test_cbc_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='CBC')
 
-    def test_cbc_mi_lp_0(self):
+    def test_cbc_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='CBC')
 
-    def test_cbc_mi_lp_1(self):
+    def test_cbc_mi_lp_1(self) -> None:
         StandardTestLPs.test_mi_lp_1(solver='CBC')
 
-    def test_cbc_mi_lp_2(self):
+    def test_cbc_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='CBC')
 
-    def test_cbc_mi_lp_3(self):
+    def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
 
-    def test_glpk_lp_0(self):
+    def test_glpk_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='GLPK')
 
-    def test_glpk_lp_1(self):
+    def test_glpk_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='GLPK')
 
-    def test_glpk_lp_2(self):
+    def test_glpk_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='GLPK')
 
-    def test_glpk_lp_3(self):
+    def test_glpk_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='GLPK')
 
-    def test_glpk_lp_4(self):
+    def test_glpk_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='GLPK')
 
-    def test_glpk_lk_5(self):
+    def test_glpk_lk_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GLPK')
 
-    def test_glpk_mi_lp_0(self):
+    def test_glpk_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='GLPK_MI')
 
-    def test_glpk_mi_lp_1(self):
+    def test_glpk_mi_lp_1(self) -> None:
         StandardTestLPs.test_mi_lp_1(solver='GLPK_MI')
 
-    def test_glpk_mi_lp_2(self):
+    def test_glpk_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='GLPK_MI')
 
-    def test_glpk_mi_lp_3(self):
+    def test_glpk_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='GLPK_MI')
 
 
@@ -678,7 +678,7 @@ class TestGLPK(unittest.TestCase):
 class TestCPLEX(BaseTest):
     """ Unit tests for solver specific behavior. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
@@ -691,7 +691,7 @@ class TestCPLEX(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    def test_cplex_warm_start(self):
+    def test_cplex_warm_start(self) -> None:
         """Make sure that warm starting CPLEX behaves as expected
            Note: This only checks output, not whether or not CPLEX is warm starting internally
         """
@@ -758,7 +758,7 @@ class TestCPLEX(BaseTest):
                 prob.solve(solver=cp.CPLEX, warm_start=True)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.CPLEX)
 
-    def test_cplex_params(self):
+    def test_cplex_params(self) -> None:
         if cp.CPLEX in INSTALLED_SOLVERS:
             n, m = 10, 4
             np.random.seed(0)
@@ -790,28 +790,28 @@ class TestCPLEX(BaseTest):
             }
             problem.solve(solver=cp.CPLEX, cplex_params=cplex_params)
 
-    def test_cplex_lp_0(self):
+    def test_cplex_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='CPLEX')
 
-    def test_cplex_lp_1(self):
+    def test_cplex_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='CPLEX')
 
-    def test_cplex_lp_2(self):
+    def test_cplex_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='CPLEX')
 
-    def test_cplex_lp_3(self):
+    def test_cplex_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='CPLEX')
 
-    def test_cplex_lp_4(self):
+    def test_cplex_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='CPLEX')
 
-    def test_cplex_lp_5(self):
+    def test_cplex_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='CPLEX')
 
-    def test_cplex_socp_0(self):
+    def test_cplex_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='CPLEX')
 
-    def test_cplex_socp_1(self):
+    def test_cplex_socp_1(self) -> None:
         # Parameters are set due to a minor dual-variable related
         # presolve bug in CPLEX, which will be fixed in the next
         # CPLEX release.
@@ -820,31 +820,31 @@ class TestCPLEX(BaseTest):
                                           "preprocessing.presolve": 0,
                                           "preprocessing.reduce": 2})
 
-    def test_cplex_socp_2(self):
+    def test_cplex_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='CPLEX')
 
-    def test_cplex_socp_3(self):
+    def test_cplex_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='CPLEX')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='CPLEX')
 
-    def test_cplex_mi_lp_0(self):
+    def test_cplex_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='CPLEX')
 
-    def test_cplex_mi_lp_1(self):
+    def test_cplex_mi_lp_1(self) -> None:
         StandardTestLPs.test_mi_lp_1(solver='CPLEX')
 
-    def test_cplex_mi_lp_2(self):
+    def test_cplex_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='CPLEX')
 
-    def test_cplex_mi_lp_3(self):
+    def test_cplex_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CPLEX')
 
-    def test_cplex_mi_socp_1(self):
+    def test_cplex_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='CPLEX', places=3)
 
-    def test_cplex_mi_socp_2(self):
+    def test_cplex_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='CPLEX')
 
 
@@ -852,7 +852,7 @@ class TestCPLEX(BaseTest):
 class TestGUROBI(BaseTest):
     """ Unit tests for solver specific behavior. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
@@ -865,7 +865,7 @@ class TestGUROBI(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    def test_gurobi_warm_start(self):
+    def test_gurobi_warm_start(self) -> None:
         """Make sure that warm starting Gurobi behaves as expected
            Note: This only checks output, not whether or not Gurobi is warm starting internally
         """
@@ -933,7 +933,7 @@ class TestGUROBI(BaseTest):
                 prob.solve(solver=cp.GUROBI, warm_start=True)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.GUROBI)
 
-    def test_gurobi_time_limit_no_solution(self):
+    def test_gurobi_time_limit_no_solution(self) -> None:
         """Make sure that if Gurobi terminates due to a time limit before finding a solution:
             1) no error is raised,
             2) solver stats are returned.
@@ -972,62 +972,62 @@ class TestGUROBI(BaseTest):
                 prob.solve(solver=cp.GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.GUROBI)
 
-    def test_gurobi_lp_0(self):
+    def test_gurobi_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='GUROBI')
 
-    def test_gurobi_lp_1(self):
+    def test_gurobi_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='GUROBI')
 
-    def test_gurobi_lp_2(self):
+    def test_gurobi_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='GUROBI')
 
-    def test_gurobi_lp_3(self):
+    def test_gurobi_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='GUROBI')
 
-    def test_gurobi_lp_4(self):
+    def test_gurobi_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='GUROBI')
 
-    def test_gurobi_lp_5(self):
+    def test_gurobi_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GUROBI')
 
-    def test_gurobi_socp_0(self):
+    def test_gurobi_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='GUROBI')
 
-    def test_gurobi_socp_1(self):
+    def test_gurobi_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='GUROBI')
 
-    def test_gurobi_socp_2(self):
+    def test_gurobi_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='GUROBI')
 
-    def test_gurobi_socp_3(self):
+    def test_gurobi_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='GUROBI')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='GUROBI')
 
-    def test_gurobi_mi_lp_0(self):
+    def test_gurobi_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='GUROBI')
 
-    def test_gurobi_mi_lp_1(self):
+    def test_gurobi_mi_lp_1(self) -> None:
         StandardTestLPs.test_mi_lp_1(solver='GUROBI')
 
-    def test_gurobi_mi_lp_2(self):
+    def test_gurobi_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='GUROBI')
 
-    def test_gurobi_mi_lp_3(self):
+    def test_gurobi_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='GUROBI')
 
-    def test_gurobi_mi_socp_1(self):
+    def test_gurobi_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='GUROBI', places=2)
 
-    def test_gurobi_mi_socp_2(self):
+    def test_gurobi_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='GUROBI')
 
 
 @unittest.skipUnless('XPRESS' in INSTALLED_SOLVERS, 'XPRESS is not installed.')
 class TestXPRESS(BaseTest):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
@@ -1040,7 +1040,7 @@ class TestXPRESS(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    def test_xpress_warm_start(self):
+    def test_xpress_warm_start(self) -> None:
         """Make sure that warm starting Xpress behaves as expected
            Note: Xpress does not have warmstart yet, it will re-solve problem from scratch
         """
@@ -1108,7 +1108,7 @@ class TestXPRESS(BaseTest):
                 prob.solve(solver=cp.XPRESS, warm_start=True)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.XPRESS)
 
-    def test_xpress_params(self):
+    def test_xpress_params(self) -> None:
         if cp.XPRESS in INSTALLED_SOLVERS:
             n, m = 10, 4
             np.random.seed(0)
@@ -1128,80 +1128,80 @@ class TestXPRESS(BaseTest):
             }
             problem.solve(solver=cp.XPRESS, solver_opts=params)
 
-    def test_xpress_lp_0(self):
+    def test_xpress_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='XPRESS')
 
-    def test_xpress_lp_1(self):
+    def test_xpress_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='XPRESS')
 
-    def test_xpress_lp_2(self):
+    def test_xpress_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='XPRESS')
 
-    def test_xpress_lp_3(self):
+    def test_xpress_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='XPRESS')
 
-    def test_xpress_lp_4(self):
+    def test_xpress_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='XPRESS')
 
-    def test_xpress_socp_0(self):
+    def test_xpress_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='XPRESS')
 
-    def test_xpress_socp_1(self):
+    def test_xpress_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='XPRESS')
 
-    def test_xpress_socp_2(self):
+    def test_xpress_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='XPRESS')
 
-    def test_xpress_mi_lp_0(self):
+    def test_xpress_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='XPRESS')
 
-    def test_xpress_mi_lp_1(self):
+    def test_xpress_mi_lp_1(self) -> None:
         StandardTestLPs.test_mi_lp_1(solver='XPRESS')
 
-    def test_xpress_mi_lp_2(self):
+    def test_xpress_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='XPRESS')
 
-    def test_xpress_mi_lp_3(self):
+    def test_xpress_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='XPRESS')
 
-    def test_xpress_mi_socp_1(self):
+    def test_xpress_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='XPRESS')
 
-    def test_xpress_mi_socp_2(self):
+    def test_xpress_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='XPRESS')
 
 
 @unittest.skipUnless('NAG' in INSTALLED_SOLVERS, 'NAG is not installed.')
 class TestNAG(unittest.TestCase):
 
-    def test_nag_lp_0(self):
+    def test_nag_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='NAG')
 
-    def test_nag_lp_1(self):
+    def test_nag_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='NAG')
 
-    def test_nag_lp_2(self):
+    def test_nag_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='NAG')
 
-    def test_nag_lp_3(self):
+    def test_nag_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='NAG')
 
-    def test_nag_lp_4(self):
+    def test_nag_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='NAG')
 
-    def test_nag_lp_5(self):
+    def test_nag_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='NAG')
 
-    def test_nag_socp_0(self):
+    def test_nag_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='NAG')
 
-    def test_nag_socp_1(self):
+    def test_nag_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='NAG')
 
-    def test_nag_socp_2(self):
+    def test_nag_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='NAG')
 
-    def test_nag_socp_3(self):
+    def test_nag_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='NAG')
         # axis 1
@@ -1211,46 +1211,46 @@ class TestNAG(unittest.TestCase):
 @unittest.skipUnless("SCIP" in INSTALLED_SOLVERS, "SCIP is not installed.")
 class TestSCIP(unittest.TestCase):
 
-    def test_scip_lp_0(self):
+    def test_scip_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver="SCIP")
 
-    def test_scip_lp_1(self):
+    def test_scip_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver="SCIP")
 
-    def test_scip_lp_2(self):
+    def test_scip_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver="SCIP", duals=False)
 
-    def test_scip_lp_3(self):
+    def test_scip_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver="SCIP")
 
-    def test_scip_lp_4(self):
+    def test_scip_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver="SCIP")
 
-    def test_scip_socp_0(self):
+    def test_scip_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver="SCIP")
 
-    def test_scip_socp_1(self):
+    def test_scip_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver="SCIP", places=3, duals=False)
 
-    def test_scip_socp_2(self):
+    def test_scip_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver="SCIP", places=2)
 
-    def test_scip_socp_3(self):
+    def test_scip_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver="SCIP")
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver="SCIP")
 
-    def test_scip_mi_lp_0(self):
+    def test_scip_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver="SCIP")
 
-    def test_scip_mi_lp_1(self):
+    def test_scip_mi_lp_1(self) -> None:
         StandardTestLPs.test_mi_lp_1(solver="SCIP")
 
-    def test_scip_mi_lp_2(self):
+    def test_scip_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver="SCIP")
 
-    def test_scip_mi_lp_3(self):
+    def test_scip_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver="SCIP")
 
     def get_simple_problem(self):
@@ -1266,25 +1266,25 @@ class TestSCIP(unittest.TestCase):
         prob = cp.Problem(obj, constraints)
         return prob
 
-    def test_scip_test_params__no_params_set(self):
+    def test_scip_test_params__no_params_set(self) -> None:
         prob = self.get_simple_problem()
         prob.solve(solver="SCIP")
         # Important that passes without raising an error also check obj.
         assert prob.value == 3
 
-    def test_scip_test_params__valid_params(self):
+    def test_scip_test_params__valid_params(self) -> None:
         prob = self.get_simple_problem()
         prob.solve(solver="SCIP", gp=False)
         # Important that passes without raising an error also check obj.
         assert prob.value == 3
 
-    def test_scip_test_params__valid_scip_params(self):
+    def test_scip_test_params__valid_scip_params(self) -> None:
         prob = self.get_simple_problem()
         prob.solve(solver="SCIP", scip_params={"lp/fastmip": 1, "limits/gap": 0.1})
         # Important that passes without raising an error also check obj.
         assert prob.value == 3
 
-    def test_scip_test_params__invalid_params(self):
+    def test_scip_test_params__invalid_params(self) -> None:
         prob = self.get_simple_problem()
         # Since an invalid NON-scip param is passed, an error is expected
         # to be raised when calling solve.
@@ -1293,7 +1293,7 @@ class TestSCIP(unittest.TestCase):
             exc = "One or more solver params in ['a'] are not valid: 'Not a valid parameter name'"
             assert ke.exception == exc
 
-    def test_scip_test_params__invalid_scip_params(self):
+    def test_scip_test_params__invalid_scip_params(self) -> None:
         prob = self.get_simple_problem()
         # Since an invalid SCIP param is passed, an error is expected
         # to be raised when calling solve.
@@ -1305,7 +1305,7 @@ class TestSCIP(unittest.TestCase):
 
 class TestAllSolvers(BaseTest):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = cp.Variable(name='a')
         self.b = cp.Variable(name='b')
         self.c = cp.Variable(name='c')
@@ -1318,7 +1318,7 @@ class TestAllSolvers(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    def test_installed_solvers(self):
+    def test_installed_solvers(self) -> None:
         """Test the list of installed solvers.
         """
         from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC, SOLVER_MAP_QP,
@@ -1343,7 +1343,7 @@ class TestAllSolvers(BaseTest):
                     prob.solve(solver=solver)
                 self.assertEqual(str(cm.exception), "The solver %s is not installed." % solver)
 
-    def test_mixed_integer_behavior(self):
+    def test_mixed_integer_behavior(self) -> None:
         x = cp.Variable(2, name='x', integer=True)
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
@@ -1361,7 +1361,7 @@ class TestAllSolvers(BaseTest):
 
 class TestECOS_BB(unittest.TestCase):
 
-    def test_ecos_bb_explicit_only(self):
+    def test_ecos_bb_explicit_only(self) -> None:
         """Test that ECOS_BB isn't chosen by default.
         """
         x = cp.Variable(1, name='x', integer=True)
@@ -1374,56 +1374,58 @@ class TestECOS_BB(unittest.TestCase):
             except SolverError:
                 pass
 
-    def test_ecos_bb_lp_0(self):
+    def test_ecos_bb_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='ECOS_BB')
 
-    def test_ecos_bb_lp_1(self):
+    def test_ecos_bb_lp_1(self) -> None:
         # default settings
         StandardTestLPs.test_lp_1(solver='ECOS_BB')
         # require a basic feasible solution
         StandardTestLPs.test_lp_1(solver='ECOS_BB')
 
-    def test_ecos_bb_lp_2(self):
+    def test_ecos_bb_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='ECOS_BB')
 
-    def test_ecos_bb_lp_3(self):
+    def test_ecos_bb_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='ECOS_BB')
 
-    def test_ecos_bb_lp_4(self):
+    def test_ecos_bb_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='ECOS_BB')
 
-    def test_ecos_bb_lp_5(self):
+    def test_ecos_bb_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='ECOS_BB')
 
-    def test_ecos_bb_socp_0(self):
+    def test_ecos_bb_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='ECOS_BB')
 
-    def test_ecos_bb_socp_1(self):
+    def test_ecos_bb_socp_1(self) -> None:
         StandardTestSOCPs.test_socp_1(solver='ECOS_BB')
 
-    def test_ecos_bb_socp_2(self):
+    def test_ecos_bb_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='ECOS_BB')
 
-    def test_ecos_bb_socp_3(self):
+    def test_ecos_bb_socp_3(self) -> None:
         # axis 0
         StandardTestSOCPs.test_socp_3ax0(solver='ECOS_BB')
         # axis 1
         StandardTestSOCPs.test_socp_3ax1(solver='ECOS_BB')
 
-    def test_ecos_bb_expcone_1(self):
+    def test_ecos_bb_expcone_1(self) -> None:
         StandardTestECPs.test_expcone_1(solver='ECOS_BB')
 
-    def test_ecos_bb_exp_soc_1(self):
+    def test_ecos_bb_exp_soc_1(self) -> None:
         StandardTestMixedCPs.test_exp_soc_1(solver='ECOS_BB')
 
-    def test_ecos_bb_mi_lp_0(self):
+    def test_ecos_bb_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='ECOS_BB')
 
-    def test_ecos_bb_mi_lp_2(self):
+    @pytest.mark.skip(reason="Known bug in ECOS BB")
+    def test_ecos_bb_mi_lp_2(self) -> None:
         StandardTestLPs.test_mi_lp_2(solver='ECOS_BB')
 
-    def test_ecos_bb_mi_lp_3(self):
+    def test_ecos_bb_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='ECOS_BB')
 
-    def test_ecos_bb_mi_socp_1(self):
+    @pytest.mark.skip(reason="Known bug in ECOS BB")
+    def test_ecos_bb_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='ECOS_BB')

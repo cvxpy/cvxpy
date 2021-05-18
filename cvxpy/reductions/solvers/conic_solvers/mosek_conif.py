@@ -74,7 +74,7 @@ class MOSEK(ConicSolver):
     with this convention, EXP_CONE_ORDER should be should be [2, 1, 0].
     """
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver (updates the set of supported constraints, if applicable).
         """
         import mosek
@@ -88,7 +88,7 @@ class MOSEK(ConicSolver):
         """
         return s.MOSEK
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can the installed version of Mosek solve the problem?
         """
         # TODO check if is matrix stuffed.
@@ -200,9 +200,10 @@ class MOSEK(ConicSolver):
                 data['A_bar_data'] = []
                 data['c_bar_data'] = []
 
+        data[s.PARAM_PROB] = problem
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import mosek
 
         if 'dualized' in data:
@@ -528,7 +529,7 @@ class MOSEK(ConicSolver):
         return prim_vars
 
     @staticmethod
-    def handle_options(env, task, verbose, solver_opts):
+    def handle_options(env, task, verbose: bool, solver_opts):
         # If verbose, then set default logging parameters.
         import mosek
 

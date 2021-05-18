@@ -28,11 +28,11 @@ Input parameters
   m: size of output
 '''
 
-def channel_capacity(n,m,sum_x=1):
+def channel_capacity(n, m, sum_x: float = 1.0):
   '''
 Boyd and Vandenberghe, Convex Optimization, exercise 4.57 page 207
 Capacity of a communication channel.
-  
+
 We consider a communication channel, with input x(t)∈{1,..,n} and
 output Y(t)∈{1,...,m}, for t=1,2,... .The relation between the
 input and output is given statistically:

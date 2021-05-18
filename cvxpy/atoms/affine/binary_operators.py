@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from __future__ import division
+from typing import Tuple
 import sys
 
 import cvxpy.interface as intf
@@ -42,7 +43,7 @@ class BinaryOperator(AffAtom):
 
     OP_NAME = 'BINARY_OP'
 
-    def __init__(self, lh_exp, rh_exp):
+    def __init__(self, lh_exp, rh_exp) -> None:
         super(BinaryOperator, self).__init__(lh_exp, rh_exp)
 
     def name(self):
@@ -64,20 +65,20 @@ class BinaryOperator(AffAtom):
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the expression imaginary?
         """
         return (self.args[0].is_imag() and self.args[1].is_real()) or \
             (self.args[0].is_real() and self.args[1].is_imag())
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the expression complex valued?
         """
         return (self.args[0].is_complex() or self.args[1].is_complex()) and \
             not (self.args[0].is_imag() and self.args[1].is_imag())
 
 
-def matmul(lh_exp, rh_exp):
+def matmul(lh_exp, rh_exp) -> "MulExpression":
     """Matrix multiplication."""
     return MulExpression(lh_exp, rh_exp)
 
@@ -115,7 +116,7 @@ class MulExpression(BinaryOperator):
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Multiplication is convex (affine) in its arguments only if one of
            the arguments is constant.
         """
@@ -138,27 +139,27 @@ class MulExpression(BinaryOperator):
         else:
             return self.args[0].is_constant() or self.args[1].is_constant()
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """If the multiplication atom is convex, then it is affine.
         """
         return self.is_atom_convex()
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.args[1-idx].is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return self.args[1-idx].is_nonpos()
@@ -197,7 +198,7 @@ class MulExpression(BinaryOperator):
 
         return [DX, DY]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Multiply the linear expressions.
 
         Parameters
@@ -230,27 +231,27 @@ class multiply(MulExpression):
     """ Multiplies two expressions elementwise.
     """
 
-    def __init__(self, lh_expr, rh_expr):
+    def __init__(self, lh_expr, rh_expr) -> None:
         lh_expr, rh_expr = self.broadcast(lh_expr, rh_expr)
         super(multiply, self).__init__(lh_expr, rh_expr)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
 
-    def is_atom_quasiconvex(self):
+    def is_atom_quasiconvex(self) -> bool:
         return (
             self.args[0].is_constant() or self.args[1].is_constant()) or (
             self.args[0].is_nonneg() and self.args[1].is_nonpos()) or (
             self.args[0].is_nonpos() and self.args[1].is_nonneg())
 
-    def is_atom_quasiconcave(self):
+    def is_atom_quasiconcave(self) -> bool:
         return (
             self.args[0].is_constant() or self.args[1].is_constant()) or all(
             arg.is_nonneg() for arg in self.args) or all(
@@ -271,19 +272,19 @@ class multiply(MulExpression):
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
-    def is_psd(self):
+    def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
         """
         return (self.args[0].is_psd() and self.args[1].is_psd()) or \
                (self.args[0].is_nsd() and self.args[1].is_nsd())
 
-    def is_nsd(self):
+    def is_nsd(self) -> bool:
         """Is the expression a negative semidefinite matrix?
         """
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Multiply the expressions elementwise.
 
         Parameters
@@ -321,7 +322,7 @@ class DivExpression(BinaryOperator):
     OP_NAME = "/"
     OP_FUNC = np.divide
 
-    def __init__(self, lh_expr, rh_expr):
+    def __init__(self, lh_expr, rh_expr) -> None:
         lh_expr, rh_expr = self.broadcast(lh_expr, rh_expr)
         super(DivExpression, self).__init__(lh_expr, rh_expr)
 
@@ -333,10 +334,10 @@ class DivExpression(BinaryOperator):
                 values[i] = values[i].todense().A
         return np.divide(values[0], values[1])
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         return self.args[0].is_quadratic() and self.args[1].is_constant()
 
-    def is_qpwa(self):
+    def is_qpwa(self) -> bool:
         return self.args[0].is_qpwa() and self.args[1].is_constant()
 
     def shape_from_args(self):
@@ -344,32 +345,32 @@ class DivExpression(BinaryOperator):
         """
         return self.args[0].shape
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Division is convex (affine) in its arguments only if
            the denominator is constant.
         """
         return self.args[1].is_constant()
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         return self.is_atom_convex()
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
 
-    def is_atom_quasiconvex(self):
+    def is_atom_quasiconvex(self) -> bool:
         return self.args[1].is_nonneg() or self.args[1].is_nonpos()
 
-    def is_atom_quasiconcave(self):
+    def is_atom_quasiconcave(self) -> bool:
         return self.is_atom_quasiconvex()
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         if idx == 0:
@@ -377,7 +378,7 @@ class DivExpression(BinaryOperator):
         else:
             return self.args[0].is_nonpos()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         if idx == 0:
@@ -385,7 +386,7 @@ class DivExpression(BinaryOperator):
         else:
             return self.args[0].is_nonneg()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Multiply the linear expressions.
 
         Parameters

@@ -26,7 +26,7 @@ from scipy.signal import fftconvolve
 # and multiplying by it and it's transpose.
 
 
-def mul(lin_op, val_dict, is_abs=False):
+def mul(lin_op, val_dict, is_abs: bool = False):
     """Multiply the expression tree by a vector.
 
     Parameters
@@ -67,7 +67,7 @@ def mul(lin_op, val_dict, is_abs=False):
             return op_mul(lin_op, eval_args)
 
 
-def tmul(lin_op, value, is_abs=False):
+def tmul(lin_op, value, is_abs: bool = False):
     """Multiply the transpose of the expression tree by a vector.
 
     Parameters
@@ -297,7 +297,7 @@ def op_abs_tmul(lin_op, value):
     return result
 
 
-def conv_mul(lin_op, rh_val, transpose=False, is_abs=False):
+def conv_mul(lin_op, rh_val, transpose: bool = False, is_abs: bool = False):
     """Multiply by a convolution operator.
 
     arameters
@@ -393,7 +393,7 @@ def prune_constants(constraints):
     return pruned_constraints
 
 
-def prune_expr(lin_op):
+def prune_expr(lin_op) -> bool:
     """Prunes constant branches from the expression.
 
     Parameters

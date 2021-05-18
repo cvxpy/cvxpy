@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
@@ -23,12 +24,12 @@ class transpose(AffAtom):
     """Transpose an expression.
     """
 
-    def __init__(self, expr, axes=None):
+    def __init__(self, expr, axes=None) -> None:
         self.axes = axes
         super(AffAtom, self).__init__(expr)
 
     # The string representation of the atom.
-    def name(self):
+    def name(self) -> str:
         return "%s.T" % self.args[0]
 
     # Returns the transpose of the given value.
@@ -36,22 +37,22 @@ class transpose(AffAtom):
     def numeric(self, values):
         return np.transpose(values[0], axes=self.axes)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         return self.args[0].is_symmetric()
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the expression Hermitian?
         """
         return self.args[0].is_hermitian()
@@ -66,7 +67,7 @@ class transpose(AffAtom):
         """
         return [self.axes]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Create a new variable equal to the argument transposed.
 
         Parameters

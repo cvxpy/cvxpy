@@ -36,7 +36,7 @@ class Objective(u.Canonical):
         If expr is not a scalar.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         self.args = [Expression.cast_to_const(expr)]
         # Validate that the objective resolves to a scalar.
         if not self.args[0].is_scalar():
@@ -46,21 +46,21 @@ class Objective(u.Canonical):
             raise ValueError("The '%s' objective must be real valued."
                              % self.NAME)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, repr(self.args[0]))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return ' '.join([self.NAME, self.args[0].name()])
 
     def __radd__(self, other):
         if other == 0:
             return self
         else:
-            return NotImplemented
+            raise NotImplementedError()
 
     def __sub__(self, other):
         if not isinstance(other, (Minimize, Maximize)):
-            return NotImplemented
+            raise NotImplementedError()
         # Objectives must opposites
         return self + (-other)
 
@@ -68,11 +68,11 @@ class Objective(u.Canonical):
         if other == 0:
             return -self
         else:
-            return NotImplemented
+            raise NotImplementedError()
 
     def __mul__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         # If negative, reverse the direction of objective
         if (type(self) == Maximize) == (other < 0.0):
             return Minimize(self.args[0] * other)
@@ -83,7 +83,7 @@ class Objective(u.Canonical):
 
     def __div__(self, other):
         if not isinstance(other, (int, float)):
-            return NotImplemented
+            raise NotImplementedError()
         return self * (1.0/other)
 
     __truediv__ = __div__
@@ -98,12 +98,12 @@ class Objective(u.Canonical):
         else:
             return scalar_value(v)
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         """Returns if the objective is a quadratic function.
         """
         return self.args[0].is_quadratic()
 
-    def is_qpwa(self):
+    def is_qpwa(self) -> bool:
         """Returns if the objective is a quadratic of piecewise affine.
         """
         return self.args[0].is_qpwa()
@@ -125,12 +125,12 @@ class Minimize(Objective):
 
     NAME = "minimize"
 
-    def __neg__(self):
+    def __neg__(self) -> "Maximize":
         return Maximize(-self.args[0])
 
     def __add__(self, other):
         if not isinstance(other, (Minimize, Maximize)):
-            return NotImplemented
+            raise NotImplementedError()
         # Objectives must both be Minimize.
         if type(other) is Minimize:
             return Minimize(self.args[0] + other.args[0])
@@ -142,7 +142,7 @@ class Minimize(Objective):
         """
         return self.args[0].canonical_form
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """The objective must be convex.
         """
         if dpp:
@@ -150,7 +150,7 @@ class Minimize(Objective):
                 return self.args[0].is_convex()
         return self.args[0].is_convex()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log convex.
         """
         if dpp:
@@ -158,7 +158,7 @@ class Minimize(Objective):
                 return self.args[0].is_log_log_convex()
         return self.args[0].is_log_log_convex()
 
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context='dcp') -> bool:
         with scopes.dpp_scope():
             if context.lower() == 'dcp':
                 return self.is_dcp(dpp=True)
@@ -167,7 +167,7 @@ class Minimize(Objective):
             else:
                 raise ValueError("Unsupported context ", context)
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         """The objective must be quasiconvex.
         """
         return self.args[0].is_quasiconvex()
@@ -195,12 +195,12 @@ class Maximize(Objective):
 
     NAME = "maximize"
 
-    def __neg__(self):
+    def __neg__(self) -> Minimize:
         return Minimize(-self.args[0])
 
     def __add__(self, other):
         if not isinstance(other, (Minimize, Maximize)):
-            return NotImplemented
+            raise NotImplementedError()
         # Objectives must both be Maximize.
         if type(other) is Maximize:
             return Maximize(self.args[0] + other.args[0])
@@ -213,7 +213,7 @@ class Maximize(Objective):
         obj, constraints = self.args[0].canonical_form
         return (lu.neg_expr(obj), constraints)
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """The objective must be concave.
         """
         if dpp:
@@ -221,7 +221,7 @@ class Maximize(Objective):
                 return self.args[0].is_concave()
         return self.args[0].is_concave()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         """The objective must be log-log concave.
         """
         if dpp:
@@ -229,7 +229,7 @@ class Maximize(Objective):
                 return self.args[0].is_log_log_concave()
         return self.args[0].is_log_log_concave()
 
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context='dcp') -> bool:
         with scopes.dpp_scope():
             if context.lower() == 'dcp':
                 return self.is_dcp(dpp=True)
@@ -238,7 +238,7 @@ class Maximize(Objective):
             else:
                 raise ValueError("Unsupported context ", context)
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         """The objective must be quasiconcave.
         """
         return self.args[0].is_quasiconcave()

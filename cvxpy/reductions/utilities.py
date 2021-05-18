@@ -41,6 +41,10 @@ def lower_equality(equality):
     return Zero(lhs - rhs, constr_id=equality.constr_id)
 
 
+def nonpos2nonneg(nonpos):
+    return NonNeg(-nonpos.expr, constr_id=nonpos.constr_id)
+
+
 def special_index_canon(expr, args):
     select_mat = expr._select_mat
     final_shape = expr._select_mat.shape
@@ -52,7 +56,7 @@ def special_index_canon(expr, args):
     return lowered, []
 
 
-def are_args_affine(constraints):
+def are_args_affine(constraints) -> bool:
     return all(arg.is_affine() for constr in constraints
                for arg in constr.args)
 

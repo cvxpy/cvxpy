@@ -16,6 +16,8 @@ limitations under the License.
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions import cvxtypes
+from typing import Tuple
+
 import cvxpy.utilities as u
 import numpy as np
 
@@ -43,7 +45,7 @@ class gmatmul(Atom):
     X : cvxpy.Expression
         A positive matrix.
     """
-    def __init__(self, A, X):
+    def __init__(self, A, X) -> None:
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
         # with their logs in Dgp2Dcp.
@@ -56,12 +58,12 @@ class gmatmul(Atom):
         logX = np.log(values[0])
         return np.exp(self.A.value @ logX)
 
-    def name(self):
+    def name(self) -> str:
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.A,
                                self.args[0])
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Raises an error if the arguments are invalid.
         """
         super(gmatmul, self).validate_arguments()
@@ -88,17 +90,17 @@ class gmatmul(Atom):
         """
         return [self.A]
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
@@ -107,7 +109,7 @@ class gmatmul(Atom):
         # The exponent matrix, which is not an argument, may be parametrized.
         return self.args[0].parameters() + self.A.parameters()
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         if u.scopes.dpp_scope_active():
@@ -129,20 +131,20 @@ class gmatmul(Atom):
         else:
             return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return self.is_atom_log_log_convex()
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.A.is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return self.A.is_nonpos()
 
-    def _grad(self, values):
+    def _grad(self, values) -> None:
         return None

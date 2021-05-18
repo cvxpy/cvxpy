@@ -26,7 +26,7 @@ class SparseMatrixInterface(NDArrayInterface):
     TARGET_MATRIX = sp.csc_matrix
 
     @NDArrayInterface.scalar_const
-    def const_to_matrix(self, value, convert_scalars=False):
+    def const_to_matrix(self, value, convert_scalars: bool = False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
 
         Args:
@@ -74,7 +74,7 @@ class SparseMatrixInterface(NDArrayInterface):
         return self.const_to_matrix(matrix, convert_scalars=True)
 
     def block_add(self, matrix, block, vert_offset, horiz_offset, rows, cols,
-                  vert_step=1, horiz_step=1):
+                  vert_step: int = 1, horiz_step: int = 1) -> None:
         """Add the block to a slice of the matrix.
 
         Args:

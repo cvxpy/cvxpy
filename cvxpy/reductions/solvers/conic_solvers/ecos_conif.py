@@ -69,7 +69,7 @@ class ECOS(ConicSolver):
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 2, 1]
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         import ecos
@@ -126,7 +126,7 @@ class ECOS(ConicSolver):
             data[s.H] = None
         return data, inv_data
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import ecos
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         if data[s.A] is not None and data[s.A].nnz == 0 and np.prod(data[s.A].shape) > 0:
@@ -173,4 +173,4 @@ class ECOS(ConicSolver):
             dual_vars.update(eq_duals)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status)
+            return failure_solution(status, attr)

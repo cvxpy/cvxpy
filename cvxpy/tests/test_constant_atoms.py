@@ -279,7 +279,7 @@ atoms_maximize = [
 ]
 
 
-def check_solver(prob, solver_name):
+def check_solver(prob, solver_name) -> bool:
     """Can the solver solve the problem?
     """
     try:
@@ -296,7 +296,7 @@ def check_solver(prob, solver_name):
 
 
 # Tests numeric version of atoms.
-def run_atom(atom, problem, obj_val, solver, verbose=False):
+def run_atom(atom, problem, obj_val, solver, verbose: bool = False) -> None:
     assert problem.is_dcp()
     print(problem)
     if verbose:
@@ -340,7 +340,7 @@ atoms_maximize = [(a, cp.Maximize) for a in atoms_maximize]
 
 
 @pytest.mark.parametrize("atom_info, objective_type", atoms_minimize + atoms_maximize)
-def test_constant_atoms(atom_info, objective_type):
+def test_constant_atoms(atom_info, objective_type) -> None:
 
     atom, size, args, obj_val = atom_info
 

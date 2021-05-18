@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/cvxgrp/cvxcore.svg?branch=master)](https://travis-ci.org/cvxgrp/cvxcore)
-
 # cvxcore
 
 ## Introduction

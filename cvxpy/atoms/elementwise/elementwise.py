@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 import abc
+from typing import Tuple
+
 from cvxpy.atoms.atom import Atom
 import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
@@ -31,7 +33,7 @@ class Elementwise(Atom):
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """
         Verify that all the shapes are the same
         or can be promoted.
@@ -39,7 +41,7 @@ class Elementwise(Atom):
         u.shape.sum_shapes([arg.shape for arg in self.args])
         super(Elementwise, self).validate_arguments()
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         symm_args = all(arg.is_symmetric() for arg in self.args)
@@ -60,7 +62,7 @@ class Elementwise(Atom):
         return sp.dia_matrix((value, [0]), shape=(rows, cols)).tocsc()
 
     @staticmethod
-    def _promote(arg, shape):
+    def _promote(arg, shape: Tuple[int, ...]):
         """Promotes the lin op if necessary.
 
         Parameters

@@ -46,7 +46,7 @@ class PSD(Constraint):
         A unique id for the constraint.
     """
 
-    def __init__(self, expr, constr_id=None):
+    def __init__(self, expr, constr_id=None) -> None:
         # Argument must be square matrix.
         if len(expr.shape) != 2 or expr.shape[0] != expr.shape[1]:
             raise ValueError(
@@ -54,10 +54,10 @@ class PSD(Constraint):
             )
         super(PSD, self).__init__([expr], constr_id)
 
-    def name(self):
+    def name(self) -> str:
         return "%s >> 0" % self.args[0]
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A PSD constraint is DCP if the constrained expression is affine.
         """
         if dpp:
@@ -65,10 +65,10 @@ class PSD(Constraint):
                 return self.args[0].is_affine()
         return self.args[0].is_affine()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.is_dcp()
 
     @property

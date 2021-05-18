@@ -27,7 +27,7 @@ from cvxpy.lin_ops import lin_utils as lu
 from cvxpy import settings as s
 
 
-def accepts(problem):
+def accepts(problem) -> bool:
     leaves = problem.variables() + problem.parameters() + problem.constants()
     return any(leaf.is_complex() for leaf in leaves)
 
@@ -35,7 +35,7 @@ def accepts(problem):
 class Complex2Real(Reduction):
     """Lifts complex numbers to a real representation."""
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> None:
         accepts(problem)
 
     def apply(self, problem):
@@ -128,7 +128,7 @@ class Complex2Real(Reduction):
     def canonicalize_tree(self, expr, real2imag, leaf_map):
         # TODO don't copy affine expressions?
         if type(expr) == cvxtypes.partial_problem():
-            return NotImplemented
+            raise NotImplementedError()
         else:
             real_args = []
             imag_args = []

@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 
 
-class Reduction(object):
+class Reduction:
     """Abstract base class for reductions.
 
     A reduction is an actor that transforms a problem into an
@@ -48,7 +48,7 @@ class Reduction(object):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, problem=None):
+    def __init__(self, problem=None) -> None:
         """Construct a reduction for reducing `problem`.
 
         If `problem` is not None, then a subsequent invocation of `reduce()`
@@ -69,7 +69,7 @@ class Reduction(object):
         bool
             True if the reduction can be applied, False otherwise.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     def reduce(self):
         """Reduces the owned problem to an equivalent problem.
@@ -137,7 +137,7 @@ class Reduction(object):
             Data needed by the reduction in order to invert this particular
             application.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def invert(self, solution, inverse_data):
@@ -155,4 +155,4 @@ class Reduction(object):
         Solution
             A solution to the original problem.
         """
-        return NotImplemented
+        raise NotImplementedError()

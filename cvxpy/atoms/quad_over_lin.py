@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
+from typing import Tuple
+
 import numpy as np
 import scipy.sparse as sp
 import scipy as scipy
@@ -26,7 +28,7 @@ class quad_over_lin(Atom):
     """
     _allow_complex = True
 
-    def __init__(self, x, y):
+    def __init__(self, x, y) -> None:
         super(quad_over_lin, self).__init__(x, y)
 
     @Atom.numpy_numeric
@@ -76,43 +78,43 @@ class quad_over_lin(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return (idx == 0) and self.args[idx].is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return ((idx == 0) and self.args[idx].is_nonpos()) or (idx == 1)
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Check dimensions of arguments.
         """
         if not self.args[1].is_scalar():
@@ -121,12 +123,12 @@ class quad_over_lin(Atom):
             raise ValueError("The second argument to quad_over_lin cannot be complex.")
         super(quad_over_lin, self).validate_arguments()
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         """Quadratic if x is affine and y is constant.
         """
         return self.args[0].is_affine() and self.args[1].is_constant()
 
-    def is_qpwa(self):
+    def is_qpwa(self) -> bool:
         """Quadratic of piecewise affine if x is PWL and y is constant.
         """
         return self.args[0].is_pwl() and self.args[1].is_constant()

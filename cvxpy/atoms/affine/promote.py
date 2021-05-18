@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.expressions.expression import Expression
@@ -20,7 +21,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
-def promote(expr, shape):
+def promote(expr, shape: Tuple[int, ...]):
     """ Promote a scalar expression to a vector/matrix.
 
     Parameters
@@ -56,7 +57,7 @@ class Promote(AffAtom):
         The shape to promote to.
     """
 
-    def __init__(self, expr, shape):
+    def __init__(self, expr, shape: Tuple[int, ...]) -> None:
         self.promoted_shape = shape
         super(Promote, self).__init__(expr)
 
@@ -66,16 +67,16 @@ class Promote(AffAtom):
         """
         return np.ones(self.promoted_shape) * values[0]
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         return self.ndim == 2 and self.shape[0] == self.shape[1]
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?"""
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?"""
         return True
 
@@ -89,7 +90,7 @@ class Promote(AffAtom):
         """
         return [self.promoted_shape]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Promote scalar to vector/matrix
 
         Parameters

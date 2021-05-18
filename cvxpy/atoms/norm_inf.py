@@ -15,7 +15,10 @@ limitations under the License.
 """
 
 from cvxpy.atoms.axis_atom import AxisAtom
+from typing import Tuple
+
 import numpy as np
+import scipy.sparse as sp
 
 
 class norm_inf(AxisAtom):
@@ -25,48 +28,51 @@ class norm_inf(AxisAtom):
         """Returns the inf norm of x.
         """
         if self.axis is None:
-            values = np.array(values[0]).flatten()
+            if sp.issparse(values[0]):
+                values = values[0].todense().A.flatten()
+            else:
+                values = np.array(values[0]).flatten()
         else:
             values = np.array(values[0])
         return np.linalg.norm(values, np.inf, axis=self.axis, keepdims=self.keepdims)
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.args[0].is_nonneg()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return self.args[0].is_nonpos()
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
         return self.args[0].is_pwl()
@@ -74,7 +80,7 @@ class norm_inf(AxisAtom):
     def get_data(self):
         return [self.axis]
 
-    def name(self):
+    def name(self) -> str:
         return "%s(%s)" % (self.__class__.__name__,
                            self.args[0].name())
 

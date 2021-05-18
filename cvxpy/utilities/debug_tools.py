@@ -17,7 +17,7 @@ DCP = 'DCP'
 DGP = 'DGP'
 
 
-def build_non_disciplined_error_msg(problem, discipline_type):
+def build_non_disciplined_error_msg(problem, discipline_type) -> str:
     prop_name = None
     prefix_conv = ""
     if discipline_type == DCP:

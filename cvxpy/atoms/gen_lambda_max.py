@@ -16,13 +16,14 @@ limitations under the License.
 
 from cvxpy.atoms.atom import Atom
 from scipy import linalg as LA
+from typing import Tuple
 
 
 class gen_lambda_max(Atom):
     """ Maximum generalized eigenvalue; :math:`\\lambda_{\\max}(A, B)`.
     """
 
-    def __init__(self, A, B):
+    def __init__(self, A, B) -> None:
         super(gen_lambda_max, self).__init__(A, B)
 
     def numeric(self, values):
@@ -31,9 +32,10 @@ class gen_lambda_max(Atom):
         Requires that A is symmetric, B is positive semidefinite.
         """
         lo = hi = self.args[0].shape[0]-1
-        return LA.eigvalsh(a=values[0],
-                           b=values[1],
-                           subset_by_index=(lo, hi))[0]
+        return LA.eigh(a=values[0],
+                       b=values[1],
+                       eigvals_only=True,
+                       eigvals=(lo, hi))[0]
 
     def _domain(self):
         """Returns constraints describing the domain of the node.
@@ -52,9 +54,9 @@ class gen_lambda_max(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Verify that the argument A, B are square and of the same dimension.
         """
         if (not self.args[0].ndim == 2 or
@@ -71,37 +73,37 @@ class gen_lambda_max(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (False, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return False
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_atom_quasiconvex(self):
+    def is_atom_quasiconvex(self) -> bool:
         """Is the atom quasiconvex?
         """
         return True
 
-    def is_atom_quasiconcave(self):
+    def is_atom_quasiconcave(self) -> bool:
         """Is the atom quasiconcave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

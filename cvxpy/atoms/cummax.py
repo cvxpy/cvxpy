@@ -23,7 +23,7 @@ class cummax(AxisAtom):
     """Cumulative maximum.
     """
 
-    def __init__(self, x, axis=0):
+    def __init__(self, x, axis: int = 0) -> None:
         super(cummax, self).__init__(x, axis=axis)
 
     @Atom.numpy_numeric
@@ -81,22 +81,22 @@ class cummax(AxisAtom):
         """
         return [self.axis]
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

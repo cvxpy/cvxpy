@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from typing import Tuple
+
 import numpy as np
 
 
@@ -25,7 +27,7 @@ class logistic(Elementwise):
     than to a scalar which is useful for logistic regression.
     """
 
-    def __init__(self, x):
+    def __init__(self, x) -> None:
         super(logistic, self).__init__(x)
 
     @Elementwise.numpy_numeric
@@ -34,28 +36,28 @@ class logistic(Elementwise):
         """
         return np.logaddexp(0, values[0])
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return True
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
@@ -73,6 +75,5 @@ class logistic(Elementwise):
         """
         rows = self.args[0].size
         cols = self.size
-        exp_val = np.exp(values[0])
-        grad_vals = exp_val/(1 + exp_val)
+        grad_vals = np.exp(values[0] - np.logaddexp(0, values[0]))
         return [logistic.elemwise_grad_to_diag(grad_vals, rows, cols)]

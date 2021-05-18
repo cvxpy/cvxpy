@@ -33,7 +33,7 @@ def _lower_problem(problem):
     return problems.problem.Problem(Minimize(0), constrs)
 
 
-def _solve(problem, solver):
+def _solve(problem, solver) -> None:
     if problem is None:
         return
     with warnings.catch_warnings():
@@ -42,7 +42,7 @@ def _solve(problem, solver):
         problem.solve(solver=solver)
 
 
-def _infeasible(problem):
+def _infeasible(problem) -> bool:
     return problem is None or problem.status in (s.INFEASIBLE,
                                                  s.INFEASIBLE_INACCURATE)
 
@@ -138,8 +138,8 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
     raise error.SolverError("Max iters hit during bisection.")
 
 
-def bisect(problem, solver=None, low=None, high=None, eps=1e-6, verbose=False,
-           max_iters=100, max_iters_interval_search=100):
+def bisect(problem, solver=None, low=None, high=None, eps: float = 1e-6, verbose: bool = False,
+           max_iters: int = 100, max_iters_interval_search: int = 100):
     """Bisection on a one-parameter family of DCP problems.
 
     Bisects on a one-parameter family of DCP problems emitted by `Dqcp2Dcp`.

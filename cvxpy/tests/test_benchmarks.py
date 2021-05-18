@@ -7,7 +7,7 @@ import os
 import time
 
 
-def benchmark(func, iters=1, name=None):
+def benchmark(func, iters: int = 1, name=None) -> None:
     vals = []
     for _ in range(iters):
         start = time.time()
@@ -19,7 +19,7 @@ def benchmark(func, iters=1, name=None):
 
 
 class TestBenchmarks(BaseTest):
-    def test_diffcp_sdp_example(self):
+    def test_diffcp_sdp_example(self) -> None:
 
         def randn_symm(n):
             A = np.random.randn(n, n)
@@ -44,7 +44,7 @@ class TestBenchmarks(BaseTest):
             problem.get_problem_data(cp.SCS)
         benchmark(diffcp_sdp, iters=1)
 
-    def test_tv_inpainting(self):
+    def test_tv_inpainting(self) -> None:
         if os.name == "nt":
             self.skipTest("Skipping test due to overflow bug in SciPy < 1.2.0.")
         Uorig = np.random.randn(512, 512, 3)
@@ -70,7 +70,7 @@ class TestBenchmarks(BaseTest):
             problem.get_problem_data(cp.SCS)
         benchmark(tv_inpainting, iters=1)
 
-    def test_least_squares(self):
+    def test_least_squares(self) -> None:
         m = 20
         n = 15
         A = np.random.randn(m, n)
@@ -82,7 +82,7 @@ class TestBenchmarks(BaseTest):
             cp.Problem(cp.Minimize(cost)).get_problem_data(cp.OSQP)
         benchmark(least_squares, iters=1)
 
-    def test_qp(self):
+    def test_qp(self) -> None:
         m = 15
         n = 10
         p = 5
@@ -101,7 +101,7 @@ class TestBenchmarks(BaseTest):
                        cp.matmul(A, x) == b]).get_problem_data(cp.OSQP)
         benchmark(qp, iters=1)
 
-    def test_cone_matrix_stuffing_with_many_constraints(self):
+    def test_cone_matrix_stuffing_with_many_constraints(self) -> None:
         m = 2000
         n = 2000
         A = np.random.randn(m, n)
@@ -121,7 +121,7 @@ class TestBenchmarks(BaseTest):
 
         benchmark(cone_matrix_stuffing_with_many_constraints, iters=1)
 
-    def test_parameterized_cone_matrix_stuffing_with_many_constraints(self):
+    def test_parameterized_cone_matrix_stuffing_with_many_constraints(self) -> None:
         self.skipTest("This benchmark takes too long.")
         m = 2000
         n = 2000
@@ -145,7 +145,7 @@ class TestBenchmarks(BaseTest):
 
         benchmark(parameterized_cone_matrix_stuffing, iters=1)
 
-    def test_small_cone_matrix_stuffing(self):
+    def test_small_cone_matrix_stuffing(self) -> None:
         m = 200
         n = 200
         A = np.random.randn(m, n)
@@ -165,7 +165,7 @@ class TestBenchmarks(BaseTest):
 
         benchmark(small_cone_matrix_stuffing, iters=10)
 
-    def test_small_parameterized_cone_matrix_stuffing(self):
+    def test_small_parameterized_cone_matrix_stuffing(self) -> None:
         m = 200
         n = 200
         A = cp.Parameter((m, n))
@@ -188,7 +188,7 @@ class TestBenchmarks(BaseTest):
 
         benchmark(small_parameterized_cone_matrix_stuffing, iters=1)
 
-    def test_small_lp(self):
+    def test_small_lp(self) -> None:
         m = 200
         n = 200
         A = np.random.randn(m, n)
@@ -206,7 +206,7 @@ class TestBenchmarks(BaseTest):
         benchmark(small_lp, iters=1)
         benchmark(small_lp, iters=1, name="small_lp_second_time")
 
-    def test_small_parameterized_lp(self):
+    def test_small_parameterized_lp(self) -> None:
         m = 200
         n = 200
         A = cp.Parameter((m, n))
@@ -228,7 +228,7 @@ class TestBenchmarks(BaseTest):
         benchmark(small_parameterized_lp, iters=1,
                   name="small_parameterized_lp_second_time")
 
-    def test_parameterized_qp(self):
+    def test_parameterized_qp(self) -> None:
         """Test speed of first solve with QP codepath and SOCP codepath.
         """
         m = 150

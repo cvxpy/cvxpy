@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
@@ -24,7 +25,7 @@ class UnaryOperator(AffAtom):
     Base class for expressions involving unary operators.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(UnaryOperator, self).__init__(expr)
 
     def name(self):
@@ -51,27 +52,27 @@ class NegExpression(UnaryOperator):
         """
         return (self.args[0].is_nonpos(), self.args[0].is_nonneg())
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return True
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         return self.args[0].is_symmetric()
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the expression Hermitian?
         """
         return self.args[0].is_hermitian()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Negate the affine objective.
 
         Parameters

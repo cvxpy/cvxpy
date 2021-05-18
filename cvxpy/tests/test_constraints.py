@@ -19,13 +19,14 @@ from cvxpy.atoms.affine.reshape import reshape as reshape_atom
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.power import PowCone3D, PowConeND
 from cvxpy.tests.base_test import BaseTest
+import cvxpy as cp
 import numpy as np
 
 
 class TestConstraints(BaseTest):
     """ Unit tests for the expression/expression module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.a = Variable(name='a')
         self.b = Variable(name='b')
 
@@ -37,7 +38,7 @@ class TestConstraints(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
-    def test_equality(self):
+    def test_equality(self) -> None:
         """Test the Equality class.
         """
         constr = self.x == self.z
@@ -80,7 +81,7 @@ class TestConstraints(BaseTest):
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
 
-    def test_inequality(self):
+    def test_inequality(self) -> None:
         """Test the Inequality class.
         """
         constr = self.x <= self.z
@@ -124,7 +125,7 @@ class TestConstraints(BaseTest):
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
 
-    def test_psd_constraint(self):
+    def test_psd_constraint(self) -> None:
         """Test the PSD constraint <<.
         """
         constr = self.A >> self.B
@@ -161,7 +162,7 @@ class TestConstraints(BaseTest):
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.B)
 
-    def test_nsd_constraint(self):
+    def test_nsd_constraint(self) -> None:
         """Test the PSD constraint <<.
         """
         constr = self.A << self.B
@@ -182,7 +183,7 @@ class TestConstraints(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Non-square matrix in positive definite constraint.")
 
-    def test_geq(self):
+    def test_geq(self) -> None:
         """Test the >= operator.
         """
         constr = self.z >= self.x
@@ -194,7 +195,7 @@ class TestConstraints(BaseTest):
             (self.y >= self.x)
 
     # Test the SOC class.
-    def test_soc_constraint(self):
+    def test_soc_constraint(self) -> None:
         exp = self.x + self.z
         scalar_exp = self.a + self.b
         constr = SOC(scalar_exp, exp)
@@ -207,7 +208,7 @@ class TestConstraints(BaseTest):
             SOC(Variable(1), Variable((1, 4)))
         self.assertEqual(str(cm.exception), error_str)
 
-    def test_pow3d_constraint(self):
+    def test_pow3d_constraint(self) -> None:
         n = 3
         np.random.seed(0)
         alpha = 0.275
@@ -232,7 +233,7 @@ class TestConstraints(BaseTest):
         with self.assertRaises(ValueError):
             con = PowCone3D(x, y, z, -0.00001)
 
-    def test_pownd_constraint(self):
+    def test_pownd_constraint(self) -> None:
         n = 4
         W, z = Variable(n), Variable()
         np.random.seed(0)
@@ -258,7 +259,7 @@ class TestConstraints(BaseTest):
         self.assertGreaterEqual(viol, 0.01)
         self.assertLessEqual(viol, 0.06)
 
-    def test_chained_constraints(self):
+    def test_chained_constraints(self) -> None:
         """Tests that chaining constraints raises an error.
         """
         error_str = ("Cannot evaluate the truth value of a constraint or "
@@ -274,3 +275,39 @@ class TestConstraints(BaseTest):
         with self.assertRaises(Exception) as cm:
             (self.z <= self.x).__bool__()
         self.assertEqual(str(cm.exception), error_str)
+
+    def test_nonpos(self) -> None:
+        """Tests the NonPos constraint for correctness.
+        """
+        n = 3
+        x = cp.Variable(n)
+        c = np.arange(n)
+        prob = cp.Problem(cp.Maximize(cp.sum(x)),
+                          [cp.NonPos(x - c)])
+        # Solve through cone program path.
+        prob.solve(solver=cp.ECOS)
+        self.assertItemsAlmostEqual(x.value, c)
+
+        # Solve through QP path.
+        prob.solve(solver=cp.OSQP)
+        self.assertItemsAlmostEqual(x.value, c)
+
+    def test_nonpos_dual(self) -> None:
+        """Test dual variables work for NonPos.
+        """
+        n = 3
+        x = cp.Variable(n)
+        c = np.arange(n)
+        prob = cp.Problem(cp.Maximize(cp.sum(x)),
+                          [(x - c) <= 0])
+        prob.solve()
+        dual = prob.constraints[0].dual_value
+        prob = cp.Problem(cp.Maximize(cp.sum(x)),
+                          [cp.NonPos(x - c)])
+        # Solve through cone program path.
+        prob.solve(solver=cp.ECOS)
+        self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)
+
+        # Solve through QP path.
+        prob.solve(solver=cp.OSQP)
+        self.assertItemsAlmostEqual(prob.constraints[0].dual_value, dual)

@@ -24,7 +24,7 @@ from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 
-def construct_intermediate_chain(problem, candidates, gp=False):
+def construct_intermediate_chain(problem, candidates, gp: bool = False):
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.

@@ -1,10 +1,11 @@
 import cvxpy
 from cvxpy.tests.base_test import BaseTest
 import numpy as np
+import scipy.sparse as sp
 
 
 class TestDgp(BaseTest):
-    def test_product(self):
+    def test_product(self) -> None:
         x = cvxpy.Variable((), pos=True)
         y = cvxpy.Variable((), pos=True)
         prod = x * y
@@ -27,7 +28,7 @@ class TestDgp(BaseTest):
         self.assertTrue(not prod.is_log_log_convex())
         self.assertTrue(not prod.is_log_log_concave())
 
-    def test_product_with_unconstrained_variables_is_not_dgp(self):
+    def test_product_with_unconstrained_variables_is_not_dgp(self) -> None:
         x = cvxpy.Variable()
         y = cvxpy.Variable()
         prod = x * y
@@ -41,7 +42,7 @@ class TestDgp(BaseTest):
         self.assertTrue(not prod.is_log_log_convex())
         self.assertTrue(not prod.is_log_log_concave())
 
-    def test_division(self):
+    def test_division(self) -> None:
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         div = x / y
@@ -62,7 +63,7 @@ class TestDgp(BaseTest):
         self.assertFalse(div.is_log_log_concave())
         self.assertFalse(div.is_dgp())
 
-    def test_add(self):
+    def test_add(self) -> None:
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         expr = x + y
@@ -74,7 +75,7 @@ class TestDgp(BaseTest):
         self.assertTrue(posynomial.is_dgp())
         self.assertTrue(posynomial.is_log_log_convex())
 
-    def test_add_with_unconstrained_variables_is_not_dgp(self):
+    def test_add_with_unconstrained_variables_is_not_dgp(self) -> None:
         x = cvxpy.Variable()
         y = cvxpy.Variable(pos=True)
         expr = x + y
@@ -87,7 +88,7 @@ class TestDgp(BaseTest):
         self.assertTrue(not posynomial.is_log_log_convex())
         self.assertTrue(not posynomial.is_log_log_concave())
 
-    def test_monomials(self):
+    def test_monomials(self) -> None:
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         z = cvxpy.Variable(pos=True)
@@ -101,7 +102,7 @@ class TestDgp(BaseTest):
         self.assertTrue(not monomial.is_log_log_convex())
         self.assertTrue(not monomial.is_log_log_concave())
 
-    def test_maximum(self):
+    def test_maximum(self) -> None:
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         z = cvxpy.Variable(pos=True)
@@ -122,7 +123,7 @@ class TestDgp(BaseTest):
         self.assertTrue(expr.is_dgp())
         self.assertTrue(expr.is_log_log_convex())
 
-    def test_minimum(self):
+    def test_minimum(self) -> None:
         x = cvxpy.Variable(pos=True)
         y = cvxpy.Variable(pos=True)
         z = cvxpy.Variable(pos=True)
@@ -144,12 +145,12 @@ class TestDgp(BaseTest):
         self.assertTrue(not expr.is_log_log_convex())
         self.assertTrue(expr.is_log_log_concave())
 
-    def test_constant(self):
+    def test_constant(self) -> None:
         x = cvxpy.Constant(1.0)
         self.assertTrue(x.is_dgp())
         self.assertFalse((-1.0*x).is_dgp())
 
-    def test_geo_mean(self):
+    def test_geo_mean(self) -> None:
         x = cvxpy.Variable(3, pos=True)
         p = [1, 2, 0.5]
         geo_mean = cvxpy.geo_mean(x, p)
@@ -158,11 +159,11 @@ class TestDgp(BaseTest):
         self.assertTrue(geo_mean.is_log_log_convex())
         self.assertTrue(geo_mean.is_log_log_concave())
 
-    def test_builtin_sum(self):
+    def test_builtin_sum(self) -> None:
         x = cvxpy.Variable(2, pos=True)
         self.assertTrue(sum(x).is_log_log_convex())
 
-    def test_gmatmul(self):
+    def test_gmatmul(self) -> None:
         x = cvxpy.Variable(2, pos=True)
         A = cvxpy.Variable((2, 2))
         with self.assertRaises(Exception) as cm:
@@ -198,7 +199,11 @@ class TestDgp(BaseTest):
         self.assertFalse(gmatmul.is_incr(0))
         self.assertFalse(gmatmul.is_decr(0))
 
-    def test_power_sign(self):
+    def test_power_sign(self) -> None:
         x = cvxpy.Variable(pos=True)
         self.assertTrue((x**1).is_nonneg())
         self.assertFalse((x**1).is_nonpos())
+
+    def test_sparse_constant_not_allowed(self) -> None:
+        sparse_matrix = cvxpy.Constant(sp.csc_matrix(np.array([1.0, 2.0])))
+        self.assertFalse(sparse_matrix.is_log_log_constant())

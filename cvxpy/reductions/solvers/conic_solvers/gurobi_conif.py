@@ -63,13 +63,13 @@ class GUROBI(SCS):
         """
         return s.GUROBI
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         import gurobipy
         gurobipy  # For flake8
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can Gurobi solve the problem?
         """
         # TODO check if is matrix stuffed.
@@ -126,7 +126,7 @@ class GUROBI(SCS):
         else:
             return failure_solution(status, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """Returns the result of the call to the solver.
 
         Parameters

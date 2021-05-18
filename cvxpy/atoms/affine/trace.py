@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
@@ -28,7 +29,7 @@ class trace(AffAtom):
         The expression to sum the diagonal of.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(trace, self).__init__(expr)
 
     @AffAtom.numpy_numeric
@@ -37,7 +38,7 @@ class trace(AffAtom):
         """
         return np.trace(values[0])
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that the argument is a square matrix.
         """
         shape = self.args[0].shape
@@ -49,17 +50,17 @@ class trace(AffAtom):
         """
         return tuple()
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Sum the diagonal entries of the linear expression.
 
         Parameters

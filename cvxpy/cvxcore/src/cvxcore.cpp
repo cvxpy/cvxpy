@@ -180,7 +180,7 @@ ProblemData build_matrix(std::vector<const LinOp *> constraints, int var_length,
   }
   #pragma omp parallel for
   #endif
-  for (int i = 0; i < constraints_and_offsets.size(); ++i) {
+  for (size_t i = 0; i < constraints_and_offsets.size(); ++i) {
     const std::pair<const LinOp*, int>& pair = constraints_and_offsets.at(i);
     const LinOp* constraint = pair.first;
     int vert_offset = pair.second;

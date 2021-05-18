@@ -21,7 +21,7 @@ import numpy as np
 class conj(AffAtom):
     """Complex conjugate.
     """
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(conj, self).__init__(expr)
 
     def numeric(self, values):
@@ -34,22 +34,22 @@ class conj(AffAtom):
         """
         return self.args[0].shape
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         return self.args[0].is_symmetric()
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the expression Hermitian?
         """
         return self.args[0].is_hermitian()

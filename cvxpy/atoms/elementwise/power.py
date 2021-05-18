@@ -22,7 +22,7 @@ import numpy as np
 import scipy.sparse as sp
 
 
-def _is_const(p):
+def _is_const(p) -> bool:
     return isinstance(p, cvxtypes.constant())
 
 
@@ -121,7 +121,7 @@ class power(Elementwise):
         of ``p``; only relevant when solving as a DCP program.
     """
 
-    def __init__(self, x, p, max_denom=1024):
+    def __init__(self, x, p, max_denom: int = 1024) -> None:
         self._p_orig = p
         # NB: It is important that the exponent is an attribute, not
         # an argument. This prevents parametrized exponents from being replaced
@@ -182,7 +182,7 @@ class power(Elementwise):
             # Always positive.
             return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         # Parametrized powers are not allowed for DCP (curvature analysis
@@ -191,7 +191,7 @@ class power(Elementwise):
         # p == 0 is affine here.
         return _is_const(self.p) and (self.p.value <= 0 or self.p.value >= 1)
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         # Parametrized powers are not allowed for DCP.
@@ -217,7 +217,7 @@ class power(Elementwise):
         # So, as a workaround, we overload the parameters method.
         return self.args[0].parameters() + self.p.parameters()
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         if u.scopes.dpp_scope_active():
@@ -239,17 +239,17 @@ class power(Elementwise):
         else:
             return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return self.is_atom_log_log_convex()
 
-    def is_constant(self):
+    def is_constant(self) -> bool:
         """Is the expression constant?
         """
         return (_is_const(self.p) and self.p.value == 0) or super(power, self).is_constant()
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         if not _is_const(self.p):
@@ -266,7 +266,7 @@ class power(Elementwise):
         else:
             return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         if not _is_const(self.p):
@@ -283,7 +283,7 @@ class power(Elementwise):
         else:
             return False
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         if not _is_const(self.p):
             return False
 
@@ -297,7 +297,7 @@ class power(Elementwise):
         else:
             return self.args[0].is_constant()
 
-    def is_qpwa(self):
+    def is_qpwa(self) -> bool:
         if not _is_const(self.p):
             # disallow parameters
             return False
@@ -328,7 +328,7 @@ class power(Elementwise):
 
         if self.p_rational is not None:
             p = self.p_rational
-        elif p.value is not None:
+        elif self.p.value is not None:
             p = self.p.value
         else:
             raise ValueError("Cannot compute grad of parametrized power when "
@@ -368,7 +368,7 @@ class power(Elementwise):
     def get_data(self):
         return [self._p_orig, self.max_denom]
 
-    def copy(self, args=None, id_objects={}):
+    def copy(self, args=None, id_objects=None) -> "power":
         """Returns a shallow copy of the power atom.
 
         Parameters
@@ -385,7 +385,7 @@ class power(Elementwise):
             args = self.args
         return power(args[0], self._p_orig, self.max_denom)
 
-    def name(self):
+    def name(self) -> str:
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
                                self.p.value)

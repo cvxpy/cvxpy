@@ -17,6 +17,7 @@ limitations under the License.
 
 import cvxpy.settings as s
 from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone, PowCone3D
+from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers import utilities
@@ -72,7 +73,7 @@ def tri_to_full(lower_tri, n):
     return np.reshape(full, n*n, order="F")
 
 
-def scs_psdvec_to_psdmat(vec, indices):
+def scs_psdvec_to_psdmat(vec: Expression, indices: np.ndarray) -> Expression:
     """
     Return "V" so that "vec[indices] belongs to the SCS-standard PSD cone"
     can be written in natural cvxpy syntax as "V >> 0".
@@ -138,7 +139,7 @@ class SCS(ConicSolver):
         """
         return s.SCS
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         import scs
@@ -274,9 +275,9 @@ class SCS(ConicSolver):
             dual_vars.update(ineq_dual_vars)
             return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status)
+            return failure_solution(status, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """Returns the result of the call to the solver.
 
         Parameters

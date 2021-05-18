@@ -17,10 +17,10 @@ limitations under the License.
 import cvxpy.lin_ops.lin_op as lo
 
 
-class InverseData(object):
+class InverseData:
     """Stores data useful for solution retrieval."""
 
-    def __init__(self, problem):
+    def __init__(self, problem) -> None:
         varis = problem.variables()
         self.id_map, self.var_offsets, self.x_length, self.var_shapes = \
             InverseData.get_var_offsets(varis)

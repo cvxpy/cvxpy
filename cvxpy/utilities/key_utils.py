@@ -17,13 +17,15 @@ limitations under the License.
 # Utility functions to handle indexing/slicing into an expression.
 
 from __future__ import division
+from typing import Optional, Tuple
+
 import numpy as np
 import numbers
 
 
 # TODO(akshayka): This module needs to be updated in order to handle
 # NumPy 0/1D arrays.
-def validate_key(key, shape):
+def validate_key(key, shape: Tuple[int, ...]):
     """Check if the key is a valid index.
 
     Args:
@@ -60,7 +62,7 @@ def to_tuple(key):
         return (key,)
 
 
-def format_slice(key_val, dim, axis):
+def format_slice(key_val, dim, axis) -> Optional[slice]:
     """Converts part of a key into a slice with a start and step.
 
     Uses the same syntax as numpy.
@@ -106,7 +108,7 @@ def to_int(val, none_val=None):
         return int(val)
 
 
-def wrap_neg_index(index, dim, neg_step=False):
+def wrap_neg_index(index, dim, neg_step: bool = False):
     """Converts a negative index into a positive index.
 
     Args:
@@ -119,7 +121,7 @@ def wrap_neg_index(index, dim, neg_step=False):
     return index
 
 
-def index_to_slice(idx):
+def index_to_slice(idx) -> slice:
     """Converts an index to a slice.
 
     Args:
@@ -154,7 +156,7 @@ def none_to_empty(val):
         return val
 
 
-def is_single_index(slc):
+def is_single_index(slc) -> bool:
     """Is the slice equivalent to a single index?
     """
     if slc.step is None:
@@ -166,7 +168,7 @@ def is_single_index(slc):
         slc.start + step >= slc.stop
 
 
-def shape(key, orig_key, shape):
+def shape(key, orig_key, shape: Tuple[int, ...]):
     """Finds the dimensions of a sliced expression.
 
     Args:
@@ -194,7 +196,7 @@ def to_str(key):
     return tuple(slice_to_str(elem) for elem in key)
 
 
-def is_special_slice(key):
+def is_special_slice(key) -> bool:
     """Does the key contain a list, ndarray, or logical ndarray?
     """
     # Slices and int-like numbers are fine.

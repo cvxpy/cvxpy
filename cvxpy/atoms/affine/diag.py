@@ -13,14 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
+from typing import Union
+
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
 
-def diag(expr):
+def diag(expr) -> Union["diag_mat", "diag_vec"]:
     """Extracts the diagonal from a matrix or makes a vector a diagonal matrix.
 
     Parameters
@@ -46,15 +49,15 @@ class diag_vec(AffAtom):
     """Converts a vector into a diagonal matrix.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(diag_vec, self).__init__(expr)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
@@ -70,27 +73,27 @@ class diag_vec(AffAtom):
         rows = self.args[0].shape[0]
         return (rows, rows)
 
-    def is_symmetric(self):
+    def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
         return True
 
-    def is_hermitian(self):
+    def is_hermitian(self) -> bool:
         """Is the expression symmetric?
         """
         return True
 
-    def is_psd(self):
+    def is_psd(self) -> bool:
         """Is the expression a positive semidefinite matrix?
         """
         return self.is_nonneg()
 
-    def is_nsd(self):
+    def is_nsd(self) -> bool:
         """Is the expression a negative semidefinite matrix?
         """
         return self.is_nonpos()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Convolve two vectors.
 
         Parameters
@@ -114,15 +117,15 @@ class diag_mat(AffAtom):
     """Extracts the diagonal from a square matrix.
     """
 
-    def __init__(self, expr):
+    def __init__(self, expr) -> None:
         super(diag_mat, self).__init__(expr)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
@@ -140,12 +143,12 @@ class diag_mat(AffAtom):
         rows, _ = self.args[0].shape
         return (rows,)
 
-    def is_nonneg(self):
+    def is_nonneg(self) -> bool:
         """Is the expression nonnegative?
         """
         return self.args[0].is_nonneg() or self.args[0].is_psd()
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Extracts the diagonal of a matrix.
 
         Parameters

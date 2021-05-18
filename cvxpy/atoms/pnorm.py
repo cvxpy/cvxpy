@@ -20,9 +20,10 @@ from cvxpy.atoms.norm_inf import norm_inf
 import numpy as np
 import scipy.sparse as sp
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
+from typing import Tuple, Union
 
 
-def pnorm(x, p=2, axis=None, keepdims=False, max_denom=1024):
+def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False, max_denom: int = 1024):
     """Factory function for a mathematical p-norm.
 
     Parameters
@@ -115,7 +116,8 @@ class Pnorm(AxisAtom):
     """
     _allow_complex = True
 
-    def __init__(self, x, p=2, axis=None, keepdims=False, max_denom=1024):
+    def __init__(self, x, p: int = 2, axis=None,
+                 keepdims: bool = False, max_denom: int = 1024) -> None:
         if p < 0:
             # TODO(akshayka): Why do we accept p < 0?
             self.p, _ = pow_neg(p, max_denom)
@@ -151,7 +153,7 @@ class Pnorm(AxisAtom):
         return np.linalg.norm(values, float(self.p), axis=self.axis,
                               keepdims=self.keepdims)
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         super(Pnorm, self).validate_arguments()
         # TODO(akshayka): Why is axis not supported for other norms?
         if self.axis is not None and self.p != 2:
@@ -160,43 +162,43 @@ class Pnorm(AxisAtom):
         if self.p < 1 and self.args[0].is_complex():
             raise ValueError("pnorm(x, p) cannot have x complex for p < 1.")
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Always positive.
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return self.p > 1
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return self.p < 1
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return self.p < 1 or (self.p > 1 and self.args[0].is_nonneg())
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return self.p > 1 and self.args[0].is_nonpos()
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
         return False
@@ -204,7 +206,7 @@ class Pnorm(AxisAtom):
     def get_data(self):
         return [self.p, self.axis]
 
-    def name(self):
+    def name(self) -> str:
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0].name(),
                                self.p)

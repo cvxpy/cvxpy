@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
+from typing import Tuple
+
 import numpy as np
 import scipy.sparse as sp
 
@@ -24,7 +26,7 @@ class normNuc(Atom):
     """
     _allow_complex = True
 
-    def __init__(self, A):
+    def __init__(self, A) -> None:
         super(normNuc, self).__init__(A)
 
     def numeric(self, values):
@@ -53,27 +55,27 @@ class normNuc(Atom):
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (True, False)
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         return True
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return False
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return False

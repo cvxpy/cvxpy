@@ -16,6 +16,8 @@ limitations under the License.
 
 
 from .. import base_matrix_interface as base
+from typing import Tuple
+
 import numpy
 import scipy.sparse
 
@@ -26,7 +28,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
     """
     TARGET_MATRIX = numpy.ndarray
 
-    def const_to_matrix(self, value, convert_scalars=False):
+    def const_to_matrix(self, value, convert_scalars: bool = False):
         """Convert an arbitrary value into a matrix of type self.target_matrix.
 
         Args:
@@ -54,7 +56,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return numpy.eye(size)
 
     # Return the dimensions of the matrix.
-    def shape(self, matrix):
+    def shape(self, matrix) -> Tuple[int, ...]:
         return tuple(int(d) for d in matrix.shape)
 
     def size(self, matrix):
@@ -67,7 +69,7 @@ class NDArrayInterface(base.BaseMatrixInterface):
         return matrix.item()
 
     # A matrix with all entries equal to the given scalar value.
-    def scalar_matrix(self, value, shape):
+    def scalar_matrix(self, value, shape: Tuple[int, ...]):
         return numpy.zeros(shape, dtype='float64') + value
 
     def reshape(self, matrix, size):

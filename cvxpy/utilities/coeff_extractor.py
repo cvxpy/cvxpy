@@ -30,9 +30,9 @@ from cvxpy.lin_ops.lin_op import LinOp, NO_OP
 
 
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
-class CoeffExtractor(object):
+class CoeffExtractor:
 
-    def __init__(self, inverse_data):
+    def __init__(self, inverse_data) -> None:
         self.id_map = inverse_data.var_offsets
         self.x_length = inverse_data.x_length
         self.var_shapes = inverse_data.var_shapes

@@ -17,6 +17,8 @@ limitations under the License.
 from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from typing import Tuple
+
 import cvxpy.lin_ops.lin_utils as lu
 import numbers
 import numpy as np
@@ -38,7 +40,7 @@ class reshape(AffAtom):
     order : F(ortran) or C
     """
 
-    def __init__(self, expr, shape, order='F'):
+    def __init__(self, expr, shape: Tuple[int], order: str = 'F') -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         if len(shape) > 2:
@@ -49,12 +51,12 @@ class reshape(AffAtom):
         self.order = order
         super(reshape, self).__init__(expr)
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return True
@@ -65,7 +67,7 @@ class reshape(AffAtom):
         """
         return np.reshape(values[0], self.shape, self.order)
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that the new shape has the same number of entries as the old.
         """
         old_len = self.args[0].size
@@ -85,7 +87,7 @@ class reshape(AffAtom):
         """
         return [self._shape, self.order]
 
-    def graph_implementation(self, arg_objs, shape, data=None):
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
         """Reshape
 
         Parameters

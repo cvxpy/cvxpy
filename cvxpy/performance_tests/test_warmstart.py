@@ -26,7 +26,7 @@ import cvxpy as cp
 
 class TestWarmstart(unittest.TestCase):
 
-    def test_warmstart(self):
+    def test_warmstart(self) -> None:
         """Testing warmstart LASSO with SCS.
         """
         import numpy

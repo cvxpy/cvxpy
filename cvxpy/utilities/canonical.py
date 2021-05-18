@@ -19,7 +19,7 @@ from cvxpy.utilities import performance_utils as pu
 from cvxpy.utilities.deterministic import unique_list
 
 
-class Canonical(object):
+class Canonical:
     """
     An interface for objects that can be canonicalized.
     """
@@ -61,7 +61,7 @@ class Canonical(object):
         return unique_list(
             [const for arg in self.args for const in arg.constants()])
 
-    def tree_copy(self, id_objects={}):
+    def tree_copy(self, id_objects=None):
         new_args = []
         for arg in self.args:
             if isinstance(arg, list):
@@ -71,7 +71,7 @@ class Canonical(object):
                 new_args.append(arg.tree_copy(id_objects))
         return self.copy(args=new_args, id_objects=id_objects)
 
-    def copy(self, args=None, id_objects={}):
+    def copy(self, args=None, id_objects=None):
         """Returns a shallow copy of the object.
 
         Used to reconstruct an object tree.
@@ -86,6 +86,7 @@ class Canonical(object):
         -------
         Expression
         """
+        id_objects = {} if id_objects is None else id_objects
         if id(self) in id_objects:
             return id_objects[id(self)]
         if args is None:
@@ -96,7 +97,7 @@ class Canonical(object):
         else:
             return type(self)(*args)
 
-    def get_data(self):
+    def get_data(self) -> None:
         """Returns info needed to reconstruct the object besides the args.
 
         Returns

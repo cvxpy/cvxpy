@@ -10,7 +10,7 @@ from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
 import numpy as np
 
 
-def constrain_cplex_infty(v):
+def constrain_cplex_infty(v) -> None:
     '''
     Limit values of vector v between +/- infinity as
     defined in the CPLEX package
@@ -33,7 +33,7 @@ class CPLEX(QpSolver):
     def name(self):
         return s.CPLEX
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         import cplex
         cplex
 
@@ -76,7 +76,7 @@ class CPLEX(QpSolver):
 
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cplex as cpx
         P = data[s.P].tocsr()       # Convert matrix to csr format
         q = data[s.Q]

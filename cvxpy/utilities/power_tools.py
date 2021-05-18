@@ -83,7 +83,7 @@ def gm_constrs(t, x_list, p):
     return constraints
 
 
-def pow_high(p, max_denom=1024):
+def pow_high(p, max_denom: int = 1024):
     """ Return (t,1,x) power tuple
 
         x <= t^(1/p) 1^(1-1/p)
@@ -97,7 +97,7 @@ def pow_high(p, max_denom=1024):
     return 1/p, (p, 1-p)
 
 
-def pow_mid(p, max_denom=1024):
+def pow_mid(p, max_denom: int = 1024):
     """ Return (x,1,t) power tuple
 
         t <= x^p 1^(1-p)
@@ -109,7 +109,7 @@ def pow_mid(p, max_denom=1024):
     return p, (p, 1-p)
 
 
-def pow_neg(p, max_denom=1024):
+def pow_neg(p, max_denom: int = 1024):
     """ Return (x,t,1) power tuple
 
         1 <= x^(p/(p-1)) t^(-1/(p-1))
@@ -122,7 +122,7 @@ def pow_neg(p, max_denom=1024):
     return p/(p-1), (p, 1-p)
 
 
-def is_power2(num):
+def is_power2(num) -> bool:
     """ Test if num is a positive integer power of 2.
 
     .. note::
@@ -148,7 +148,7 @@ def is_power2(num):
     return isinstance(num, numbers.Integral) and num > 0 and not (num & (num - 1))
 
 
-def is_dyad(frac):
+def is_dyad(frac) -> bool:
     """ Test if frac is a nonnegative dyadic fraction or integer.
 
     Examples
@@ -175,7 +175,7 @@ def is_dyad(frac):
         return False
 
 
-def is_dyad_weight(w):
+def is_dyad_weight(w) -> bool:
     """ Test if a vector is a valid dyadic weight vector.
 
         w must be nonnegative, sum to 1, and have integer or dyadic fractional elements.
@@ -192,7 +192,7 @@ def is_dyad_weight(w):
     return is_weight(w) and all(is_dyad(f) for f in w)
 
 
-def is_weight(w):
+def is_weight(w) -> bool:
     """ Test if w is a valid weight vector.
         w must have nonnegative integer or fractional elements, and sum to 1.
 
@@ -223,7 +223,7 @@ def is_weight(w):
     return valid_elems and sum(w) == 1
 
 
-def fracify(a, max_denom=1024, force_dyad=False):
+def fracify(a, max_denom: int = 1024, force_dyad: bool = False):
     """ Return a valid fractional weight tuple (and its dyadic completion)
         to represent the weights given by ``a``.
 

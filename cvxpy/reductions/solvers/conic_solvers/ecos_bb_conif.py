@@ -101,11 +101,11 @@ class ECOS_BB(ECOS):
                     inverse_data[self.EQ_CONSTR]
                 )
                 dual_vars.update(eq_duals)
-            return Solution(status, opt_val, primal_vars, dual_vars, {})
+            return Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            return failure_solution(status)
+            return failure_solution(status, attr)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import ecos
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
         # Default verbose to false for BB wrapper.

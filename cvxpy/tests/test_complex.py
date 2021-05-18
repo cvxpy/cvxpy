@@ -29,7 +29,7 @@ PY35 = sys.version_info >= (3, 5)
 class TestComplex(BaseTest):
     """ Unit tests for the expression/expression module. """
 
-    def test_variable(self):
+    def test_variable(self) -> None:
         """Test the Variable class.
         """
         x = Variable(2, complex=False)
@@ -54,7 +54,7 @@ class TestComplex(BaseTest):
             z.value = np.array([1., 0.])
         self.assertEqual(str(cm.exception), "Variable value must be imaginary.")
 
-    def test_parameter(self):
+    def test_parameter(self) -> None:
         """Test the parameter class.
         """
         x = Parameter(2, complex=False)
@@ -79,7 +79,7 @@ class TestComplex(BaseTest):
             z.value = np.array([1., 0.])
         self.assertEqual(str(cm.exception), "Parameter value must be imaginary.")
 
-    def test_constant(self):
+    def test_constant(self) -> None:
         """Test the parameter class.
         """
         x = Constant(2)
@@ -93,7 +93,7 @@ class TestComplex(BaseTest):
         assert z.is_complex()
         assert z.is_imag()
 
-    def test_objective(self):
+    def test_objective(self) -> None:
         """Test objectives.
         """
         x = Variable(complex=True)
@@ -105,7 +105,7 @@ class TestComplex(BaseTest):
             cvx.Maximize(x)
         self.assertEqual(str(cm.exception), "The 'maximize' objective must be real valued.")
 
-    def test_arithmetic(self):
+    def test_arithmetic(self) -> None:
         """Test basic arithmetic expressions.
         """
         x = Variable(complex=True)
@@ -141,7 +141,7 @@ class TestComplex(BaseTest):
         assert expr.is_complex()
         assert expr.is_imag()
 
-    def test_real(self):
+    def test_real(self) -> None:
         """Test real.
         """
         A = np.ones((2, 2))
@@ -156,7 +156,7 @@ class TestComplex(BaseTest):
         expr = cvx.imag(x) + cvx.real(x)
         assert expr.is_real()
 
-    def test_imag(self):
+    def test_imag(self) -> None:
         """Test imag.
         """
         A = np.ones((2, 2))
@@ -167,7 +167,7 @@ class TestComplex(BaseTest):
         assert not expr.is_imag()
         self.assertItemsAlmostEqual(expr.value, 2*A)
 
-    def test_conj(self):
+    def test_conj(self) -> None:
         """Test imag.
         """
         A = np.ones((2, 2))
@@ -178,7 +178,7 @@ class TestComplex(BaseTest):
         assert not expr.is_imag()
         self.assertItemsAlmostEqual(expr.value, A - 1j*A)
 
-    def test_affine_atoms_canon(self):
+    def test_affine_atoms_canon(self) -> None:
         """Test canonicalization for affine atoms.
         """
         # Scalar.
@@ -197,7 +197,7 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(x.value, 1j)
 
         x = Variable(2)
-        expr = x/1j
+        expr = x*1j
         prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) >= 1])
         result = prob.solve()
         self.assertAlmostEqual(result, -np.inf)
@@ -229,7 +229,7 @@ class TestComplex(BaseTest):
         self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
 
-    def test_params(self):
+    def test_params(self) -> None:
         """Test with parameters.
         """
         p = cvx.Parameter(imag=True, value=1j)
@@ -240,7 +240,7 @@ class TestComplex(BaseTest):
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
-    def test_missing_imag(self):
+    def test_missing_imag(self) -> None:
         """Test problems where imaginary is missing.
         """
         Z = Variable((2, 2), hermitian=True)
@@ -255,7 +255,7 @@ class TestComplex(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, 0)
 
-    def test_abs(self):
+    def test_abs(self) -> None:
         """Test with absolute value.
         """
         x = Variable(2, complex=True)
@@ -265,7 +265,7 @@ class TestComplex(BaseTest):
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
-    def test_soc(self):
+    def test_soc(self) -> None:
         """Test with SOC.
         """
         x = Variable(2, complex=True)
@@ -275,7 +275,7 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, 2*np.sqrt(2))
         self.assertItemsAlmostEqual(x.value, [2j, 2j])
 
-    def test_pnorm(self):
+    def test_pnorm(self) -> None:
         """Test complex with pnorm.
         """
         x = Variable((1, 2), complex=True)
@@ -293,7 +293,7 @@ class TestComplex(BaseTest):
         val = np.ones((2, 2))
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
-    def test_matrix_norms(self):
+    def test_matrix_norms(self) -> None:
         """Test matrix norms.
         """
         P = np.arange(8) - 2j*np.arange(8)
@@ -310,7 +310,7 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cvx.SCS, eps=1e-4)
         self.assertAlmostEqual(result, norm_nuc, places=1)
 
-    def test_log_det(self):
+    def test_log_det(self) -> None:
         """Test log det.
         """
         P = np.arange(9) - 2j*np.arange(9)
@@ -322,7 +322,7 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cvx.SCS, eps=1e-6)
         self.assertAlmostEqual(result, value, places=2)
 
-    def test_eigval_atoms(self):
+    def test_eigval_atoms(self) -> None:
         """Test eigenvalue atoms.
         """
         P = np.arange(9) - 2j*np.arange(9)
@@ -350,7 +350,7 @@ class TestComplex(BaseTest):
             result = prob.solve(solver=cvx.SCS, eps=1e-6)
             self.assertAlmostEqual(result, value, places=3)
 
-    def test_quad_form(self):
+    def test_quad_form(self) -> None:
         """Test quad_form atom.
         """
         # Create a random positive definite Hermitian matrix for all tests.
@@ -385,7 +385,7 @@ class TestComplex(BaseTest):
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization)
 
-    def test_matrix_frac(self):
+    def test_matrix_frac(self) -> None:
         """Test matrix_frac atom.
         """
         P = np.array([[10, 1j], [-1j, 10]])
@@ -414,7 +414,7 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cvx.SCS, eps=1e-5, max_iters=7500)
         self.assertAlmostEqual(result, value, places=3)
 
-    def test_quad_over_lin(self):
+    def test_quad_over_lin(self) -> None:
         """Test quad_over_lin atom.
         """
         P = np.array([[10, 1j], [-1j, 10]])
@@ -434,7 +434,7 @@ class TestComplex(BaseTest):
         self.assertAlmostEqual(result, 0, places=3)
         self.assertItemsAlmostEqual(X.value, P, places=3)
 
-    def test_hermitian(self):
+    def test_hermitian(self) -> None:
         """Test Hermitian variables.
         """
         X = Variable((2, 2), hermitian=True)
@@ -443,7 +443,7 @@ class TestComplex(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(X.value, [2, 1-1j, 1+1j, 3])
 
-    def test_psd(self):
+    def test_psd(self) -> None:
         """Test Hermitian variables.
         """
         X = Variable((2, 2), hermitian=True)
@@ -452,7 +452,7 @@ class TestComplex(BaseTest):
         prob.solve()
         assert prob.status is cvx.INFEASIBLE
 
-    def test_promote(self):
+    def test_promote(self) -> None:
         """Test promotion of complex variables.
         """
         v = Variable(complex=True)
@@ -462,7 +462,7 @@ class TestComplex(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, 4.0)
 
-    def test_sparse(self):
+    def test_sparse(self) -> None:
         """Test problem with complex sparse matrix.
         """
         # define sparse matrix [[0, 1j],[-1j,0]]
@@ -490,7 +490,7 @@ class TestComplex(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(rho.value, rho_sparse)
 
-    def test_special_idx(self):
+    def test_special_idx(self) -> None:
         """Test with special index.
         """
         c = [0, 1]
@@ -508,7 +508,7 @@ class TestComplex(BaseTest):
         prob = cvx.Problem(obj, constraints)
         prob.solve()
 
-    def test_validation(self):
+    def test_validation(self) -> None:
         """Test that complex arguments are rejected.
         """
         x = Variable(complex=True)
@@ -555,7 +555,7 @@ class TestComplex(BaseTest):
                 atom(x)
             self.assertEqual(str(cm.exception), "pnorm(x, p) cannot have x complex for p < 1.")
 
-    def test_diag(self):
+    def test_diag(self) -> None:
         """Test diag of mat, and of vector.
         """
         X = cvx.Variable((2, 2), complex=True)
@@ -573,7 +573,7 @@ class TestComplex(BaseTest):
         result = prob.solve()
         self.assertAlmostEqual(result, 2)
 
-    def test_complex_qp(self):
+    def test_complex_qp(self) -> None:
         """Test a QP with a complex variable.
         """
         A0 = np.array([0+1j, 2-1j])

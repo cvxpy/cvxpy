@@ -24,14 +24,14 @@ import numpy as np
 
 class TestParamConeProg(BaseTest):
     # Overridden method to assume lower accuracy.
-    def assertItemsAlmostEqual(self, a, b, places=2):
+    def assertItemsAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestParamConeProg, self).assertItemsAlmostEqual(a, b, places=places)
 
     # Overridden method to assume lower accuracy.
-    def assertAlmostEqual(self, a, b, places=2):
+    def assertAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestParamConeProg, self).assertAlmostEqual(a, b, places=places)
 
-    def test_log_problem(self):
+    def test_log_problem(self) -> None:
         # Log in objective.
         x = cp.Variable(2)
         var_dict = {x.id: x}
@@ -74,7 +74,7 @@ class TestParamConeProg(BaseTest):
         problem.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(x.value, sltn_dict[x.id])
 
-    def test_psd_var(self):
+    def test_psd_var(self) -> None:
         """Test PSD variable.
         """
         s = cp.Variable((2, 2), PSD=True)

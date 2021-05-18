@@ -17,6 +17,8 @@ limitations under the License.
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+from typing import List
+
 import numpy as np
 
 
@@ -32,7 +34,7 @@ class SOC(Constraint):
         axis: Slice by column 0 or row 1.
     """
 
-    def __init__(self, t, X, axis=0, constr_id=None):
+    def __init__(self, t, X, axis: int = 0, constr_id=None) -> None:
         t = cvxtypes.expression().cast_to_const(t)
         if len(t.shape) >= 2 or not t.is_real():
             raise ValueError("Invalid first argument.")
@@ -49,7 +51,7 @@ class SOC(Constraint):
             t = t.flatten()
         super(SOC, self).__init__([t, X], constr_id)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "SOC(%s, %s)" % (self.args[0], self.args[1])
 
     @property
@@ -89,13 +91,13 @@ class SOC(Constraint):
         return self.args[0].size
 
     @property
-    def size(self):
+    def size(self) -> int:
         """The number of entries in the combined cones.
         """
         cone_size = 1 + self.args[1].shape[self.axis]
         return cone_size * self.num_cones()
 
-    def cone_sizes(self):
+    def cone_sizes(self) -> List[int]:
         """The dimensions of the second-order cones.
 
         Returns
@@ -106,7 +108,7 @@ class SOC(Constraint):
         cone_size = 1 + self.args[1].shape[self.axis]
         return [cone_size] * self.num_cones()
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """An SOC constraint is DCP if each of its arguments is affine.
         """
         if dpp:
@@ -114,13 +116,13 @@ class SOC(Constraint):
                 return all(arg.is_affine() for arg in self.args)
         return all(arg.is_affine() for arg in self.args)
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.is_dcp()
 
-    def save_dual_value(self, value):
+    def save_dual_value(self, value) -> None:
         cone_size = 1 + self.args[1].shape[self.axis]
         value = np.reshape(value, newshape=(-1, cone_size))
         t = value[:, 0]

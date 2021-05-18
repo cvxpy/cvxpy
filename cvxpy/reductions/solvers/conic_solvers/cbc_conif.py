@@ -53,13 +53,13 @@ class CBC(SCS):
         """
         return s.CBC
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver.
         """
         from cylp.cy import CyClpSimplex
         CyClpSimplex  # For flake8
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can Cbc solve the problem?
         """
         # TODO check if is matrix stuffed.
@@ -100,7 +100,7 @@ class CBC(SCS):
         else:
             return failure_solution(status)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         # Import basic modelling tools of cylp
         from cylp.cy import CyClpSimplex
         from cylp.py.modeling.CyLPModel import CyLPModel, CyLPArray

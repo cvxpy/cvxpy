@@ -108,7 +108,7 @@ def cvxopt2dense(value):
     return np.array(value)
 
 
-def is_sparse(constant):
+def is_sparse(constant) -> bool:
     """Is the constant a sparse matrix?
     """
     return sp.issparse(constant)
@@ -137,13 +137,13 @@ def shape(constant):
 # Is the constant a column vector?
 
 
-def is_vector(constant):
+def is_vector(constant) -> bool:
     return shape(constant)[1] == 1
 
 # Is the constant a scalar?
 
 
-def is_scalar(constant):
+def is_scalar(constant) -> bool:
     return shape(constant) == (1, 1)
 
 
@@ -165,7 +165,7 @@ def from_1D_to_2D(constant):
         return constant
 
 
-def convert(constant, sparse=False, convert_scalars=False):
+def convert(constant, sparse: bool = False, convert_scalars: bool = False):
     """Convert to appropriate type.
     """
     if isinstance(constant, (list, np.matrix)):
@@ -222,7 +222,7 @@ def sign(constant):
     return (min_val >= 0, max_val <= 0)
 
 
-def is_complex(constant, tol=1e-5):
+def is_complex(constant, tol: float = 1e-5) -> bool:
     """Return (is real, is imaginary).
 
     Parameters
@@ -267,7 +267,7 @@ def index(constant, key):
         return interface.index(constant, key)
 
 
-def is_hermitian(constant):
+def is_hermitian(constant) -> bool:
     """Check if a matrix is Hermitian and/or symmetric.
     """
     complex_type = np.iscomplexobj(constant)
@@ -287,7 +287,7 @@ def is_hermitian(constant):
     return is_symm, is_herm
 
 
-def is_sparse_symmetric(m, complex=False):
+def is_sparse_symmetric(m, complex: bool = False) -> bool:
     """Check if a sparse matrix is symmetric
 
     Parameters

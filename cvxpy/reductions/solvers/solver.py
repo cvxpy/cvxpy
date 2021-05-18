@@ -43,15 +43,15 @@ class Solver(Reduction):
     def name(self):
         """The name of the solver.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
     @abc.abstractmethod
     def import_solver(self):
         """Imports the solver.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
-    def is_installed(self):
+    def is_installed(self) -> bool:
         """Is the solver installed?
         """
         try:
@@ -61,12 +61,12 @@ class Solver(Reduction):
             return False
 
     @abc.abstractmethod
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """Solve a problem represented by data returned from apply.
         """
-        return NotImplemented
+        raise NotImplementedError()
 
-    def solve(self, problem, warm_start, verbose, solver_opts):
+    def solve(self, problem, warm_start: bool, verbose: bool, solver_opts):
         """Solve the problem and return a Solution object.
         """
         data, inv_data = self.apply(problem)

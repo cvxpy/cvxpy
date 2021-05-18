@@ -75,7 +75,7 @@ We next formulate the optimization problem using CVXPY.
     log_likelihood = cp.sum(
         cp.multiply(Y, X @ beta) - cp.logistic(X @ beta) 
     )
-    problem = cp.Problem(cp.Maximize(log_likelihood/n - lambd * cp.norm(beta, 1)))
+    problem = cp.Problem(cp.Maximize(log_likelihood/m - lambd * cp.norm(beta, 1)))
 
 We solve the optimization problem for a range of :math:`\lambda` to
 compute a trade-off curve. We then plot the train and test error over

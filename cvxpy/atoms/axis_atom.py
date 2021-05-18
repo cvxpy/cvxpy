@@ -27,7 +27,7 @@ class AxisAtom(Atom):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, expr, axis=None, keepdims=False):
+    def __init__(self, expr, axis=None, keepdims: bool = False) -> None:
         self.axis = axis
         self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
@@ -51,7 +51,7 @@ class AxisAtom(Atom):
         """
         return [self.axis, self.keepdims]
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         """Checks that the new shape has the same number of entries as the old.
         """
         if self.axis is not None and self.axis > self.args[0].ndim:
@@ -115,4 +115,4 @@ class AxisAtom(Atom):
         Returns:
             A SciPy sparse matrix or None.
         """
-        return NotImplemented
+        raise NotImplementedError()

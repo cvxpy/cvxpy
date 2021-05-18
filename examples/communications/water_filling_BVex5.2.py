@@ -22,22 +22,22 @@ import numpy as np
 import cvxpy as cvx
 
 '''
-Input parameters   
+Input parameters
   n: Number of communication channels or 'buckets'
   a: Floor above the baseline for each channel at which power can be added
   sum_x: Total power to be allocated to the n channels
 '''
 
-def water_filling(n,a,sum_x=1):
+def water_filling(n, a, sum_x: float = 1):
   '''
 Boyd and Vandenberghe, Convex Optimization, example 5.2 page 145
 Water-filling.
-  
+
 This problem arises in information theory, in allocating power to a set of
 n communication channels in order to maximise the total channel capacity.
-The variable x_i represents the transmitter power allocated to the ith channel, 
-and log(α_i+x_i) gives the capacity or maximum communication rate of the channel. 
-The objective is to minimize  -∑log(α_i+x_i) subject to the constraint ∑x_i = 1 
+The variable x_i represents the transmitter power allocated to the ith channel,
+and log(α_i+x_i) gives the capacity or maximum communication rate of the channel.
+The objective is to minimize  -∑log(α_i+x_i) subject to the constraint ∑x_i = 1
   '''
   # Declare variables and parameters
   x = cvx.Variable(n)

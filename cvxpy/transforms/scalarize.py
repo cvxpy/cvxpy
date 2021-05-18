@@ -13,14 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List
 
-from cvxpy import Constant
 import cvxpy.atoms as atoms
-from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy import Constant
+from cvxpy.expressions.expression import Expression
+from cvxpy.problems.objective import Minimize, Maximize, Objective
 from cvxpy.transforms import indicator
 
 
-def weighted_sum(objectives, weights):
+def weighted_sum(objectives: List[Objective], weights) -> Expression:
     """Combines objectives as a weighted sum.
 
     Args:
@@ -34,7 +36,7 @@ def weighted_sum(objectives, weights):
     return sum(objectives[i]*weights[i] for i in range(num_objs))
 
 
-def targets_and_priorities(objectives, priorities, targets, limits=None, off_target=1e-5):
+def targets_and_priorities(objectives, priorities, targets, limits=None, off_target: float = 1e-5):
     """Combines objectives with penalties within a range between target and limit.
 
     Each Minimize objective i has value
@@ -99,7 +101,7 @@ def max(objectives, weights):
     return Minimize(expr)
 
 
-def log_sum_exp(objectives, weights, gamma=1):
+def log_sum_exp(objectives, weights, gamma: float = 1.0):
     """Combines objectives as log_sum_exp of weighted terms.
 
 

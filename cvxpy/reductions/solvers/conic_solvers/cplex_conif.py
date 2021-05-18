@@ -34,7 +34,7 @@ _LIN, _QUAD = 0, 1
 _CpxConstr = namedtuple("_CpxConstr", ["constr_type", "index"])
 
 
-def set_parameters(model, solver_opts):
+def set_parameters(model, solver_opts) -> None:
     """Sets CPLEX parameters."""
     # TODO: Parameter support is functional, but perhaps not ideal.
     # The user must pass parameter names as used in the CPLEX Python
@@ -58,7 +58,7 @@ def set_parameters(model, solver_opts):
         raise ValueError("invalid keyword-argument '{0}'".format(kwargs[0]))
 
 
-def hide_solver_output(model):
+def hide_solver_output(model) -> None:
     """Set CPLEX verbosity level (either on or off)."""
     # By default the output will be sent to stdout. Setting the output
     # streams to None will prevent any output from being shown.
@@ -217,12 +217,12 @@ class CPLEX(SCS):
         """The name of the solver. """
         return s.CPLEX
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         """Imports the solver."""
         import cplex
         cplex  # For flake8
 
-    def accepts(self, problem):
+    def accepts(self, problem) -> bool:
         """Can CPLEX solve the problem?
         """
         # TODO check if is matrix stuffed.
@@ -286,7 +286,7 @@ class CPLEX(SCS):
         else:
             return failure_solution(status)
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cplex
 
         c = data[s.C]

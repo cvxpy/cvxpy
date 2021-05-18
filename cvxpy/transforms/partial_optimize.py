@@ -23,7 +23,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.atoms import trace, sum
 
 
-def partial_optimize(prob, opt_vars=None, dont_opt_vars=None, solver=None):
+def partial_optimize(prob, opt_vars=None, dont_opt_vars=None, solver=None) -> "PartialProblem":
     """Partially optimizes the given problem over the specified variables.
 
     Either opt_vars or dont_opt_vars must be given.
@@ -101,7 +101,7 @@ class PartialProblem(Expression):
         The variables to not optimize over.
     """
 
-    def __init__(self, prob, opt_vars, dont_opt_vars, solver):
+    def __init__(self, prob, opt_vars, dont_opt_vars, solver) -> None:
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.solver = solver
@@ -113,22 +113,22 @@ class PartialProblem(Expression):
         """
         return [self.opt_vars, self.dont_opt_vars, self.solver]
 
-    def is_constant(self):
+    def is_constant(self) -> bool:
         return len(self.args[0].variables()) == 0
 
-    def is_convex(self):
+    def is_convex(self) -> bool:
         """Is the expression convex?
         """
         return self.args[0].is_dcp() and \
             type(self.args[0].objective) == Minimize
 
-    def is_concave(self):
+    def is_concave(self) -> bool:
         """Is the expression concave?
         """
         return self.args[0].is_dcp() and \
             type(self.args[0].objective) == Maximize
 
-    def is_dpp(self, context='dcp'):
+    def is_dpp(self, context='dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
         if context.lower() in ['dcp', 'dgp']:
@@ -136,34 +136,34 @@ class PartialProblem(Expression):
         else:
             raise ValueError("Unsupported context", context)
 
-    def is_log_log_convex(self):
+    def is_log_log_convex(self) -> bool:
         """Is the expression convex?
         """
         return self.args[0].is_dgp() and \
             type(self.args[0].objective) == Minimize
 
-    def is_log_log_concave(self):
+    def is_log_log_concave(self) -> bool:
         """Is the expression convex?
         """
         return self.args[0].is_dgp() and \
             type(self.args[0].objective) == Maximize
 
-    def is_nonneg(self):
+    def is_nonneg(self) -> bool:
         """Is the expression nonnegative?
         """
         return self.args[0].objective.args[0].is_nonneg()
 
-    def is_nonpos(self):
+    def is_nonpos(self) -> bool:
         """Is the expression nonpositive?
         """
         return self.args[0].objective.args[0].is_nonpos()
 
-    def is_imag(self):
+    def is_imag(self) -> bool:
         """Is the Leaf imaginary?
         """
         return False
 
-    def is_complex(self):
+    def is_complex(self) -> bool:
         """Is the Leaf complex valued?
         """
         return False
@@ -174,7 +174,7 @@ class PartialProblem(Expression):
         """
         return tuple()
 
-    def name(self):
+    def name(self) -> str:
         """Returns the string representation of the expression.
         """
         return "PartialProblem(%s)" % str(self.args[0])
@@ -272,11 +272,13 @@ class PartialProblem(Expression):
             else:
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
-        result = prob.solve(solver=self.solver)
+        prob.solve(solver=self.solver)
         # Restore the original values to the variables.
         for var in self.variables():
             var.value = old_vals[var.id]
-        return result
+        # Need to get value returned by solver
+        # in case of stacked partial_optimizes.
+        return prob._solution.opt_val
 
     def canonicalize(self):
         """Returns the graph implementation of the object.

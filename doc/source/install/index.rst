@@ -44,8 +44,8 @@ conda
 2. Create a new conda environment,
   ::
 
-      conda create --name cvxpy
-      conda activate cvxpy
+      conda create --name cvxpy_env
+      conda activate cvxpy_env
 
  or activate an existing one
 
@@ -69,7 +69,7 @@ We strongly recommend using a fresh virtual environment (virtualenv or conda) wh
 
 CVXPY has the following dependencies:
 
- * Python 3.5, 3.6, or 3.7.
+ * Python >= 3.5
  * `OSQP`_
  * `ECOS`_ >= 2
  * `SCS`_ >= 1.1.3
@@ -156,13 +156,6 @@ Install with CPLEX support
 CVXPY supports the CPLEX solver.
 Simply install CPLEX such that you can ``import cplex`` in Python.
 See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
-
-Install with XPRESS support
---------------------------
-
-CVXPY supports the FICO Xpress solver.
-Simply install XPRESS such that you can ``import xpress`` in Python.
-See the `Xpress Python documentation <https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/python/HTML/GUID-616C323F-05D8-3460-B0D7-80F77DA7D046.html>`_ pages for installation instructions.
 
 Install with SDPT3 support
 --------------------------

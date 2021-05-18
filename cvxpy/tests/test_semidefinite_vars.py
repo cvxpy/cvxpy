@@ -23,12 +23,12 @@ from cvxpy.tests.base_test import BaseTest
 class TestSemidefiniteVariable(BaseTest):
     """ Unit tests for the expressions/shape module. """
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.X = Variable((2, 2), PSD=True)
         self.Y = Variable((2, 2))
         self.F = np.array([[1, 0], [0, -1]])
 
-    def test_symm(self):
+    def test_symm(self) -> None:
         """Test that results are symmetric.
         """
         M = Variable((3, 3), PSD=True)
@@ -43,7 +43,7 @@ class TestSemidefiniteVariable(BaseTest):
         prob.solve()
         assert (M.value == M.T.value).all()
 
-    def test_sdp_problem(self):
+    def test_sdp_problem(self) -> None:
         # PSD in objective.
         obj = cvx.Minimize(cvx.sum(cvx.square(self.X - self.F)))
         p = cvx.Problem(obj, [])

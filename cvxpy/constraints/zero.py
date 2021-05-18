@@ -27,7 +27,7 @@ class Zero(Constraint):
     simply write ``x == 0``. The former creates a ``Zero`` constraint with
     ``x`` as its argument.
     """
-    def __init__(self, expr, constr_id=None):
+    def __init__(self, expr, constr_id=None) -> None:
         super(Zero, self).__init__([expr], constr_id)
 
     def __str__(self):
@@ -35,7 +35,7 @@ class Zero(Constraint):
         """
         return self.name()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a string with information about the constraint.
         """
         return "%s(%s)" % (self.__class__.__name__,
@@ -51,20 +51,20 @@ class Zero(Constraint):
         """int : The size of the constrained expression."""
         return self.args[0].size
 
-    def name(self):
+    def name(self) -> str:
         return "%s == 0" % self.args[0]
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """A zero constraint is DCP if its argument is affine."""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_affine()
         return self.args[0].is_affine()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         return False
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.is_dcp()
 
     @property
@@ -86,7 +86,7 @@ class Zero(Constraint):
         """
         return self.dual_variables[0].value
 
-    def save_dual_value(self, value):
+    def save_dual_value(self, value) -> None:
         """Save the value of the dual variable for the constraint's parent.
 
         Args:
@@ -98,7 +98,7 @@ class Zero(Constraint):
 class Equality(Constraint):
     """A constraint of the form :math:`x = y`.
     """
-    def __init__(self, lhs, rhs, constr_id=None):
+    def __init__(self, lhs, rhs, constr_id=None) -> None:
         self._expr = lhs - rhs
         super(Equality, self).__init__([lhs, rhs], constr_id)
 
@@ -107,13 +107,13 @@ class Equality(Constraint):
         """
         return self.name()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Returns a string with information about the constraint.
         """
         return "%s(%s, %s)" % (self.__class__.__name__,
                                repr(self.args[0]), repr(self.args[1]))
 
-    def _construct_dual_variables(self, args):
+    def _construct_dual_variables(self, args) -> None:
         super(Equality, self)._construct_dual_variables([self._expr])
 
     @property
@@ -130,17 +130,17 @@ class Equality(Constraint):
         """int : The size of the constrained expression."""
         return self.expr.size
 
-    def name(self):
+    def name(self) -> str:
         return "%s == %s" % (self.args[0], self.args[1])
 
-    def is_dcp(self, dpp=False):
+    def is_dcp(self, dpp: bool = False) -> bool:
         """An equality constraint is DCP if its argument is affine."""
         if dpp:
             with scopes.dpp_scope():
                 return self.expr.is_affine()
         return self.expr.is_affine()
 
-    def is_dgp(self, dpp=False):
+    def is_dgp(self, dpp: bool = False) -> bool:
         if dpp:
             with scopes.dpp_scope():
                 return (self.args[0].is_log_log_affine() and
@@ -148,7 +148,7 @@ class Equality(Constraint):
         return (self.args[0].is_log_log_affine() and
                 self.args[1].is_log_log_affine())
 
-    def is_dqcp(self):
+    def is_dqcp(self) -> bool:
         return self.is_dcp()
 
     @property
@@ -169,7 +169,7 @@ class Equality(Constraint):
         """
         return self.dual_variables[0].value
 
-    def save_dual_value(self, value):
+    def save_dual_value(self, value) -> None:
         """Save the value of the dual variable for the constraint's parent.
 
         Args:

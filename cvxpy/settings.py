@@ -168,6 +168,7 @@ EIGVAL_TOL = 1e-10
 PSD_NSD_PROJECTION_TOL = 1e-8
 GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
+ATOM_EVAL_TOL = 1e-4
 
 # threads to use during compilation
 # -1 defaults to system default (configurable via the OMP_NUM_THREADS
@@ -175,10 +176,10 @@ SPARSE_PROJECTION_TOL = 1e-10
 NUM_THREADS = -1
 
 
-def set_num_threads(num_threads):
+def set_num_threads(num_threads: int) -> None:
     global NUM_THREADS
     NUM_THREADS = num_threads
 
 
-def get_num_threads():
+def get_num_threads() -> int:
     return NUM_THREADS

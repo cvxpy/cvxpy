@@ -24,6 +24,7 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
 import scipy.sparse as sp
+from typing import Tuple
 
 
 class CvxPyDomainError(Exception):
@@ -33,7 +34,7 @@ class CvxPyDomainError(Exception):
 class QuadForm(Atom):
     _allow_complex = True
 
-    def __init__(self, x, P):
+    def __init__(self, x, P) -> None:
         super(QuadForm, self).__init__(x, P)
 
     def numeric(self, values):
@@ -44,7 +45,7 @@ class QuadForm(Atom):
             quad = np.dot(np.transpose(values[0]), prod)
         return np.real(quad)
 
-    def validate_arguments(self):
+    def validate_arguments(self) -> None:
         super(QuadForm, self).validate_arguments()
         n = self.args[1].shape[0]
         if self.args[1].shape[1] != n or self.args[0].shape not in [(n, 1), (n,)]:
@@ -52,56 +53,56 @@ class QuadForm(Atom):
         if not self.args[1].is_hermitian():
             raise ValueError("P must be symmetric/Hermitian.")
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         return (self.is_atom_convex(), self.is_atom_concave())
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
         P = self.args[1]
         return P.is_constant() and P.is_psd()
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         P = self.args[1]
         return P.is_constant() and P.is_nsd()
 
-    def is_atom_log_log_convex(self):
+    def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """
         return True
 
-    def is_atom_log_log_concave(self):
+    def is_atom_log_log_concave(self) -> bool:
         """Is the atom log-log concave?
         """
         return False
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
         return (self.args[0].is_nonneg() and self.args[1].is_nonneg()) or \
                (self.args[0].is_nonpos() and self.args[1].is_nonneg())
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
         return (self.args[0].is_nonneg() and self.args[1].is_nonpos()) or \
                (self.args[0].is_nonpos() and self.args[1].is_nonpos())
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         """Is the atom quadratic?
         """
         return True
 
-    def is_pwl(self):
+    def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
         return False
 
-    def name(self):
+    def name(self) -> str:
         return "%s(%s, %s)" % (self.__class__.__name__,
                                self.args[0],
                                self.args[1])
@@ -120,7 +121,7 @@ class SymbolicQuadForm(Atom):
     """
     Symbolic form of QuadForm when quadratic matrix is not known (yet).
     """
-    def __init__(self, x, P, expr):
+    def __init__(self, x, P, expr) -> None:
         self.original_expression = expr
         super(SymbolicQuadForm, self).__init__(x, P)
         self.P = self.args[1]
@@ -129,18 +130,18 @@ class SymbolicQuadForm(Atom):
         return [self.original_expression]
 
     def _grad(self, values):
-        return NotImplemented
+        raise NotImplementedError()
 
-    def is_atom_concave(self):
+    def is_atom_concave(self) -> bool:
         return self.original_expression.is_atom_concave()
 
-    def is_atom_convex(self):
+    def is_atom_convex(self) -> bool:
         return self.original_expression.is_atom_convex()
 
-    def is_decr(self, idx):
+    def is_decr(self, idx) -> bool:
         return self.original_expression.is_decr(idx)
 
-    def is_incr(self, idx):
+    def is_incr(self, idx) -> bool:
         return self.original_expression.is_incr(idx)
 
     def shape_from_args(self):
@@ -149,11 +150,11 @@ class SymbolicQuadForm(Atom):
     def sign_from_args(self):
         return self.original_expression.sign_from_args()
 
-    def is_quadratic(self):
+    def is_quadratic(self) -> bool:
         return True
 
 
-def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite=True):
+def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True):
     """
     Compute a matrix decomposition.
 

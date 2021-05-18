@@ -5,7 +5,7 @@ from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 import numpy as np
 
 
-def constrain_gurobi_infty(v):
+def constrain_gurobi_infty(v) -> None:
     '''
     Limit values of vector v between +/- infinity as
     defined in the Gurobi package
@@ -43,7 +43,7 @@ class GUROBI(QpSolver):
     def name(self):
         return s.GUROBI
 
-    def import_solver(self):
+    def import_solver(self) -> None:
         import gurobipy
         gurobipy
 
@@ -126,7 +126,7 @@ class GUROBI(QpSolver):
             curr_offset += sz
         return model
 
-    def solve_via_data(self, data, warm_start, verbose, solver_opts, solver_cache=None):
+    def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import gurobipy as grb
         # N.B. Here we assume that the matrices in data are in csc format
         P = data[s.P]
