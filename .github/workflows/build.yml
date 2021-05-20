@@ -84,6 +84,7 @@ jobs:
         if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
         run: |
           python -m pip install --upgrade twine
+          twine check wheelhouse/*
           twine upload -repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
 
       - name: Upload artifacts to github
