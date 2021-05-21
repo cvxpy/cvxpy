@@ -74,6 +74,9 @@ setup(
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization '
                 'problems in Python.',
+    package_data = {
+        'cvxpy': ['py.typed'],
+    },
     python_requires='>=3.6',
     install_requires=["osqp >= 0.4.1",
                       "ecos >= 2",
