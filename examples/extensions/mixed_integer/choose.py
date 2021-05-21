@@ -21,7 +21,7 @@ from itertools import product
 
 class Choose(Boolean):
     """ A variable with k 1's and all other entries 0. """
-    def __init__(self, rows: int = 1, cols: int = 1, k=None, *args, **kwargs):
+    def __init__(self, rows: int = 1, cols: int = 1, k=None, *args, **kwargs) -> None:
         self.k = k
         super(Choose, self).__init__(rows, cols, *args, **kwargs)
 

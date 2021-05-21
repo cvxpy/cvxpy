@@ -14,16 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.leaf import Leaf
-import cvxpy.lin_ops.lin_utils as lu
+from typing import List, Optional
+
 import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_utils as lu
+import numpy as np
+import scipy.sparse as sp
+from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
-import scipy.sparse as sp
 from scipy.sparse.linalg import eigsh
 from scipy.sparse.linalg.eigen.arpack.arpack import ArpackError
-import numpy as np
-from typing import List
 
 
 class Constant(Leaf):
@@ -46,12 +47,13 @@ class Constant(Leaf):
         else:
             self._value = intf.DEFAULT_INTF.const_to_matrix(value)
             self._sparse = False
-        self._imag = None
-        self._nonneg = self._nonpos = None
-        self._symm = None
-        self._herm = None
-        self._top_eig = None
-        self._bottom_eig = None
+        self._imag: Optional[bool] = None
+        self._nonneg: Optional[bool] = None
+        self._nonpos: Optional[bool] = None
+        self._symm: Optional[bool] = None
+        self._herm: Optional[bool] = None
+        self._top_eig: Optional[float] = None
+        self._bottom_eig: Optional[float] = None
         self._cached_is_pos = None
         super(Constant, self).__init__(intf.shape(self.value))
 

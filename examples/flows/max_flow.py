@@ -21,7 +21,7 @@ import pickle
 # An object oriented max-flow problem.
 class Edge:
     """ An undirected, capacity limited edge. """
-    def __init__(self, capacity):
+    def __init__(self, capacity) -> None:
         self.capacity = capacity
         self.flow = Variable()
 
@@ -36,7 +36,7 @@ class Edge:
 
 class Node:
     """ A node with accumulation. """
-    def __init__(self, accumulation: float = 0.0):
+    def __init__(self, accumulation: float = 0.0) -> None:
         self.accumulation = accumulation
         self.edge_flows = []
 

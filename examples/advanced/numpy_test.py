@@ -24,7 +24,7 @@ class Meta:
         return 1
 
 class Test(numpy.ndarray):
-    def __init__(self, shape):
+    def __init__(self, shape) -> None:
         pass
 
     def __coerce__(self, other):

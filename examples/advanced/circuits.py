@@ -20,7 +20,7 @@ import abc
 
 class Node:
     """ A node connecting devices. """
-    def __init__(self):
+    def __init__(self) -> None:
         self.voltage = cp.Variable()
         self.current_flows = []
 
@@ -36,7 +36,7 @@ class Ground(Node):
 class Device:
     __metaclass__ = abc.ABCMeta
     """ A device on a circuit. """
-    def __init__(self, pos_node, neg_node):
+    def __init__(self, pos_node, neg_node) -> None:
         self.pos_node = pos_node
         self.pos_node.current_flows.append(-self.current())
         self.neg_node = neg_node
@@ -58,7 +58,7 @@ class Device:
 
 class Resistor(Device):
     """ A resistor with V = R*I. """
-    def __init__(self, pos_node, neg_node, resistance):
+    def __init__(self, pos_node, neg_node, resistance) -> None:
         self._current = cp.Variable()
         self.resistance = resistance
         super(Resistor, self).__init__(pos_node, neg_node)
@@ -71,7 +71,7 @@ class Resistor(Device):
 
 class VoltageSource(Device):
     """ A constant source of voltage. """
-    def __init__(self, pos_node, neg_node, voltage):
+    def __init__(self, pos_node, neg_node, voltage) -> None:
         self._current = cp.Variable()
         self._voltage = voltage
         super(VoltageSource, self).__init__(pos_node, neg_node)
@@ -84,7 +84,7 @@ class VoltageSource(Device):
 
 class CurrentSource(Device):
     """ A constant source of current. """
-    def __init__(self, pos_node, neg_node, current):
+    def __init__(self, pos_node, neg_node, current) -> None:
         self._current = current
         self._voltage = cp.Variable()
         super(CurrentSource, self).__init__(pos_node, neg_node)

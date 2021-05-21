@@ -27,7 +27,7 @@ r.seed(1)
 
 class MultiEdge(Edge):
     """ An undirected, capacity limited edge with multiple commodities. """
-    def __init__(self, capacity):
+    def __init__(self, capacity) -> None:
         self.capacity = capacity
         self.in_flow = Variable(COMMODITIES)
         self.out_flow = Variable(COMMODITIES)
@@ -39,7 +39,7 @@ class MultiEdge(Edge):
 
 class MultiNode(Node):
     """ A node with a target flow accumulation and a capacity. """
-    def __init__(self, capacity: float = 0.0):
+    def __init__(self, capacity: float = 0.0) -> None:
         self.capacity = capacity
         self.edge_flows = []
 

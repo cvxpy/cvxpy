@@ -21,7 +21,7 @@ import cvxopt
 
 class NonCvxVariable(cvxpy.Variable):
     __metaclass__ = abc.ABCMeta
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(NonCvxVariable, self).__init__(*args, **kwargs)
         self.noncvx = True
         self.z = cvxpy.Parameter(*self.size)
