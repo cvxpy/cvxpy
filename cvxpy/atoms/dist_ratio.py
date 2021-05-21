@@ -39,7 +39,7 @@ class dist_ratio(Atom):
         return np.linalg.norm(
             values[0] - self.a) / np.linalg.norm(values[0] - self.b)
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

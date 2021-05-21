@@ -15,11 +15,16 @@ limitations under the License.
 """
 
 import abc
+from cvxpy.expressions.constants.constant import Constant
+from cvxpy.expressions.variable import Variable
+from typing import List, Tuple, Union
+
+from cvxpy.atoms.atom import Atom
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import expression
 from cvxpy.settings import (GENERAL_PROJECTION_TOL,
                             PSD_NSD_PROJECTION_TOL,
                             SPARSE_PROJECTION_TOL)
-from typing import Tuple
 
 import cvxpy.interface as intf
 import numbers
@@ -84,12 +89,14 @@ class Leaf(expression.Expression):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, shape: Tuple[int], value=None, nonneg: bool = False, nonpos: bool = False,
-                 complex: bool = False, imag: bool = False,
-                 symmetric: bool = False, diag: bool = False, PSD: bool = False,
-                 NSD: bool = False, hermitian: bool = False,
-                 boolean: bool = False, integer: bool = False,
-                 sparsity=None, pos: bool = False, neg: bool = False) -> None:
+    def __init__(
+        self, shape: Union[int, Tuple[int, ...]], value=None, nonneg: bool = False,
+        nonpos: bool = False, complex: bool = False, imag: bool = False,
+        symmetric: bool = False, diag: bool = False, PSD: bool = False,
+        NSD: bool = False, hermitian: bool = False,
+        boolean: bool = False, integer: bool = False,
+        sparsity=None, pos: bool = False, neg: bool = False
+    ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         elif len(shape) > 2:
@@ -174,12 +181,12 @@ class Leaf(expression.Expression):
         pass
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """ tuple : The dimensions of the expression.
         """
         return self._shape
 
-    def variables(self):
+    def variables(self) -> List[Variable]:
         """Default is empty list of Variables.
         """
         return []
@@ -189,7 +196,7 @@ class Leaf(expression.Expression):
         """
         return []
 
-    def constants(self):
+    def constants(self) -> List[Constant]:
         """Default is empty list of Constants.
         """
         return []
@@ -258,7 +265,7 @@ class Leaf(expression.Expression):
         return self.attributes['complex'] or self.is_imag() or self.attributes['hermitian']
 
     @property
-    def domain(self):
+    def domain(self) -> List[Constraint]:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
@@ -459,5 +466,5 @@ class Leaf(expression.Expression):
         """
         return True
 
-    def atoms(self):
+    def atoms(self) -> List[Atom]:
         return []

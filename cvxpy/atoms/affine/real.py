@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
@@ -30,7 +31,7 @@ class real(AffAtom):
         # Convert values to 1D.
         return np.real(values[0])
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.
         """
         return self.args[0].shape

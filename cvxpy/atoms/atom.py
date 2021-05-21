@@ -14,15 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import abc
+from cvxpy.constraints.constraint import Constraint
 from typing import List, Tuple
 
 from cvxpy import interface as intf
 from cvxpy import utilities as u
+from cvxpy.atoms.atom import Atom
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
+import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 
 import numpy as np
@@ -67,17 +70,17 @@ class Atom(Expression):
             )
 
     @abc.abstractmethod
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.
         """
         raise NotImplementedError()
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         return self._shape
 
     @abc.abstractmethod
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         raise NotImplementedError()
@@ -323,7 +326,9 @@ class Atom(Expression):
                                                                 data)
             return graph_obj, constraints + graph_constr
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -430,13 +435,13 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def domain(self):
+    def domain(self) -> List[Constraint]:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
         return self._domain() + [con for arg in self.args for con in arg.domain]
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the atom.
         """
         # Default is no constraints.
@@ -456,7 +461,7 @@ class Atom(Expression):
             return intf.DEFAULT_INTF.const_to_matrix(result)
         return new_numeric
 
-    def atoms(self):
+    def atoms(self) -> List[Atom]:
         """A list of the atom types present amongst this atom's arguments.
         """
         atom_list = []

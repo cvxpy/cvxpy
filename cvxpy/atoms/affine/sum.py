@@ -14,10 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from functools import wraps
-from typing import Tuple
+from typing import List, Optional, Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.constraints.constraint import Constraint
+import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.interface as intf
 import numpy as np
@@ -36,7 +38,7 @@ class Sum(AxisAtom, AffAtom):
         Whether to drop dimensions after summing.
     """
 
-    def __init__(self, expr, axis=None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
         super(Sum, self).__init__(expr, axis=axis, keepdims=keepdims)
 
     def is_atom_log_log_convex(self) -> bool:
@@ -60,7 +62,9 @@ class Sum(AxisAtom, AffAtom):
             result = np.sum(values[0], axis=self.axis, keepdims=self.keepdims)
         return result
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Sum the linear expression's entries.
 
         Parameters
@@ -100,7 +104,7 @@ class Sum(AxisAtom, AffAtom):
 
 
 @wraps(Sum)
-def sum(expr, axis=None, keepdims: bool = False):
+def sum(expr, axis: Optional[int] = None, keepdims: bool = False):
     """Wrapper for Sum class.
     """
     if isinstance(expr, list):

@@ -34,7 +34,7 @@ class length(Atom):
         """
         return np.max(np.nonzero(values[0])) + 1
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

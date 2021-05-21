@@ -13,9 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
+from typing import List, Tuple
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
+import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
@@ -45,7 +47,7 @@ class trace(AffAtom):
         if self.args[0].ndim != 2 or shape[0] != shape[1]:
             raise ValueError("Argument to trace must be a square matrix.")
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Always scalar.
         """
         return tuple()
@@ -60,7 +62,9 @@ class trace(AffAtom):
         """
         return False
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Sum the diagonal entries of the linear expression.
 
         Parameters

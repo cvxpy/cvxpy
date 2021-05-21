@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.expressions.constants.constant import Constant
+from typing import List, Optional, Tuple
+
 import cvxpy.settings as s
 import cvxpy.utilities as u
 from cvxpy.problems.objective import Minimize, Maximize
@@ -23,7 +26,12 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.atoms import trace, sum
 
 
-def partial_optimize(prob, opt_vars=None, dont_opt_vars=None, solver=None) -> "PartialProblem":
+def partial_optimize(
+    prob: Problem,
+    opt_vars: Optional[List[Variable]] = None,
+    dont_opt_vars: Optional[List[Variable]] = None,
+    solver=None
+) -> "PartialProblem":
     """Partially optimizes the given problem over the specified variables.
 
     Either opt_vars or dont_opt_vars must be given.
@@ -101,7 +109,9 @@ class PartialProblem(Expression):
         The variables to not optimize over.
     """
 
-    def __init__(self, prob, opt_vars, dont_opt_vars, solver) -> None:
+    def __init__(
+        self, prob: Problem, opt_vars: List[Variable], dont_opt_vars: List[Variable], solver
+    ) -> None:
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.solver = solver
@@ -128,7 +138,7 @@ class PartialProblem(Expression):
         return self.args[0].is_dcp() and \
             type(self.args[0].objective) == Maximize
 
-    def is_dpp(self, context='dcp') -> bool:
+    def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
         if context.lower() in ['dcp', 'dgp']:
@@ -169,7 +179,7 @@ class PartialProblem(Expression):
         return False
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return tuple()
@@ -177,9 +187,9 @@ class PartialProblem(Expression):
     def name(self) -> str:
         """Returns the string representation of the expression.
         """
-        return "PartialProblem(%s)" % str(self.args[0])
+        return f"PartialProblem({self.args[0]})"
 
-    def variables(self):
+    def variables(self) -> List[Variable]:
         """Returns the variables in the problem.
         """
         return self.args[0].variables()
@@ -189,7 +199,7 @@ class PartialProblem(Expression):
         """
         return self.args[0].parameters()
 
-    def constants(self):
+    def constants(self) -> List[Constant]:
         """Returns the constants in the problem.
         """
         return self.args[0].constants()

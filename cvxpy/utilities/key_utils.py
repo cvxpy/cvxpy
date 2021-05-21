@@ -168,7 +168,7 @@ def is_single_index(slc) -> bool:
         slc.start + step >= slc.stop
 
 
-def shape(key, orig_key, shape: Tuple[int, ...]):
+def shape(key, orig_key, shape: Tuple[int, ...]) -> Tuple[int, ...]:
     """Finds the dimensions of a sliced expression.
 
     Args:

@@ -16,15 +16,18 @@ limitations under the License.
 
 import time
 import warnings
-from typing import Optional
 from collections import namedtuple
+from typing import Dict, List, Optional, Union
 
 import cvxpy.utilities as u
 import cvxpy.utilities.performance_utils as perf
 from cvxpy import error
 from cvxpy import settings as s, Constant
+from cvxpy.atoms.atom import Atom
 from cvxpy.constraints import Equality, Inequality, NonPos, Zero, NonNeg
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+from cvxpy.expressions.variable import Variable
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.problems.objective import Minimize, Maximize
 from cvxpy.reductions import InverseData
@@ -121,7 +124,9 @@ class Problem(u.Canonical):
     # The solve methods available.
     REGISTERED_SOLVE_METHODS = {}
 
-    def __init__(self, objective, constraints=None) -> None:
+    def __init__(
+        self, objective: Union[Minimize, Maximize], constraints: Optional[List[Constraint]] = None
+    ) -> None:
         if constraints is None:
             constraints = []
         # Check that objective is Minimize or Maximize.
@@ -138,16 +143,16 @@ class Problem(u.Canonical):
 
         self._constraints = list(map(bool_value_filter, constraints))
         self._value = None
-        self._status = None
+        self._status: Optional[str] = None
         self._solution = None
         self._cache = Cache()
         self._solver_cache = {}
         # Information about the shape of the problem and its constituent parts
-        self._size_metrics = None
+        self._size_metrics: Optional["SizeMetrics"] = None
         # Benchmarks reported by the solver:
-        self._solver_stats = None
-        self._compilation_time = None
-        self._solve_time = None
+        self._solver_stats: Optional["SolverStats"] = None
+        self._compilation_time: Optional[float] = None
+        self._solve_time: Optional[float] = None
         self.args = [self._objective, self._constraints]
 
     @property
@@ -161,7 +166,7 @@ class Problem(u.Canonical):
             return scalar_value(self._value)
 
     @property
-    def status(self):
+    def status(self) -> str:
         """str : The status from the last time the problem was solved; one
                  of optimal, infeasible, or unbounded (with or without
                  suffix inaccurate).
@@ -175,7 +180,7 @@ class Problem(u.Canonical):
         return self._solution
 
     @property
-    def objective(self):
+    def objective(self) -> Union[Minimize, Maximize]:
         """Minimize or Maximize : The problem's objective.
 
         Note that the objective cannot be reassigned after creation,
@@ -185,7 +190,7 @@ class Problem(u.Canonical):
         return self._objective
 
     @property
-    def constraints(self):
+    def constraints(self) -> List[Constraint]:
         """A shallow copy of the problem's constraints.
 
         Note that constraints cannot be reassigned, appended to, or otherwise
@@ -201,7 +206,7 @@ class Problem(u.Canonical):
         return {parameters.name(): parameters for parameters in self.parameters()}
 
     @property
-    def var_dict(self):
+    def var_dict(self) -> Dict[str, Variable]:
         """
         Expose all variables as a dictionary
         """
@@ -261,7 +266,7 @@ class Problem(u.Canonical):
           expr.is_dqcp() for expr in self.constraints + [self.objective])
 
     @perf.compute_once
-    def is_dpp(self, context='dcp') -> bool:
+    def is_dpp(self, context: str = 'dcp') -> bool:
         """Does the problem satisfy DPP rules?
 
         DPP is a mild restriction of DGP. When a problem involving
@@ -309,7 +314,7 @@ class Problem(u.Canonical):
                    for v in self.variables())
 
     @perf.compute_once
-    def variables(self):
+    def variables(self) -> List[Variable]:
         """Accessor method for variables.
 
         Returns
@@ -337,7 +342,7 @@ class Problem(u.Canonical):
         return unique_list(params)
 
     @perf.compute_once
-    def constants(self):
+    def constants(self) -> List[Constant]:
         """Accessor method for constants.
 
         Returns
@@ -354,7 +359,7 @@ class Problem(u.Canonical):
         const_dict = {id(constant): constant for constant in constants_}
         return list(const_dict.values())
 
-    def atoms(self):
+    def atoms(self) -> List[Atom]:
         """Accessor method for atoms.
 
         Returns
@@ -369,7 +374,7 @@ class Problem(u.Canonical):
         return unique_list(atoms)
 
     @property
-    def size_metrics(self):
+    def size_metrics(self) -> "SizeMetrics":
         """:class:`~cvxpy.problems.problem.SizeMetrics` : Information about the problem's size.
         """
         if self._size_metrics is None:
@@ -377,7 +382,7 @@ class Problem(u.Canonical):
         return self._size_metrics
 
     @property
-    def solver_stats(self):
+    def solver_stats(self) -> "SolverStats":
         """:class:`~cvxpy.problems.problem.SolverStats` : Information returned by the solver.
         """
         return self._solver_stats
@@ -462,7 +467,7 @@ class Problem(u.Canonical):
         return solve_func(self, *args, **kwargs)
 
     @classmethod
-    def register_solve(cls, name, func) -> None:
+    def register_solve(cls, name: str, func) -> None:
         """Adds a solve method to the Problem class.
 
         Arguments
@@ -1290,7 +1295,7 @@ class Problem(u.Canonical):
         self._solver_stats = SolverStats(self._solution.attr,
                                          chain.solver.name())
 
-    def __str__(self):
+    def __str__(self) -> str:
         if len(self.constraints) == 0:
             return str(self.objective)
         else:
@@ -1308,7 +1313,7 @@ class Problem(u.Canonical):
     def __neg__(self) -> "Problem":
         return Problem(-self.objective, self.constraints)
 
-    def __add__(self, other):
+    def __add__(self, other) -> "Problem":
         if other == 0:
             return self
         elif not isinstance(other, Problem):
@@ -1316,32 +1321,32 @@ class Problem(u.Canonical):
         return Problem(self.objective + other.objective,
                        unique_list(self.constraints + other.constraints))
 
-    def __radd__(self, other):
+    def __radd__(self, other) -> "Problem":
         if other == 0:
             return self
         else:
             raise NotImplementedError()
 
-    def __sub__(self, other):
+    def __sub__(self, other) -> "Problem":
         if not isinstance(other, Problem):
             raise NotImplementedError()
         return Problem(self.objective - other.objective,
                        unique_list(self.constraints + other.constraints))
 
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> "Problem":
         if other == 0:
             return -self
         else:
             raise NotImplementedError()
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> "Problem":
         if not isinstance(other, (int, float)):
             raise NotImplementedError()
         return Problem(self.objective * other, self.constraints)
 
     __rmul__ = __mul__
 
-    def __div__(self, other):
+    def __div__(self, other) -> "Problem":
         if not isinstance(other, (int, float)):
             raise NotImplementedError()
         return Problem(self.objective * (1.0 / other), self.constraints)
@@ -1372,7 +1377,7 @@ class SolverStats:
         returned directly from the solver, without modification by CVXPY.
         This object may be a dict, or a custom Python object.
     """
-    def __init__(self, results_dict, solver_name) -> None:
+    def __init__(self, results_dict, solver_name: str) -> None:
         self.solver_name = solver_name
         self.solve_time = None
         self.setup_time = None
@@ -1416,7 +1421,7 @@ class SizeMetrics:
         for each data block.
     """
 
-    def __init__(self, problem) -> None:
+    def __init__(self, problem: Problem) -> None:
         # num_scalar_variables
         self.num_scalar_variables = 0
         for var in problem.variables():

@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 import abc
+from typing import List, Optional, Tuple
+
 from cvxpy.atoms.atom import Atom
 import numpy as np
 import scipy.sparse as sp
@@ -27,12 +29,12 @@ class AxisAtom(Atom):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, expr, axis=None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
         self.axis = axis
         self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Depends on axis.
         """
         shape = list(self.args[0].shape)
@@ -58,7 +60,7 @@ class AxisAtom(Atom):
             raise ValueError("Invalid argument for axis.")
         super(AxisAtom, self).validate_arguments()
 
-    def _axis_grad(self, values):
+    def _axis_grad(self, values) -> Optional[List[sp.csc_matrix]]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

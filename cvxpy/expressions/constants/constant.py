@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
@@ -100,7 +100,7 @@ class Constant(Leaf):
         return {}
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return self._shape
