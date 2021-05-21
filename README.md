@@ -68,11 +68,10 @@ conda install -c conda-forge cvxpy
 
 CVXPY has the following dependencies:
 
-- Python >= 3.5
-- multiprocess
-- OSQP
+- Python >= 3.6
+- OSQP >= 0.4.1
 - ECOS >= 2
-- SCS >= 1.1.3
+- SCS >= 1.1.6
 - NumPy >= 1.15
 - SciPy >= 1.1.0
 

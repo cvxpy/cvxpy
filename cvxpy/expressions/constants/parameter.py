@@ -41,7 +41,7 @@ class Parameter(Leaf):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, shape=(), name=None, value=None, id=None, **kwargs):
+    def __init__(self, shape=(), name=None, value=None, id=None, **kwargs) -> None:
         if id is None:
             self.id = lu.get_id()
         else:

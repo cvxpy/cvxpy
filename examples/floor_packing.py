@@ -22,7 +22,7 @@ import math
 class Box:
     """ A box in a floor packing problem. """
     ASPECT_RATIO = 5.0
-    def __init__(self, min_area):
+    def __init__(self, min_area) -> None:
         self.min_area = min_area
         self.height = Variable()
         self.width = Variable()
@@ -57,7 +57,7 @@ class FloorPlan:
     """ A minimum perimeter floor plan. """
     MARGIN = 1.0
     ASPECT_RATIO = 5.0
-    def __init__(self, boxes):
+    def __init__(self, boxes) -> None:
         self.boxes = boxes
         self.height = Variable()
         self.width = Variable()

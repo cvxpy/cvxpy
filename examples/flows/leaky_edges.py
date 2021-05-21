@@ -38,7 +38,7 @@ class LeakyUndirected(Edge):
     """ An undirected edge that leaks flow. """
     # Model a leaky undirected edge as two leaky directed
     # edges pointing in opposite directions.
-    def __init__(self, capacity):
+    def __init__(self, capacity) -> None:
         self.forward = LeakyDirected(capacity)
         self.backward = LeakyDirected(capacity)
 

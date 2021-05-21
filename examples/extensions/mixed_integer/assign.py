@@ -21,7 +21,7 @@ import numpy as np
 
 class Assign(Boolean):
     """ An assignment matrix. """
-    def __init__(self, rows, cols, *args, **kwargs):
+    def __init__(self, rows, cols, *args, **kwargs) -> None:
         assert rows >= cols
         super(Assign, self).__init__(rows=rows, cols=cols, *args, **kwargs)
 

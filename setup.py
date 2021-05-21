@@ -76,7 +76,7 @@ setup(
                 'problems in Python.',
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     install_requires=["osqp >= 0.4.1",
                       "ecos >= 2",
                       "scs >= 1.1.6",

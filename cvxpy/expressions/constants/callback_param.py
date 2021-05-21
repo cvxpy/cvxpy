@@ -23,7 +23,7 @@ class CallbackParam(Parameter):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, callback, shape=(), **kwargs):
+    def __init__(self, callback, shape=(), **kwargs) -> None:
         self._callback = callback
         super(CallbackParam, self).__init__(shape, **kwargs)
 

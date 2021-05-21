@@ -31,7 +31,7 @@ class ParamProb:
 
     @abc.abstractproperty
     def apply_parameters(self, id_to_param_value=None, zero_offset: bool = False,
-                         keep_zeros=False):
+                         keep_zeros: bool = False):
         """Returns A, b after applying parameters (and reshaping).
 
         Args:

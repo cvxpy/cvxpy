@@ -20,7 +20,7 @@ import cvxopt
 import numpy as np
 
 class Boolean(Variable):
-    def __init__(self, rows: int = 1, cols: int = 1, *args, **kwargs):
+    def __init__(self, rows: int = 1, cols: int = 1, *args, **kwargs) -> None:
         self._LB = Parameter(rows, cols)
         self._LB.value = cvxopt.matrix(0,(rows, cols), tc='d')
         self._UB = Parameter(rows, cols)

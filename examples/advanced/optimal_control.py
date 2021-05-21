@@ -26,7 +26,7 @@ x_final = cvxopt.normal(n)
 
 # Object oriented optimal control problem.
 class Stage:
-    def __init__(self, A, B, x_prev):
+    def __init__(self, A, B, x_prev) -> None:
         self.x = Variable(n)
         self.u = Variable(p)
         self.cost = sum(square(self.u)) + sum(abs(self.x))
