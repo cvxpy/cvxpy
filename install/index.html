@@ -75,8 +75,8 @@ or a conda environment.</p>
 </ol>
 <blockquote>
 <div><blockquote>
-<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">cvxpy</span>
-<span class="n">conda</span> <span class="n">activate</span> <span class="n">cvxpy</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">cvxpy_env</span>
+<span class="n">conda</span> <span class="n">activate</span> <span class="n">cvxpy_env</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -103,10 +103,10 @@ or a conda environment.</p>
 <p>CVXPY has the following dependencies:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>Python &gt;= 3.5</p></li>
-<li><p><a class="reference external" href="https://osqp.org/">OSQP</a></p></li>
+<li><p>Python &gt;= 3.6</p></li>
+<li><p><a class="reference external" href="https://osqp.org/">OSQP</a> &gt;= 0.4.1</p></li>
 <li><p><a class="reference external" href="http://github.com/ifa-ethz/ecos">ECOS</a> &gt;= 2</p></li>
-<li><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> &gt;= 1.1.3</p></li>
+<li><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> &gt;= 1.1.6</p></li>
 <li><p><a class="reference external" href="http://www.numpy.org/">NumPy</a> &gt;= 1.15</p></li>
 <li><p><a class="reference external" href="http://www.scipy.org/">SciPy</a> &gt;= 1.1.0</p></li>
 </ul>
@@ -189,12 +189,6 @@ See the <a class="reference external" href="https://github.com/coin-or/CyLP">cyl
 Simply install CPLEX such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">cplex</span></code> in Python.
 See the <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P">CPLEX</a> website for installation instructions.</p>
 </div>
-<div class="section" id="id3">
-<h2>Install with XPRESS support<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
-<p>CVXPY supports the FICO Xpress solver.
-Simply install XPRESS such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
-See the <a class="reference external" href="https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/python/HTML/GUID-616C323F-05D8-3460-B0D7-80F77DA7D046.html">Xpress Python documentation</a> pages for installation instructions.</p>
-</div>
 <div class="section" id="install-with-sdpt3-support">
 <h2>Install with SDPT3 support<a class="headerlink" href="#install-with-sdpt3-support" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference external" href="https://github.com/TrishGillett/pysdpt3glue">sdpt3glue package</a> allows you to model problems with CVXPY and solve them with SDPT3.</p>
@@ -249,7 +243,6 @@ See the <a class="reference external" href="https://github.com/SCIP-Interfaces/P
 <li class="toctree-l2"><a class="reference internal" href="#install-with-xpress-support">Install with XPRESS support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cbc-clp-cgl-support">Install with Cbc (Clp, Cgl) support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cplex-support">Install with CPLEX support</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id3">Install with XPRESS support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-sdpt3-support">Install with SDPT3 support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-nag-support">Install with NAG support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-scip-support">Install with SCIP support</a></li>
