@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, macos-10.15 ]
+        os: [ ubuntu-18.04, macos-10.15, windows-2019 ]
         python-version: [ 3.6, 3.7, 3.9 ]
         include:
           - os: ubuntu-18.04
@@ -30,11 +30,11 @@ jobs:
             openmp: "True"
           - os: ubuntu-18.04
             python-version: 3.8
-            openmp: "False"
           - os: macos-10.15
             python-version: 3.8
-            openmp: "False"
             deploy_pypi_source: "True"
+          - os: windows-2019
+            python-version: 3.8
 
     env:
       RUNNER_OS: ${{ matrix.os }}
@@ -55,15 +55,18 @@ jobs:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           channels: conda-forge,anaconda
+
       - name: Install
         run: |
           if [ "$RUNNER_OS" = "macOS" ]; then CC=gcc ; fi
           if [ "$RUNNER_OS" = "macOS" ]; then CXX=g++; fi
-          source continuous_integration/GitHub/install_dependencies.sh
+          source continuous_integration/install_dependencies.sh
+
       - name: Test
         run: |
           flake8 .
-          bash continuous_integration/GitHub/test_script.sh
+          source continuous_integration/test_script.sh
+
       - name: Coverage
         run: if [[ "$COVERAGE" == "True" ]]; then coveralls; fi
 
