@@ -1147,7 +1147,7 @@ class TestAtoms(BaseTest):
         """Test conj.
         """
         v = cp.Variable((4,))
-        obj = cp.Minimize(v[0])
+        obj = cp.Minimize(cp.sum(v))
         prob = cp.Problem(obj, [cp.conj(v) >= 1])
         prob.solve()
         assert np.allclose(v.value, np.ones((4,)))
