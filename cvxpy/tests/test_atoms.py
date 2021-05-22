@@ -1121,7 +1121,6 @@ class TestAtoms(BaseTest):
             -result, 4 * np.log(scipy.stats.norm.cdf(2)), places=None, delta=1e-2
         )
 
-
     def test_scalar_product(self) -> None:
         """Test scalar product.
         """

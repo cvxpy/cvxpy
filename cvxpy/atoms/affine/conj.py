@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from typing import Tuple
-import sys
 
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
