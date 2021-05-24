@@ -1,6 +1,6 @@
 package:
   name: cvxpy
-  version: "1.1.12"
+  version: "1.1.13"
 
 source:
   path: ..
@@ -21,7 +21,7 @@ requirements:
     - python
     - osqp >=0.4.1
     - ecos >=2
-    - scs >=1.1.12
+    - scs >=1.1.13
     - numpy >=1.15
     - scipy >=1.1
     - lapack
