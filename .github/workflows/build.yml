@@ -77,7 +77,7 @@ jobs:
           python setup.py sdist --dist-dir=wheelhouse
 
       - name: Release to pypi
-        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+        if: ${{github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') &&  env.USE_OPENMP != 'True'}}
         run: |
           python -m pip install --upgrade twine
           twine check wheelhouse/*
