@@ -12,9 +12,9 @@ fi
 
 
 if [[ "$PYTHON_VERSION" == "3.6" ]]; then
-  conda install scipy=1.1 numpy=1.15 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
 elif [[ "$PYTHON_VERSION" == "3.7" ]]; then
-  conda install scipy=1.1 numpy=1.15 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
 elif [[ "$PYTHON_VERSION" == "3.8" ]]; then
   # There is a config that works with numpy 1.14, but not 1.15!
   # So we fix things at 1.16.

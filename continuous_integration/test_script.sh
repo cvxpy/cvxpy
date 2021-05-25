@@ -17,7 +17,6 @@ else
 fi
 
 python -c "import cvxpy; print(cvxpy.installed_solvers())"
-python $(dirname ${BASH_SOURCE[0]})/osqp_version.py
 
 if [[ "$COVERAGE" == "True" ]]; then
     export WITH_COVERAGE="--with-coverage"

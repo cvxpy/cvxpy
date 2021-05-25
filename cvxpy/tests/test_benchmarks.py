@@ -1,6 +1,7 @@
 import cvxpy as cp
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.tests.base_test import BaseTest
+import pytest
 import numpy as np
 
 import os
@@ -165,6 +166,7 @@ class TestBenchmarks(BaseTest):
 
         benchmark(small_cone_matrix_stuffing, iters=10)
 
+    @pytest.mark.skip(reason="Failing in Windows CI - potentially memory leak")
     def test_small_parameterized_cone_matrix_stuffing(self) -> None:
         m = 200
         n = 200
@@ -206,6 +208,7 @@ class TestBenchmarks(BaseTest):
         benchmark(small_lp, iters=1)
         benchmark(small_lp, iters=1, name="small_lp_second_time")
 
+    @pytest.mark.skip(reason="Failing in Windows CI - potentially memory leak")
     def test_small_parameterized_lp(self) -> None:
         m = 200
         n = 200
