@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import Tuple
+
 from cvxpy.atoms.affine.affine_atom import AffAtom
 import numpy as np
 
@@ -53,3 +55,23 @@ class conj(AffAtom):
         """Is the expression Hermitian?
         """
         return self.args[0].is_hermitian()
+
+    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+        """Multiply the linear expressions.
+
+        Parameters
+        ----------
+        arg_objs : list
+            LinExpr for each argument.
+        shape : tuple
+            The shape of the resulting expression.
+        data :
+            Additional data required by the atom.
+
+        Returns
+        -------
+        tuple
+            (LinOp for objective, list of constraints)
+        """
+        # For real arguments conj is a no-op.
+        return (arg_objs[0], [])

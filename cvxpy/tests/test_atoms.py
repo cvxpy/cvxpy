@@ -1120,3 +1120,34 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(
             -result, 4 * np.log(scipy.stats.norm.cdf(2)), places=None, delta=1e-2
         )
+
+    def test_scalar_product(self) -> None:
+        """Test scalar product.
+        """
+        p = np.ones((4,))
+        v = cp.Variable((4,))
+
+        p = np.ones((4,))
+        obj = cp.Minimize(cp.scalar_product(v, p))
+        prob = cp.Problem(obj, [v >= 1])
+        prob.solve()
+        assert np.allclose(v.value, p)
+
+        # With a parameter.
+        p = cp.Parameter((4,))
+        v = cp.Variable((4,))
+
+        p.value = np.ones((4,))
+        obj = cp.Minimize(cp.scalar_product(v, p))
+        prob = cp.Problem(obj, [v >= 1])
+        prob.solve()
+        assert np.allclose(v.value, p.value)
+
+    def test_conj(self) -> None:
+        """Test conj.
+        """
+        v = cp.Variable((4,))
+        obj = cp.Minimize(cp.sum(v))
+        prob = cp.Problem(obj, [cp.conj(v) >= 1])
+        prob.solve()
+        assert np.allclose(v.value, np.ones((4,)))
