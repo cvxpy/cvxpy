@@ -36,6 +36,8 @@ class Objective(u.Canonical):
         If expr is not a scalar.
     """
 
+    NAME = "objective"
+
     def __init__(self, expr) -> None:
         self.args = [Expression.cast_to_const(expr)]
         # Validate that the objective resolves to a scalar.
