@@ -1169,4 +1169,3 @@ class TestAtoms(BaseTest):
                           [X == A])
         result = prob.solve()
         assert np.isclose(result, true_val.sum(), atol=1e0)
-
