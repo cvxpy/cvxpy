@@ -1,10 +1,6 @@
 name: build
 
-on:
-    pull_request:
-    push:
-        branches:
-            - master
+on: [push, pull_request]
 
 jobs:
   cleanup-runs:
@@ -84,11 +80,11 @@ jobs:
           python setup.py sdist --dist-dir=wheelhouse
 
       - name: Release to pypi
-        if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')
+        if: ${{github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags') &&  env.USE_OPENMP != 'True'}}
         run: |
           python -m pip install --upgrade twine
           twine check wheelhouse/*
-          twine upload -repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
+          twine upload --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
 
       - name: Upload artifacts to github
         if: ${{ env.USE_OPENMP != 'True'}}

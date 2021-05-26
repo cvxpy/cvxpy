@@ -62,7 +62,7 @@ canon = Extension(
 
 setup(
     name='cvxpy',
-    version='1.1.12',
+    version='1.1.13',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
                  'echu508@stanford.edu, boyd@stanford.edu',
@@ -74,6 +74,9 @@ setup(
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization '
                 'problems in Python.',
+    package_data={
+        'cvxpy': ['py.typed'],
+    },
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     python_requires='>=3.6',
