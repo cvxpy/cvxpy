@@ -36,7 +36,7 @@ jobs:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
       COVERAGE: "False"
-      DEPLOY: "${{ [[github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags']] && 'True' || 'False')}}"
+      DEPLOY: "${{ [[github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags')]] && 'True' || 'False'}}"
       DEPLOY_PYPI_SOURCE: "${{ matrix.deploy_pypi_source == 'True' && 'True' || 'False' }}"
       USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
