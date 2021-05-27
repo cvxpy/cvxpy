@@ -10,20 +10,20 @@ if [[ "$RUNNER_OS" == "Linux" ]]; then
     sudo apt-get install -qq gfortran libgfortran3
 fi
 
+
 if [[ "$PYTHON_VERSION" == "3.6" ]]; then
-  conda install mkl pip pytest scipy=1.1 numpy=1.15 lapack ecos scs osqp flake8 cvxopt
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
 elif [[ "$PYTHON_VERSION" == "3.7" ]]; then
-  conda install mkl pip pytest scipy=1.1 numpy=1.15 lapack ecos scs osqp flake8 cvxopt
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
 elif [[ "$PYTHON_VERSION" == "3.8" ]]; then
   # There is a config that works with numpy 1.14, but not 1.15!
   # So we fix things at 1.16.
   # Assuming we use numpy 1.16, the earliest version of scipy we can use is 1.3.
-  conda install mkl pip pytest scipy=1.3 numpy=1.16 lapack ecos scs osqp flake8 cvxopt
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
   # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
-  conda install mkl pip pytest scipy=1.5 numpy=1.19 lapack ecos scs flake8 cvxopt
-  python -m pip install osqp
+  conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
 fi
 
 if [[ "$USE_OPENMP" == "True" ]]; then
