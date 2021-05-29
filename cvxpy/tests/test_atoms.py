@@ -24,6 +24,7 @@ import numpy as np
 from cvxpy import Problem, Minimize
 from cvxpy.tests.base_test import BaseTest
 import unittest
+import scipy
 import scipy.sparse as sp
 import scipy.stats
 
@@ -1151,3 +1152,20 @@ class TestAtoms(BaseTest):
         prob = cp.Problem(obj, [cp.conj(v) >= 1])
         prob.solve()
         assert np.allclose(v.value, np.ones((4,)))
+
+    def test_loggamma(self) -> None:
+        """Test the approximation of log-gamma.
+        """
+        # Test evaluation.
+        A = np.arange(1, 10)
+        A = np.reshape(A, (3, 3))
+        true_val = scipy.special.loggamma(A)
+        assert np.allclose(cp.loggamma(A).value, true_val, atol=1e-1)
+
+        # Test solving a problem.
+        X = cp.Variable((3, 3))
+        cost = cp.sum(cp.loggamma(X))
+        prob = cp.Problem(cp.Minimize(cost),
+                          [X == A])
+        result = prob.solve()
+        assert np.isclose(result, true_val.sum(), atol=1e0)
