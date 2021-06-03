@@ -507,7 +507,7 @@ If you are interested in working on a [Large] development goal, please contact a
 CVXPY 1.2
 ~~~~~~~~~
 
-- Move CI from Travis-CI to Github actions. [Large]
+- Move CI from Travis-CI to Github actions. [Large] [Done, thanks @phschiele!]
 - Add CI for Gurobi, CPLEX, GLPK, Cbc, and SCIP. [Small]
 - `Post-solver feasibility checks <https://github.com/cvxgrp/cvxpy/issues/582>`_. [Small]
 - `Developer documentation for key reduction files <https://github.com/cvxgrp/cvxpy/issues/582>`_. [Small]
