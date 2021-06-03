@@ -329,7 +329,6 @@ class GUROBI(SCS):
                     lb=-gp.GRB.INFINITY,
                     ub=gp.GRB.INFINITY)
             ]
-        model.update()
 
         new_lin_constrs = []
         for i, row in enumerate(rows):
