@@ -982,7 +982,7 @@ class TestGUROBI(BaseTest):
         StandardTestLPs.test_lp_2(solver='GUROBI')
 
     def test_gurobi_lp_3(self) -> None:
-        StandardTestLPs.test_lp_3(solver='GUROBI')
+        StandardTestLPs.test_lp_3(solver='GUROBI', InfUnbdInfo=1)
 
     def test_gurobi_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='GUROBI')
