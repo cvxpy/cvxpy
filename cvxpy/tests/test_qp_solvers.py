@@ -51,13 +51,13 @@ class TestQp(BaseTest):
         self.offset = Variable(1, name='offset')
         self.quadratic_coeff = Variable(1, name='quadratic_coeff')
 
-        T = 100
+        T = 30
         self.position = Variable((2, T), name='position')
         self.velocity = Variable((2, T), name='velocity')
         self.force = Variable((2, T - 1), name='force')
 
         self.xs = Variable(80, name='xs')
-        self.xsr = Variable(200, name='xsr')
+        self.xsr = Variable(50, name='xsr')
         self.xef = Variable(80, name='xef')
 
         # Check for all installed QP solvers
@@ -277,7 +277,7 @@ class TestQp(BaseTest):
         # The object should start from the origin, and end at rest
         initial_velocity = np.array([-20, 100])
         final_position = np.array([100, 100])
-        T = 100  # The number of timesteps
+        T = 30  # The number of timesteps
         h = 0.1  # The time between time intervals
         mass = 1  # Mass of object
         drag = 0.1  # Drag on object
@@ -302,7 +302,7 @@ class TestQp(BaseTest):
         # Solve the problem
         p = Problem(Minimize(.01 * sum_squares(self.force)), constraints)
         self.solve_QP(p, solver)
-        self.assertAlmostEqual(178.500, p.value, places=1)
+        self.assertAlmostEqual(1059.616, p.value, places=1)
 
     def sparse_system(self, solver) -> None:
         m = 100
@@ -318,8 +318,8 @@ class TestQp(BaseTest):
 
     def smooth_ridge(self, solver) -> None:
         np.random.seed(1)
-        n = 200
-        k = 50
+        n = 50
+        k = 20
         eta = 1
 
         A = np.ones((k, n))
