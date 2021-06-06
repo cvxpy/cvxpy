@@ -62,8 +62,6 @@ jobs:
 
       - name: Install
         run: |
-          if [ "$RUNNER_OS" = "macOS" ]; then CC=gcc ; fi
-          if [ "$RUNNER_OS" = "macOS" ]; then CXX=g++; fi
           source continuous_integration/install_dependencies.sh
 
       - name: Test
