@@ -16,7 +16,7 @@ limitations under the License.
 
 
 import cvxpy.settings as s
-from cvxpy.constraints import NonNeg, SOC, ExpCone, Zero
+from cvxpy.constraints import NonNeg, Zero
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from distutils.version import StrictVersion
@@ -69,7 +69,7 @@ class SCIPY(ConicSolver):
 
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + constr_map[ExpCone]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg]
         len_eq = problem.cone_dims.zero
 
         c, d, A, b = problem.apply_parameters()
