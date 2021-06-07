@@ -1431,7 +1431,6 @@ class TestECOS_BB(unittest.TestCase):
         StandardTestSOCPs.test_mi_socp_1(solver='ECOS_BB')
 
 
-@unittest.skipUnless('SCIPY' in INSTALLED_SOLVERS, 'SCIPY is not installed.')
 class TestSCIPY(unittest.TestCase):
 
     def test_scipy_lp_0(self) -> None:
