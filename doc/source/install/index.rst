@@ -178,6 +178,12 @@ See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_
 
 CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
 
+Install with SciPy/HiGHS support
+-------------------------
+
+CVXPY supports the SciPy/HiGHS solver.
+This requires the SciPy package in Python which should already be installed as it is a requirement for CVXPY. SciPy's "interior-point" and "revised-simplex" implementations are written in python and are always available however the main advantage of this solver, is its ability to use the HiGHS LP solvers (which are written in C++) that comes bundled with SciPy version 1.6.1 and higher.
+
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/
