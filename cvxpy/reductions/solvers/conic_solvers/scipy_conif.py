@@ -1,5 +1,5 @@
 """
-Copyright 2021 Michael Sommerauer
+Copyright 2021 The CVXPY Developers
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ from cvxpy.constraints import NonNeg, Zero
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from distutils.version import StrictVersion
+import warnings
 
 
 class SCIPY(ConicSolver):
@@ -92,31 +93,60 @@ class SCIPY(ConicSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from scipy import optimize as opt
 
-        # Check to see if scipy version larger than 1.6.2 is installed
-        import scipy
-        if StrictVersion(scipy.__version__) < StrictVersion('1.6.1'):
-            raise ValueError("This solver requires a SciPy version >= 1.6.1")
-
         # Extract solver options which are not part of the options dictionary
         if solver_opts:
+
+            # Raise error message if the parameters are not passed in
+            # a dictionary called 'scipy_options'.
             if "scipy_options" not in solver_opts:
                 raise ValueError("All parameters for the SCIPY solver should "
                                  "be incased within a dictionary called "
                                  "scipy_options e.g. \n"
                                  "prob.solve(solver='SCIPY', verbose=True,"
                                  " scipy_options={'method':'highs-ds', 'maxiter':10000})")
-            meth = solver_opts['scipy_options'].pop("method", "highs-ds")
+
+            # Raise warning if the 'method' parameter is not specified
+            if "method" not in solver_opts['scipy_options']:
+                warnings.warn("It is best to specify the 'method' parameter "
+                              "within scipy_options. The main advantage "
+                              "of this solver, is its ability to use the "
+                              "HiGHS LP solvers via scipy.optimize.linprog() "
+                              "but they require a SciPy version >= 1.6.1 ."
+                              "\nThe default method 'interior-point' will be"
+                              " used in this case.\n")
+
+            meth = solver_opts['scipy_options'].pop("method", "interior-point")
             bnds = solver_opts['scipy_options'].pop("bounds", (None, None))
             # Not supported by HiGHS solvers:
             # callback = solver_opts['scipy_options'].pop("callback", None)
             # x0 = solver_opts['scipy_options'].pop("x0", None)
 
+            # Check to see if scipy version larger than 1.6.1 is installed
+            import scipy
+
+            if ((meth in ['highs-ds', 'highs-ipm', 'highs']) &
+                (StrictVersion(scipy.__version__) < StrictVersion('1.6.1'))):
+
+                raise ValueError("The HiGHS solvers require a SciPy version >= 1.6.1")
+
+            # Run the optimisation using scipy.optimize.linprog
             solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
                                    bounds=bnds, options=solver_opts['scipy_options'])
         else:
+
+            # Raise warning since the 'method' parameter is not specified
+            warnings.warn("It is best to specify the 'method' parameter "
+                          "within scipy_options. The main advantage "
+                          "of this solver, is its ability to use the "
+                          "HiGHS LP solvers via scipy.optimize.linprog() "
+                          "but they require a SciPy version >= 1.6.1 ."
+                          "\nThe default method 'interior-point' will be"
+                          " used in this case.\n")
+
+            # Run the optimisation using scipy.optimize.linprog
             solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                   A_eq=data[s.A], b_eq=data[s.B], method="highs-ds",
+                                   A_eq=data[s.A], b_eq=data[s.B], method="interior-point",
                                    bounds=(None, None))
 
         if verbose is True:
