@@ -127,8 +127,8 @@ class SCIPY(ConicSolver):
 
                 # Check to see if scipy version larger than 1.6.1 is installed
                 # if method chosen is one of the highs methods.
-                if ((meth in ['highs-ds', 'highs-ipm', 'highs']) &
-                    (StrictVersion(scipy.__version__) < StrictVersion('1.6.1'))):
+                ver = (StrictVersion(scipy.__version__) < StrictVersion('1.6.1'))
+                if ((meth in ['highs-ds', 'highs-ipm', 'highs']) & ver):
                     raise ValueError("The HiGHS solvers require a SciPy version >= 1.6.1")
 
             # Disable the 'bounds' parameter to avoid problems with
