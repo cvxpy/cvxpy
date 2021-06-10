@@ -270,7 +270,7 @@ class TestProblem(BaseTest):
             for verbose in [True, False]:
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC]:
+                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC, cp.SCIPY]:
                     continue
                 sys.stdout = StringIO()  # capture output
 

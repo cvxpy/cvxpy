@@ -25,7 +25,7 @@ from cvxpy.problems.objective import Maximize, Minimize
 import cvxpy.interface.scipy_wrapper
 from cvxpy.error import DCPError, DPPError, DGPError, SolverError, disable_warnings, enable_warnings, warnings_enabled
 from cvxpy.settings import (CVXOPT, GLPK, GLPK_MI, CBC, CPLEX, OSQP, NAG,
-                            ECOS, SCS, DIFFCP, GUROBI, MOSEK, XPRESS, SCIP, ECOS_BB,
+                            ECOS, SCS, DIFFCP, GUROBI, MOSEK, XPRESS, SCIP, SCIPY, ECOS_BB,
                             OPTIMAL, UNBOUNDED, INFEASIBLE, SOLVER_ERROR, ROBUST_KKTSOLVER,
                             OPTIMAL_INACCURATE, UNBOUNDED_INACCURATE, INFEASIBLE_INACCURATE, USER_LIMIT)
 from cvxpy.settings import get_num_threads, set_num_threads

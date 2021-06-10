@@ -412,35 +412,37 @@ CVXPY is distributed with the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
-+--------------+----+----+------+-----+-----+-----+-----+
-|              | LP | QP | SOCP | SDP | EXP | POW | MIP |
-+==============+====+====+======+=====+=====+=====+=====+
-| `CBC`_       | X  |    |      |     |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `GLPK`_      | X  |    |      |     |     |     |     |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `GLPK_MI`_   | X  |    |      |     |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `OSQP`_      | X  | X  |      |     |     |     |     |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `CPLEX`_     | X  | X  | X    |     |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `NAG`_       | X  | X  | X    |     |     |     |     |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `ECOS`_      | X  | X  | X    |     | X   |     |     |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `GUROBI`_    | X  | X  | X    |     |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `MOSEK`_     | X  | X  | X    | X   | X   | X   | X*  |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `CVXOPT`_    | X  | X  | X    | X   |     |     |     |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `SCS`_       | X  | X  | X    | X   | X   | X   |     |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `SCIP`_      | X  | X  | X    |     |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+-----+
-| `XPRESS`_    | X  | X  | X    |     |     |     | X   |
-+--------------+----+----+------+-----+-----+-----+-----+
++----------------+----+----+------+-----+-----+-----+-----+
+|                | LP | QP | SOCP | SDP | EXP | POW | MIP |
++================+====+====+======+=====+=====+=====+=====+
+| `CBC`_         | X  |    |      |     |     |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+
+| `GLPK`_        | X  |    |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `GLPK_MI`_     | X  |    |      |     |     |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+
+| `OSQP`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `CPLEX`_       | X  | X  | X    |     |     |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+
+| `NAG`_         | X  | X  | X    |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `ECOS`_        | X  | X  | X    |     | X   |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `GUROBI`_      | X  | X  | X    |     |     |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+
+| `MOSEK`_       | X  | X  | X    | X   | X   | X   | X*  |
++----------------+----+----+------+-----+-----+-----+-----+
+| `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `SCS`_         | X  | X  | X    | X   | X   | X   |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `SCIP`_        | X  | X  | X    |     |     |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+
+| `XPRESS`_      | X  | X  | X    |     |     |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+
+| `SCIPY`_       | X  |    |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
 
 (*) Except mixed-integer SDP.
 
@@ -864,6 +866,13 @@ The following cut-generators are available:
 
 SCIP_ options:
 ``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
+
+`SCIPY`_ options:
+``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_. 
+
+* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary and there should not be a nested dictionary called options. Some of the methods have different parameters so please check the parameters for the method you wish to use e.g. for method = 'highs-ipm'.
+
+* The main advantage of this solver is its ability to use the `HiGHS`_ LP solvers which are coded in C++, however these require a version of SciPy larger than 1.6.1. To use the `HiGHS`_ solvers simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). 
 
 Getting the standard form
 -------------------------
@@ -1360,6 +1369,8 @@ on derivatives.
 .. _OSQP: https://osqp.org/
 .. _SCIP: https://scip.zib.de/
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
+.. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
+.. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
 
 Custom Solvers
 ------------------------------------
