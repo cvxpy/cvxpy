@@ -373,10 +373,10 @@ Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.</p>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 29%" />
+<col style="width: 32%" />
 <col style="width: 8%" />
 <col style="width: 8%" />
-<col style="width: 13%" />
+<col style="width: 12%" />
 <col style="width: 10%" />
 <col style="width: 10%" />
 <col style="width: 10%" />
@@ -510,6 +510,15 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 <td><p>X</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">SCIPY</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
 </tr>
 </tbody>
 </table>
@@ -878,6 +887,12 @@ code: cvxpy/reductions/solvers/kktsolver.py</p>
 </dl>
 <p><a class="reference external" href="https://scip.zib.de/">SCIP</a> options:
 <code class="docutils literal notranslate"><span class="pre">'scip_params'</span></code> a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed <a class="reference external" href="https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php">here</a>.</p>
+<p><a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">SCIPY</a> options:
+<code class="docutils literal notranslate"><span class="pre">'scipy_options'</span></code> a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog">here</a>.</p>
+<ul class="simple">
+<li><p><strong>Please note</strong>: All options should be listed as key-value pairs within the <code class="docutils literal notranslate"><span class="pre">'scipy_options'</span></code> dictionary and there should not be a nested dictionary called options. Some of the methods have different parameters so please check the parameters for the method you wish to use e.g. for method = ‘highs-ipm’.</p></li>
+<li><p>The main advantage of this solver is its ability to use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP solvers which are coded in C++, however these require a version of SciPy larger than 1.6.1. To use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> solvers simply set the method parameter to ‘highs-ds’ (for dual-simplex), ‘highs-ipm’ (for interior-point method) or ‘highs’ (which will choose either ‘highs-ds’ or ‘highs-ipm’ for you).</p></li>
+</ul>
 </div>
 <div class="section" id="getting-the-standard-form">
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>

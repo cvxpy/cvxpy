@@ -206,6 +206,11 @@ Simply install SCIP such that you can <code class="docutils literal notranslate"
 See the <a class="reference external" href="https://github.com/SCIP-Interfaces/PySCIPOpt#installation">PySCIPOpt</a> github for installation instructions.</p>
 <p>CVXPY’s SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.</p>
 </div>
+<div class="section" id="install-with-scipy-support">
+<h2>Install with SCIPY support<a class="headerlink" href="#install-with-scipy-support" title="Permalink to this headline">¶</a></h2>
+<p>CVXPY supports the SCIPY solver for LPs.
+This requires the <a class="reference external" href="http://www.scipy.org/">SciPy</a> package in Python which should already be installed as it is a requirement for CVXPY. <a class="reference external" href="http://www.scipy.org/">SciPy</a>’s “interior-point” and “revised-simplex” implementations are written in python and are always available however the main advantage of this solver, is its ability to use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP solvers (which are written in C++) that comes bundled with <a class="reference external" href="http://www.scipy.org/">SciPy</a> version 1.6.1 and higher.</p>
+</div>
 </div>
 
 
@@ -246,6 +251,7 @@ See the <a class="reference external" href="https://github.com/SCIP-Interfaces/P
 <li class="toctree-l2"><a class="reference internal" href="#install-with-sdpt3-support">Install with SDPT3 support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-nag-support">Install with NAG support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-scip-support">Install with SCIP support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-with-scipy-support">Install with SCIPY support</a></li>
 </ul>
 </li>
 </ul>
