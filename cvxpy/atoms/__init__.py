@@ -81,6 +81,7 @@ from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.huber import huber
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.kl_div import kl_div
+from cvxpy.atoms.elementwise.rel_entr import rel_entr
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.loggamma import loggamma
 from cvxpy.atoms.elementwise.log_normcdf import log_normcdf
@@ -113,6 +114,7 @@ EXP_ATOMS = [
     entr,
     exp,
     kl_div,
+    rel_entr,
     log,
     log1p,
     logistic,
