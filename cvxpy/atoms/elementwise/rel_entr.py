@@ -74,7 +74,7 @@ class rel_entr(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        if values[0] <= 0 or values[1] <= 0:
+        if np.min(values[0]) <= 0 or np.min(values[1]) <= 0:
             # Non-differentiable.
             return [None, None]
         else:
