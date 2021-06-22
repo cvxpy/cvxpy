@@ -219,21 +219,42 @@ class TestSCS(BaseTest):
 
         prng = np.random.RandomState(kSeed)
         # Generate a random reference distribution
-        npSPriors = prng.uniform(0.0, 1.0, (kK, 1))
+        npSPriors = prng.uniform(0.0, 1.0, kK)
         npSPriors = npSPriors/sum(npSPriors)
 
         # Reference distribution
-        p_refProb = cp.Parameter((kK, 1), nonneg=True)
+        p_refProb = cp.Parameter(kK, nonneg=True)
         # Distribution to be estimated
-        v_prob = cp.Variable((kK, 1))
-        objkl = 0.0
-        for k in range(kK):
-            objkl += cp.kl_div(v_prob[k, 0], p_refProb[k, 0])
+        v_prob = cp.Variable(kK)
+        objkl = cp.sum(cp.kl_div(v_prob, p_refProb))
 
-        constrs = [sum(v_prob[k, 0] for k in range(kK)) == 1]
+        constrs = [cp.sum(v_prob) == 1]
         klprob = cp.Problem(cp.Minimize(objkl), constrs)
         p_refProb.value = npSPriors
         klprob.solve(solver=cp.SCS)
+        self.assertItemsAlmostEqual(v_prob.value, npSPriors)
+
+    def test_rel_entr(self) -> None:
+        """Test a problem with rel_entr.
+        """
+        kK = 50
+        kSeed = 10
+
+        prng = np.random.RandomState(kSeed)
+        # Generate a random reference distribution
+        npSPriors = prng.uniform(0.0, 1.0, kK)
+        npSPriors = npSPriors/sum(npSPriors)
+
+        # Reference distribution
+        p_refProb = cp.Parameter(kK, nonneg=True)
+        # Distribution to be estimated
+        v_prob = cp.Variable(kK)
+        obj_rel_entr = cp.sum(cp.rel_entr(v_prob, p_refProb))
+
+        constrs = [cp.sum(v_prob) == 1]
+        rel_entr_prob = cp.Problem(cp.Minimize(obj_rel_entr), constrs)
+        p_refProb.value = npSPriors
+        rel_entr_prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     def test_entr(self) -> None:

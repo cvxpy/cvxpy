@@ -81,7 +81,6 @@ from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.huber import huber
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.kl_div import kl_div
-from cvxpy.atoms.elementwise.rel_entr import rel_entr
 from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.loggamma import loggamma
 from cvxpy.atoms.elementwise.log_normcdf import log_normcdf
@@ -92,6 +91,7 @@ from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.neg import neg
 from cvxpy.atoms.elementwise.pos import pos
 from cvxpy.atoms.elementwise.power import power
+from cvxpy.atoms.elementwise.rel_entr import rel_entr
 from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
