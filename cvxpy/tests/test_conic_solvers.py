@@ -1434,13 +1434,13 @@ class TestECOS_BB(unittest.TestCase):
 class TestSCIPY(unittest.TestCase):
 
     def test_scipy_lp_0(self) -> None:
-        StandardTestLPs.test_lp_0(solver='SCIPY')
+        StandardTestLPs.test_lp_0(solver='SCIPY', duals=False)
 
     def test_scipy_lp_1(self) -> None:
-        StandardTestLPs.test_lp_1(solver='SCIPY')
+        StandardTestLPs.test_lp_1(solver='SCIPY', duals=False)
 
     def test_scipy_lp_2(self) -> None:
-        StandardTestLPs.test_lp_2(solver='SCIPY')
+        StandardTestLPs.test_lp_2(solver='SCIPY', duals=False)
 
     def test_scipy_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCIPY')
@@ -1449,4 +1449,4 @@ class TestSCIPY(unittest.TestCase):
         StandardTestLPs.test_lp_4(solver='SCIPY')
 
     def test_scipy_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCIPY')
+        StandardTestLPs.test_lp_5(solver='SCIPY', duals=False)
