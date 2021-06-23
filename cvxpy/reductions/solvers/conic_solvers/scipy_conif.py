@@ -19,7 +19,9 @@ import cvxpy.settings as s
 from cvxpy.constraints import NonNeg, Zero
 from cvxpy.reductions.solution import failure_solution, Solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers import utilities
 from distutils.version import StrictVersion
+import scipy  # For version checks
 import warnings
 
 
@@ -92,7 +94,6 @@ class SCIPY(ConicSolver):
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from scipy import optimize as opt
-        import scipy
 
         # Set default method which can be overriden by user inputs
         if (StrictVersion(scipy.__version__) < StrictVersion('1.6.1')):
@@ -177,8 +178,21 @@ class SCIPY(ConicSolver):
             primal_val = solution['fun']
             opt_val = primal_val + inverse_data[s.OFFSET]
             primal_vars = {inverse_data[self.VAR_ID]: solution['x']}
-            # SciPy linprog does not return dual variables yet
-            dual_vars = None
+
+            # SciPy linprog only returns duals for version >= 1.7.0
+            # and method is one of 'highs', 'highs-ds' or 'highs-ipm'
+            if ('ineqlin' in solution.keys()):
+                eq_dual = utilities.get_dual_values(
+                    -solution['eqlin']['marginals'],
+                    utilities.extract_dual_value,
+                    inverse_data[self.EQ_CONSTR])
+                leq_dual = utilities.get_dual_values(
+                    -solution['ineqlin']['marginals'],
+                    utilities.extract_dual_value,
+                    inverse_data[self.NEQ_CONSTR])
+                eq_dual.update(leq_dual)
+                dual_vars = eq_dual
+
             return Solution(status, opt_val, primal_vars, dual_vars, {})
         else:
             return failure_solution(status)
