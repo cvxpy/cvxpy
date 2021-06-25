@@ -556,6 +556,50 @@ class TestGrad(BaseTest):
         val = np.zeros((4, 4)) + np.diag(1 - div)
         self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
 
+    def test_rel_entr(self) -> None:
+        """Test domain for rel_entr.
+        """
+        b = Variable()
+        expr = cp.rel_entr(self.a, b)
+        self.a.value = 2
+        b.value = 4
+        self.assertAlmostEqual(expr.grad[self.a], np.log(2 / 4) + 1)
+        self.assertAlmostEqual(expr.grad[b], - (2 / 4))
+
+        self.a.value = 3
+        b.value = 0
+        self.assertAlmostEqual(expr.grad[self.a], None)
+        self.assertAlmostEqual(expr.grad[b], None)
+
+        self.a.value = -1
+        b.value = 2
+        self.assertAlmostEqual(expr.grad[self.a], None)
+        self.assertAlmostEqual(expr.grad[b], None)
+
+        y = Variable(2)
+        expr = cp.rel_entr(self.x, y)
+        self.x.value = [3, 4]
+        y.value = [5, 8]
+        val = np.zeros((2, 2)) + np.diag(np.log([3, 4]) - np.log([5, 8]) + 1)
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+        val = np.zeros((2, 2)) + np.diag([- 3 / 5, - 4 / 8])
+        self.assertItemsAlmostEqual(expr.grad[y].toarray(), val)
+
+        expr = cp.rel_entr(self.x, y)
+        self.x.value = [-1e-9, 4]
+        y.value = [1, 2]
+        self.assertAlmostEqual(expr.grad[self.x], None)
+        self.assertAlmostEqual(expr.grad[y], None)
+
+        expr = cp.rel_entr(self.A, self.B)
+        self.A.value = [[1, 2], [3, 4]]
+        self.B.value = [[5, 1], [3.5, 2.3]]
+        div = (self.A.value / self.B.value).ravel(order='F')
+        val = np.zeros((4, 4)) + np.diag(np.log(div) + 1)
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
+        val = np.zeros((4, 4)) + np.diag(- div)
+        self.assertItemsAlmostEqual(expr.grad[self.B].toarray(), val)
+
     def test_maximum(self) -> None:
         """Test domain for maximum.
         """

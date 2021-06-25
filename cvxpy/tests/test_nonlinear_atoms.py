@@ -71,30 +71,52 @@ class TestNonlinearAtoms(BaseTest):
     def test_kl_div(self) -> None:
         """Test a problem with kl_div.
         """
-        import numpy as np
-
         kK = 50
         kSeed = 10
 
         prng = np.random.RandomState(kSeed)
         # Generate a random reference distribution
-        npSPriors = prng.uniform(0.0, 1.0, (kK, 1))
-        npSPriors = npSPriors/np.sum(npSPriors)
+        npSPriors = prng.uniform(0.0, 1.0, kK)
+        npSPriors = npSPriors / sum(npSPriors)
 
         # Reference distribution
-        p_refProb = cvx.Parameter((kK, 1), nonneg=True)
+        p_refProb = cvx.Parameter(kK, nonneg=True)
         # Distribution to be estimated
-        v_prob = cvx.Variable((kK, 1))
-        objkl = 0.0
-        for k in range(kK):
-            objkl += cvx.kl_div(v_prob[k, 0], p_refProb[k, 0])
+        v_prob = cvx.Variable(kK)
+        objkl = cvx.sum(cvx.kl_div(v_prob, p_refProb))
 
-        constrs = [sum(v_prob[k, 0] for k in range(kK)) == 1]
+        constrs = [cvx.sum(v_prob) == 1]
         klprob = cvx.Problem(cvx.Minimize(objkl), constrs)
         p_refProb.value = npSPriors
         klprob.solve(solver=cvx.SCS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
         klprob.solve(solver=cvx.ECOS, verbose=True)
+        self.assertItemsAlmostEqual(v_prob.value, npSPriors)
+
+    def test_rel_entr(self) -> None:
+        """Test a problem with rel_entr.
+        """
+        kK = 50
+        kSeed = 10
+
+        prng = np.random.RandomState(kSeed)
+        # Generate a random reference distribution
+        npSPriors = prng.uniform(0.0, 1.0, kK)
+        npSPriors = npSPriors / sum(npSPriors)
+
+        # Reference distribution
+        p_refProb = cvx.Parameter(kK, nonneg=True)
+        # Distribution to be estimated
+        v_prob = cvx.Variable(kK)
+        obj_rel_entr = cvx.sum(cvx.rel_entr(v_prob, p_refProb))
+
+        constrs = [cvx.sum(v_prob) == 1]
+        rel_entr_prob = cvx.Problem(cvx.Minimize(obj_rel_entr), constrs)
+        p_refProb.value = npSPriors
+        rel_entr_prob.solve(solver=cvx.SCS)
+        rel_entr_prob.solve(solver=cvx.SCS, verbose=True)
+        self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
+        rel_entr_prob.solve(solver=cvx.ECOS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
 
     def test_entr_prob(self) -> None:

@@ -89,6 +89,9 @@ atoms_minimize = [
     (cp.kl_div, tuple(), [math.e, 1], Constant([1])),
     (cp.kl_div, tuple(), [math.e, math.e], Constant([0])),
     (cp.kl_div, (2,), [[math.e, 1], 1], Constant([1, 0])),
+    (cp.rel_entr, tuple(), [math.e, 1], Constant([math.e])),
+    (cp.rel_entr, tuple(), [math.e, math.e], Constant([0])),
+    (cp.rel_entr, (2,), [[math.e, 1], 1], Constant([math.e, 0])),
     (lambda x: cp.kron(np.array([[1, 2], [3, 4]]), x), (4, 4), [np.array([[5, 6], [7, 8]])],
      Constant(np.kron(np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])))),
     (cp.lambda_max, tuple(), [[[2, 0], [0, 1]]], Constant([2])),
@@ -135,10 +138,10 @@ atoms_minimize = [
      Constant([5.47722557])),
     (lambda x: cp.norm(x, 1), tuple(), [v_np], Constant([5])),
     (lambda x: cp.norm(x, 1), tuple(), [[[-1, 2], [3, -4]]],
-     Constant([10])),
+     Constant([7])),
     (lambda x: cp.norm(x, "inf"), tuple(), [v_np], Constant([2])),
     (lambda x: cp.norm(x, "inf"), tuple(), [[[-1, 2], [3, -4]]],
-     Constant([4])),
+     Constant([6])),
     (lambda x: cp.norm(x, "nuc"), tuple(), [[[2, 0], [0, 1]]], Constant([3])),
     (lambda x: cp.norm(x, "nuc"), tuple(), [[[3, 4, 5], [6, 7, 8], [9, 10, 11]]],
      Constant([23.173260452512931])),
@@ -328,7 +331,7 @@ def get_indices(size):
     """Get indices for dimension.
     """
     if len(size) == 0:
-        return tuple()
+        return [0]
     elif len(size) == 1:
         return range(size[0])
     else:
@@ -349,8 +352,8 @@ def test_constant_atoms(atom_info, objective_type) -> None:
             # Atoms with Constant arguments.
             prob_val = obj_val[indexer].value
             const_args = [Constant(arg) for arg in args]
-            problem = Problem(
-                objective_type(atom(*const_args)[indexer]))
+            obj = objective_type(atom(*const_args)[indexer]) if len(size) != 0 else objective_type(atom(*const_args))
+            problem = Problem(obj)
             run_atom(atom, problem, prob_val, solver)
 
             # Atoms with Variable arguments.
@@ -359,18 +362,14 @@ def test_constant_atoms(atom_info, objective_type) -> None:
             for idx, expr in enumerate(args):
                 variables.append(Variable(intf.shape(expr)))
                 constraints.append(variables[-1] == expr)
-            objective = objective_type(atom(*variables)[indexer])
-            new_obj_val = prob_val
-            if objective_type == cp.Maximize:
-                objective = -objective
-                new_obj_val = -new_obj_val
+            objective = objective_type(atom(*variables)[indexer]) if len(size) != 0 else objective_type(atom(*variables))
             problem = Problem(objective, constraints)
-            run_atom(atom, problem, new_obj_val, solver)
+            run_atom(atom, problem, prob_val, solver)
 
             # Atoms with Parameter arguments.
             parameters = []
             for expr in args:
                 parameters.append(Parameter(intf.shape(expr)))
                 parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)
-            objective = objective_type(atom(*parameters)[indexer])
+            objective = objective_type(atom(*parameters)[indexer]) if len(size) != 0 else objective_type(atom(*parameters))
             run_atom(atom, Problem(objective), prob_val, solver)
