@@ -24,7 +24,7 @@ from typing import Any, List, Tuple
 class rel_entr(Elementwise):
     """:math:`x\\log(x/y)`
 
-    For a disambiguation between rel_entr and kl_div, see https://github.com/cvxpy/cvxpy/issues/1406
+    For a disambiguation between rel_entr and kl_div, see https://github.com/cvxpy/cvxpy/issues/733
     """
 
     def __init__(self, x, y) -> None:
