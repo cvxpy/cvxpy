@@ -352,8 +352,12 @@ def test_constant_atoms(atom_info, objective_type) -> None:
             # Atoms with Constant arguments.
             prob_val = obj_val[indexer].value
             const_args = [Constant(arg) for arg in args]
-            obj = objective_type(atom(*const_args)[indexer]) if len(size) != 0 else objective_type(atom(*const_args))
-            problem = Problem(obj)
+            objective = (
+                objective_type(atom(*const_args)[indexer])
+                if len(size) != 0
+                else objective_type(atom(*const_args))
+            )
+            problem = Problem(objective)
             run_atom(atom, problem, prob_val, solver)
 
             # Atoms with Variable arguments.
@@ -362,7 +366,11 @@ def test_constant_atoms(atom_info, objective_type) -> None:
             for idx, expr in enumerate(args):
                 variables.append(Variable(intf.shape(expr)))
                 constraints.append(variables[-1] == expr)
-            objective = objective_type(atom(*variables)[indexer]) if len(size) != 0 else objective_type(atom(*variables))
+            objective = (
+                objective_type(atom(*variables)[indexer])
+                if len(size) != 0
+                else objective_type(atom(*variables))
+            )
             problem = Problem(objective, constraints)
             run_atom(atom, problem, prob_val, solver)
 
@@ -371,5 +379,9 @@ def test_constant_atoms(atom_info, objective_type) -> None:
             for expr in args:
                 parameters.append(Parameter(intf.shape(expr)))
                 parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)
-            objective = objective_type(atom(*parameters)[indexer]) if len(size) != 0 else objective_type(atom(*parameters))
+            objective = (
+                objective_type(atom(*parameters)[indexer])
+                if len(size) != 0
+                else objective_type(atom(*parameters))
+            )
             run_atom(atom, Problem(objective), prob_val, solver)
