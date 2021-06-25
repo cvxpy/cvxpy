@@ -67,5 +67,8 @@ class psd_wrap(Wrap):
     def is_psd(self) -> bool:
         return True
 
+    def is_nsd(self) -> bool:
+        return False
+
     def is_hermitian(self) -> bool:
         return True
