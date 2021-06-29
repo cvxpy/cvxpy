@@ -363,7 +363,7 @@ class TestComplex(BaseTest):
         x = Variable(3, complex=False)
         value = cvx.quad_form(b, P).value
         prob = Problem(cvx.Minimize(cvx.quad_form(x, P)), [x == b])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="ECOS")
         self.assertAlmostEqual(result, value)
 
         # Solve a problem with complex variable
@@ -371,7 +371,7 @@ class TestComplex(BaseTest):
         x = Variable(3, complex=True)
         value = cvx.quad_form(b, P).value
         prob = Problem(cvx.Minimize(cvx.quad_form(x, P)), [x == b])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="ECOS")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization, places=5)
 
@@ -381,7 +381,7 @@ class TestComplex(BaseTest):
         value = cvx.quad_form(b, P).value
         expr = cvx.quad_form(x, P)
         prob = Problem(cvx.Minimize(expr), [x == b])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="ECOS")
         normalization = max(abs(result), abs(value))
         self.assertAlmostEqual(result / normalization, value / normalization)
 
