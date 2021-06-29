@@ -33,6 +33,7 @@ from cvxpy.tests.solver_test_helpers import (
     StandardTestSOCPs,
     StandardTestPCPs
 )
+from distutils.version import StrictVersion
 
 
 class TestECOS(BaseTest):
@@ -1408,14 +1409,18 @@ class TestECOS_BB(unittest.TestCase):
 
 class TestSCIPY(unittest.TestCase):
 
+    def setUp(self):
+        import scipy
+        self.d = StrictVersion(scipy.__version__) >= StrictVersion('1.7.0')
+
     def test_scipy_lp_0(self) -> None:
-        StandardTestLPs.test_lp_0(solver='SCIPY', duals=False)
+        StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
 
     def test_scipy_lp_1(self) -> None:
-        StandardTestLPs.test_lp_1(solver='SCIPY', duals=False)
+        StandardTestLPs.test_lp_1(solver='SCIPY', duals=self.d)
 
     def test_scipy_lp_2(self) -> None:
-        StandardTestLPs.test_lp_2(solver='SCIPY', duals=False)
+        StandardTestLPs.test_lp_2(solver='SCIPY', duals=self.d)
 
     def test_scipy_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCIPY')
@@ -1424,4 +1429,4 @@ class TestSCIPY(unittest.TestCase):
         StandardTestLPs.test_lp_4(solver='SCIPY')
 
     def test_scipy_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCIPY', duals=False)
+        StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
