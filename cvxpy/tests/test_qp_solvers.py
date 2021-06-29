@@ -440,12 +440,12 @@ class TestQp(BaseTest):
         prob = Problem(Minimize(sum_squares(A @ x - b)))
 
         b.value = np.random.randn(m)
-        result = prob.solve(warm_start=False)
-        result2 = prob.solve(warm_start=True)
+        result = prob.solve(solver="SCS", warm_start=False)
+        result2 = prob.solve(solver="SCS", warm_start=True)
         self.assertAlmostEqual(result, result2)
         b.value = np.random.randn(m)
-        result = prob.solve(warm_start=True)
-        result2 = prob.solve(warm_start=False)
+        result = prob.solve(solver="SCS", warm_start=True)
+        result2 = prob.solve(solver="SCS", warm_start=False)
         self.assertAlmostEqual(result, result2)
         pass
 
@@ -497,7 +497,7 @@ class TestQp(BaseTest):
 
         obj = Minimize(b ** 2 + abs(a))
         prob = Problem(obj)
-        prob.solve()
+        prob.solve(solver="SCS")
         self.assertAlmostEqual(obj.value, 1.0)
 
     def test_gurobi_time_limit_no_solution(self) -> None:

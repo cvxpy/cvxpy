@@ -44,7 +44,7 @@ class TestConvolution(BaseTest):
         # Matrix stuffing.
         prob = cvx.Problem(cvx.Minimize(cvx.norm(expr, 1)),
                            [x == g])
-        result = prob.solve()
+        result = prob.solve(solver=cvx.SCS)
         self.assertAlmostEqual(result, sum(f_conv_g), places=3)
         self.assertItemsAlmostEqual(expr.value, f_conv_g)
 
@@ -107,4 +107,4 @@ class TestConvolution(BaseTest):
         x = cvx.Variable(N)
         v = cvx.conv(h, x)
         obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))
-        print(cvx.Problem(obj, []).solve())
+        print(cvx.Problem(obj, []).solve(solver=cvx.ECOS))

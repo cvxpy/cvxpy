@@ -46,7 +46,7 @@ class TestDqcp(base_test.BaseTest):
         reduced = red.reduce()
         self.assertTrue(reduced.is_dcp())
         self.assertEqual(len(reduced.parameters()), 1)
-        soln = bisection.bisect(reduced, low=12, high=17)
+        soln = bisection.bisect(reduced, low=12, high=17, solver=cp.SCS)
         self.assertAlmostEqual(soln.opt_val, 12.0, places=3)
 
         problem.unpack(soln)
@@ -74,7 +74,7 @@ class TestDqcp(base_test.BaseTest):
         reduced = red.reduce()
         self.assertTrue(reduced.is_dcp())
         self.assertEqual(len(reduced.parameters()), 1)
-        soln = bisection.bisect(reduced)
+        soln = bisection.bisect(reduced, solver=cp.SCS)
         self.assertAlmostEqual(soln.opt_val, 12.0, places=3)
 
         problem.unpack(soln)
@@ -408,7 +408,7 @@ class TestDqcp(base_test.BaseTest):
         variable = cp.Variable(len(vector))
         problem = cp.Problem(cp.Maximize(vector @ variable),
                              [cp.norm2(variable) <= 1.])
-        problem.solve()
+        problem.solve(solver=cp.SCS)
 
         value = variable.value.copy()
         cp.sign(variable).value

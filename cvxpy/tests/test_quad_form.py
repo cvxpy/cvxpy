@@ -64,7 +64,7 @@ class TestNonOptimal(BaseTest):
                         objective = cvxpy.Maximize(q)
                     constraints = [0 <= x, cvxpy.sum(x) == 1]
                     p = cvxpy.Problem(objective, constraints)
-                    p.solve()
+                    p.solve(solver=cvxpy.SCS)
 
                     # check that cvxpy found the right answer
                     xopt = x.value.flatten()
@@ -79,7 +79,7 @@ class TestNonOptimal(BaseTest):
         x = cvxpy.Variable(2)
         cost = cvxpy.quad_form(x, Q)
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
-        self.assertAlmostEqual(prob.solve(), 5)
+        self.assertAlmostEqual(prob.solve(solver=cvxpy.SCS), 5)
 
         # Here are our QP factors
         A = cvxpy.Constant(sp.eye(4))
@@ -93,7 +93,7 @@ class TestNonOptimal(BaseTest):
         objective = cvxpy.Minimize(function)
         problem = cvxpy.Problem(objective)
 
-        problem.solve()
+        problem.solve(solver=cvxpy.SCS)
         self.assertEqual(len(function.value), 1)
 
     def test_param_quad_form(self) -> None:
@@ -107,7 +107,7 @@ class TestNonOptimal(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            self.assertAlmostEqual(prob.solve(), 5)
+            self.assertAlmostEqual(prob.solve(solver=cvxpy.SCS), 5)
 
     def test_non_symmetric(self) -> None:
         """Test when P is constant and not symmetric.
@@ -130,7 +130,7 @@ class TestNonOptimal(BaseTest):
             cost = cvxpy.quad_form(x, P)
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
         with self.assertRaises(Exception) as cm:
-            prob.solve()
+            prob.solve(solver=cvxpy.SCS)
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
 
@@ -144,7 +144,7 @@ class TestNonOptimal(BaseTest):
             warnings.simplefilter("ignore")
             cost = cvxpy.quad_form(x, P)
             prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
-            prob.solve()
+            prob.solve(solver=cvxpy.SCS)
 
     def test_nsd_exactly_tolerance(self) -> None:
         """Test that NSD check when eigenvalue is exactly EIGVAL_TOL
@@ -156,7 +156,7 @@ class TestNonOptimal(BaseTest):
             warnings.simplefilter("ignore")
             cost = cvxpy.quad_form(x, P)
             prob = cvxpy.Problem(cvxpy.Maximize(cost), [x == [1, 2]])
-            prob.solve()
+            prob.solve(solver=cvxpy.SCS)
 
     def test_obj_eval(self) -> None:
         """Test case where objective evaluation differs from result.
@@ -167,7 +167,7 @@ class TestNonOptimal(BaseTest):
         obj0 = -B.T @ x
         obj1 = cvxpy.quad_form(B.T @ x, A)
         prob = cvxpy.Problem(cvxpy.Minimize(obj0 + obj1))
-        prob.solve()
+        prob.solve(solver=cvxpy.SCS)
         self.assertAlmostEqual(prob.value, prob.objective.value)
 
     def test_zero_term(self) -> None:
@@ -185,7 +185,7 @@ class TestNonOptimal(BaseTest):
         )
         constraints = [(M[0] @ c) == 1]  # (K * c) >= -0.1]
         prob = cvxpy.Problem(objective, constraints)
-        prob.solve()
+        prob.solve(solver=cvxpy.SCS)
 
     def test_zero_matrix(self) -> None:
         """Test quad_form with P = 0.

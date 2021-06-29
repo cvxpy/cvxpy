@@ -300,7 +300,7 @@ class TestConstraints(BaseTest):
         c = np.arange(n)
         prob = cp.Problem(cp.Maximize(cp.sum(x)),
                           [(x - c) <= 0])
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         dual = prob.constraints[0].dual_value
         prob = cp.Problem(cp.Maximize(cp.sum(x)),
                           [cp.NonPos(x - c)])
