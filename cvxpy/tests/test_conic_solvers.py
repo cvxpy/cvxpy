@@ -22,7 +22,6 @@ import scipy.linalg as la
 import pytest
 
 import cvxpy as cp
-from cvxpy.error import SolverError
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import (
@@ -1349,7 +1348,7 @@ class TestAllSolvers(BaseTest):
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
         if INSTALLED_MI_SOLVERS == [cp.ECOS_BB]:
-            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer" 
+            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer"
                                                               "solver for this model.*"):
                 prob.solve()
         else:
@@ -1369,7 +1368,7 @@ class TestECOS_BB(unittest.TestCase):
             prob.solve()
             assert prob.solver_stats.solver_name != cp.ECOS_BB
         else:
-            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer" 
+            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer"
                                                               "solver for this model.*"):
                 prob.solve()
 
