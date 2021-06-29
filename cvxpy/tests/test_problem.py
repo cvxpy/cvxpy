@@ -1758,41 +1758,41 @@ class TestProblem(BaseTest):
         """
         x = cp.Variable(pos=True)
         prob = cp.Problem(cp.Minimize(x), [True])
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 0)
 
         x = cp.Variable(pos=True)
         prob = cp.Problem(cp.Minimize(x), [True]*10)
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 0)
 
         prob = cp.Problem(cp.Minimize(x), [42 <= x] + [True]*10)
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 42)
 
         prob = cp.Problem(cp.Minimize(x), [True] + [42 <= x] + [True] * 10)
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 42)
 
         prob = cp.Problem(cp.Minimize(x), [False])
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [False]*10)
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [True]*10 + [False] + [True]*10)
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [42 <= x] + [True]*10 + [False])
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         # only Trues, but infeasible solution since x must be non-negative.
         prob = cp.Problem(cp.Minimize(x), [True] + [x <= -42] + [True]*10)
-        prob.solve(solver=cp.SCS)
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
     def test_pos(self) -> None:
