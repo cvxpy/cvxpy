@@ -440,12 +440,12 @@ class TestQp(BaseTest):
         prob = Problem(Minimize(sum_squares(A @ x - b)))
 
         b.value = np.random.randn(m)
-        result = prob.solve(solver="SCS", warm_start=False)
-        result2 = prob.solve(solver="SCS", warm_start=True)
+        result = prob.solve(solver="OSQP", warm_start=False)
+        result2 = prob.solve(solver="OSQP", warm_start=True)
         self.assertAlmostEqual(result, result2)
         b.value = np.random.randn(m)
-        result = prob.solve(solver="SCS", warm_start=True)
-        result2 = prob.solve(solver="SCS", warm_start=False)
+        result = prob.solve(solver="OSQP", warm_start=True)
+        result2 = prob.solve(solver="OSQP", warm_start=False)
         self.assertAlmostEqual(result, result2)
         pass
 

@@ -64,7 +64,7 @@ class TestNonOptimal(BaseTest):
                         objective = cvxpy.Maximize(q)
                     constraints = [0 <= x, cvxpy.sum(x) == 1]
                     p = cvxpy.Problem(objective, constraints)
-                    p.solve(solver=cvxpy.SCS)
+                    p.solve(solver=cvxpy.OSQP)
 
                     # check that cvxpy found the right answer
                     xopt = x.value.flatten()
@@ -79,7 +79,7 @@ class TestNonOptimal(BaseTest):
         x = cvxpy.Variable(2)
         cost = cvxpy.quad_form(x, Q)
         prob = cvxpy.Problem(cvxpy.Minimize(cost), [x == [1, 2]])
-        self.assertAlmostEqual(prob.solve(solver=cvxpy.SCS), 5)
+        self.assertAlmostEqual(prob.solve(solver=cvxpy.OSQP), 5)
 
         # Here are our QP factors
         A = cvxpy.Constant(sp.eye(4))
@@ -93,7 +93,7 @@ class TestNonOptimal(BaseTest):
         objective = cvxpy.Minimize(function)
         problem = cvxpy.Problem(objective)
 
-        problem.solve(solver=cvxpy.SCS)
+        problem.solve(solver=cvxpy.OSQP)
         self.assertEqual(len(function.value), 1)
 
     def test_param_quad_form(self) -> None:

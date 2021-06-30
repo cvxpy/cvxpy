@@ -926,13 +926,13 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y >= 3, y >= 4, x >= 5])
-        p1.solve(solver=cp.SCS)
+        p1.solve(solver=cp.ECOS)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y >= 3, y >= 4])
         g = partial_optimize(p2, [y], [x], solver='ECOS')
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve(solver=cp.SCS)
+        p3.solve(solver=cp.ECOS)
         self.assertAlmostEqual(p1.value, p3.value)
 
     @unittest.skipUnless(len(INSTALLED_MI_SOLVERS) > 0, 'No mixed-integer solver is installed.')
