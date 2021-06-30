@@ -534,7 +534,7 @@ class TestAtoms(BaseTest):
 
         X = cp.Variable((5, 2))
         prob = cp.Problem(cp.Minimize(0), [X == A_cp])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(A_np, X.value)
 
         a_np = np.reshape(A_np, 10, order='C')
@@ -544,7 +544,7 @@ class TestAtoms(BaseTest):
 
         x = cp.Variable(10)
         prob = cp.Problem(cp.Minimize(0), [x == a_cp])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(a_np, x.value)
 
         # Test more complex C-style reshape: matrix to another matrix
@@ -558,7 +558,7 @@ class TestAtoms(BaseTest):
         X = cp.Variable(b.shape)
         X_reshaped = cp.reshape(X, (2, 6), order='C')
         prob = cp.Problem(cp.Minimize(0), [X_reshaped == b_reshaped])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(b_reshaped, X_reshaped.value)
         self.assertItemsAlmostEqual(b, X.value)
 
@@ -863,44 +863,44 @@ class TestAtoms(BaseTest):
         x, t = Variable(dims), Variable(dims)
         xval = [-5]*dims
         p1 = Problem(cp.Minimize(cp.sum(t)), [-t <= xval, xval <= t])
-        p1.solve()
+        p1.solve(solver='ECOS')
 
         # Minimize the 1-norm via partial_optimize.
         p2 = Problem(cp.Minimize(cp.sum(t)), [-t <= x, x <= t])
-        g = partial_optimize(p2, [t], [x])
+        g = partial_optimize(p2, [t], [x], solver='ECOS')
         p3 = Problem(cp.Minimize(g), [x == xval])
-        p3.solve()
+        p3.solve(solver='ECOS')
         self.assertAlmostEqual(p1.value, p3.value)
 
         # Minimize the 1-norm using maximize.
         p2 = Problem(cp.Maximize(cp.sum(-t)), [-t <= x, x <= t])
-        g = partial_optimize(p2, opt_vars=[t])
+        g = partial_optimize(p2, opt_vars=[t], solver='ECOS')
         p3 = Problem(cp.Maximize(g), [x == xval])
-        p3.solve()
+        p3.solve(solver='ECOS')
         self.assertAlmostEqual(p1.value, -p3.value)
 
         # Try leaving out args.
 
         # Minimize the 1-norm via partial_optimize.
         p2 = Problem(cp.Minimize(cp.sum(t)), [-t <= x, x <= t])
-        g = partial_optimize(p2, opt_vars=[t])
+        g = partial_optimize(p2, opt_vars=[t], solver='ECOS')
         p3 = Problem(cp.Minimize(g), [x == xval])
-        p3.solve()
+        p3.solve(solver='ECOS')
         self.assertAlmostEqual(p1.value, p3.value)
 
         # Minimize the 1-norm via partial_optimize.
-        g = partial_optimize(p2, dont_opt_vars=[x])
+        g = partial_optimize(p2, dont_opt_vars=[x], solver='ECOS')
         p3 = Problem(cp.Minimize(g), [x == xval])
-        p3.solve()
+        p3.solve(solver='ECOS')
         self.assertAlmostEqual(p1.value, p3.value)
 
         with self.assertRaises(Exception) as cm:
-            g = partial_optimize(p2)
+            g = partial_optimize(p2, solver='ECOS')
         self.assertEqual(str(cm.exception),
                          "partial_optimize called with neither opt_vars nor dont_opt_vars.")
 
         with self.assertRaises(Exception) as cm:
-            g = partial_optimize(p2, [], [x])
+            g = partial_optimize(p2, [], [x], solver='ECOS')
         self.assertEqual(str(cm.exception),
                          ("If opt_vars and new_opt_vars are both specified, "
                           "they must contain all variables in the problem.")
@@ -913,11 +913,11 @@ class TestAtoms(BaseTest):
         p1 = Problem(Minimize(cp.sum(t)), [-t <= x, x <= t])
 
         # Minimize the 1-norm via partial_optimize
-        g = partial_optimize(p1, [t], [x])
+        g = partial_optimize(p1, [t], [x], solver='ECOS')
         p2 = Problem(Minimize(g))
-        p2.solve()
+        p2.solve(solver='ECOS')
 
-        p1.solve()
+        p1.solve(solver='ECOS')
         self.assertAlmostEqual(p1.value, p2.value)
 
     def test_partial_optimize_simple_problem(self) -> None:
@@ -926,13 +926,13 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y >= 3, y >= 4, x >= 5])
-        p1.solve()
+        p1.solve(solver=cp.ECOS)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y >= 3, y >= 4])
-        g = partial_optimize(p2, [y], [x])
+        g = partial_optimize(p2, [y], [x], solver='ECOS')
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve()
+        p3.solve(solver=cp.ECOS)
         self.assertAlmostEqual(p1.value, p3.value)
 
     @unittest.skipUnless(len(INSTALLED_MI_SOLVERS) > 0, 'No mixed-integer solver is installed.')
@@ -957,13 +957,13 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x + cp.exp(y)), [x+y >= 3, y >= 4, x >= 5])
-        p1.solve()
+        p1.solve(solver=cp.SCS)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(cp.exp(y)), [x+y >= 3, y >= 4])
-        g = partial_optimize(p2, [y], [x])
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve()
+        p3.solve(solver=cp.SCS)
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_params(self) -> None:
@@ -976,13 +976,13 @@ class TestAtoms(BaseTest):
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y >= gamma, y >= 4, x >= 5])
         gamma.value = 3
-        p1.solve()
+        p1.solve(solver=cp.SCS)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y >= gamma, y >= 4])
-        g = partial_optimize(p2, [y], [x])
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve()
+        p3.solve(solver=cp.SCS)
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_numeric_fn(self) -> None:
@@ -992,12 +992,12 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(y), [xval+y >= 3])
-        p1.solve()
+        p1.solve(solver=cp.SCS)
 
         # Solve the two-stage problem via partial_optimize
         constr = [y >= -100]
         p2 = Problem(Minimize(y), [x+y >= 3] + constr)
-        g = partial_optimize(p2, [y], [x])
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
         x.value = xval
         y.value = 42
         constr[0].dual_variables[0].value = 42
@@ -1008,7 +1008,7 @@ class TestAtoms(BaseTest):
 
         # No variables optimized over.
         p2 = Problem(Minimize(y), [x+y >= 3])
-        g = partial_optimize(p2, [], [x, y])
+        g = partial_optimize(p2, [], [x, y], solver=cp.SCS)
         x.value = xval
         y.value = 42
         p2.constraints[0].dual_variables[0].value = 42
@@ -1026,12 +1026,12 @@ class TestAtoms(BaseTest):
         p1 = Problem(Minimize(cp.sum(t)), [-t <= x, x <= t])
 
         # Minimize the 1-norm via partial_optimize
-        g = partial_optimize(p1, [t], [x])
-        g2 = partial_optimize(Problem(Minimize(g)), [x])
+        g = partial_optimize(p1, [t], [x], solver='ECOS')
+        g2 = partial_optimize(Problem(Minimize(g)), [x], solver='ECOS')
         p2 = Problem(Minimize(g2))
-        p2.solve()
+        p2.solve(solver='ECOS')
 
-        p1.solve()
+        p1.solve(solver='ECOS')
         self.assertAlmostEqual(p1.value, p2.value)
 
     def test_nonnegative_variable(self) -> None:
@@ -1039,7 +1039,7 @@ class TestAtoms(BaseTest):
         """
         x = Variable(nonneg=True)
         p = Problem(Minimize(5+x), [x >= 3])
-        p.solve()
+        p.solve(solver=cp.SCS)
         self.assertAlmostEqual(p.value, 8)
         self.assertAlmostEqual(x.value, 3)
 
@@ -1049,7 +1049,7 @@ class TestAtoms(BaseTest):
         y = Variable((5, 5))
         obj = Minimize(cp.mixed_norm(y, "inf", 1))
         prob = Problem(obj, [y == np.ones((5, 5))])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 5)
 
     def test_mat_norms(self) -> None:
@@ -1060,13 +1060,13 @@ class TestAtoms(BaseTest):
         X = Variable((2, 2))
         obj = Minimize(cp.norm(X, 1))
         prob = cp.Problem(obj, [X == A])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         print(result)
         self.assertAlmostEqual(result, cp.norm(A, 1).value, places=3)
 
         obj = Minimize(cp.norm(X, np.inf))
         prob = cp.Problem(obj, [X == A])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         print(result)
         self.assertAlmostEqual(result, cp.norm(A, np.inf).value, places=3)
 
@@ -1117,7 +1117,7 @@ class TestAtoms(BaseTest):
         y = Variable((2, 2))
         obj = Minimize(cp.sum(-cp.log_normcdf(y)))
         prob = Problem(obj, [y == 2])
-        result = prob.solve()
+        result = prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(
             -result, 4 * np.log(scipy.stats.norm.cdf(2)), places=None, delta=1e-2
         )
@@ -1131,7 +1131,7 @@ class TestAtoms(BaseTest):
         p = np.ones((4,))
         obj = cp.Minimize(cp.scalar_product(v, p))
         prob = cp.Problem(obj, [v >= 1])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, p)
 
         # With a parameter.
@@ -1141,7 +1141,7 @@ class TestAtoms(BaseTest):
         p.value = np.ones((4,))
         obj = cp.Minimize(cp.scalar_product(v, p))
         prob = cp.Problem(obj, [v >= 1])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, p.value)
 
     def test_conj(self) -> None:
@@ -1150,7 +1150,7 @@ class TestAtoms(BaseTest):
         v = cp.Variable((4,))
         obj = cp.Minimize(cp.sum(v))
         prob = cp.Problem(obj, [cp.conj(v) >= 1])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         assert np.allclose(v.value, np.ones((4,)))
 
     def test_loggamma(self) -> None:
@@ -1167,5 +1167,5 @@ class TestAtoms(BaseTest):
         cost = cp.sum(cp.loggamma(X))
         prob = cp.Problem(cp.Minimize(cost),
                           [X == A])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         assert np.isclose(result, true_val.sum(), atol=1e0)

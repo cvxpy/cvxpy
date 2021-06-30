@@ -950,7 +950,7 @@ class TestExpressions(BaseTest):
 
         x = Variable(4)
         self.assertEqual(x[::-1].shape, (4,))
-        Problem(Minimize(0), [x[::-1] == c]).solve()
+        Problem(Minimize(0), [x[::-1] == c]).solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(x.value, [4, 3, 2, 1])
 
         x = Variable(2)
@@ -1154,7 +1154,7 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(expr.value, y.value * z.value)
 
         prob = cp.Problem(cp.Minimize(cp.sum(expr)), [z == z.value])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(expr.value, y.value * z.value)
 
         np.random.seed(0)
@@ -1186,7 +1186,7 @@ class TestExpressions(BaseTest):
         self.assertItemsAlmostEqual(expr.value, y.value + z.value)
 
         prob = cp.Problem(cp.Minimize(cp.sum(expr)), [z == z.value])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(expr.value, y.value + z.value)
 
         np.random.seed(0)

@@ -608,6 +608,6 @@ class TestDgp2Dcp(BaseTest):
         x.value = None
 
         prob = cvxpy.Problem(cvxpy.Minimize(1.0), [expr == b])
-        prob.solve(gp=True)
+        prob.solve(solver=SOLVER, gp=True)
         sltn = np.exp(np.linalg.solve(A, np.log(b)))
         self.assertItemsAlmostEqual(x.value, sltn)
