@@ -1,5 +1,5 @@
 import numpy as np
-from cvxpy import *
+from cvxpy import Maximize, Problem, quad_form
 import matplotlib.pyplot as pyplot
 import time
 

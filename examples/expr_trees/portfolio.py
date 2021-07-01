@@ -15,8 +15,9 @@ limitations under the License.
 """
 
 # simple_portfolio_data
-from cvxpy import *
+from cvxpy import CVXOPT, ECOS, Minimize, Problem, SCS, Variable, quad_form
 import numpy as np
+
 np.random.seed(5)
 n = 8000
 pbar = (np.ones((n, 1)) * .03 +

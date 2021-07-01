@@ -16,8 +16,9 @@ limitations under the License.
 
 # Relax and round example for talk.
 from __future__ import division
-from cvxpy import *
+
 import numpy
+from cvxpy import Minimize, Parameter, Problem, sum_squares, Variable
 
 # def bool_vars(prob):
 #     return [var for var in prob.variables() if var.boolean]
@@ -40,7 +41,7 @@ def round_and_fix(prob):
                    prob.constraints + new_constr)
 
 def branch_and_bound(n, A, B, c):
-    from Queue import PriorityQueue
+    from queue import PriorityQueue
     x = Variable(n)
     z = Variable(n)
     L = Parameter(n)

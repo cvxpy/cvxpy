@@ -20,13 +20,14 @@ limitations under the License.
 # xi = argmin [f(xi) + (rho/2)norm(xi - xbar + ui)]
 # ui = ui + xi - xbar
 
-from cvxpy import *
-from multiprocessing import Pool
-import operator as op
-import numpy as np
-from numpy.random import randn
-import dill
 from functools import reduce
+from multiprocessing import Pool
+
+import dill
+import numpy as np
+import operator as op
+from cvxpy import norm, Minimize, Parameter, Problem, sum_squares, Variable
+from numpy.random import randn
 
 # Initialize the problem.
 n = 1000

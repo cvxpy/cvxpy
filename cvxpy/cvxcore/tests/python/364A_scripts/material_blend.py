@@ -1,5 +1,5 @@
 import numpy as np
-from cvxpy import *
+from cvxpy import Maximize, Problem, Variable
 import time
 
 ANSWERS = []

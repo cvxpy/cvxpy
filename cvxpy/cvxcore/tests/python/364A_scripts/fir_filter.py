@@ -1,5 +1,5 @@
 import numpy as np
-from cvxpy import *
+from cvxpy import Minimize, Problem, Variable, conv, norm
 import matplotlib.pyplot as plt
 import time
 

@@ -1,4 +1,4 @@
-from cvxpy import *
+from cvxpy import Minimize, Problem, Variable
 import numpy
 import time
 

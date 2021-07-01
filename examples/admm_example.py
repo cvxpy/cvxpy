@@ -13,14 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from cvxpy import *
 from multiprocessing import Pool
-import matplotlib.pyplot as plt
-from numpy import linalg as LA
+
 import numpy as np
-import scipy as sp
-import math
+from cvxpy import norm, Minimize, Problem, square, Variable
 
 def solveX(data):
 	a = data[0:3]

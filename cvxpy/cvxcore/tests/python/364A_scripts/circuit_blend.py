@@ -49,5 +49,5 @@ tic = time.time()
 ANSWERS.append(prob.solve())
 toc = time.time()
 TIME += toc - tic
-print TIME
+print(TIME)
 pass #print np.exp(Y.dot( theta.value ))

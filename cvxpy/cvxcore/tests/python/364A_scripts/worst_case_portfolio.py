@@ -1,7 +1,7 @@
-import numpy as np
-from cvxpy import *
-import matplotlib.pyplot as pyplot
 import time
+
+import numpy as np
+from cvxpy import Maximize, Problem, Semidef, quad_form
 
 TIME = 0
 
