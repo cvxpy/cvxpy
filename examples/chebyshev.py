@@ -18,12 +18,8 @@ from __future__ import division
 
 import cvxopt
 import numpy as np
-from pylab import *
-import math
-
-# from cvxpy import numpy as my_numpy
-
-from cvxpy import *
+from cvxpy import Maximize, Problem, Variable
+from pylab import axis, plot, show, title, xlabel, ylabel
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Example: Compute and display the Chebyshev center of a 2D polyhedron
@@ -84,7 +80,7 @@ plot( x, -x*a4[0]/a4[1] + b[0]/a4[1])
 
 
 # plot the solution
-plot( center_val[0] + radius.value*cos(theta), center_val[1] + radius.value*sin(theta) )
+plot( center_val[0] + radius.value*np.cos(theta), center_val[1] + radius.value*np.sin(theta) )
 plot( center_val[0], center_val[1], 'x', markersize=10 )
 
 # label

@@ -15,16 +15,12 @@ limitations under the License.
 """
 
 from __future__ import division
-import sys
+from multiprocessing import Pool
 
 import cvxopt
 import numpy as np
-from pylab import *
-import math
-
-from cvxpy import *
-
-from multiprocessing import Pool
+from cvxpy import norm, Minimize, Parameter, Problem, Variable
+from pylab import plot, show, title, xlabel, ylabel
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Exercise 5.33: Parametrized l1-norm approximation
@@ -78,7 +74,7 @@ print('Done!')
 
 # Plots
 plot(e_values, p_values)
-title('p*($\epsilon$) vs $\epsilon$')
-xlabel('$\epsilon$')
-ylabel('p*($\epsilon$)')
+title(r'p*($\epsilon$) vs $\epsilon$')
+xlabel(r'$\epsilon$')
+ylabel(r'p*($\epsilon$)')
 show()

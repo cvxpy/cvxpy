@@ -20,13 +20,10 @@ Branch and bound to solve minimum cardinality problem.
 minimize ||A*x - b||^2_2
 subject to x in {0, 1}^n
 """
+from queue import PriorityQueue
 
-from cvxpy import *
 import numpy
-try:
-    from Queue import PriorityQueue
-except:
-    from queue import PriorityQueue
+from cvxpy import Minimize, Parameter, Problem, sum_squares, Variable
 
 # Problem data.
 m = 25

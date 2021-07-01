@@ -13,13 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from cvxpy import *
-import create_graph as g
-from max_flow import Edge, Node
 import pickle
 import random as r
+
+import create_graph as g
 import cvxopt
+from cvxpy import Maximize, Problem, Variable
+from max_flow import Edge, Node
+
 
 # Multi-commodity flow.
 COMMODITIES = 5 # Number of commodities.

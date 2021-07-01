@@ -15,10 +15,10 @@ limitations under the License.
 """
 
 # A SVM example with CVXPY.
-from cvxpy import *
-import numpy as np
 from multiprocessing import Process, Pipe
-import time
+
+import numpy as np
+from cvxpy import norm, Minimize, Parameter, pos, Problem, sum_squares, Variable
 
 # Divide the data into NUM_PROCS segments,
 # using NUM_PROCS processes.
@@ -120,4 +120,3 @@ for i in range(MAX_ITER):
 
 # print w_avg[:-1]
 # print w_avg[-1]
-

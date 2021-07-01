@@ -15,9 +15,12 @@ limitations under the License.
 """
 
 # simple_portfolio_data
-from cvxpy import *
+from cvxpy import (
+    CVXOPT, ECOS, Minimize, Problem, SCS, Variable, norm, quad_form, square
+)
 import numpy as np
 import scipy.sparse as sp
+
 np.random.seed(5)
 n = 10000
 m = 100
@@ -70,4 +73,3 @@ prob.solve(verbose=True, solver=CVXOPT)
 elapsed = (time.clock() - start)
 print("CVXOPT time:", elapsed)
 print(prob.value)
-

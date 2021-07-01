@@ -13,11 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from multiprocessing import Pool
 
-from cvxpy import *
 import numpy as np
 import cvxopt
-from multiprocessing import Pool
+from cvxpy import norm, Minimize, Parameter, Problem, sum_squares, Variable
 
 # Problem data.
 n = 10

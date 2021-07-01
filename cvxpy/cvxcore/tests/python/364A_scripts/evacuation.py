@@ -1,5 +1,5 @@
 # data for optimal evacuation problem
-from cvxpy import *
+from cvxpy import ECOS, Minimize, Problem, Variable, settings, square
 import numpy as np
 import matplotlib.pyplot as plt
 import math

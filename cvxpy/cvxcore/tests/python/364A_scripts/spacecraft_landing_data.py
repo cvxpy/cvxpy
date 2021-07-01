@@ -1,5 +1,5 @@
 import numpy as np
-from cvxpy import *
+from cvxpy import Minimize, Problem, Variable, norm
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm

@@ -11,7 +11,7 @@
 # In[9]:
 
 # Preparation:
-from cvxpy import *
+from cvxpy import Minimize, Problem, Variable, norm, settings, sum_squares
 import numpy
 
 

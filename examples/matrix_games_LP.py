@@ -18,11 +18,7 @@ limitations under the License.
 from __future__ import division
 
 import cvxopt
-import numpy as np
-from pylab import *
-import math
-
-from cvxpy import *
+from cvxpy import Maximize, Minimize, Problem, Variable
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Example: Section 5.2.5: Mixed strategies for matrix games (LP formulation)

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import *
+from cvxpy import Card, norm, Minimize, Parameter, pos, Problem, Variable
 from mixed_integer import *
 import numpy as np
 

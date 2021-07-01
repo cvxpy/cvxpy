@@ -1,4 +1,4 @@
-from cvxpy import *
+from cvxpy import Minimize, Problem, sum_entries, sum_squares, Variable
 import numpy
 import time
 
@@ -23,7 +23,7 @@ cost = sum_squares(w) + C*sum_entries(xi_pos) + C*sum_entries(xi_neg)
 constrs = []
 for j in range(pos.shape[0]):
     constrs += [w.T*pos[j,:] - b >= 1 - xi_pos[j]]
-    
+
 for j in range(neg.shape[0]):
     constrs += [-(w.T*neg[j,:] - b) >= 1 - xi_neg[j]]
 

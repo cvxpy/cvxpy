@@ -1,5 +1,5 @@
 import numpy as np
-from cvxpy import *
+from cvxpy import Minimize, Problem, Variable, entr, log
 import math
 
 A = np.array(np.mat('-1 -1 0 0 0;\
