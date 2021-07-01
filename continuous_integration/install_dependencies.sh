@@ -28,7 +28,11 @@ if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
   conda install pyscipopt
 fi
 
-python -m pip install diffcp gurobipy xpress mosek
+python -m pip install diffcp gurobipy xpress
+
+if [[ -n "$MOSEK_CI_BASE64" ]]; then
+    python -m pip install mosek
+fi
 
 if [[ "$USE_OPENMP" == "True" ]]; then
   conda install -c conda-forge openmp
