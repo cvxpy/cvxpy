@@ -22,7 +22,7 @@ import time
 
 
 class DIFFCP(scs_conif.SCS):
-    """An interface for the DIFFCP solver, a differentiable wrapper of SCS.
+    """An interface for the DIFFCP solver, a differentiable wrapper of SCS and ECOS.
     """
 
     def name(self):
@@ -35,8 +35,8 @@ class DIFFCP(scs_conif.SCS):
         """
         import diffcp
         patch_version = int(diffcp.__version__.split('.')[2])
-        if patch_version < 7:
-            raise ImportError("diffcp >= 1.0.7 is required")
+        if patch_version < 15:
+            raise ImportError("diffcp >= 1.0.15 is required")
 
     def apply(self, problem):
         problem, data, inv_data = self._prepare_data_and_inv_data(problem)
@@ -76,16 +76,20 @@ class DIFFCP(scs_conif.SCS):
         b = data[s.B]
         c = data[s.C]
         cones = scs_conif.dims_to_solver_dict(data[ConicSolver.DIMS])
-        # This interface is tied to SCS, so force SCS for now.
-        solver_opts['solve_method'] = 'SCS'
-        # Default to eps = 1e-4 instead of 1e-3.
-        solver_opts['eps'] = solver_opts.get('eps', 1e-4)
+
+        solver_opts['solve_method'] = solver_opts.get('solve_method', s.SCS)
         warm_start_tuple = None
-        if warm_start and solver_cache is not None and \
-                self.name() in solver_cache:
-            warm_start_tuple = (solver_cache[self.name()]["x"],
-                                solver_cache[self.name()]["y"],
-                                solver_cache[self.name()]["s"])
+
+        if solver_opts['solve_method'] == s.SCS:
+            # Default to eps = 1e-4 instead of 1e-3.
+            solver_opts['eps'] = solver_opts.get('eps', 1e-4)
+
+            if warm_start and solver_cache is not None and \
+                    self.name() in solver_cache:
+                warm_start_tuple = (solver_cache[self.name()]["x"],
+                                    solver_cache[self.name()]["y"],
+                                    solver_cache[self.name()]["s"])
+
         start = time.time()
         results = diffcp.solve_and_derivative_internal(
             A, b, c, cones, verbose=verbose,
@@ -94,6 +98,7 @@ class DIFFCP(scs_conif.SCS):
             **solver_opts)
         end = time.time()
         results['TOT_TIME'] = end - start
+
         if solver_cache is not None:
             solver_cache[self.name()] = results
         return results
