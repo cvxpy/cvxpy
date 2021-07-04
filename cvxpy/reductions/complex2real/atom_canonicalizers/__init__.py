@@ -14,48 +14,49 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import (bmat, cumsum, kron, conv,
-                         abs, reshape, trace,
-                         upper_tri, conj, imag, real,
-                         norm1, norm_inf, Pnorm,
-                         sigma_max, lambda_max, lambda_sum_largest,
-                         log_det, QuadForm, MatrixFrac, quad_over_lin)
+from cvxpy.atoms import (MatrixFrac, Pnorm, QuadForm, abs, bmat, conj, conv,
+                         cumsum, imag, kron, lambda_max, lambda_sum_largest,
+                         log_det, norm1, norm_inf, quad_over_lin, real,
+                         reshape, sigma_max, trace, upper_tri,)
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.binary_operators import (DivExpression, MulExpression,
+                                                 multiply,)
 from cvxpy.atoms.affine.diag import diag_mat, diag_vec
+from cvxpy.atoms.affine.hstack import Hstack
+from cvxpy.atoms.affine.index import index, special_index
 from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.sum import Sum
-from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.index import index, special_index
-from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.transpose import transpose
-from cvxpy.atoms.affine.hstack import Hstack
+from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.vstack import Vstack
 from cvxpy.atoms.norm_nuc import normNuc
-from cvxpy.atoms.affine.binary_operators import (MulExpression,
-                                                 multiply,
-                                                 DivExpression)
+from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
+                               Zero,)
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
-from cvxpy.constraints import Equality, Inequality, NonPos, SOC, PSD, Zero, NonNeg
-from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import abs_canon
-from cvxpy.reductions.complex2real.atom_canonicalizers.aff_canon import (separable_canon,
-                                                                         real_canon,
-                                                                         imag_canon,
-                                                                         conj_canon,
-                                                                         binary_canon)
-from cvxpy.reductions.complex2real.atom_canonicalizers.pnorm_canon import pnorm_canon
-from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import (
-    hermitian_canon, quad_canon, lambda_sum_largest_canon, norm_nuc_canon, matrix_frac_canon,
-    quad_over_lin_canon)
-from cvxpy.reductions.complex2real.atom_canonicalizers.inequality_canon import (
-    inequality_canon, nonpos_canon, nonneg_canon)
-from cvxpy.reductions.complex2real.atom_canonicalizers.psd_canon import psd_canon
-from cvxpy.reductions.complex2real.atom_canonicalizers.soc_canon import soc_canon
-from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import variable_canon
-from cvxpy.reductions.complex2real.atom_canonicalizers.constant_canon import constant_canon
-from cvxpy.reductions.complex2real.atom_canonicalizers.param_canon import param_canon
+from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import (
+    abs_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.aff_canon import (
+    binary_canon, conj_canon, imag_canon, real_canon, separable_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.constant_canon import (
+    constant_canon,)
 from cvxpy.reductions.complex2real.atom_canonicalizers.equality_canon import (
-    equality_canon, zero_canon)
-
+    equality_canon, zero_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.inequality_canon import (
+    inequality_canon, nonneg_canon, nonpos_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import (
+    hermitian_canon, lambda_sum_largest_canon, matrix_frac_canon,
+    norm_nuc_canon, quad_canon, quad_over_lin_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.param_canon import (
+    param_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.pnorm_canon import (
+    pnorm_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.psd_canon import (
+    psd_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.soc_canon import (
+    soc_canon,)
+from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import (
+    variable_canon,)
 
 CANON_METHODS = {
     AddExpression: separable_canon,

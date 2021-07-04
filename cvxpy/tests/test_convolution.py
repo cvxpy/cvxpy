@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 import cvxpy as cvx
+import cvxpy.problems.iterative as iterative
 import cvxpy.settings as s
 from cvxpy.lin_ops.tree_mat import prune_constants
-import cvxpy.problems.iterative as iterative
 from cvxpy.tests.base_test import BaseTest
-import numpy as np
 
 
 class TestConvolution(BaseTest):

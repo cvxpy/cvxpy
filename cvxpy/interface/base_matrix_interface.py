@@ -16,8 +16,9 @@ limitations under the License.
 import abc
 from typing import Tuple
 
-import cvxpy.interface.matrix_utilities
 import numpy as np
+
+import cvxpy.interface.matrix_utilities
 
 
 class BaseMatrixInterface:

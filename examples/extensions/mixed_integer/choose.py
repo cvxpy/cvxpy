@@ -14,10 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .boolean import Boolean
+from itertools import product
+
 import cvxopt
 import numpy as np
-from itertools import product
+
+from .boolean import Boolean
+
 
 class Choose(Boolean):
     """ A variable with k 1's and all other entries 0. """

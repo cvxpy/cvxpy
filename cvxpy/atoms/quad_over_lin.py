@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
 from typing import Tuple
 
 import numpy as np
-import scipy.sparse as sp
 import scipy as scipy
+import scipy.sparse as sp
+
+from cvxpy.atoms.atom import Atom
 
 
 class quad_over_lin(Atom):

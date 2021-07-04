@@ -15,10 +15,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
+
+import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-import cvxpy.settings as s
-import time
 
 
 class DIFFCP(scs_conif.SCS):

@@ -13,12 +13,14 @@ Copyright 2017 Steven Diamond
    See the License for the specific language governing permissions and
    limitations under the License.
 """
-from cvxpy.lin_ops import lin_op as lo
-import cvxpy.cvxcore.python.cvxcore as cvxcore
-import cvxpy.settings as s
 import numbers
+
 import numpy as np
 import scipy.sparse
+
+import cvxpy.cvxcore.python.cvxcore as cvxcore
+import cvxpy.settings as s
+from cvxpy.lin_ops import lin_op as lo
 
 
 def get_parameter_vector(param_size,

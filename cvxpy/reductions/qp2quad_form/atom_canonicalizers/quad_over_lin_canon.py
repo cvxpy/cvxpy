@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.variable import Variable
-from cvxpy.atoms.quad_form import SymbolicQuadForm
 from scipy.sparse import eye
+
+from cvxpy.atoms.quad_form import SymbolicQuadForm
+from cvxpy.expressions.variable import Variable
 
 
 def quad_over_lin_canon(expr, args):

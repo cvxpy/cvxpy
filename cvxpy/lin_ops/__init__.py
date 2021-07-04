@@ -15,4 +15,4 @@ limitations under the License.
 """
 
 from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
-from cvxpy.lin_ops.lin_op import LinOp, CONSTANT_ID
+from cvxpy.lin_ops.lin_op import CONSTANT_ID, LinOp

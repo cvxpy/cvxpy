@@ -14,9 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-from scipy import linalg as LA
 from typing import Tuple
+
+from scipy import linalg as LA
+
+from cvxpy.atoms.atom import Atom
 
 
 class gen_lambda_max(Atom):

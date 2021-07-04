@@ -1,10 +1,11 @@
+from typing import Tuple
+
+import numpy as np
+import scipy.sparse as sp
+
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.variable import Variable
-from typing import Tuple
-
-import scipy.sparse as sp
-import numpy as np
 
 
 class SuppFuncAtom(Atom):
@@ -105,8 +106,8 @@ class SuppFuncAtom(Atom):
         return False
 
     def _value_impl(self):
-        from cvxpy.problems.problem import Problem
         from cvxpy.problems.objective import Maximize
+        from cvxpy.problems.problem import Problem
         y_val = self.args[0].value.round(decimals=9).ravel(order='F')
         x_flat = self._parent.x.flatten()
         cons = self._parent.constraints

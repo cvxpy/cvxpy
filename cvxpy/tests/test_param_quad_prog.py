@@ -13,11 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import cvxpy as cp
-from cvxpy.reductions.solvers.defines import QP_SOLVERS, INSTALLED_SOLVERS
-from cvxpy.tests.base_test import BaseTest
-
 import numpy as np
+
+import cvxpy as cp
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, QP_SOLVERS
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestParamQuadProg(BaseTest):

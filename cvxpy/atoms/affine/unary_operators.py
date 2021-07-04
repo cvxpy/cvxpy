@@ -13,11 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import operator as op
 from typing import Tuple
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
 import cvxpy.lin_ops.lin_utils as lu
-import operator as op
+from cvxpy.atoms.affine.affine_atom import AffAtom
 
 
 class UnaryOperator(AffAtom):

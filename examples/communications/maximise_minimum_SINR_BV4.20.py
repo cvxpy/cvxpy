@@ -18,8 +18,9 @@ limitations under the License.
 # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
 # Boyd and Vandenberghe, Convex Optimization, exercise 4.20 page 196
 
-import cvxpy as cvx
 import numpy as np
+
+import cvxpy as cvx
 
 '''
 Input parameters

@@ -15,8 +15,10 @@ limitations under the License.
 """
 
 from collections import namedtuple
-from cvxpy import Minimize, Problem, Variable, exp
+
 import scipy.sparse as sp
+
+from cvxpy import Minimize, Problem, Variable, exp
 
 n = 100
 x = Variable(n*n)

@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import abc
+
 from cvxpy.utilities import performance_utils as pu
 from cvxpy.utilities.deterministic import unique_list
 

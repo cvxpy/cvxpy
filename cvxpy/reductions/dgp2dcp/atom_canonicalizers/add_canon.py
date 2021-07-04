@@ -1,8 +1,8 @@
-from cvxpy.atoms.log_sum_exp import log_sum_exp
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.log_sum_exp import log_sum_exp
 
 
 def add_canon(expr, args):

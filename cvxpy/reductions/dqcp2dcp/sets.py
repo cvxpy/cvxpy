@@ -13,10 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import cvxpy.settings as s
 from cvxpy import atoms
 from cvxpy.atoms.affine import binary_operators as bin_op
 from cvxpy.expressions.constants.parameter import Parameter
-import cvxpy.settings as s
 
 
 # Sublevel sets for quasiconvex atoms.

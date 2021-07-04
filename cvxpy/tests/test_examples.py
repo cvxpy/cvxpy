@@ -15,12 +15,15 @@ limitations under the License.
 """
 
 from __future__ import print_function
+
+import unittest
+
+import numpy as np
+
 import cvxpy as cvx
 import cvxpy.interface as intf
-from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif
-import numpy as np
-import unittest
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestExamples(BaseTest):
@@ -624,6 +627,7 @@ class TestExamples(BaseTest):
         data, chain, inverse = prob.get_problem_data(cvx.SCS)
 
         import ecos
+
         # Get ECOS arguments.
         data, chain, inverse = prob.get_problem_data(cvx.ECOS)
         # Call ECOS solver.

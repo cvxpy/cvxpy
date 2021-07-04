@@ -1,11 +1,10 @@
 import warnings
 
+import numpy as np
+
 import cvxpy as cp
 import cvxpy.error as error
 from cvxpy.tests.base_test import BaseTest
-
-import numpy as np
-
 
 SOLVER = cp.ECOS
 

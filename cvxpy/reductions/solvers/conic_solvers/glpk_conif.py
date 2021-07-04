@@ -16,10 +16,10 @@ limitations under the License.
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
 
 
 class GLPK(CVXOPT):
@@ -88,6 +88,7 @@ class GLPK(CVXOPT):
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cvxopt.solvers
+
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
         # Silence cvxopt if verbose is False.

@@ -16,11 +16,11 @@ limitations under the License.
 
 import cvxpy.settings as s
 import cvxpy.utilities as u
-from cvxpy.problems.objective import Minimize, Maximize
-from cvxpy.problems.problem import Problem
-from cvxpy.expressions.variable import Variable
+from cvxpy.atoms import sum, trace
 from cvxpy.expressions.expression import Expression
-from cvxpy.atoms import trace, sum
+from cvxpy.expressions.variable import Variable
+from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.problems.problem import Problem
 
 
 def partial_optimize(prob, opt_vars=None, dont_opt_vars=None, solver=None) -> "PartialProblem":

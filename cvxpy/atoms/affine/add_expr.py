@@ -13,13 +13,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import operator as op
+import sys
 from typing import Tuple
 
-import sys
-from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
 import cvxpy.lin_ops.lin_utils as lu
-import operator as op
+import cvxpy.utilities as u
+from cvxpy.atoms.affine.affine_atom import AffAtom
+
 if sys.version_info >= (3, 0):
     from functools import reduce
 

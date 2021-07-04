@@ -13,13 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import cvxpy as cp
-from cvxpy.reductions.solvers import bisection
-import cvxpy.settings as s
-from cvxpy.tests import base_test
-
 import numpy as np
 
+import cvxpy as cp
+import cvxpy.settings as s
+from cvxpy.reductions.solvers import bisection
+from cvxpy.tests import base_test
 
 SOLVER = cp.ECOS
 

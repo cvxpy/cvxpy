@@ -18,9 +18,9 @@ import random as r
 
 import create_graph as g
 import cvxopt
-from cvxpy import Maximize, Problem, Variable
 from max_flow import Edge, Node
 
+from cvxpy import Maximize, Problem, Variable
 
 # Multi-commodity flow.
 COMMODITIES = 5 # Number of commodities.

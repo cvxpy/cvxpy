@@ -14,14 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.expression import Expression
-from cvxpy.atoms.affine.hstack import hstack
-from cvxpy.atoms.affine.affine_atom import AffAtom
+import numbers
 from typing import Tuple
 
-import cvxpy.lin_ops.lin_utils as lu
-import numbers
 import numpy as np
+
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.expressions.expression import Expression
 
 
 class reshape(AffAtom):

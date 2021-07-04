@@ -16,8 +16,10 @@ limitations under the License.
 
 import sys
 import unittest
-import cvxpy as cp
+
 import numpy as np
+
+import cvxpy as cp
 
 """
 This file contains tests which require massive amounts of RAM.

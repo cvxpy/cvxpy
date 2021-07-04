@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-from cvxpy.expressions import cvxtypes
 from typing import Tuple
 
-import cvxpy.utilities as u
 import numpy as np
+
+import cvxpy.utilities as u
+from cvxpy.atoms.atom import Atom
+from cvxpy.expressions import cvxtypes
 
 
 class gmatmul(Atom):

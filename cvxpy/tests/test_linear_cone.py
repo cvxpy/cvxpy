@@ -17,7 +17,7 @@ limitations under the License.
 import numpy as np
 
 from cvxpy import Maximize, Minimize, Problem
-from cvxpy.atoms import exp, diag, pnorm, hstack
+from cvxpy.atoms import diag, exp, hstack, pnorm
 from cvxpy.constraints import SOC, ExpCone, NonNeg
 from cvxpy.error import SolverError
 from cvxpy.expressions.constants import Constant
