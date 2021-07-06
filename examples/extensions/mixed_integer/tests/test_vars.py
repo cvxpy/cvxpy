@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import *
-from mixed_integer import *
+from cvxpy import CVXOPT, Maximize, Minimize, Problem, Variable
+from mixed_integer import Assign, Boolean, Card, Choose
 import cvxopt
 import numpy as np
 import unittest

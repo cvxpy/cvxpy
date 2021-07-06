@@ -16,7 +16,7 @@ limitations under the License.
 
 import cvxopt
 import numpy
-from cvxpy import *
+from cvxpy import Maximize, Parameter, Problem, Variable, norm2, square
 from multiprocessing import Pool
 from pylab import figure, show
 import math

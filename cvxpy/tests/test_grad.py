@@ -250,7 +250,7 @@ class TestGrad(BaseTest):
                           [cp.norm(x, 1) <= 1.0,
                            cp.quad_form(x, P) <= 10,   # quad form constraint
                            cp.abs(x) <= 0.01])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
 
         # access quad_form.expr.grad without error
         prob.constraints[1].expr.grad
@@ -742,7 +742,7 @@ class TestGrad(BaseTest):
         for obj in [Minimize((self.a)**-1), Maximize(cp.entr(self.a))]:
             prob = Problem(obj, [self.x + self.a >= [5, 8]])
             # Optimize over nothing.
-            expr = partial_optimize(prob, dont_opt_vars=[self.x, self.a])
+            expr = partial_optimize(prob, dont_opt_vars=[self.x, self.a], solver=cp.ECOS)
             self.a.value = None
             self.x.value = None
             grad = expr.grad
@@ -762,7 +762,7 @@ class TestGrad(BaseTest):
             self.assertItemsAlmostEqual(grad[self.x].toarray(), [0, 0, 0, 0])
 
             # Optimize over x.
-            expr = partial_optimize(prob, opt_vars=[self.x])
+            expr = partial_optimize(prob, opt_vars=[self.x], solver=cp.ECOS)
             self.a.value = 1
             grad = expr.grad
             self.assertAlmostEqual(grad[self.a], obj.args[0].grad[self.a] + 0)
@@ -777,7 +777,7 @@ class TestGrad(BaseTest):
             self.assertItemsAlmostEqual(grad[self.x].toarray(), dual_val)
 
             # Optimize over x and a.
-            expr = partial_optimize(prob, opt_vars=[self.x, self.a])
+            expr = partial_optimize(prob, opt_vars=[self.x, self.a], solver=cp.ECOS)
             grad = expr.grad
             self.assertAlmostEqual(grad, {})
 

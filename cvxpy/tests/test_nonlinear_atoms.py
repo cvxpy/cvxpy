@@ -36,7 +36,7 @@ class TestNonlinearAtoms(BaseTest):
         obj = cvx.Maximize(cvx.sum(cvx.log(self.x)))
         constr = [self.x <= [1, math.e]]
         p = cvx.Problem(obj, constr)
-        result = p.solve()
+        result = p.solve(solver=cvx.ECOS)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.x.value, [1, math.e])
 
@@ -44,7 +44,7 @@ class TestNonlinearAtoms(BaseTest):
         obj = cvx.Minimize(cvx.sum(self.x))
         constr = [cvx.log(self.x) >= 0, self.x <= [1, 1]]
         p = cvx.Problem(obj, constr)
-        result = p.solve()
+        result = p.solve(solver=cvx.ECOS)
         self.assertAlmostEqual(result, 2)
         self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
@@ -52,14 +52,14 @@ class TestNonlinearAtoms(BaseTest):
         obj = cvx.Maximize(cvx.log(self.x)[1])
         constr = [self.x <= [1, math.e]]
         p = cvx.Problem(obj, constr)
-        result = p.solve()
+        result = p.solve(solver=cvx.ECOS)
         self.assertAlmostEqual(result, 1)
 
         # Scalar log.
         obj = cvx.Maximize(cvx.log(self.x[1]))
         constr = [self.x <= [1, math.e]]
         p = cvx.Problem(obj, constr)
-        result = p.solve()
+        result = p.solve(solver=cvx.ECOS)
         self.assertAlmostEqual(result, 1)
 
     def test_entr(self) -> None:

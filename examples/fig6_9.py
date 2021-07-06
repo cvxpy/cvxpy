@@ -15,16 +15,16 @@ limitations under the License.
 """
 
 from __future__ import division
-import sys
+
+import numpy as np
+from multiprocessing import Pool
 
 import cvxopt
-import numpy as np
+from cvxpy import norm, Minimize, Parameter, Problem, Variable
 from scipy import sparse
-from pylab import *
-import math
+from pylab import plot, show, title, xlabel, ylabel
 
-from cvxpy import *
-from multiprocessing import Pool
+
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Figure 6.9: An optimal tradeoff curve
@@ -46,7 +46,7 @@ from multiprocessing import Pool
 n = 400
 t = np.array(range(0,n))
 
-exact = 0.5*sin(2*np.pi*t/n) * sin(0.01*t)
+exact = 0.5*np.sin(2*np.pi*t/n) * np.sin(0.01*t)
 corrupt = exact + 0.05 * np.random.randn(len(exact))
 corrupt = cvxopt.matrix(corrupt)
 

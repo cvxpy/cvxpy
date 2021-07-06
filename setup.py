@@ -28,6 +28,10 @@ def is_platform_mac() -> bool:
     return sys.platform == 'darwin'
 
 
+def not_on_windows(s: str) -> str:
+    return s if platform.system().lower() != "windows" else ""
+
+
 # For mac, ensure extensions are built for macos 10.9 when compiling on a
 # 10.9 system or above, overriding distutils behaviour which is to target
 # the version that python was built for. This may be overridden by setting
@@ -55,7 +59,14 @@ canon = Extension(
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
                   'cvxpy/cvxcore/include/'],
-    extra_compile_args=['-O3', '-std=c++11'],
+    extra_compile_args=[
+        '-O3',
+        '-std=c++11',
+        '-Wall',
+        '-pedantic',
+        not_on_windows('-Wextra'),
+        not_on_windows('-Wno-unused-parameter'),
+    ],
     extra_link_args=['-O3'],
 )
 

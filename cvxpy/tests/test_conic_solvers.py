@@ -22,7 +22,6 @@ import scipy.linalg as la
 import pytest
 
 import cvxpy as cp
-from cvxpy.error import SolverError
 from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import (
@@ -1323,13 +1322,10 @@ class TestAllSolvers(BaseTest):
         x = cp.Variable(2, name='x', integer=True)
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
-        if len(INSTALLED_MI_SOLVERS) == 1:
-            try:
+        if INSTALLED_MI_SOLVERS == [cp.ECOS_BB]:
+            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer"
+                                                              "solver for this model.*"):
                 prob.solve()
-                assert False
-            except SolverError as err:
-                msg = str(err)
-                self.assertTrue("a mixed-integer solver" in msg)
         else:
             prob.solve()
             self.assertItemsAlmostEqual(x.value, [0, 0])
@@ -1341,14 +1337,15 @@ class TestECOS_BB(unittest.TestCase):
         """Test that ECOS_BB isn't chosen by default.
         """
         x = cp.Variable(1, name='x', integer=True)
-        objective = cp.Minimize(cp.exp(x))
+        objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
-        if cp.MOSEK not in INSTALLED_MI_SOLVERS:
-            try:
+        if INSTALLED_MI_SOLVERS != [cp.ECOS_BB]:
+            prob.solve()
+            assert prob.solver_stats.solver_name != cp.ECOS_BB
+        else:
+            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer"
+                                                              "solver for this model.*"):
                 prob.solve()
-                assert False
-            except SolverError:
-                pass
 
     def test_ecos_bb_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='ECOS_BB')

@@ -12,7 +12,7 @@ def perturbcheck(problem, gp: bool = False, delta: float = 1e-5,
     """Checks the analytical derivative against a numerical computation."""
     np.random.seed(0)
     if not problem.parameters():
-        problem.solve(gp=gp, requires_grad=True, eps=eps, **kwargs)
+        problem.solve(solver=cp.DIFFCP, gp=gp, requires_grad=True, eps=eps, **kwargs)
         problem.derivative()
         for variable in problem.variables():
             np.testing.assert_equal(variable.delta, 0.0)
@@ -20,7 +20,7 @@ def perturbcheck(problem, gp: bool = False, delta: float = 1e-5,
     # Compute perturbations analytically
     for param in problem.parameters():
         param.delta = delta * np.random.randn(*param.shape)
-    problem.solve(gp=gp, requires_grad=True, eps=eps, **kwargs)
+    problem.solve(solver=cp.DIFFCP, gp=gp, requires_grad=True, eps=eps, **kwargs)
     problem.derivative()
     variable_values = [v.value for v in problem.variables()]
     deltas = [v.delta for v in problem.variables()]
@@ -30,7 +30,7 @@ def perturbcheck(problem, gp: bool = False, delta: float = 1e-5,
     for param in problem.parameters():
         old_values[param] = param.value
         param.value += param.delta
-    problem.solve(cp.SCS, gp=gp, eps=eps, **kwargs)
+    problem.solve(solver=cp.SCS, gp=gp, eps=eps, **kwargs)
     num_deltas = [
         v.value - old_value for (v, old_value)
         in zip(problem.variables(), variable_values)]
@@ -77,7 +77,7 @@ def gradcheck(problem, gp: bool = False, delta: float = 1e-5,
     for x in problem.variables():
         old_gradients[x] = x.gradient
         x.gradient = None
-    problem.solve(requires_grad=True, gp=gp, eps=eps, **kwargs)
+    problem.solve(solver=cp.DIFFCP, requires_grad=True, gp=gp, eps=eps, **kwargs)
     problem.backward()
 
     for param, numgrad in zip(problem.parameters(), numgrads):
@@ -102,7 +102,7 @@ class TestBackward(BaseTest):
         quadratic = cp.square(x - 2 * b)
         problem = cp.Problem(cp.Minimize(quadratic), [x >= 0])
         b.value = 3.
-        problem.solve(requires_grad=True, eps=1e-10)
+        problem.solve(solver=cp.DIFFCP, requires_grad=True, eps=1e-10)
         self.assertAlmostEqual(x.value, 6.)
         problem.backward()
 
@@ -115,7 +115,7 @@ class TestBackward(BaseTest):
         gradcheck(problem, atol=1e-4)
         perturbcheck(problem, atol=1e-4)
 
-        problem.solve(requires_grad=True, eps=1e-10)
+        problem.solve(solver=cp.DIFFCP, requires_grad=True, eps=1e-10)
         b.delta = 1e-3
         problem.derivative()
         self.assertAlmostEqual(x.delta, 2e-3)
@@ -262,7 +262,7 @@ class TestBackward(BaseTest):
         problem = cp.Problem(cp.Minimize(obj))
         A.value = np.random.randn(m, n)
         b.value = np.random.randn(m)
-        problem.solve()
+        problem.solve(cp.SCS)
         with self.assertRaisesRegex(ValueError,
                                     "backward can only be called after calling "
                                     "solve with `requires_grad=True`"):
@@ -277,30 +277,26 @@ class TestBackward(BaseTest):
         param = cp.Parameter()
         problem = cp.Problem(cp.Minimize(param), [x >= 1, x <= -1])
         param.value = 1
-        try:
-            problem.solve(requires_grad=True)
-        except cp.SolverError:
-            with self.assertRaisesRegex(ValueError, "Backpropagating through "
+        problem.solve(solver=cp.DIFFCP, requires_grad=True)
+        with self.assertRaisesRegex(cp.SolverError, "Backpropagating through "
                                                     "infeasible/unbounded.*"):
-                problem.backward()
-            with self.assertRaisesRegex(ValueError, "Differentiating through "
-                                                    "infeasible/unbounded.*"):
-                problem.derivative()
+            problem.backward()
+        with self.assertRaisesRegex(ValueError, "Differentiating through "
+                                                "infeasible/unbounded.*"):
+            problem.derivative()
 
     def test_unbounded(self) -> None:
         x = cp.Variable()
         param = cp.Parameter()
         problem = cp.Problem(cp.Minimize(x), [x <= param])
         param.value = 1
-        try:
-            problem.solve(requires_grad=True)
-        except cp.SolverError:
-            with self.assertRaisesRegex(ValueError, "Backpropagating through "
-                                                    "infeasible/unbounded.*"):
-                problem.backward()
-            with self.assertRaisesRegex(ValueError, "Differentiating through "
-                                                    "infeasible/unbounded.*"):
-                problem.derivative()
+        problem.solve(solver=cp.DIFFCP, requires_grad=True)
+        with self.assertRaisesRegex(cp.error.SolverError, "Backpropagating through "
+                                                          "infeasible/unbounded.*"):
+            problem.backward()
+        with self.assertRaisesRegex(ValueError, "Differentiating through "
+                                                "infeasible/unbounded.*"):
+            problem.derivative()
 
     def test_unsupported_solver(self) -> None:
         x = cp.Variable()
@@ -343,7 +339,7 @@ class TestBackwardDgp(BaseTest):
 
         alpha.value = 0.4
         alpha.delta = 1e-5
-        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
         self.assertAlmostEqual(x.value, 1 - 0.4**2, places=3)
         problem.backward()
         problem.derivative()
@@ -355,7 +351,7 @@ class TestBackwardDgp(BaseTest):
 
         alpha.value = 0.5
         alpha.delta = 1e-5
-        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
         problem.backward()
         problem.derivative()
         self.assertAlmostEqual(x.value, 1 - 0.5**2, places=3)
@@ -378,7 +374,7 @@ class TestBackwardDgp(BaseTest):
 
         alpha.value = -1.0
         alpha.delta = 1e-5
-        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
         self.assertAlmostEqual(x.value, 1 - base**(-1.0))
         problem.backward()
         problem.derivative()
@@ -390,7 +386,7 @@ class TestBackwardDgp(BaseTest):
 
         alpha.value = -1.2
         alpha.delta = 1e-5
-        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
         self.assertAlmostEqual(x.value, 1 - base**(-1.2))
         problem.backward()
         problem.derivative()
@@ -412,7 +408,7 @@ class TestBackwardDgp(BaseTest):
 
         alpha.value = 0.4
         alpha.delta = 1e-5
-        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
         self.assertAlmostEqual(x.value, 1 - 0.4**2 - 0.4**3)
         problem.backward()
         problem.derivative()
@@ -434,7 +430,7 @@ class TestBackwardDgp(BaseTest):
         problem = cp.Problem(objective, constr)
 
         alpha.delta = 1e-5
-        problem.solve(gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
         self.assertAlmostEqual(x.value, 1 - base**(0.5) - 0.5**2)
         problem.backward()
         problem.derivative()
