@@ -56,12 +56,7 @@ def log_sum_exp_axis_1(x): return cp.log_sum_exp(x, axis=1)  # noqa E371
 
 
 # Atom, solver pairs known to fail.
-KNOWN_SOLVER_ERRORS = [
-    # See https://github.com/cvxgrp/cvxpy/issues/249
-    (log_sum_exp_axis_0, CVXOPT),
-    (log_sum_exp_axis_1, CVXOPT),
-    (cp.kl_div, CVXOPT),
-]
+KNOWN_SOLVER_ERRORS = []
 
 atoms_minimize = [
     (cp.abs, (2, 2), [[[-5, 2], [-3, 1]]],
@@ -189,7 +184,7 @@ atoms_minimize = [
      [[[3, 4, 5], [6, 7, 8], [9, 10, 11]]], Constant([22.368559552680377])),
     (lambda x: cp.scalene(x, 2, 3), (2, 2), [[[-5, 2], [-3, 1]]], Constant([[15, 4], [9, 2]])),
     (cp.square, (2, 2), [[[-5, 2], [-3, 1]]], Constant([[25, 4], [9, 1]])),
-    (cp.sum, tuple(), [[[-5, 2], [-3, 1]]], Constant(-5)),
+    (cp.sum, tuple(), [[[-5, 2], [-3, 1]]], Constant([-5])),
     (lambda x: cp.sum(x, axis=0), (2,), [[[-5, 2], [-3, 1]]], Constant([-3, -2])),
     (lambda x: cp.sum(x, axis=1), (2,), [[[-5, 2], [-3, 1]]], Constant([-8, 3])),
     (lambda x: (x + Constant(0))**2, (2, 2), [[[-5, 2], [-3, 1]]], Constant([[25, 4], [9, 1]])),
@@ -237,7 +232,7 @@ atoms_maximize = [
      [[.5, 1.8, 17]], Constant([10.04921378316062])),
     (cp.harmonic_mean, tuple(), [[1, 2, 3]], Constant([1.6363636363636365])),
     (cp.harmonic_mean, tuple(), [[2.5, 2.5, 2.5, 2.5]], Constant([2.5])),
-    (cp.harmonic_mean, tuple(), [[0, 1, 2]], Constant([0])),
+    (cp.harmonic_mean, tuple(), [[1e-8, 1, 2]], Constant([0])),
 
     (lambda x: cp.diff(x, 0), (3,), [[1, 2, 3]], Constant([1, 2, 3])),
     (cp.diff, (2,), [[1, 2, 3]], Constant([1, 1])),
@@ -324,7 +319,7 @@ def run_atom(atom, problem, obj_val, solver, verbose: bool = False) -> None:
         if verbose:
             print(result)
             print(obj_val)
-        assert(-tolerance <= (result - obj_val) / (1 + np.abs(obj_val)) <= tolerance)
+        assert (-tolerance <= (result - obj_val) / (1 + np.abs(obj_val)) <= tolerance)
 
 
 def get_indices(size):
@@ -352,11 +347,10 @@ def test_constant_atoms(atom_info, objective_type) -> None:
             # Atoms with Constant arguments.
             prob_val = obj_val[indexer].value
             const_args = [Constant(arg) for arg in args]
-            objective = (
-                objective_type(atom(*const_args)[indexer])
-                if len(size) != 0
-                else objective_type(atom(*const_args))
-            )
+            if len(size) != 0:
+                objective = objective_type(atom(*const_args)[indexer])
+            else:
+                objective = objective_type(atom(*const_args))
             problem = Problem(objective)
             run_atom(atom, problem, prob_val, solver)
 
@@ -366,11 +360,10 @@ def test_constant_atoms(atom_info, objective_type) -> None:
             for idx, expr in enumerate(args):
                 variables.append(Variable(intf.shape(expr)))
                 constraints.append(variables[-1] == expr)
-            objective = (
-                objective_type(atom(*variables)[indexer])
-                if len(size) != 0
-                else objective_type(atom(*variables))
-            )
+            if len(size) != 0:
+                objective = objective_type(atom(*variables)[indexer])
+            else:
+                objective = objective_type(atom(*variables))
             problem = Problem(objective, constraints)
             run_atom(atom, problem, prob_val, solver)
 
@@ -379,9 +372,8 @@ def test_constant_atoms(atom_info, objective_type) -> None:
             for expr in args:
                 parameters.append(Parameter(intf.shape(expr)))
                 parameters[-1].value = intf.DEFAULT_INTF.const_to_matrix(expr)
-            objective = (
-                objective_type(atom(*parameters)[indexer])
-                if len(size) != 0
-                else objective_type(atom(*parameters))
-            )
+            if len(size) != 0:
+                objective = objective_type(atom(*parameters)[indexer])
+            else:
+                objective = objective_type(atom(*parameters))
             run_atom(atom, Problem(objective), prob_val, solver)

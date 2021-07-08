@@ -113,6 +113,12 @@ power
 .. autoclass:: cvxpy.atoms.elementwise.power.power
     :show-inheritance:
 
+rel-entr
+-----------------------------------------
+
+.. autoclass:: cvxpy.atoms.elementwise.rel_entr.rel_entr
+    :show-inheritance:
+
 .. _scalene:
 
 scalene

@@ -15,15 +15,20 @@ limitations under the License.
 """
 
 from __future__ import division
-from cvxpy.atoms.elementwise.elementwise import Elementwise
+
+from typing import List, Tuple, Optional
+
 import numpy as np
+from scipy.sparse import csc_matrix
 from scipy.special import xlogy
-from typing import Any, List, Tuple
+
+from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 
 class kl_div(Elementwise):
     """:math:`x\\log(x/y) - x + y`
 
+    For disambiguation between kl_div and rel_entr, see https://github.com/cvxpy/cvxpy/issues/733
     """
 
     def __init__(self, x, y) -> None:
@@ -62,7 +67,7 @@ class kl_div(Elementwise):
         """
         return False
 
-    def _grad(self, values) -> List[Any]:
+    def _grad(self, values) -> List[Optional[csc_matrix]]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.

@@ -15,16 +15,20 @@ limitations under the License.
 """
 
 from __future__ import division
-from cvxpy.atoms.elementwise.elementwise import Elementwise
+
+from typing import List, Tuple, Optional
+
 import numpy as np
+from scipy.sparse import csc_matrix
 from scipy.special import xlogy
-from typing import Any, List, Tuple
+
+from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 
 class rel_entr(Elementwise):
     """:math:`x\\log(x/y)`
 
-    For a disambiguation between rel_entr and kl_div, see https://github.com/cvxpy/cvxpy/issues/733
+    For disambiguation between rel_entr and kl_div, see https://github.com/cvxpy/cvxpy/issues/733
     """
 
     def __init__(self, x, y) -> None:
@@ -65,7 +69,7 @@ class rel_entr(Elementwise):
         else:
             return True
 
-    def _grad(self, values) -> List[Any]:
+    def _grad(self, values) -> List[Optional[csc_matrix]]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
