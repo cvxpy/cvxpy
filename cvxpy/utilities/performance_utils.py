@@ -66,7 +66,6 @@ def compute_once(func):
         key = _cache_key(args, kwargs)
         if key in cache:
             return cache[key]
-        
         result = func(self, *args, **kwargs)
         cache[key] = result
         return result
