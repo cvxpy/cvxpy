@@ -70,5 +70,4 @@ def compute_once(func):
         result = func(self, *args, **kwargs)
         cache[key] = result
         return result
-    
     return _compute_once
