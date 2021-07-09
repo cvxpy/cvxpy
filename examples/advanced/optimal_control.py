@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import *
+from cvxpy import Minimize, Problem, Variable, square
 import cvxopt
+
 # Problem data
 T = 10
 n,p = (10,5)

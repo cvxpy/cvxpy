@@ -16,7 +16,7 @@ limitations under the License.
 
 #!/usr/bin/env python
 
-from cvxpy import *
+from cvxpy import Minimize, Parameter, Problem, SCS, Variable, conv, norm
 import numpy as np
 import random
 

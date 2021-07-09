@@ -112,7 +112,7 @@ class TestProblem(BaseTest):
         problem = cp.Problem(cp.Minimize(param), [])
         with self.assertRaises(
               ParameterError, msg="A Parameter (whose name is 'lambda').*"):
-            problem.solve()
+            problem.solve(solver=cp.SCS)
 
     def test_constants(self) -> None:
         """Test the constants method.
@@ -401,7 +401,7 @@ class TestProblem(BaseTest):
         p = Problem(cp.Maximize(cp.norm_inf(self.a)))
         self.assertEqual(p.is_dcp(), False)
         with self.assertRaises(DCPError):
-            p.solve()
+            p.solve(solver=cp.SCS)
 
     # Test the is_qp method.
     def test_is_qp(self) -> None:
@@ -456,7 +456,7 @@ class TestProblem(BaseTest):
     def test_variable_name_conflict(self) -> None:
         var = Variable(name='a')
         p = Problem(cp.Maximize(self.a + var), [var == 2 + self.a, var <= 3])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 4.0)
         self.assertAlmostEqual(self.a.value, 1)
         self.assertAlmostEqual(var.value, 3)
@@ -467,18 +467,18 @@ class TestProblem(BaseTest):
         prob2 = Problem(cp.Minimize(2*self.b), [self.a >= 1, self.b >= 2])
         prob_minimize = prob1 + prob2
         self.assertEqual(len(prob_minimize.constraints), 3)
-        self.assertAlmostEqual(prob_minimize.solve(), 6)
+        self.assertAlmostEqual(prob_minimize.solve(solver=cp.SCS), 6)
         prob3 = Problem(cp.Maximize(self.a), [self.b <= 1])
         prob4 = Problem(cp.Maximize(2*self.b), [self.a <= 2])
         prob_maximize = prob3 + prob4
         self.assertEqual(len(prob_maximize.constraints), 2)
-        self.assertAlmostEqual(prob_maximize.solve(), 4)
+        self.assertAlmostEqual(prob_maximize.solve(solver=cp.SCS), 4)
 
         # Test using sum function
         prob5 = Problem(cp.Minimize(3*self.a))
         prob_sum = sum([prob1, prob2, prob5])
         self.assertEqual(len(prob_sum.constraints), 3)
-        self.assertAlmostEqual(prob_sum.solve(), 12)
+        self.assertAlmostEqual(prob_sum.solve(solver=cp.SCS), 12)
         prob_sum = sum([prob1])
         self.assertEqual(len(prob_sum.constraints), 1)
 
@@ -490,11 +490,11 @@ class TestProblem(BaseTest):
     # Test problem multiplication by scalar
     def test_mul_problems(self) -> None:
         prob1 = Problem(cp.Minimize(pow(self.a, 2)), [self.a >= 2])
-        answer = prob1.solve()
+        answer = prob1.solve(solver=cp.SCS)
         factors = [0, 1, 2.3, -4.321]
         for f in factors:
-            self.assertAlmostEqual((f * prob1).solve(), f * answer)
-            self.assertAlmostEqual((prob1 * f).solve(), f * answer)
+            self.assertAlmostEqual((f * prob1).solve(solver=cp.SCS), f * answer)
+            self.assertAlmostEqual((prob1 * f).solve(solver=cp.SCS), f * answer)
 
     # Test problem linear combinations
     def test_lin_combination_problems(self) -> None:
@@ -506,30 +506,30 @@ class TestProblem(BaseTest):
         combo1 = prob1 + 2 * prob2
         combo1_ref = Problem(cp.Minimize(self.a + 4 * self.b),
                              [self.a >= self.b, self.a >= 1, self.b >= 2])
-        self.assertAlmostEqual(combo1.solve(), combo1_ref.solve())
+        self.assertAlmostEqual(combo1.solve(solver=cp.ECOS), combo1_ref.solve(solver=cp.ECOS))
 
         # division and subtraction
         combo2 = prob1 - prob3/2
         combo2_ref = Problem(cp.Minimize(self.a + pow(self.b + self.a, 2)/2),
                              [self.b >= 3, self.a >= self.b])
-        self.assertAlmostEqual(combo2.solve(), combo2_ref.solve())
+        self.assertAlmostEqual(combo2.solve(solver=cp.ECOS), combo2_ref.solve(solver=cp.ECOS))
 
         # multiplication with 0 (prob2's constraints should still hold)
         combo3 = prob1 + 0 * prob2 - 3 * prob3
         combo3_ref = Problem(cp.Minimize(self.a + 3 * pow(self.b + self.a, 2)),
                              [self.a >= self.b, self.a >= 1, self.b >= 3])
-        self.assertAlmostEqual(combo3.solve(), combo3_ref.solve())
+        self.assertAlmostEqual(combo3.solve(solver=cp.ECOS), combo3_ref.solve(solver=cp.ECOS))
 
     # Test scalar LP problems.
     def test_scalar_lp(self) -> None:
         p = Problem(cp.Minimize(3*self.a), [self.a >= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 6)
         self.assertAlmostEqual(self.a.value, 2)
 
         p = Problem(cp.Maximize(3*self.a - self.b),
                     [self.a <= 2, self.b == self.a, self.b <= 5])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 4.0)
         self.assertAlmostEqual(self.a.value, 2)
         self.assertAlmostEqual(self.b.value, 2)
@@ -539,7 +539,7 @@ class TestProblem(BaseTest):
                     [self.a >= 2,
                      self.b + 5*self.c - 2 == self.a,
                      self.b <= 5 + self.c])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 101 + 1.0/6)
         self.assertAlmostEqual(self.a.value, 2)
         self.assertAlmostEqual(self.b.value, 5-1.0/6)
@@ -595,7 +595,7 @@ class TestProblem(BaseTest):
     def test_vector_lp(self) -> None:
         c = Constant(numpy.array([[1, 2]]).T).value
         p = Problem(cp.Minimize(c.T @ self.x), [self.x[:, None] >= c])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 5)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
@@ -606,7 +606,7 @@ class TestProblem(BaseTest):
                      4*Imat @ self.z == self.x,
                      self.z >= [2, 2],
                      self.a >= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 26, places=3)
         obj = (c.T @ self.x + self.a).value[0]
         self.assertAlmostEqual(obj, result)
@@ -626,7 +626,7 @@ class TestProblem(BaseTest):
     def test_matrix_lp(self) -> None:
         T = Constant(numpy.ones((2, 2))).value
         p = Problem(cp.Minimize(1), [self.A == T])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.A.value, T)
 
@@ -645,7 +645,7 @@ class TestProblem(BaseTest):
     # Test variable promotion.
     def test_variable_promotion(self) -> None:
         p = Problem(cp.Minimize(self.a), [self.x <= self.a, self.x == [1, 2]])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, 2)
 
@@ -653,14 +653,14 @@ class TestProblem(BaseTest):
                     [self.A <= self.a,
                      self.A == [[1, 2], [3, 4]]
                      ])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 4)
         self.assertAlmostEqual(self.a.value, 4)
 
         # Promotion must happen before the multiplication.
         p = Problem(cp.Minimize([[1], [1]] @ (self.x + self.a + 1)),
                     [self.a + self.x >= [1, 2]])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 5)
 
     # Test parameter promotion.
@@ -680,36 +680,36 @@ class TestProblem(BaseTest):
         p1.value = 2
         p2.value = -numpy.ones((3,))
         p3.value = numpy.ones((4, 4))
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -6)
 
         p1.value = None
         with self.assertRaises(ParameterError):
-            p.solve()
+            p.solve(solver=cp.SCS)
 
     # Test problems with norm_inf
     def test_norm_inf(self) -> None:
         # Constant argument.
         p = Problem(cp.Minimize(cp.norm_inf(-2)))
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 2)
 
         # Scalar arguments.
         p = Problem(cp.Minimize(cp.norm_inf(self.a)), [self.a >= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, 2)
 
         p = Problem(cp.Minimize(3*cp.norm_inf(self.a + 2*self.b) + self.c),
                     [self.a >= 2, self.b <= -1, self.c == 3])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 3)
         self.assertAlmostEqual(self.a.value + 2*self.b.value, 0)
         self.assertAlmostEqual(self.c.value, 3)
 
         # cp.Maximize
         p = Problem(cp.Maximize(-cp.norm_inf(self.a)), [self.a <= -2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -2)
         self.assertAlmostEqual(self.a.value, -2)
 
@@ -724,25 +724,25 @@ class TestProblem(BaseTest):
     def test_norm1(self) -> None:
         # Constant argument.
         p = Problem(cp.Minimize(cp.norm1(-2)))
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 2)
 
         # Scalar arguments.
         p = Problem(cp.Minimize(cp.norm1(self.a)), [self.a <= -2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, -2)
 
         # cp.Maximize
         p = Problem(cp.Maximize(-cp.norm1(self.a)), [self.a <= -2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -2)
         self.assertAlmostEqual(self.a.value, -2)
 
         # Vector arguments.
         p = Problem(cp.Minimize(cp.norm1(self.x - self.z) + 5),
                     [self.x >= [2, 3], self.z <= [-1, -4]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(float(result), 15)
         self.assertAlmostEqual(float(list(self.x.value)[1] - list(self.z.value)[1]), 7)
 
@@ -750,25 +750,25 @@ class TestProblem(BaseTest):
     def test_norm2(self) -> None:
         # Constant argument.
         p = Problem(cp.Minimize(cp.pnorm(-2, p=2)))
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 2)
 
         # Scalar arguments.
         p = Problem(cp.Minimize(cp.pnorm(self.a, p=2)), [self.a <= -2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 2)
         self.assertAlmostEqual(self.a.value, -2)
 
         # cp.Maximize
         p = Problem(cp.Maximize(-cp.pnorm(self.a, p=2)), [self.a <= -2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -2)
         self.assertAlmostEqual(self.a.value, -2)
 
         # Vector arguments.
         p = Problem(cp.Minimize(cp.pnorm(self.x - self.z, p=2) + 5),
                     [self.x >= [2, 3], self.z <= [-1, -4]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 12.61577)
         self.assertItemsAlmostEqual(self.x.value, [2, 3])
         self.assertItemsAlmostEqual(self.z.value, [-1, -4])
@@ -776,7 +776,7 @@ class TestProblem(BaseTest):
         # Row  arguments.
         p = Problem(cp.Minimize(cp.pnorm((self.x - self.z).T, p=2) + 5),
                     [self.x >= [2, 3], self.z <= [-1, -4]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 12.61577)
         self.assertItemsAlmostEqual(self.x.value, [2, 3])
         self.assertItemsAlmostEqual(self.z.value, [-1, -4])
@@ -784,44 +784,44 @@ class TestProblem(BaseTest):
     # Test problems with abs
     def test_abs(self) -> None:
         p = Problem(cp.Minimize(cp.sum(cp.abs(self.A))), [-2 >= self.A])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 8)
         self.assertItemsAlmostEqual(self.A.value, [-2, -2, -2, -2])
 
     # Test problems with quad_form.
     def test_quad_form(self) -> None:
         with self.assertRaises(Exception) as cm:
-            Problem(cp.Minimize(cp.quad_form(self.x, self.A))).solve()
+            Problem(cp.Minimize(cp.quad_form(self.x, self.A))).solve(solver=cp.SCS)
         self.assertEqual(
             str(cm.exception),
             "At least one argument to quad_form must be non-variable."
         )
 
         with self.assertRaises(Exception) as cm:
-            Problem(cp.Minimize(cp.quad_form(1, self.A))).solve()
+            Problem(cp.Minimize(cp.quad_form(1, self.A))).solve(solver=cp.SCS)
         self.assertEqual(str(cm.exception), "Invalid dimensions for arguments.")
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             with self.assertRaises(Exception) as cm:
-                Problem(cp.Minimize(cp.quad_form(self.x, [[-1, 0], [0, 9]]))).solve()
+                Problem(cp.Minimize(cp.quad_form(self.x, [[-1, 0], [0, 9]]))).solve(solver=cp.SCS)
             self.assertTrue("Problem does not follow DCP rules."
                             in str(cm.exception))
 
         P = [[4, 0], [0, 9]]
         p = Problem(cp.Minimize(cp.quad_form(self.x, P)), [self.x >= 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 13, places=3)
 
         c = [1, 2]
         p = Problem(cp.Minimize(cp.quad_form(c, self.A)), [self.A >= 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 9)
 
         c = [1, 2]
         P = [[4, 0], [0, 9]]
         p = Problem(cp.Minimize(cp.quad_form(c, P)))
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 40)
 
     # Test combining atoms
@@ -830,7 +830,7 @@ class TestProblem(BaseTest):
                                          + cp.norm1(self.x) +
                                          cp.norm_inf(self.x - self.z), p=2)),
                     [self.x >= [2, 3], self.z <= [-1, -4], cp.pnorm(self.x + self.z, p=2) <= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 22)
         self.assertItemsAlmostEqual(self.x.value, [2, 3])
         self.assertItemsAlmostEqual(self.z.value, [-1, -4])
@@ -838,7 +838,7 @@ class TestProblem(BaseTest):
     # Test multiplying by constant atoms.
     def test_mult_constant_atoms(self) -> None:
         p = Problem(cp.Minimize(cp.pnorm([3, 4], p=2)*self.a), [self.a >= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 10)
         self.assertAlmostEqual(self.a.value, 2)
 
@@ -879,7 +879,7 @@ class TestProblem(BaseTest):
     def test_indexing(self) -> None:
         # Vector variables
         p = Problem(cp.Maximize(self.x[0]), [self.x[0] <= 2, self.x[1] == 3])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 2)
         self.assertItemsAlmostEqual(self.x.value, [2, 3])
 
@@ -888,21 +888,21 @@ class TestProblem(BaseTest):
         A = numpy.reshape(A, (n, n))
         x = Variable((n, n))
         p = Problem(cp.Minimize(cp.sum(x)), [x == A])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         answer = n*n*(n*n+1)/2 - n*n
         self.assertAlmostEqual(result, answer)
 
         # Matrix variables
         p = Problem(cp.Maximize(sum(self.A[i, i] + self.A[i, 1-i] for i in range(2))),
                     [self.A <= [[1, -2], [-3, 4]]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0)
         self.assertItemsAlmostEqual(self.A.value, [1, -2, -3, 4])
 
         # Indexing arithmetic expressions.
         expr = [[1, 2], [3, 4]] @ self.z + self.x
         p = Problem(cp.Minimize(expr[1]), [self.x == self.z, self.z == [1, 2]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.x.value, self.z.value)
 
@@ -917,27 +917,27 @@ class TestProblem(BaseTest):
         # Test with long indices.
         cost = self.x[0:my_long(2)][0]
         p = Problem(cp.Minimize(cost), [self.x == 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
         # Test with numpy64 indices.
         cost = self.x[0:numpy.int64(2)][0]
         p = Problem(cp.Minimize(cost), [self.x == 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 1)
         self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
     # Test problems with slicing.
     def test_slicing(self) -> None:
         p = Problem(cp.Maximize(cp.sum(self.C)), [self.C[1:3, :] <= 2, self.C[0, :] == 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(self.C.value, 2*[1, 2, 2])
 
         p = Problem(cp.Maximize(cp.sum(self.C[0:3:2, 1])),
                     [self.C[1:3, :] <= 2, self.C[0, :] == 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.C.value[0:3:2, 1], [1, 2])
 
@@ -945,7 +945,7 @@ class TestProblem(BaseTest):
                     [self.C[1:3, :] <= 2, self.C[0, :] == 1,
                      (self.A + self.B)[:, 0] == 3, (self.A + self.B)[:, 1] == 2,
                      self.B == 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.C.value[0:2, :], [1, 2, 1, 2])
         self.assertItemsAlmostEqual(self.A.value, [2, 2, 1, 1])
@@ -954,7 +954,7 @@ class TestProblem(BaseTest):
                     [self.C[1:3, :] <= 2, self.C[0, :] == 1,
                      [[1], [2]] @ (self.A + self.B)[:, 0] == 3, (self.A + self.B)[:, 1] == 2,
                      self.B == 1, 3*self.A[:, 0] <= 3])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 12)
         self.assertItemsAlmostEqual(self.C.value[0:2, 0], [1, 2])
         self.assertItemsAlmostEqual(self.A.value, [1, -.5, 1, 1])
@@ -963,14 +963,14 @@ class TestProblem(BaseTest):
                     [self.C[1:3, :] <= 2, self.C[0, :] == 1,
                      (self.A + self.B)[:, 0] == 3, (self.A + self.B)[:, 1] == 2,
                      self.B == 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.C.value[0:2, 0], [1, -2], places=3)
         self.assertItemsAlmostEqual(self.A.value, [2, 2, 1, 1])
 
         # Transpose of slice.
         p = Problem(cp.Maximize(cp.sum(self.C)), [self.C[1:3, :].T <= 2, self.C[0, :].T == 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(self.C.value, 2*[1, 2, 2])
 
@@ -986,27 +986,27 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(c @ cp.vstack([x, y])),
                     [x == [[1, 2]],
                      y == [[3, 4, 5]]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
         p = Problem(cp.Minimize(c @ cp.vstack([x, x])),
                     [x == [[1, 2]]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
         p = Problem(cp.Minimize(cp.sum(cp.vstack([self.A, self.C]))),
                     [self.A >= 2*c,
                      self.C == -2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -4)
 
         c = numpy.ones((1, 2))
         p = Problem(cp.Minimize(cp.sum(cp.vstack([c @ self.A, c @ self.B]))),
                     [self.A >= 2,
                      self.B == -2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0)
 
         c = numpy.array([[1, -1]]).T
@@ -1014,7 +1014,7 @@ class TestProblem(BaseTest):
                     [a == 2,
                      b == 16])
         with self.assertRaises(Exception) as cm:
-            p.solve()
+            p.solve(solver=cp.SCS)
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
 
@@ -1030,20 +1030,20 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(c @ cp.hstack([x.T, y.T]).T),
                     [x == [[1, 2]],
                      y == [[3, 4, 5]]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
         p = Problem(cp.Minimize(c @ cp.hstack([x.T, x.T]).T),
                     [x == [[1, 2]]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
         p = Problem(cp.Minimize(cp.sum(cp.hstack([self.A.T, self.C.T]))),
                     [self.A >= 2*c,
                      self.C == -2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -4)
 
         D = Variable((3, 3))
@@ -1051,7 +1051,7 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(expr[0, 1] + cp.sum(cp.hstack([expr, expr]))),
                     [self.C >= 0,
                      D >= 0, D[0, 0] == 2, self.C[0, 1] == 3])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 13)
 
         c = numpy.array([[1, -1]]).T
@@ -1059,7 +1059,7 @@ class TestProblem(BaseTest):
                     [a == 2,
                      b == 16])
         with self.assertRaises(Exception) as cm:
-            p.solve()
+            p.solve(solver=cp.SCS)
         self.assertTrue("Problem does not follow DCP rules."
                         in str(cm.exception))
 
@@ -1074,48 +1074,48 @@ class TestProblem(BaseTest):
     def test_transpose(self) -> None:
         p = Problem(cp.Minimize(cp.sum(self.x)),
                     [self.x[None, :] >= numpy.array([[1, 2]])])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 3)
         self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
         p = Problem(cp.Minimize(cp.sum(self.C)),
                     [numpy.array([[1, 1]]) @ self.C.T >= numpy.array([[0, 1, 2]])])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         value = self.C.value
 
         constraints = [1*self.C[i, 0] + 1*self.C[i, 1] >= i for i in range(3)]
         p = Problem(cp.Minimize(cp.sum(self.C)), constraints)
-        result2 = p.solve()
+        result2 = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, result2)
         self.assertItemsAlmostEqual(self.C.value, value)
 
         p = Problem(cp.Minimize(self.A[0, 1] - self.A.T[1, 0]),
                     [self.A == [[1, 2], [3, 4]]])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0)
 
         p = Problem(cp.Minimize(cp.sum(self.x)), [(-self.x).T <= 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -2)
 
         c = numpy.array([[1, -1]]).T
         p = Problem(cp.Minimize(cp.maximum(c.T, 2, 2 + c.T)[0, 1]))
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 2)
 
         c = numpy.array([[1, -1, 2], [1, -1, 2]]).T
         p = Problem(cp.Minimize(cp.sum(cp.maximum(c, 2, 2 + c).T[:, 0])))
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.array([[1, -1, 2], [1, -1, 2]]).T
         p = Problem(cp.Minimize(cp.sum(cp.square(c.T).T[:, 0])))
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 6)
 
         # Slice of transpose.
         p = Problem(cp.Maximize(cp.sum(self.C)), [self.C.T[:, 1:3] <= 2, self.C.T[:, 0] == 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(self.C.value, 2*[1, 2, 2])
 
@@ -1124,27 +1124,27 @@ class TestProblem(BaseTest):
         """
         c = numpy.array([[1, 2]]).T
         p = Problem(cp.Minimize(c.T @ self.A @ c), [self.A >= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 18)
 
         p = Problem(cp.Minimize(self.a*2), [self.a >= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 4)
 
         p = Problem(cp.Minimize(self.x.T @ c), [self.x >= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 6)
 
         p = Problem(cp.Minimize((self.x.T + self.z.T) @ c),
                     [self.x >= 2, self.z >= 1])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 9)
 
         # TODO segfaults in Python 3
         A = numpy.ones((5, 10))
         x = Variable(5)
         p = cp.Problem(cp.Minimize(cp.sum(x @ A)), [x >= 0])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0)
 
     # Test redundant constraints in cpopt.
@@ -1175,11 +1175,11 @@ class TestProblem(BaseTest):
     # Test that symmetry is enforced.
     def test_sdp_symmetry(self) -> None:
         p = Problem(cp.Minimize(cp.lambda_max(self.A)), [self.A >= 2])
-        p.solve()
+        p.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(self.A.value, self.A.value.T, places=3)
 
         p = Problem(cp.Minimize(cp.lambda_max(self.A)), [self.A == [[1, 2], [3, 4]]])
-        p.solve()
+        p.solve(solver=cp.SCS)
         self.assertEqual(p.status, s.INFEASIBLE)
 
     # Test PSD
@@ -1190,7 +1190,7 @@ class TestProblem(BaseTest):
                           self.A[0, 0] == 2,
                           self.A[1, 1] == 2,
                           self.A[1, 0] == 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0, places=3)
 
     # Test getting values for expressions.
@@ -1202,7 +1202,7 @@ class TestProblem(BaseTest):
         obj = cp.pnorm(sum_exp, p=2)
         p = Problem(cp.Minimize(obj),
                     [self.x >= [2, 3], self.z <= [-1, -4], constr_exp <= 2])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 22)
         self.assertItemsAlmostEqual(self.x.value, [2, 3])
         self.assertItemsAlmostEqual(self.z.value, [-1, -4])
@@ -1225,7 +1225,7 @@ class TestProblem(BaseTest):
         self.assertEqual(exp.value, 0)
         obj = cp.Minimize(exp)
         p = Problem(obj)
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 0)
         assert self.a.value is not None
 
@@ -1234,14 +1234,14 @@ class TestProblem(BaseTest):
         """
         obj = cp.Minimize(cp.norm_inf(self.A/5))
         p = Problem(obj, [self.A >= 5])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 1)
 
         c = cp.Constant([[1., -1], [2, -2]])
         expr = self.A/(1./c)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.A == 5])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
 
@@ -1253,7 +1253,7 @@ class TestProblem(BaseTest):
         expr = self.x[:, None]/(1/c)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.x == 5])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, 10])
 
@@ -1263,7 +1263,7 @@ class TestProblem(BaseTest):
         expr = self.a/(1/c)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.a == 5])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
 
@@ -1274,7 +1274,7 @@ class TestProblem(BaseTest):
         expr = cp.multiply(c, self.A)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.A == 5])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
 
@@ -1285,7 +1285,7 @@ class TestProblem(BaseTest):
         expr = cp.multiply(c, self.x[:, None])
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.x == 5])
-        result = p.solve()
+        result = p.solve(solver=cp.ECOS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value.toarray(), [5, 10])
 
@@ -1294,7 +1294,7 @@ class TestProblem(BaseTest):
         expr = cp.multiply(c, self.a)
         obj = cp.Minimize(cp.norm_inf(expr))
         p = Problem(obj, [self.a == 5])
-        result = p.solve()
+        result = p.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 10)
         self.assertItemsAlmostEqual(expr.value, [5, -5] + [10, -10])
 
@@ -1335,7 +1335,7 @@ class TestProblem(BaseTest):
         expr = cp.reshape(x, (2, 2))
         obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [x[:, None] == vec])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, numpy.sum(mat.dot(vec_mat)))
 
         # Test on matrix to vector.
@@ -1344,7 +1344,7 @@ class TestProblem(BaseTest):
         obj = cp.Minimize(expr.T @ c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 20)
         self.assertItemsAlmostEqual(expr.value, [-1, -2, 3, 4])
         self.assertItemsAlmostEqual(cp.reshape(expr, (2, 2)).value, [-1, -2, 3, 4])
@@ -1355,7 +1355,7 @@ class TestProblem(BaseTest):
         C_mat = numpy.array([[1, 4], [2, 5], [3, 6]])
         obj = cp.Minimize(cp.sum(mat @ expr))
         prob = Problem(obj, [self.C == C_mat])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         reshaped = numpy.reshape(C_mat, (2, 3), 'F')
         self.assertAlmostEqual(result, (mat.dot(reshaped)).sum())
         self.assertItemsAlmostEqual(expr.value, C_mat)
@@ -1365,14 +1365,14 @@ class TestProblem(BaseTest):
         expr = cp.reshape(c * self.a, (1, 4))
         obj = cp.Minimize(expr @ [1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
 
         expr = cp.reshape(c * self.a, (4, 1))
         obj = cp.Minimize(expr.T @ [1, 2, 3, 4])
         prob = Problem(obj, [self.a == 2])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(expr.value, 2*c)
 
@@ -1382,7 +1382,7 @@ class TestProblem(BaseTest):
         tt = cp.Variable(5)
         prob = cp.Problem(cp.Minimize(cp.sum(tt)),
                           [cp.cumsum(tt, 0) >= -0.0001])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, -0.0001)
 
     def test_cummax(self) -> None:
@@ -1391,7 +1391,7 @@ class TestProblem(BaseTest):
         tt = cp.Variable(5)
         prob = cp.Problem(cp.Maximize(cp.sum(tt)),
                           [cp.cummax(tt, 0) <= numpy.array([1, 2, 3, 4, 5])])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 15)
 
     def test_vec(self) -> None:
@@ -1402,7 +1402,7 @@ class TestProblem(BaseTest):
         obj = cp.Minimize(expr.T @ c)
         constraints = [self.A == [[-1, -2], [3, 4]]]
         prob = Problem(obj, constraints)
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 20)
         self.assertItemsAlmostEqual(expr.value, [-1, -2, 3, 4])
 
@@ -1416,7 +1416,7 @@ class TestProblem(BaseTest):
                        C[1, 2] == -0.3,
                        C == Variable((3, 3), PSD=True)]
         prob = Problem(obj, constraints)
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0.583151, places=2)
 
     def test_presolve_parameters(self) -> None:
@@ -1459,7 +1459,7 @@ class TestProblem(BaseTest):
         x0.value = 1
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            prob.solve()
+            prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(g.value, 0)
 
         # Test multiplication.
@@ -1467,11 +1467,11 @@ class TestProblem(BaseTest):
         x0.value = 2
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            prob.solve()
+            prob.solve(solver=cp.SCS)
         x0.value = 1
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            prob.solve()
+            prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(prob.value, 1, places=2)
 
     def test_psd_constraints(self) -> None:
@@ -1485,21 +1485,21 @@ class TestProblem(BaseTest):
                        C == C.T,
                        C >> 0]
         prob = Problem(obj, constraints)
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 0.583151, places=2)
 
         C = Variable((2, 2))
         obj = cp.Maximize(C[0, 1])
         constraints = [C == 1, C >> [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         C = Variable((2, 2), symmetric=True)
         obj = cp.Minimize(C[0, 0])
         constraints = [C << [[2, 0], [0, 2]]]
         prob = Problem(obj, constraints)
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertEqual(prob.status, s.UNBOUNDED)
 
     def test_psd_duals(self) -> None:
@@ -1564,11 +1564,11 @@ class TestProblem(BaseTest):
         x = Variable(2)
         cost = cp.geo_mean(x)
         prob = Problem(cp.Maximize(cost), [x <= 1])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(prob.value, 1)
 
         prob = Problem(cp.Maximize(cost), [cp.sum(x) <= 1])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(x.value, [.5, .5])
 
         x = Variable((3, 3))
@@ -1593,7 +1593,7 @@ class TestProblem(BaseTest):
 
         x = Variable(5)
         prob = Problem(cp.Maximize(cp.geo_mean(x, p)), [cp.sum(x) <= 1])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         x = np.array(x.value).flatten()
         x_true = p/sum(p)
 
@@ -1605,7 +1605,7 @@ class TestProblem(BaseTest):
         # max geo_mean(x) s.t. norm(x) <= 1
         x = Variable(5)
         prob = Problem(cp.Maximize(cp.geo_mean(x, p)), [cp.norm(x) <= 1])
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         x = np.array(x.value).flatten()
         x_true = np.sqrt(p/sum(p))
 
@@ -1619,17 +1619,17 @@ class TestProblem(BaseTest):
         x_true = np.ones(n)
         x = Variable(n)
 
-        Problem(cp.Maximize(cp.geo_mean(x)), [x <= 1]).solve()
+        Problem(cp.Maximize(cp.geo_mean(x)), [x <= 1]).solve(solver=cp.SCS)
         xval = np.array(x.value).flatten()
         self.assertTrue(np.allclose(xval, x_true, 1e-3))
 
         y = cp.vstack([x[i] for i in range(n)])
-        Problem(cp.Maximize(cp.geo_mean(y)), [x <= 1]).solve()
+        Problem(cp.Maximize(cp.geo_mean(y)), [x <= 1]).solve(solver=cp.SCS)
         xval = np.array(x.value).flatten()
         self.assertTrue(np.allclose(xval, x_true, 1e-3))
 
         y = cp.hstack([x[i] for i in range(n)])
-        Problem(cp.Maximize(cp.geo_mean(y)), [x <= 1]).solve()
+        Problem(cp.Maximize(cp.geo_mean(y)), [x <= 1]).solve(solver=cp.SCS)
         xval = np.array(x.value).flatten()
         self.assertTrue(np.allclose(xval, x_true, 1e-3))
 
@@ -1644,7 +1644,7 @@ class TestProblem(BaseTest):
 
         for p in (1, 1.6, 1.3, 2, 1.99, 3, 3.7, np.inf):
             prob = Problem(cp.Minimize(cp.pnorm(x, p=p)), [x.T @ a >= 1])
-            prob.solve(verbose=True)
+            prob.solve(solver=cp.ECOS, verbose=True)
 
             # formula is true for any a >= 0 with p > 1
             if p == np.inf:
@@ -1669,21 +1669,21 @@ class TestProblem(BaseTest):
         a = np.array([-1.0, 2, 3])
         for p in (-1, .5, .3, -2.3):
             prob = Problem(cp.Minimize(cp.sum(cp.abs(x-a))), [cp.pnorm(x, p) >= 0])
-            prob.solve()
+            prob.solve(solver=cp.ECOS)
 
             self.assertTrue(np.allclose(prob.value, 1))
 
         a = np.array([1.0, 2, 3])
         for p in (-1, .5, .3, -2.3):
             prob = Problem(cp.Minimize(cp.sum(cp.abs(x-a))), [cp.pnorm(x, p) >= 0])
-            prob.solve()
+            prob.solve(solver=cp.ECOS)
 
             self.assertAlmostEqual(prob.value, 0, places=6)
 
     def test_power(self) -> None:
         x = Variable()
         prob = Problem(cp.Minimize(cp.power(x, 1.7) + cp.power(x, -2.3) - cp.power(x, .45)))
-        prob.solve()
+        prob.solve(solver=cp.SCS)
         x = x.value
         self.assertTrue(builtins.abs(1.7*x**.7 - 2.3*x**-3.3 - .45*x**-.55) <= 1e-3)
 
@@ -1710,7 +1710,7 @@ class TestProblem(BaseTest):
 
         obj = cp.Minimize(cp.sum(cp.multiply(2, self.x)))
         prob = Problem(obj, [self.x == 2])
-        result = prob.solve()
+        result = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 8)
 
     def test_int64(self) -> None:
@@ -1719,7 +1719,7 @@ class TestProblem(BaseTest):
         q = cp.Variable(numpy.int64(2))
         objective = cp.Minimize(cp.norm(q, 1))
         problem = cp.Problem(objective)
-        problem.solve()
+        problem.solve(solver=cp.SCS)
         print(q.value)
 
     def test_neg_slice(self) -> None:
@@ -1729,7 +1729,7 @@ class TestProblem(BaseTest):
         objective = cp.Minimize(x[0] + x[1])
         constraints = [x[-2:] >= 1]
         problem = cp.Problem(objective, constraints)
-        problem.solve()
+        problem.solve(solver=cp.SCS)
         self.assertItemsAlmostEqual(x.value, [1, 1])
 
     def test_pnorm_axis(self) -> None:
@@ -1741,7 +1741,7 @@ class TestProblem(BaseTest):
         con = [expr <= 0]
         obj = cp.Maximize(cp.sum(X))
         prob = cp.Problem(obj, con)
-        prob.solve(solver='ECOS')
+        prob.solve(solver=cp.ECOS)
         self.assertItemsAlmostEqual(expr.value, numpy.zeros(2))
 
         b = numpy.arange(10)
@@ -1750,7 +1750,7 @@ class TestProblem(BaseTest):
         con = [expr <= 0]
         obj = cp.Maximize(cp.sum(X))
         prob = cp.Problem(obj, con)
-        prob.solve(solver='ECOS')
+        prob.solve(solver=cp.ECOS)
         self.assertItemsAlmostEqual(expr.value, numpy.zeros(10))
 
     def test_bool_constr(self) -> None:
@@ -1758,41 +1758,41 @@ class TestProblem(BaseTest):
         """
         x = cp.Variable(pos=True)
         prob = cp.Problem(cp.Minimize(x), [True])
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 0)
 
         x = cp.Variable(pos=True)
         prob = cp.Problem(cp.Minimize(x), [True]*10)
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 0)
 
         prob = cp.Problem(cp.Minimize(x), [42 <= x] + [True]*10)
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 42)
 
         prob = cp.Problem(cp.Minimize(x), [True] + [42 <= x] + [True] * 10)
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 42)
 
         prob = cp.Problem(cp.Minimize(x), [False])
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [False]*10)
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [True]*10 + [False] + [True]*10)
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         prob = cp.Problem(cp.Minimize(x), [42 <= x] + [True]*10 + [False])
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
         # only Trues, but infeasible solution since x must be non-negative.
         prob = cp.Problem(cp.Minimize(x), [True] + [x <= -42] + [True]*10)
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
     def test_pos(self) -> None:
@@ -1800,12 +1800,12 @@ class TestProblem(BaseTest):
         """
         x = cp.Variable(pos=True)
         prob = cp.Problem(cp.Minimize(x))
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 0)
 
         x = cp.Variable(neg=True)
         prob = cp.Problem(cp.Maximize(x))
-        prob.solve()
+        prob.solve(solver=cp.ECOS)
         self.assertAlmostEqual(x.value, 0)
 
     def test_pickle(self) -> None:
@@ -1815,7 +1815,7 @@ class TestProblem(BaseTest):
                           [self.a >= 1])
         prob_str = pickle.dumps(prob)
         new_prob = pickle.loads(prob_str)
-        result = new_prob.solve()
+        result = new_prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 5.0)
         self.assertAlmostEqual(new_prob.variables()[0].value, 1.0)
 
@@ -1865,13 +1865,13 @@ class TestProblem(BaseTest):
         y = cp.sum(x[:, 0:2], axis=1)
         cost = cp.QuadForm(y, np.diag([1]))
         prob = cp.Problem(cp.Minimize(cost))
-        result1 = prob.solve()
+        result1 = prob.solve(solver=cp.SCS)
 
         x = cp.Variable((1, 3))
         y = cp.sum(x[:, [0, 1]], axis=1)
         cost = cp.QuadForm(y, np.diag([1]))
         prob = cp.Problem(cp.Minimize(cost))
-        result2 = prob.solve()
+        result2 = prob.solve(solver=cp.SCS)
         self.assertAlmostEqual(result1, result2)
 
     def test_indicator(self) -> None:
@@ -1886,12 +1886,12 @@ class TestProblem(BaseTest):
         constraints = [a @ x == b]
         objective = cp.Minimize((1/2) * cp.square(q.T @ x) + cp.transforms.indicator(constraints))
         problem = cp.Problem(objective)
-        solution1 = problem.solve()
+        solution1 = problem.solve(solver=cp.SCS)
 
         # Without indicators.
         objective = cp.Minimize((1/2) * cp.square(q.T @ x))
         problem = cp.Problem(objective, constraints)
-        solution2 = problem.solve()
+        solution2 = problem.solve(solver=cp.SCS)
         self.assertAlmostEqual(solution1, solution2)
 
     def test_rmul_scalar_mats(self) -> None:
@@ -1903,7 +1903,7 @@ class TestProblem(BaseTest):
         objective = cp.Minimize(cp.quad_form(z, x) - 2 * z.T @ y)
 
         prob = cp.Problem(objective)
-        prob.solve('OSQP', verbose=True)
+        prob.solve(cp.OSQP, verbose=True)
         result1 = prob.value
 
         x = 4144.30127531
@@ -1912,7 +1912,7 @@ class TestProblem(BaseTest):
         objective = cp.Minimize(x*z**2 - 2 * z * y)
 
         prob = cp.Problem(objective)
-        prob.solve('OSQP', verbose=True)
+        prob.solve(cp.OSQP, verbose=True)
         self.assertAlmostEqual(prob.value, result1)
 
     def test_min_with_axis(self) -> None:
@@ -1927,14 +1927,14 @@ class TestProblem(BaseTest):
 
         obj = cp.sum(reshaped_minimum)
         problem = cp.Problem(cp.Maximize(obj), [x == 1, y == 2])
-        result = problem.solve()
+        result = problem.solve(solver=cp.SCS)
         self.assertAlmostEqual(result, 10)
 
     def test_constant_infeasible(self) -> None:
         """Test a problem with constant values only that is infeasible.
         """
         p = cp.Problem(cp.Maximize(0), [cp.Constant(0) == 1])
-        p.solve()
+        p.solve(solver=cp.SCS)
         self.assertEquals(p.status, cp.INFEASIBLE)
 
     def test_huber_scs(self) -> None:

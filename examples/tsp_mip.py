@@ -15,7 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
-from cvxpy import *
+from cvxpy import Minimize, multiply, Problem, Variable
 
 # Based on formulation described
 #    @ https://en.wikipedia.org/wiki/Travelling_salesman_problem (February 2016)

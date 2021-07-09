@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import *
 from collections import namedtuple
+from cvxpy import Minimize, Problem, Variable, exp
 import scipy.sparse as sp
+
 n = 100
 x = Variable(n*n)
 # class testClass(object):

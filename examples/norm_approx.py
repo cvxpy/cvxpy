@@ -15,14 +15,12 @@ limitations under the License.
 """
 
 from __future__ import division
-import sys
+import math
 
 import cvxopt
 import numpy as np
-from pylab import *
-import math
+from cvxpy import norm, Maximize, Minimize, Problem, square, Variable
 
-from cvxpy import *
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Examples 5.6,5.8: An l_p norm approximation problem

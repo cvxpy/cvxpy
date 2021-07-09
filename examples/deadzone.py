@@ -15,14 +15,9 @@ limitations under the License.
 """
 
 from __future__ import division
-import sys
 
 import cvxopt
-import numpy as np
-from pylab import *
-import math
-
-from cvxpy import *
+from cvxpy import maximum, Minimize, Problem, Variable
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Section 6.1.2: Residual minimization with deadzone penalty
@@ -57,4 +52,3 @@ print (x.value)
 
 print ('Residual vector:')
 print (A*x.value - b)
-

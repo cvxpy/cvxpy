@@ -1,5 +1,5 @@
 from __future__ import division
-from cvxpy import *
+from cvxpy import Assign, ECOS, GUROBI, norm, Minimize, Problem, vstack
 from mixed_integer import *
 from ncvx import Boolean
 import numpy as np

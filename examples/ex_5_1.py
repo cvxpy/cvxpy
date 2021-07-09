@@ -15,16 +15,12 @@ limitations under the License.
 """
 
 from __future__ import division
-import sys
-
-import cvxopt
-import numpy as np
-from pylab import *
-import math
-
-from cvxpy import *
-
 from multiprocessing import Pool
+
+import numpy as np
+from cvxpy import Minimize, Parameter, Problem, quad_form, Variable
+from pylab import axis, plot, show, title, xlabel, ylabel
+
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Exercise 5.1d: Sensitivity analysis for a simple QCQP
@@ -53,7 +49,7 @@ def get_x(u_value):
     result = p.solve()
     return x.value
 
-u_values = np.linspace(-0.9,10,num=50);
+u_values = np.linspace(-0.9,10,num=50)
 # Serial computation.
 x_values = [get_x(value) for value in u_values]
 

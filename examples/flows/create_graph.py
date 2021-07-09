@@ -16,7 +16,7 @@ limitations under the License.
 
 # Construct a random connected graph and stores it as tuples of
 # (start node #, end node #, capacity).
-from random import choice, sample, random
+from random import sample, random
 import pickle
 
 # Constants

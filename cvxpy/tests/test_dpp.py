@@ -298,11 +298,11 @@ class TestDgp(BaseTest):
         dcp = dgp2dcp.reduce()
         self.assertTrue(dcp.is_dpp())
 
-        dgp.solve(gp=True, enforce_dpp=True)
+        dgp.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 1.0)
 
         alpha.value = 2.0
-        dgp.solve(gp=True, enforce_dpp=True)
+        dgp.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 2.0)
 
     def test_basic_inequality_constraint(self) -> None:
@@ -380,11 +380,11 @@ class TestDgp(BaseTest):
         self.assertFalse(dgp.objective.is_dgp(dpp=True))
 
         with self.assertRaises(error.DPPError):
-            dgp.solve(gp=True, enforce_dpp=True)
+            dgp.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
 
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            dgp.solve(gp=True, enforce_dpp=False)
+            dgp.solve(solver=cp.SCS, gp=True, enforce_dpp=False)
             self.assertAlmostEqual(x.value, 1.0)
 
     def test_basic_monomial(self) -> None:
@@ -398,12 +398,12 @@ class TestDgp(BaseTest):
         self.assertTrue(problem.is_dgp(dpp=True))
         self.assertFalse(problem.is_dpp('dcp'))
 
-        problem.solve(gp=True, enforce_dpp=True)
+        problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 1.0)
         self.assertAlmostEqual(problem.value, 2.0)
 
         alpha.value = 3.0
-        problem.solve(gp=True, enforce_dpp=True)
+        problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 3.0)
         # 3 * 2 * 3 == 18
         self.assertAlmostEqual(problem.value, 18.0)
@@ -425,7 +425,7 @@ class TestDgp(BaseTest):
         self.assertTrue(problem.is_dgp(dpp=True))
         self.assertFalse(problem.is_dpp('dcp'))
 
-        problem.solve(gp=True, enforce_dpp=True)
+        problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 1.0)
         self.assertAlmostEqual(y.value, 2.0)
         # 1*2*1 + 2*3*1*2 == 2 + 12 == 14
@@ -433,7 +433,7 @@ class TestDgp(BaseTest):
 
         alpha.value = 4.0
         beta.value = 5.0
-        problem.solve(gp=True, enforce_dpp=True)
+        problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(x.value, 4.0)
         self.assertAlmostEqual(y.value, 5.0)
         # 4*5*4 + 5*3*4*5 == 80 + 300 == 380
@@ -519,17 +519,17 @@ class TestDgp(BaseTest):
         problem = cp.Problem(cp.Minimize(x**alpha), [x == alpha])
 
         self.assertTrue(problem.is_dgp(dpp=True))
-        problem.solve(gp=True, enforce_dpp=True)
+        problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(problem.value, 1.0)
         self.assertAlmostEqual(x.value, 1.0)
 
         # re-solve (which goes through a separate code path)
-        problem.solve(gp=True, enforce_dpp=True)
+        problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(problem.value, 1.0)
         self.assertAlmostEqual(x.value, 1.0)
 
         alpha.value = 3.0
-        problem.solve(gp=True, enforce_dpp=True)
+        problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(problem.value, 27.0)
         self.assertAlmostEqual(x.value, 3.0)
 
@@ -811,7 +811,7 @@ class TestDgp(BaseTest):
         expr = cp.gmatmul(A, x)
         problem = cp.Problem(cp.Minimize(1.0), [expr == b])
         self.assertTrue(problem.is_dgp(dpp=True))
-        problem.solve(gp=True, enforce_dpp=True)
+        problem.solve(solver=cp.SCS, gp=True, enforce_dpp=True)
         sltn = np.exp(np.linalg.solve(A.value, np.log(b)))
         self.assertItemsAlmostEqual(x.value, sltn)
 

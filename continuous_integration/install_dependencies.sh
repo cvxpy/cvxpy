@@ -30,6 +30,11 @@ fi
 
 python -m pip install diffcp gurobipy xpress
 
+# Only install Mosek if license is available (secret is not copied to forks)
+if [[ -n "$MOSEK_CI_BASE64" ]]; then
+    python -m pip install mosek
+fi
+
 if [[ "$USE_OPENMP" == "True" ]]; then
   conda install -c conda-forge openmp
 fi

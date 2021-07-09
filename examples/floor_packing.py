@@ -13,10 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from cvxpy import *
-import pylab
 import math
+
+import pylab
+from cvxpy import geo_mean, Minimize, Problem, Variable, vstack
 
 # Based on http://cvxopt.org/examples/book/floorplan.html
 class Box:

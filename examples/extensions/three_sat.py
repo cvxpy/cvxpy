@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import *
+from cvxpy import Boolean, ECOS, Minimize, Problem
 from mixed_integer import *
 import random
 import numpy as np
