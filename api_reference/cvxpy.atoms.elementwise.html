@@ -110,6 +110,7 @@ expressions that are supplied to it.</p>
 <em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.kl_div.</code><code class="sig-name descname">kl_div</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/kl_div.html#kl_div"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.kl_div.kl_div" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p><span class="math notranslate nohighlight">\(x\log(x/y) - x + y\)</span></p>
+<p>For disambiguation between kl_div and rel_entr, see <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/733">https://github.com/cvxpy/cvxpy/issues/733</a></p>
 </dd></dl>
 
 </div>
@@ -266,6 +267,17 @@ of <code class="docutils literal notranslate"><span class="pre">p</span></code>;
 </dd></dl>
 
 </div>
+<div class="section" id="rel-entr">
+<h2>rel-entr<a class="headerlink" href="#rel-entr" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cvxpy.atoms.elementwise.rel_entr.rel_entr">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.rel_entr.</code><code class="sig-name descname">rel_entr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/rel_entr.html#rel_entr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.rel_entr.rel_entr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
+<p><span class="math notranslate nohighlight">\(x\log(x/y)\)</span></p>
+<p>For disambiguation between rel_entr and kl_div, see <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/733">https://github.com/cvxpy/cvxpy/issues/733</a></p>
+</dd></dl>
+
+</div>
 <div class="section" id="scalene">
 <span id="id15"></span><h2>scalene<a class="headerlink" href="#scalene" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
@@ -347,6 +359,7 @@ of <code class="docutils literal notranslate"><span class="pre">p</span></code>;
 <li class="toctree-l4"><a class="reference internal" href="#neg">neg</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#pos">pos</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#power">power</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#rel-entr">rel-entr</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#scalene">scalene</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#sqrt">sqrt</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#square">square</a></li>

@@ -630,7 +630,18 @@ scalars, which are promoted.</p>
 <td><p><a class="reference internal" href="../../_images/convex1.svg"><img alt="convex" height="15px" src="../../_images/convex1.svg" width="15px" /></a> convex</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing1.svg"><img alt="incr" height="15px" src="../../_images/increasing1.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#scalene"><span class="std std-ref">scalene(x, alpha, beta)</span></a></p>
+<tr class="row-even"><td><p><span class="xref std std-ref">rel_entr(x, y)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \log(x/y)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p>
+<p><span class="math notranslate nohighlight">\(y &gt; 0\)</span></p>
+</td>
+<td><p><a class="reference internal" href="../../_images/unknown.svg"><img alt="unknown" height="15px" src="../../_images/unknown.svg" width="15px" /></a> unknown</p></td>
+<td><p><a class="reference internal" href="../../_images/convex1.svg"><img alt="convex" height="15px" src="../../_images/convex1.svg" width="15px" /></a> convex</p></td>
+<td><p>None in <span class="math notranslate nohighlight">\(x\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing1.svg"><img alt="decr" height="15px" src="../../_images/decreasing1.svg" width="15px" /></a> in <span class="math notranslate nohighlight">\(y\)</span></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#scalene"><span class="std std-ref">scalene(x, alpha, beta)</span></a></p>
 <p><span class="math notranslate nohighlight">\(\text{alpha} \geq 0\)</span></p>
 <p><span class="math notranslate nohighlight">\(\text{beta} \geq 0\)</span></p>
 </td>
@@ -642,14 +653,14 @@ scalars, which are promoted.</p>
 <p><a class="reference internal" href="../../_images/decreasing1.svg"><img alt="decr" height="15px" src="../../_images/decreasing1.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(x \leq 0\)</span></p>
 </td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#sqrt"><span class="std std-ref">sqrt(x)</span></a></p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#sqrt"><span class="std std-ref">sqrt(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\sqrt x\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \geq 0\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
 <td><p><a class="reference internal" href="../../_images/concave1.svg"><img alt="concave" height="15px" src="../../_images/concave1.svg" width="15px" /></a> concave</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing1.svg"><img alt="incr" height="15px" src="../../_images/increasing1.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#square"><span class="std std-ref">square(x)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#square"><span class="std std-ref">square(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(x^2\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}\)</span></p></td>
 <td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
