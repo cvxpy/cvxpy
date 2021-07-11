@@ -25,5 +25,5 @@ def rel_entr_canon(expr, args):
     y = promote(args[1], shape)
     t = Variable(shape)
     constraints = [ExpCone(t, x, y)]
-    obj = y - x - t
+    obj = -t
     return obj, constraints

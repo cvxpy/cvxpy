@@ -113,11 +113,27 @@ class TestNonlinearAtoms(BaseTest):
         constrs = [cvx.sum(v_prob) == 1]
         rel_entr_prob = cvx.Problem(cvx.Minimize(obj_rel_entr), constrs)
         p_refProb.value = npSPriors
-        rel_entr_prob.solve(solver=cvx.SCS)
         rel_entr_prob.solve(solver=cvx.SCS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors, places=3)
         rel_entr_prob.solve(solver=cvx.ECOS, verbose=True)
         self.assertItemsAlmostEqual(v_prob.value, npSPriors)
+
+    def test_difference_kl_div_rel_entr(self) -> None:
+        """A test showing the difference between kl_div and rel_entr
+        """
+        x = cvx.Variable()
+        y = cvx.Variable()
+
+        kl_div_prob = cvx.Problem(cvx.Minimize(cvx.kl_div(x, y)), constraints=[x + y <= 1])
+        kl_div_prob.solve()
+        self.assertItemsAlmostEqual(x.value, y.value)
+        self.assertItemsAlmostEqual(kl_div_prob.value, 0)
+
+        rel_entr_prob = cvx.Problem(cvx.Minimize(cvx.rel_entr(x, y)), constraints=[x + y <= 1])
+        rel_entr_prob.solve()
+        self.assertItemsAlmostEqual(x.value, 0.2178117)
+        self.assertItemsAlmostEqual(y.value, 0.7821882)
+        self.assertItemsAlmostEqual(rel_entr_prob.value, -0.278464)
 
     def test_entr_prob(self) -> None:
         """Test a problem with entr.

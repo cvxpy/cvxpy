@@ -20,7 +20,7 @@ from typing import List, Tuple, Optional
 
 import numpy as np
 from scipy.sparse import csc_matrix
-from scipy.special import xlogy
+from scipy.special import rel_entr as rel_entr_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 
@@ -38,8 +38,7 @@ class rel_entr(Elementwise):
     def numeric(self, values):
         x = values[0]
         y = values[1]
-        # TODO return inf outside the domain
-        return xlogy(x, x/y)
+        return rel_entr_scipy(x, y)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
