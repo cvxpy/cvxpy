@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2021 The CVXPY Developers
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,31 +20,30 @@ from typing import List, Tuple, Optional
 
 import numpy as np
 from scipy.sparse import csc_matrix
-from scipy.special import kl_div as kl_div_scipy
+from scipy.special import rel_entr as rel_entr_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 
-class kl_div(Elementwise):
-    """:math:`x\\log(x/y) - x + y`
+class rel_entr(Elementwise):
+    """:math:`x\\log(x/y)`
 
-    For disambiguation between kl_div and rel_entr, see https://github.com/cvxpy/cvxpy/issues/733
+    For disambiguation between rel_entr and kl_div, see https://github.com/cvxpy/cvxpy/issues/733
     """
 
     def __init__(self, x, y) -> None:
-        super(kl_div, self).__init__(x, y)
+        super(rel_entr, self).__init__(x, y)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
         x = values[0]
         y = values[1]
-        return kl_div_scipy(x, y)
+        return rel_entr_scipy(x, y)
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        # Always positive.
-        return (True, False)
+        return (False, False)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -64,7 +63,10 @@ class kl_div(Elementwise):
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        return False
+        if idx == 0:
+            return False
+        else:
+            return True
 
     def _grad(self, values) -> List[Optional[csc_matrix]]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
@@ -82,13 +84,13 @@ class kl_div(Elementwise):
             return [None, None]
         else:
             div = values[0]/values[1]
-            grad_vals = [np.log(div), 1 - div]
+            grad_vals = [np.log(div) + 1, - div]
             grad_list = []
             for idx in range(len(values)):
                 rows = self.args[idx].size
                 cols = self.size
-                grad_list += [kl_div.elemwise_grad_to_diag(grad_vals[idx],
-                                                           rows, cols)]
+                grad_list += [rel_entr.elemwise_grad_to_diag(grad_vals[idx],
+                                                             rows, cols)]
             return grad_list
 
     def _domain(self):

@@ -91,6 +91,7 @@ from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.neg import neg
 from cvxpy.atoms.elementwise.pos import pos
 from cvxpy.atoms.elementwise.power import power
+from cvxpy.atoms.elementwise.rel_entr import rel_entr
 from cvxpy.atoms.elementwise.scalene import scalene
 from cvxpy.atoms.elementwise.sqrt import sqrt
 from cvxpy.atoms.elementwise.square import square
@@ -113,6 +114,7 @@ EXP_ATOMS = [
     entr,
     exp,
     kl_div,
+    rel_entr,
     log,
     log1p,
     logistic,
