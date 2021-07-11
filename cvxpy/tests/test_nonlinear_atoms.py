@@ -126,7 +126,7 @@ class TestNonlinearAtoms(BaseTest):
 
         kl_div_prob = cvx.Problem(cvx.Minimize(cvx.kl_div(x, y)), constraints=[x + y <= 1])
         kl_div_prob.solve()
-        self.assertItemsAlmostEqual(x.value, y.value)
+        self.assertItemsAlmostEqual(x.value, y.value, places=4)
         self.assertItemsAlmostEqual(kl_div_prob.value, 0)
 
         rel_entr_prob = cvx.Problem(cvx.Minimize(cvx.rel_entr(x, y)), constraints=[x + y <= 1])
@@ -136,8 +136,8 @@ class TestNonlinearAtoms(BaseTest):
         Reference solution computed by passing the following command to Wolfram Alpha:
         minimize x*log(x/y) subject to {x + y <= 1, 0 <= x, 0 <= y}
         """
-        self.assertItemsAlmostEqual(x.value, 0.2178117)
-        self.assertItemsAlmostEqual(y.value, 0.7821882)
+        self.assertItemsAlmostEqual(x.value, 0.2178117, places=4)
+        self.assertItemsAlmostEqual(y.value, 0.7821882, places=4)
         self.assertItemsAlmostEqual(rel_entr_prob.value, -0.278464)
 
     def test_entr_prob(self) -> None:
