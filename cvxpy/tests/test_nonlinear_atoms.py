@@ -125,12 +125,12 @@ class TestNonlinearAtoms(BaseTest):
         y = cvx.Variable()
 
         kl_div_prob = cvx.Problem(cvx.Minimize(cvx.kl_div(x, y)), constraints=[x + y <= 1])
-        kl_div_prob.solve()
+        kl_div_prob.solve(solver=cvx.ECOS)
         self.assertItemsAlmostEqual(x.value, y.value)
         self.assertItemsAlmostEqual(kl_div_prob.value, 0)
 
         rel_entr_prob = cvx.Problem(cvx.Minimize(cvx.rel_entr(x, y)), constraints=[x + y <= 1])
-        rel_entr_prob.solve()
+        rel_entr_prob.solve(solver=cvx.ECOS)
 
         """
         Reference solution computed by passing the following command to Wolfram Alpha:
