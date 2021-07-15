@@ -129,7 +129,7 @@ class SCS(ConicSolver):
                   -7: s.INFEASIBLE_INACCURATE,
                   -4: s.SOLVER_ERROR,           # Failed
                   -3: s.SOLVER_ERROR,           # Indeterminate
-                  -5: s.SOLVER_ERROR]}          # SIGINT
+                  -5: s.SOLVER_ERROR}           # SIGINT
 
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 1, 2]
