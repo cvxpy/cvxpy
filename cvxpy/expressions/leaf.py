@@ -303,7 +303,7 @@ class Leaf(expression.Expression):
         elif self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
-            return val.astype(np.complex)
+            return val.astype(complex)
         elif self.attributes['boolean']:
             # TODO(akshayka): respect the boolean indices.
             return np.round(np.clip(val, 0., 1.))
@@ -323,7 +323,7 @@ class Leaf(expression.Expression):
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
             if val.dtype.kind in 'ib':
-                val = val.astype(np.float)
+                val = val.astype(float)
             val = val + val.T
             val /= 2.
             if self.attributes['symmetric']:

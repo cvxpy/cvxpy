@@ -29,7 +29,7 @@ class ceil(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        decimals = np.int(np.abs(np.log10(s.ATOM_EVAL_TOL)))
+        decimals = int(np.abs(np.log10(s.ATOM_EVAL_TOL)))
         return np.ceil(np.around(values[0], decimals=decimals))
 
     def sign_from_args(self) -> Tuple[bool, bool]:
