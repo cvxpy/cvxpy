@@ -120,16 +120,16 @@ class SCS(ConicSolver):
         + [SOC, ExpCone, PSD, PowCone3D]
     REQUIRES_CONSTR = True
 
-    # Map of SCS status to CVXPY status.
-    STATUS_MAP = {"Solved": s.OPTIMAL,
-                  "Solved/Inaccurate": s.OPTIMAL_INACCURATE,
-                  "Unbounded": s.UNBOUNDED,
-                  "Unbounded/Inaccurate": s.UNBOUNDED_INACCURATE,
-                  "Infeasible": s.INFEASIBLE,
-                  "Infeasible/Inaccurate": s.INFEASIBLE_INACCURATE,
-                  "Failure": s.SOLVER_ERROR,
-                  "Indeterminate": s.SOLVER_ERROR,
-                  "Interrupted": s.SOLVER_ERROR}
+    # Map of SCS status value to CVXPY status.
+    STATUS_MAP = {1: s.OPTIMAL,
+                  2: s.OPTIMAL_INACCURATE,
+                  -1: s.UNBOUNDED,
+                  -6: s.UNBOUNDED_INACCURATE,
+                  -2: s.INFEASIBLE,
+                  -7: s.INFEASIBLE_INACCURATE,
+                  -4: s.SOLVER_ERROR,           # Failed
+                  -3: s.SOLVER_ERROR,           # Indeterminate
+                  -5: s.SOLVER_ERROR]}          # SIGINT
 
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 1, 2]
@@ -244,7 +244,7 @@ class SCS(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = self.STATUS_MAP[solution["info"]["status"]]
+        status = self.STATUS_MAP[solution["info"]["statusVal"]]
 
         attr = {}
         attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
@@ -307,7 +307,7 @@ class SCS(ConicSolver):
         solver_opts["eps"] = solver_opts.get("eps", 1e-4)
 
         results = scs.solve(args, cones, verbose=verbose, **solver_opts)
-        status = self.STATUS_MAP[results["info"]["status"]]
+        status = self.STATUS_MAP[results["info"]["statusVal"]]
 
         if (status == s.OPTIMAL_INACCURATE and
                 "acceleration_lookback" not in solver_opts):
