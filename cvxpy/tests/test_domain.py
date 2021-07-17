@@ -145,6 +145,15 @@ class TestDomain(BaseTest):
         self.assertAlmostEqual(self.a.value, 0)
         self.assertAlmostEqual(b.value, 0)
 
+    def test_rel_entr(self) -> None:
+        """Test domain for rel_entr.
+        """
+        b = Variable()
+        dom = cp.rel_entr(self.a, b).domain
+        Problem(Minimize(self.a + b), dom).solve()
+        self.assertAlmostEqual(self.a.value, 0)
+        self.assertAlmostEqual(b.value, 0)
+
     def test_power(self) -> None:
         """Test domain for power.
         """

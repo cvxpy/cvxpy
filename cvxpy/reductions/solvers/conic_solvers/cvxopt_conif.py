@@ -120,11 +120,11 @@ class CVXOPT(ECOS):
         data[s.B] = b[:len_eq].flatten()
         if data[s.B].shape[0] == 0:
             data[s.B] = None
-        if len_eq > A.shape[1]:
+        if len_eq >= A.shape[0]:
             # Then the given optimization problem has no conic constraints.
             # This is certainly a degenerate case, but we'll handle it downstream.
-            data[s.G] = sp.csc_matrix((1, A.shape[1]))
-            data[s.H] = np.array([0])
+            data[s.G] = None
+            data[s.H] = None
         else:
             data[s.G] = -A[len_eq:]
             data[s.H] = b[len_eq:].flatten()

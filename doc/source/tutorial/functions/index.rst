@@ -635,6 +635,18 @@ scalars, which are promoted.
      - |convex| convex
      - |incr| incr.
 
+   * - :ref:`rel_entr(x, y) <rel-entr>`
+
+     - :math:`x \log(x/y)`
+     - :math:`x > 0`
+
+       :math:`y > 0`
+     - |unknown| unknown
+     - |convex| convex
+     - None in :math:`x`
+
+       |decr| in :math:`y`
+
    * - :ref:`scalene(x, alpha, beta) <scalene>`
 
        :math:`\text{alpha} \geq 0`

@@ -36,6 +36,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.matrix_frac_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.normNuc_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.pnorm_canon import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.rel_entr_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.sigma_max_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_form_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import *
@@ -80,6 +81,7 @@ CANON_METHODS = {
     maximum : maximum_canon,
     minimum : minimum_canon,
     power : power_canon,
+    rel_entr : rel_entr_canon,
     indicator : indicator_canon,
     special_index : special_index_canon,
     SuppFuncAtom : suppfunc_canon
