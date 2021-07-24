@@ -39,7 +39,7 @@ class SparseMatrixInterface(NDArrayInterface):
         # Convert cvxopt sparse to coo matrix.
         if isinstance(value, list):
             return sp.csc_matrix(value, dtype=np.double).T
-        if value.dtype in [np.double, np.complex]:
+        if value.dtype in [np.double, complex]:
             dtype = value.dtype
         else:
             # Cast bool, int, etc to double

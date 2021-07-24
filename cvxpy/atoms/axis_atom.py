@@ -78,7 +78,7 @@ class AxisAtom(Atom):
         else:
             m, n = self.args[0].shape
             if self.axis == 0:  # function apply to each column
-                D = sp.csc_matrix((m*n, n), dtype=np.float)
+                D = sp.csc_matrix((m*n, n), dtype=float)
                 for i in range(n):
                     value = values[0][:, i]
                     d = self._column_grad(value).T
@@ -92,7 +92,7 @@ class AxisAtom(Atom):
                                           shape=(m*n, n))  # d must be 1-D
             else:  # function apply to each row
                 values = np.transpose(values[0])
-                D = sp.csc_matrix((m*n, m), dtype=np.float)
+                D = sp.csc_matrix((m*n, m), dtype=float)
                 for i in range(m):
                     value = values[:, i]
                     d = self._column_grad(value).T
