@@ -343,28 +343,9 @@ class TestExpressions(BaseTest):
             with self.assertRaises(Exception) as cm:
                 N.value = -U @ np.diag(vi) @ U.T
             self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
-        with self.assertRaises(Exception) as cm:
-            P = Parameter(shape=(2, 2), PSD=True)
-            P.value = np.array([[1, 2], [2, 1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be positive semidefinite.")
-        with self.assertRaises(Exception) as cm:
-            P = Parameter(shape=(2, 2), NSD=True)
-            P.value = np.array([[1, 2], [2, 1]])
-        self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
-        x = Variable(shape=(2,))
-        P = Parameter(shape=(2, 2), symmetric=True)
-        P.value = np.array([[1, 2], [2, 1]])
-        expr = cp.quad_form(x, P)
-        self.assertFalse(expr.is_dcp())
-        self.assertFalse((-expr).is_dcp())
-        self.assertTrue(cp.quad_form(x, P + np.diag([5,5])).is_dcp())
-        P = Constant(np.array([[1, 2], [2, 1]]))
-        expr = cp.quad_form(x, P)
-        self.assertFalse(expr.is_dcp())
-        self.assertFalse((-expr).is_dcp())
 
 
-                # Test the Parameter class on bad inputs.
+    # Test the Parameter class on bad inputs.
     def test_parameters_failures(self) -> None:
         p = Parameter(name='p')
         self.assertEqual(p.name(), "p")
