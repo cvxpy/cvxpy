@@ -344,7 +344,6 @@ class TestExpressions(BaseTest):
                 N.value = -U @ np.diag(vi) @ U.T
             self.assertEqual(str(cm.exception), "Parameter value must be negative semidefinite.")
 
-
     # Test the Parameter class on bad inputs.
     def test_parameters_failures(self) -> None:
         p = Parameter(name='p')

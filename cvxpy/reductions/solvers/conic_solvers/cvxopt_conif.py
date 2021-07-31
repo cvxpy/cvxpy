@@ -23,7 +23,7 @@ from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
-from cvxpy.expressions.constants.constant import extremal_eig_near_ref
+from scipy.sparse.linalg import eigsh
 from typing import Dict, List, Union
 
 import scipy.sparse as sp
@@ -285,7 +285,7 @@ class CVXOPT(ECOS):
                 data[s.A] = None
                 data[s.B] = None
                 return s.OPTIMAL
-        eig = extremal_eig_near_ref(gram, ref=TOL)
+        eig = eigsh(gram, k=1, which='SM', return_eigenvectors=False)
         if eig > TOL:
             return s.OPTIMAL
         #

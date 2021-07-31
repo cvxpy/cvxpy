@@ -245,6 +245,7 @@ class Constant(Leaf):
 def extremal_eig_near_ref(A, ref, low: bool = True):
 
     which = 'SA' if low else 'LA'
+
     def SA_eigsh(sigma):
         return eigsh(A, k=1, sigma=sigma, which=which, return_eigenvectors=False)
     # Run eigsh in shift-invert mode, since we're particularly interested in finding
