@@ -24,7 +24,6 @@ from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
 from scipy.sparse.linalg import eigsh
-from scipy.sparse.linalg.eigen.arpack.arpack import ArpackError
 
 
 class Constant(Leaf):
@@ -214,9 +213,6 @@ class Constant(Leaf):
         # Compute bottom eigenvalue if absent.
         if self._psd_test is None:
             self._psd_test = is_psd_within_tol(self.value, EIGVAL_TOL)
-        #if self._bottom_eig is None:
-        #    ev = extremal_eig_near_ref(self.value, EIGVAL_TOL, low=True)
-        #    self._bottom_eig = ev
 
         return self._psd_test
 
@@ -239,9 +235,6 @@ class Constant(Leaf):
         # Compute top eigenvalue if absent.
         if self._nsd_test is None:
             self._nsd_test = is_psd_within_tol(-self.value, EIGVAL_TOL)
-        #if self._top_eig is None:
-            #ev = extremal_eig_near_ref(self.value, EIGVAL_TOL, low=False)
-            #self._top_eig = ev
 
         return self._nsd_test
 
@@ -274,4 +267,3 @@ def is_psd_within_tol(A, tol):
             ev = SA_eigsh(-temp)
 
     return ev >= -tol
-
