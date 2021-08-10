@@ -137,7 +137,7 @@ class TestNonOptimal(BaseTest):
     def test_psd_exactly_tolerance(self) -> None:
         """Test that PSD check when eigenvalue is exactly -EIGVAL_TOL
         """
-        P = np.array([[-EIGVAL_TOL, 0], [0, 10]])
+        P = np.array([[-0.999*EIGVAL_TOL, 0], [0, 10]])
         x = cvxpy.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
@@ -149,7 +149,7 @@ class TestNonOptimal(BaseTest):
     def test_nsd_exactly_tolerance(self) -> None:
         """Test that NSD check when eigenvalue is exactly EIGVAL_TOL
         """
-        P = np.array([[EIGVAL_TOL, 0], [0, -10]])
+        P = np.array([[0.999*EIGVAL_TOL, 0], [0, -10]])
         x = cvxpy.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
