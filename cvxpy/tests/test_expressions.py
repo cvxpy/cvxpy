@@ -214,6 +214,50 @@ class TestExpressions(BaseTest):
         # Test repr.
         self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, (2,))")
 
+    def test_constant_psd_nsd(self):
+        n = 5
+        np.random.randn(0)
+        U = np.random.randn(n, n)
+        U = U @ U.T
+        (evals, U) = np.linalg.eigh(U)  # U is now an orthogonal matrix
+
+        # Try four indefinite matrices with different eigenvalue
+        # spread around the origin.
+        v1 = np.array([3, 2, 1, 1e-8, -1])
+        P = Constant(U @ np.diag(v1) @ U.T)
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+        v2 = np.array([3, 2, 2, 1e-6, -1])
+        P = Constant(U @ np.diag(v2) @ U.T)
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+        v3 = np.array([3, 2, 2, 1e-4, -1e-6])
+        P = Constant(U @ np.diag(v3) @ U.T)
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+        v4 = np.array([-1, 3, 0, 0, 0])
+        P = Constant(U @ np.diag(v4) @ U.T)
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+
+        # Try a test case given in GitHub issue 1451.
+        # (Should be equivalent to v4 above).
+        P = Constant(np.array([[1, 2], [2, 1]]))
+        x = Variable(shape=(2,))
+        expr = cp.quad_form(x, P)
+        self.assertFalse(expr.is_dcp())
+        self.assertFalse((-expr).is_dcp())
+
+        # Verify good behavior for large eigenvalues
+        P = Constant(np.diag(9*[1e-4] + [-1e4]))
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+
+        # Check a case when the matrix is in fact PSD.
+        P = Constant(np.ones(shape=(5, 5)))
+        self.assertTrue(P.is_psd())
+        self.assertFalse(P.is_nsd())
+
     def test_1D_array(self) -> None:
         """Test NumPy 1D arrays as constants.
         """
@@ -290,7 +334,8 @@ class TestExpressions(BaseTest):
         v1 = np.array([3, 2, 1, 1e-8, -1])
         v2 = np.array([3, 2, 2, 1e-6, -1])
         v3 = np.array([3, 2, 2, 1e-4, -1e-6])
-        vs = [v1, v2, v3]
+        v4 = np.array([-1, 3, 0, 0, 0])
+        vs = [v1, v2, v3, v4]
         for vi in vs:
             with self.assertRaises(Exception) as cm:
                 P.value = U @ np.diag(vi) @ U.T

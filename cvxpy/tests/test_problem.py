@@ -1521,7 +1521,11 @@ class TestProblem(BaseTest):
             constraints = [X == [[2, 0], [0, 2]] - C]
             prob = Problem(obj, constraints)
             result = prob.solve(solver=s.CVXOPT)
-            self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
+            new_constr_dual = (constraints[0].dual_value + constraints[0].dual_value.T)/2
+            # ^ Symmetrizing is valid, because the dual variable is with respect to an
+            #   unstructured equality constraint. Dual optimal solutions are non-unique
+            #   in this formulation, up to symmetrizing the dual variable.
+            self.assertItemsAlmostEqual(new_constr_dual, psd_constr_dual)
 
         # Test the dual values with SCS.
         C = Variable((2, 2), symmetric=True)
