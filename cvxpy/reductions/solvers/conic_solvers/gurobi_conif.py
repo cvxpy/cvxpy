@@ -154,7 +154,17 @@ class GUROBI(SCS):
 
         n = c.shape[0]
 
-        model = gurobipy.Model()
+        # Create a new model
+        if 'env' in solver_opts:
+            # Specifies environment to create Gurobi model for control over licensing and parameters
+            # https://www.gurobi.com/documentation/9.1/refman/environments.html
+            default_env = solver_opts['env']
+            del solver_opts['env']
+            model = gurobipy.Model(env=default_env)
+        else:
+            # Create Gurobi model using default (unspecified) environment
+            model = gurobipy.Model()
+
         # Pass through verbosity
         model.setParam("OutputFlag", verbose)
 
