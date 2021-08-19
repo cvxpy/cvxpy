@@ -291,7 +291,7 @@ and returns a scalar.
    * - :ref:`quad_form(x, P) <quad-form>`
 
        constant :math:`P \in \mathbf{S}^n_+`
-     - :math:`x^T P x`
+     - :math:`\frac{1}{2} x^T P x`
      - :math:`x \in \mathbf{R}^n`
 
 
@@ -304,7 +304,7 @@ and returns a scalar.
    * - :ref:`quad_form(x, P) <quad-form>`
 
        constant :math:`P \in \mathbf{S}^n_-`
-     - :math:`x^T P x`
+     - :math:`\frac{1}{2} x^T P x`
      - :math:`x \in \mathbf{R}^n`
      - |negative| negative
      - |concave| concave
@@ -315,7 +315,7 @@ and returns a scalar.
    * - :ref:`quad_form(c, X) <quad-form>`
 
        constant :math:`c \in \mathbf{R}^n`
-     - :math:`c^T X c`
+     - :math:`\frac{1}{2} c^T X c`
      - :math:`X \in\mathbf{R}^{n \times n}`
      - depends |_| on |_| c, |_| X
      - |affine| affine
