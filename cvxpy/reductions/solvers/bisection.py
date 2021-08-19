@@ -25,17 +25,12 @@ from cvxpy.reductions.solution import failure_solution
 
 def _lower_problem(problem):
     """Evaluates lazy constraints."""
-    constrs = [c() if callable(c) else c for c in problem.constraints]
-    constrs = [c for c in constrs if c is not None]
-    if s.INFEASIBLE in constrs:
-        # Indicates that the problem is infeasible.
-        return None
-    return problems.problem.Problem(Minimize(0), constrs)
+    return problems.problem.Problem(
+            Minimize(0),
+            problem.constraints + [c() for c in problem._lazy_constraints])
 
 
 def _solve(problem, solver) -> None:
-    if problem is None:
-        return
     with warnings.catch_warnings():
         # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
         warnings.filterwarnings('ignore', message=r'.*DPP.*')
