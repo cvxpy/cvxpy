@@ -1799,6 +1799,14 @@ class TestProblem(BaseTest):
         prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
 
+    def test_invalid_constr(self) -> None:
+        """Test a problem with an invalid constraint.
+        """
+        x = cp.Variable()
+        with self.assertRaisesRegex(ValueError,
+                                    r"Problem has an invalid constraint.*"):
+            cp.Problem(cp.Minimize(x), [cp.sum(x)])
+
     def test_pos(self) -> None:
         """Test the pos and neg attributes.
         """
