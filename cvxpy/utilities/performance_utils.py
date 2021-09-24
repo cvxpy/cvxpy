@@ -38,7 +38,7 @@ def lazyprop(func):
 
 
 def _cache_key(args, kwargs):
-    key = args + tuple([(key, item) for key, item in kwargs.items()])
+    key = args + tuple(list(kwargs.items()))
     if scopes.dpp_scope_active():
         key = ('__dpp_scope_active__',) + key
     return key
@@ -66,8 +66,7 @@ def compute_once(func):
         key = _cache_key(args, kwargs)
         if key in cache:
             return cache[key]
-        else:
-            result = func(self, *args, **kwargs)
-            cache[key] = result
-            return result
+        result = func(self, *args, **kwargs)
+        cache[key] = result
+        return result
     return _compute_once

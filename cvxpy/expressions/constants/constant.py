@@ -24,7 +24,6 @@ from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
 from scipy.sparse.linalg import eigsh
-from scipy.sparse.linalg.eigen.arpack.arpack import ArpackError
 
 
 class Constant(Leaf):
@@ -52,8 +51,8 @@ class Constant(Leaf):
         self._nonpos: Optional[bool] = None
         self._symm: Optional[bool] = None
         self._herm: Optional[bool] = None
-        self._top_eig: Optional[float] = None
-        self._bottom_eig: Optional[float] = None
+        self._psd_test: Optional[bool] = None
+        self._nsd_test: Optional[bool] = None
         self._cached_is_pos = None
         super(Constant, self).__init__(intf.shape(self.value))
 
@@ -212,11 +211,10 @@ class Constant(Leaf):
             return False
 
         # Compute bottom eigenvalue if absent.
-        if self._bottom_eig is None:
-            ev = extremal_eig_near_ref(self.value, EIGVAL_TOL, low=True)
-            self._bottom_eig = ev
+        if self._psd_test is None:
+            self._psd_test = is_psd_within_tol(self.value, EIGVAL_TOL)
 
-        return self._bottom_eig >= -EIGVAL_TOL
+        return self._psd_test
 
     @perf.compute_once
     def is_nsd(self) -> bool:
@@ -235,30 +233,37 @@ class Constant(Leaf):
             return False
 
         # Compute top eigenvalue if absent.
-        if self._top_eig is None:
-            ev = extremal_eig_near_ref(self.value, EIGVAL_TOL, low=False)
-            self._top_eig = ev
+        if self._nsd_test is None:
+            self._nsd_test = is_psd_within_tol(-self.value, EIGVAL_TOL)
 
-        return self._top_eig <= EIGVAL_TOL
+        return self._nsd_test
 
 
-def extremal_eig_near_ref(A, ref, low: bool = True):
+def is_psd_within_tol(A, tol):
 
     def SA_eigsh(sigma):
-        return eigsh(A, k=1, sigma=sigma, return_eigenvectors=False)
-    # Run eigsh in shift-invert mode, since we're particularly interested in finding
-    # eigenvalues in a certain region.
+        return eigsh(A, k=1, sigma=sigma, which='SA', return_eigenvectors=False)
+        # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
+        #
+        # If A - sigma*I is PSD, then w[i] should be equal to the largest
+        # eigenvalue of A.
+        #
+        # If A - sigma*I is not PSD, then w[i] should be the largest eigenvalue
+        # of A where w[i] - sigma < 0.
+        #
+        # We should only call this function with sigma < 0. In this case, if
+        # A - sigma*I is not PSD then A is not PSD, and w[i] < -abs(sigma) is
+        # a negative eigenvalue of A. If A - sigma*I is PSD, then we obviously
+        # have that the smallest eigenvalue of A is >= sigma.
+
+    ev = np.NaN
     try:
-        sigma = -ref if low else ref
-        ev = SA_eigsh(sigma)
-    except ArpackError:
-        temp = ref - np.finfo(A.dtype).eps
-        sigma = -temp if low else temp
-        ev = SA_eigsh(sigma)
-    else:
+        ev = SA_eigsh(-tol)  # might return np.NaN, or raise exception
+    finally:
         if np.isnan(ev):
-            # will be NaN if A has an eigenvalue which is exactly tol
-            temp = ref - np.finfo(A.dtype).eps
-            sigma = -temp if low else temp
-            ev = SA_eigsh(sigma)
-    return ev
+            # will be NaN if A has an eigenvalue which is exactly -tol
+            # (We might also hit this code block for other reasons.)
+            temp = tol - np.finfo(A.dtype).eps
+            ev = SA_eigsh(-temp)
+
+    return ev >= -tol

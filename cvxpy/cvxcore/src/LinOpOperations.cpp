@@ -434,7 +434,10 @@ Tensor get_conv_mat(const LinOp &lin, int arg_idx) {
   Matrix constant = get_constant_data(*lin.get_linOp_data(), false);
   int rows = lin.get_shape()[0];
   int nonzeros = constant.rows();
-  int cols = lin.get_args()[0]->get_shape()[0];
+  int cols = 1;
+  if (lin.get_args()[0]->get_shape().size() > 0) {
+      cols = lin.get_args()[0]->get_shape()[0];
+  }
 
   Matrix toeplitz(rows, cols);
 
