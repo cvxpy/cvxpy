@@ -34,6 +34,7 @@ from cvxpy.reductions.dqcp2dcp import inverse, sets, tighten
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution
 
+
 # A tuple (feas_problem, param, tighten_lower, tighten_upper), where
 #
 #   `feas_problem` is a problem that can be used to check if the original
@@ -49,6 +50,17 @@ from cvxpy.reductions.solution import Solution
 BisectionData = namedtuple(
     "BisectionData",
     ['feas_problem', 'param', 'tighten_lower', 'tighten_upper'])
+
+
+def _get_lazy_and_real_constraints(constraints):
+    lazy_constraints = []
+    real_constraints = []
+    for c in constraints:
+        if callable(c):
+            lazy_constraints.append(c)
+        else:
+            real_constraints.append(c)
+    return lazy_constraints, real_constraints
 
 
 class Dqcp2Dcp(Canonicalization):
@@ -89,7 +101,9 @@ class Dqcp2Dcp(Canonicalization):
         constraints = []
         for constr in problem.constraints:
             constraints += self._canonicalize_constraint(constr)
-        feas_problem = problems.problem.Problem(Minimize(0), constraints)
+        lazy, real = _get_lazy_and_real_constraints(constraints)
+        feas_problem = problems.problem.Problem(Minimize(0), real)
+        feas_problem._lazy_constraints = lazy
 
         objective = problem.objective.expr
         if objective.is_nonneg():
@@ -99,7 +113,10 @@ class Dqcp2Dcp(Canonicalization):
         else:
             t = Parameter()
         constraints += self._canonicalize_constraint(objective <= t)
-        param_problem = problems.problem.Problem(Minimize(0), constraints)
+
+        lazy, real = _get_lazy_and_real_constraints(constraints)
+        param_problem = problems.problem.Problem(Minimize(0), real)
+        param_problem._lazy_constraints = lazy
         param_problem._bisection_data = BisectionData(
             feas_problem, t, *tighten.tighten_fns(objective))
         return param_problem, InverseData(problem)
@@ -138,9 +155,10 @@ class Dqcp2Dcp(Canonicalization):
             rhs_val = np.array(rhs.value)
             if np.all(lhs_val == -np.inf) or np.all(rhs_val == np.inf):
                 # constraint is redundant
-                return [None]
+                return [True]
             elif np.any(lhs_val == np.inf) or np.any(rhs_val == -np.inf):
-                return [s.INFEASIBLE]
+                # constraint is infeasible
+                return [False]
 
         if constr.is_dcp():
             canon_constr, aux_constr = self.canonicalize_tree(constr)

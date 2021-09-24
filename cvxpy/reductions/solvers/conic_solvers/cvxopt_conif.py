@@ -19,6 +19,8 @@ from typing import Dict, List, Union
 import numpy as np
 import scipy
 import scipy.sparse as sp
+from scipy.sparse.linalg import eigsh
+from typing import Dict, List, Union
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
@@ -287,7 +289,7 @@ class CVXOPT(ECOS):
                 data[s.A] = None
                 data[s.B] = None
                 return s.OPTIMAL
-        eig = extremal_eig_near_ref(gram, ref=TOL)
+        eig = eigsh(gram, k=1, which='SM', return_eigenvectors=False)
         if eig > TOL:
             return s.OPTIMAL
         #

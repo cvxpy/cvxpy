@@ -109,3 +109,16 @@ class TestConvolution(BaseTest):
         v = cvx.conv(h, x)
         obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))
         print(cvx.Problem(obj, []).solve(solver=cvx.ECOS))
+
+    def test_0D_conv(self) -> None:
+        """Convolution with 0D input.
+        """
+        x = cvx.Variable((1,))  # or cvx.Variable((1,1))
+        problem = cvx.Problem(
+            cvx.Minimize(
+                cvx.max(cvx.conv([1.], cvx.multiply(1., x)))
+            ),
+            [x >= 0]
+        )
+        problem.solve(cvx.ECOS)
+        assert problem.status == cvx.OPTIMAL

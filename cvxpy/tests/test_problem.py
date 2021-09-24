@@ -1524,7 +1524,11 @@ class TestProblem(BaseTest):
             constraints = [X == [[2, 0], [0, 2]] - C]
             prob = Problem(obj, constraints)
             result = prob.solve(solver=s.CVXOPT)
-            self.assertItemsAlmostEqual(constraints[0].dual_value, psd_constr_dual)
+            new_constr_dual = (constraints[0].dual_value + constraints[0].dual_value.T)/2
+            # ^ Symmetrizing is valid, because the dual variable is with respect to an
+            #   unstructured equality constraint. Dual optimal solutions are non-unique
+            #   in this formulation, up to symmetrizing the dual variable.
+            self.assertItemsAlmostEqual(new_constr_dual, psd_constr_dual)
 
         # Test the dual values with SCS.
         C = Variable((2, 2), symmetric=True)
@@ -1797,6 +1801,14 @@ class TestProblem(BaseTest):
         prob = cp.Problem(cp.Minimize(x), [True] + [x <= -42] + [True]*10)
         prob.solve(solver=cp.ECOS)
         self.assertEqual(prob.status, s.INFEASIBLE)
+
+    def test_invalid_constr(self) -> None:
+        """Test a problem with an invalid constraint.
+        """
+        x = cp.Variable()
+        with self.assertRaisesRegex(ValueError,
+                                    r"Problem has an invalid constraint.*"):
+            cp.Problem(cp.Minimize(x), [cp.sum(x)])
 
     def test_pos(self) -> None:
         """Test the pos and neg attributes.

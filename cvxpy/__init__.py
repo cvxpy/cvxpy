@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-__version__ = "1.1.14"
+__version__ = "1.1.15"
 from cvxpy.atoms import *
 from cvxpy.constraints import PSD, SOC, NonPos, Zero
 from cvxpy.error import (DCPError, DGPError, DPPError, SolverError,

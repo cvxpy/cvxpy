@@ -945,6 +945,39 @@ class TestGUROBI(BaseTest):
                 prob.solve(solver=cp.GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.GUROBI)
 
+    def test_gurobi_environment(self) -> None:
+        """Tests that Gurobi environments can be passed to Model.
+        Gurobi environments can include licensing and model parameter data.
+        """
+        if cp.GUROBI in INSTALLED_SOLVERS:
+            import gurobipy
+
+            # Set a few parameters to random values close to their defaults
+            params = {
+                'MIPGap': np.random.random(),  # range {0, INFINITY}
+                'AggFill': np.random.randint(10),  # range {-1, MAXINT}
+                'PerturbValue': np.random.random(),  # range: {0, INFINITY}
+            }
+
+            # Create a custom environment and set some parameters
+            custom_env = gurobipy.Env()
+            for k, v in params.items():
+                custom_env.setParam(k, v)
+
+            # Testing Conic Solver Interface
+            sth = StandardTestSOCPs.test_socp_0(solver='GUROBI', env=custom_env)
+            model = sth.prob.solver_stats.extra_stats
+            for k, v in params.items():
+                # https://www.gurobi.com/documentation/9.1/refman/py_model_getparaminfo.html
+                name, p_type, p_val, p_min, p_max, p_def = model.getParamInfo(k)
+                self.assertEqual(v, p_val)
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cp.GUROBI, TimeLimit=0)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.GUROBI)
+
     def test_gurobi_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='GUROBI')
 

@@ -26,6 +26,7 @@ import cvxpy.utilities.performance_utils as perf
 from cvxpy import Constant, error
 from cvxpy import settings as s
 from cvxpy.constraints import Equality, Inequality, NonNeg, NonPos, Zero
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.interface.matrix_utilities import scalar_value
 from cvxpy.problems.objective import Maximize, Minimize
@@ -104,6 +105,18 @@ class Cache:
         return self.key is not None and self.key[1]
 
 
+def _validate_constraint(constraint):
+    if isinstance(constraint, Constraint):
+        return constraint
+    elif isinstance(constraint, bool):
+        # replace `True` or `False` values with equivalent Expressions.
+        return (Constant(0) <= Constant(1) if constraint else
+                Constant(1) <= Constant(0))
+    else:
+        raise ValueError("Problem has an invalid constraint of type %s" %
+                         type(constraint))
+
+
 class Problem(u.Canonical):
     """A convex optimization problem.
 
@@ -129,14 +142,7 @@ class Problem(u.Canonical):
             raise error.DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
-
-        def bool_value_filter(cstr_expr):
-            if not isinstance(cstr_expr, bool):
-                return cstr_expr
-            # replace `True` or `False` values with equivalent Expressions.
-            return Constant(0) <= Constant(1) if cstr_expr else Constant(1) <= Constant(0)
-
-        self._constraints = list(map(bool_value_filter, constraints))
+        self._constraints = [_validate_constraint(c) for c in constraints]
         self._value = None
         self._status = None
         self._solution = None
