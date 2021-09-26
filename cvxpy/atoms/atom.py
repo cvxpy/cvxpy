@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import abc
-from cvxpy.constraints.constraint import Constraint
-from typing import List, Tuple
+from typing import List, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from cvxpy.constraints.constraint import Constraint
 
 from cvxpy import interface as intf
 from cvxpy import utilities as u
-from cvxpy.atoms.atom import Atom
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
@@ -328,7 +329,7 @@ class Atom(Expression):
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
-    ) -> Tuple[lo.LinOp, List[Constraint]]:
+    ) -> Tuple[lo.LinOp, List['Constraint']]:
         """Reduces the atom to an affine expression and list of constraints.
 
         Parameters
@@ -435,13 +436,13 @@ class Atom(Expression):
         raise NotImplementedError()
 
     @property
-    def domain(self) -> List[Constraint]:
+    def domain(self) -> List['Constraint']:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
         return self._domain() + [con for arg in self.args for con in arg.domain]
 
-    def _domain(self) -> List[Constraint]:
+    def _domain(self) -> List['Constraint']:
         """Returns constraints describing the domain of the atom.
         """
         # Default is no constraints.
@@ -461,7 +462,7 @@ class Atom(Expression):
             return intf.DEFAULT_INTF.const_to_matrix(result)
         return new_numeric
 
-    def atoms(self) -> List[Atom]:
+    def atoms(self) -> List['Atom']:
         """A list of the atom types present amongst this atom's arguments.
         """
         atom_list = []

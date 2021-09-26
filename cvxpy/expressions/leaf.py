@@ -15,11 +15,12 @@ limitations under the License.
 """
 
 import abc
-from cvxpy.expressions.constants.constant import Constant
-from cvxpy.expressions.variable import Variable
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, TYPE_CHECKING
 
-from cvxpy.atoms.atom import Atom
+if TYPE_CHECKING:
+    from cvxpy import Constant, Variable
+    from cvxpy.atoms.atom import Atom
+
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import expression
 from cvxpy.settings import (GENERAL_PROJECTION_TOL,
@@ -186,7 +187,7 @@ class Leaf(expression.Expression):
         """
         return self._shape
 
-    def variables(self) -> List[Variable]:
+    def variables(self) -> List['Variable']:
         """Default is empty list of Variables.
         """
         return []
@@ -196,7 +197,7 @@ class Leaf(expression.Expression):
         """
         return []
 
-    def constants(self) -> List[Constant]:
+    def constants(self) -> List['Constant']:
         """Default is empty list of Constants.
         """
         return []
@@ -466,5 +467,5 @@ class Leaf(expression.Expression):
         """
         return True
 
-    def atoms(self) -> List[Atom]:
+    def atoms(self) -> List['Atom']:
         return []
