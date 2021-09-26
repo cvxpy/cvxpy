@@ -45,10 +45,10 @@ change on a Github issue, to make sure that your priorities align with ours.
 If you'd like to contribute code but don't know where to start, try one of the
 following:
 * Read the CVXPY source and enhance the documentation, or address TODOs
-* Browse the [issue tracker](https://github.com/cvxgrp/cvxpy/issues), and
+* Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and
   look for the issues tagged "help wanted".
 * Polish the [example library](https://www.cvxpy.org/examples/index.html) or add new examples
-* Add a [benchmark](https://github.com/cvxgrp/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
+* Add a [benchmark](https://github.com/cvxpy/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
 
 ## License
 Please add the following license to new files:

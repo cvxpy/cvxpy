@@ -142,7 +142,7 @@ html_sidebars = {
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-   'github_user': 'cvxgrp',
+   'github_user': 'cvxpy',
    'github_repo': 'cvxpy',
    'github_banner': True,
    'github_type': 'star',
