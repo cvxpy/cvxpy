@@ -312,8 +312,11 @@ class SCS(ConicSolver):
 
         # anderson acceleration (introduced in scs 2.0) is sometimes unstable; retry without it
         acceleration_lookback_available = (StrictVersion(scs.__version__) >= StrictVersion('2.0.0'))
-        if (status == s.OPTIMAL_INACCURATE and
-            "acceleration_lookback" not in solver_opts) and acceleration_lookback_available:
+        if (
+                status == s.OPTIMAL_INACCURATE
+                and "acceleration_lookback" not in solver_opts
+                and acceleration_lookback_available
+        ):
             results = scs.solve(
                 args,
                 cones,
