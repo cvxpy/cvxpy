@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from distutils.version import StrictVersion
 
 import cvxpy.settings as s
 from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone, PowCone3D
@@ -298,7 +299,7 @@ class SCS(ConicSolver):
         import scs
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
         if warm_start and solver_cache is not None and \
-           self.name() in solver_cache:
+                self.name() in solver_cache:
             args["x"] = solver_cache[self.name()]["x"]
             args["y"] = solver_cache[self.name()]["y"]
             args["s"] = solver_cache[self.name()]["s"]
@@ -309,9 +310,10 @@ class SCS(ConicSolver):
         results = scs.solve(args, cones, verbose=verbose, **solver_opts)
         status = self.STATUS_MAP[results["info"]["statusVal"]]
 
+        # anderson acceleration (introduced in scs 2.0) is sometimes unstable; retry without it
+        acceleration_lookback_available = (StrictVersion(scs.__version__) >= StrictVersion('2.0.0'))
         if (status == s.OPTIMAL_INACCURATE and
-                "acceleration_lookback" not in solver_opts):
-            # anderson acceleration is sometimes unstable; retry without it
+            "acceleration_lookback" not in solver_opts) and acceleration_lookback_available:
             results = scs.solve(
                 args,
                 cones,
