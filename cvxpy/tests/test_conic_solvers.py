@@ -125,6 +125,24 @@ class TestSCS(BaseTest):
     def assertAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestSCS, self).assertAlmostEqual(a, b, places=places)
 
+    def test_scs_retry(self) -> None:
+        """Test that SCS retry doesn't trigger a crash.
+        """
+        n_sec = 20
+        np.random.seed(315)
+        mu = np.random.random(n_sec)
+        random_mat = np.random.rand(n_sec, n_sec)
+        C = np.dot(random_mat, random_mat.transpose())
+
+        x = cp.Variable(n_sec)
+        prob = cp.Problem(cp.Minimize(cp.QuadForm(x, C)),
+                          [cp.sum(x) == 1,
+                           0 <= x,
+                           x <= 1,
+                           x @ mu >= np.max(mu) - 1e-6])
+        prob.solve(cp.SCS)
+        assert prob.status == cp.OPTIMAL
+
     def test_scs_options(self) -> None:
         """Test that all the SCS solver options work.
         """
