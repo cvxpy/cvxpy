@@ -636,3 +636,13 @@ class TestDqcp(base_test.BaseTest):
         problem.solve(SOLVER, qcp=True, low=None, high=0.5)
         self.assertGreater(x.value, 0)
         self.assertLessEqual(x.value, 1)
+
+    def test_scalar_sum(self) -> None:
+        x = cp.Variable(pos=True)
+        problem = cp.Problem(cp.Minimize(cp.sum(1/x)))
+        problem.solve(SOLVER, qcp=True)
+        self.assertAlmostEqual(problem.value, 0, places=3)
+
+        problem = cp.Problem(cp.Minimize(cp.cumsum(1/x)))
+        problem.solve(SOLVER, qcp=True)
+        self.assertAlmostEqual(problem.value, 0, places=3)
