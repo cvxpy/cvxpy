@@ -22,7 +22,7 @@ import numpy as np
 
 INVERTIBLE = set(
     [atoms.ceil, atoms.floor, NegExpression, atoms.exp, atoms.log, atoms.log1p,
-     atoms.logistic, atoms.power, atoms.abs, atoms.sum, atoms.cumsum])
+     atoms.logistic, atoms.power, atoms.abs, atoms.cumsum])
 
 
 # Inverses are extended-value functions
