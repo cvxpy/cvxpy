@@ -89,7 +89,9 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None,
         if infeasible_low and feasible_high:
             return low, high
 
-    raise error.SolverError("Unable to find suitable interval for bisection.")
+    raise error.SolverError(
+            "Unable to find suitable interval for bisection; "
+            "your problem may be unbounded..")
 
 
 def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
@@ -102,7 +104,7 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
         assert low <= high
         if soln is not None and (high - low) <= eps:
             # the previous iteration might have been infeasible, but
-            # the tigthen* functions might have narrowed the interval
+            # the tighten* functions might have narrowed the interval
             # to the optimal value in the previous iteration (hence the
             # soln is not None check)
             return soln, low, high

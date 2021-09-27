@@ -21,7 +21,7 @@ import numpy as np
 
 INVERTIBLE = set(
     [atoms.ceil, atoms.floor, NegExpression, atoms.exp, atoms.log, atoms.log1p,
-     atoms.logistic, atoms.power])
+     atoms.logistic, atoms.power, atoms.abs])
 
 
 # Inverses are extended-value functions
@@ -53,17 +53,29 @@ def inverse(expr):
             const = expr.args[1]
         return lambda t: t / const
     elif type(expr) == DivExpression:
+        # either const / x <= t or x / const <= t
         if expr.args[0].is_constant():
+            # numerator is constant
             const = expr.args[0]
+            return lambda t: const / t
         else:
+            # denominator is constant
             const = expr.args[1]
-        return lambda t: t * const
+            return lambda t: const * t
     elif type(expr) == AddExpression:
         if expr.args[0].is_constant():
             const = expr.args[0]
         else:
             const = expr.args[1]
         return lambda t: t - const
+    elif type(expr) == atoms.abs:
+        arg = expr.args[0]
+        if arg.is_nonneg():
+            return lambda t: t
+        elif arg.is_nonpos():
+            return lambda t: -t
+        else:
+            raise ValueError("Sign of argument must be known.")
     else:
         raise ValueError
 

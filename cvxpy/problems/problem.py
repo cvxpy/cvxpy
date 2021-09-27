@@ -946,6 +946,12 @@ class Problem(u.Canonical):
                 start = time.time()
                 if type(self.objective) == Maximize:
                     reductions = [FlipObjective()] + reductions
+                    # flip objective flips the sign of the objective
+                    low, high = kwargs.get("low"), kwargs.get("high")
+                    if high is not None:
+                        kwargs["low"] = high * -1
+                    if low is not None:
+                        kwargs["high"] = low * -1
                 chain = Chain(problem=self, reductions=reductions)
                 soln = bisection.bisect(
                     chain.reduce(), solver=solver, verbose=verbose, **kwargs)

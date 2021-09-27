@@ -538,6 +538,23 @@ class TestDqcp(base_test.BaseTest):
         self.assertAlmostEqual(x.value, 10, places=1)
         self.assertAlmostEqual(problem.value, -20, places=1)
 
+    def test_reciprocal(self) -> None:
+        x = cp.Variable(pos=True)
+        problem = cp.Problem(cp.Minimize(1/x))
+        problem.solve(SOLVER, qcp=True)
+        self.assertAlmostEqual(problem.value, 0, places=3)
+
+    def test_abs(self) -> None:
+        x = cp.Variable(pos=True)
+        problem = cp.Problem(cp.Minimize(cp.abs(1/x)))
+        problem.solve(SOLVER, qcp=True)
+        self.assertAlmostEqual(problem.value, 0, places=3)
+
+        x = cp.Variable(neg=True)
+        problem = cp.Problem(cp.Minimize(cp.abs(1/x)))
+        problem.solve(SOLVER, qcp=True)
+        self.assertAlmostEqual(problem.value, 0, places=3)
+
     def test_tutorial_example(self) -> None:
         x = cp.Variable()
         y = cp.Variable(pos=True)
@@ -604,3 +621,18 @@ class TestDqcp(base_test.BaseTest):
         t = cp.Variable(5, pos=True)
         expr = cp.sum(cp.square(t) / t)
         self.assertFalse(expr.is_dqcp())
+
+    def test_flip_bounds(self) -> None:
+        x = cp.Variable(pos=True)
+        problem = cp.Problem(cp.Maximize(cp.ceil(x)), [x <= 1])
+        problem.solve(SOLVER, qcp=True, low=0, high=0.5)
+        self.assertGreater(x.value, 0)
+        self.assertLessEqual(x.value, 1)
+
+        problem.solve(SOLVER, qcp=True, low=0, high=None)
+        self.assertGreater(x.value, 0)
+        self.assertLessEqual(x.value, 1)
+
+        problem.solve(SOLVER, qcp=True, low=None, high=0.5)
+        self.assertGreater(x.value, 0)
+        self.assertLessEqual(x.value, 1)
