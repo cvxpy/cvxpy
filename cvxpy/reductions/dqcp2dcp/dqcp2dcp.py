@@ -147,11 +147,30 @@ class Dqcp2Dcp(Canonicalization):
         return canon_args, constrs
 
     def _canonicalize_constraint(self, constr):
-        """Recursively canonicalize a constraint."""
+        """Recursively canonicalize a constraint.
+
+        The DQCP grammar has expresions of the form
+
+            INCR* QCVX DCP
+
+        and
+
+            DECR* QCCV DCP
+
+        ie, zero or more real/scalar increasing (or decreasing) atoms, composed
+        with a quasiconvex (or quasiconcave) atom, composed with DCP
+        expressions.
+
+        The monotone functions are inverted by applying their inverses to
+        both sides of a constraint. The QCVX (QCCV) atom is lowered by
+        replacing it with its sublevel (superlevel) set. The DCP
+        expressions are canonicalized via graph implementations.
+        """
         lhs = constr.args[0]
         rhs = constr.args[1]
 
         if isinstance(constr, Inequality):
+            # taking inverses can yield +/- infinity; this is handled here.
             lhs_val = np.array(lhs.value)
             rhs_val = np.array(rhs.value)
             if np.all(lhs_val == -np.inf) or np.all(rhs_val == np.inf):
@@ -185,6 +204,7 @@ class Dqcp2Dcp(Canonicalization):
                 expr = lhs.args[idx]
                 if lhs.is_incr(idx):
                     return self._canonicalize_constraint(expr <= rhs)
+                assert lhs.is_decr(idx)
                 return self._canonicalize_constraint(expr >= rhs)
             elif isinstance(lhs, (maximum, max_atom)):
                 # Lower maximum.
@@ -206,6 +226,7 @@ class Dqcp2Dcp(Canonicalization):
             expr = rhs.args[idx]
             if rhs.is_incr(idx):
                 return self._canonicalize_constraint(lhs <= expr)
+            assert rhs.is_decr(idx)
             return self._canonicalize_constraint(lhs >= expr)
         elif isinstance(rhs, (minimum, min_atom)):
             # Lower minimum.
