@@ -17,8 +17,13 @@ from cvxpy import atoms
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import DivExpression
 from cvxpy.atoms.affine.unary_operators import NegExpression
+from cvxpy.atoms.affine.sum import Sum
 import numpy as np
 
+
+# these atoms are always invertible. others (like AddExpression, DivExpression,
+# Sum, and cumsum) are only invertible in special cases, checked in the
+# `invertible` function.
 INVERTIBLE = set(
     [atoms.ceil, atoms.floor, NegExpression, atoms.exp, atoms.log, atoms.log1p,
      atoms.logistic, atoms.power, atoms.abs])
@@ -76,6 +81,8 @@ def inverse(expr):
             return lambda t: -t
         else:
             raise ValueError("Sign of argument must be known.")
+    elif type(expr) in (Sum, atoms.cumsum):
+        return lambda t: t
     else:
         raise ValueError
 
@@ -84,4 +91,7 @@ def invertible(expr):
     if (isinstance(expr, atoms.multiply) or isinstance(expr, DivExpression) or
             isinstance(expr, AddExpression)):
         return len(expr._non_const_idx()) == 1
-    return type(expr) in INVERTIBLE
+    elif isinstance(expr, (Sum, atoms.cumsum)):
+        return expr._is_real()
+    else:
+        return type(expr) in INVERTIBLE

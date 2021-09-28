@@ -146,7 +146,12 @@ def sublevel(expr, t):
 
     Returned as a constraint phi_t(x) <= 0, where phi_t(x) is convex.
     """
-    return SUBLEVEL_SETS[type(expr)](expr, t)
+    try:
+        return SUBLEVEL_SETS[type(expr)](expr, t)
+    except KeyError:
+        raise RuntimeError(
+                f"The {type(expr)} atom is not yet supported in DQCP. Please "
+                "file an issue here: https://github.com/cvxpy/cvxpy/issues")
 
 
 def superlevel(expr, t):
@@ -154,4 +159,9 @@ def superlevel(expr, t):
 
     Returned as a constraint phi_t(x) >= 0, where phi_t(x) is concave.
     """
-    return SUPERLEVEL_SETS[type(expr)](expr, t)
+    try:
+        return SUPERLEVEL_SETS[type(expr)](expr, t)
+    except KeyError:
+        raise RuntimeError(
+                f"The {type(expr)} atom is not yet supported in DQCP. Please "
+                "file an issue here: https://github.com/cvxpy/cvxpy/issues")
