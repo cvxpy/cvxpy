@@ -80,7 +80,7 @@ setup(
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=[canon],
     packages=find_packages(exclude=["cvxpy.performance_tests"]),
-    url='http://github.com/cvxgrp/cvxpy/',
+    url='https://github.com/cvxpy/cvxpy',
     license='Apache License, Version 2.0',
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization '
