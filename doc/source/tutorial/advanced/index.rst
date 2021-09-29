@@ -228,7 +228,7 @@ to problems where sum of variables count and constraint count does not exceed 50
 .. note::
    If you develop an open-source mixed-integer solver with a permissive license such
    as Apache 2.0, and you're interested in incorporating your solver into CVXPY's default installation,
-   please reach out to us at our `GitHub issues <https://github.com/cvxgrp/cvxpy/issues>`_. We are
+   please reach out to us at our `GitHub issues <https://github.com/cvxpy/cvxpy/issues>`_. We are
    particularly interested in incorporating a simple mixed-integer SOCP solver.
 
 Complex valued expressions
@@ -1348,7 +1348,7 @@ the derivative of ``f`` with respect to ``p``, before calling
 
 The ``backward`` method can be powerful when combined with software for
 automatic differentiation. We recommend the software package
-`CVXPY Layers <https://www.github.com/cvxgrp/cvxpylayers>`_, which provides
+`CVXPY Layers <https://www.github.com/cvxpy/cvxpylayers>`_, which provides
 differentiable PyTorch and TensorFlow wrappers for CVXPY problems.
 
 **backward or derivative?** The ``backward`` method should be used when
@@ -1366,7 +1366,7 @@ on derivatives.
 
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
-.. _SCS: http://github.com/cvxgrp/scs
+.. _SCS: http://github.com/cvxpy/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
