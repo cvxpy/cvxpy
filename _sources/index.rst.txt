@@ -55,26 +55,12 @@ more.
 
 **News.**
 
+* We are building a CVXPY community `on Discord <https://discord.gg/TnFbxDsJ>`_. Join the conversation!
+
 * CVXPY v1.1.0 has been released. This version makes
   repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
   allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
   some new atoms. See :ref:`updates` for more information.
-
-* CVXPY v1.0.24 supports
-  `disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_,
-  which lets you formulate and solve quasiconvex programs.
-  See the :doc:`tutorial </tutorial/dqcp/index>` for more information.
-
-* CVXPY v1.0.11 supports
-  `disciplined geometric programming <https://web.stanford.edu/~boyd/papers/dgp.html>`_,
-  which lets you formulate geometric programs and log-log convex programs.
-  See the :doc:`tutorial </tutorial/dgp/index>` for more information.
-
-* CVXPY 1.0 brings the API closer to NumPy
-  and the architecture closer to software compilers, making it easy for
-  developers to write custom problem transformations and target custom solvers.
-  CVXPY 1.0 is not backwards compatible with previous versions
-  of CVXPY. For more details, see :ref:`updates`.
 
 **Solvers.**
 
@@ -98,11 +84,11 @@ Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
-guide </contributing/index>`.
+guide </contributing/index>` and join us `on Discord <https://discord.gg/TnFbxDsJ>`_.
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
-.. _SCS: http://github.com/cvxgrp/scs
+.. _SCS: http://github.com/cvxpy/scs
 
 .. toctree::
    :hidden:

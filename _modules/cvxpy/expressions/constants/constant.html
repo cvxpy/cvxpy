@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.expressions.constants.constant &#8212; CVXPY 1.1.13 documentation</title>
+    <title>cvxpy.expressions.constants.constant &#8212; CVXPY 1.1.15 documentation</title>
     <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
@@ -59,7 +59,6 @@
 <span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="kn">import</span> <span class="n">EIGVAL_TOL</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="kn">import</span> <span class="n">performance_utils</span> <span class="k">as</span> <span class="n">perf</span>
 <span class="kn">from</span> <span class="nn">scipy.sparse.linalg</span> <span class="kn">import</span> <span class="n">eigsh</span>
-<span class="kn">from</span> <span class="nn">scipy.sparse.linalg.eigen.arpack.arpack</span> <span class="kn">import</span> <span class="n">ArpackError</span>
 
 
 <div class="viewcode-block" id="Constant"><a class="viewcode-back" href="../../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant">[docs]</a><span class="k">class</span> <span class="nc">Constant</span><span class="p">(</span><span class="n">Leaf</span><span class="p">):</span>
@@ -87,8 +86,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_nonpos</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_symm</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_herm</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_psd_test</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nsd_test</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cached_is_pos</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="nb">super</span><span class="p">(</span><span class="n">Constant</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">intf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 
@@ -247,11 +246,10 @@
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># Compute bottom eigenvalue if absent.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">ev</span> <span class="o">=</span> <span class="n">extremal_eig_near_ref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">EIGVAL_TOL</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">=</span> <span class="n">ev</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_psd_test</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_psd_test</span> <span class="o">=</span> <span class="n">is_psd_within_tol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">EIGVAL_TOL</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_bottom_eig</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">EIGVAL_TOL</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_psd_test</span>
 
     <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_nsd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -270,33 +268,40 @@
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="c1"># Compute top eigenvalue if absent.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">ev</span> <span class="o">=</span> <span class="n">extremal_eig_near_ref</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">EIGVAL_TOL</span><span class="p">,</span> <span class="n">low</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">=</span> <span class="n">ev</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsd_test</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_nsd_test</span> <span class="o">=</span> <span class="n">is_psd_within_tol</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">EIGVAL_TOL</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_top_eig</span> <span class="o">&lt;=</span> <span class="n">EIGVAL_TOL</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nsd_test</span></div>
 
 
-<span class="k">def</span> <span class="nf">extremal_eig_near_ref</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">low</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">is_psd_within_tol</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">tol</span><span class="p">):</span>
 
     <span class="k">def</span> <span class="nf">SA_eigsh</span><span class="p">(</span><span class="n">sigma</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">eigsh</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">return_eigenvectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="c1"># Run eigsh in shift-invert mode, since we&#39;re particularly interested in finding</span>
-    <span class="c1"># eigenvalues in a certain region.</span>
+        <span class="k">return</span> <span class="n">eigsh</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">k</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="s1">&#39;SA&#39;</span><span class="p">,</span> <span class="n">return_eigenvectors</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.</span>
+        <span class="c1">#</span>
+        <span class="c1"># If A - sigma*I is PSD, then w[i] should be equal to the largest</span>
+        <span class="c1"># eigenvalue of A.</span>
+        <span class="c1">#</span>
+        <span class="c1"># If A - sigma*I is not PSD, then w[i] should be the largest eigenvalue</span>
+        <span class="c1"># of A where w[i] - sigma &lt; 0.</span>
+        <span class="c1">#</span>
+        <span class="c1"># We should only call this function with sigma &lt; 0. In this case, if</span>
+        <span class="c1"># A - sigma*I is not PSD then A is not PSD, and w[i] &lt; -abs(sigma) is</span>
+        <span class="c1"># a negative eigenvalue of A. If A - sigma*I is PSD, then we obviously</span>
+        <span class="c1"># have that the smallest eigenvalue of A is &gt;= sigma.</span>
+
+    <span class="n">ev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">NaN</span>
     <span class="k">try</span><span class="p">:</span>
-        <span class="n">sigma</span> <span class="o">=</span> <span class="o">-</span><span class="n">ref</span> <span class="k">if</span> <span class="n">low</span> <span class="k">else</span> <span class="n">ref</span>
-        <span class="n">ev</span> <span class="o">=</span> <span class="n">SA_eigsh</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">ArpackError</span><span class="p">:</span>
-        <span class="n">temp</span> <span class="o">=</span> <span class="n">ref</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
-        <span class="n">sigma</span> <span class="o">=</span> <span class="o">-</span><span class="n">temp</span> <span class="k">if</span> <span class="n">low</span> <span class="k">else</span> <span class="n">temp</span>
-        <span class="n">ev</span> <span class="o">=</span> <span class="n">SA_eigsh</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ev</span> <span class="o">=</span> <span class="n">SA_eigsh</span><span class="p">(</span><span class="o">-</span><span class="n">tol</span><span class="p">)</span>  <span class="c1"># might return np.NaN, or raise exception</span>
+    <span class="k">finally</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ev</span><span class="p">):</span>
-            <span class="c1"># will be NaN if A has an eigenvalue which is exactly tol</span>
-            <span class="n">temp</span> <span class="o">=</span> <span class="n">ref</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
-            <span class="n">sigma</span> <span class="o">=</span> <span class="o">-</span><span class="n">temp</span> <span class="k">if</span> <span class="n">low</span> <span class="k">else</span> <span class="n">temp</span>
-            <span class="n">ev</span> <span class="o">=</span> <span class="n">SA_eigsh</span><span class="p">(</span><span class="n">sigma</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ev</span>
+            <span class="c1"># will be NaN if A has an eigenvalue which is exactly -tol</span>
+            <span class="c1"># (We might also hit this code block for other reasons.)</span>
+            <span class="n">temp</span> <span class="o">=</span> <span class="n">tol</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">A</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">eps</span>
+            <span class="n">ev</span> <span class="o">=</span> <span class="n">SA_eigsh</span><span class="p">(</span><span class="o">-</span><span class="n">temp</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">ev</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">tol</span>
 </pre></div>
 
           </div>
@@ -313,7 +318,7 @@
 
 
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
 
@@ -381,7 +386,7 @@
     </div>
 
     
-    <a href="https://github.com/cvxgrp/cvxpy" class="github">
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
     </a>
     

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.13 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.15 documentation</title>
     <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
@@ -58,6 +58,7 @@
 <span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">perf</span>
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">error</span>
 <span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">s</span><span class="p">,</span> <span class="n">Constant</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">NonNeg</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
 <span class="kn">from</span> <span class="nn">cvxpy.interface.matrix_utilities</span> <span class="kn">import</span> <span class="n">scalar_value</span>
@@ -139,6 +140,18 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
 
 
+<span class="k">def</span> <span class="nf">_validate_constraint</span><span class="p">(</span><span class="n">constraint</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">constraint</span><span class="p">,</span> <span class="n">Constraint</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">constraint</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">constraint</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+        <span class="c1"># replace `True` or `False` values with equivalent Expressions.</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">Constant</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">constraint</span> <span class="k">else</span>
+                <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Problem has an invalid constraint of type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                         <span class="nb">type</span><span class="p">(</span><span class="n">constraint</span><span class="p">))</span>
+
+
 <div class="viewcode-block" id="Problem"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem">[docs]</a><span class="k">class</span> <span class="nc">Problem</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Canonical</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A convex optimization problem.</span>
 
@@ -164,14 +177,7 @@
             <span class="k">raise</span> <span class="n">error</span><span class="o">.</span><span class="n">DCPError</span><span class="p">(</span><span class="s2">&quot;Problem objective must be Minimize or Maximize.&quot;</span><span class="p">)</span>
         <span class="c1"># Constraints and objective are immutable.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span> <span class="o">=</span> <span class="n">objective</span>
-
-        <span class="k">def</span> <span class="nf">bool_value_filter</span><span class="p">(</span><span class="n">cstr_expr</span><span class="p">):</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cstr_expr</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">cstr_expr</span>
-            <span class="c1"># replace `True` or `False` values with equivalent Expressions.</span>
-            <span class="k">return</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="k">if</span> <span class="n">cstr_expr</span> <span class="k">else</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">Constant</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="n">bool_value_filter</span><span class="p">,</span> <span class="n">constraints</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">_validate_constraint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solution</span> <span class="o">=</span> <span class="kc">None</span>
@@ -975,6 +981,12 @@
                 <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
                 <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span> <span class="o">==</span> <span class="n">Maximize</span><span class="p">:</span>
                     <span class="n">reductions</span> <span class="o">=</span> <span class="p">[</span><span class="n">FlipObjective</span><span class="p">()]</span> <span class="o">+</span> <span class="n">reductions</span>
+                    <span class="c1"># flip objective flips the sign of the objective</span>
+                    <span class="n">low</span><span class="p">,</span> <span class="n">high</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;low&quot;</span><span class="p">),</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;high&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">high</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;low&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">high</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span>
+                    <span class="k">if</span> <span class="n">low</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;high&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">low</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span>
                 <span class="n">chain</span> <span class="o">=</span> <span class="n">Chain</span><span class="p">(</span><span class="n">problem</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">reductions</span><span class="o">=</span><span class="n">reductions</span><span class="p">)</span>
                 <span class="n">soln</span> <span class="o">=</span> <span class="n">bisection</span><span class="o">.</span><span class="n">bisect</span><span class="p">(</span>
                     <span class="n">chain</span><span class="o">.</span><span class="n">reduce</span><span class="p">(),</span> <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -1503,7 +1515,7 @@
 
 
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxgrp&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
 
@@ -1571,7 +1583,7 @@
     </div>
 
     
-    <a href="https://github.com/cvxgrp/cvxpy" class="github">
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
         <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
     </a>
     

@@ -192,11 +192,11 @@ This requires the `SciPy`_ package in Python which should already be installed a
 .. _CVXOPT: http://cvxopt.org/
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
-.. _SCS: http://github.com/cvxgrp/scs
+.. _SCS: http://github.com/cvxpy/scs
 .. _NumPy: http://www.numpy.org/
 .. _SciPy: http://www.scipy.org/
 .. _pytest: https://docs.pytest.org/en/latest/
-.. _CVXPY git repository: https://github.com/cvxgrp/cvxpy
+.. _CVXPY git repository: https://github.com/cvxpy/cvxpy
 .. _Swig: http://www.swig.org/
 .. _pip: https://pip.pypa.io/
 .. _GLPK: https://www.gnu.org/software/glpk/
