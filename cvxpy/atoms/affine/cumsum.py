@@ -13,18 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.expressions.expression import Expression
 from typing import List, Tuple
 
-from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.binary_operators import MulExpression
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.variable import Variable
-import cvxpy.lin_ops.lin_op as lo
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 
 
 def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:

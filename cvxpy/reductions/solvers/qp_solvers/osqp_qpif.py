@@ -1,9 +1,10 @@
-import cvxpy.settings as s
-import cvxpy.interface as intf
-from cvxpy.reductions import Solution
-from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.interface as intf
+import cvxpy.settings as s
+from cvxpy.reductions import Solution
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
 
 class OSQP(QpSolver):

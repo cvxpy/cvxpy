@@ -14,13 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
+
+import numpy as np
+import scipy as sp
+
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, NonNeg, Zero
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-import scipy as sp
-import numpy as np
-import warnings
 from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 class NAG(ConicSolver):
@@ -187,8 +189,8 @@ class NAG(ConicSolver):
         return Solution(status, opt_val, primal_vars, dual_vars, attr)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
-        from naginterfaces.library import opt
         from naginterfaces.base import utils
+        from naginterfaces.library import opt
 
         bigbnd = 1.0e20
         c = data[s.C]

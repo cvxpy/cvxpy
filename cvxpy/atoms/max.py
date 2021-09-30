@@ -15,9 +15,10 @@ limitations under the License.
 """
 from typing import Optional, Tuple
 
+import numpy as np
+
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-import numpy as np
 
 
 class max(AxisAtom):

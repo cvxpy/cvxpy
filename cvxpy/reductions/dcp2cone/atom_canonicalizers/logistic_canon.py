@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import \
-    exp_canon
+import numpy as np
+
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-import numpy as np
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import exp_canon
 
 
 def logistic_canon(expr, args):

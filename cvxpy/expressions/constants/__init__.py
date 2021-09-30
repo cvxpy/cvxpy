@@ -14,6 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .constant import Constant
 from .callback_param import CallbackParam
+from .constant import Constant
 from .parameter import Parameter

@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-import scipy.sparse as sp
-from numpy import linalg as LA
 from typing import Tuple
 
 import numpy as np
+import scipy.sparse as sp
+from numpy import linalg as LA
+
+from cvxpy.atoms.atom import Atom
 
 
 class sigma_max(Atom):

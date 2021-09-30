@@ -16,13 +16,14 @@ limitations under the License.
 from functools import wraps
 from typing import List, Optional, Tuple
 
+import numpy as np
+
+import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.constraints.constraint import Constraint
-import cvxpy.lin_ops.lin_op as lo
-import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.interface as intf
-import numpy as np
 
 
 class Sum(AxisAtom, AffAtom):

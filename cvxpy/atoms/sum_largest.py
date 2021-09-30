@@ -16,10 +16,11 @@ limitations under the License.
 
 from typing import Tuple
 
-from cvxpy.atoms.atom import Atom
-import cvxpy.interface as intf
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.interface as intf
+from cvxpy.atoms.atom import Atom
 
 
 class sum_largest(Atom):

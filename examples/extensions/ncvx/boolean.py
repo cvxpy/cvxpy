@@ -14,10 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Parameter
 import cvxopt
 import numpy as np
+
+from cvxpy.expressions.constants import Parameter
+from cvxpy.expressions.variable import Variable
+
 
 class Boolean(Variable):
     def __init__(self, rows: int = 1, cols: int = 1, *args, **kwargs) -> None:

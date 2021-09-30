@@ -1,11 +1,12 @@
+import os
+import time
+
+import numpy as np
+import pytest
+
 import cvxpy as cp
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.tests.base_test import BaseTest
-import pytest
-import numpy as np
-
-import os
-import time
 
 
 def benchmark(func, iters: int = 1, name=None) -> None:

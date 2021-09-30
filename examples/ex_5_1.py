@@ -15,12 +15,13 @@ limitations under the License.
 """
 
 from __future__ import division
+
 from multiprocessing import Pool
 
 import numpy as np
-from cvxpy import Minimize, Parameter, Problem, quad_form, Variable
 from pylab import axis, plot, show, title, xlabel, ylabel
 
+from cvxpy import Minimize, Parameter, Problem, Variable, quad_form
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Exercise 5.1d: Sensitivity analysis for a simple QCQP

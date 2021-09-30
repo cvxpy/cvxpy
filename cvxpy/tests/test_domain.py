@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
-from cvxpy.transforms.partial_optimize import partial_optimize
-from cvxpy.expressions.variable import Variable
 import numpy as np
-from cvxpy import Problem, Minimize, Maximize
+
+import cvxpy as cp
+from cvxpy import Maximize, Minimize, Problem
+from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.transforms.partial_optimize import partial_optimize
 
 
 class TestDomain(BaseTest):

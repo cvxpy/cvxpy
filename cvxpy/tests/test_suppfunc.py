@@ -14,10 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
 import numpy as np
-from cvxpy.tests.base_test import BaseTest
+
+import cvxpy as cp
 from cvxpy.error import SolverError
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestSupportFunctions(BaseTest):

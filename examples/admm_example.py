@@ -16,7 +16,9 @@ limitations under the License.
 from multiprocessing import Pool
 
 import numpy as np
-from cvxpy import norm, Minimize, Problem, square, Variable
+
+from cvxpy import Minimize, Problem, Variable, norm, square
+
 
 def solveX(data):
 	a = data[0:3]

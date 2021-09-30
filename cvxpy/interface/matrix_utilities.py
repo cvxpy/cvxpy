@@ -14,10 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.interface import numpy_interface as np_intf
-import scipy.sparse as sp
 import numbers
+
 import numpy as np
+import scipy.sparse as sp
+
+from cvxpy.interface import numpy_interface as np_intf
 
 # A mapping of class to interface.
 INTERFACES = {np.ndarray: np_intf.NDArrayInterface(),

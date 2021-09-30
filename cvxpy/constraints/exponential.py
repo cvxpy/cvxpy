@@ -15,12 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import scopes
 from typing import List, Tuple
 
 import numpy as np
+
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import scopes
 
 
 class ExpCone(Constraint):
@@ -69,7 +70,7 @@ class ExpCone(Constraint):
     @property
     def residual(self):
         # TODO(akshayka): The projection should be implemented directly.
-        from cvxpy import Problem, Minimize, Variable, norm2, hstack
+        from cvxpy import Minimize, Problem, Variable, hstack, norm2
         if self.x.value is None or self.y.value is None or self.z.value is None:
             return None
         x = Variable(self.x.shape)

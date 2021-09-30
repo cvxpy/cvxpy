@@ -14,10 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .noncvx_variable import NonCvxVariable
+import numpy as np
+
 import cvxpy as cvx
 from cvxpy import settings as s
-import numpy as np
+
+from .noncvx_variable import NonCvxVariable
+
 
 # Use ADMM to attempt non-convex problem.
 def admm(self, rho: float = 0.5, iterations: int = 5, *args, **kwargs):

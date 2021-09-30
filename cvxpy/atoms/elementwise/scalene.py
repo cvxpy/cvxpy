@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.elementwise.pos import pos
 from cvxpy.atoms.elementwise.neg import neg
+from cvxpy.atoms.elementwise.pos import pos
 
 
 def scalene(x, alpha, beta):

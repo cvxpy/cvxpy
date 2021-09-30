@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.atoms.affine.vstack import vstack
 
 
 def bmat(block_lists):

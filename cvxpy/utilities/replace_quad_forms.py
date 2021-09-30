@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.quad_form import SymbolicQuadForm, QuadForm
+from cvxpy.atoms.quad_form import QuadForm, SymbolicQuadForm
 from cvxpy.expressions.variable import Variable
 
 

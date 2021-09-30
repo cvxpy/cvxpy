@@ -14,10 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import scipy.sparse as sp
+
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
-import cvxpy.lin_ops.lin_utils as lu
-import scipy.sparse as sp
 
 
 def upper_tri_to_full(n):

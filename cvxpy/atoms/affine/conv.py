@@ -16,14 +16,14 @@ limitations under the License.
 
 from typing import List, Tuple
 
+import numpy as np
+
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
-
-import numpy as np
 
 
 class conv(AffAtom):

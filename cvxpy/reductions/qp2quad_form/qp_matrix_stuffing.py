@@ -14,22 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
+import cvxpy.settings as s
+from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonPos,
+                               Zero,)
 from cvxpy.cvxcore.python import canonInterface
-from cvxpy.constraints import (Equality, ExpCone, Inequality,
-                               SOC, Zero, NonPos, PSD)
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
-from cvxpy.reductions import Solution, InverseData
+from cvxpy.reductions import InverseData, Solution
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.matrix_stuffing import extract_mip_idx, MatrixStuffing
-from cvxpy.reductions.utilities import (are_args_affine,
-                                        lower_equality,
-                                        lower_ineq_to_nonpos,
-                                        group_constraints)
-import cvxpy.settings as s
+from cvxpy.reductions.matrix_stuffing import MatrixStuffing, extract_mip_idx
+from cvxpy.reductions.utilities import (are_args_affine, group_constraints,
+                                        lower_equality, lower_ineq_to_nonpos,)
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
-import numpy as np
 
 
 class ConeDims:

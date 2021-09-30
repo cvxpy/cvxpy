@@ -14,10 +14,12 @@ limitations under the License.
 """
 
 import sys
-from cvxpy.atoms.elementwise.elementwise import Elementwise
 from typing import Any, List, Tuple
 
 import numpy as np
+
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+
 if sys.version_info >= (3, 0):
     from functools import reduce
 
