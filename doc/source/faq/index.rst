@@ -11,7 +11,7 @@ Where can I get help with CVXPY?
 --------------------------------
 You can post questions about how to use CVXPY on StackOverflow or on the `CVXPY mailing list <https://groups.google.com/forum/#!forum/cvxpy>`_.
 If you've found a bug in CVXPY or have a feature request,
-create an issue on the `CVXPY Github issue tracker <https://github.com/cvxgrp/cvxpy/issues>`_.
+create an issue on the `CVXPY Github issue tracker <https://github.com/cvxpy/cvxpy/issues>`_.
 
 Where can I learn more about convex optimization?
 -------------------------------------------------
@@ -54,7 +54,7 @@ What solvers does CVXPY support?
 --------------------------------
 See the "Solve method options" section in :ref:`Advanced Features <advanced>` for a list of the solvers CVXPY supports.
 If you would like to use a solver CVXPY does not support,
-make a feature request on the `CVXPY Github issue tracker <https://github.com/cvxgrp/cvxpy/issues>`_.
+make a feature request on the `CVXPY Github issue tracker <https://github.com/cvxpy/cvxpy/issues>`_.
 
 What are the differences between CVXPY's solvers?
 -------------------------------------------------
@@ -94,13 +94,13 @@ Create one variable with each desired property, and then set them all equal by a
 How do I create variables with more than 2 dimensions?
 ------------------------------------------------------
 You must mimic the extra dimensions using a dict,
-as described in `this Github issue <https://github.com/cvxgrp/cvxpy/issues/198>`__.
+as described in `this Github issue <https://github.com/cvxpy/cvxpy/issues/198>`__.
 
 Why does it take so long to compile my Problem?
 -----------------------------------------------
 In general, you should vectorize CVXPY expressions whenever possible if you
 care about performance (e.g., write A * x == b instead of a_i  * x == b_i for
-every row a_i of A). Consult this `IPython notebook <https://github.com/cvxgrp/cvxpy/blob/1.0/examples/notebooks/building_models_with_fast_compile_times.ipynb>`_ for details.
+every row a_i of A). Consult this `IPython notebook <https://github.com/cvxpy/cvxpy/blob/1.0/examples/notebooks/building_models_with_fast_compile_times.ipynb>`_ for details.
 
 --------------------
 How does CVXPY work?
