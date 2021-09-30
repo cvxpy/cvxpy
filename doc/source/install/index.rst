@@ -184,6 +184,27 @@ Install with SCIPY support
 CVXPY supports the SCIPY solver for LPs.
 This requires the `SciPy`_ package in Python which should already be installed as it is a requirement for CVXPY. `SciPy`_'s "interior-point" and "revised-simplex" implementations are written in python and are always available however the main advantage of this solver, is its ability to use the `HiGHS`_ LP solvers (which are written in C++) that comes bundled with `SciPy`_ version 1.6.1 and higher.
 
+Install without default solvers
+-------------------------
+
+CVXPY can also be installed without the default solver dependencies.
+This can be useful if the intention is to only use non-default solvers.
+
+The solver-less installation, ``cvxpy-base``, can currently be installed through pip and conda.
+
+Installing using pip:
+
+  ::
+
+      pip install cvxpy-base
+
+
+Installing using conda:
+
+  ::
+
+      conda install cvxpy-base
+
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _website: https://store.continuum.io/cshop/anaconda/

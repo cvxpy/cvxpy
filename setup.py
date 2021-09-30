@@ -80,7 +80,7 @@ setup(
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=[canon],
     packages=find_packages(exclude=["cvxpy.performance_tests"]),
-    url='http://github.com/cvxpy/cvxpy/',
+    url='https://github.com/cvxpy/cvxpy',
     license='Apache License, Version 2.0',
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization '
@@ -91,10 +91,12 @@ setup(
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     python_requires='>=3.6',
-    install_requires=["osqp >= 0.4.1",
-                      "ecos >= 2",
-                      "scs >= 1.1.6",
-                      "numpy >= 1.15",
-                      "scipy >= 1.1.0"],
+    install_requires=[
+        "osqp >= 0.4.1",
+        "ecos >= 2",
+        "scs >= 1.1.6",
+        "numpy >= 1.15",
+        "scipy >= 1.1.0"
+    ],
     setup_requires=["numpy >= 1.15"],
 )
