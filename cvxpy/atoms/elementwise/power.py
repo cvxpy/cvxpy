@@ -12,6 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from cvxpy.constraints.constraint import Constraint
+from typing import List, Tuple
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
 from cvxpy.expressions import cvxtypes
@@ -172,7 +174,7 @@ class power(Elementwise):
     def numeric(self, values):
         return np.power(values[0], float(self.p.value))
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         if self.p.value == 1:
@@ -349,7 +351,7 @@ class power(Elementwise):
         grad_vals = float(p)*np.power(values[0], float(p)-1)
         return [power.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         if not isinstance(self._p_orig, cvxtypes.expression()):

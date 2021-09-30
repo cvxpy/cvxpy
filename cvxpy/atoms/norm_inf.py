@@ -13,9 +13,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List, Tuple
 
 from cvxpy.atoms.axis_atom import AxisAtom
-from typing import Tuple
+from cvxpy.constraints.constraint import Constraint
 
 import numpy as np
 import scipy.sparse as sp
@@ -84,7 +85,7 @@ class norm_inf(AxisAtom):
         return "%s(%s)" % (self.__class__.__name__,
                            self.args[0].name())
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return []

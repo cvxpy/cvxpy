@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from functools import wraps
+from typing import Tuple
 import warnings
 
 from cvxpy import error
@@ -104,7 +105,7 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Returns a string showing the mathematical expression.
         """
         return self.name()
@@ -129,7 +130,7 @@ class Expression(u.Canonical):
 
     # Curvature properties.
     @property
-    def curvature(self):
+    def curvature(self) -> str:
         """str : The curvature of the expression.
         """
         if self.is_constant():
@@ -151,7 +152,7 @@ class Expression(u.Canonical):
         return curvature_str
 
     @property
-    def log_log_curvature(self):
+    def log_log_curvature(self) -> str:
         """str : The log-log curvature of the expression.
         """
         if self.is_log_log_constant():
@@ -255,7 +256,7 @@ class Expression(u.Canonical):
         return self.is_log_log_convex() or self.is_log_log_concave()
 
     @abc.abstractmethod
-    def is_dpp(self, context='dcp') -> bool:
+    def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
         raise NotImplementedError()
@@ -323,7 +324,7 @@ class Expression(u.Canonical):
     # Sign properties.
 
     @property
-    def sign(self):
+    def sign(self) -> str:
         """str: The sign of the expression.
         """
         if self.is_zero():
@@ -355,7 +356,7 @@ class Expression(u.Canonical):
         raise NotImplementedError()
 
     @abc.abstractproperty
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """tuple : The expression dimensions.
         """
         raise NotImplementedError()
@@ -378,7 +379,7 @@ class Expression(u.Canonical):
         raise NotImplementedError()
 
     @property
-    def size(self):
+    def size(self) -> int:
         """int : The number of entries in the expression.
         """
         return np.prod(self.shape, dtype=int)
@@ -440,7 +441,7 @@ class Expression(u.Canonical):
         else:
             return cvxtypes.conj()(self).T
 
-    def __pow__(self, power):
+    def __pow__(self, power) -> "Expression":
         """Raise expression to a power.
 
         Parameters
@@ -496,7 +497,7 @@ class Expression(u.Canonical):
         return lh_expr, rh_expr
 
     @_cast_other
-    def __add__(self, other):
+    def __add__(self, other) -> "Expression":
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
@@ -505,7 +506,7 @@ class Expression(u.Canonical):
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other
-    def __radd__(self, other):
+    def __radd__(self, other) -> "Expression":
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
@@ -513,19 +514,19 @@ class Expression(u.Canonical):
         return other + self
 
     @_cast_other
-    def __sub__(self, other):
+    def __sub__(self, other) -> "Expression":
         """Expression : The difference of two expressions.
         """
         return self + -other
 
     @_cast_other
-    def __rsub__(self, other):
+    def __rsub__(self, other) -> "Expression":
         """Expression : The difference of two expressions.
         """
         return other - self
 
     @_cast_other
-    def __mul__(self, other):
+    def __mul__(self, other) -> "Expression":
         """Expression : The product of two expressions.
         """
         if self.shape == () or other.shape == ():
@@ -559,7 +560,7 @@ class Expression(u.Canonical):
             return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __matmul__(self, other):
+    def __matmul__(self, other) -> "Expression":
         """Expression : Matrix multiplication of two expressions.
         """
         if self.shape == () or other.shape == ():
@@ -567,13 +568,13 @@ class Expression(u.Canonical):
         return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> "Expression":
         """Expression : One expression divided by another.
         """
         return self.__div__(other)
 
     @_cast_other
-    def __div__(self, other):
+    def __div__(self, other) -> "Expression":
         """Expression : One expression divided by another.
         """
         self, other = self.broadcast(self, other)
@@ -584,25 +585,25 @@ class Expression(u.Canonical):
                              self.shape, other.shape))
 
     @_cast_other
-    def __rdiv__(self, other):
+    def __rdiv__(self, other) -> "Expression":
         """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other) -> "Expression":
         """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> "Expression":
         """Expression : Called for Number * Expression.
         """
         return other * self
 
     @_cast_other
-    def __rmatmul__(self, other):
+    def __rmatmul__(self, other) -> "Expression":
         """Expression : Called for matrix @ Expression.
         """
         if self.shape == () or other.shape == ():
@@ -615,25 +616,25 @@ class Expression(u.Canonical):
         return cvxtypes.neg_expr()(self)
 
     @_cast_other
-    def __rshift__(self, other):
+    def __rshift__(self, other) -> PSD:
         """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(self - other)
 
     @_cast_other
-    def __rrshift__(self, other):
+    def __rrshift__(self, other) -> PSD:
         """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
-    def __lshift__(self, other):
+    def __lshift__(self, other) -> PSD:
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
-    def __rlshift__(self, other):
+    def __rlshift__(self, other) -> PSD:
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(self - other)

@@ -14,9 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
+from typing import List, Tuple
 
+import cvxpy.lin_ops.lin_op as lo
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
 import numpy as np
 
 
@@ -31,7 +33,7 @@ class conj(AffAtom):
         """
         return np.conj(values[0])
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the expression.
         """
         return self.args[0].shape
@@ -56,7 +58,9 @@ class conj(AffAtom):
         """
         return self.args[0].is_hermitian()
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Multiply the linear expressions.
 
         Parameters

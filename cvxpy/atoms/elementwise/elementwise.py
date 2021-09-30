@@ -28,7 +28,7 @@ class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
     __metaclass__ = abc.ABCMeta
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Shape is the same as the sum of the arguments.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])

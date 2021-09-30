@@ -13,10 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
+from typing import List, Tuple
 
+import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
 import numpy as np
 
 
@@ -48,7 +50,7 @@ class Hstack(AffAtom):
         return np.hstack(values)
 
     # The shape is the common width and the sum of the heights.
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         if self.args[0].ndim == 1:
             return (sum(arg.size for arg in self.args),)
         else:
@@ -68,7 +70,9 @@ class Hstack(AffAtom):
                     if i != 1 and arg.shape[i] != model[i]:
                         raise error
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Stack the expressions horizontally.
 
         Parameters
