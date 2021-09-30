@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.settings as s
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
-                                                              dims_to_solver_dict)
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solution import Solution, failure_solution
 import numpy as np
+
+import cvxpy.settings as s
+from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
+    SCS, dims_to_solver_dict,)
 
 
 class CBC(SCS):
@@ -103,7 +104,7 @@ class CBC(SCS):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         # Import basic modelling tools of cylp
         from cylp.cy import CyClpSimplex
-        from cylp.py.modeling.CyLPModel import CyLPModel, CyLPArray
+        from cylp.py.modeling.CyLPModel import CyLPArray, CyLPModel
 
         c = data[s.C]
         b = data[s.B]

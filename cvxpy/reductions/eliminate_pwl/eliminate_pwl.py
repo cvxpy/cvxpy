@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import abs, maximum, sum_largest, max, norm1, norm_inf
+from cvxpy.atoms import abs, max, maximum, norm1, norm_inf, sum_largest
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
-    CANON_METHODS as elim_pwl_methods)
+    CANON_METHODS as elim_pwl_methods,)
 
 
 class EliminatePwl(Canonicalization):

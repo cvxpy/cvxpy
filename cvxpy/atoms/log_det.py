@@ -14,14 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.settings as s
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.atoms.atom import Atom
-import numpy as np
-from numpy import linalg as LA
 from typing import List, Tuple
 
+import numpy as np
 import scipy.sparse as sp
+from numpy import linalg as LA
+
+import cvxpy.settings as s
+from cvxpy.atoms.atom import Atom
+from cvxpy.constraints.constraint import Constraint
 
 
 class log_det(Atom):

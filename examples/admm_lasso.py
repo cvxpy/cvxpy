@@ -17,7 +17,8 @@ limitations under the License.
 from multiprocessing import Pool
 
 import numpy as np
-from cvxpy import norm, Minimize, Problem, sum_squares, Variable
+
+from cvxpy import Minimize, Problem, Variable, norm, sum_squares
 
 # Problem data.
 m = 100

@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
+from typing import List, Optional, Tuple
+
 import numpy as np
 import scipy.sparse as sp
-from cvxpy.utilities.power_tools import (fracify, decompose, approx_error, lower_bound,
-                                         over_bound, prettydict)
-from typing import List, Optional, Tuple
+
+from cvxpy.atoms.atom import Atom
+from cvxpy.utilities.power_tools import (approx_error, decompose, fracify,
+                                         lower_bound, over_bound, prettydict,)
 
 
 class geo_mean(Atom):

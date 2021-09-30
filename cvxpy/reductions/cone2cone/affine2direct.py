@@ -13,17 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy import settings as s
-from cvxpy.reductions.solution import Solution
-from cvxpy.constraints.zero import Zero as Zero_obj
-from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
-from cvxpy.constraints.second_order import SOC as SOC_obj
-from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
-from cvxpy.constraints.psd import PSD as PSD_obj
-from cvxpy.constraints.power import PowCone3D as PowCone_obj
 import numpy as np
 import scipy as sp
 
+from cvxpy import settings as s
+from cvxpy.constraints.exponential import ExpCone as ExpCone_obj
+from cvxpy.constraints.nonpos import NonNeg as NonNeg_obj
+from cvxpy.constraints.power import PowCone3D as PowCone_obj
+from cvxpy.constraints.psd import PSD as PSD_obj
+from cvxpy.constraints.second_order import SOC as SOC_obj
+from cvxpy.constraints.zero import Zero as Zero_obj
+from cvxpy.reductions.solution import Solution
 
 FREE = 'fr'
 ZERO = '0'

@@ -14,14 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
-                                                              dims_to_solver_dict)
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers import utilities
-import numpy as np
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
+    SCS, dims_to_solver_dict,)
 
 
 def makeMstart(A, n, ifCol: int = 1):

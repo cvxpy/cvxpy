@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
 from typing import Tuple
 
-import cvxpy.utilities as u
+import numpy as np
+
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
+import cvxpy.utilities as u
+from cvxpy.atoms.affine.affine_atom import AffAtom
 
 
 class conv(AffAtom):

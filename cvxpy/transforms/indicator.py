@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.expression import Expression
-import cvxpy.utilities.performance_utils as perf
 import numpy as np
+
+import cvxpy.utilities.performance_utils as perf
+from cvxpy.expressions.expression import Expression
 
 
 class indicator(Expression):

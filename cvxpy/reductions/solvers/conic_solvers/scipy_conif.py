@@ -15,14 +15,16 @@ limitations under the License.
 """
 
 
+import warnings
+from distutils.version import StrictVersion
+
+import scipy  # For version checks
+
 import cvxpy.settings as s
 from cvxpy.constraints import NonNeg, Zero
-from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-from distutils.version import StrictVersion
-import scipy  # For version checks
-import warnings
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 class SCIPY(ConicSolver):

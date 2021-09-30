@@ -13,16 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import unittest
 import sys
+import unittest
 from typing import Tuple
 
-from cvxpy.expressions.expression import Expression
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.variable import Variable
-import cvxpy.interface.matrix_utilities as intf
 import numpy
 import scipy.sparse as sp
+
+import cvxpy.interface.matrix_utilities as intf
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 
 PY35 = sys.version_info >= (3, 5)
 

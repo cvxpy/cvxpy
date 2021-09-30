@@ -14,15 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-import numpy as np
-from numpy.testing import assert_allclose, assert_equal
-import scipy.sparse as sp
-import cvxpy
-from cvxpy.settings import EIGVAL_TOL
 import warnings
 
+import numpy as np
+import scipy.sparse as sp
+from numpy.testing import assert_allclose, assert_equal
+
+import cvxpy
+from cvxpy.settings import EIGVAL_TOL
 from cvxpy.tests.base_test import BaseTest
 
 

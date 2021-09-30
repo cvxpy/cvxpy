@@ -15,9 +15,10 @@ limitations under the License.
 """
 from typing import Tuple
 
+import numpy as np
+
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
-import numpy as np
 
 
 def hstack(arg_list) -> "Hstack":

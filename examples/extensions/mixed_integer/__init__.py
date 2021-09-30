@@ -15,8 +15,8 @@ limitations under the License.
 """
 
 import admm_problem
+from assign import Assign
 from boolean import Boolean
 from card import Card
 from choose import Choose
 from integer import Integer
-from assign import Assign

@@ -15,13 +15,14 @@ limitations under the License.
 """
 from typing import Tuple
 
-from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.binary_operators import MulExpression
-from cvxpy.expressions.variable import Variable
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.expressions.variable import Variable
 
 
 def get_diff_mat(dim, axis):

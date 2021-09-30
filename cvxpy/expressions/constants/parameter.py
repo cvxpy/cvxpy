@@ -13,9 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import scopes
 
 

@@ -14,10 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
-from cvxpy.expressions.variable import Variable
-from cvxpy.error import DCPError
 import unittest
+
+import cvxpy as cp
+from cvxpy.error import DCPError
+from cvxpy.expressions.variable import Variable
 
 
 class TestObjectives(unittest.TestCase):

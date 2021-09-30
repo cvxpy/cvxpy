@@ -16,14 +16,15 @@ limitations under the License.
 """
 from distutils.version import StrictVersion
 
-import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone, PowCone3D
-from cvxpy.expressions.expression import Expression
-from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers import utilities
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.settings as s
+from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
+from cvxpy.expressions.expression import Expression
+from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 # Utility method for formatting a ConeDims instance into a dictionary

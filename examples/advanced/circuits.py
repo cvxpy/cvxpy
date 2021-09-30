@@ -14,9 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import abc
+
 # An object oriented model of a circuit.
 import cvxpy as cp
-import abc
+
 
 class Node:
     """ A node connecting devices. """

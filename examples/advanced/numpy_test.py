@@ -14,8 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy
 import abc
+
+import numpy
+
+
 class Meta:
     def __subclasscheck__(self, subclass):
         print("hello")

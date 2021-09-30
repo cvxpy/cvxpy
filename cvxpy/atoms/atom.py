@@ -16,6 +16,9 @@ limitations under the License.
 import abc
 from typing import List, Tuple
 
+import numpy as np
+
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import interface as intf
 from cvxpy import utilities as u
 from cvxpy.expressions import cvxtypes
@@ -23,9 +26,6 @@ from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.expression import Expression
 from cvxpy.utilities import performance_utils as perf
 from cvxpy.utilities.deterministic import unique_list
-import cvxpy.lin_ops.lin_utils as lu
-
-import numpy as np
 
 
 class Atom(Expression):
@@ -259,6 +259,7 @@ class Atom(Expression):
         """Is the expression quaisconvex?
         """
         from cvxpy.atoms.max import max as max_atom
+
         # Verifies the DQCP composition rule.
         if self.is_convex():
             return True
@@ -283,6 +284,7 @@ class Atom(Expression):
         """Is the expression quasiconcave?
         """
         from cvxpy.atoms.min import min as min_atom
+
         # Verifies the DQCP composition rule.
         if self.is_concave():
             return True

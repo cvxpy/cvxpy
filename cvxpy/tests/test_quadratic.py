@@ -14,13 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import warnings
+
+import numpy as np
+
 import cvxpy as cp
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
-import numpy as np
-import warnings
 
 
 class TestExpressions(BaseTest):

@@ -16,8 +16,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.interface as intf
 import numpy as np
+
+import cvxpy.interface as intf
 
 
 def expcone_permutor(n_cones, exp_cone_order) -> np.ndarray:

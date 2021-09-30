@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import Tuple
+
 import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms.axis_atom import AxisAtom
-from typing import Tuple
 
 
 class norm1(AxisAtom):

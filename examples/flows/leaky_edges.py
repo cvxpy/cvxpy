@@ -17,8 +17,10 @@ limitations under the License.
 import pickle
 
 from cvxpy import Maximize, Problem, Variable
-from .create_graph import FILE, NODE_COUNT_KEY, EDGES_KEY
-from .max_flow import Node, Edge
+
+from .create_graph import EDGES_KEY, FILE, NODE_COUNT_KEY
+from .max_flow import Edge, Node
+
 
 # Max-flow with different kinds of edges.
 class Directed(Edge):

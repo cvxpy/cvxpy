@@ -15,10 +15,11 @@ limitations under the License.
 """
 from typing import Tuple
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
+import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
+from cvxpy.atoms.affine.affine_atom import AffAtom
 
 
 class kron(AffAtom):

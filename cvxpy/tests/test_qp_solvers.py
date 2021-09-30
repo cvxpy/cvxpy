@@ -19,18 +19,13 @@ import numpy as np
 import scipy.sparse as sp
 from scipy.linalg import lstsq
 
-from cvxpy import Minimize, Problem, Parameter, Maximize
-from cvxpy.atoms import (QuadForm, abs, power,
-                         quad_over_lin, sum, sum_squares,
-                         norm,
-                         huber,
-                         matrix_frac)
-from cvxpy.reductions.solvers.defines import QP_SOLVERS, INSTALLED_SOLVERS
+from cvxpy import Maximize, Minimize, Parameter, Problem
+from cvxpy.atoms import (QuadForm, abs, huber, matrix_frac, norm, power,
+                         quad_over_lin, sum, sum_squares,)
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS, QP_SOLVERS
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import (
-    StandardTestLPs,
-)
+from cvxpy.tests.solver_test_helpers import StandardTestLPs
 
 
 class TestQp(BaseTest):

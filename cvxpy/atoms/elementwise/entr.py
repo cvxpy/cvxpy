@@ -14,10 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.elementwise.elementwise import Elementwise
+from typing import Tuple
+
 import numpy as np
 from scipy.special import xlogy
-from typing import Tuple
+
+from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 # TODO(akshayka): DGP support.
 
