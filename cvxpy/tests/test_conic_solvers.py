@@ -139,7 +139,7 @@ class TestSCS(BaseTest):
                            x <= 1,
                            x @ mu >= np.max(mu) - 1e-6])
         prob.solve(cp.SCS)
-        assert prob.status == cp.OPTIMAL
+        assert prob.status in {cp.OPTIMAL, cp.OPTIMAL_INACCURATE}
 
     def test_scs_options(self) -> None:
         """Test that all the SCS solver options work.

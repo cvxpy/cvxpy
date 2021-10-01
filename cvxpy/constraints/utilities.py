@@ -22,7 +22,6 @@ import cvxpy.lin_ops.lin_utils as lu
 # Utility functions for constraints.
 
 
-
 def format_axis(t, X, axis):
     """Formats all the row/column cones for the solver.
 
