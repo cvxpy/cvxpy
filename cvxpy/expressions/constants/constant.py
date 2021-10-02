@@ -260,10 +260,10 @@ def is_psd_within_tol(A, tol):
     try:
         ev = SA_eigsh(-tol)  # might return np.NaN, or raise exception
     finally:
-        if np.isnan(ev):
+        if np.isnan(ev).all():
             # will be NaN if A has an eigenvalue which is exactly -tol
             # (We might also hit this code block for other reasons.)
             temp = tol - np.finfo(A.dtype).eps
             ev = SA_eigsh(-temp)
 
-    return ev >= -tol
+    return np.all(ev >= -tol)
