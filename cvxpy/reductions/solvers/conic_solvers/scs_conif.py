@@ -29,6 +29,7 @@ import scipy.sparse as sp
 # Utility method for formatting a ConeDims instance into a dictionary
 # that can be supplied to scs.
 def dims_to_solver_dict(cone_dims):
+    import scs
     cones = {
         'l': cone_dims.nonneg,
         'q': cone_dims.soc,
@@ -37,9 +38,9 @@ def dims_to_solver_dict(cone_dims):
         'p': cone_dims.p3d
     }
     if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
-        cones['f'] = cone_dims.zero
+      cones['f'] = cone_dims.zero
     else:
-        cones['z'] = cone_dims.zero  # renamed to 'z' in SCS 3.0.0
+      cones['z'] = cone_dims.zero  # renamed to 'z' in SCS 3.0.0
     return cones
 
 
@@ -248,8 +249,8 @@ class SCS(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
+        import scs
         attr = {}
-
         # SCS versions 1.*, SCS 2.*
         if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
             status = self.STATUS_MAP[solution["info"]["statusVal"]]
@@ -319,8 +320,14 @@ class SCS(ConicSolver):
 
         # SCS versions 1.*, SCS 2.*
         if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
-            # Default to eps = 1e-4 instead of 1e-3.
-            solver_opts["eps"] = solver_opts.get("eps", 1e-4)
+            if "eps_abs" in solver_opts or "eps_rel" in solver_opts:
+              # Take the min of eps_rel and eps_abs to be eps
+              solver_opts["eps"] = min(solver_opts.get("eps_abs", 1),
+                                       solver_opts.get("eps_rel", 1))
+            else:
+              # Default to eps = 1e-4 instead of 1e-3.
+              solver_opts["eps"] = solver_opts.get("eps", 1e-4)
+
 
             results = scs.solve(args, cones, verbose=verbose, **solver_opts)
             status = self.STATUS_MAP[results["info"]["statusVal"]]
@@ -341,6 +348,11 @@ class SCS(ConicSolver):
 
         # SCS version 3.*
         else:
+            if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
+              solver_opts["eps_abs"] = solver_opts["eps"]
+              solver_opts["eps_rel"] = solver_opts["eps"]
+              del solver_opts["eps"]
+
             results = scs.solve(args, cones, verbose=verbose, **solver_opts)
 
         if solver_cache is not None:

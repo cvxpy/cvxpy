@@ -110,7 +110,7 @@ EQ, LEQ, SOC, SOC_EW, PSD, EXP, BOOL, INT = range(8)
 #   Riley follow-up on this: cone dims are now defined in matrix
 #   stuffing modules (e.g. cone_matrix_stuffing.py), rather than
 #   the solver module.
-EQ_DIM = "f"
+EQ_DIM = "z"
 LEQ_DIM = "l"
 SOC_DIM = "q"
 PSD_DIM = "s"
