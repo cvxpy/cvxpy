@@ -30,13 +30,16 @@ import scipy.sparse as sp
 # that can be supplied to scs.
 def dims_to_solver_dict(cone_dims):
     cones = {
-        'f': cone_dims.zero,
         'l': cone_dims.nonneg,
         'q': cone_dims.soc,
         'ep': cone_dims.exp,
         's': cone_dims.psd,
         'p': cone_dims.p3d
     }
+    if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+        cones['f'] = cone_dims.zero
+    else:
+        cones['z'] = cone_dims.zero  # renamed to 'z' in SCS 3.0.0
     return cones
 
 
@@ -245,11 +248,20 @@ class SCS(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = self.STATUS_MAP[solution["info"]["statusVal"]]
-
         attr = {}
-        attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
-        attr[s.SETUP_TIME] = solution["info"]["setupTime"]
+
+        # SCS versions 1.*, SCS 2.*
+        if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+            status = self.STATUS_MAP[solution["info"]["statusVal"]]
+            attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
+            attr[s.SETUP_TIME] = solution["info"]["setupTime"]
+
+        # SCS version 3.*
+        else:
+            status = self.STATUS_MAP[solution["info"]["status_val"]]
+            attr[s.SOLVE_TIME] = solution["info"]["solve_time"]
+            attr[s.SETUP_TIME] = solution["info"]["setup_time"]
+
         attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
 
@@ -304,25 +316,32 @@ class SCS(ConicSolver):
             args["y"] = solver_cache[self.name()]["y"]
             args["s"] = solver_cache[self.name()]["s"]
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
-        # Default to eps = 1e-4 instead of 1e-3.
-        solver_opts["eps"] = solver_opts.get("eps", 1e-4)
 
-        results = scs.solve(args, cones, verbose=verbose, **solver_opts)
-        status = self.STATUS_MAP[results["info"]["statusVal"]]
+        # SCS versions 1.*, SCS 2.*
+        if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+            # Default to eps = 1e-4 instead of 1e-3.
+            solver_opts["eps"] = solver_opts.get("eps", 1e-4)
 
-        # anderson acceleration (introduced in scs 2.0) is sometimes unstable; retry without it
-        acceleration_lookback_available = (StrictVersion(scs.__version__) >= StrictVersion('2.0.0'))
-        if (
-                status == s.OPTIMAL_INACCURATE
-                and "acceleration_lookback" not in solver_opts
-                and acceleration_lookback_available
-        ):
-            results = scs.solve(
-                args,
-                cones,
-                verbose=verbose,
-                acceleration_lookback=0,
-                **solver_opts)
+            results = scs.solve(args, cones, verbose=verbose, **solver_opts)
+            status = self.STATUS_MAP[results["info"]["statusVal"]]
+
+            # anderson acceleration (introduced in scs 2.0) is sometimes unstable; retry without it
+            acceleration_lookback_available = (StrictVersion(scs.__version__) >= StrictVersion('2.0.0'))
+            if (
+                    status == s.OPTIMAL_INACCURATE
+                    and "acceleration_lookback" not in solver_opts
+                    and acceleration_lookback_available
+            ):
+                results = scs.solve(
+                    args,
+                    cones,
+                    verbose=verbose,
+                    acceleration_lookback=0,
+                    **solver_opts)
+
+        # SCS version 3.*
+        else:
+            results = scs.solve(args, cones, verbose=verbose, **solver_opts)
 
         if solver_cache is not None:
             solver_cache[self.name()] = results
