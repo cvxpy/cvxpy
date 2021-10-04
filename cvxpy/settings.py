@@ -17,6 +17,9 @@ import logging
 import sys
 
 
+from distutils.version import StrictVersion
+import scs
+
 LOGGER = logging.getLogger("__cvxpy__")
 LOGGER.propagate = False
 LOGGER.setLevel(logging.INFO)
@@ -110,7 +113,12 @@ EQ, LEQ, SOC, SOC_EW, PSD, EXP, BOOL, INT = range(8)
 #   Riley follow-up on this: cone dims are now defined in matrix
 #   stuffing modules (e.g. cone_matrix_stuffing.py), rather than
 #   the solver module.
-EQ_DIM = "z"
+
+if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+    EQ_DIM = "f"
+else:
+    EQ_DIM = "z"
+
 LEQ_DIM = "l"
 SOC_DIM = "q"
 PSD_DIM = "s"
