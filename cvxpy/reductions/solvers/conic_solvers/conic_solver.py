@@ -31,6 +31,7 @@ from cvxpy.reductions.solvers.solver import Solver
 # make sure to run cvxpy/tests/test_benchmarks.py to ensure that you have
 # not introduced a regression.
 
+
 class LinearOperator:
     """A wrapper for linear operators."""
     def __init__(self, linear_op, shape: Tuple[int, ...]) -> None:

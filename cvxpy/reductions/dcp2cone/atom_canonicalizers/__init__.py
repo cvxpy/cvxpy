@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.atoms import *
-from cvxpy.atoms.affine.binary_operators import MulExpression, multiply
 from cvxpy.atoms.affine.index import special_index
 from cvxpy.atoms.suppfunc import SuppFuncAtom
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import *
@@ -26,8 +25,8 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.indicator_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.kl_div_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_max_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_sum_largest_canon import *
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.log1p_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_canon import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.log1p_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_det_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_sum_exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.logistic_canon import *
