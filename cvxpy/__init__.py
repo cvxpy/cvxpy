@@ -26,7 +26,7 @@ from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.problem import Problem
 from cvxpy.transforms import linearize, partial_optimize, suppfunc
-from cvxpy.reductions import *
+from cvxpy.reductions import Solution, Dqcp2Dcp
 from cvxpy.reductions.solvers.defines import installed_solvers
 from cvxpy.settings import (CBC, CPLEX, CVXOPT, DIFFCP, ECOS, ECOS_BB, GLPK,
                             GLPK_MI, GUROBI, INFEASIBLE, INFEASIBLE_INACCURATE,
