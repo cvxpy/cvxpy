@@ -19,14 +19,14 @@ from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solution import Solution
 
 from cvxpy.reductions.chain import Chain
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.complex2real.complex2real import Complex2Real
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.dqcp2dcp.dqcp2dcp import Dqcp2Dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
-from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.solvers.solving_chain import SolvingChain

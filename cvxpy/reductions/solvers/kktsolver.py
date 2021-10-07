@@ -73,7 +73,7 @@ def kkt_ldl(G, dims, A):
     """
     from cvxopt import blas, lapack
     from cvxopt.base import matrix
-    from cvxopt.misc import scale, pack, unpack
+    from cvxopt.misc import pack, scale, unpack
 
     p, n = A.size
     ldK = n + p + dims['l'] + sum(dims['q']) + sum([int(k*(k+1)/2)

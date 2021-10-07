@@ -20,7 +20,9 @@ limitations under the License.
 # Boyd, Diaconis, and Xiao SIAM Rev. 46 (2004) 667-689 at p.672
 
 import numpy as np
+
 import cvxpy
+
 
 def antiadjacency(g):
   # form the complementary graph

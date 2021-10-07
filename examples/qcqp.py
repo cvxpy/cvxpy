@@ -16,10 +16,12 @@ limitations under the License.
 
 # for decimal division
 from __future__ import division
+
 import sys
 
 import cvxopt
-from cvxpy import Minimize, OPTIMAL, Problem, quad_form, Variable
+
+from cvxpy import OPTIMAL, Minimize, Problem, Variable, quad_form
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Derived from Example: Finding the fastest mixing Markov chain on a graph

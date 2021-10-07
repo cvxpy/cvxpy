@@ -13,15 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.constraints.constraint import Constraint
 from typing import List, Tuple, Union
+
+import numpy as np
 
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
-
-import numpy as np
+from cvxpy.constraints.constraint import Constraint
 
 
 def diag(expr) -> Union["diag_mat", "diag_vec"]:

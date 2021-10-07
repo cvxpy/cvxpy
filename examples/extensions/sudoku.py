@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import Minimize, Problem, square
-from ncvx.boolean import Boolean
+import cProfile
+import pstats
+
 import cvxopt
-import cProfile, pstats
 import numpy as np
+from ncvx.boolean import Boolean
+
+from cvxpy import Minimize, Problem, square
 
 n = 9
 # 9x9 sudoku grid

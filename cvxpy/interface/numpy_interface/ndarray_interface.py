@@ -15,11 +15,12 @@ limitations under the License.
 """
 
 
-from .. import base_matrix_interface as base
 from typing import Tuple
 
 import numpy
 import scipy.sparse
+
+from .. import base_matrix_interface as base
 
 
 class NDArrayInterface(base.BaseMatrixInterface):

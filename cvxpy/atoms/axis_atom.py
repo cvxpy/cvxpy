@@ -17,9 +17,10 @@ limitations under the License.
 import abc
 from typing import List, Optional, Tuple
 
-from cvxpy.atoms.atom import Atom
 import numpy as np
 import scipy.sparse as sp
+
+from cvxpy.atoms.atom import Atom
 
 
 class AxisAtom(Atom):

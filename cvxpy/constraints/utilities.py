@@ -15,10 +15,11 @@ limitations under the License.
 """
 from typing import Tuple
 
-# Utility functions for constraints.
+import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_utils as lu
-import scipy.sparse as sp
+
+# Utility functions for constraints.
 
 
 def format_axis(t, X, axis):

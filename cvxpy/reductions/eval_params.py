@@ -1,7 +1,7 @@
+from cvxpy import problems
 from cvxpy.error import ParameterError
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.constants.parameter import Parameter
-from cvxpy import problems
 from cvxpy.reductions.reduction import Reduction
 
 

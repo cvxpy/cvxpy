@@ -15,10 +15,11 @@ limitations under the License.
 """
 from typing import List, Tuple
 
-from cvxpy.atoms.elementwise.elementwise import Elementwise
-from cvxpy.constraints.constraint import Constraint
 import numpy as np
 from scipy.special import xlogy
+
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.constraints.constraint import Constraint
 
 # TODO(akshayka): DGP support.
 

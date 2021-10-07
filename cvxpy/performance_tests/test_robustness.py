@@ -18,14 +18,16 @@ THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 
-import cvxpy as cp
-import cvxpy.atoms as at
-from cvxpy.expressions.variable import Variable
-from cvxpy.problems.problem import Problem
-import cvxpy.interface.matrix_utilities as intf
+import unittest
+
 import numpy as np
 import scipy.sparse as sp
-import unittest
+
+import cvxpy as cp
+import cvxpy.atoms as at
+import cvxpy.interface.matrix_utilities as intf
+from cvxpy.expressions.variable import Variable
+from cvxpy.problems.problem import Problem
 
 
 class TestProblem(unittest.TestCase):

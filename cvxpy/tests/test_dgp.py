@@ -1,7 +1,8 @@
-import cvxpy
-from cvxpy.tests.base_test import BaseTest
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestDgp(BaseTest):

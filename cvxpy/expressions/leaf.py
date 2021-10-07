@@ -15,23 +15,23 @@ limitations under the License.
 """
 
 import abc
-from typing import List, Tuple, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Tuple, Union
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Variable
     from cvxpy.atoms.atom import Atom
 
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions import expression
-from cvxpy.settings import (GENERAL_PROJECTION_TOL,
-                            PSD_NSD_PROJECTION_TOL,
-                            SPARSE_PROJECTION_TOL)
-
-import cvxpy.interface as intf
 import numbers
+
 import numpy as np
 import numpy.linalg as LA
 import scipy.sparse as sp
+
+import cvxpy.interface as intf
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import expression
+from cvxpy.settings import (GENERAL_PROJECTION_TOL, PSD_NSD_PROJECTION_TOL,
+                            SPARSE_PROJECTION_TOL,)
 
 
 class Leaf(expression.Expression):

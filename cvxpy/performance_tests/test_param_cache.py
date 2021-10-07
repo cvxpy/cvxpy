@@ -17,8 +17,9 @@ THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 
-import unittest
 import time
+import unittest
+
 import cvxpy as cvx
 
 

@@ -17,7 +17,8 @@ limitations under the License.
 from __future__ import division
 
 import cvxopt
-from cvxpy import maximum, Minimize, Problem, Variable
+
+from cvxpy import Minimize, Problem, Variable, maximum
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Section 6.1.2: Residual minimization with deadzone penalty

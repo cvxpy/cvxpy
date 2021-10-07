@@ -14,19 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
-import cvxpy.settings as s
-from cvxpy.transforms.partial_optimize import partial_optimize
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Parameter, Constant
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
-import numpy as np
-from cvxpy import Problem, Minimize
-from cvxpy.tests.base_test import BaseTest
 import unittest
+
+import numpy as np
 import scipy
 import scipy.sparse as sp
 import scipy.stats
+
+import cvxpy as cp
+import cvxpy.settings as s
+from cvxpy import Minimize, Problem
+from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
+from cvxpy.tests.base_test import BaseTest
+from cvxpy.transforms.partial_optimize import partial_optimize
 
 
 class TestAtoms(BaseTest):

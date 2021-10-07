@@ -16,6 +16,7 @@ limitations under the License.
 
 from .noncvx_variable import NonCvxVariable
 
+
 class Integer(NonCvxVariable):
     """ An integer variable. """
     # All values set rounded to the nearest integer.

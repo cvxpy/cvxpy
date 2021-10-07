@@ -19,6 +19,7 @@ limitations under the License.
 # Boyd and Vandenberghe, Convex Optimization, exercise 4.62 page 210
 
 import numpy as np
+
 import cvxpy as cvx
 
 '''

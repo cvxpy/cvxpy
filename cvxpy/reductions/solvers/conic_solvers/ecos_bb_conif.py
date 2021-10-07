@@ -18,11 +18,11 @@ limitations under the License.
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.constraints import ExpCone
+from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.ecos_conif import (
-                                                    dims_to_solver_dict, ECOS)
-from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers import utilities
+    ECOS, dims_to_solver_dict,)
 
 
 class ECOS_BB(ECOS):

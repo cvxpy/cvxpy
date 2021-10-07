@@ -16,7 +16,6 @@ limitations under the License.
 import logging
 import sys
 
-
 LOGGER = logging.getLogger("__cvxpy__")
 LOGGER.propagate = False
 LOGGER.setLevel(logging.INFO)

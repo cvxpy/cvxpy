@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from scipy.sparse.base import spmatrix
+
 from cvxpy.expressions import expression as exp
 
 BIN_OPS = ["__div__", "__mul__", "__add__", "__sub__",

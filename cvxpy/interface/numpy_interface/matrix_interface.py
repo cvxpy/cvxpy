@@ -15,9 +15,10 @@ limitations under the License.
 """
 from typing import Tuple
 
-from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
-import scipy.sparse as sp
 import numpy as np
+import scipy.sparse as sp
+
+from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 
 
 class MatrixInterface(NDArrayInterface):

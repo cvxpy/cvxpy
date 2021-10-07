@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-# simple_portfolio_data
-from cvxpy import CVXOPT, ECOS, Minimize, Problem, SCS, Variable, quad_form
 import numpy as np
+
+# simple_portfolio_data
+from cvxpy import CVXOPT, ECOS, SCS, Minimize, Problem, Variable, quad_form
 
 np.random.seed(5)
 n = 8000
@@ -40,6 +41,7 @@ constraints_longonly = [sum(x) == 1, x >= 0]
 prob = Problem(objective, constraints_longonly)
 #constraints_totalshort = [sum(x) == 1, one.T * max(-x, 0) <= 0.5]
 import time
+
 print("starting problems")
 
 start = time.clock()

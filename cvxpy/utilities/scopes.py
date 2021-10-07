@@ -17,7 +17,6 @@ limitations under the License.
 """
 import contextlib
 
-
 _dpp_scope_active = False
 
 

@@ -14,10 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import Minimize, Problem, sum_squares
-from ncvx.boolean import Boolean
-import ncvx.branch_and_bound
 import cvxopt
+import ncvx.branch_and_bound
+from ncvx.boolean import Boolean
+
+from cvxpy import Minimize, Problem, sum_squares
 
 x = Boolean(3, name='x')
 A = cvxopt.matrix([1,2,3,4,5,6,7,8,9], (3, 3), tc='d')

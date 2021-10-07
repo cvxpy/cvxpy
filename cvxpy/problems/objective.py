@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.error import DCPError
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import scalar_value
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import scopes
 
 

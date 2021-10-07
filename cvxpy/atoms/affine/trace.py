@@ -15,11 +15,12 @@ limitations under the License.
 """
 from typing import List, Tuple
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.constraints.constraint import Constraint
+import numpy as np
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
 
 
 class trace(AffAtom):

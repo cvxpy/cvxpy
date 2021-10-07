@@ -15,16 +15,15 @@ limitations under the License.
 """
 
 from cvxpy import problems
-from cvxpy.expressions import cvxtypes
-from cvxpy.reductions.reduction import Reduction
-from cvxpy.reductions import InverseData, Solution
-from cvxpy.constraints import (Equality, Inequality,
-                               Zero, NonNeg,
-                               PSD, SOC, NonPos)
-from cvxpy.reductions.complex2real.atom_canonicalizers import (
-    CANON_METHODS as elim_cplx_methods)
-from cvxpy.lin_ops import lin_utils as lu
 from cvxpy import settings as s
+from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
+                               Zero,)
+from cvxpy.expressions import cvxtypes
+from cvxpy.lin_ops import lin_utils as lu
+from cvxpy.reductions import InverseData, Solution
+from cvxpy.reductions.complex2real.atom_canonicalizers import (
+    CANON_METHODS as elim_cplx_methods,)
+from cvxpy.reductions.reduction import Reduction
 
 
 def accepts(problem) -> bool:

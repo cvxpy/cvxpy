@@ -15,9 +15,9 @@ limitations under the License.
 """
 from typing import List, Optional, Tuple
 
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import scopes
 
 

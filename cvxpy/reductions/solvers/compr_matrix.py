@@ -16,8 +16,8 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
-import scipy.sparse as sp
 import numpy as np
+import scipy.sparse as sp
 
 
 def get_row_nnz(mat, row):
