@@ -4,7 +4,7 @@ CVXPY
 
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
 
-**Join the [CVXPY discord](https://discord.gg/SWUSgBu3Yz), and use the [issue tracker](https://github.com/cvxpy/cvxpy/issues) and [StackOverflow](https://stackoverflow.com/questions/tagged/cvxpy) for the best support.**
+**Join the [CVXPY discord](https://discord.gg/4urRQeGBCr), and use the [issue tracker](https://github.com/cvxpy/cvxpy/issues) and [StackOverflow](https://stackoverflow.com/questions/tagged/cvxpy) for the best support.**
 
 - [Installation](#installation)
 - [Getting started](#getting-started)
