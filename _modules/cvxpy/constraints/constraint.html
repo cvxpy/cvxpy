@@ -6,14 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>cvxpy.constraints.constraint &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -49,11 +47,13 @@
 <span class="sd">limitations under the License.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
-<span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
-<span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
 <span class="kn">import</span> <span class="nn">abc</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
+<span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
 
 
 <div class="viewcode-block" id="Constraint"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.constraint.Constraint">[docs]</a><span class="k">class</span> <span class="nc">Constraint</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Canonical</span><span class="p">):</span>
@@ -343,7 +343,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -357,7 +357,7 @@
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

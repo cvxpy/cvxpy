@@ -6,14 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>cvxpy.problems.problem &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
     <script src="../../../_static/doctools.js"></script>
-    <script src="../../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
    
@@ -51,18 +49,22 @@
 
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
 <span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">perf</span>
-<span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">error</span>
-<span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">s</span><span class="p">,</span> <span class="n">Constant</span>
+<span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">Constant</span><span class="p">,</span> <span class="n">error</span>
+<span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">settings</span> <span class="k">as</span> <span class="n">s</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.atom</span> <span class="kn">import</span> <span class="n">Atom</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Zero</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
-<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,</span> <span class="n">NonNeg</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="kn">import</span> <span class="n">Variable</span>
 <span class="kn">from</span> <span class="nn">cvxpy.interface.matrix_utilities</span> <span class="kn">import</span> <span class="n">scalar_value</span>
-<span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="kn">import</span> <span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span>
+<span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="kn">import</span> <span class="n">Maximize</span><span class="p">,</span> <span class="n">Minimize</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions</span> <span class="kn">import</span> <span class="n">InverseData</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.chain</span> <span class="kn">import</span> <span class="n">Chain</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.dgp2dcp.dgp2dcp</span> <span class="kn">import</span> <span class="n">Dgp2Dcp</span>
@@ -72,15 +74,13 @@
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers</span> <span class="kn">import</span> <span class="n">bisection</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers</span> <span class="kn">import</span> <span class="n">defines</span> <span class="k">as</span> <span class="n">slv_def</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.conic_solvers.conic_solver</span> <span class="kn">import</span> <span class="n">ConicSolver</span>
-<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.defines</span> <span class="kn">import</span> <span class="n">SOLVER_MAP_QP</span><span class="p">,</span> <span class="n">SOLVER_MAP_CONIC</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.defines</span> <span class="kn">import</span> <span class="n">SOLVER_MAP_CONIC</span><span class="p">,</span> <span class="n">SOLVER_MAP_QP</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.qp_solvers.qp_solver</span> <span class="kn">import</span> <span class="n">QpSolver</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solver</span> <span class="kn">import</span> <span class="n">Solver</span>
-<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solving_chain</span> <span class="kn">import</span> <span class="n">construct_solving_chain</span><span class="p">,</span> <span class="n">SolvingChain</span>
+<span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solving_chain</span> <span class="kn">import</span> <span class="p">(</span><span class="n">SolvingChain</span><span class="p">,</span>
+                                                    <span class="n">construct_solving_chain</span><span class="p">,)</span>
 <span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="kn">import</span> <span class="n">SOLVERS</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities.deterministic</span> <span class="kn">import</span> <span class="n">unique_list</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
 
 <span class="n">SolveResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span>
     <span class="s1">&#39;SolveResult&#39;</span><span class="p">,</span>
@@ -169,7 +169,9 @@
     <span class="c1"># The solve methods available.</span>
     <span class="n">REGISTERED_SOLVE_METHODS</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">objective</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">],</span> <span class="n">constraints</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">constraints</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Check that objective is Minimize or Maximize.</span>
@@ -179,16 +181,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span> <span class="o">=</span> <span class="n">objective</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">_validate_constraint</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_value</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solution</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span> <span class="o">=</span> <span class="n">Cache</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solver_cache</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="c1"># Information about the shape of the problem and its constituent parts</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_size_metrics</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size_metrics</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;SizeMetrics&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># Benchmarks reported by the solver:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_compilation_time</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_solve_time</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;SolverStats&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_compilation_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_solve_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_objective</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_constraints</span><span class="p">]</span>
 
     <span class="nd">@property</span>
@@ -202,7 +204,7 @@
             <span class="k">return</span> <span class="n">scalar_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_value</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">status</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;str : The status from the last time the problem was solved; one</span>
 <span class="sd">                 of optimal, infeasible, or unbounded (with or without</span>
 <span class="sd">                 suffix inaccurate).</span>
@@ -216,7 +218,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solution</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">objective</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Minimize or Maximize : The problem&#39;s objective.</span>
 
 <span class="sd">        Note that the objective cannot be reassigned after creation,</span>
@@ -226,7 +228,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objective</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;A shallow copy of the problem&#39;s constraints.</span>
 
 <span class="sd">        Note that constraints cannot be reassigned, appended to, or otherwise</span>
@@ -242,7 +244,7 @@
         <span class="k">return</span> <span class="p">{</span><span class="n">parameters</span><span class="o">.</span><span class="n">name</span><span class="p">():</span> <span class="n">parameters</span> <span class="k">for</span> <span class="n">parameters</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parameters</span><span class="p">()}</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">var_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">var_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Variable</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Expose all variables as a dictionary</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -302,7 +304,7 @@
           <span class="n">expr</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">()</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="Problem.is_dpp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.is_dpp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
-    <span class="k">def</span> <span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="o">=</span><span class="s1">&#39;dcp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;dcp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Does the problem satisfy DPP rules?</span>
 
 <span class="sd">        DPP is a mild restriction of DGP. When a problem involving</span>
@@ -350,7 +352,7 @@
                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
 
 <div class="viewcode-block" id="Problem.variables"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.variables">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
-    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Accessor method for variables.</span>
 
 <span class="sd">        Returns</span>
@@ -378,7 +380,7 @@
         <span class="k">return</span> <span class="n">unique_list</span><span class="p">(</span><span class="n">params</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Problem.constants"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.constants">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
-    <span class="k">def</span> <span class="nf">constants</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">constants</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Constant</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Accessor method for constants.</span>
 
 <span class="sd">        Returns</span>
@@ -395,7 +397,7 @@
         <span class="n">const_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">(</span><span class="n">constant</span><span class="p">):</span> <span class="n">constant</span> <span class="k">for</span> <span class="n">constant</span> <span class="ow">in</span> <span class="n">constants_</span><span class="p">}</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">const_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="Problem.atoms"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.atoms">[docs]</a>    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.atoms"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.atoms">[docs]</a>    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Atom</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Accessor method for atoms.</span>
 
 <span class="sd">        Returns</span>
@@ -410,7 +412,7 @@
         <span class="k">return</span> <span class="n">unique_list</span><span class="p">(</span><span class="n">atoms</span><span class="p">)</span></div>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">size_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">size_metrics</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SizeMetrics&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;:class:`~cvxpy.problems.problem.SizeMetrics` : Information about the problem&#39;s size.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size_metrics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -418,7 +420,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size_metrics</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">solver_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">solver_stats</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolverStats&quot;</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;:class:`~cvxpy.problems.problem.SolverStats` : Information returned by the solver.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span>
@@ -503,7 +505,7 @@
         <span class="k">return</span> <span class="n">solve_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Problem.register_solve"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.register_solve">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">register_solve</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">register_solve</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Adds a solve method to the Problem class.</span>
 
 <span class="sd">        Arguments</span>
@@ -1337,7 +1339,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span> <span class="o">=</span> <span class="n">SolverStats</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_solution</span><span class="o">.</span><span class="n">attr</span><span class="p">,</span>
                                          <span class="n">chain</span><span class="o">.</span><span class="n">solver</span><span class="o">.</span><span class="n">name</span><span class="p">())</span></div>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -1355,7 +1357,7 @@
     <span class="k">def</span> <span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Problem&quot;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Problem</span><span class="p">(</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Problem&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span>
         <span class="k">elif</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Problem</span><span class="p">):</span>
@@ -1363,32 +1365,32 @@
         <span class="k">return</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
                        <span class="n">unique_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">constraints</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Problem&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Problem&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Problem</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span>
                        <span class="n">unique_list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">other</span><span class="o">.</span><span class="n">constraints</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Problem&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">other</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">return</span> <span class="o">-</span><span class="bp">self</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Problem&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">*</span> <span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
 
     <span class="fm">__rmul__</span> <span class="o">=</span> <span class="fm">__mul__</span>
 
-    <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Problem&quot;</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">Problem</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">other</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
@@ -1419,7 +1421,7 @@
 <span class="sd">        returned directly from the solver, without modification by CVXPY.</span>
 <span class="sd">        This object may be a dict, or a custom Python object.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_dict</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solver_name</span> <span class="o">=</span> <span class="n">solver_name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">solve_time</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setup_time</span> <span class="o">=</span> <span class="kc">None</span>
@@ -1463,7 +1465,7 @@
 <span class="sd">        for each data block.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">:</span> <span class="n">Problem</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="c1"># num_scalar_variables</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">num_scalar_variables</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">variables</span><span class="p">():</span>
@@ -1563,7 +1565,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -1577,7 +1579,7 @@
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

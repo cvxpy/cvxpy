@@ -6,14 +6,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>cvxpy.atoms.affine.binary_operators &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" href="../../../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
     <script src="../../../../_static/jquery.js"></script>
     <script src="../../../../_static/underscore.js"></script>
     <script src="../../../../_static/doctools.js"></script>
-    <script src="../../../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
     <link rel="search" title="Search" href="../../../../search.html" />
    
@@ -50,24 +48,27 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">operator</span> <span class="k">as</span> <span class="nn">op</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
 
 <span class="kn">import</span> <span class="nn">cvxpy.interface</span> <span class="k">as</span> <span class="nn">intf</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.affine_atom</span> <span class="kn">import</span> <span class="n">AffAtom</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.add_expr</span> <span class="kn">import</span> <span class="n">AddExpression</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.sum</span> <span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">cvxpy_sum</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.reshape</span> <span class="kn">import</span> <span class="n">deep_flatten</span>
-<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.conj</span> <span class="kn">import</span> <span class="n">conj</span>
-<span class="kn">from</span> <span class="nn">cvxpy.expressions.constants.parameter</span> <span class="kn">import</span> <span class="n">is_param_affine</span><span class="p">,</span> <span class="n">is_param_free</span>
-<span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="kn">import</span> <span class="n">DCPError</span>
+<span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_op</span> <span class="k">as</span> <span class="nn">lo</span>
 <span class="kn">import</span> <span class="nn">cvxpy.lin_ops.lin_utils</span> <span class="k">as</span> <span class="nn">lu</span>
 <span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">operator</span> <span class="k">as</span> <span class="nn">op</span>
-<span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
-<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span> <span class="o">&gt;=</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
-    <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">reduce</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.add_expr</span> <span class="kn">import</span> <span class="n">AddExpression</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.affine_atom</span> <span class="kn">import</span> <span class="n">AffAtom</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.conj</span> <span class="kn">import</span> <span class="n">conj</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.reshape</span> <span class="kn">import</span> <span class="n">deep_flatten</span>
+<span class="kn">from</span> <span class="nn">cvxpy.atoms.affine.sum</span> <span class="kn">import</span> <span class="nb">sum</span> <span class="k">as</span> <span class="n">cvxpy_sum</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
+<span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="kn">import</span> <span class="n">DCPError</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions.constants.parameter</span> <span class="kn">import</span> <span class="p">(</span><span class="n">is_param_affine</span><span class="p">,</span>
+                                                   <span class="n">is_param_free</span><span class="p">,)</span>
 
 
 <span class="k">class</span> <span class="nc">BinaryOperator</span><span class="p">(</span><span class="n">AffAtom</span><span class="p">):</span>
@@ -95,7 +96,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">reduce</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OP_FUNC</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">sign_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">bool</span><span class="p">,</span> <span class="nb">bool</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Default to rules for times.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">sign</span><span class="o">.</span><span class="n">mul_sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
@@ -146,7 +147,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Returns the (row, col) shape of the expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">mul_shapes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
@@ -233,7 +234,9 @@
 
         <span class="k">return</span> <span class="p">[</span><span class="n">DX</span><span class="p">,</span> <span class="n">DY</span><span class="p">]</span>
 
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;Multiply the linear expressions.</span>
 
 <span class="sd">        Parameters</span>
@@ -302,7 +305,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
-    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;The sum of the argument dimensions - 1.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">u</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">sum_shapes</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">shape</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
@@ -319,7 +322,9 @@
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_psd</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">())</span> <span class="ow">or</span> \
                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nsd</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_psd</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;Multiply the expressions elementwise.</span>
 
 <span class="sd">        Parameters</span>
@@ -375,7 +380,7 @@
     <span class="k">def</span> <span class="nf">is_qpwa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_qpwa</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">shape_from_args</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Returns the (row, col) shape of the expression.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
@@ -421,7 +426,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span>
 
-    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">graph_implementation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">arg_objs</span><span class="p">,</span> <span class="n">shape</span><span class="p">:</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">lo</span><span class="o">.</span><span class="n">LinOp</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">Constraint</span><span class="p">]]:</span>
         <span class="sd">&quot;&quot;&quot;Multiply the linear expressions.</span>
 
 <span class="sd">        Parameters</span>
@@ -535,7 +542,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -549,7 +556,7 @@
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
