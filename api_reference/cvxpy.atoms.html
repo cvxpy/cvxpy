@@ -36,7 +36,7 @@
   <section id="atoms">
 <h1>Atoms<a class="headerlink" href="#atoms" title="Permalink to this headline">¶</a></h1>
 <p>Atoms are mathematical functions that can be applied to
-<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a> instances.
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code> instances.
 Applying an atom to an expression yields another expression.
 Atoms and compositions thereof are precisely the mechanisms that allow you to
 build up mathematical expression trees in CVXPY.</p>
@@ -134,81 +134,6 @@ for a compact, accessible summary of each atom’s attributes.</p>
 </div>
 <section id="atom">
 <h2>Atom<a class="headerlink" href="#atom" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.atom.</span></span><span class="sig-name descname"><span class="pre">Atom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.expressions.expression.Expression</span></code></a></p>
-<p>Abstract base class for atoms.</p>
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.domain">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">domain</span></span><em class="property"><span class="pre">:</span> <span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Constraint</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cvxpy.atoms.atom.Atom.domain" title="Permalink to this definition">¶</a></dt>
-<dd><p>A list of constraints describing the closure of the region
-where the expression is finite.</p>
-</dd></dl>
-
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.grad">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">grad</span></span><a class="headerlink" href="#cvxpy.atoms.atom.Atom.grad" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gives the (sub/super)gradient of the expression w.r.t. each variable.</p>
-<p>Matrix expressions are vectorized, so the gradient is a matrix.
-None indicates variable values unknown or outside domain.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A map of variable to SciPy CSC sparse matrix or None.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.is_atom_affine">
-<span class="sig-name descname"><span class="pre">is_atom_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_affine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_affine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the atom affine?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.is_atom_concave">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_atom_concave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_concave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_concave" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the atom concave?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.is_atom_convex">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_atom_convex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_convex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_convex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the atom convex?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.is_atom_log_log_affine">
-<span class="sig-name descname"><span class="pre">is_atom_log_log_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_affine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_affine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the atom log-log affine?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.is_atom_log_log_concave">
-<span class="sig-name descname"><span class="pre">is_atom_log_log_concave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_concave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_concave" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the atom log-log concave?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.is_atom_log_log_convex">
-<span class="sig-name descname"><span class="pre">is_atom_log_log_convex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_atom_log_log_convex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_atom_log_log_convex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the atom log-log convex?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.is_decr">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_decr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_decr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_decr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the composition non-increasing in argument idx?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.atoms.atom.Atom.is_incr">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_incr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/atom.html#Atom.is_incr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.atom.Atom.is_incr" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is the composition non-decreasing in argument idx?</p>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 

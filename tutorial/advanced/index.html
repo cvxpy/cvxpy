@@ -76,9 +76,9 @@
 <p>Variables and parameters can be created with attributes specifying additional properties.
 For example, <code class="docutils literal notranslate"><span class="pre">Variable(nonneg=True)</span></code> is a scalar variable constrained to be nonnegative.
 Similarly, <code class="docutils literal notranslate"><span class="pre">Parameter(nonpos=True)</span></code> is a scalar parameter constrained to be nonpositive.
-The full constructor for <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Leaf</span></code></a> (the parent class
-of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>) is given below.</p>
+The full constructor for <code class="xref py py-class docutils literal notranslate"><span class="pre">Leaf</span></code> (the parent class
+of <code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code> and
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code>) is given below.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="Leaf">
 <span class="sig-name descname"><span class="pre">Leaf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonneg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonpos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PSD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NSD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boolean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
@@ -113,7 +113,7 @@ length of shape.</p></li>
 <p>The <code class="docutils literal notranslate"><span class="pre">value</span></code> field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
 A Euclidean projection onto the set defined by the attributes is given by the
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project" title="cvxpy.expressions.leaf.Leaf.project"><code class="xref py py-meth docutils literal notranslate"><span class="pre">project</span></code></a> method.</p>
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">project</span></code> method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p</span> <span class="o">=</span> <span class="n">Parameter</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
@@ -128,10 +128,10 @@ A Euclidean projection onto the set defined by the attributes is given by the
 </pre></div>
 </div>
 <p>A sensible idiom for assigning values to leaves is
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project" title="cvxpy.expressions.leaf.Leaf.project"><code class="xref py py-meth docutils literal notranslate"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code></a>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>,
 ensuring that the assigned value satisfies the leaf’s properties.
 A slightly more efficient variant is
-<a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.project_and_assign" title="cvxpy.expressions.leaf.Leaf.project_and_assign"><code class="xref py py-meth docutils literal notranslate"><span class="pre">leaf.project_and_assign(val)</span></code></a>,
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">leaf.project_and_assign(val)</span></code>,
 which projects and assigns the value directly, without additionally checking
 that the value satisfies the leaf’s properties.  In most cases <code class="docutils literal notranslate"><span class="pre">project</span></code> and
 checking that a value satisfies a leaf’s properties are cheap operations (i.e.,
@@ -263,7 +263,7 @@ All constraints are defined for complex expressions.</p>
 <section id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
 <p>Transforms provide additional ways of manipulating CVXPY objects
-beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
+beyond the atomic functions.  For example, the <code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code> transform converts a list of constraints into an
 expression representing the convex function that takes value 0 when the
 constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -661,7 +661,7 @@ the problem object records the optimal value, the values of the primal and dual 
 and several solver statistics.
 We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the <code class="docutils literal notranslate"><span class="pre">problem.solver_stats</span></code> attribute,
-which returns a <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code></a> object.
+which returns a <code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code> object.
 For example, <code class="docutils literal notranslate"><span class="pre">problem.solver_stats.solve_time</span></code> gives the time it took the solver to solve the problem.</p>
 </section>
 <section id="warm-start">
@@ -905,7 +905,7 @@ code: cvxpy/reductions/solvers/kktsolver.py</p>
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
 <p>If you are interested in getting the standard form that CVXPY produces for a
 problem, you can use the <code class="docutils literal notranslate"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
-a <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code></a> passes a
+a <code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code> passes a
 low-level representation that is compatible with the targeted solver to a
 solver, which solves the problem. This method returns that low-level
 representation, along with a <code class="docutils literal notranslate"><span class="pre">SolvingChain</span></code> and metadata for unpacking
@@ -967,7 +967,7 @@ The full set of reductions available is discussed in <a class="reference interna
 <section id="disciplined-parametrized-programming">
 <span id="dpp"></span><h2>Disciplined Parametrized Programming<a class="headerlink" href="#disciplined-parametrized-programming" title="Permalink to this headline">¶</a></h2>
 <p><em>Note: DPP requires CVXPY version 1.1.0 or greater.</em></p>
-<p><a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a> are
+<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code> are
 symbolic representations of constants. Using parameters lets you modify the
 values of constants without reconstructing the entire problem. When your
 parametrized problem is constructed according to <em>Disciplined Parametrized
@@ -1214,11 +1214,11 @@ has built-in support for computing the derivative of the optimal variable
 values of a problem with respect to small perturbations of the parameters
 (i.e., the <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> instances appearing in a problem).</p>
 <p>The problem class exposes two methods related to computing the derivative.
-The <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.derivative" title="cvxpy.problems.problem.Problem.derivative"><code class="xref py py-func docutils literal notranslate"><span class="pre">derivative</span></code></a> evaluates
+The <code class="xref py py-func docutils literal notranslate"><span class="pre">derivative</span></code> evaluates
 the derivative given perturbations to the parameters. This
 lets you calculate how the solution to a problem would change
 given small changes to the parameters, without re-solving the problem.
-The <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.backward" title="cvxpy.problems.problem.Problem.backward"><code class="xref py py-func docutils literal notranslate"><span class="pre">backward</span></code></a> method
+The <code class="xref py py-func docutils literal notranslate"><span class="pre">backward</span></code> method
 evaluates the adjoint of the derivative, computing the gradient of the solution
 with respect to the parameters. This can be useful when combined with
 automatic differentiation software.</p>

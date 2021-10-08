@@ -56,53 +56,9 @@ ready for to be solved.</p>
 </div>
 <section id="dcp2cone">
 <h2><a class="toc-backref" href="#id1">Dcp2Cone</a><a class="headerlink" href="#dcp2cone" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.dcp2cone.</span></span><span class="sig-name descname"><span class="pre">Dcp2Cone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
-<p>Reduce DCP problems to a conic form.</p>
-<p>This reduction takes as input (minimization) DCP problems and converts
-them into problems with affine objectives and conic constraints whose
-arguments are affine.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
-<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>A problem is accepted if it is a minimization and is DCP.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
-<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a DCP problem to a conic form.</p>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 <section id="qp2symbolicqp">
 <h2><a class="toc-backref" href="#id2">Qp2SymbolicQp</a><a class="headerlink" href="#qp2symbolicqp" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</span></span><span class="sig-name descname"><span class="pre">Qp2SymbolicQp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
-<p>Reduces a quadratic problem to a problem that consists of affine
-expressions and symbolic quadratic forms.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">
-<span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Problems with quadratic, piecewise affine objectives,
-piecewise-linear constraints inequality constraints, and
-affine equality constraints are accepted.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply">
-<span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a QP to an even more symbolic form.</p>
-</dd></dl>
-
-</dd></dl>
-
 </section>
 </section>
 
