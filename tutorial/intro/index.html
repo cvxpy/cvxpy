@@ -78,7 +78,7 @@ achieve the optimal objective.</p>
 problem.</p>
 <section id="changing-the-problem">
 <h2>Changing the problem<a class="headerlink" href="#changing-the-problem" title="Permalink to this headline">¶</a></h2>
-<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Problems</span></code> are immutable, meaning they
+<p><a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problems</span></code></a> are immutable, meaning they
 cannot be changed after they are created.  To change the objective or
 constraints, create a new problem.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Replace the objective.</span>
@@ -159,7 +159,7 @@ the discussion of <a class="reference internal" href="../advanced/index.html#sol
 </section>
 <section id="vectors-and-matrices">
 <h2>Vectors and matrices<a class="headerlink" href="#vectors-and-matrices" title="Permalink to this headline">¶</a></h2>
-<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Variables</span></code> can be scalars,
+<p><a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variables</span></code></a> can be scalars,
 vectors, or matrices, meaning they are 0, 1, or 2 dimensional.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A scalar variable.</span>
 <span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
@@ -223,7 +223,7 @@ sparse matrices, etc. <code class="docutils literal notranslate"><span class="pr
 </section>
 <section id="parameters">
 <h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
-<p><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code> are symbolic
+<p><a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a> are symbolic
 representations of constants. The purpose of parameters is to change the value
 of a constant in a problem without reconstructing the entire problem. In many
 cases, solving a parametrized program multiple times can be
