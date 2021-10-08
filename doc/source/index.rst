@@ -55,7 +55,7 @@ more.
 
 **News.**
 
-* We are building a CVXPY community `on Discord <https://discord.gg/TnFbxDsJ>`_. Join the conversation!
+* We are building a CVXPY community `on Discord <https://discord.gg/4urRQeGBCr>`_. Join the conversation!
 
 * CVXPY v1.1.0 has been released. This version makes
   repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
@@ -84,7 +84,7 @@ Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
-guide </contributing/index>` and join us `on Discord <https://discord.gg/TnFbxDsJ>`_.
+guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeGBCr>`_.
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
