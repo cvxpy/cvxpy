@@ -19,6 +19,13 @@ import abc
 from cvxpy.reductions.reduction import Reduction
 
 
+try:
+    # python >=3.6
+    SolverNotInstalledError = ModuleNotFoundError
+except NameError:
+    SolverNotInstalledError = ImportError
+    
+    
 class Solver(Reduction):
     """Generic interface for a solver that uses reduction semantics
     """
@@ -58,7 +65,7 @@ class Solver(Reduction):
         try:
             self.import_solver()
             return True
-        except ImportError:
+        except SolverNotInstalledError:
             return False
 
     @abc.abstractmethod
