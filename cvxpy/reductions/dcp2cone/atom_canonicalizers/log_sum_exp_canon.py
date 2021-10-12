@@ -16,9 +16,7 @@ limitations under the License.
 
 import numpy as np
 
-from cvxpy.atoms import exp
-from cvxpy.atoms import promote, reshape
-from cvxpy.atoms import sum
+from cvxpy.atoms import exp, promote, reshape, sum
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import exp_canon

@@ -14,15 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cvx
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.constants import Parameter
-from cvxpy import Problem, Minimize
-from cvxpy.tests.base_test import BaseTest
+import sys
+
 import numpy as np
 import scipy.sparse as sp
-import sys
+
+import cvxpy as cvx
+from cvxpy import Minimize, Problem
+from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.expressions.variable import Variable
+from cvxpy.tests.base_test import BaseTest
+
 PY35 = sys.version_info >= (3, 5)
 
 

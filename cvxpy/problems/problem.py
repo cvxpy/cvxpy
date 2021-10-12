@@ -19,17 +19,19 @@ import warnings
 from collections import namedtuple
 from typing import Dict, List, Optional, Union
 
+import numpy as np
+
 import cvxpy.utilities as u
 import cvxpy.utilities.performance_utils as perf
-from cvxpy import error
-from cvxpy import settings as s, Constant
+from cvxpy import Constant, error
+from cvxpy import settings as s
 from cvxpy.atoms.atom import Atom
-from cvxpy.constraints import Equality, Inequality, NonPos, Zero, NonNeg
+from cvxpy.constraints import Equality, Inequality, NonNeg, NonPos, Zero
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.expressions.variable import Variable
 from cvxpy.interface.matrix_utilities import scalar_value
-from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.reductions import InverseData
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
@@ -39,15 +41,13 @@ from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.solvers import bisection
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.defines import SOLVER_MAP_QP, SOLVER_MAP_CONIC
+from cvxpy.reductions.solvers.defines import SOLVER_MAP_CONIC, SOLVER_MAP_QP
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers.solving_chain import construct_solving_chain, SolvingChain
+from cvxpy.reductions.solvers.solving_chain import (SolvingChain,
+                                                    construct_solving_chain,)
 from cvxpy.settings import SOLVERS
 from cvxpy.utilities.deterministic import unique_list
-
-import numpy as np
-
 
 SolveResult = namedtuple(
     'SolveResult',

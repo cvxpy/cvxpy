@@ -16,12 +16,13 @@ limitations under the License.
 """
 from distutils.version import StrictVersion
 
-from cvxpy.reductions.solvers.conic_solvers import scs_conif
-from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers import utilities
-import cvxpy.settings as s
 import time
+
+import cvxpy.settings as s
+from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.conic_solvers import scs_conif
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
 class DIFFCP(scs_conif.SCS):

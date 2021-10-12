@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import scipy.sparse
 import numpy as np
+import scipy.sparse
 
-from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.sum import sum as sum_
 from cvxpy.atoms.elementwise.maximum import maximum
+from cvxpy.expressions.expression import Expression
 
 
 def log_normcdf(x):

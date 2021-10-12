@@ -14,21 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.interface as intf
-import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonNeg, SOC, PSD
-from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.compr_matrix import compress_matrix
-from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
-from scipy.sparse.linalg import eigsh
 from typing import Dict, List, Union
 
-import scipy.sparse as sp
-import scipy
 import numpy as np
+import scipy
+import scipy.sparse as sp
+from scipy.sparse.linalg import eigsh
+
+import cvxpy.interface as intf
+import cvxpy.settings as s
+from cvxpy.constraints import PSD, SOC, NonNeg, Zero
+from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.compr_matrix import compress_matrix
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
+from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
@@ -154,6 +155,7 @@ class CVXOPT(ECOS):
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cvxopt.solvers
+
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
         # Save old data in case need to use robust solver.

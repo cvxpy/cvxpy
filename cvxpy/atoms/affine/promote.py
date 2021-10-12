@@ -15,12 +15,13 @@ limitations under the License.
 """
 from typing import List, Tuple
 
+import numpy as np
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.constraints.constraint import Constraint
 from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
-import numpy as np
 
 
 def promote(expr: Expression, shape: Tuple[int, ...]):

@@ -1,13 +1,11 @@
-import cvxpy.settings as s
-import cvxpy.interface as intf
-from cvxpy.reductions import Solution
-from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
-    makeMstart,
-    get_status_maps
-)
-
 import numpy as np
+
+import cvxpy.interface as intf
+import cvxpy.settings as s
+from cvxpy.reductions import Solution
+from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
+    get_status_maps, makeMstart,)
+from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
 
 class XPRESS(QpSolver):

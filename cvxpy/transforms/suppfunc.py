@@ -1,8 +1,9 @@
-from cvxpy.expressions.variable import Variable
-from cvxpy.atoms.suppfunc import SuppFuncAtom
-from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
 import numpy as np
 from scipy import sparse
+
+from cvxpy.atoms.suppfunc import SuppFuncAtom
+from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.cvx_attr2constr import CONVEX_ATTRIBUTES
 
 
 def scs_coniclift(x, constraints):
@@ -23,9 +24,9 @@ def scs_coniclift(x, constraints):
     This function DOES NOT work when ``x`` has attributes, like ``PSD=True``,
     ``diag=True``, ``symmetric=True``, etc...
     """
-    from cvxpy.problems.problem import Problem
-    from cvxpy.problems.objective import Minimize
     from cvxpy.atoms.affine.sum import sum
+    from cvxpy.problems.objective import Minimize
+    from cvxpy.problems.problem import Problem
     prob = Problem(Minimize(sum(x)), constraints)
     # ^ The objective value is only used to make sure that "x"
     # participates in the problem. So, if constraints is an

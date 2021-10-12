@@ -17,14 +17,15 @@ limitations under the License.
 from __future__ import division
 
 import warnings
+from typing import Tuple
 
 import numpy as np
+import scipy.sparse as sp
 from scipy import linalg as LA
+
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
-import scipy.sparse as sp
-from typing import Tuple
 
 
 class CvxPyDomainError(Exception):

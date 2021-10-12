@@ -15,11 +15,11 @@ limitations under the License.
 """
 from typing import List, Tuple
 
-from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.constraints.constraint import Constraint
-
 import numpy as np
 import scipy.sparse as sp
+
+from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.constraints.constraint import Constraint
 
 
 class norm_inf(AxisAtom):

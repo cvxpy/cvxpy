@@ -15,14 +15,15 @@ limitations under the License.
 """
 from typing import List, Tuple
 
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions.expression import Expression
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.reshape import reshape
-import cvxpy.lin_ops.lin_op as lo
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 from scipy.sparse import csc_matrix
+
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
 class upper_tri(AffAtom):

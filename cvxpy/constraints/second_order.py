@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import scopes
 from typing import List
 
 import numpy as np
+
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import scopes
 
 
 class SOC(Constraint):

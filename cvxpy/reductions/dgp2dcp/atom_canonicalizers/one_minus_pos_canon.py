@@ -1,5 +1,5 @@
-from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.exp import exp
+from cvxpy.atoms.elementwise.log import log
 
 
 def one_minus_pos_canon(expr, args):

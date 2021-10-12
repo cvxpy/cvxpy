@@ -15,13 +15,15 @@ limitations under the License.
 """
 
 from functools import wraps
-from cvxpy.atoms.atom import Atom
-from cvxpy.constraints.constraint import Constraint
-from numpy import linalg as LA
+from typing import List, Tuple
+
 import numpy as np
 import scipy.sparse as sp
+from numpy import linalg as LA
+
+from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.quad_form import QuadForm
-from typing import List, Tuple
+from cvxpy.constraints.constraint import Constraint
 
 
 class MatrixFrac(Atom):

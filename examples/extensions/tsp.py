@@ -1,8 +1,10 @@
 from __future__ import division
-from cvxpy import Assign, ECOS, GUROBI, norm, Minimize, Problem, vstack
+
+import numpy as np
 from mixed_integer import *
 from ncvx import Boolean
-import numpy as np
+
+from cvxpy import ECOS, GUROBI, Assign, Minimize, Problem, norm, vstack
 
 # Traveling salesman problem.
 n = 10

@@ -15,11 +15,12 @@ limitations under the License.
 """
 
 import numpy as np
-from cvxpy.expressions.variable import Variable
+
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.constraints.power import PowCone3D, PowConeND
+from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.canonicalization import Canonicalization
 
 EXOTIC_CONES = {
     PowConeND: {PowCone3D}

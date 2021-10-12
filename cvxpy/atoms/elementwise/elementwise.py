@@ -17,11 +17,12 @@ limitations under the License.
 import abc
 from typing import Tuple
 
-from cvxpy.atoms.atom import Atom
-import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
+from cvxpy.atoms.atom import Atom
 
 
 class Elementwise(Atom):

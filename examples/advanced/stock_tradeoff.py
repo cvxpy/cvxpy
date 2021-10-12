@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import math
+from multiprocessing import Pool
+
 import cvxopt
 import numpy
-from cvxpy import Maximize, Parameter, Problem, Variable, norm2, square
-from multiprocessing import Pool
 from pylab import figure, show
-import math
+
+from cvxpy import Maximize, Parameter, Problem, Variable, norm2, square
 
 num_assets = 100
 num_factors = 20

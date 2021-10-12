@@ -15,9 +15,10 @@ limitations under the License.
 """
 from typing import List, Tuple
 
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.atoms.atom import Atom
 from scipy import linalg as LA
+
+from cvxpy.atoms.atom import Atom
+from cvxpy.constraints.constraint import Constraint
 
 
 class gen_lambda_max(Atom):

@@ -14,21 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-# Tests atoms by calling them with a constant value.
-import cvxpy as cp
-from cvxpy.settings import (SCS, OSQP, ECOS, CVXOPT,
-                            ROBUST_KKTSOLVER, MOSEK)
-from cvxpy.problems.problem import Problem
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Constant, Parameter
-from cvxpy.error import SolverError
-import cvxpy.interface as intf
-from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+import itertools
+import math
+
 import numpy as np
 import numpy.linalg as LA
-import math
-import itertools
 import pytest
+
+# Tests atoms by calling them with a constant value.
+import cvxpy as cp
+import cvxpy.interface as intf
+from cvxpy.error import SolverError
+from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.expressions.variable import Variable
+from cvxpy.problems.problem import Problem
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.settings import CVXOPT, ECOS, MOSEK, OSQP, ROBUST_KKTSOLVER, SCS
 
 ROBUST_CVXOPT = "robust_cvxopt"
 SOLVER_TO_TOL = {SCS: 1e-2,

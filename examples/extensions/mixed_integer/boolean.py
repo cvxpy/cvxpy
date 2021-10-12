@@ -14,9 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .noncvx_variable import NonCvxVariable
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
+import cvxpy.lin_ops.lin_utils as lu
+
+from .noncvx_variable import NonCvxVariable
+
 
 class Boolean(NonCvxVariable):
     """ A boolean variable. """

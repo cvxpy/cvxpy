@@ -14,13 +14,13 @@ limitations under the License.
 from cvxpy.error import DCPError, DGPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
-from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
-from cvxpy.reductions.flip_objective import FlipObjective
-from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
-from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
-from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.complex2real import complex2real
+from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
+from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
+from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
+from cvxpy.reductions.qp2quad_form.qp2symbolic_qp import Qp2SymbolicQp
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 

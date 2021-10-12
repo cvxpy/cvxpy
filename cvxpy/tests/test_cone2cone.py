@@ -14,24 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import unittest
-import pytest
+
 import numpy as np
-import cvxpy as cp
+import pytest
 import scipy as sp
-from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests import solver_test_helpers as STH
-from cvxpy.reductions.cone2cone import affine2direct as a2d
+
+import cvxpy as cp
 from cvxpy import settings as s
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as INSTALLED_MI
-from cvxpy.reductions.solvers.defines import MI_SOCP_SOLVERS as MI_SOCP
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.power import PowCone3D, PowConeND
+from cvxpy.constraints.second_order import SOC
 from cvxpy.reductions.chain import Chain
-from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
-from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.power import PowConeND, PowCone3D
+from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.defines import (
+    INSTALLED_MI_SOLVERS as INSTALLED_MI,)
+from cvxpy.reductions.solvers.defines import MI_SOCP_SOLVERS as MI_SOCP
+from cvxpy.tests import solver_test_helpers as STH
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestDualize(BaseTest):

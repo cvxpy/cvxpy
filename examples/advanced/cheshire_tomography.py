@@ -14,9 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
-from ..extensions.mixed_integer.boolean import Boolean
 import ncvx
+
+import cvxpy as cp
+
+from ..extensions.mixed_integer.boolean import Boolean
 
 bv = [] # Boolean variables.
 for i in range(26):

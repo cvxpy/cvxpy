@@ -15,9 +15,10 @@ limitations under the License.
 """
 from multiprocessing import Pool
 
-import numpy as np
 import cvxopt
-from cvxpy import norm, Minimize, Parameter, Problem, sum_squares, Variable
+import numpy as np
+
+from cvxpy import Minimize, Parameter, Problem, Variable, norm, sum_squares
 
 # Problem data.
 n = 10

@@ -37,10 +37,14 @@ import sphinx
 if sphinx.__version__ < '1.0.1':
     raise RuntimeError("Sphinx 1.0.1 or newer is required")
 
-import os, re, pydoc
-from docscrape_sphinx import get_doc_object, SphinxDocString
-from sphinx.util.compat import Directive
 import inspect
+import os
+import pydoc
+import re
+
+from docscrape_sphinx import SphinxDocString, get_doc_object
+from sphinx.util.compat import Directive
+
 
 def mangle_docstrings(app, what, name, obj, options, lines,
                       reference_offset=[0]):
@@ -127,6 +131,7 @@ def setup(app, get_doc_object_=get_doc_object):
 from docutils.statemachine import ViewList
 from sphinx.domains.c import CDomain
 from sphinx.domains.python import PythonDomain
+
 
 class ManglingDomainBase:
     directive_mangling_map = {}

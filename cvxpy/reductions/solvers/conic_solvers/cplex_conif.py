@@ -14,16 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections import namedtuple
+
+import numpy as np
+from scipy.sparse import dok_matrix
+
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
-                                                              dims_to_solver_dict)
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-from collections import namedtuple
-from scipy.sparse import dok_matrix
-import numpy as np
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
+    SCS, dims_to_solver_dict,)
 
 # Values used to distinguish between linear and quadratic constraints.
 _LIN, _QUAD = 0, 1
@@ -442,6 +444,7 @@ class CPLEX(SCS):
             supporting variable indices).
         """
         import cplex
+
         # Assume first expression (i.e. t) is nonzero.
         lin_expr_list, soc_vars, lin_rhs = [], [], []
         csr = mat.tocsr()

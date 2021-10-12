@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.variable import Variable
-from cvxpy.atoms.affine.reshape import reshape as reshape_atom
-from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.power import PowCone3D, PowConeND
-from cvxpy.tests.base_test import BaseTest
-import cvxpy as cp
 import numpy as np
+
+import cvxpy as cp
+from cvxpy.atoms.affine.reshape import reshape as reshape_atom
+from cvxpy.constraints.power import PowCone3D, PowConeND
+from cvxpy.constraints.second_order import SOC
+from cvxpy.expressions.variable import Variable
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestConstraints(BaseTest):

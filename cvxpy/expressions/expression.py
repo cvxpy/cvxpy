@@ -14,20 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import abc
+import warnings
 from functools import wraps
 from typing import Tuple
-import warnings
 
-from cvxpy import error
-from cvxpy.constraints import Equality, Inequality, PSD
-from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import scopes
-import cvxpy.utilities.performance_utils as perf
+import numpy as np
+
+import cvxpy.settings as s
 import cvxpy.utilities as u
 import cvxpy.utilities.key_utils as ku
-import cvxpy.settings as s
-import abc
-import numpy as np
+import cvxpy.utilities.performance_utils as perf
+from cvxpy import error
+from cvxpy.constraints import PSD, Equality, Inequality
+from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import scopes
 
 
 def _cast_other(binary_op):

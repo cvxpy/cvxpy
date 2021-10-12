@@ -15,21 +15,22 @@ limitations under the License.
 """
 from typing import Tuple
 
-import cvxpy.settings as s
-from cvxpy.constraints import SOC, ExpCone, PSD, Zero, NonNeg, PowCone3D
-from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
-from cvxpy.reductions.solution import Solution, failure_solution
-from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers import utilities
 import numpy as np
 import scipy.sparse as sp
 
+import cvxpy.settings as s
+from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
+from cvxpy.reductions.cvx_attr2constr import convex_attributes
+from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
+from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.solver import Solver
 
 # NOTE(akshayka): Small changes to this file can lead to drastic
 # performance regressions. If you are making a change to this file,
 # make sure to run cvxpy/tests/test_benchmarks.py to ensure that you have
 # not introduced a regression.
+
 
 class LinearOperator:
     """A wrapper for linear operators."""

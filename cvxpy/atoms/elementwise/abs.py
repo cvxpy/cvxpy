@@ -14,10 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .elementwise import Elementwise
 from typing import Tuple
 
 import numpy as np
+
+from .elementwise import Elementwise
 
 
 class abs(Elementwise):

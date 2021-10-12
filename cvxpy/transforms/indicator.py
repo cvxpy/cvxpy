@@ -16,10 +16,11 @@ limitations under the License.
 
 from typing import List, Tuple
 
+import numpy as np
+
+import cvxpy.utilities.performance_utils as perf
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
-import cvxpy.utilities.performance_utils as perf
-import numpy as np
 
 
 class indicator(Expression):

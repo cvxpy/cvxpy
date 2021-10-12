@@ -17,7 +17,7 @@ from typing import List, Union
 
 import cvxpy.atoms as atoms
 from cvxpy import Constant
-from cvxpy.problems.objective import Minimize, Maximize
+from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.transforms import indicator
 
 

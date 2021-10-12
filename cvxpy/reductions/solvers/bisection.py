@@ -15,10 +15,9 @@ limitations under the License.
 """
 import warnings
 
-
-import cvxpy.settings as s
 import cvxpy.error as error
 import cvxpy.problems as problems
+import cvxpy.settings as s
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solution import failure_solution
 

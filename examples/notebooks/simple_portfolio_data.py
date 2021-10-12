@@ -16,6 +16,7 @@ limitations under the License.
 
 # simple_portfolio_data
 import numpy as np
+
 np.random.seed(5)
 n = 20
 pbar = (np.ones((n, 1)) * .03 +

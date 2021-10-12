@@ -13,13 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import numpy as np
+
 from cvxpy import atoms
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import DivExpression
-from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.sum import Sum
-import numpy as np
-
+from cvxpy.atoms.affine.unary_operators import NegExpression
 
 # these atoms are always invertible. others (like AddExpression, DivExpression,
 # Sum, and cumsum) are only invertible in special cases, checked in the

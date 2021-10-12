@@ -38,8 +38,9 @@ required to be PSD (instead of also Toeplitz)
 # prob = cvx.Problem(objective, constr)
 # prob.solve()
 
-import cvxpy as cp
 import numpy as np
+
+import cvxpy as cp
 
 # create data P
 P = cp.Parameter((3,3))

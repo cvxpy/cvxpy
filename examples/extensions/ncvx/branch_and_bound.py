@@ -15,9 +15,11 @@ limitations under the License.
 """
 
 import cvxopt
+from boolean import Boolean
+
 import cvxpy.problems.problem as problem
 import cvxpy.settings as s
-from boolean import Boolean
+
 
 def branch(booleans):
     bool_vals = (b for b in booleans if not b.fix_values)

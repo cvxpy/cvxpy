@@ -13,18 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.expressions.expression import Expression
 from typing import List, Tuple
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.vec import vec
-from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities import key_utils as ku
+import numpy as np
+import scipy.sparse as sp
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
-import scipy.sparse as sp
-import numpy as np
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vec import vec
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import key_utils as ku
 
 
 class index(AffAtom):

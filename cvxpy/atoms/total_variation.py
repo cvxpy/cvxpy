@@ -14,11 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.expression import Expression
-from cvxpy.atoms.norm import norm
-from cvxpy.atoms.affine.vstack import vstack
-from cvxpy.atoms.affine.sum import sum
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.sum import sum
+from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.norm import norm
+from cvxpy.expressions.expression import Expression
 
 
 def tv(value, *args):

@@ -1,27 +1,27 @@
 import warnings
+from typing import Any, List
 
-
-from cvxpy.atoms import EXP_ATOMS, PSD_ATOMS, SOC_ATOMS, NONPOS_ATOMS
-from cvxpy.constraints import ExpCone, PSD, SOC, NonNeg, \
-                              NonPos, Inequality, Equality, Zero, PowCone3D
+from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
+from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonNeg,
+                               NonPos, PowCone3D, Zero,)
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
+from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
+                                                      Exotic2Common,)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
-from cvxpy.reductions.cone2cone.exotic2common import EXOTIC_CONES, Exotic2Common
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
+from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
-from typing import Any, List
 
 
 def _is_lp(self):

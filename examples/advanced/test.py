@@ -70,6 +70,7 @@ class Exp:
     __array_priority__ = 100
 
 import numpy as np
+
 a = np.random.random((2,2))
 
 

@@ -18,6 +18,7 @@ limitations under the License.
 from __future__ import division
 
 import cvxopt
+
 from cvxpy import Maximize, Minimize, Problem, Variable
 
 # Taken from CVX website http://cvxr.com/cvx/examples/

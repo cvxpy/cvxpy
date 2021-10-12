@@ -1,9 +1,11 @@
+import warnings
+
+import numpy as np
+
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
-import numpy as np
-import warnings
 warnings.filterwarnings("ignore")
 
 SOLVE_METHODS = [s.SCS, s.ECOS]

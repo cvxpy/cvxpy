@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import Variable, Problem, Minimize, log
 import cvxopt
+
+from cvxpy import Minimize, Problem, Variable, log
 
 cvxopt.solvers.options['show_progress'] = False
 

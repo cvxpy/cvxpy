@@ -18,7 +18,8 @@ limitations under the License.
 from multiprocessing import Pool
 
 import numpy as np
-from cvxpy import norm, Minimize, pos, Problem, sum_squares, Variable
+
+from cvxpy import Minimize, Problem, Variable, norm, pos, sum_squares
 
 # Divide the data into NUM_PROCS segments,
 # using NUM_PROCS processes.

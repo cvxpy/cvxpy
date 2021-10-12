@@ -16,14 +16,15 @@ limitations under the License.
 
 from typing import List, Optional, Tuple
 
-import cvxpy.interface as intf
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
+from scipy.sparse.linalg import eigsh
+
+import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
-from scipy.sparse.linalg import eigsh
 
 
 class Constant(Leaf):

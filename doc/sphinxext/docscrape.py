@@ -19,11 +19,13 @@ limitations under the License.
 """
 
 import inspect
-import textwrap
-import re
 import pydoc
-from StringIO import StringIO
+import re
+import textwrap
 from warnings import warn
+
+from StringIO import StringIO
+
 
 class Reader:
     """A line-based string reader.

@@ -4,7 +4,7 @@ import os
 import platform
 import sys
 
-from setuptools import setup, Extension, find_packages
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
 

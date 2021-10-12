@@ -1,5 +1,6 @@
 from cvxpy.atoms.max import max
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import max_canon
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import (
+    max_canon,)
 
 
 def norm_inf_canon(expr, args):

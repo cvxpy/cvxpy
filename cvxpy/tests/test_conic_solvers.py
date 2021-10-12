@@ -16,23 +16,21 @@ limitations under the License.
 
 import math
 import unittest
+from distutils.version import StrictVersion
 
 import numpy as np
-import scipy.linalg as la
 import pytest
+import scipy.linalg as la
 
 import cvxpy as cp
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
+                                              INSTALLED_SOLVERS,)
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import (
-    StandardTestECPs,
-    StandardTestLPs,
-    StandardTestMixedCPs,
-    StandardTestSDPs,
-    StandardTestSOCPs,
-    StandardTestPCPs
-)
-from distutils.version import StrictVersion
+from cvxpy.tests.solver_test_helpers import (StandardTestECPs, StandardTestLPs,
+                                             StandardTestMixedCPs,
+                                             StandardTestPCPs,
+                                             StandardTestSDPs,
+                                             StandardTestSOCPs,)
 
 
 class TestECOS(BaseTest):
@@ -141,7 +139,7 @@ class TestSCS(BaseTest):
                            x <= 1,
                            x @ mu >= np.max(mu) - 1e-6])
         prob.solve(cp.SCS)
-        assert prob.status == cp.OPTIMAL
+        assert prob.status in {cp.OPTIMAL, cp.OPTIMAL_INACCURATE}
 
     def test_scs_options(self) -> None:
         """Test that all the SCS solver options work.
@@ -1347,8 +1345,9 @@ class TestAllSolvers(BaseTest):
     def test_installed_solvers(self) -> None:
         """Test the list of installed solvers.
         """
-        from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC, SOLVER_MAP_QP,
-                                                      INSTALLED_SOLVERS)
+        from cvxpy.reductions.solvers.defines import (INSTALLED_SOLVERS,
+                                                      SOLVER_MAP_CONIC,
+                                                      SOLVER_MAP_QP,)
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:

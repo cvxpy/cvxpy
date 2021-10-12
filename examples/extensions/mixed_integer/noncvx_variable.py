@@ -15,9 +15,12 @@ limitations under the License.
 """
 
 import abc
+
+import cvxopt
+
 import cvxpy
 import cvxpy.interface as intf
-import cvxopt
+
 
 class NonCvxVariable(cvxpy.Variable):
     __metaclass__ = abc.ABCMeta

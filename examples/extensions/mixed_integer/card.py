@@ -14,9 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .noncvx_variable import NonCvxVariable
-import cvxpy.interface.matrix_utilities as intf
 from itertools import product
+
+import cvxpy.interface.matrix_utilities as intf
+
+from .noncvx_variable import NonCvxVariable
+
 
 class Card(NonCvxVariable):
     """ A variable with constrained cardinality. """

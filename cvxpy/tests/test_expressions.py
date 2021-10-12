@@ -14,18 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
-from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.constants import Parameter
-from cvxpy import Problem, Minimize
-import cvxpy.interface.matrix_utilities as intf
-import cvxpy.settings as s
-from cvxpy.tests.base_test import BaseTest
+import warnings
+
 import numpy as np
 import scipy.sparse as sp
-import warnings
+
+import cvxpy as cp
+import cvxpy.interface.matrix_utilities as intf
+import cvxpy.settings as s
+from cvxpy import Minimize, Problem
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.expressions.variable import Variable
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestExpressions(BaseTest):

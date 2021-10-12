@@ -1,8 +1,9 @@
-import cvxpy.settings as s
+import numpy as np
+
 import cvxpy.interface as intf
+import cvxpy.settings as s
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-import numpy as np
 
 
 def constrain_gurobi_infty(v) -> None:
@@ -104,6 +105,7 @@ class GUROBI(QpSolver):
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import gurobipy as grb
+
         # N.B. Here we assume that the matrices in data are in csc format
         P = data[s.P]
         q = data[s.Q]

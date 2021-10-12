@@ -14,14 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numbers
+from collections import defaultdict
 from fractions import Fraction
+
+import numpy as np
+
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.affine.vstack import vstack
 from cvxpy.constraints.second_order import SOC
 from cvxpy.expressions.variable import Variable
-import numpy as np
-from collections import defaultdict
-import numbers
 
 
 def gm(t, x, y):

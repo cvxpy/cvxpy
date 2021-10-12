@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import abc
+
 from cvxpy.reductions.reduction import Reduction
 
 

@@ -19,6 +19,7 @@ import pickle
 
 import create_graph as g
 import cvxopt
+
 from cvxpy import Maximize, Problem, Variable, vstack
 
 # Read a graph from a file.
