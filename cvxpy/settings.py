@@ -120,8 +120,6 @@ BOOL_IDX = "bool_idx"
 INT_IDS = "int_ids"
 INT_IDX = "int_idx"
 
-
-
 # Keys for results_dict.
 STATUS = "status"
 VALUE = "value"
