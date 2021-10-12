@@ -16,6 +16,23 @@ jobs:
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
+
+  linters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: isort
+        uses: jamescurtin/isort-action@master
+        with:
+          sortPaths: "cvxpy"
+      - name: flake8
+        uses: py-actions/flake8@v1
+        with:
+          path: "cvxpy"
+
   build:
     runs-on: ${{ matrix.os }}
     defaults:
@@ -69,7 +86,6 @@ jobs:
 
       - name: Test
         run: |
-          flake8 .
           source continuous_integration/test_script.sh
 
       - name: Coverage

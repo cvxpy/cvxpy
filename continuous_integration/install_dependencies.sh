@@ -6,12 +6,12 @@
 set -e
 
 if [[ "$PYTHON_VERSION" == "3.6" ]] || [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  conda install scipy=1.3 numpy=1.16 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest lapack ecos scs osqp cvxopt
   python -m pip install cplex  # CPLEX is not available yet on 3.9
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
   # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
-  conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp flake8 cvxopt
+  conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp cvxopt
 fi
 
 # CBC comes with wheels for windows and needs coin-or-cbc to compile otherwise
