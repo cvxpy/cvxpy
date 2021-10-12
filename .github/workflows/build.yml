@@ -26,12 +26,8 @@ jobs:
           python-version: 3.8
       - name: isort
         uses: jamescurtin/isort-action@master
-        with:
-          sortPaths: "cvxpy"
       - name: flake8
         uses: py-actions/flake8@v1
-        with:
-          path: "cvxpy"
 
   build:
     runs-on: ${{ matrix.os }}
