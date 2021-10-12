@@ -82,3 +82,4 @@ CANON_METHODS = {
     special_index : special_index_canon,
     SuppFuncAtom : suppfunc_canon
 }
+
