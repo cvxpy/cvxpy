@@ -15,9 +15,6 @@ limitations under the License.
 """
 import logging
 import sys
-from distutils.version import StrictVersion
-
-import scs
 
 LOGGER = logging.getLogger("__cvxpy__")
 LOGGER.propagate = False
@@ -73,7 +70,6 @@ CVXOPT = "CVXOPT"
 GLPK = "GLPK"
 GLPK_MI = "GLPK_MI"
 CBC = "CBC"
-CPLEX = "CPLEX"
 ECOS = "ECOS"
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
@@ -113,11 +109,7 @@ EQ, LEQ, SOC, SOC_EW, PSD, EXP, BOOL, INT = range(8)
 #   stuffing modules (e.g. cone_matrix_stuffing.py), rather than
 #   the solver module.
 
-if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
-    EQ_DIM = "f"
-else:
-    EQ_DIM = "z"
-
+EQ_DIM = "f"
 LEQ_DIM = "l"
 SOC_DIM = "q"
 PSD_DIM = "s"

@@ -30,18 +30,14 @@ from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 # Utility method for formatting a ConeDims instance into a dictionary
 # that can be supplied to scs.
 def dims_to_solver_dict(cone_dims):
-    import scs
     cones = {
+        'f': cone_dims.zero,
         'l': cone_dims.nonneg,
         'q': cone_dims.soc,
         'ep': cone_dims.exp,
         's': cone_dims.psd,
         'p': cone_dims.p3d
     }
-    if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
-        cones['f'] = cone_dims.zero
-    else:
-        cones['z'] = cone_dims.zero  # renamed to 'z' in SCS 3.0.0
     return cones
 
 
@@ -349,6 +345,7 @@ class SCS(ConicSolver):
 
         # SCS version 3.*
         else:
+            cones['z'] = cones.pop('f')
             if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
                 solver_opts["eps_abs"] = solver_opts["eps"]
                 solver_opts["eps_rel"] = solver_opts["eps"]
