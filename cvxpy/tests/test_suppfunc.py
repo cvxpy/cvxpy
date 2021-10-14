@@ -63,8 +63,8 @@ class TestSupportFunctions(BaseTest):
         prob.solve(solver='ECOS')
         actual = prob.value
         expected = a @ y + np.linalg.norm(y, ord=np.inf)
-        self.assertLessEqual(abs(actual - expected), 1e-6)
-        self.assertLessEqual(abs(prob.objective.expr.value - prob.value), 1e-6)
+        self.assertLessEqual(abs(actual - expected), 1e-5)
+        self.assertLessEqual(abs(prob.objective.expr.value - prob.value), 1e-5)
 
     def test_vector2norm(self) -> None:
         n = 3

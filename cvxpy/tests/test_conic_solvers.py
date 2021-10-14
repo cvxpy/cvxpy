@@ -326,10 +326,10 @@ class TestSCS(BaseTest):
         StandardTestLPs.test_lp_4(solver='SCS')
 
     def test_scs_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCS')
+        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-8)
 
     def test_scs_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='SCS')
+        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-8)
 
     def test_scs_socp_3(self) -> None:
         # axis 0
@@ -344,10 +344,10 @@ class TestSCS(BaseTest):
         StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-8)
 
     def test_scs_expcone_1(self) -> None:
-        StandardTestECPs.test_expcone_1(solver='SCS')
+        StandardTestECPs.test_expcone_1(solver='SCS', eps=1e-8)
 
     def test_scs_exp_soc_1(self) -> None:
-        StandardTestMixedCPs.test_exp_soc_1(solver='SCS')
+        StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-8)
 
     def test_scs_pcp_1(self) -> None:
         StandardTestPCPs.test_pcp_1(solver='SCS', eps=1e-8)

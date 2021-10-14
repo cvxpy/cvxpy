@@ -391,7 +391,7 @@ class TestExamples(BaseTest):
         prob = cvx.Problem(objective, constraints)
 
         # The optimal objective is returned by p.solve().
-        prob.solve(solver=cvx.SCS)
+        prob.solve(solver=cvx.SCS, eps=1e-8)
         # The optimal value for x is stored in x.value.
         print(x.value)
         # The optimal Lagrange multiplier for a constraint
@@ -413,7 +413,7 @@ class TestExamples(BaseTest):
 
         # Form and solve problem.
         prob = cvx.Problem(obj, constraints)
-        prob.solve(solver=cvx.SCS)  # Returns the optimal value.
+        prob.solve(solver=cvx.SCS, eps=1e-8)  # Returns the optimal value.
         print("status:", prob.status)
         print("optimal value", prob.value)
         print("optimal var", x.value, y.value)
@@ -433,7 +433,7 @@ class TestExamples(BaseTest):
 
         # Form and solve problem.
         prob = cvx.Problem(obj, constraints)
-        prob.solve(solver=cvx.SCS)  # Returns the optimal value.
+        prob.solve(solver=cvx.SCS, eps=1e-8)  # Returns the optimal value.
         print("status:", prob.status)
         print("optimal value", prob.value)
         print("optimal var", x.value, y.value)
@@ -447,7 +447,7 @@ class TestExamples(BaseTest):
 
         # Replace the objective.
         prob = cvx.Problem(cvx.Maximize(x + y), prob.constraints)
-        print("optimal value", prob.solve(solver=cvx.SCS))
+        print("optimal value", prob.solve(solver=cvx.SCS, eps=1e-8))
 
         self.assertAlmostEqual(prob.value, 1.0, places=3)
 
@@ -455,7 +455,7 @@ class TestExamples(BaseTest):
         constraints = prob.constraints
         constraints[0] = (x + y <= 3)
         prob = cvx.Problem(prob.objective, constraints)
-        print("optimal value", prob.solve(solver=cvx.SCS))
+        print("optimal value", prob.solve(solver=cvx.SCS, eps=1e-8))
 
         self.assertAlmostEqual(prob.value, 3.0, places=2)
 
@@ -465,7 +465,7 @@ class TestExamples(BaseTest):
 
         # An infeasible problem.
         prob = cvx.Problem(cvx.Minimize(x), [x >= 1, x <= 0])
-        prob.solve(solver=cvx.SCS)
+        prob.solve(solver=cvx.SCS, eps=1e-8)
         print("status:", prob.status)
         print("optimal value", prob.value)
 
@@ -508,7 +508,7 @@ class TestExamples(BaseTest):
         constraints = [0 <= x, x <= 1]
         prob = cvx.Problem(objective, constraints)
 
-        print("Optimal value", prob.solve(solver=cvx.SCS))
+        print("Optimal value", prob.solve(solver=cvx.SCS, eps=1e-8))
         print("Optimal var")
         print(x.value)  # A numpy matrix.
 
@@ -561,7 +561,7 @@ class TestExamples(BaseTest):
         gamma_vals = numpy.logspace(-4, 6)
         for val in gamma_vals:
             gamma.value = val
-            prob.solve(solver=cvx.SCS)
+            prob.solve(solver=cvx.SCS, eps=1e-8)
             # Use expr.value to get the numerical value of
             # an expression in the problem.
             sq_penalty.append(error.value)
