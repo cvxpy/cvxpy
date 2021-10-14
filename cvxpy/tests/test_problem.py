@@ -807,7 +807,8 @@ class TestProblem(BaseTest):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             with self.assertRaises(Exception) as cm:
-                Problem(cp.Minimize(cp.quad_form(self.x, [[-1, 0], [0, 9]]))).solve(solver=cp.SCS, eps=1e-8)
+                objective = cp.Minimize(cp.quad_form(self.x, [[-1, 0], [0, 9]]))
+                Problem(objective).solve(solver=cp.SCS, eps=1e-8)
             self.assertTrue("Problem does not follow DCP rules."
                             in str(cm.exception))
 
