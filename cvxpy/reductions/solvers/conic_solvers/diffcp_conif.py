@@ -14,9 +14,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from distutils.version import StrictVersion
-
 import time
+from distutils.version import StrictVersion
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
@@ -143,6 +142,7 @@ class DIFFCP(scs_conif.SCS):
 
         if solver_opts["solve_method"] == s.SCS:
             import scs
+
             # SCS versions 1.*, SCS 2.*
             if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
                 if "eps_abs" in solver_opts or "eps_rel" in solver_opts:
