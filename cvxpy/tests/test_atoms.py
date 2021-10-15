@@ -963,7 +963,7 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(cp.exp(y)), [x+y >= 3, y >= 4])
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-8)
         p3 = Problem(Minimize(x+g), [x >= 5])
         p3.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(p1.value, p3.value)
@@ -982,7 +982,7 @@ class TestAtoms(BaseTest):
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y >= gamma, y >= 4])
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-8)
         p3 = Problem(Minimize(x+g), [x >= 5])
         p3.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(p1.value, p3.value)
@@ -999,7 +999,7 @@ class TestAtoms(BaseTest):
         # Solve the two-stage problem via partial_optimize
         constr = [y >= -100]
         p2 = Problem(Minimize(y), [x+y >= 3] + constr)
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-8)
         x.value = xval
         y.value = 42
         constr[0].dual_variables[0].value = 42
@@ -1010,7 +1010,7 @@ class TestAtoms(BaseTest):
 
         # No variables optimized over.
         p2 = Problem(Minimize(y), [x+y >= 3])
-        g = partial_optimize(p2, [], [x, y], solver=cp.SCS)
+        g = partial_optimize(p2, [], [x, y], solver=cp.SCS, eps=1e-8)
         x.value = xval
         y.value = 42
         p2.constraints[0].dual_variables[0].value = 42
