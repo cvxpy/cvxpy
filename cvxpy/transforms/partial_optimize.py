@@ -113,7 +113,8 @@ class PartialProblem(Expression):
     """
 
     def __init__(
-        self, prob: Problem, opt_vars: List[Variable], dont_opt_vars: List[Variable], solver, **kwargs) -> None:
+            self, prob: Problem, opt_vars: List[Variable],
+            dont_opt_vars: List[Variable], solver, **kwargs) -> None:
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.solver = solver
