@@ -263,7 +263,7 @@ class TestComplex(BaseTest):
         x = Variable(2, complex=True)
         prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.abs(x) <= 2])
         result = prob.solve(solver="SCS", eps=1e-8)
-        self.assertAlmostEqual(result, 4*np.sqrt(2), places=4)
+        self.assertAlmostEqual(result, 4*np.sqrt(2))
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
 
@@ -273,8 +273,8 @@ class TestComplex(BaseTest):
         x = Variable(2, complex=True)
         t = Variable()
         prob = Problem(cvx.Minimize(t), [cvx.SOC(t, x), x == 2j])
-        result = prob.solve(solver="SCS")
-        self.assertAlmostEqual(result, 2*np.sqrt(2), places=4)
+        result = prob.solve(solver="SCS", eps=1e-8)
+        self.assertAlmostEqual(result, 2*np.sqrt(2))
         self.assertItemsAlmostEqual(x.value, [2j, 2j])
 
     def test_pnorm(self) -> None:
