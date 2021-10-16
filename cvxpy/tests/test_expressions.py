@@ -744,7 +744,7 @@ class TestExpressions(BaseTest):
             (self.x/[2, 2, 3])
         print(cm.exception)
         self.assertRegex(str(cm.exception),
-                                 "Incompatible shapes for division.*")
+                         "Incompatible shapes for division.*")
 
         c = Constant([3.0, 4.0, 12.0])
         self.assertItemsAlmostEqual(
@@ -785,7 +785,7 @@ class TestExpressions(BaseTest):
             (x/c[:, 0])
         print(cm.exception)
         self.assertRegex(str(cm.exception),
-                                 "Incompatible shapes for division.*")
+                         "Incompatible shapes for division.*")
 
     # Test the NegExpression class.
     def test_neg_expression(self) -> None:
