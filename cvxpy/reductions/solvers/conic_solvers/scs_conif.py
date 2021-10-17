@@ -352,7 +352,8 @@ class SCS(ConicSolver):
                 del solver_opts["eps"]
 
             results = scs.solve(args, cones, verbose=verbose, **solver_opts)
+            status = self.STATUS_MAP[results["info"]["status_val"]]
 
-        if solver_cache is not None:
+        if solver_cache is not None and status == s.OPTIMAL:
             solver_cache[self.name()] = results
         return results
