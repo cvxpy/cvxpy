@@ -107,9 +107,8 @@ class TestBackward(BaseTest):
     """Test problem.backward() and problem.derivative()."""
     def setUp(self) -> None:
         try:
-            import diffcp
-            diffcp  # for flake8
-        except ImportError:
+            import diffcp # noqa
+        except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
 
     def test_scalar_quadratic(self) -> None:
@@ -338,9 +337,8 @@ class TestBackwardDgp(BaseTest):
     """Test problem.backward() and problem.derivative()."""
     def setUp(self) -> None:
         try:
-            import diffcp
-            diffcp  # for flake8
-        except ImportError:
+            import diffcp # noqa
+        except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
 
     def test_one_minus_analytic(self) -> None:
