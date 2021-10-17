@@ -929,7 +929,7 @@ class Problem(u.Canonical):
                                  "supported solver is SCS "
                                  "(received %s)." % solver)
             elif s.DIFFCP not in slv_def.INSTALLED_SOLVERS:
-                raise ImportError(
+                raise ModuleNotFoundError(
                     "The Python package diffcp must be installed to "
                     "differentiate through problems. Please follow the "
                     "installation instructions at "
