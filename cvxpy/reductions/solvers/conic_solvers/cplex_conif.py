@@ -20,12 +20,12 @@ import numpy as np
 from scipy.sparse import dok_matrix
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC
+from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
-    SCS, dims_to_solver_dict,)
+    dims_to_solver_dict,)
 
 # Values used to distinguish between linear and quadratic constraints.
 _LIN, _QUAD = 0, 1
@@ -201,14 +201,8 @@ def get_status(model):
         return s.SOLVER_ERROR
 
 
-class CPLEX(SCS):
+class CPLEX(ConicSolver):
     """An interface for the CPLEX solver.
-
-    * WARNING * This implementation takes an inadvisable approach by directly
-    inheriting from a concrete solver (SCS). This implementation should not be
-    used as a reference when writing other solver interfaces.
-
-    TODO: simplify this file so it doesn't inherit from SCS.
     """
 
     # Solver capabilities.
@@ -246,7 +240,35 @@ class CPLEX(SCS):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
-        data, inv_data = super(CPLEX, self).apply(problem)
+        data = {}
+        inv_data = {self.VAR_ID: problem.x.id}
+
+        # Format constraints
+        #
+        # SCS requires constraints to be specified in the following order:
+        # 1. zero cone
+        # 2. non-negative orthant
+        # 3. soc
+        # 4. psd
+        # 5. exponential
+        # 6. three-dimensional power cones
+        if not problem.formatted:
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+        data[s.PARAM_PROB] = problem
+        data[self.DIMS] = problem.cone_dims
+        inv_data[self.DIMS] = problem.cone_dims
+
+        constr_map = problem.constr_map
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
+            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
+        # Apply parameter values.
+        # Obtain A, b such that Ax + s = b, s \in cones.
+        c, d, A, b = problem.apply_parameters()
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A
+        data[s.B] = b
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]

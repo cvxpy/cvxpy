@@ -147,7 +147,8 @@ class SCS(ConicSolver):
         import scs
         scs  # For flake8
 
-    def psd_format_mat(self, constr):
+    @staticmethod
+    def psd_format_mat(constr):
         """Return a linear operator to multiply by PSD constraint coefficients.
 
         Special cases PSD constraints, as SCS expects constraints to be
@@ -227,7 +228,8 @@ class SCS(ConicSolver):
         data[s.B] = b
         return data, inv_data
 
-    def extract_dual_value(self, result_vec, offset, constraint):
+    @staticmethod
+    def extract_dual_value(result_vec, offset, constraint):
         """Extracts the dual value for constraint starting at offset.
 
         Special cases PSD constraints, as per the SCS specification.

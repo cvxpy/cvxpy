@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import abc
+from abc import ABC, abstractmethod
 
 
-class Reduction:
+class Reduction(ABC):
     """Abstract base class for reductions.
 
     A reduction is an actor that transforms a problem into an
@@ -45,8 +45,6 @@ class Reduction:
     problem : Problem
         A problem owned by this reduction; possibly None.
     """
-
-    __metaclass__ = abc.ABCMeta
 
     def __init__(self, problem=None) -> None:
         """Construct a reduction for reducing `problem`.
@@ -119,7 +117,7 @@ class Reduction:
             raise ValueError("`reduce()` must be called before `retrieve()`.")
         return self.invert(solution, self._retrieval_data)
 
-    @abc.abstractmethod
+    @abstractmethod
     def apply(self, problem):
         """Applies the reduction to a problem and returns an equivalent problem.
 
@@ -137,9 +135,9 @@ class Reduction:
             Data needed by the reduction in order to invert this particular
             application.
         """
-        raise NotImplementedError()
+        pass
 
-    @abc.abstractmethod
+    @abstractmethod
     def invert(self, solution, inverse_data):
         """Returns a solution to the original problem given the inverse_data.
 
@@ -155,4 +153,4 @@ class Reduction:
         Solution
             A solution to the original problem.
         """
-        raise NotImplementedError()
+        pass
