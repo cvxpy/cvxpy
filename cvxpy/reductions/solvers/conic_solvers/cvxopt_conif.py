@@ -26,7 +26,6 @@ import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, NonNeg, Zero
 from cvxpy.reductions.solvers.compr_matrix import compress_matrix
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
 from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
 
 
@@ -41,7 +40,7 @@ def dims_to_solver_dict(cone_dims) -> Dict[str, Union[List[int], int]]:
     return cones
 
 
-class CVXOPT(ECOS):
+class CVXOPT(ConicSolver):
     """An interface for the CVXOPT solver.
     """
 
