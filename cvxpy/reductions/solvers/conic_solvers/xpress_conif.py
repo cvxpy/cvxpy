@@ -36,8 +36,6 @@ def makeMstart(A, n, ifCol: int = 1):
 
 class XPRESS(ConicSolver):
     """An interface for the Xpress solver.
-
-    Inherits SCS due to the rich apply() method that extracts A and other data.
     """
     solvecount = 0
     version = -1

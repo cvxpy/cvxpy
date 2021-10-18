@@ -23,6 +23,8 @@ import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
+from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.solver import Solver
 
 # NOTE(akshayka): Small changes to this file can lead to drastic
@@ -251,6 +253,30 @@ class ConicSolver(Solver, ABC):
                                             problem.param_id_to_col,
                                             formatted=True)
         return new_param_cone_prog
+
+    @abstractmethod
+    def invert(self, solution, inverse_data):
+        """Returns the solution to the original problem given the inverse_data.
+        """
+
+        status = solution['status']
+
+        if status in s.SOLUTION_PRESENT:
+            opt_val = solution['value']
+            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
+            eq_dual = utilities.get_dual_values(
+                solution['eq_dual'],
+                utilities.extract_dual_value,
+                inverse_data[Solver.EQ_CONSTR])
+            leq_dual = utilities.get_dual_values(
+                solution['ineq_dual'],
+                utilities.extract_dual_value,
+                inverse_data[Solver.NEQ_CONSTR])
+            eq_dual.update(leq_dual)
+            dual_vars = eq_dual
+            return Solution(status, opt_val, primal_vars, dual_vars, {})
+        else:
+            return failure_solution(status)
 
     def _prepare_data_and_inv_data(self, problem):
         data = {}
