@@ -100,7 +100,7 @@ class ECOS(ConicSolver):
         # 3. soc
         # 4. exponential
         if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+            problem = self.format_constraints(problem)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims

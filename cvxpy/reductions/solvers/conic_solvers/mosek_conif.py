@@ -177,7 +177,7 @@ class MOSEK(ConicSolver):
 
     def apply(self, problem):
         if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+            problem = self.format_constraints(problem)
         if problem.x.boolean_idx or problem.x.integer_idx:  # check if either list is empty
             data, inv_data = Slacks.apply(problem, [a2d.NONNEG])
         else:

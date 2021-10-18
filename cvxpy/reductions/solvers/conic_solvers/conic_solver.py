@@ -13,11 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
 
+import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
 from cvxpy.reductions.cvx_attr2constr import convex_attributes
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
@@ -66,7 +68,7 @@ def as_block_diag_linear_operator(matrices) -> LinearOperator:
     return LinearOperator(matmul, (m, n))
 
 
-class ConicSolver(Solver):
+class ConicSolver(Solver, ABC):
     """Conic solver class with reduction semantics
     """
     # The key that maps to ConeDims in the data returned by apply().
@@ -79,6 +81,10 @@ class ConicSolver(Solver):
     # For such solvers, REQUIRES_CONSTR should be set to True.
     REQUIRES_CONSTR = False
 
+    # If a solver supports exponential cones, it must specify the corresponding order
+    # The cvxpy standard for the exponential cone is:
+    #     K_e = closure{(x,y,z) |  z >= y * exp(x/y), y>0}.
+    # Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
     EXP_CONE_ORDER = None
 
     def accepts(self, problem):
@@ -126,7 +132,7 @@ class ConicSolver(Solver):
         # Default is identity.
         return sp.eye(constr.size, format='csc')
 
-    def format_constraints(self, problem, exp_cone_order):
+    def format_constraints(self, problem):
         """
         Returns a ParamConeProg whose problem data tensors will yield the
         coefficient "A" and offset "b" for the constraint in the following
@@ -149,8 +155,6 @@ class ConicSolver(Solver):
         Args:
           problem : ParamConeProg
             The problem that is the provenance of the constraint.
-          exp_cone_order: list
-            A list indicating how the exponential cone arguments are ordered.
 
         Returns:
           ParamConeProg with structured A.
@@ -193,10 +197,10 @@ class ConicSolver(Solver):
                 for i, arg in enumerate(constr.args):
                     space_mat = ConicSolver.get_spacing_matrix(
                         shape=(total_height, arg.size),
-                        spacing=len(exp_cone_order) - 1,
+                        spacing=len(self.EXP_CONE_ORDER) - 1,
                         streak=1,
                         num_blocks=arg.size,
-                        offset=exp_cone_order[i],
+                        offset=self.EXP_CONE_ORDER[i],
                     )
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
@@ -247,3 +251,53 @@ class ConicSolver(Solver):
                                             problem.param_id_to_col,
                                             formatted=True)
         return new_param_cone_prog
+
+    def _prepare_data_and_inv_data(self, problem):
+        data = {}
+        inv_data = {self.VAR_ID: problem.x.id}
+
+        # Format constraints
+        #
+        # By default cvxpy follows the SCS convention, which requires
+        # constraints to be specified in the following order:
+        # 1. zero cone
+        # 2. non-negative orthant
+        # 3. soc
+        # 4. psd
+        # 5. exponential
+        # 6. three-dimensional power cones
+        if not problem.formatted:
+            problem = self.format_constraints(problem)
+        data[s.PARAM_PROB] = problem
+        data[self.DIMS] = problem.cone_dims
+        inv_data[self.DIMS] = problem.cone_dims
+
+        constr_map = problem.constr_map
+        inv_data[self.EQ_CONSTR] = constr_map[Zero]
+        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
+            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
+        return problem, data, inv_data
+
+    @abstractmethod
+    def apply(self, problem):
+        """Returns a new problem and data for inverting the new solution.
+
+        Returns
+        -------
+        tuple
+            (dict of arguments needed for the solver, inverse data)
+        """
+
+        # This is a reference implementation following SCS conventions
+        # Implementations for other solvers may amend or override the implementation entirely
+
+        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+
+        # Apply parameter values.
+        # Obtain A, b such that Ax + s = b, s \in cones.
+        c, d, A, b = problem.apply_parameters()
+        data[s.C] = c
+        inv_data[s.OFFSET] = d
+        data[s.A] = -A
+        data[s.B] = b
+        return data, inv_data

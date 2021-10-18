@@ -102,7 +102,7 @@ class CVXOPT(ECOS):
         inv_data = {self.VAR_ID: problem.x.id}
 
         if not problem.formatted:
-            problem = self.format_constraints(problem, None)
+            problem = self.format_constraints(problem)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
