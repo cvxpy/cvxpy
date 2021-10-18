@@ -1,0 +1,14 @@
+repos:
+  # import sorting with isort
+  - repo: https://github.com/pycqa/isort
+    rev: 5.8.0
+    hooks:
+      - id: isort
+
+  # linting and code analysis with flake8
+  - repo: https://github.com/pycqa/flake8
+    rev: 3.8.3
+    hooks:
+      - id: flake8
+        args: ['--config=setup.cfg']
+        files: cvxpy/
