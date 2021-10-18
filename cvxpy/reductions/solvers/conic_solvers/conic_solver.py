@@ -70,6 +70,20 @@ def as_block_diag_linear_operator(matrices) -> LinearOperator:
     return LinearOperator(matmul, (m, n))
 
 
+# Utility method for formatting a ConeDims instance into a dictionary
+# that can be supplied to solvers.
+def dims_to_solver_dict(cone_dims):
+    cones = {
+        'f': cone_dims.zero,
+        'l': cone_dims.nonneg,
+        'q': cone_dims.soc,
+        'ep': cone_dims.exp,
+        's': cone_dims.psd,
+        'p': cone_dims.p3d
+    }
+    return cones
+
+
 class ConicSolver(Solver, ABC):
     """Conic solver class with reduction semantics
     """
@@ -258,7 +272,6 @@ class ConicSolver(Solver, ABC):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-
         status = solution['status']
 
         if status in s.SOLUTION_PRESENT:

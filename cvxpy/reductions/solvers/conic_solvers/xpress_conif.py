@@ -20,9 +20,8 @@ import cvxpy.settings as s
 from cvxpy.constraints import SOC
 from cvxpy.reductions.solution import Solution
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
-    dims_to_solver_dict,)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    ConicSolver, dims_to_solver_dict,)
 
 
 def makeMstart(A, n, ifCol: int = 1):
