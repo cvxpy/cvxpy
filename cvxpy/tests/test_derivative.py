@@ -107,7 +107,8 @@ class TestBackward(BaseTest):
     """Test problem.backward() and problem.derivative()."""
     def setUp(self) -> None:
         try:
-            import diffcp # noqa
+            import diffcp
+            diffcp  # for flake8
         except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
 
@@ -337,7 +338,8 @@ class TestBackwardDgp(BaseTest):
     """Test problem.backward() and problem.derivative()."""
     def setUp(self) -> None:
         try:
-            import diffcp # noqa
+            import diffcp
+            diffcp  # for flake8
         except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
 

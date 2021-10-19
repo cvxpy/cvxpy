@@ -292,7 +292,8 @@ class TestSCS(BaseTest):
         """Test warm starting in diffcvx.
         """
         try:
-            import diffcp # noqa
+            import diffcp
+            diffcp  # for flake8
         except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
         x = cp.Variable(10)
