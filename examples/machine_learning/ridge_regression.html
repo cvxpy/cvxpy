@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Machine Learning: Ridge Regression &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <section id="machine-learning-ridge-regression">
+  <div class="section" id="machine-learning-ridge-regression">
 <h1>Machine Learning: Ridge Regression<a class="headerlink" href="#machine-learning-ridge-regression" title="Permalink to this headline">¶</a></h1>
 <p>Ridge regression is a regression technique that is quite similar to
 unadorned least squares linear regression: simply adding an
@@ -59,7 +59,7 @@ CVXPY, how to evaluate the model, and how to tune the hyper-parameter
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </pre></div>
 </div>
-<section id="writing-the-objective-function">
+<div class="section" id="writing-the-objective-function">
 <h2>Writing the objective function<a class="headerlink" href="#writing-the-objective-function" title="Permalink to this headline">¶</a></h2>
 <p>We can decompose the <strong>objective function</strong> as the sum of a <strong>least
 squares loss function</strong> and an <span class="math notranslate nohighlight">\(\ell_2\)</span> <strong>regularizer</strong>.</p>
@@ -76,8 +76,8 @@ squares loss function</strong> and an <span class="math notranslate nohighlight"
     <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-</section>
-<section id="generating-data">
+</div>
+<div class="section" id="generating-data">
 <h2>Generating data<a class="headerlink" href="#generating-data" title="Permalink to this headline">¶</a></h2>
 <p>Because ridge regression encourages the parameter estimates to be small,
 and as such tends to lead to models with <strong>less variance</strong> than those
@@ -104,8 +104,8 @@ will illustrate this.</p>
 <span class="n">Y_test</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="mi">50</span><span class="p">:]</span>
 </pre></div>
 </div>
-</section>
-<section id="fitting-the-model">
+</div>
+<div class="section" id="fitting-the-model">
 <h2>Fitting the model<a class="headerlink" href="#fitting-the-model" title="Permalink to this headline">¶</a></h2>
 <p>All we need to do to fit the model is create a CVXPY problem where the
 objective is to minimize the the objective function defined above. We
@@ -127,8 +127,8 @@ CVXPY problem to obtain estimates for many values of <span class="math notransla
     <span class="n">beta_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="evaluating-the-model">
+</div>
+<div class="section" id="evaluating-the-model">
 <h2>Evaluating the model<a class="headerlink" href="#evaluating-the-model" title="Permalink to this headline">¶</a></h2>
 <p>Notice that, up to a point, penalizing the size of the parameters
 reduces test error at the cost of increasing the training error, trading
@@ -150,8 +150,8 @@ better</strong> than a least squares linear regression.</p>
 <span class="n">plot_train_test_errors</span><span class="p">(</span><span class="n">train_errors</span><span class="p">,</span> <span class="n">test_errors</span><span class="p">,</span> <span class="n">lambd_values</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="../../_images/ridge_regression_9_0.svg" src="../../_images/ridge_regression_9_0.svg" /></section>
-<section id="regularization-path">
+<img alt="../../_images/ridge_regression_9_0.svg" src="../../_images/ridge_regression_9_0.svg" /></div>
+<div class="section" id="regularization-path">
 <h2>Regularization path<a class="headerlink" href="#regularization-path" title="Permalink to this headline">¶</a></h2>
 <p>As expected, increasing <span class="math notranslate nohighlight">\(\lambda\)</span> drives the parameters towards
 <span class="math notranslate nohighlight">\(0\)</span>. In a real-world example, those parameters that approach zero
@@ -170,8 +170,8 @@ features. It is in this sense that ridge regression can be considered
 <span class="n">plot_regularization_path</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="n">beta_values</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="../../_images/ridge_regression_11_0.svg" src="../../_images/ridge_regression_11_0.svg" /></section>
-</section>
+<img alt="../../_images/ridge_regression_11_0.svg" src="../../_images/ridge_regression_11_0.svg" /></div>
+</div>
 
 
           </div>
@@ -236,7 +236,7 @@ features. It is in this sense that ridge regression can be considered
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -250,7 +250,7 @@ features. It is in this sense that ridge regression can be considered
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

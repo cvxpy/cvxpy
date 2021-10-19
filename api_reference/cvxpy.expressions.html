@@ -4,15 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Expressions &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Problems" href="cvxpy.problems.html" />
@@ -33,7 +34,7 @@
 
           <div class="body" role="main">
             
-  <section id="expressions">
+  <div class="section" id="expressions">
 <h1>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h1>
 <p>CVXPY represents mathematical objects as <em>expression trees</em>. An expression
 tree is a collection of mathematical expressions linked together by one or more
@@ -42,7 +43,7 @@ atoms. Expression trees are encoded as instances of the
 <a class="reference internal" href="#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">Leaf</span></code></a> in a tree is a
 <a class="reference internal" href="#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a>,
 <a class="reference internal" href="#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>, or
-<a class="reference internal" href="#cvxpy.expressions.constants.Constant" title="cvxpy.expressions.constants.constant.Constant"><code class="xref py py-class docutils literal notranslate"><span class="pre">Constant</span></code></a>.</p>
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Constant</span></code>.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#expression" id="id1">Expression</a></p></li>
@@ -52,18 +53,18 @@ atoms. Expression trees are encoded as instances of the
 <li><p><a class="reference internal" href="#constant" id="id5">Constant</a></p></li>
 </ul>
 </div>
-<section id="expression">
+<div class="section" id="expression">
 <h2><a class="toc-backref" href="#id1">Expression</a><a class="headerlink" href="#expression" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.expressions.expression.</span></span><span class="sig-name descname"><span class="pre">Expression</span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.expressions.expression.</code><code class="sig-name descname">Expression</code><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.utilities.canonical.Canonical</span></code></p>
 <p>A mathematical expression in a convex optimization problem.</p>
 <p>Overloads many operators to allow for convenient creation of compound
 expressions (e.g., the sum of two expressions) and constraints.</p>
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.T">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">T</span></span><a class="headerlink" href="#cvxpy.expressions.expression.Expression.T" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.T">
+<em class="property">property </em><code class="sig-name descname">T</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.T" title="Permalink to this definition">¶</a></dt>
 <dd><p>The transpose of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -73,60 +74,60 @@ expressions (e.g., the sum of two expressions) and constraints.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__add__">
-<span class="sig-name descname"><span class="pre">__add__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__add__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__add__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__add__">
+<code class="sig-name descname">__add__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__add__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__add__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : Sum two expressions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__div__">
-<span class="sig-name descname"><span class="pre">__div__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__div__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__div__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__div__">
+<code class="sig-name descname">__div__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__div__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__div__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : One expression divided by another.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__eq__">
-<span class="sig-name descname"><span class="pre">__eq__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__eq__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__eq__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__eq__">
+<code class="sig-name descname">__eq__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__eq__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__eq__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Equality : Creates a constraint <code class="docutils literal notranslate"><span class="pre">self</span> <span class="pre">==</span> <span class="pre">other</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__ge__">
-<span class="sig-name descname"><span class="pre">__ge__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__ge__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__ge__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__ge__">
+<code class="sig-name descname">__ge__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__ge__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__ge__" title="Permalink to this definition">¶</a></dt>
 <dd><p>NonPos : Creates an inequality constraint.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__le__">
-<span class="sig-name descname"><span class="pre">__le__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__le__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__le__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__le__">
+<code class="sig-name descname">__le__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__le__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__le__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Inequality : Creates an inequality constraint <code class="docutils literal notranslate"><span class="pre">self</span> <span class="pre">&lt;=</span> <span class="pre">other</span></code>.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__lshift__">
-<span class="sig-name descname"><span class="pre">__lshift__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.psd.PSD" title="cvxpy.constraints.psd.PSD"><span class="pre">cvxpy.constraints.psd.PSD</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__lshift__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__lshift__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__lshift__">
+<code class="sig-name descname">__lshift__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.psd.PSD" title="cvxpy.constraints.psd.PSD">cvxpy.constraints.psd.PSD</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__lshift__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__lshift__" title="Permalink to this definition">¶</a></dt>
 <dd><p>PSD : Creates a negative semidefinite inequality.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__matmul__">
-<span class="sig-name descname"><span class="pre">__matmul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__matmul__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__matmul__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__matmul__">
+<code class="sig-name descname">__matmul__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__matmul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__matmul__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : Matrix multiplication of two expressions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__mul__">
-<span class="sig-name descname"><span class="pre">__mul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__mul__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__mul__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__mul__">
+<code class="sig-name descname">__mul__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__mul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__mul__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : The product of two expressions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__pow__">
-<span class="sig-name descname"><span class="pre">__pow__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">power</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__pow__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__pow__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__pow__">
+<code class="sig-name descname">__pow__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">power</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__pow__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__pow__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Raise expression to a power.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>power</strong> (<em>float</em>) – The power to which to raise the expression.</p>
+<dd class="field-odd"><p><strong>power</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>) – The power to which to raise the expression.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The expression raised to <code class="docutils literal notranslate"><span class="pre">power</span></code>.</p>
@@ -138,74 +139,74 @@ expressions (e.g., the sum of two expressions) and constraints.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__radd__">
-<span class="sig-name descname"><span class="pre">__radd__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__radd__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__radd__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__radd__">
+<code class="sig-name descname">__radd__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__radd__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__radd__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : Sum two expressions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__rdiv__">
-<span class="sig-name descname"><span class="pre">__rdiv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rdiv__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rdiv__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__rdiv__">
+<code class="sig-name descname">__rdiv__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rdiv__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rdiv__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : Called for Number / Expression.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__rlshift__">
-<span class="sig-name descname"><span class="pre">__rlshift__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.psd.PSD" title="cvxpy.constraints.psd.PSD"><span class="pre">cvxpy.constraints.psd.PSD</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rlshift__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rlshift__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__rlshift__">
+<code class="sig-name descname">__rlshift__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.psd.PSD" title="cvxpy.constraints.psd.PSD">cvxpy.constraints.psd.PSD</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rlshift__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rlshift__" title="Permalink to this definition">¶</a></dt>
 <dd><p>PSD : Creates a negative semidefinite inequality.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__rmatmul__">
-<span class="sig-name descname"><span class="pre">__rmatmul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rmatmul__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rmatmul__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__rmatmul__">
+<code class="sig-name descname">__rmatmul__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rmatmul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rmatmul__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : Called for matrix &#64; Expression.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__rmul__">
-<span class="sig-name descname"><span class="pre">__rmul__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rmul__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rmul__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__rmul__">
+<code class="sig-name descname">__rmul__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rmul__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rmul__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : Called for Number * Expression.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__rrshift__">
-<span class="sig-name descname"><span class="pre">__rrshift__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.psd.PSD" title="cvxpy.constraints.psd.PSD"><span class="pre">cvxpy.constraints.psd.PSD</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rrshift__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rrshift__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__rrshift__">
+<code class="sig-name descname">__rrshift__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.psd.PSD" title="cvxpy.constraints.psd.PSD">cvxpy.constraints.psd.PSD</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rrshift__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rrshift__" title="Permalink to this definition">¶</a></dt>
 <dd><p>PSD : Creates a positive semidefinite inequality.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__rshift__">
-<span class="sig-name descname"><span class="pre">__rshift__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.psd.PSD" title="cvxpy.constraints.psd.PSD"><span class="pre">cvxpy.constraints.psd.PSD</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rshift__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rshift__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__rshift__">
+<code class="sig-name descname">__rshift__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.psd.PSD" title="cvxpy.constraints.psd.PSD">cvxpy.constraints.psd.PSD</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rshift__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rshift__" title="Permalink to this definition">¶</a></dt>
 <dd><p>PSD : Creates a positive semidefinite inequality.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__rsub__">
-<span class="sig-name descname"><span class="pre">__rsub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rsub__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rsub__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__rsub__">
+<code class="sig-name descname">__rsub__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rsub__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rsub__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : The difference of two expressions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__rtruediv__">
-<span class="sig-name descname"><span class="pre">__rtruediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rtruediv__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rtruediv__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__rtruediv__">
+<code class="sig-name descname">__rtruediv__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__rtruediv__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__rtruediv__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : Called for Number / Expression.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__sub__">
-<span class="sig-name descname"><span class="pre">__sub__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__sub__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__sub__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__sub__">
+<code class="sig-name descname">__sub__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__sub__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__sub__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : The difference of two expressions.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.__truediv__">
-<span class="sig-name descname"><span class="pre">__truediv__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__truediv__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__truediv__" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.__truediv__">
+<code class="sig-name descname">__truediv__</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">other</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">cvxpy.expressions.expression.Expression</a><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.__truediv__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.__truediv__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expression : One expression divided by another.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.curvature">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">curvature</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#cvxpy.expressions.expression.Expression.curvature" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.curvature">
+<em class="property">property </em><code class="sig-name descname">curvature</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.curvature" title="Permalink to this definition">¶</a></dt>
 <dd><p>The curvature of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -214,9 +215,9 @@ expressions (e.g., the sum of two expressions) and constraints.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.domain">
-<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">domain</span></span><a class="headerlink" href="#cvxpy.expressions.expression.Expression.domain" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.domain">
+<em class="property">abstract property </em><code class="sig-name descname">domain</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.domain" title="Permalink to this definition">¶</a></dt>
 <dd><p>The constraints describing the closure of the region
 where the expression is finite.</p>
 <dl class="field-list simple">
@@ -226,9 +227,9 @@ where the expression is finite.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.grad">
-<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">grad</span></span><a class="headerlink" href="#cvxpy.expressions.expression.Expression.grad" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.grad">
+<em class="property">abstract property </em><code class="sig-name descname">grad</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.grad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gives the (sub/super)gradient of the expression w.r.t. each variable.</p>
 <p>Matrix expressions are vectorized, so the gradient is a matrix.</p>
 <dl class="field-list simple">
@@ -243,36 +244,36 @@ value is missing.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_affine">
-<span class="sig-name descname"><span class="pre">is_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_affine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_affine" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_affine">
+<code class="sig-name descname">is_affine</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_affine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression affine?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_concave">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_concave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_concave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_concave" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_concave">
+<em class="property">abstract </em><code class="sig-name descname">is_concave</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_concave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_concave" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression concave?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_constant">
-<span class="sig-name descname"><span class="pre">is_constant</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_constant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_constant" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_constant">
+<code class="sig-name descname">is_constant</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_constant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_constant" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression constant?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_convex">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_convex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_convex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_convex" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_convex">
+<em class="property">abstract </em><code class="sig-name descname">is_convex</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_convex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_convex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression convex?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_dcp">
-<span class="sig-name descname"><span class="pre">is_dcp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dpp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dcp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dcp" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_dcp">
+<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the Expression is DCP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dpp</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, enforce the disciplined parametrized programming (DPP)
+<dd class="field-odd"><p><strong>dpp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – If True, enforce the disciplined parametrized programming (DPP)
 ruleset; only relevant when the problem involves Parameters.</p>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -285,8 +286,8 @@ ruleset; only relevant when the problem involves Parameters.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_dgp">
-<span class="sig-name descname"><span class="pre">is_dgp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dpp</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dgp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dgp" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_dgp">
+<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dgp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the Expression is log-log DCP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -299,14 +300,14 @@ ruleset; only relevant when the problem involves Parameters.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_dpp">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_dpp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">context</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">'dcp'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dpp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dpp" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_dpp">
+<em class="property">abstract </em><code class="sig-name descname">is_dpp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">context</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'dcp'</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dpp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dpp" title="Permalink to this definition">¶</a></dt>
 <dd><p>The expression is a disciplined parameterized expression.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_dqcp">
-<span class="sig-name descname"><span class="pre">is_dqcp</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dqcp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dqcp" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_dqcp">
+<code class="sig-name descname">is_dqcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_dqcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_dqcp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Checks whether the Expression is DQCP.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
@@ -319,50 +320,50 @@ ruleset; only relevant when the problem involves Parameters.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_log_log_affine">
-<span class="sig-name descname"><span class="pre">is_log_log_affine</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_affine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_affine" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_log_log_affine">
+<code class="sig-name descname">is_log_log_affine</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_affine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_affine" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression affine?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_log_log_concave">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_log_log_concave</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_concave"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_concave" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_log_log_concave">
+<em class="property">abstract </em><code class="sig-name descname">is_log_log_concave</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_concave"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_concave" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression log-log concave?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_log_log_convex">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_log_log_convex</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_convex"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_convex" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_log_log_convex">
+<em class="property">abstract </em><code class="sig-name descname">is_log_log_convex</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_log_log_convex"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_log_log_convex" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression log-log convex?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_nonneg">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_nonneg</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_nonneg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_nonneg" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_nonneg">
+<em class="property">abstract </em><code class="sig-name descname">is_nonneg</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_nonneg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_nonneg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression positive?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_nonpos">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">is_nonpos</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_nonpos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_nonpos" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_nonpos">
+<em class="property">abstract </em><code class="sig-name descname">is_nonpos</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_nonpos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_nonpos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression negative?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.is_zero">
-<span class="sig-name descname"><span class="pre">is_zero</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_zero"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_zero" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.is_zero">
+<code class="sig-name descname">is_zero</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.is_zero"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.is_zero" title="Permalink to this definition">¶</a></dt>
 <dd><p>Is the expression all zero?</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.name">
-<em class="property"><span class="pre">abstract</span> </em><span class="sig-name descname"><span class="pre">name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.name" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.expression.Expression.name">
+<em class="property">abstract </em><code class="sig-name descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/expression.html#Expression.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.expression.Expression.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>str : The string representation of the expression.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.ndim">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.expression.Expression.ndim" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.ndim">
+<em class="property">property </em><code class="sig-name descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.ndim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of dimensions in the expression’s shape.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -371,9 +372,9 @@ ruleset; only relevant when the problem involves Parameters.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.shape">
-<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cvxpy.expressions.expression.Expression.shape" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.shape">
+<em class="property">abstract property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>The expression dimensions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -382,9 +383,9 @@ ruleset; only relevant when the problem involves Parameters.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.sign">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">sign</span></span><em class="property"><span class="pre">:</span> <span class="pre">str</span></em><a class="headerlink" href="#cvxpy.expressions.expression.Expression.sign" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.sign">
+<em class="property">property </em><code class="sig-name descname">sign</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.sign" title="Permalink to this definition">¶</a></dt>
 <dd><p>The sign of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -393,9 +394,9 @@ ruleset; only relevant when the problem involves Parameters.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.size">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.expression.Expression.size" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.size">
+<em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of entries in the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -404,9 +405,9 @@ ruleset; only relevant when the problem involves Parameters.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.expression.Expression.value">
-<em class="property"><span class="pre">abstract</span> <span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#cvxpy.expressions.expression.Expression.value" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.expression.Expression.value">
+<em class="property">abstract property </em><code class="sig-name descname">value</code><a class="headerlink" href="#cvxpy.expressions.expression.Expression.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The numeric value of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -417,12 +418,12 @@ ruleset; only relevant when the problem involves Parameters.</p>
 
 </dd></dl>
 
-</section>
-<section id="leaf">
+</div>
+<div class="section" id="leaf">
 <h2><a class="toc-backref" href="#id2">Leaf</a><a class="headerlink" href="#leaf" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.expressions.leaf.Leaf">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.expressions.leaf.</span></span><span class="sig-name descname"><span class="pre">Leaf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonneg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonpos</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complex</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diag</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PSD</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NSD</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hermitian</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boolean</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integer</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparsity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neg</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.leaf.Leaf">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.expressions.leaf.</code><code class="sig-name descname">Leaf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>int<span class="p">, </span>Tuple<span class="p">[</span>int<span class="p">, </span><span class="p">…</span><span class="p">]</span><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nonneg</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">nonpos</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">complex</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">imag</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">symmetric</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">diag</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">PSD</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">NSD</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">hermitian</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">boolean</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">integer</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">sparsity</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">pos</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">neg</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.expressions.expression.Expression</span></code></a></p>
 <p>A leaf node of an expression tree; i.e., a Variable, Constant, or Parameter.</p>
 <p>A leaf may carry <em>attributes</em> that constrain the set values permissible
@@ -435,34 +436,34 @@ way to project a value onto a leaf’s domain.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>shape</strong> (<em>tuple</em><em> or </em><em>int</em>) – The leaf dimensions. Either an integer n for a 1D shape, or a
+<li><p><strong>shape</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The leaf dimensions. Either an integer n for a 1D shape, or a
 tuple where the semantics are the same as NumPy ndarray shapes.
 <strong>Shapes cannot be more than 2D</strong>.</p></li>
-<li><p><strong>value</strong> (<em>numeric type</em>) – A value to assign to the leaf.</p></li>
-<li><p><strong>nonneg</strong> (<em>bool</em>) – Is the variable constrained to be nonnegative?</p></li>
-<li><p><strong>nonpos</strong> (<em>bool</em>) – Is the variable constrained to be nonpositive?</p></li>
-<li><p><strong>complex</strong> (<em>bool</em>) – Is the variable complex valued?</p></li>
-<li><p><strong>symmetric</strong> (<em>bool</em>) – Is the variable symmetric?</p></li>
-<li><p><strong>diag</strong> (<em>bool</em>) – Is the variable diagonal?</p></li>
-<li><p><strong>PSD</strong> (<em>bool</em>) – Is the variable constrained to be positive semidefinite?</p></li>
-<li><p><strong>NSD</strong> (<em>bool</em>) – Is the variable constrained to be negative semidefinite?</p></li>
-<li><p><strong>Hermitian</strong> (<em>bool</em>) – Is the variable Hermitian?</p></li>
-<li><p><strong>boolean</strong> (<em>bool</em><em> or </em><em>list of tuple</em>) – Is the variable boolean? True, which constrains
+<li><p><strong>value</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numeric</span> <span class="pre">type</span></code>) – A value to assign to the leaf.</p></li>
+<li><p><strong>nonneg</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable constrained to be nonnegative?</p></li>
+<li><p><strong>nonpos</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable constrained to be nonpositive?</p></li>
+<li><p><strong>complex</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable complex valued?</p></li>
+<li><p><strong>symmetric</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable symmetric?</p></li>
+<li><p><strong>diag</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable diagonal?</p></li>
+<li><p><strong>PSD</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable constrained to be positive semidefinite?</p></li>
+<li><p><strong>NSD</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable constrained to be negative semidefinite?</p></li>
+<li><p><strong>Hermitian</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable Hermitian?</p></li>
+<li><p><strong>boolean</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>) – Is the variable boolean? True, which constrains
 the entire Variable to be boolean, False, or a list of
 indices which should be constrained as boolean, where each
 index is a tuple of length exactly equal to the
 length of shape.</p></li>
-<li><p><strong>integer</strong> (<em>bool</em><em> or </em><em>list of tuple</em>) – Is the variable integer? The semantics are the same as the
+<li><p><strong>integer</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code>) – Is the variable integer? The semantics are the same as the
 boolean argument.</p></li>
-<li><p><strong>sparsity</strong> (<em>list of tuplewith</em>) – Fixed sparsity pattern for the variable.</p></li>
-<li><p><strong>pos</strong> (<em>bool</em>) – Is the variable positive?</p></li>
-<li><p><strong>neg</strong> (<em>bool</em>) – Is the variable negative?</p></li>
+<li><p><strong>sparsity</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">tuplewith</span></code>) – Fixed sparsity pattern for the variable.</p></li>
+<li><p><strong>pos</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable positive?</p></li>
+<li><p><strong>neg</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>) – Is the variable negative?</p></li>
 </ul>
 </dd>
 </dl>
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.leaf.Leaf.T">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">T</span></span><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.T" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.leaf.Leaf.T">
+<em class="property">property </em><code class="sig-name descname">T</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.T" title="Permalink to this definition">¶</a></dt>
 <dd><p>The transpose of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -471,9 +472,9 @@ boolean argument.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.leaf.Leaf.ndim">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.ndim" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.leaf.Leaf.ndim">
+<em class="property">property </em><code class="sig-name descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.ndim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of dimensions in the expression’s shape.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -483,13 +484,13 @@ boolean argument.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.leaf.Leaf.project">
-<span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf.project"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.project" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.leaf.Leaf.project">
+<code class="sig-name descname">project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf.project"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.project" title="Permalink to this definition">¶</a></dt>
 <dd><p>Project value onto the attribute set of the leaf.</p>
 <p>A sensible idiom is <code class="docutils literal notranslate"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>val</strong> (<em>numeric type</em>) – The value assigned.</p>
+<dd class="field-odd"><p><strong>val</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numeric</span> <span class="pre">type</span></code>) – The value assigned.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The value rounded to the attribute type.</p>
@@ -501,14 +502,14 @@ boolean argument.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.leaf.Leaf.project_and_assign">
-<span class="sig-name descname"><span class="pre">project_and_assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf.project_and_assign"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.project_and_assign" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.leaf.Leaf.project_and_assign">
+<code class="sig-name descname">project_and_assign</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/expressions/leaf.html#Leaf.project_and_assign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.project_and_assign" title="Permalink to this definition">¶</a></dt>
 <dd><p>Project and assign a value to the variable.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.leaf.Leaf.shape">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.shape" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.leaf.Leaf.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>The dimensions of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -517,9 +518,9 @@ boolean argument.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.leaf.Leaf.size">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.size" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.leaf.Leaf.size">
+<em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of entries in the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -528,9 +529,9 @@ boolean argument.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.leaf.Leaf.value">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.value" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.leaf.Leaf.value">
+<em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#cvxpy.expressions.leaf.Leaf.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The numeric value of the parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -541,17 +542,17 @@ boolean argument.</p></li>
 
 </dd></dl>
 
-</section>
-<section id="variable">
+</div>
+<div class="section" id="variable">
 <h2><a class="toc-backref" href="#id3">Variable</a><a class="headerlink" href="#variable" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.expressions.variable.</span></span><span class="sig-name descname"><span class="pre">Variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">var_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/variable.html#Variable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.variable.Variable" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.variable.Variable">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.expressions.variable.</code><code class="sig-name descname">Variable</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">var_id</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/variable.html#Variable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.variable.Variable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.expressions.leaf.Leaf</span></code></a></p>
 <p>The optimization variables in a problem.</p>
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable.T">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">T</span></span><a class="headerlink" href="#cvxpy.expressions.variable.Variable.T" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.variable.Variable.T">
+<em class="property">property </em><code class="sig-name descname">T</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.T" title="Permalink to this definition">¶</a></dt>
 <dd><p>The transpose of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -561,14 +562,14 @@ boolean argument.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable.name">
-<span class="sig-name descname"><span class="pre">name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/variable.html#Variable.name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.variable.Variable.name" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.variable.Variable.name">
+<code class="sig-name descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/variable.html#Variable.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.variable.Variable.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>str : The name of the variable.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable.ndim">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.variable.Variable.ndim" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.variable.Variable.ndim">
+<em class="property">property </em><code class="sig-name descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.ndim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of dimensions in the expression’s shape.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -578,13 +579,13 @@ boolean argument.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable.project">
-<span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.variable.Variable.project" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.variable.Variable.project">
+<code class="sig-name descname">project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.variable.Variable.project" title="Permalink to this definition">¶</a></dt>
 <dd><p>Project value onto the attribute set of the leaf.</p>
 <p>A sensible idiom is <code class="docutils literal notranslate"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>val</strong> (<em>numeric type</em>) – The value assigned.</p>
+<dd class="field-odd"><p><strong>val</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numeric</span> <span class="pre">type</span></code>) – The value assigned.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The value rounded to the attribute type.</p>
@@ -596,14 +597,14 @@ boolean argument.</p></li>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable.project_and_assign">
-<span class="sig-name descname"><span class="pre">project_and_assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#cvxpy.expressions.variable.Variable.project_and_assign" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.variable.Variable.project_and_assign">
+<code class="sig-name descname">project_and_assign</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#cvxpy.expressions.variable.Variable.project_and_assign" title="Permalink to this definition">¶</a></dt>
 <dd><p>Project and assign a value to the variable.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable.shape">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cvxpy.expressions.variable.Variable.shape" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.variable.Variable.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>The dimensions of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -612,9 +613,9 @@ boolean argument.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable.size">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.variable.Variable.size" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.variable.Variable.size">
+<em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of entries in the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -623,9 +624,9 @@ boolean argument.</p></li>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.variable.Variable.value">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#cvxpy.expressions.variable.Variable.value" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.variable.Variable.value">
+<em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#cvxpy.expressions.variable.Variable.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The numeric value of the parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -636,12 +637,12 @@ boolean argument.</p></li>
 
 </dd></dl>
 
-</section>
-<section id="parameter">
+</div>
+<div class="section" id="parameter">
 <h2><a class="toc-backref" href="#id4">Parameter</a><a class="headerlink" href="#parameter" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.parameter.Parameter">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.expressions.constants.parameter.</span></span><span class="sig-name descname"><span class="pre">Parameter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/constants/parameter.html#Parameter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.constants.parameter.Parameter">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.expressions.constants.parameter.</code><code class="sig-name descname">Parameter</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="p">:</span> <span class="n">Tuple<span class="p">[</span>int<span class="p">, </span><span class="p">…</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">()</span></em>, <em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>str<span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">id</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/constants/parameter.html#Parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.expressions.leaf.Leaf</span></code></a></p>
 <p>Parameters in optimization problems.</p>
 <p>Parameters are constant expressions whose value may be specified
@@ -649,9 +650,9 @@ after problem creation. The only way to modify a problem after its
 creation is through parameters. For example, you might choose to declare
 the hyper-parameters of a machine learning model to be Parameter objects;
 more generally, Parameters are useful for computing trade-off curves.</p>
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.parameter.Parameter.T">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">T</span></span><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.T" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.parameter.Parameter.T">
+<em class="property">property </em><code class="sig-name descname">T</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.T" title="Permalink to this definition">¶</a></dt>
 <dd><p>The transpose of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -660,9 +661,9 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.parameter.Parameter.ndim">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.ndim" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.parameter.Parameter.ndim">
+<em class="property">property </em><code class="sig-name descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.ndim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of dimensions in the expression’s shape.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -672,13 +673,13 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.parameter.Parameter.project">
-<span class="sig-name descname"><span class="pre">project</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.project" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.constants.parameter.Parameter.project">
+<code class="sig-name descname">project</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.project" title="Permalink to this definition">¶</a></dt>
 <dd><p>Project value onto the attribute set of the leaf.</p>
 <p>A sensible idiom is <code class="docutils literal notranslate"><span class="pre">leaf.value</span> <span class="pre">=</span> <span class="pre">leaf.project(val)</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>val</strong> (<em>numeric type</em>) – The value assigned.</p>
+<dd class="field-odd"><p><strong>val</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">numeric</span> <span class="pre">type</span></code>) – The value assigned.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The value rounded to the attribute type.</p>
@@ -690,14 +691,14 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.parameter.Parameter.project_and_assign">
-<span class="sig-name descname"><span class="pre">project_and_assign</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">val</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.project_and_assign" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.constants.parameter.Parameter.project_and_assign">
+<code class="sig-name descname">project_and_assign</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span></em><span class="sig-paren">)</span> &#x2192; None<a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.project_and_assign" title="Permalink to this definition">¶</a></dt>
 <dd><p>Project and assign a value to the variable.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.parameter.Parameter.shape">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.shape" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.parameter.Parameter.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>The dimensions of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -706,9 +707,9 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.parameter.Parameter.size">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.size" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.parameter.Parameter.size">
+<em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of entries in the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -717,9 +718,9 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.parameter.Parameter.value">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.value" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.parameter.Parameter.value">
+<em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#cvxpy.expressions.constants.parameter.Parameter.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The numeric value of the parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -730,12 +731,12 @@ more generally, Parameters are useful for computing trade-off curves.</p>
 
 </dd></dl>
 
-</section>
-<section id="constant">
+</div>
+<div class="section" id="constant">
 <h2><a class="toc-backref" href="#id5">Constant</a><a class="headerlink" href="#constant" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.Constant">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.expressions.constants.</span></span><span class="sig-name descname"><span class="pre">Constant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/constants/constant.html#Constant"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.expressions.constants.Constant" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.expressions.constants.Constant">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.expressions.constants.</code><code class="sig-name descname">Constant</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/expressions/constants/constant.html#Constant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.expressions.constants.Constant" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.expressions.leaf.Leaf" title="cvxpy.expressions.leaf.Leaf"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.expressions.leaf.Leaf</span></code></a></p>
 <p>A constant value.</p>
 <p>Raw numerical constants (Python primite types, NumPy ndarrays,
@@ -743,9 +744,9 @@ and NumPy matrices) are implicitly cast to constants via Expression
 operator overloading. For example, if <code class="docutils literal notranslate"><span class="pre">x</span></code> is an expression and
 <code class="docutils literal notranslate"><span class="pre">c</span></code> is a raw constant, then <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">+</span> <span class="pre">c</span></code> creates an expression by
 casting <code class="docutils literal notranslate"><span class="pre">c</span></code> to a Constant.</p>
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.Constant.T">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">T</span></span><a class="headerlink" href="#cvxpy.expressions.constants.Constant.T" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.Constant.T">
+<em class="property">property </em><code class="sig-name descname">T</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.T" title="Permalink to this definition">¶</a></dt>
 <dd><p>The transpose of the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -754,9 +755,9 @@ casting <code class="docutils literal notranslate"><span class="pre">c</span></c
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.Constant.ndim">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">ndim</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.constants.Constant.ndim" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.Constant.ndim">
+<em class="property">property </em><code class="sig-name descname">ndim</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.ndim" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of dimensions in the expression’s shape.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -765,15 +766,15 @@ casting <code class="docutils literal notranslate"><span class="pre">c</span></c
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.Constant.shape">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">shape</span></span><em class="property"><span class="pre">:</span> <span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#cvxpy.expressions.constants.Constant.shape" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.Constant.shape">
+<em class="property">property </em><code class="sig-name descname">shape</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.shape" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the (row, col) dimensions of the expression.</p>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.Constant.size">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">size</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#cvxpy.expressions.constants.Constant.size" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.Constant.size">
+<em class="property">property </em><code class="sig-name descname">size</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.size" title="Permalink to this definition">¶</a></dt>
 <dd><p>The number of entries in the expression.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -782,9 +783,9 @@ casting <code class="docutils literal notranslate"><span class="pre">c</span></c
 </dl>
 </dd></dl>
 
-<dl class="py property">
-<dt class="sig sig-object py" id="cvxpy.expressions.constants.Constant.value">
-<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#cvxpy.expressions.constants.Constant.value" title="Permalink to this definition">¶</a></dt>
+<dl class="py method">
+<dt id="cvxpy.expressions.constants.Constant.value">
+<em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#cvxpy.expressions.constants.Constant.value" title="Permalink to this definition">¶</a></dt>
 <dd><p>The numeric value of the constant.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type</dt>
@@ -795,8 +796,8 @@ casting <code class="docutils literal notranslate"><span class="pre">c</span></c
 
 </dd></dl>
 
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -876,7 +877,7 @@ casting <code class="docutils literal notranslate"><span class="pre">c</span></c
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -890,7 +891,7 @@ casting <code class="docutils literal notranslate"><span class="pre">c</span></c
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

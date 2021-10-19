@@ -6,12 +6,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Index &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="_static/cvxpy_alabaster.css" />
-    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
+    <script src="_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="#" />
     <link rel="search" title="Search" href="search.html" />
    
@@ -243,9 +245,9 @@
 </li>
       <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.constraint.Constraint">Constraint (class in cvxpy.constraints.constraint)</a>
 </li>
-      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.constraints">constraints (cvxpy.problems.problem.Problem property)</a>
-</li>
       <li><a href="api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.CONSTRAINTS">CONSTRAINTS (cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing attribute)</a>
+</li>
+      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.constraints">constraints() (cvxpy.problems.problem.Problem property)</a>
 </li>
       <li><a href="api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.conv.conv">conv (class in cvxpy.atoms.affine.conv)</a>
 </li>
@@ -255,7 +257,7 @@
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.curvature">curvature (cvxpy.expressions.expression.Expression property)</a>
+      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.curvature">curvature() (cvxpy.expressions.expression.Expression property)</a>
 </li>
       <li><a href="api_reference/cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr">CvxAttr2Constr (class in cvxpy.reductions.cvx_attr2constr)</a>
 </li>
@@ -321,13 +323,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference/cvxpy.atoms.affine.html#cvxpy.atoms.affine.binary_operators.DivExpression">DivExpression (class in cvxpy.atoms.affine.binary_operators)</a>
 </li>
-      <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.domain">domain (cvxpy.atoms.atom.Atom property)</a>
+      <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.domain">domain() (cvxpy.atoms.atom.Atom property)</a>
 
       <ul>
         <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.domain">(cvxpy.expressions.expression.Expression property)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.nonpos.NonPos.dual_value">dual_value (cvxpy.constraints.nonpos.NonPos property)</a>
+      <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.nonpos.NonPos.dual_value">dual_value() (cvxpy.constraints.nonpos.NonPos property)</a>
 </li>
       <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.solution.Solution.dual_vars">dual_vars (cvxpy.reductions.solution.Solution attribute)</a>
 </li>
@@ -387,7 +389,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.gmatmul.gmatmul">gmatmul (class in cvxpy.atoms.gmatmul)</a>
 </li>
-      <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.grad">grad (cvxpy.atoms.atom.Atom property)</a>
+      <li><a href="api_reference/cvxpy.atoms.html#cvxpy.atoms.atom.Atom.grad">grad() (cvxpy.atoms.atom.Atom property)</a>
 
       <ul>
         <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.grad">(cvxpy.expressions.expression.Expression property)</a>
@@ -653,7 +655,7 @@
         <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable.name">(cvxpy.expressions.variable.Variable method)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant.ndim">ndim (cvxpy.expressions.constants.Constant property)</a>
+      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant.ndim">ndim() (cvxpy.expressions.constants.Constant property)</a>
 
       <ul>
         <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter.ndim">(cvxpy.expressions.constants.parameter.Parameter property)</a>
@@ -701,7 +703,7 @@
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.objective">objective (cvxpy.problems.problem.Problem property)</a>
+      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.objective">objective() (cvxpy.problems.problem.Problem property)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -833,7 +835,7 @@
 </li>
       <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats.setup_time">setup_time (cvxpy.problems.problem.SolverStats attribute)</a>
 </li>
-      <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.nonpos.NonPos.shape">shape (cvxpy.constraints.nonpos.NonPos property)</a>
+      <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.nonpos.NonPos.shape">shape() (cvxpy.constraints.nonpos.NonPos property)</a>
 
       <ul>
         <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant.shape">(cvxpy.expressions.constants.Constant property)</a>
@@ -849,9 +851,9 @@
       </ul></li>
       <li><a href="api_reference/cvxpy.atoms.other_atoms.html#cvxpy.atoms.sigma_max.sigma_max">sigma_max (class in cvxpy.atoms.sigma_max)</a>
 </li>
-      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.sign">sign (cvxpy.expressions.expression.Expression property)</a>
+      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.sign">sign() (cvxpy.expressions.expression.Expression property)</a>
 </li>
-      <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.nonpos.NonPos.size">size (cvxpy.constraints.nonpos.NonPos property)</a>
+      <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.nonpos.NonPos.size">size() (cvxpy.constraints.nonpos.NonPos property)</a>
 
       <ul>
         <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant.size">(cvxpy.expressions.constants.Constant property)</a>
@@ -865,7 +867,7 @@
         <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable.size">(cvxpy.expressions.variable.Variable property)</a>
 </li>
       </ul></li>
-      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.size_metrics">size_metrics (cvxpy.problems.problem.Problem property)</a>
+      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.size_metrics">size_metrics() (cvxpy.problems.problem.Problem property)</a>
 </li>
       <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.SizeMetrics">SizeMetrics (class in cvxpy.problems.problem)</a>
 </li>
@@ -904,7 +906,7 @@
 </li>
       <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats.solver_name">solver_name (cvxpy.problems.problem.SolverStats attribute)</a>
 </li>
-      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.solver_stats">solver_stats (cvxpy.problems.problem.Problem property)</a>
+      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.solver_stats">solver_stats() (cvxpy.problems.problem.Problem property)</a>
 </li>
       <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats">SolverStats (class in cvxpy.problems.problem)</a>
 </li>
@@ -926,12 +928,10 @@
 </li>
       <li><a href="api_reference/cvxpy.atoms.elementwise.html#cvxpy.atoms.elementwise.square.square">square() (in module cvxpy.atoms.elementwise.square)</a>
 </li>
-      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.status">status (cvxpy.problems.problem.Problem property)</a>
-
-      <ul>
-        <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.solution.Solution.status">(cvxpy.reductions.solution.Solution attribute)</a>
+      <li><a href="api_reference/cvxpy.reductions.html#cvxpy.reductions.solution.Solution.status">status (cvxpy.reductions.solution.Solution attribute)</a>
 </li>
-      </ul></li>
+      <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.status">status() (cvxpy.problems.problem.Problem property)</a>
+</li>
       <li><a href="api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">stuffed_objective() (cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing method)</a>
 
       <ul>
@@ -954,7 +954,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.second_order.SOC.t">t (cvxpy.constraints.second_order.SOC attribute)</a>
 </li>
-      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant.T">T (cvxpy.expressions.constants.Constant property)</a>
+      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant.T">T() (cvxpy.expressions.constants.Constant property)</a>
 
       <ul>
         <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter.T">(cvxpy.expressions.constants.parameter.Parameter property)</a>
@@ -994,20 +994,6 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant.value">value (cvxpy.expressions.constants.Constant property)</a>
-
-      <ul>
-        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter.value">(cvxpy.expressions.constants.parameter.Parameter property)</a>
-</li>
-        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.value">(cvxpy.expressions.expression.Expression property)</a>
-</li>
-        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.value">(cvxpy.expressions.leaf.Leaf property)</a>
-</li>
-        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable.value">(cvxpy.expressions.variable.Variable property)</a>
-</li>
-        <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.value">(cvxpy.problems.problem.Problem property)</a>
-</li>
-      </ul></li>
       <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.constraint.Constraint.value">value() (cvxpy.constraints.constraint.Constraint method)</a>
 
       <ul>
@@ -1024,6 +1010,18 @@
         <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.second_order.SOC.value">(cvxpy.constraints.second_order.SOC method)</a>
 </li>
         <li><a href="api_reference/cvxpy.constraints.html#cvxpy.constraints.zero.Zero.value">(cvxpy.constraints.zero.Zero method)</a>
+</li>
+        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.Constant.value">(cvxpy.expressions.constants.Constant property)</a>
+</li>
+        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter.value">(cvxpy.expressions.constants.parameter.Parameter property)</a>
+</li>
+        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.value">(cvxpy.expressions.expression.Expression property)</a>
+</li>
+        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.leaf.Leaf.value">(cvxpy.expressions.leaf.Leaf property)</a>
+</li>
+        <li><a href="api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable.value">(cvxpy.expressions.variable.Variable property)</a>
+</li>
+        <li><a href="api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.value">(cvxpy.problems.problem.Problem property)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1157,7 +1155,7 @@
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -1171,7 +1169,7 @@
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

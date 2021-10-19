@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>DGP fundamentals &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <section id="dgp-fundamentals">
+  <div class="section" id="dgp-fundamentals">
 <h1>DGP fundamentals<a class="headerlink" href="#dgp-fundamentals" title="Permalink to this headline">¶</a></h1>
 <p>This notebook will introduce you to the fundamentals of <strong>disciplined
 geometric programming</strong> (<strong>DGP</strong>), which lets you formulate and solve
@@ -44,8 +44,8 @@ geometric programming.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 </pre></div>
 </div>
-</section>
-<section id="log-log-curvature">
+</div>
+<div class="section" id="log-log-curvature">
 <h1>1. Log-log curvature<a class="headerlink" href="#log-log-curvature" title="Permalink to this headline">¶</a></h1>
 <p>Just as every Expression in CVXPY has a curvature (constant, affine,
 convex, concave, or unknown), every Expression also has a log-log
@@ -104,7 +104,7 @@ log-log curvature, all of the <code class="docutils literal notranslate"><span c
 <span class="n">param3</span> <span class="n">UNKNOWN</span>
 </pre></div>
 </div>
-<section id="functions-from-geometric-programming">
+<div class="section" id="functions-from-geometric-programming">
 <h2>Functions from geometric programming<a class="headerlink" href="#functions-from-geometric-programming" title="Permalink to this headline">¶</a></h2>
 <p>A function <span class="math notranslate nohighlight">\(f(x)\)</span> is log-log affine if and only if it is given by</p>
 <div class="math notranslate nohighlight">
@@ -153,9 +153,9 @@ functions that are not posynomials that are still log-log convex.</p>
 <span class="n">power</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span> <span class="n">UNKNOWN</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="log-log-curvature-ruleset">
+</div>
+</div>
+<div class="section" id="log-log-curvature-ruleset">
 <h1>2. Log-log curvature ruleset<a class="headerlink" href="#log-log-curvature-ruleset" title="Permalink to this headline">¶</a></h1>
 <p>CVXPY has a library of atomic functions with known log-log curvature and
 monotonicty. It uses this information to tag every <code class="docutils literal notranslate"><span class="pre">Expression</span></code>, i.e.,
@@ -196,8 +196,8 @@ that the <code class="docutils literal notranslate"><span class="pre">Expression
 2.0 * x * y + power(x, 3/2) * power(y, -1) is dgp? True
 </pre></div>
 </div>
-</section>
-<section id="dgp-problems">
+</div>
+<div class="section" id="dgp-problems">
 <h1>3. DGP problems<a class="headerlink" href="#dgp-problems" title="Permalink to this headline">¶</a></h1>
 <p>An LLCP is an optimization problem of the form</p>
 <div class="math notranslate nohighlight">
@@ -239,7 +239,7 @@ subject to 4.0 * x * y * z + 2.0 * x * z &lt;= 10.0
 Is this problem DGP? True
 </pre></div>
 </div>
-<section id="solving-dgp-problems">
+<div class="section" id="solving-dgp-problems">
 <h2>Solving DGP problems<a class="headerlink" href="#solving-dgp-problems" title="Permalink to this headline">¶</a></h2>
 <p>You can solve a DGP <code class="docutils literal notranslate"><span class="pre">Problem</span></code> by calling its <code class="docutils literal notranslate"><span class="pre">solve</span></code> method with
 <code class="docutils literal notranslate"><span class="pre">gp=True</span></code>.</p>
@@ -266,23 +266,23 @@ Is this problem DGP? True
 </pre></div>
 </div>
 <pre class="literal-block">Problem does not follow DCP rules. However, the problem does follow DGP rules. Consider calling this function with <cite>gp=True</cite>.</pre>
-</section>
-</section>
-<section id="next-steps">
+</div>
+</div>
+<div class="section" id="next-steps">
 <h1>4. Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h1>
-<section id="atoms">
+<div class="section" id="atoms">
 <h2>Atoms<a class="headerlink" href="#atoms" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY has a large library of log-log convex functions, including common
 functions like <span class="math notranslate nohighlight">\(\exp\)</span>, <span class="math notranslate nohighlight">\(\log\)</span>, and the difference between
 two numbers. Check out the tutorial on our website for the full list of
 atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/index.html">https://www.cvxpy.org/tutorial/dgp/index.html</a></p>
-</section>
-<section id="references">
+</div>
+<div class="section" id="references">
 <h2>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h2>
 <p>For a reference on DGP, consult the following paper:
 <a class="reference external" href="https://web.stanford.edu/~boyd/papers/dgp.html">https://web.stanford.edu/~boyd/papers/dgp.html</a></p>
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -347,7 +347,7 @@ atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/in
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -361,7 +361,7 @@ atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/in
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

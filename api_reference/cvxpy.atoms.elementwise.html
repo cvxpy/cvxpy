@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>cvxpy.atoms.elementwise package &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Other Atoms" href="cvxpy.atoms.other_atoms.html" />
@@ -34,46 +34,46 @@
 
           <div class="body" role="main">
             
-  <section id="cvxpy-atoms-elementwise-package">
+  <div class="section" id="cvxpy-atoms-elementwise-package">
 <h1>cvxpy.atoms.elementwise package<a class="headerlink" href="#cvxpy-atoms-elementwise-package" title="Permalink to this headline">¶</a></h1>
 <p>All of the atoms listed here operate elementwise on expressions. For example,
 <a class="reference internal" href="#cvxpy.atoms.elementwise.exp.exp" title="cvxpy.atoms.elementwise.exp.exp"><code class="xref py py-class docutils literal notranslate"><span class="pre">exp</span></code></a> exponentiates each entry of
 expressions that are supplied to it.</p>
-<section id="abs">
+<div class="section" id="abs">
 <span id="id1"></span><h2>abs<a class="headerlink" href="#abs" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.abs.abs">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.abs.</span></span><span class="sig-name descname"><span class="pre">abs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/abs.html#abs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.abs.abs" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.abs.abs">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.abs.</code><code class="sig-name descname">abs</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/abs.html#abs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.abs.abs" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>Elementwise absolute value</p>
 </dd></dl>
 
-</section>
-<section id="entr">
+</div>
+<div class="section" id="entr">
 <span id="id2"></span><h2>entr<a class="headerlink" href="#entr" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.entr.entr">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.entr.</span></span><span class="sig-name descname"><span class="pre">entr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/entr.html#entr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.entr.entr" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.entr.entr">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.entr.</code><code class="sig-name descname">entr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/entr.html#entr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.entr.entr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>Elementwise <span class="math notranslate nohighlight">\(-x\log x\)</span>.</p>
 </dd></dl>
 
-</section>
-<section id="exp">
+</div>
+<div class="section" id="exp">
 <span id="id3"></span><h2>exp<a class="headerlink" href="#exp" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.exp.exp">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.exp.</span></span><span class="sig-name descname"><span class="pre">exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/exp.html#exp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.exp.exp" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.exp.exp">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.exp.</code><code class="sig-name descname">exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/exp.html#exp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.exp.exp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>Elementwise <span class="math notranslate nohighlight">\(e^{x}\)</span>.</p>
 </dd></dl>
 
-</section>
-<section id="huber">
+</div>
+<div class="section" id="huber">
 <span id="id4"></span><h2>huber<a class="headerlink" href="#huber" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.huber.huber">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.huber.</span></span><span class="sig-name descname"><span class="pre">huber</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">M</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/huber.html#huber"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.huber.huber" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.huber.huber">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.huber.</code><code class="sig-name descname">huber</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">M</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/huber.html#huber"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.huber.huber" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>The Huber function</p>
 <div class="math notranslate nohighlight">
@@ -86,108 +86,108 @@ expressions that are supplied to it.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to which the huber function will be applied.</p></li>
-<li><p><strong>M</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.Constant" title="cvxpy.expressions.constants.Constant"><em>Constant</em></a>) – A scalar constant.</p></li>
+<li><p><strong>x</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code>) – The expression to which the huber function will be applied.</p></li>
+<li><p><strong>M</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Constant</span></code>) – A scalar constant.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
-<section id="inv-pos">
+</div>
+<div class="section" id="inv-pos">
 <span id="id5"></span><h2>inv_pos<a class="headerlink" href="#inv-pos" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.inv_pos.inv_pos">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.inv_pos.</span></span><span class="sig-name descname"><span class="pre">inv_pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/inv_pos.html#inv_pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.inv_pos.inv_pos" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.inv_pos.inv_pos">
+<code class="sig-prename descclassname">cvxpy.atoms.elementwise.inv_pos.</code><code class="sig-name descname">inv_pos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/inv_pos.html#inv_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.inv_pos.inv_pos" title="Permalink to this definition">¶</a></dt>
 <dd><p><span class="math notranslate nohighlight">\(x^{-1}\)</span> for <span class="math notranslate nohighlight">\(x &gt; 0\)</span>.</p>
 </dd></dl>
 
-</section>
-<section id="kl-div">
+</div>
+<div class="section" id="kl-div">
 <span id="id6"></span><h2>kl_div<a class="headerlink" href="#kl-div" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.kl_div.kl_div">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.kl_div.</span></span><span class="sig-name descname"><span class="pre">kl_div</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/kl_div.html#kl_div"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.kl_div.kl_div" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.kl_div.kl_div">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.kl_div.</code><code class="sig-name descname">kl_div</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/kl_div.html#kl_div"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.kl_div.kl_div" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p><span class="math notranslate nohighlight">\(x\log(x/y) - x + y\)</span></p>
 <p>For disambiguation between kl_div and rel_entr, see <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/733">https://github.com/cvxpy/cvxpy/issues/733</a></p>
 </dd></dl>
 
-</section>
-<section id="log">
+</div>
+<div class="section" id="log">
 <span id="id7"></span><h2>log<a class="headerlink" href="#log" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.log.log">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.log.</span></span><span class="sig-name descname"><span class="pre">log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/log.html#log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.log.log" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.log.log">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.log.</code><code class="sig-name descname">log</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/log.html#log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.log.log" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>Elementwise <span class="math notranslate nohighlight">\(\log x\)</span>.</p>
 </dd></dl>
 
-</section>
-<section id="log1p">
+</div>
+<div class="section" id="log1p">
 <span id="id8"></span><h2>log1p<a class="headerlink" href="#log1p" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.log1p.log1p">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.log1p.</span></span><span class="sig-name descname"><span class="pre">log1p</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/log1p.html#log1p"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.log1p.log1p" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.log1p.log1p">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.log1p.</code><code class="sig-name descname">log1p</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/log1p.html#log1p"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.log1p.log1p" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#cvxpy.atoms.elementwise.log.log" title="cvxpy.atoms.elementwise.log.log"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.log.log</span></code></a></p>
 <p>Elementwise <span class="math notranslate nohighlight">\(\log (1 + x)\)</span>.</p>
 </dd></dl>
 
-</section>
-<section id="logistic">
+</div>
+<div class="section" id="logistic">
 <span id="id9"></span><h2>logistic<a class="headerlink" href="#logistic" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.logistic.logistic">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.logistic.</span></span><span class="sig-name descname"><span class="pre">logistic</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logistic.html#logistic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.logistic.logistic" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.logistic.logistic">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.logistic.</code><code class="sig-name descname">logistic</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/logistic.html#logistic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.logistic.logistic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p><span class="math notranslate nohighlight">\(\log(1 + e^{x})\)</span></p>
 <p>This is a special case of log(sum(exp)) that is evaluates to a vector rather
 than to a scalar which is useful for logistic regression.</p>
 </dd></dl>
 
-</section>
-<section id="maximum">
+</div>
+<div class="section" id="maximum">
 <span id="id10"></span><h2>maximum<a class="headerlink" href="#maximum" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.maximum.maximum">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.maximum.</span></span><span class="sig-name descname"><span class="pre">maximum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/maximum.html#maximum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.maximum.maximum" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.maximum.maximum">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.maximum.</code><code class="sig-name descname">maximum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg1</span></em>, <em class="sig-param"><span class="n">arg2</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/maximum.html#maximum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.maximum.maximum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>Elementwise maximum of a sequence of expressions.</p>
 </dd></dl>
 
-</section>
-<section id="minimum">
+</div>
+<div class="section" id="minimum">
 <span id="id11"></span><h2>minimum<a class="headerlink" href="#minimum" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.minimum.minimum">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.minimum.</span></span><span class="sig-name descname"><span class="pre">minimum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">arg2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/minimum.html#minimum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.minimum.minimum" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.minimum.minimum">
+<code class="sig-prename descclassname">cvxpy.atoms.elementwise.minimum.</code><code class="sig-name descname">minimum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">arg1</span></em>, <em class="sig-param"><span class="n">arg2</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/minimum.html#minimum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.minimum.minimum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Elementwise minimum of a sequence of expressions.</p>
 </dd></dl>
 
-</section>
-<section id="neg">
+</div>
+<div class="section" id="neg">
 <span id="id12"></span><h2>neg<a class="headerlink" href="#neg" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.neg.neg">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.neg.</span></span><span class="sig-name descname"><span class="pre">neg</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/neg.html#neg"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.neg.neg" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.neg.neg">
+<code class="sig-prename descclassname">cvxpy.atoms.elementwise.neg.</code><code class="sig-name descname">neg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/neg.html#neg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.neg.neg" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for -minimum{x, 0}.</p>
 </dd></dl>
 
-</section>
-<section id="pos">
+</div>
+<div class="section" id="pos">
 <span id="id13"></span><h2>pos<a class="headerlink" href="#pos" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.pos.pos">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.pos.</span></span><span class="sig-name descname"><span class="pre">pos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/pos.html#pos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.pos.pos" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.pos.pos">
+<code class="sig-prename descclassname">cvxpy.atoms.elementwise.pos.</code><code class="sig-name descname">pos</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/pos.html#pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.pos.pos" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for maximum{x,0}.</p>
 </dd></dl>
 
-</section>
-<section id="power">
+</div>
+<div class="section" id="power">
 <span id="id14"></span><h2>power<a class="headerlink" href="#power" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.power.power">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.power.</span></span><span class="sig-name descname"><span class="pre">power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_denom</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1024</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/power.html#power"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.power.power" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.power.power">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.power.</code><code class="sig-name descname">power</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">p</span></em>, <em class="sig-param"><span class="n">max_denom</span><span class="p">:</span> <span class="n">int</span> <span class="o">=</span> <span class="default_value">1024</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/power.html#power"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.power.power" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p>Elementwise power function <span class="math notranslate nohighlight">\(f(x) = x^p\)</span>.</p>
 <p>If <code class="docutils literal notranslate"><span class="pre">expr</span></code> is a CVXPY expression, then <code class="docutils literal notranslate"><span class="pre">expr**p</span></code>
@@ -256,56 +256,56 @@ of the function with full domain,</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>x</strong> (<em>cvxpy.Variable</em>) – </p></li>
-<li><p><strong>p</strong> (<em>int</em><em>, </em><em>float</em><em>, </em><em>Fraction</em><em>, or </em><em>Parameter.</em>) – Scalar power. <code class="docutils literal notranslate"><span class="pre">p</span></code> may be a Parameter in DGP programs, but not
+<li><p><strong>x</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.Variable</span></code>) – </p></li>
+<li><p><strong>p</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Fraction</span></code>, or <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter.</span></code>) – Scalar power. <code class="docutils literal notranslate"><span class="pre">p</span></code> may be a Parameter in DGP programs, but not
 in DCP programs.</p></li>
-<li><p><strong>max_denom</strong> (<em>int</em>) – The maximum denominator considered in forming a rational approximation
+<li><p><strong>max_denom</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code>) – The maximum denominator considered in forming a rational approximation
 of <code class="docutils literal notranslate"><span class="pre">p</span></code>; only relevant when solving as a DCP program.</p></li>
 </ul>
 </dd>
 </dl>
 </dd></dl>
 
-</section>
-<section id="rel-entr">
+</div>
+<div class="section" id="rel-entr">
 <span id="id15"></span><h2>rel-entr<a class="headerlink" href="#rel-entr" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.rel_entr.rel_entr">
-<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.rel_entr.</span></span><span class="sig-name descname"><span class="pre">rel_entr</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/rel_entr.html#rel_entr"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.rel_entr.rel_entr" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.rel_entr.rel_entr">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.atoms.elementwise.rel_entr.</code><code class="sig-name descname">rel_entr</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">y</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/rel_entr.html#rel_entr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.rel_entr.rel_entr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.elementwise.elementwise.Elementwise</span></code></p>
 <p><span class="math notranslate nohighlight">\(x\log(x/y)\)</span></p>
 <p>For disambiguation between rel_entr and kl_div, see <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/733">https://github.com/cvxpy/cvxpy/issues/733</a></p>
 </dd></dl>
 
-</section>
-<section id="scalene">
+</div>
+<div class="section" id="scalene">
 <span id="id16"></span><h2>scalene<a class="headerlink" href="#scalene" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.scalene.scalene">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.scalene.</span></span><span class="sig-name descname"><span class="pre">scalene</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">beta</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/scalene.html#scalene"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.scalene.scalene" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.scalene.scalene">
+<code class="sig-prename descclassname">cvxpy.atoms.elementwise.scalene.</code><code class="sig-name descname">scalene</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">alpha</span></em>, <em class="sig-param"><span class="n">beta</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/scalene.html#scalene"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.scalene.scalene" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for <code class="docutils literal notranslate"><span class="pre">alpha*pos(x)</span> <span class="pre">+</span> <span class="pre">beta*neg(x)</span></code>.</p>
 </dd></dl>
 
-</section>
-<section id="sqrt">
+</div>
+<div class="section" id="sqrt">
 <span id="id17"></span><h2>sqrt<a class="headerlink" href="#sqrt" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.sqrt.sqrt">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.sqrt.</span></span><span class="sig-name descname"><span class="pre">sqrt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/sqrt.html#sqrt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.sqrt.sqrt" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.sqrt.sqrt">
+<code class="sig-prename descclassname">cvxpy.atoms.elementwise.sqrt.</code><code class="sig-name descname">sqrt</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/sqrt.html#sqrt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.sqrt.sqrt" title="Permalink to this definition">¶</a></dt>
 <dd><p>The square root of an expression.</p>
 </dd></dl>
 
-</section>
-<section id="square">
+</div>
+<div class="section" id="square">
 <span id="id18"></span><h2>square<a class="headerlink" href="#square" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="cvxpy.atoms.elementwise.square.square">
-<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.elementwise.square.</span></span><span class="sig-name descname"><span class="pre">square</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/square.html#square"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.square.square" title="Permalink to this definition">¶</a></dt>
+<dt id="cvxpy.atoms.elementwise.square.square">
+<code class="sig-prename descclassname">cvxpy.atoms.elementwise.square.</code><code class="sig-name descname">square</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/elementwise/square.html#square"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.atoms.elementwise.square.square" title="Permalink to this definition">¶</a></dt>
 <dd><p>The square of an expression.</p>
 </dd></dl>
 
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -404,7 +404,7 @@ of <code class="docutils literal notranslate"><span class="pre">p</span></code>;
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -418,7 +418,7 @@ of <code class="docutils literal notranslate"><span class="pre">p</span></code>;
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Disciplined Convex Programming &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Atomic Functions" href="../functions/index.html" />
@@ -34,13 +34,13 @@
 
           <div class="body" role="main">
             
-  <section id="disciplined-convex-programming">
+  <div class="section" id="disciplined-convex-programming">
 <span id="dcp"></span><h1>Disciplined Convex Programming<a class="headerlink" href="#disciplined-convex-programming" title="Permalink to this headline">¶</a></h1>
 <p>Disciplined convex programming (DCP) is a system for constructing mathematical expressions with known curvature from a given library of base functions. CVXPY uses DCP to ensure that the specified optimization problems are convex.</p>
 <p>This section of the tutorial explains the rules of DCP and how they are applied by CVXPY.</p>
 <p>Visit <a class="reference external" href="http://dcp.stanford.edu">dcp.stanford.edu</a> for a
 more interactive introduction to DCP.</p>
-<section id="expressions">
+<div class="section" id="expressions">
 <h2>Expressions<a class="headerlink" href="#expressions" title="Permalink to this headline">¶</a></h2>
 <p>Expressions in CVXPY are formed from variables, parameters, numerical
 constants such as Python floats and Numpy matrices, the standard
@@ -95,8 +95,8 @@ are the same as for NumPy ndarrays (except some broadcasting is banned).</p>
 </pre></div>
 </div>
 <p>CVXPY uses DCP analysis to determine the sign and curvature of each expression.</p>
-</section>
-<section id="sign">
+</div>
+<div class="section" id="sign">
 <h2>Sign<a class="headerlink" href="#sign" title="Permalink to this headline">¶</a></h2>
 <p>Each (sub)expression is flagged as <em>positive</em> (non-negative), <em>negative</em>
 (non-positive), <em>zero</em>, or <em>unknown</em>.</p>
@@ -130,8 +130,8 @@ has unknown sign by the rules above.</p>
 <span class="n">sign</span> <span class="n">of</span> <span class="n">c</span><span class="o">*</span><span class="n">a</span><span class="p">:</span> <span class="n">UNKNOWN</span>
 </pre></div>
 </div>
-</section>
-<section id="curvature">
+</div>
+<div class="section" id="curvature">
 <h2>Curvature<a class="headerlink" href="#curvature" title="Permalink to this headline">¶</a></h2>
 <p>Each (sub)expression is flagged as one of the following curvatures (with respect to its variables)</p>
 <table class="docutils align-default">
@@ -167,8 +167,8 @@ conclusion is always correct, but the simple analysis can flag
 expressions as unknown even when they are convex or concave. Note that
 any constant expression is also affine, and any affine expression is
 convex and concave.</p>
-</section>
-<section id="curvature-rules">
+</div>
+<div class="section" id="curvature-rules">
 <h2>Curvature rules<a class="headerlink" href="#curvature-rules" title="Permalink to this headline">¶</a></h2>
 <p>DCP analysis is based on applying a general composition theorem from
 convex analysis to each (sub)expression.</p>
@@ -214,8 +214,8 @@ positive arguments and decreasing for negative arguments.</p>
 <span class="n">curvature</span> <span class="n">of</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">x</span><span class="p">):</span> <span class="n">CONCAVE</span>
 </pre></div>
 </div>
-</section>
-<section id="infix-operators">
+</div>
+<div class="section" id="infix-operators">
 <h2>Infix operators<a class="headerlink" href="#infix-operators" title="Permalink to this headline">¶</a></h2>
 <p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/</span></code> and matrix multiplication <code class="docutils literal notranslate"><span class="pre">&#64;</span></code>
 are treated exactly like functions.
@@ -226,16 +226,16 @@ convex if <code class="docutils literal notranslate"><span class="pre">expr1</sp
 can only be DCP when one of the expressions is constant.
 The curvature rules above apply. For example, <code class="docutils literal notranslate"><span class="pre">expr1/expr2</span></code> is convex when
 <code class="docutils literal notranslate"><span class="pre">expr1</span></code> is concave and <code class="docutils literal notranslate"><span class="pre">expr2</span></code> is negative and constant.</p>
-</section>
-<section id="example-1">
+</div>
+<div class="section" id="example-1">
 <h2>Example 1<a class="headerlink" href="#example-1" title="Permalink to this headline">¶</a></h2>
 <p>DCP analysis breaks expressions down into subexpressions. The tree
 visualization below shows how this works for the expression
 <code class="docutils literal notranslate"><span class="pre">2*square(x)</span> <span class="pre">+</span> <span class="pre">3</span></code>. Each subexpression is shown in a blue box. We mark
 its curvature on the left and its sign on the right.</p>
 <a class="reference internal image-reference" href="../../_images/example1.png"><img alt="../../_images/example1.png" class="align-center" src="../../_images/example1.png" style="width: 548.8000000000001px; height: 400.0px;" /></a>
-</section>
-<section id="example-2">
+</div>
+<div class="section" id="example-2">
 <h2>Example 2<a class="headerlink" href="#example-2" title="Permalink to this headline">¶</a></h2>
 <p>We’ll walk through the application of the DCP rules to the expression
 <code class="docutils literal notranslate"><span class="pre">sqrt(1</span> <span class="pre">+</span> <span class="pre">square(x))</span></code>.</p>
@@ -265,8 +265,8 @@ certified as convex using the DCP rules.</p>
 <span class="n">norm</span><span class="p">(</span><span class="n">hstack</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">x</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="n">curvature</span><span class="p">:</span> <span class="n">CONVEX</span>
 </pre></div>
 </div>
-</section>
-<section id="dcp-problems">
+</div>
+<div class="section" id="dcp-problems">
 <h2>DCP problems<a class="headerlink" href="#dcp-problems" title="Permalink to this headline">¶</a></h2>
 <p>A problem is constructed from an objective and a list of constraints. If
 a problem follows the DCP rules, it is guaranteed to be convex and
@@ -337,8 +337,8 @@ non-DCP problem.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">does</span> <span class="ow">not</span> <span class="n">follow</span> <span class="n">DCP</span> <span class="n">rules</span><span class="o">.</span>
 </pre></div>
 </div>
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -421,7 +421,7 @@ non-DCP problem.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -435,7 +435,7 @@ non-DCP problem.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

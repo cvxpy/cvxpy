@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Robust Kalman filtering for vehicle tracking &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <section id="robust-kalman-filtering-for-vehicle-tracking">
+  <div class="section" id="robust-kalman-filtering-for-vehicle-tracking">
 <h1>Robust Kalman filtering for vehicle tracking<a class="headerlink" href="#robust-kalman-filtering-for-vehicle-tracking" title="Permalink to this headline">¶</a></h1>
 <p>We will try to pinpoint the location of a moving vehicle with high
 accuracy from noisy sensor data. We’ll do this by modeling the vehicle
@@ -41,8 +41,8 @@ filtering</strong> can be used to approach this problem when the sensor noise
 is assumed to be Gaussian. We’ll use <strong>robust Kalman filtering</strong> to get
 a more accurate estimate of the vehicle state for a non-Gaussian case
 with outliers.</p>
-</section>
-<section id="problem-statement">
+</div>
+<div class="section" id="problem-statement">
 <h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this headline">¶</a></h1>
 <p>A discrete-time linear dynamical system consists of a sequence of state
 vectors <span class="math notranslate nohighlight">\(x_t \in \mathbf{R}^n\)</span>, indexed by time
@@ -60,8 +60,8 @@ observation matrix.</p>
 <p>Given <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(B\)</span>, <span class="math notranslate nohighlight">\(C\)</span>, and <span class="math notranslate nohighlight">\(y_t\)</span> for
 <span class="math notranslate nohighlight">\(t = 0, \ldots, N-1\)</span>, the goal is to estimate <span class="math notranslate nohighlight">\(x_t\)</span> for
 <span class="math notranslate nohighlight">\(t = 0, \ldots, N-1\)</span>.</p>
-</section>
-<section id="kalman-filtering">
+</div>
+<div class="section" id="kalman-filtering">
 <h1>Kalman filtering<a class="headerlink" href="#kalman-filtering" title="Permalink to this headline">¶</a></h1>
 <p>A Kalman filter estimates <span class="math notranslate nohighlight">\(x_t\)</span> by solving the optimization
 problem</p>
@@ -83,8 +83,8 @@ vestigial constraint only because it offers a concise problem statement.</p>
 However, the quadratic objective can be influenced by large outliers,
 which degrades the accuracy of the recovery. To improve estimation in
 the presence of outliers, we can use <strong>robust Kalman filtering</strong>.</p>
-</section>
-<section id="robust-kalman-filtering">
+</div>
+<div class="section" id="robust-kalman-filtering">
 <h1>Robust Kalman filtering<a class="headerlink" href="#robust-kalman-filtering" title="Permalink to this headline">¶</a></h1>
 <p>To handle outliers in <span class="math notranslate nohighlight">\(v_t\)</span>, robust Kalman filtering replaces the
 quadratic cost with a Huber cost, which results in the convex
@@ -104,8 +104,8 @@ optimization problem</p>
 of a ball of radius <span class="math notranslate nohighlight">\(\rho\)</span>, whereas in standard Kalman filtering,
 all errors are penalized quadratically. Thus, large errors are penalized
 less harshly, making this model more robust to outliers.</p>
-</section>
-<section id="vehicle-tracking-example">
+</div>
+<div class="section" id="vehicle-tracking-example">
 <h1>Vehicle tracking example<a class="headerlink" href="#vehicle-tracking-example" title="Permalink to this headline">¶</a></h1>
 <p>We’ll apply standard and robust Kalman filtering to a vehicle tracking
 problem with state <span class="math notranslate nohighlight">\(x_t \in \mathbf{R}^4\)</span>, where
@@ -134,8 +134,8 @@ measurements of the vehicle’s position, <span class="math notranslate nohighli
 0 &amp; 1 &amp; 0 &amp; 0
 \end{bmatrix},\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(\gamma\)</span> is a velocity damping parameter.</p>
-</section>
-<section id="d-model">
+</div>
+<div class="section" id="d-model">
 <h1>1D Model<a class="headerlink" href="#d-model" title="Permalink to this headline">¶</a></h1>
 <p>The recurrence is derived from the following relations in a single
 dimension. For this subsection, let <span class="math notranslate nohighlight">\(x_t, v_t, w_t\)</span> be the vehicle
@@ -150,7 +150,7 @@ v_{t+1} &amp;= \left(1-\gamma\right)v_t + w_t \Delta t.
 \end{align}\end{split}\]</div>
 <p>Extending these relations to two dimensions gives us the dynamics
 matrices <span class="math notranslate nohighlight">\(A\)</span> and <span class="math notranslate nohighlight">\(B\)</span>.</p>
-<section id="helper-functions">
+<div class="section" id="helper-functions">
 <h2>Helper Functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -205,7 +205,7 @@ matrices <span class="math notranslate nohighlight">\(A\)</span> and <span class
         <span class="n">ax</span> <span class="o">=</span> <span class="p">[</span><span class="n">ax</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">traj</span><span class="p">):</span>
-        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">,:],</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">.1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">,:],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">,:],</span> <span class="s1">&#39;ro&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">1</span><span class="p">)</span>
         <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">axis</span><span class="p">:</span>
             <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="n">axis</span><span class="p">)</span>
@@ -214,8 +214,8 @@ matrices <span class="math notranslate nohighlight">\(A\)</span> and <span class
         <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="problem-data">
+</div>
+<div class="section" id="problem-data">
 <h2>Problem Data<a class="headerlink" href="#problem-data" title="Permalink to this headline">¶</a></h2>
 <p>We generate the data for the vehicle tracking problem. We’ll have
 <span class="math notranslate nohighlight">\(N=1000\)</span>, <span class="math notranslate nohighlight">\(w_t\)</span> a standard Gaussian, and <span class="math notranslate nohighlight">\(v_t\)</span> a
@@ -226,7 +226,7 @@ with <span class="math notranslate nohighlight">\(\sigma = 20\)</span>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1"># number of timesteps</span>
 <span class="n">T</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># time will vary from 0 to T with step delt</span>
 <span class="n">ts</span><span class="p">,</span> <span class="n">delt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">T</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">retstep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">gamma</span> <span class="o">=</span> <span class="mf">.05</span> <span class="c1"># damping, 0 is no damping</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span> <span class="c1"># damping, 0 is no damping</span>
 
 <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
 <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span>
@@ -248,9 +248,9 @@ with <span class="math notranslate nohighlight">\(\sigma = 20\)</span>.</p>
 <span class="n">C</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="simulation">
+</div>
+</div>
+<div class="section" id="simulation">
 <h1>Simulation<a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h1>
 <p>We seed <span class="math notranslate nohighlight">\(x_0 = 0\)</span> (starting at the origin with zero velocity) and
 simulate the system forward in time. The results are the true vehicle
@@ -260,7 +260,7 @@ observed positions <code class="docutils literal notranslate"><span class="pre">
 dimensions as a function of time. We also plot the sets of true and
 observed vehicle positions.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">20</span>
-<span class="n">p</span> <span class="o">=</span> <span class="mf">.20</span>
+<span class="n">p</span> <span class="o">=</span> <span class="o">.</span><span class="mi">20</span>
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">4</span><span class="p">,</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
@@ -290,8 +290,8 @@ observed vehicle positions.</p>
 </div>
 <img alt="../../_images/robust_kalman_6_0.png" src="../../_images/robust_kalman_6_0.png" />
 <img alt="../../_images/robust_kalman_6_1.png" src="../../_images/robust_kalman_6_1.png" />
-</section>
-<section id="kalman-filtering-recovery">
+</div>
+<div class="section" id="kalman-filtering-recovery">
 <h1>Kalman filtering recovery<a class="headerlink" href="#kalman-filtering-recovery" title="Permalink to this headline">¶</a></h1>
 <p>The code below solves the standard Kalman filtering problem using CVXPY.
 We plot and compare the true and recovered vehicle states. Note that the
@@ -303,7 +303,7 @@ recovery is distorted by outliers in the measurements.</p>
 <span class="n">w</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
 <span class="n">v</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
 
-<span class="n">tau</span> <span class="o">=</span> <span class="mf">.08</span>
+<span class="n">tau</span> <span class="o">=</span> <span class="o">.</span><span class="mi">08</span>
 
 <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">+</span> <span class="n">tau</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
 <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
@@ -326,7 +326,7 @@ recovery is distorted by outliers in the measurements.</p>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
-           <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
+           <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
 <span class="o">-----------------------------------------------------------------</span>
@@ -361,8 +361,8 @@ recovery is distorted by outliers in the measurements.</p>
 <img alt="../../_images/robust_kalman_8_1.png" src="../../_images/robust_kalman_8_1.png" />
 <img alt="../../_images/robust_kalman_8_2.png" src="../../_images/robust_kalman_8_2.png" />
 <img alt="../../_images/robust_kalman_8_3.png" src="../../_images/robust_kalman_8_3.png" />
-</section>
-<section id="robust-kalman-filtering-recovery">
+</div>
+<div class="section" id="robust-kalman-filtering-recovery">
 <h1>Robust Kalman filtering recovery<a class="headerlink" href="#robust-kalman-filtering-recovery" title="Permalink to this headline">¶</a></h1>
 <p>Here we implement robust Kalman filtering with CVXPY. We get a better
 recovery than the standard Kalman filtering, which can be seen in the
@@ -398,7 +398,7 @@ plots below.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">2.0.4</span> <span class="o">-</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="n">embotech</span> <span class="n">GmbH</span><span class="p">,</span> <span class="n">Zurich</span> <span class="n">Switzerland</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">15.</span> <span class="n">Web</span><span class="p">:</span> <span class="n">www</span><span class="o">.</span><span class="n">embotech</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ECOS</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">2.0</span><span class="o">.</span><span class="mi">4</span> <span class="o">-</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="n">embotech</span> <span class="n">GmbH</span><span class="p">,</span> <span class="n">Zurich</span> <span class="n">Switzerland</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">15.</span> <span class="n">Web</span><span class="p">:</span> <span class="n">www</span><span class="o">.</span><span class="n">embotech</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ECOS</span>
 
 <span class="n">It</span>     <span class="n">pcost</span>       <span class="n">dcost</span>      <span class="n">gap</span>   <span class="n">pres</span>   <span class="n">dres</span>    <span class="n">k</span><span class="o">/</span><span class="n">t</span>    <span class="n">mu</span>     <span class="n">step</span>   <span class="n">sigma</span>     <span class="n">IR</span>    <span class="o">|</span>   <span class="n">BT</span>
  <span class="mi">0</span>  <span class="o">+</span><span class="mf">0.000e+00</span>  <span class="o">-</span><span class="mf">2.923e+02</span>  <span class="o">+</span><span class="mf">7e+05</span>  <span class="mf">3e-01</span>  <span class="mf">3e-02</span>  <span class="mf">1e+00</span>  <span class="mf">2e+02</span>    <span class="o">---</span>    <span class="o">---</span>    <span class="mi">1</span>  <span class="mi">1</span>  <span class="o">-</span> <span class="o">|</span>  <span class="o">-</span>  <span class="o">-</span>
@@ -443,7 +443,7 @@ plots below.</p>
 <img alt="../../_images/robust_kalman_10_1.png" src="../../_images/robust_kalman_10_1.png" />
 <img alt="../../_images/robust_kalman_10_2.png" src="../../_images/robust_kalman_10_2.png" />
 <img alt="../../_images/robust_kalman_10_3.png" src="../../_images/robust_kalman_10_3.png" />
-</section>
+</div>
 
 
           </div>
@@ -508,7 +508,7 @@ plots below.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -522,7 +522,7 @@ plots below.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

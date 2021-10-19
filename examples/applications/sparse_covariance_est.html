@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sparse covariance estimation for Gaussian variables &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <section id="sparse-covariance-estimation-for-gaussian-variables">
+  <div class="section" id="sparse-covariance-estimation-for-gaussian-variables">
 <h1>Sparse covariance estimation for Gaussian variables<a class="headerlink" href="#sparse-covariance-estimation-for-gaussian-variables" title="Permalink to this headline">¶</a></h1>
 <p>A derivative work by Judson Wilson, 5/22/2014. Adapted (with significant
 improvements and fixes) from the CVX example of the same name, by Joelle
@@ -41,7 +41,7 @@ Skaf, 4/24/2008.</p>
 <ul class="simple">
 <li><p>Section 7.1.1, Boyd &amp; Vandenberghe “Convex Optimization”</p></li>
 </ul>
-<section id="introduction">
+<div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>Suppose <span class="math notranslate nohighlight">\(y \in \mathbf{\mbox{R}}^n\)</span> is a Gaussian random variable
 with zero mean and covariance matrix
@@ -60,8 +60,8 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
     \end{array}\end{split}\]</div>
 <p>where <span class="math notranslate nohighlight">\(Y\)</span> is the sample covariance of <span class="math notranslate nohighlight">\(y_1,\dots,y_N\)</span>, and
 <span class="math notranslate nohighlight">\(\alpha\)</span> is a sparsity parameter to be chosen or tuned.</p>
-</section>
-<section id="generate-problem-data">
+</div>
+<div class="section" id="generate-problem-data">
 <h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -91,8 +91,8 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
 <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cov</span><span class="p">(</span><span class="n">y_sample</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="solve-for-several-alpha-values">
+</div>
+<div class="section" id="solve-for-several-alpha-values">
 <h2>Solve for several <span class="math notranslate nohighlight">\(\alpha\)</span> values<a class="headerlink" href="#solve-for-several-alpha-values" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The alpha values for each attempt at generating a sparse inverse cov. matrix.</span>
 <span class="n">alphas</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
@@ -138,8 +138,8 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
 <span class="n">Completed</span> <span class="n">optimization</span> <span class="n">parameterized</span> <span class="n">by</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">obj</span> <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mf">26.989407069609157</span>
 </pre></div>
 </div>
-</section>
-<section id="result-plots">
+</div>
+<div class="section" id="result-plots">
 <h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
@@ -170,8 +170,8 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
 </pre></div>
 </div>
 <img alt="../../_images/sparse_covariance_est_5_1.png" src="../../_images/sparse_covariance_est_5_1.png" />
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -236,7 +236,7 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -250,7 +250,7 @@ knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

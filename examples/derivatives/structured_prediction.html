@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Structured prediction &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <section id="structured-prediction">
+  <div class="section" id="structured-prediction">
 <h1>Structured prediction<a class="headerlink" href="#structured-prediction" title="Permalink to this headline">¶</a></h1>
 <p>In this
 example<span class="math notranslate nohighlight">\(\newcommand{\reals}{\mathbf{R}}\)</span><span class="math notranslate nohighlight">\(\newcommand{\ones}{\mathbf{1}}\)</span>,
@@ -107,7 +107,7 @@ v0.1.3.</p>
 <span class="o">%</span><span class="k">matplotlib</span> inline
 </pre></div>
 </div>
-<section id="data-generation">
+<div class="section" id="data-generation">
 <h2>Data generation<a class="headerlink" href="#data-generation" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
 <span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
@@ -170,7 +170,7 @@ v0.1.3.</p>
 </pre></div>
 </div>
 <img alt="../../_images/structured_prediction_7_1.png" src="../../_images/structured_prediction_7_1.png" />
-<section id="monomial-fit-to-each-component">
+<div class="section" id="monomial-fit-to-each-component">
 <h3>Monomial fit to each component<a class="headerlink" href="#monomial-fit-to-each-component" title="Permalink to this headline">¶</a></h3>
 <p>We will initialize the parameters in our LLCP model by fitting monomials
 to the training data, without enforcing the monotonicity constraint.</p>
@@ -197,7 +197,7 @@ to the training data, without enforcing the monotonicity constraint.</p>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
-           <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.6.0</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
+           <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">6.0</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2019</span>
 <span class="o">-----------------------------------------------------------------</span>
@@ -236,8 +236,8 @@ to the training data, without enforcing the monotonicity constraint.</p>
     <span class="n">lstsq_val_preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pred</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
-</section>
-<section id="fitting">
+</div>
+<div class="section" id="fitting">
 <h3>Fitting<a class="headerlink" href="#fitting" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">A_param</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
 <span class="n">c_param</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,))</span>
@@ -332,9 +332,9 @@ to the training data, without enforcing the monotonicity constraint.</p>
 </pre></div>
 </div>
 <img alt="../../_images/structured_prediction_20_0.png" src="../../_images/structured_prediction_20_0.png" />
-</section>
-</section>
-</section>
+</div>
+</div>
+</div>
 
 
           </div>
@@ -399,7 +399,7 @@ to the training data, without enforcing the monotonicity constraint.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -413,7 +413,7 @@ to the training data, without enforcing the monotonicity constraint.</p>
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

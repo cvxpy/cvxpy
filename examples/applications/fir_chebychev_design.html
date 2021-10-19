@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chebychev design of an FIR filter given a desired \(H(\omega)\) &#8212; CVXPY 1.1.15 documentation</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <section id="chebychev-design-of-an-fir-filter-given-a-desired-h-omega">
+  <div class="section" id="chebychev-design-of-an-fir-filter-given-a-desired-h-omega">
 <h1>Chebychev design of an FIR filter given a desired <span class="math notranslate nohighlight">\(H(\omega)\)</span><a class="headerlink" href="#chebychev-design-of-an-fir-filter-given-a-desired-h-omega" title="Permalink to this headline">¶</a></h1>
 <p>A derivative work by Judson Wilson, 5/27/2014. Adapted from the CVX
 example of the same name, by Almir Mutapcic, 2/2/2006.</p>
@@ -40,7 +40,7 @@ example of the same name, by Almir Mutapcic, 2/2/2006.</p>
 <ul class="simple">
 <li><p>“Filter design” lecture notes (EE364) by S. Boyd</p></li>
 </ul>
-<section id="introduction">
+<div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>This program designs an FIR filter, given a desired frequency response
 <span class="math notranslate nohighlight">\(H_\mbox{des}(\omega)\)</span>. The design is judged by the maximum
@@ -54,8 +54,8 @@ form:</p>
     \end{array}\]</div>
 <p>where the variable <span class="math notranslate nohighlight">\(H\)</span> is the frequency response function,
 corresponding to an impulse response <span class="math notranslate nohighlight">\(h\)</span>.</p>
-</section>
-<section id="initialize-problem-data">
+</div>
+<div class="section" id="initialize-problem-data">
 <h2>Initialize problem data<a class="headerlink" href="#initialize-problem-data" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
@@ -82,8 +82,8 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 <span class="c1">#Hdes = np.multiply(Hdes, np.exp(-1j*n/2*w))</span>
 </pre></div>
 </div>
-</section>
-<section id="solve-the-minimax-chebychev-design-problem">
+</div>
+<div class="section" id="solve-the-minimax-chebychev-design-problem">
 <h2>Solve the minimax (Chebychev) design problem<a class="headerlink" href="#solve-the-minimax-chebychev-design-problem" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A is the matrix used to compute the frequency response</span>
 <span class="c1"># from a vector of filter coefficients:</span>
@@ -131,8 +131,8 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 <span class="n">final</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="mf">0.4999999999999996</span>
 </pre></div>
 </div>
-</section>
-<section id="result-plots">
+</div>
+<div class="section" id="result-plots">
 <h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this headline">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
@@ -183,8 +183,8 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 <img alt="../../_images/fir_chebychev_design_5_1.png" src="../../_images/fir_chebychev_design_5_1.png" />
 <img alt="../../_images/fir_chebychev_design_5_2.png" src="../../_images/fir_chebychev_design_5_2.png" />
 <img alt="../../_images/fir_chebychev_design_5_3.png" src="../../_images/fir_chebychev_design_5_3.png" />
-</section>
-</section>
+</div>
+</div>
 
 
           </div>
@@ -249,7 +249,7 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
     </form>
     </div>
@@ -263,7 +263,7 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
       &copy;2020, The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

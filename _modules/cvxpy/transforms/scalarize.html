@@ -1,0 +1,274 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cvxpy.transforms.scalarize &#8212; CVXPY 1.1.15 documentation</title>
+    <link rel="stylesheet" href="../../../_static/cvxpy_alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <script src="../../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for cvxpy.transforms.scalarize</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2017 Steven Diamond</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+
+<span class="kn">import</span> <span class="nn">cvxpy.atoms</span> <span class="k">as</span> <span class="nn">atoms</span>
+<span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">Constant</span>
+<span class="kn">from</span> <span class="nn">cvxpy.problems.objective</span> <span class="kn">import</span> <span class="n">Maximize</span><span class="p">,</span> <span class="n">Minimize</span>
+<span class="kn">from</span> <span class="nn">cvxpy.transforms</span> <span class="kn">import</span> <span class="n">indicator</span>
+
+
+<span class="k">def</span> <span class="nf">weighted_sum</span><span class="p">(</span><span class="n">objectives</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">]],</span> <span class="n">weights</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Combines objectives as a weighted sum.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      objectives: A list of Minimize/Maximize objectives.</span>
+<span class="sd">      weights: A vector of weights.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A Minimize/Maximize objective.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_objs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objectives</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">sum</span><span class="p">(</span><span class="n">objectives</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_objs</span><span class="p">))</span>
+
+
+<span class="k">def</span> <span class="nf">targets_and_priorities</span><span class="p">(</span>
+  <span class="n">objectives</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">]],</span>
+  <span class="n">priorities</span><span class="p">,</span>
+  <span class="n">targets</span><span class="p">,</span>
+  <span class="n">limits</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+  <span class="n">off_target</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-5</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">]:</span>
+    <span class="sd">&quot;&quot;&quot;Combines objectives with penalties within a range between target and limit.</span>
+
+<span class="sd">    Each Minimize objective i has value</span>
+
+<span class="sd">        priorities[i]*objectives[i] when objectives[i] &gt;= targets[i]</span>
+
+<span class="sd">        +infinity when objectives[i] &gt; limits[i]</span>
+
+<span class="sd">    Each Maximize objective i has value</span>
+
+<span class="sd">        priorities[i]*objectives[i] when objectives[i] &lt;= targets[i]</span>
+
+<span class="sd">        +infinity when objectives[i] &lt; limits[i]</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      objectives: A list of Minimize/Maximize objectives.</span>
+<span class="sd">      priorities: The weight within the trange.</span>
+<span class="sd">      targets: The start (end) of penalty for Minimize (Maximize)</span>
+<span class="sd">      limits: The hard end (start) of penalty for Minimize (Maximize)</span>
+<span class="sd">      off_target: Penalty outside of target.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A Minimize/Maximize objective.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_objs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objectives</span><span class="p">)</span>
+    <span class="n">new_objs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_objs</span><span class="p">):</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="n">objectives</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="n">sign</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">Constant</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">priorities</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">off_target</span> <span class="o">*=</span> <span class="n">sign</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="p">(</span><span class="n">priorities</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">off_target</span><span class="p">)</span><span class="o">*</span><span class="n">atoms</span><span class="o">.</span><span class="n">pos</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">targets</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">expr</span> <span class="o">+=</span> <span class="n">off_target</span><span class="o">*</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">limits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">expr</span> <span class="o">+=</span> <span class="n">sign</span><span class="o">*</span><span class="n">indicator</span><span class="p">([</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">limits</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+            <span class="n">new_objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># Maximize</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="p">(</span><span class="n">priorities</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">off_target</span><span class="p">)</span><span class="o">*</span><span class="n">atoms</span><span class="o">.</span><span class="n">min_elemwise</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">targets</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">expr</span> <span class="o">+=</span> <span class="n">off_target</span><span class="o">*</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">limits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">expr</span> <span class="o">+=</span> <span class="n">sign</span><span class="o">*</span><span class="n">indicator</span><span class="p">([</span><span class="n">obj</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">limits</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+            <span class="n">new_objs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+    <span class="n">obj_expr</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">new_objs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">obj_expr</span><span class="o">.</span><span class="n">is_convex</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">obj_expr</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Maximize</span><span class="p">(</span><span class="n">obj_expr</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">max</span><span class="p">(</span><span class="n">objectives</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">]],</span> <span class="n">weights</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Minimize</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Combines objectives as max of weighted terms.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      objectives: A list of Minimize/Maximize objectives.</span>
+<span class="sd">      weights: A vector of weights.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A Minimize objective.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_objs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objectives</span><span class="p">)</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">objectives</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_objs</span><span class="p">)])</span>
+    <span class="k">return</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">log_sum_exp</span><span class="p">(</span>
+  <span class="n">objectives</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Union</span><span class="p">[</span><span class="n">Minimize</span><span class="p">,</span> <span class="n">Maximize</span><span class="p">]],</span> <span class="n">weights</span><span class="p">,</span> <span class="n">gamma</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Minimize</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Combines objectives as log_sum_exp of weighted terms.</span>
+
+
+<span class="sd">    The objective takes the form</span>
+<span class="sd">        log(sum_{i=1}^n exp(gamma*weights[i]*objectives[i]))/gamma</span>
+<span class="sd">    As gamma goes to 0, log_sum_exp approaches weighted_sum. As gamma goes to infinity,</span>
+<span class="sd">    log_sum_exp approaches max.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      objectives: A list of Minimize/Maximize objectives.</span>
+<span class="sd">      weights: A vector of weights.</span>
+<span class="sd">      gamma: Parameter interpolating between weighted_sum and max.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A Minimize objective.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_objs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">objectives</span><span class="p">)</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="p">[(</span><span class="n">objectives</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">*</span><span class="n">weights</span><span class="p">[</span><span class="n">i</span><span class="p">])</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_objs</span><span class="p">)]</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="n">atoms</span><span class="o">.</span><span class="n">log_sum_exp</span><span class="p">(</span><span class="n">gamma</span><span class="o">*</span><span class="n">atoms</span><span class="o">.</span><span class="n">vstack</span><span class="p">(</span><span class="n">terms</span><span class="p">))</span><span class="o">/</span><span class="n">gamma</span>
+    <span class="k">return</span> <span class="n">Minimize</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
