@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 try:
     # Try to import SCIP model for typing
     from pyscipopt.scip import Model as ScipModel
-except ImportError:
+except ModuleNotFoundError:
     # If it fails continue and use a generic type instead.
     ScipModel = Generic
 

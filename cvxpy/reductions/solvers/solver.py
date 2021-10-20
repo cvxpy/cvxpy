@@ -58,7 +58,7 @@ class Solver(Reduction):
         try:
             self.import_solver()
             return True
-        except ImportError:
+        except ModuleNotFoundError:
             return False
 
     @abc.abstractmethod
