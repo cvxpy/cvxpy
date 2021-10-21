@@ -35,15 +35,15 @@ Basic examples
 
 - :doc:`Mixed-integer quadratic program <basic/mixed_integer_quadratic_program>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mixed_integer_quadratic_program.ipynb>`_
 
-- `Control <https://colab.research.google.com/github/cvxpy/cvx_short_course/blob/master/intro/control.ipynb>`_
+- `Control <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/intro/control.ipynb>`_
 
-- `Portfolio optimization <https://colab.research.google.com/github/cvxpy/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_
+- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_
 
-- `Worst-case risk analysis <https://colab.research.google.com/github/cvxpy/cvx_short_course/blob/master/applications/worst_case_analysis.ipynb>`_
+- `Worst-case risk analysis <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/worst_case_analysis.ipynb>`_
 
-- `Model fitting <https://colab.research.google.com/github/cvxpy/cvx_short_course/blob/master/applications/model_fitting.ipynb>`_
+- `Model fitting <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/model_fitting.ipynb>`_
 
-- `Optimal advertising <https://colab.research.google.com/github/cvxpy/cvx_short_course/blob/master/applications/optimal_ad.ipynb>`_
+- `Optimal advertising <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/optimal_ad.ipynb>`_
 
 - :doc:`Total variation in-painting <applications/tv_inpainting>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/tv_inpainting.ipynb>`_
 
@@ -127,4 +127,6 @@ Advanced Applications
 - :doc:`Sizing of clock meshes <applications/clock_mesh>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb>`_
 - :doc:`Sparse covariance estimation for Gaussian variables <applications/sparse_covariance_est>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
 - :doc:`Water filling <applications/water_filling_BVex5.2>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_
-
+- `Entropic Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Entropic%20Portfolio.ipynb>`_
+- `Portfolio Optimization using SOC constraints <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/SOC%20Portfolio.ipynb>`_
+- `Multiple Traveling Salesman Problem <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mTSP_en.ipynb>`_
