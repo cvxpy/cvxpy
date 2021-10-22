@@ -368,7 +368,7 @@ problems involving Parameters. Defaults to <code class="docutils literal notrans
 <p>We will discuss the optional arguments in detail below.</p>
 <div class="section" id="choosing-a-solver">
 <span id="solvers"></span><h3>Choosing a solver<a class="headerlink" href="#choosing-a-solver" title="Permalink to this headline">¶</a></h3>
-<p>CVXPY is distributed with the open source solvers <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxpy/scs">SCS</a>.
+<p>CVXPY is distributed with the open source solvers <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.</p>
 <table class="docutils align-default">
@@ -484,7 +484,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="http://github.com/cvxpy/scs">SCS</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -538,7 +538,7 @@ not have any atoms that take advantage of this constraint. If you want you want 
 type of constraint in your model, you will need to instantiate <code class="docutils literal notranslate"><span class="pre">PowCone3D</span></code> and/or <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code>
 objects manually.</p>
 <p>By default CVXPY calls the solver most specialized to the problem type. For example, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> is called for SOCPs.
-<a class="reference external" href="http://github.com/cvxpy/scs">SCS</a> can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use <a class="reference external" href="https://osqp.org/">OSQP</a>.</p>
+<a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> can handle all problems (except mixed-integer programs). If the problem is a QP, CVXPY will use <a class="reference external" href="https://osqp.org/">OSQP</a>.</p>
 <p>You can change the solver called by CVXPY using the <code class="docutils literal notranslate"><span class="pre">solver</span></code> keyword argument. If the solver you choose cannot solve the problem, CVXPY will raise an exception. Here’s example code solving the same problem with different solvers.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solving a problem with different solvers.</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -704,7 +704,7 @@ warm start would only be a good initial point.</p>
 </div>
 <div class="section" id="setting-solver-options">
 <span id="solveropts"></span><h2>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, and <a class="reference external" href="http://github.com/cvxpy/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -829,7 +829,7 @@ solvers. The precise API that CVXPY users are held to is described in the CVXPY 
 code: cvxpy/reductions/solvers/kktsolver.py</p>
 </dd>
 </dl>
-<p><a class="reference external" href="http://github.com/cvxpy/scs">SCS</a> options:</p>
+<p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> options:</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">'max_iters'</span></code></dt><dd><p>maximum number of iterations (default: 2500).</p>
 </dd>
@@ -1300,7 +1300,7 @@ the derivative of <code class="docutils literal notranslate"><span class="pre">f
 <code class="docutils literal notranslate"><span class="pre">problem.backward()</span></code>, just set <code class="docutils literal notranslate"><span class="pre">x.gradient</span> <span class="pre">=</span> <span class="pre">dx</span></code>.</p>
 <p>The <code class="docutils literal notranslate"><span class="pre">backward</span></code> method can be powerful when combined with software for
 automatic differentiation. We recommend the software package
-<a class="reference external" href="https://www.github.com/cvxpy/cvxpylayers">CVXPY Layers</a>, which provides
+<a class="reference external" href="https://www.github.com/cvxgrp/cvxpylayers">CVXPY Layers</a>, which provides
 differentiable PyTorch and TensorFlow wrappers for CVXPY problems.</p>
 <p><strong>backward or derivative?</strong> The <code class="docutils literal notranslate"><span class="pre">backward</span></code> method should be used when
 you need the gradient of (a scalar-valued function) of the solution, with

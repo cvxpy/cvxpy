@@ -964,7 +964,7 @@
                                  <span class="s2">&quot;supported solver is SCS &quot;</span>
                                  <span class="s2">&quot;(received </span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span> <span class="n">solver</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">s</span><span class="o">.</span><span class="n">DIFFCP</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">INSTALLED_SOLVERS</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span>
+                <span class="k">raise</span> <span class="ne">ModuleNotFoundError</span><span class="p">(</span>
                     <span class="s2">&quot;The Python package diffcp must be installed to &quot;</span>
                     <span class="s2">&quot;differentiate through problems. Please follow the &quot;</span>
                     <span class="s2">&quot;installation instructions at &quot;</span>
