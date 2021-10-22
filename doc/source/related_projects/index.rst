@@ -9,15 +9,15 @@ We list here the optimization packages most relevant to CVXPY users.
 Modeling frameworks
 -------------------
 
-- `DCCP <https://github.com/cvxpy/dccp>`_ is a CVXPY extension for modeling and solving difference of convex problems.
+- `DCCP <https://github.com/cvxgrp/dccp>`_ is a CVXPY extension for modeling and solving difference of convex problems.
 
-- `DMCP <https://github.com/cvxpy/dmcp>`_ is a CVXPY extension for modeling and solving multi-convex problems.
+- `DMCP <https://github.com/cvxgrp/dmcp>`_ is a CVXPY extension for modeling and solving multi-convex problems.
 
-- `NCVX <https://github.com/cvxpy/ncvx>`_ is a CVXPY extension for modeling and solving problems with convex objectives and decision variables from a nonconvex set.
+- `NCVX <https://github.com/cvxgrp/ncvx>`_ is a CVXPY extension for modeling and solving problems with convex objectives and decision variables from a nonconvex set.
 
-- `cvxstoc <http://alnurali.github.io/cvxstoc/>`_ is a CVXPY extension that makes it easy to code and solve stochastic optimization problems, i.e., convex optimization problems that involve random variables.
+- `osmm <https://github.com/cvxgrp/osmm>`_ is a Python package for optimization problems that arise in stochastic optimization, which is built on PyTorch and CVXPY.
 
-- `cvxpylayers <https://github.com/cvxpy/cvxpylayers/>`_ is a library that converts CVXPY problems into differentiable PyTorch and TensorFlow 2.0 layers.
+- `cvxpylayers <https://github.com/cvxgrp/cvxpylayers/>`_ is a library that converts CVXPY problems into differentiable PyTorch and TensorFlow 2.0 layers.
 
 - `SnapVX <http://snap.stanford.edu/snapvx/>`_ is a Python-based convex optimization solver for problems defined on graphs.
 
@@ -36,7 +36,7 @@ Solvers
 
 - `OSQP <https://osqp.org/>`_ is an open-source C library for solving convex quadratic programs.
 
-- `SCS <https://github.com/cvxpy/scs>`_ is an open-source C library for solving large-scale convex cone problems.
+- `SCS <https://github.com/cvxgrp/scs>`_ is an open-source C library for solving large-scale convex cone problems.
 
 - `ECOS <https://github.com/embotech/ecos>`_ is an open-source C library for solving convex second-order and exponential cone programs.
 

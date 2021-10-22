@@ -213,7 +213,7 @@ Installing using conda:
 .. _CVXOPT: http://cvxopt.org/
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
-.. _SCS: http://github.com/cvxpy/scs
+.. _SCS: http://github.com/cvxgrp/scs
 .. _NumPy: http://www.numpy.org/
 .. _SciPy: http://www.scipy.org/
 .. _pytest: https://docs.pytest.org/en/latest/

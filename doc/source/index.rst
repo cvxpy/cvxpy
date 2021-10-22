@@ -88,7 +88,7 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
-.. _SCS: http://github.com/cvxpy/scs
+.. _SCS: http://github.com/cvxgrp/scs
 
 .. toctree::
    :hidden:
