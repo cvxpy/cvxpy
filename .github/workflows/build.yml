@@ -115,7 +115,7 @@ jobs:
           path: ./wheelhouse
 
   build_cvxpy-base:
-     needs: build
+    needs: build
 
     runs-on: ${{ matrix.os }}
     strategy:
