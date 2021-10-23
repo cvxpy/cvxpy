@@ -1950,7 +1950,7 @@ class TestProblem(BaseTest):
         """
         p = cp.Problem(cp.Maximize(0), [cp.Constant(0) == 1])
         p.solve(solver=cp.SCS)
-        self.assertEquals(p.status, cp.INFEASIBLE)
+        self.assertEqual(p.status, cp.INFEASIBLE)
 
     def test_huber_scs(self) -> None:
         """Test that huber regression works with SCS.

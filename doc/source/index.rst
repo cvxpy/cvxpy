@@ -32,7 +32,7 @@ For example, the following code solves a least-squares problem with box constrai
 
     # Construct the problem.
     x = cp.Variable(n)
-    objective = cp.Minimize(cp.sum_squares(A*x - b))
+    objective = cp.Minimize(cp.sum_squares(A @ x - b))
     constraints = [0 <= x, x <= 1]
     prob = cp.Problem(objective, constraints)
 
@@ -88,7 +88,7 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos
-.. _SCS: http://github.com/cvxpy/scs
+.. _SCS: http://github.com/cvxgrp/scs
 
 .. toctree::
    :hidden:
