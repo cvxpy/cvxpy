@@ -29,93 +29,93 @@ jobs:
       - name: flake8
         uses: py-actions/flake8@v1
 
-#  build:
-#    runs-on: ${{ matrix.os }}
-#    defaults:
-#      run:
-#        shell: bash -l {0}
-#    strategy:
-#      fail-fast: false
-#      matrix:
-#        os: [ ubuntu-18.04, macos-10.15, windows-2019 ]
-#        python-version: [ 3.6, 3.7, 3.9 ]
-#        include:
-#          - os: ubuntu-18.04
-#            python-version: 3.8
-#            openmp: "True"
-#          - os: ubuntu-18.04
-#            python-version: 3.8
-#          - os: macos-10.15
-#            python-version: 3.8
-#            deploy_pypi_source: "True"
-#          - os: windows-2019
-#            python-version: 3.8
-#
-#    env:
-#      RUNNER_OS: ${{ matrix.os }}
-#      PYTHON_VERSION: ${{ matrix.python-version }}
-#      COVERAGE: "False"
-#      DEPLOY_PYPI_SOURCE: "${{ matrix.deploy_pypi_source == 'True' && 'True' || 'False' }}"
-#      USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
-#      PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
-#      PYPI_USER: ${{ secrets.PYPI_USER }}
-#      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-#      MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
-#
-#    steps:
-#      - uses: actions/checkout@v2
-#      - name: Set Additional Envs
-#        run: |
-#          echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
-#          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
-#          echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
-#          echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
-#      - uses: conda-incubator/setup-miniconda@v2
-#        with:
-#          auto-update-conda: true
-#          python-version: ${{ matrix.python-version }}
-#          channels: conda-forge,anaconda
-#
-#      - name: Install
-#        run: |
-#          source continuous_integration/install_dependencies.sh
-#
-#      - name: Test
-#        run: |
-#          source continuous_integration/test_script.sh
-#
-#      - name: Coverage
-#        run: if [[ "$COVERAGE" == "True" ]]; then coveralls; fi
-#
-#      - name: Build wheels
-#        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
-#        env:
-#          CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
-#          CIBW_SKIP: "*-win32 *-manylinux_i686"
-#          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
-#        uses: joerick/cibuildwheel@v1.11.0
-#
-#      - name: Build source
-#        if: ${{env.DEPLOY == 'True' && env.DEPLOY_PYPI_SOURCE == 'True'}}
-#        run: |
-#          python setup.py sdist --dist-dir=wheelhouse
-#
-#      - name: Release to pypi
-#        if: ${{env.DEPLOY == 'True' &&  env.USE_OPENMP != 'True'}}
-#        run: |
-#          python -m pip install --upgrade twine
-#          twine check wheelhouse/*
-#          twine upload --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
-#
-#      - name: Upload artifacts to github
-#        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
-#        uses: actions/upload-artifact@v1
-#        with:
-#          name: wheels
-#          path: ./wheelhouse
+  build:
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-18.04, macos-10.15, windows-2019 ]
+        python-version: [ 3.6, 3.7, 3.9 ]
+        include:
+          - os: ubuntu-18.04
+            python-version: 3.8
+            openmp: "True"
+          - os: ubuntu-18.04
+            python-version: 3.8
+          - os: macos-10.15
+            python-version: 3.8
+            deploy_pypi_source: "True"
+          - os: windows-2019
+            python-version: 3.8
+
+    env:
+      RUNNER_OS: ${{ matrix.os }}
+      PYTHON_VERSION: ${{ matrix.python-version }}
+      COVERAGE: "False"
+      DEPLOY_PYPI_SOURCE: "${{ matrix.deploy_pypi_source == 'True' && 'True' || 'False' }}"
+      USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
+      PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
+      PYPI_USER: ${{ secrets.PYPI_USER }}
+      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set Additional Envs
+        run: |
+          echo "PYTHON_SUBVERSION=$(echo $PYTHON_VERSION | cut -c 3-)" >> $GITHUB_ENV
+          echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+          echo $MOSEK_CI_BASE64 | base64 -d > mosek.lic
+          echo "MOSEKLM_LICENSE_FILE=$( [[ $RUNNER_OS == 'macOS' ]] && echo $(pwd)/mosek.lic || echo $(realpath mosek.lic) )" >> $GITHUB_ENV
+      - uses: conda-incubator/setup-miniconda@v2
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          channels: conda-forge,anaconda
+
+      - name: Install
+        run: |
+          source continuous_integration/install_dependencies.sh
+
+      - name: Test
+        run: |
+          source continuous_integration/test_script.sh
+
+      - name: Coverage
+        run: if [[ "$COVERAGE" == "True" ]]; then coveralls; fi
+
+      - name: Build wheels
+        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
+        env:
+          CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
+          CIBW_SKIP: "*-win32 *-manylinux_i686"
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+        uses: joerick/cibuildwheel@v1.11.0
+
+      - name: Build source
+        if: ${{env.DEPLOY == 'True' && env.DEPLOY_PYPI_SOURCE == 'True'}}
+        run: |
+          python setup.py sdist --dist-dir=wheelhouse
+
+      - name: Release to pypi
+        if: ${{env.DEPLOY == 'True' &&  env.USE_OPENMP != 'True'}}
+        run: |
+          python -m pip install --upgrade twine
+          twine check wheelhouse/*
+          twine upload --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
+
+      - name: Upload artifacts to github
+        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
+        uses: actions/upload-artifact@v1
+        with:
+          name: wheels
+          path: ./wheelhouse
 
   build_cvxpy-base:
-    # needs: build
+     needs: build
 
     runs-on: ${{ matrix.os }}
     strategy:
