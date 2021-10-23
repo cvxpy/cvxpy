@@ -75,16 +75,6 @@ jobs:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           channels: conda-forge,anaconda
-          remote_connect_timeout_secs: 30.0
-          remote_max_retries: 3
-          remote_backoff_factor: 2
-          remote_read_timeout_secs: 12ß.0
-
-      - run: |
-          conda info
-          conda list
-          conda config --show-sources
-          conda config --show
 
       - name: Install
         run: |
