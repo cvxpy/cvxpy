@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from abc import ABC, abstractmethod
 from typing import Tuple
 
 import numpy as np
@@ -84,7 +83,7 @@ def dims_to_solver_dict(cone_dims):
     return cones
 
 
-class ConicSolver(Solver, ABC):
+class ConicSolver(Solver):
     """Conic solver class with reduction semantics
     """
     # The key that maps to ConeDims in the data returned by apply().
@@ -148,7 +147,7 @@ class ConicSolver(Solver, ABC):
         # Default is identity.
         return sp.eye(constr.size, format='csc')
 
-    def format_constraints(self, problem):
+    def format_constraints(self, problem, exp_cone_order):
         """
         Returns a ParamConeProg whose problem data tensors will yield the
         coefficient "A" and offset "b" for the constraint in the following
@@ -171,6 +170,8 @@ class ConicSolver(Solver, ABC):
         Args:
           problem : ParamConeProg
             The problem that is the provenance of the constraint.
+          exp_cone_order: list
+            A list indicating how the exponential cone arguments are ordered.
 
         Returns:
           ParamConeProg with structured A.
@@ -213,10 +214,10 @@ class ConicSolver(Solver, ABC):
                 for i, arg in enumerate(constr.args):
                     space_mat = ConicSolver.get_spacing_matrix(
                         shape=(total_height, arg.size),
-                        spacing=len(self.EXP_CONE_ORDER) - 1,
+                        spacing=len(exp_cone_order) - 1,
                         streak=1,
                         num_blocks=arg.size,
-                        offset=self.EXP_CONE_ORDER[i],
+                        offset=exp_cone_order[i],
                     )
                     arg_mats.append(space_mat)
                 restruct_mat.append(sp.hstack(arg_mats))
@@ -268,7 +269,6 @@ class ConicSolver(Solver, ABC):
                                             formatted=True)
         return new_param_cone_prog
 
-    @abstractmethod
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
@@ -306,7 +306,7 @@ class ConicSolver(Solver, ABC):
         # 5. exponential
         # 6. three-dimensional power cones
         if not problem.formatted:
-            problem = self.format_constraints(problem)
+            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
@@ -317,7 +317,6 @@ class ConicSolver(Solver, ABC):
             constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
         return problem, data, inv_data
 
-    @abstractmethod
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 

@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 
-class Reduction(ABC):
+class Reduction:
     """Abstract base class for reductions.
 
     A reduction is an actor that transforms a problem into an
@@ -45,6 +45,8 @@ class Reduction(ABC):
     problem : Problem
         A problem owned by this reduction; possibly None.
     """
+
+    __metaclass__ = ABCMeta
 
     def __init__(self, problem=None) -> None:
         """Construct a reduction for reducing `problem`.
