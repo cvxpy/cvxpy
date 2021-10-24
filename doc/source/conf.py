@@ -76,7 +76,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'CVXPY'
-copyright = u'2020, The CVXPY authors'
+copyright = u'The CVXPY authors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
