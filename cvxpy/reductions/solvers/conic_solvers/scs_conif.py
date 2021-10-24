@@ -24,21 +24,8 @@ from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-
-
-# Utility method for formatting a ConeDims instance into a dictionary
-# that can be supplied to scs.
-def dims_to_solver_dict(cone_dims):
-    cones = {
-        'f': cone_dims.zero,
-        'l': cone_dims.nonneg,
-        'q': cone_dims.soc,
-        'ep': cone_dims.exp,
-        's': cone_dims.psd,
-        'p': cone_dims.p3d
-    }
-    return cones
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    ConicSolver, dims_to_solver_dict,)
 
 
 def tri_to_full(lower_tri, n):
