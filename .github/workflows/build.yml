@@ -160,7 +160,7 @@ jobs:
           sed -i.bak '/scs >= /d' setup.py
           rm -rf setup.py.bak
 
-      - name: Run some tests one one OS just to check imports are working
+      - name: Run some tests on one OS just to check imports are working
         if: ${{env.DEPLOY_PYPI_SOURCE == 'True'}}
         run: |
           pip install . pytest cplex
