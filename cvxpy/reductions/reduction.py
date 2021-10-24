@@ -137,7 +137,7 @@ class Reduction:
             Data needed by the reduction in order to invert this particular
             application.
         """
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def invert(self, solution, inverse_data):
@@ -155,4 +155,4 @@ class Reduction:
         Solution
             A solution to the original problem.
         """
-        pass
+        raise NotImplementedError()
