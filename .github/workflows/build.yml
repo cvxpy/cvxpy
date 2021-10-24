@@ -151,7 +151,6 @@ jobs:
           echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
       - name: Adapt setup.py
-        if: ${{env.DEPLOY == 'True'}}
         shell: bash
         run: |
           # Mac has a different syntax for sed -i, this works across oses
@@ -160,6 +159,12 @@ jobs:
           sed -i.bak '/ecos >= /d' setup.py
           sed -i.bak '/scs >= /d' setup.py
           rm -rf setup.py.bak
+
+      - name: Run some tests one one OS just to check imports are working
+        if: ${{env.DEPLOY_PYPI_SOURCE == 'True'}}
+        run: |
+          pip install . pytest cplex
+          pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
 
       - name: Build wheels
         if: ${{env.DEPLOY == 'True'}}
