@@ -72,16 +72,23 @@ limitations under the License.
 ```
 
 ## Code style
-We use [flake8](http://flake8.pycqa.org/en/latest/) to enforce our Python coding
+We use [flake8](https://flake8.pycqa.org/en/latest/) and [isort](https://pycqa.github.io/isort/) to enforce our Python coding
 style. Before sending us a pull request, navigate to the project root
 and run
 
 ```
 flake8 cvxpy/
+isort .
 ```
 
 to make sure that your changes abide by our style conventions. Please fix any
-errors that flake8 reports before sending the pull request.
+errors that are reported before sending the pull request.
+
+Optionally, the package [pre-commit](https://pre-commit.com/) can be installed to check these conventions automatically before every commit.
+```
+pip install pre-commit
+pre-commit install
+```
 
 ## Writing unit tests
 Most code changes will require new unit tests. (Even bug fixes require unit tests,
