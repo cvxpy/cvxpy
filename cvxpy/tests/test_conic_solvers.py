@@ -281,9 +281,9 @@ class TestSCS(BaseTest):
         x = cp.Variable(10)
         obj = cp.Minimize(cp.sum(cp.exp(x)))
         prob = cp.Problem(obj, [cp.sum(x) == 1])
-        result = prob.solve(solver=cp.SCS, eps=1e-4)
+        result = prob.solve(solver=cp.SCS)
         time = prob.solver_stats.solve_time
-        result2 = prob.solve(solver=cp.SCS, warm_start=True, eps=1e-4)
+        result2 = prob.solve(solver=cp.SCS, warm_start=True)
         time2 = prob.solver_stats.solve_time
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
@@ -299,8 +299,8 @@ class TestSCS(BaseTest):
         x = cp.Variable(10)
         obj = cp.Minimize(cp.sum(cp.exp(x)))
         prob = cp.Problem(obj, [cp.sum(x) == 1])
-        result = prob.solve(solver=cp.DIFFCP, eps=1e-4)
-        result2 = prob.solve(solver=cp.DIFFCP, warm_start=True, eps=1e-4)
+        result = prob.solve(solver=cp.DIFFCP)
+        result2 = prob.solve(solver=cp.DIFFCP, warm_start=True,)
         self.assertAlmostEqual(result2, result, places=2)
 
     def test_psd_constraint(self) -> None:
@@ -326,10 +326,10 @@ class TestSCS(BaseTest):
         StandardTestLPs.test_lp_4(solver='SCS')
 
     def test_scs_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-8)
+        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-5)
 
     def test_scs_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-8)
+        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-5)
 
     def test_scs_socp_3(self) -> None:
         # axis 0
@@ -341,19 +341,19 @@ class TestSCS(BaseTest):
         StandardTestSDPs.test_sdp_1min(solver='SCS')
 
     def test_scs_sdp_2(self) -> None:
-        StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-8)
+        StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-5)
 
     def test_scs_expcone_1(self) -> None:
-        StandardTestECPs.test_expcone_1(solver='SCS', eps=1e-8)
+        StandardTestECPs.test_expcone_1(solver='SCS', eps=1e-5)
 
     def test_scs_exp_soc_1(self) -> None:
-        StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-8)
+        StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-5)
 
     def test_scs_pcp_1(self) -> None:
-        StandardTestPCPs.test_pcp_1(solver='SCS', eps=1e-8)
+        StandardTestPCPs.test_pcp_1(solver='SCS')
 
     def test_scs_pcp_2(self) -> None:
-        StandardTestPCPs.test_pcp_2(solver='SCS', eps=1e-8)
+        StandardTestPCPs.test_pcp_2(solver='SCS')
 
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')

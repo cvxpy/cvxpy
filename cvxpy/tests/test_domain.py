@@ -47,7 +47,7 @@ class TestDomain(BaseTest):
             dom = expr.domain
             constr = [self.a >= -100, self.x >= 0]
             prob = Problem(Minimize(sum(self.x + self.a)), dom + constr)
-            prob.solve(solver=cp.SCS, eps=1e-8)
+            prob.solve(solver=cp.SCS, eps=1e-6)
             self.assertAlmostEqual(prob.value, 13)
             assert self.a.value >= 0
             assert np.all((self.x + self.a - [5, 8]).value >= -1e-3)
@@ -76,27 +76,27 @@ class TestDomain(BaseTest):
         """
         dom = cp.geo_mean(self.x).domain
         prob = Problem(Minimize(sum(self.x)), dom)
-        prob.solve(solver=cp.SCS, eps=1e-8)
+        prob.solve(solver=cp.SCS, eps=1e-5)
         self.assertAlmostEqual(prob.value, 0)
 
         # No special case for only one weight.
         dom = cp.geo_mean(self.x, [0, 2]).domain
         dom.append(self.x >= -1)
         prob = Problem(Minimize(sum(self.x)), dom)
-        prob.solve(solver=cp.SCS, eps=1e-8)
+        prob.solve(solver=cp.SCS, eps=1e-5)
         self.assertItemsAlmostEqual(self.x.value, [-1, 0])
 
         dom = cp.geo_mean(self.z, [0, 1, 1]).domain
         dom.append(self.z >= -1)
         prob = Problem(Minimize(sum(self.z)), dom)
-        prob.solve(solver=cp.SCS, eps=1e-8)
+        prob.solve(solver=cp.SCS, eps=1e-5)
         self.assertItemsAlmostEqual(self.z.value, [-1, 0, 0])
 
     def test_quad_over_lin(self) -> None:
         """Test domain for quad_over_lin
         """
         dom = cp.quad_over_lin(self.x, self.a).domain
-        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
 
     # Throws Segfault from Eigen
@@ -113,28 +113,28 @@ class TestDomain(BaseTest):
         """
         dom = cp.pnorm(self.a, -0.5).domain
         prob = Problem(Minimize(self.a), dom)
-        prob.solve(solver=cp.SCS, eps=1e-8)
+        prob.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(prob.value, 0)
 
     def test_log(self) -> None:
         """Test domain for log.
         """
         dom = cp.log(self.a).domain
-        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
 
     def test_log1p(self) -> None:
         """Test domain for log1p.
         """
         dom = cp.log1p(self.a).domain
-        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, -1)
 
     def test_entr(self) -> None:
         """Test domain for entr.
         """
         dom = cp.entr(self.a).domain
-        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
 
     def test_kl_div(self) -> None:
@@ -142,7 +142,7 @@ class TestDomain(BaseTest):
         """
         b = Variable()
         dom = cp.kl_div(self.a, b).domain
-        Problem(Minimize(self.a + b), dom).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a + b), dom).solve(solver=cp.SCS, eps=1e-5)
         self.assertAlmostEqual(self.a.value, 0)
         self.assertAlmostEqual(b.value, 0)
 
@@ -159,19 +159,19 @@ class TestDomain(BaseTest):
         """Test domain for power.
         """
         dom = cp.sqrt(self.a).domain
-        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
 
         dom = cp.square(self.a).domain
-        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, -100)
 
         dom = ((self.a)**-1).domain
-        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
 
         dom = ((self.a)**3).domain
-        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-8)
+        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(self.a.value, 0)
 
     def test_log_det(self) -> None:

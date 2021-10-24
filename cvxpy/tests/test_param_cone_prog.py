@@ -99,5 +99,5 @@ class TestParamConeProg(BaseTest):
         self.assertTrue(any(np.isclose(2 * sltn_value[0, 1], adjoint)))
         self.assertTrue(any(np.isclose(2 * sltn_value[1, 0], adjoint)))
 
-        problem.solve(solver=cp.SCS, eps=1e-8)
+        problem.solve(solver=cp.SCS, eps=1e-5)
         self.assertItemsAlmostEqual(s.value, sltn_value)
