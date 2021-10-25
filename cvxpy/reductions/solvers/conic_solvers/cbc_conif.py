@@ -18,12 +18,11 @@ import numpy as np
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
-    SCS, dims_to_solver_dict,)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    ConicSolver, dims_to_solver_dict,)
 
 
-class CBC(SCS):
+class CBC(ConicSolver):
     """ An interface to the CBC solver
     """
 

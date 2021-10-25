@@ -105,7 +105,8 @@ class MOSEK(ConicSolver):
                     return False
         return True
 
-    def psd_format_mat(self, constr):
+    @staticmethod
+    def psd_format_mat(constr):
         """Return a linear operator to multiply by PSD constraint coefficients.
 
         Special cases PSD constraints, as MOSEK expects constraints to be

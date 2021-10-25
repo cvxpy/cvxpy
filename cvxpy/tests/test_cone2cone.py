@@ -48,8 +48,7 @@ class TestDualize(BaseTest):
 
         # Dualize the problem, reconstruct a high-level cvxpy problem for the dual.
         # Solve the problem, invert the dualize reduction.
-        solver = ConicSolver()
-        cone_prog = solver.format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
+        cone_prog = ConicSolver().format_constraints(cone_prog, exp_cone_order=[0, 1, 2])
         data, inv_data = a2d.Dualize.apply(cone_prog)
         A, b, c, K_dir = data[s.A], data[s.B], data[s.C], data['K_dir']
         y = cp.Variable(shape=(A.shape[1],))
