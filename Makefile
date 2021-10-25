@@ -169,7 +169,7 @@ gh-pages:
 	touch .nojekyll
 	rm -rf $(GH_PAGES_SOURCES) build doc
 	git add -A
-	git commit -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
+	git commit --no-verify -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
 
 develop:
 	rm -f *.so
