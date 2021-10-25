@@ -24,8 +24,18 @@ from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    ConicSolver, dims_to_solver_dict,)
+    dims_to_solver_dict as dims_to_solver_dict_default,)
+
+
+def dims_to_solver_dict(cone_dims):
+    cones = dims_to_solver_dict_default(cone_dims)
+
+    import scs
+    if StrictVersion(scs.__version__) >= StrictVersion('3.0.0'):
+        cones['z'] = cones.pop('f')  # renamed to 'z' in SCS 3.0.0
+    return cones
 
 
 def tri_to_full(lower_tri, n):
@@ -300,7 +310,6 @@ class SCS(ConicSolver):
 
         # SCS version 3.*
         else:
-            cones['z'] = cones.pop('f')
             if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
                 solver_opts["eps_abs"] = solver_opts["eps"]
                 solver_opts["eps_rel"] = solver_opts["eps"]
