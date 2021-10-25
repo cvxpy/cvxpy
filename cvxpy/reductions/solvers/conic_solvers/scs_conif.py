@@ -20,25 +20,12 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import PSD, SOC, ExpCone, NonNeg, PowCone3D, Zero
+from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-
-
-# Utility method for formatting a ConeDims instance into a dictionary
-# that can be supplied to scs.
-def dims_to_solver_dict(cone_dims):
-    cones = {
-        'f': cone_dims.zero,
-        'l': cone_dims.nonneg,
-        'q': cone_dims.soc,
-        'ep': cone_dims.exp,
-        's': cone_dims.psd,
-        'p': cone_dims.p3d
-    }
-    return cones
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    ConicSolver, dims_to_solver_dict,)
 
 
 def tri_to_full(lower_tri, n):
@@ -147,7 +134,8 @@ class SCS(ConicSolver):
         import scs
         scs  # For flake8
 
-    def psd_format_mat(self, constr):
+    @staticmethod
+    def psd_format_mat(constr):
         """Return a linear operator to multiply by PSD constraint coefficients.
 
         Special cases PSD constraints, as SCS expects constraints to be
@@ -183,31 +171,6 @@ class SCS(ConicSolver):
 
         return scaled_lower_tri @ symm_matrix
 
-    def _prepare_data_and_inv_data(self, problem):
-        data = {}
-        inv_data = {self.VAR_ID: problem.x.id}
-
-        # Format constraints
-        #
-        # SCS requires constraints to be specified in the following order:
-        # 1. zero cone
-        # 2. non-negative orthant
-        # 3. soc
-        # 4. psd
-        # 5. exponential
-        # 6. three-dimensional power cones
-        if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
-        data[s.PARAM_PROB] = problem
-        data[self.DIMS] = problem.cone_dims
-        inv_data[self.DIMS] = problem.cone_dims
-
-        constr_map = problem.constr_map
-        inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
-            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
-        return problem, data, inv_data
-
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -216,18 +179,10 @@ class SCS(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
-        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+        return super(SCS, self).apply(problem)
 
-        # Apply parameter values.
-        # Obtain A, b such that Ax + s = b, s \in cones.
-        c, d, A, b = problem.apply_parameters()
-        data[s.C] = c
-        inv_data[s.OFFSET] = d
-        data[s.A] = -A
-        data[s.B] = b
-        return data, inv_data
-
-    def extract_dual_value(self, result_vec, offset, constraint):
+    @staticmethod
+    def extract_dual_value(result_vec, offset, constraint):
         """Extracts the dual value for constraint starting at offset.
 
         Special cases PSD constraints, as per the SCS specification.

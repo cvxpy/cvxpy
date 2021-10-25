@@ -294,7 +294,7 @@ class TestSCS(BaseTest):
         try:
             import diffcp
             diffcp  # for flake8
-        except ImportError:
+        except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
         x = cp.Variable(10)
         obj = cp.Minimize(cp.sum(cp.exp(x)))

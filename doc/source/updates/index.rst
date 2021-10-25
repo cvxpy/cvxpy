@@ -55,7 +55,7 @@ CVXPY provides an API where certain solvers can differentiate the map from the p
 optimization problem to the optimal solution of that problem. The differentiation abilities are currently
 only available when SCS is used as the solver.
 This feature allows for more general sensitivity analysis than is possible when using dual variables alone. It also
-provides the basis for `cvxpylayers <https://github.com/cvxpy/cvxpylayers>`_.
+provides the basis for `cvxpylayers <https://github.com/cvxgrp/cvxpylayers>`_.
 See the :ref:`tutorial on derivatives <derivatives>`
 and the `accompanying <https://web.stanford.edu/~boyd/papers/diff_cvxpy.html>`_
 `papers <https://web.stanford.edu/~boyd/papers/diff_dgp.html>`_
@@ -113,7 +113,7 @@ the potential to meaningfully improve CVXPY 1.1.
  - Extend more solver interfaces to allow differentiating the map from problem
    parameters to optimal solutions. In particular, extending the ECOS or CVXOPT
    interfaces. This may involve contributions to diffcp (see diffcp `GitHub issue
-   31 <https://github.com/cvxpy/diffcp/issues/31>`_).
+   31 <https://github.com/cvxgrp/diffcp/issues/31>`_).
  - Add :ref:`an interface <contrib_solver>` to an open-source mixed-integer nonlinear solver. CVXPY
    currently only supports commercial mixed-integer nonlinear solvers.
  - Help resolve any CVXPY GitHub issue with the label

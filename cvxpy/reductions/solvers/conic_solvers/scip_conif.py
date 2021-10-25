@@ -26,16 +26,15 @@ from cvxpy.constraints import SOC, ExpCone, NonNeg
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
-    dims_to_solver_dict,)
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    ConicSolver, dims_to_solver_dict,)
 
 log = logging.getLogger(__name__)
 
 try:
     # Try to import SCIP model for typing
     from pyscipopt.scip import Model as ScipModel
-except ImportError:
+except ModuleNotFoundError:
     # If it fails continue and use a generic type instead.
     ScipModel = Generic
 
@@ -98,7 +97,7 @@ class SCIP(ConicSolver):
         data = {}
         inv_data = {self.VAR_ID: problem.x.id}
         if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
+            problem = self.format_constraints(problem, None)
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
