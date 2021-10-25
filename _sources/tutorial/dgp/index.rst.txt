@@ -5,7 +5,7 @@ Disciplined Geometric Programming
 
 Disciplined geometric programming (DGP) is an analog of DCP for
 *log-log convex* functions, that is, functions of positive variables that
-are convex with respect to the geometric mean instead of the arithemetic mean.
+are convex with respect to the geometric mean instead of the arithmetic mean.
 
 While DCP is a ruleset for constructing convex programs, DGP
 is a ruleset for log-log convex programs (LLCPs), which are problems that are
