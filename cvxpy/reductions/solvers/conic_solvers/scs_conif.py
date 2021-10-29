@@ -314,6 +314,9 @@ class SCS(ConicSolver):
                 solver_opts["eps_abs"] = solver_opts["eps"]
                 solver_opts["eps_rel"] = solver_opts["eps"]
                 del solver_opts["eps"]
+            else:
+                solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
+                solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
 
             results = scs.solve(args, cones, verbose=verbose, **solver_opts)
             status = self.STATUS_MAP[results["info"]["status_val"]]
