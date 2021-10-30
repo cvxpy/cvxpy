@@ -551,8 +551,8 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Minimize(x * y)
         constr = [cp.exp(a*y/x) <= cp.log(b*y)]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=1000)
-        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=1000)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=5000)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=5000)
 
     def test_matrix_completion(self) -> None:
         X = cp.Variable((3, 3), pos=True)

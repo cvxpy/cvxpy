@@ -966,7 +966,7 @@ class TestAtoms(BaseTest):
         g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-9)
         p3 = Problem(Minimize(x+g), [x >= 5])
         p3.solve(solver=cp.SCS, eps=1e-9)
-        self.assertAlmostEqual(p1.value, p3.value)
+        self.assertAlmostEqual(p1.value, p3.value, places=4)
 
     def test_partial_optimize_params(self) -> None:
         """Test partial optimize with parameters.
