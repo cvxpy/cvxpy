@@ -569,7 +569,7 @@ class TestBackwardDgp(BaseTest):
           X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == beta,
         ]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2)
         perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-4)
 
     def test_rank_one_nmf(self) -> None:
