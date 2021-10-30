@@ -300,7 +300,7 @@ class TestSCS(BaseTest):
         obj = cp.Minimize(cp.sum(cp.exp(x)))
         prob = cp.Problem(obj, [cp.sum(x) == 1])
         result = prob.solve(solver=cp.DIFFCP)
-        result2 = prob.solve(solver=cp.DIFFCP, warm_start=True,)
+        result2 = prob.solve(solver=cp.DIFFCP, warm_start=True)
         self.assertAlmostEqual(result2, result, places=2)
 
     def test_psd_constraint(self) -> None:

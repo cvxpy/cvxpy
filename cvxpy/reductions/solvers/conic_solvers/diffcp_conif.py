@@ -141,6 +141,14 @@ class DIFFCP(scs_conif.SCS):
         warm_start_tuple = None
 
         if solver_opts["solve_method"] == s.SCS:
+            import scs
+            if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+                # Default to eps = 1e-4 instead of 1e-3.
+                solver_opts["eps"] = solver_opts.get("eps", 1e-4)
+            else:
+                solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
+                solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+
             if warm_start and solver_cache is not None and \
                     self.name() in solver_cache:
                 warm_start_tuple = (solver_cache[self.name()]["x"],
