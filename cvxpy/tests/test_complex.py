@@ -187,28 +187,28 @@ class TestComplex(BaseTest):
         x = Variable()
         expr = cvx.imag(x + 1j*x)
         prob = Problem(Minimize(expr), [x >= 0])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 0)
         self.assertAlmostEqual(x.value, 0)
 
         x = Variable(imag=True)
         expr = 1j*x
         prob = Problem(Minimize(expr), [cvx.imag(x) <= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1j)
 
         x = Variable(2)
         expr = x*1j
         prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) >= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -np.inf)
         prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) <= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -2)
         self.assertItemsAlmostEqual(x.value, [1, 1])
         prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) >= 1, cvx.conj(x) <= 0])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, np.inf)
 
         x = Variable((2, 2))
@@ -216,7 +216,7 @@ class TestComplex(BaseTest):
         expr = cvx.vstack([x, y])
         prob = Problem(Minimize(cvx.sum(cvx.imag(cvx.conj(expr)))),
                        [x == 0, cvx.real(y) == 0, cvx.imag(y) <= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
@@ -226,7 +226,7 @@ class TestComplex(BaseTest):
         expr = cvx.vstack([x, y])
         prob = Problem(Minimize(cvx.sum(cvx.imag(expr.H))),
                        [x == 0, cvx.real(y) == 0, cvx.imag(y) <= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
@@ -237,7 +237,7 @@ class TestComplex(BaseTest):
         p = cvx.Parameter(imag=True, value=1j)
         x = Variable(2, complex=True)
         prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.abs(p*x) <= 2])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 4*np.sqrt(2))
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
@@ -262,7 +262,7 @@ class TestComplex(BaseTest):
         """
         x = Variable(2, complex=True)
         prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.abs(x) <= 2])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 4*np.sqrt(2))
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
@@ -273,7 +273,7 @@ class TestComplex(BaseTest):
         x = Variable(2, complex=True)
         t = Variable()
         prob = Problem(cvx.Minimize(t), [cvx.SOC(t, x), x == 2j])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 2*np.sqrt(2))
         self.assertItemsAlmostEqual(x.value, [2j, 2j])
 

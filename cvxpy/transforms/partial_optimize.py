@@ -30,7 +30,8 @@ def partial_optimize(
     prob: Problem,
     opt_vars: Optional[List[Variable]] = None,
     dont_opt_vars: Optional[List[Variable]] = None,
-    solver=None
+    solver=None,
+    **kwargs
 ) -> "PartialProblem":
     """Partially optimizes the given problem over the specified variables.
 
@@ -59,6 +60,8 @@ def partial_optimize(
         The variables to not optimize over.
     solver : str, optional
         The default solver to use for value and grad.
+    kwargs : keywords, optional
+        Additional solver specific keyword arguments.
 
     Returns
     -------
@@ -95,7 +98,7 @@ def partial_optimize(
     new_constrs = [con.tree_copy(id_to_new_var)
                    for con in prob.constraints]
     new_var_prob = Problem(new_obj, new_constrs)
-    return PartialProblem(new_var_prob, opt_vars, dont_opt_vars, solver)
+    return PartialProblem(new_var_prob, opt_vars, dont_opt_vars, solver, **kwargs)
 
 
 class PartialProblem(Expression):
@@ -110,12 +113,13 @@ class PartialProblem(Expression):
     """
 
     def __init__(
-        self, prob: Problem, opt_vars: List[Variable], dont_opt_vars: List[Variable], solver
-    ) -> None:
+            self, prob: Problem, opt_vars: List[Variable],
+            dont_opt_vars: List[Variable], solver, **kwargs) -> None:
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.solver = solver
         self.args = [prob]
+        self._solve_kwargs = kwargs
         super(PartialProblem, self).__init__()
 
     def get_data(self):
@@ -235,7 +239,7 @@ class PartialProblem(Expression):
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective,
                        fix_vars + self.args[0].constraints)
-        prob.solve(solver=self.solver)
+        prob.solve(solver=self.solver, **self._solve_kwargs)
         # Compute gradient.
         if prob.status in s.SOLUTION_PRESENT:
             sign = self.is_convex() - self.is_concave()
@@ -282,7 +286,7 @@ class PartialProblem(Expression):
             else:
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
-        prob.solve(solver=self.solver)
+        prob.solve(solver=self.solver, **self._solve_kwargs)
         # Restore the original values to the variables.
         for var in self.variables():
             var.value = old_vals[var.id]
