@@ -959,14 +959,14 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x + cp.exp(y)), [x+y >= 3, y >= 4, x >= 5])
-        p1.solve(solver=cp.SCS)
+        p1.solve(solver=cp.SCS, eps=1e-9)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(cp.exp(y)), [x+y >= 3, y >= 4])
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-9)
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve(solver=cp.SCS)
-        self.assertAlmostEqual(p1.value, p3.value)
+        p3.solve(solver=cp.SCS, eps=1e-9)
+        self.assertAlmostEqual(p1.value, p3.value, places=4)
 
     def test_partial_optimize_params(self) -> None:
         """Test partial optimize with parameters.
@@ -978,13 +978,13 @@ class TestAtoms(BaseTest):
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y >= gamma, y >= 4, x >= 5])
         gamma.value = 3
-        p1.solve(solver=cp.SCS)
+        p1.solve(solver=cp.SCS, eps=1e-6)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y >= gamma, y >= 4])
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-6)
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve(solver=cp.SCS)
+        p3.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_numeric_fn(self) -> None:
@@ -994,12 +994,12 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(y), [xval+y >= 3])
-        p1.solve(solver=cp.SCS)
+        p1.solve(solver=cp.SCS, eps=1e-6)
 
         # Solve the two-stage problem via partial_optimize
         constr = [y >= -100]
         p2 = Problem(Minimize(y), [x+y >= 3] + constr)
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-6)
         x.value = xval
         y.value = 42
         constr[0].dual_variables[0].value = 42
@@ -1010,7 +1010,7 @@ class TestAtoms(BaseTest):
 
         # No variables optimized over.
         p2 = Problem(Minimize(y), [x+y >= 3])
-        g = partial_optimize(p2, [], [x, y], solver=cp.SCS)
+        g = partial_optimize(p2, [], [x, y], solver=cp.SCS, eps=1e-6)
         x.value = xval
         y.value = 42
         p2.constraints[0].dual_variables[0].value = 42
@@ -1041,7 +1041,7 @@ class TestAtoms(BaseTest):
         """
         x = Variable(nonneg=True)
         p = Problem(Minimize(5+x), [x >= 3])
-        p.solve(solver=cp.SCS)
+        p.solve(solver=cp.SCS, eps=1e-5)
         self.assertAlmostEqual(p.value, 8)
         self.assertAlmostEqual(x.value, 3)
 

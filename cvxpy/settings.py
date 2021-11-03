@@ -70,7 +70,6 @@ CVXOPT = "CVXOPT"
 GLPK = "GLPK"
 GLPK_MI = "GLPK_MI"
 CBC = "CBC"
-CPLEX = "CPLEX"
 ECOS = "ECOS"
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
@@ -109,6 +108,7 @@ EQ, LEQ, SOC, SOC_EW, PSD, EXP, BOOL, INT = range(8)
 #   Riley follow-up on this: cone dims are now defined in matrix
 #   stuffing modules (e.g. cone_matrix_stuffing.py), rather than
 #   the solver module.
+
 EQ_DIM = "f"
 LEQ_DIM = "l"
 SOC_DIM = "q"

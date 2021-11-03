@@ -96,8 +96,8 @@ class TestParamConeProg(BaseTest):
         self.assertTrue(any(sltn_value[0, 0] == adjoint))
         self.assertTrue(any(sltn_value[1, 1] == adjoint))
         # off-diagonals of adjoint will be scaled by two
-        self.assertTrue(any(2 * np.isclose(sltn_value[0, 1], adjoint)))
-        self.assertTrue(any(2 * np.isclose(sltn_value[1, 0], adjoint)))
+        self.assertTrue(any(np.isclose(2 * sltn_value[0, 1], adjoint)))
+        self.assertTrue(any(np.isclose(2 * sltn_value[1, 0], adjoint)))
 
-        problem.solve(solver=cp.SCS)
+        problem.solve(solver=cp.SCS, eps=1e-5)
         self.assertItemsAlmostEqual(s.value, sltn_value)

@@ -257,7 +257,7 @@ class TestDcp(BaseTest):
         s.value = np.array([1.])
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            prob.solve(solver=cp.SCS)
+            prob.solve(solver=cp.SCS, eps=1e-6)
         np.testing.assert_almost_equal(prob.value, 2.)
 
         s = cp.Parameter(1, nonneg=True)
@@ -268,7 +268,7 @@ class TestDcp(BaseTest):
         s.value = np.array([1.])
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            prob.solve(solver=cp.SCS)
+            prob.solve(solver=cp.SCS, eps=1e-6)
         np.testing.assert_almost_equal(prob.value, 2.)
 
         s = cp.Parameter(1, nonneg=True)
@@ -279,7 +279,7 @@ class TestDcp(BaseTest):
         s.value = np.array([1.])
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            prob.solve(solver=cp.SCS)
+            prob.solve(solver=cp.SCS, eps=1e-6)
         np.testing.assert_almost_equal(prob.value, 1.)
 
 
