@@ -538,11 +538,9 @@ class MOSEK(ConicSolver):
         import mosek
 
         if verbose:
-            import sys
 
             def streamprinter(text):
-                sys.stdout.write(text)
-                sys.stdout.flush()
+                s.LOGGER.info(text.replace('\n', ''))
 
             print('\n')
             env.set_Stream(mosek.streamtype.log, streamprinter)
