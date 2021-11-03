@@ -22,11 +22,8 @@ class XPRESS(QpSolver):
 
     def import_solver(self) -> None:
 
-        try:
-            import xpress
-            xpress  # Prevents flake8 warning
-        except Exception as e:
-            raise ModuleNotFoundError(str(e))
+        import xpress
+        xpress  # Prevents flake8 warning
 
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.

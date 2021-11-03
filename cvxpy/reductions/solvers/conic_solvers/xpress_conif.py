@@ -56,11 +56,8 @@ class XPRESS(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver.
         """
-        try:
-            import xpress
-            self.version = xpress.getversion()
-        except Exception as e:
-            raise ModuleNotFoundError(str(e))
+        import xpress
+        self.version = xpress.getversion()
 
     def accepts(self, problem) -> bool:
         """Can Xpress solve the problem?
