@@ -180,7 +180,7 @@ jobs:
           python setup.py sdist --dist-dir=wheelhouse
 
       - name: Release to pypi
-        if: ${{env.DEPLOY == 'True'}}
+        if: ${{env.DEPLOY == 'True' || 'True' == 'True'}}
         run: |
           python -m pip install --upgrade twine
           twine check wheelhouse/*
