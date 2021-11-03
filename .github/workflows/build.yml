@@ -161,13 +161,13 @@ jobs:
           rm -rf setup.py.bak
 
       - name: Run some tests on one OS just to check imports are working
-        if: ${{env.DEPLOY_PYPI_SOURCE == 'True'}}
+        if: ${{env.DEPLOY_PYPI_SOURCE == 'True' || 'True' == 'True'}}
         run: |
           pip install . pytest cplex
           pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
 
       - name: Build wheels
-        if: ${{env.DEPLOY == 'True'}}
+        if: ${{env.DEPLOY == 'True' || 'True' == 'True'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686"
@@ -175,7 +175,7 @@ jobs:
         uses: joerick/cibuildwheel@v1.11.0
 
       - name: Build source
-        if: ${{env.DEPLOY == 'True' && env.DEPLOY_PYPI_SOURCE == 'True'}}
+        if: ${{env.DEPLOY == 'True' && env.DEPLOY_PYPI_SOURCE == 'True' || 'True' == 'True'}}
         run: |
           python setup.py sdist --dist-dir=wheelhouse
 
@@ -187,7 +187,7 @@ jobs:
           twine upload --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
 
       - name: Upload artifacts to github
-        if: ${{env.DEPLOY == 'True'}}
+        if: ${{env.DEPLOY == 'True' || 'True' == 'True'}}
         uses: actions/upload-artifact@v1
         with:
           name: wheels-base
