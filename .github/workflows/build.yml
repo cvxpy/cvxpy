@@ -161,7 +161,7 @@ jobs:
           rm -rf setup.py.bak
 
       - name: Run some tests on one OS just to check imports are working
-        if: ${{env.DEPLOY_PYPI_SOURCE == 'True' || 'True' == 'True'}}
+        if: ${{env.DEPLOY_PYPI_SOURCE == 'True'}}
         run: |
           pip install . pytest cplex
           pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
