@@ -62,7 +62,7 @@ class Solver(Reduction):
         except Exception as e:
             if not isinstance(e, ModuleNotFoundError):
                 s.LOGGER.warning(
-                    f"Encountered unexpected exception importing solver {self.name}:\n"
+                    f"Encountered unexpected exception importing solver {self.name()}:\n"
                     + repr(e)
                 )
             return False
