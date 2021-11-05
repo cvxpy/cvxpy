@@ -6,7 +6,9 @@ Contributing
 We welcome all contributors to CVXPY. You don't need to be an expert in convex
 optimization to help out. Here are simple ways to start contributing immediately:
 
- * Help answer questions on the `CVXPY discord <https://discord.gg/4urRQeGBCr>`_ or `StackOverflow <https://stackoverflow.com/questions/tagged/cvxpy>`_
+ * Help answer questions on the `CVXPY discord <https://discord.gg/4urRQeGBCr>`_,
+   `Github discussions <https://github.com/cvxpy/cvxpy/discussions>`_,
+   or `StackOverflow <https://stackoverflow.com/questions/tagged/cvxpy>`_
 
  * Read the CVXPY source code and improve the documentation, or address TODOs
 
