@@ -490,6 +490,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.SCS)
     print("optimal value with SCS:", prob.value)
 
+    # Solve with SciPy/HiGHS.
+    prob.solve(solver=cp.SCIPY, scipy_options={"method": "highs"})
+    print("optimal value with SciPy/HiGHS:", prob.value)
+
     # Solve with GLPK.
     prob.solve(solver=cp.GLPK)
     print("optimal value with GLPK:", prob.value)
@@ -512,19 +516,19 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 
     # Solve with CPLEX.
     prob.solve(solver=cp.CPLEX)
-    print "optimal value with CPLEX:", prob.value
+    print("optimal value with CPLEX:", prob.value)
 
     # Solve with NAG.
     prob.solve(solver=cp.NAG)
-    print "optimal value with NAG:", prob.value
+    print("optimal value with NAG:", prob.value)
 
     # Solve with SCIP.
     prob.solve(solver=cp.SCIP)
-    print "optimal value with SCIP:", prob.value
+    print("optimal value with SCIP:", prob.value)
 
-    # Solve with XPRESS
+    # Solve with XPRESS.
     prob.solve(solver=cp.XPRESS)
-    print "optimal value with XPRESS:", prob.value
+    print("optimal value with XPRESS:", prob.value)
 
 ::
 
@@ -532,6 +536,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with ECOS: 5.99999999551
     optimal value with CVXOPT: 6.00000000512
     optimal value with SCS: 6.00046055789
+    optimal value with SciPy/HiGHS: 6.0
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
@@ -550,7 +555,8 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS',
+     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
