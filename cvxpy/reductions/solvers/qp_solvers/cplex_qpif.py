@@ -67,7 +67,7 @@ class CPLEX(QpSolver):
 
             sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            sol = failure_solution(status, dict())
+            sol = failure_solution(status, attr)
         return sol
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):

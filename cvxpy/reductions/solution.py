@@ -39,7 +39,7 @@ def failure_solution(status, attr=None) -> "Solution":
         opt_val = None
     if attr is None:
         attr = {}
-    if status == s.UNBOUNDED_INACCURATE:
+    if status == s.INFEASIBLE_OR_UNBOUNDED:
         attr['message'] = """
         The problem is either infeasible or unbounded, but the solver
         cannot tell which. Disable any solver-specific presolve methods
