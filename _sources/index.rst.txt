@@ -6,15 +6,19 @@
 Welcome to CVXPY 1.1
 ====================
 
+.. meta::
+   :description: An open source Python-embedded modeling language for convex optimization problems.
+                 Express your problem in a natural way that follows the math.
+   :keywords: convex optimization, open source, software,
+
 **Convex optimization, for everyone.**
 
-*For the best support, join the* `CVXPY mailing list
-<https://groups.google.com/forum/#!forum/cvxpy>`_ *and post your questions on*
-`Stack Overflow <https://stackoverflow.com/questions/tagged/cvxpy>`_.
+*We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
 
-CVXPY is a Python-embedded modeling language for convex optimization problems.
-It allows you to express your problem in a natural way that follows the math,
-rather than in the restrictive standard form required by solvers.
+CVXPY is an open source Python-embedded modeling language for convex
+optimization problems. It lets you express your problem in a natural way that
+follows the math, rather than in the restrictive standard form required by
+solvers.
 
 For example, the following code solves a least-squares problem with box constraints:
 
@@ -44,30 +48,29 @@ For example, the following code solves a least-squares problem with box constrai
     # `constraint.dual_value`.
     print(constraints[0].dual_value)
 
-This short script is a basic example of what CVXPY can do; in addition
+This short script is a basic example of what CVXPY can do. In addition
 to convex programming, CVXPY also supports a generalization of geometric
-programming.
+programming, mixed-integer convex programs, and quasiconvex programs.
 
 For a guided tour of CVXPY, check out the :doc:`tutorial
-</tutorial/index>`. Browse the :doc:`library of examples
-</examples/index>` for applications to machine learning, control, finance, and
-more. 
-
-**News.**
-
-* We are building a CVXPY community `on Discord <https://discord.gg/4urRQeGBCr>`_. Join the conversation!
-
-* CVXPY v1.1.0 has been released. This version makes
-  repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
-  allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
-  some new atoms. See :ref:`updates` for more information.
-
-**Solvers.**
-
-CVXPY relies on the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
-Additional solvers are supported, but must be installed separately. For
+</tutorial/index>`. For applications to machine learning, control, finance, and
+more, browse the :doc:`library of examples </examples/index>`. For
 background on convex optimization, see the book `Convex Optimization
 <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
+
+CVXPY relies on the open source solvers `OSQP`_, `SCS`_, and `ECOS`_.
+Additional solvers are supported, but must be installed separately.
+
+**Community.**
+
+The CVXPY community consists of researchers, data scientists, software
+engineers, and students from all over the world. We welcome you to join us!
+
+* To chat with the CVXPY community in real-time, join us `on Discord <https://discord.gg/4urRQeGBCr>`_.
+
+* To have longer, in-depth discussions with the CVXPY community, use `Github discussions <https://github.com/cvxpy/cvxpy/discussions>`_.
+
+* To share feature requests and bug reports, use the `issue tracker <https://github.com/cvxpy/cvxpy/issues>`_.
 
 **Development.**
 
@@ -85,6 +88,14 @@ Dembia.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
 guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeGBCr>`_.
+
+**News.**
+
+* CVXPY v1.1.0 has been released. This version makes
+  repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
+  allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
+  some new atoms. See :ref:`updates` for more information.
+
 
 .. _OSQP: https://osqp.org/
 .. _ECOS: http://github.com/ifa-ethz/ecos

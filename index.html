@@ -4,8 +4,10 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Welcome to CVXPY 1.1 &#8212; CVXPY 1.1.15 documentation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta content="An open source Python-embedded modeling language for convex optimization problems. Express your problem in a natural way that follows the math." name="description" />
+<meta content="convex optimization, open source, software," name="keywords" />
+
+    <title>Welcome to CVXPY 1.1 &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
     <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
@@ -36,11 +38,11 @@
   <div class="section" id="welcome-to-cvxpy-1-1">
 <h1>Welcome to CVXPY 1.1<a class="headerlink" href="#welcome-to-cvxpy-1-1" title="Permalink to this headline">¶</a></h1>
 <p><strong>Convex optimization, for everyone.</strong></p>
-<p><em>For the best support, join the</em> <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a> <em>and post your questions on</em>
-<a class="reference external" href="https://stackoverflow.com/questions/tagged/cvxpy">Stack Overflow</a>.</p>
-<p>CVXPY is a Python-embedded modeling language for convex optimization problems.
-It allows you to express your problem in a natural way that follows the math,
-rather than in the restrictive standard form required by solvers.</p>
+<p><em>We are building a CVXPY community</em> <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>. <em>Join the conversation!</em></p>
+<p>CVXPY is an open source Python-embedded modeling language for convex
+optimization problems. It lets you express your problem in a natural way that
+follows the math, rather than in the restrictive standard form required by
+solvers.</p>
 <p>For example, the following code solves a least-squares problem with box constraints:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -67,23 +69,22 @@ rather than in the restrictive standard form required by solvers.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>This short script is a basic example of what CVXPY can do; in addition
+<p>This short script is a basic example of what CVXPY can do. In addition
 to convex programming, CVXPY also supports a generalization of geometric
-programming.</p>
-<p>For a guided tour of CVXPY, check out the <a class="reference internal" href="tutorial/index.html"><span class="doc">tutorial</span></a>. Browse the <a class="reference internal" href="examples/index.html"><span class="doc">library of examples</span></a> for applications to machine learning, control, finance, and
-more.</p>
-<p><strong>News.</strong></p>
-<ul class="simple">
-<li><p>We are building a CVXPY community <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>. Join the conversation!</p></li>
-<li><p>CVXPY v1.1.0 has been released. This version makes
-repeatedly canonicalizing <a class="reference internal" href="tutorial/advanced/index.html#dpp"><span class="std std-ref">parametrized problems</span></a> much faster than before,
-allows <a class="reference internal" href="tutorial/advanced/index.html#derivatives"><span class="std std-ref">differentiating the map</span></a> from parameters to optimal solutions, and introduces
-some new atoms. See <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">Changes to CVXPY</span></a> for more information.</p></li>
-</ul>
-<p><strong>Solvers.</strong></p>
-<p>CVXPY relies on the open source solvers <a class="reference external" href="http://github.com/ifa-ethz/ecos">ECOS</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
-Additional solvers are supported, but must be installed separately. For
+programming, mixed-integer convex programs, and quasiconvex programs.</p>
+<p>For a guided tour of CVXPY, check out the <a class="reference internal" href="tutorial/index.html"><span class="doc">tutorial</span></a>. For applications to machine learning, control, finance, and
+more, browse the <a class="reference internal" href="examples/index.html"><span class="doc">library of examples</span></a>. For
 background on convex optimization, see the book <a class="reference external" href="http://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe.</p>
+<p>CVXPY relies on the open source solvers <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>, and <a class="reference external" href="http://github.com/ifa-ethz/ecos">ECOS</a>.
+Additional solvers are supported, but must be installed separately.</p>
+<p><strong>Community.</strong></p>
+<p>The CVXPY community consists of researchers, data scientists, software
+engineers, and students from all over the world. We welcome you to join us!</p>
+<ul class="simple">
+<li><p>To chat with the CVXPY community in real-time, join us <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>.</p></li>
+<li><p>To have longer, in-depth discussions with the CVXPY community, use <a class="reference external" href="https://github.com/cvxpy/cvxpy/discussions">Github discussions</a>.</p></li>
+<li><p>To share feature requests and bug reports, use the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">issue tracker</a>.</p></li>
+</ul>
 <p><strong>Development.</strong></p>
 <p>CVXPY is a community project, built from the contributions of many
 researchers and engineers.</p>
@@ -97,6 +98,13 @@ Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.</p>
 <p>We appreciate all contributions. To get involved, see our <a class="reference internal" href="contributing/index.html"><span class="doc">contributing
 guide</span></a> and join us <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>.</p>
+<p><strong>News.</strong></p>
+<ul class="simple">
+<li><p>CVXPY v1.1.0 has been released. This version makes
+repeatedly canonicalizing <a class="reference internal" href="tutorial/advanced/index.html#dpp"><span class="std std-ref">parametrized problems</span></a> much faster than before,
+allows <a class="reference internal" href="tutorial/advanced/index.html#derivatives"><span class="std std-ref">differentiating the map</span></a> from parameters to optimal solutions, and introduces
+some new atoms. See <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">Changes to CVXPY</span></a> for more information.</p></li>
+</ul>
 <div class="toctree-wrapper compound">
 </div>
 <div class="toctree-wrapper compound">
