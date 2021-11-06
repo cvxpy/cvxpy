@@ -55,10 +55,10 @@ class PowCone3D(Constraint):
         if np.any(self.alpha.value <= 0) or np.any(self.alpha.value >= 1):
             msg = "Argument alpha must have entries in the open interval (0, 1)."
             raise ValueError(msg)
-        arg_sizes = [self.x.size, self.y.size, self.z.size, self.alpha.size]
-        if min(arg_sizes) != max(arg_sizes):
-            msg = ("All arguments must have the same size. Provided arguments are"
-                   "of size %s" % str(arg_sizes))
+        arg_shapes = [self.x.shape, self.y.shape, self.z.shape, self.alpha.shape]
+        if any(arg_shapes[0] != s for s in arg_shapes[1:]):
+            msg = ("All arguments must have the same shapes. Provided arguments have"
+                   "shapes %s" % str(arg_shapes))
             raise ValueError(msg)
         super(PowCone3D, self).__init__([self.x, self.y, self.z],
                                         constr_id)
@@ -116,6 +116,7 @@ class PowCone3D(Constraint):
     @property
     def shape(self) -> Tuple[int, ...]:
         s = (3,) + self.x.shape
+        # Note: this can be a 3-tuple of x.ndim == 2.
         return s
 
     def save_dual_value(self, value) -> None:

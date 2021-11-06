@@ -58,6 +58,11 @@ class ExpCone(Constraint):
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
         self.z = Expression.cast_to_const(z)
+        xs, ys, zs = self.x.shape, self.y.shape, self.z.shape
+        if xs != ys or xs != zs:
+            msg = ("All arguments must have the same shapes. Provided arguments have"
+                   "shapes %s" % str((xs, ys, zs)))
+            raise ValueError(msg)
         super(ExpCone, self).__init__([self.x, self.y, self.z],
                                       constr_id)
 
