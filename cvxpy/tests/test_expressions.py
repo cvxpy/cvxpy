@@ -27,6 +27,7 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
+from cvxpy.utilities.eigvals import gershgorin_psd_check
 
 
 class TestExpressions(BaseTest):
@@ -248,6 +249,11 @@ class TestExpressions(BaseTest):
         expr = cp.quad_form(x, P)
         self.assertFalse(expr.is_dcp())
         self.assertFalse((-expr).is_dcp())
+        self.assertFalse(gershgorin_psd_check(P.value, tol=0.99))
+
+        # Useful Gershgorin disc check
+        P = Constant(np.array([[2, 1], [1, 2]]))
+        self.assertTrue(gershgorin_psd_check(P.value, tol=0.0))
 
         # Verify good behavior for large eigenvalues
         P = Constant(np.diag(9*[1e-4] + [-1e4]))
@@ -258,6 +264,17 @@ class TestExpressions(BaseTest):
         P = Constant(np.ones(shape=(5, 5)))
         self.assertTrue(P.is_psd())
         self.assertFalse(P.is_nsd())
+
+        # Check with sparse inputs
+        P = Constant(sp.eye(10))
+        self.assertTrue(gershgorin_psd_check(P.value, s.EIGVAL_TOL))
+        self.assertTrue(P.is_psd())
+        self.assertTrue((-P).is_nsd())
+        Q = -s.EIGVAL_TOL/2 * P
+        self.assertTrue(gershgorin_psd_check(Q.value, s.EIGVAL_TOL))
+        Q = -1.1*s.EIGVAL_TOL*P
+        self.assertFalse(gershgorin_psd_check(Q.value, s.EIGVAL_TOL))
+        self.assertFalse(Q.is_psd())
 
     def test_1D_array(self) -> None:
         """Test NumPy 1D arrays as constants.

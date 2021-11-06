@@ -18,10 +18,10 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import scipy.sparse as sp
-from scipy.sparse.linalg import eigsh
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities.eigvals as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
@@ -211,9 +211,9 @@ class Constant(Leaf):
         elif not self.is_hermitian():
             return False
 
-        # Compute bottom eigenvalue if absent.
+        # Compute sign of bottom eigenvalue if absent.
         if self._psd_test is None:
-            self._psd_test = is_psd_within_tol(self.value, EIGVAL_TOL)
+            self._psd_test = eig_util.is_psd_within_tol(self.value, EIGVAL_TOL)
 
         return self._psd_test
 
@@ -233,38 +233,8 @@ class Constant(Leaf):
         elif not self.is_hermitian():
             return False
 
-        # Compute top eigenvalue if absent.
+        # Compute sign of top eigenvalue if absent.
         if self._nsd_test is None:
-            self._nsd_test = is_psd_within_tol(-self.value, EIGVAL_TOL)
+            self._nsd_test = eig_util.is_psd_within_tol(-self.value, EIGVAL_TOL)
 
         return self._nsd_test
-
-
-def is_psd_within_tol(A, tol):
-
-    def SA_eigsh(sigma):
-        return eigsh(A, k=1, sigma=sigma, which='SA', return_eigenvectors=False)
-        # Returns the eigenvalue w[i] of A where 1/(w[i] - sigma) is minimized.
-        #
-        # If A - sigma*I is PSD, then w[i] should be equal to the largest
-        # eigenvalue of A.
-        #
-        # If A - sigma*I is not PSD, then w[i] should be the largest eigenvalue
-        # of A where w[i] - sigma < 0.
-        #
-        # We should only call this function with sigma < 0. In this case, if
-        # A - sigma*I is not PSD then A is not PSD, and w[i] < -abs(sigma) is
-        # a negative eigenvalue of A. If A - sigma*I is PSD, then we obviously
-        # have that the smallest eigenvalue of A is >= sigma.
-
-    ev = np.NaN
-    try:
-        ev = SA_eigsh(-tol)  # might return np.NaN, or raise exception
-    finally:
-        if np.isnan(ev).all():
-            # will be NaN if A has an eigenvalue which is exactly -tol
-            # (We might also hit this code block for other reasons.)
-            temp = tol - np.finfo(A.dtype).eps
-            ev = SA_eigsh(-temp)
-
-    return np.all(ev >= -tol)

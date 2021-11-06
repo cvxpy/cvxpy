@@ -539,7 +539,7 @@ def pcp_2() -> SolverTestHelper:
 
 
 def pcp_3() -> SolverTestHelper:
-    from scipy.optimize import minimize, Bounds
+    from scipy.optimize import Bounds, minimize
     w = cp.Variable((2, 1))
     D = np.array([
        [-1.0856306,   0.99734545],
