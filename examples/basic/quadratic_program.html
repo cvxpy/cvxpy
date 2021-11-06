@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quadratic program &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Quadratic program &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="quadratic-program">
@@ -37,40 +42,40 @@
 <p>A quadratic program is an optimization problem with a quadratic
 objective and affine equality and inequality constraints. A common
 standard form is the following:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize}   &amp; (1/2)x^TPx + q^Tx\\
 \mbox{subject to} &amp; Gx \leq h \\
                   &amp; Ax = b.
 \end{array}\end{split}\]</div>
-<p>Here <span class="math notranslate nohighlight">\(P \in \mathcal{S}^{n}_+\)</span>, <span class="math notranslate nohighlight">\(q \in \mathcal{R}^n\)</span>,
-<span class="math notranslate nohighlight">\(G \in \mathcal{R}^{m \times n}\)</span>, <span class="math notranslate nohighlight">\(h \in \mathcal{R}^m\)</span>,
-<span class="math notranslate nohighlight">\(A \in \mathcal{R}^{p \times n}\)</span>, and <span class="math notranslate nohighlight">\(b \in \mathcal{R}^p\)</span>
-are problem data and <span class="math notranslate nohighlight">\(x \in \mathcal{R}^{n}\)</span> is the optimization
-variable. The inequality constraint <span class="math notranslate nohighlight">\(Gx \leq h\)</span> is elementwise.</p>
+<p>Here <span class="math">\(P \in \mathcal{S}^{n}_+\)</span>, <span class="math">\(q \in \mathcal{R}^n\)</span>,
+<span class="math">\(G \in \mathcal{R}^{m \times n}\)</span>, <span class="math">\(h \in \mathcal{R}^m\)</span>,
+<span class="math">\(A \in \mathcal{R}^{p \times n}\)</span>, and <span class="math">\(b \in \mathcal{R}^p\)</span>
+are problem data and <span class="math">\(x \in \mathcal{R}^{n}\)</span> is the optimization
+variable. The inequality constraint <span class="math">\(Gx \leq h\)</span> is elementwise.</p>
 <p>A simple example of a quadratic program arises in finance. Suppose we
-have <span class="math notranslate nohighlight">\(n\)</span> different stocks, an estimate <span class="math notranslate nohighlight">\(r \in \mathcal{R}^n\)</span>
+have <span class="math">\(n\)</span> different stocks, an estimate <span class="math">\(r \in \mathcal{R}^n\)</span>
 of the expected return on each stock, and an estimate
-<span class="math notranslate nohighlight">\(\Sigma \in \mathcal{S}^{n}_+\)</span> of the covariance of the returns.
+<span class="math">\(\Sigma \in \mathcal{S}^{n}_+\)</span> of the covariance of the returns.
 Then we solve the optimization problem</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize}   &amp; (1/2)x^T\Sigma x - r^Tx\\
 \mbox{subject to} &amp; x \geq 0 \\
                   &amp; \mathbf{1}^Tx = 1,
 \end{array}\end{split}\]</div>
-<p>to find a portfolio allocation <span class="math notranslate nohighlight">\(x \in \mathcal{R}^n_+\)</span> that
+<p>to find a portfolio allocation <span class="math">\(x \in \mathcal{R}^n_+\)</span> that
 optimally balances expected return and variance of return.</p>
 <p>When we solve a quadratic program, in addition to a solution
-<span class="math notranslate nohighlight">\(x^\star\)</span>, we obtain a dual solution <span class="math notranslate nohighlight">\(\lambda^\star\)</span>
+<span class="math">\(x^\star\)</span>, we obtain a dual solution <span class="math">\(\lambda^\star\)</span>
 corresponding to the inequality constraints. A positive entry
-<span class="math notranslate nohighlight">\(\lambda^\star_i\)</span> indicates that the constraint
-<span class="math notranslate nohighlight">\(g_i^Tx \leq h_i\)</span> holds with equality for <span class="math notranslate nohighlight">\(x^\star\)</span> and
-suggests that changing <span class="math notranslate nohighlight">\(h_i\)</span> would change the optimal value.</p>
+<span class="math">\(\lambda^\star_i\)</span> indicates that the constraint
+<span class="math">\(g_i^Tx \leq h_i\)</span> holds with equality for <span class="math">\(x^\star\)</span> and
+suggests that changing <span class="math">\(h_i\)</span> would change the optimal value.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>In the following code, we solve a quadratic program with CVXPY.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -102,7 +107,7 @@ suggests that changing <span class="math notranslate nohighlight">\(h_i\)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="mf">86.89141585569918</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="mf">86.89141585569918</span>
 <span class="n">A</span> <span class="n">solution</span> <span class="n">x</span> <span class="ow">is</span>
 <span class="p">[</span><span class="o">-</span><span class="mf">1.68244521</span>  <span class="mf">0.29769913</span> <span class="o">-</span><span class="mf">2.38772183</span> <span class="o">-</span><span class="mf">2.79986015</span>  <span class="mf">1.18270433</span> <span class="o">-</span><span class="mf">0.20911897</span>
  <span class="o">-</span><span class="mf">4.50993526</span>  <span class="mf">3.76683701</span> <span class="o">-</span><span class="mf">0.45770675</span> <span class="o">-</span><span class="mf">3.78589638</span><span class="p">]</span>
@@ -117,7 +122,6 @@ suggests that changing <span class="math notranslate nohighlight">\(h_i\)</span>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -128,12 +132,10 @@ suggests that changing <span class="math notranslate nohighlight">\(h_i\)</span>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -175,15 +177,15 @@ suggests that changing <span class="math notranslate nohighlight">\(h_i\)</span>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -192,11 +194,11 @@ suggests that changing <span class="math notranslate nohighlight">\(h_i\)</span>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/basic/quadratic_program.rst.txt"
+      <a href="../../_sources/examples/basic/quadratic_program.txt"
           rel="nofollow">Page source</a>
     </div>
 

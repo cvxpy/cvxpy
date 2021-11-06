@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Water Filling in Communications &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Water Filling in Communications &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="water-filling-in-communications">
@@ -38,26 +43,26 @@
 Briggs</p>
 <p>from Boyd and Vandenberghe, Convex Optimization, example 5.2 page 145</p>
 <p>Convex optimisation can be used to solve the classic water filling
-problem. This problem is where a total amount of power <span class="math notranslate nohighlight">\(P\)</span> has to
-be assigned to <span class="math notranslate nohighlight">\(n\)</span> communication channels, with the objective of
+problem. This problem is where a total amount of power <span class="math">\(P\)</span> has to
+be assigned to <span class="math">\(n\)</span> communication channels, with the objective of
 maximising the total communication rate. The communication rate of the
-<span class="math notranslate nohighlight">\(i\)</span>th channel is given by:</p>
-<p><span class="math notranslate nohighlight">\(\log(\alpha_i + x_i)\)</span></p>
-<p>where <span class="math notranslate nohighlight">\(x_i\)</span> represents the power allocated to channel <span class="math notranslate nohighlight">\(i\)</span>
-and <span class="math notranslate nohighlight">\(\alpha_i\)</span> represents the floor above the baseline at which
-power can be added to the channel. Since <span class="math notranslate nohighlight">\(-\log(X)\)</span> is convex, we
+<span class="math">\(i\)</span>th channel is given by:</p>
+<p><span class="math">\(\log(\alpha_i + x_i)\)</span></p>
+<p>where <span class="math">\(x_i\)</span> represents the power allocated to channel <span class="math">\(i\)</span>
+and <span class="math">\(\alpha_i\)</span> represents the floor above the baseline at which
+power can be added to the channel. Since <span class="math">\(-\log(X)\)</span> is convex, we
 can write the water-filling problem as a convex optimisation problem:</p>
-<p>minimise <span class="math notranslate nohighlight">\(\sum_{i=1}^N -\log(\alpha_i + x_i)\)</span></p>
-<p>subject to <span class="math notranslate nohighlight">\(x_i \succeq 0\)</span> and <span class="math notranslate nohighlight">\(\sum_{i=1}^N x_i = P\)</span></p>
+<p>minimise <span class="math">\(\sum_{i=1}^N -\log(\alpha_i + x_i)\)</span></p>
+<p>subject to <span class="math">\(x_i \succeq 0\)</span> and <span class="math">\(\sum_{i=1}^N x_i = P\)</span></p>
 <p>This form is also very straightforward to put into DCP format and thus
 can be simply solved using CVXPY.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill &amp; K. Briggs</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">water_filling</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">sum_x</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">water_filling</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">sum_x</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Boyd and Vandenberghe, Convex Optimization, example 5.2 page 145</span>
 <span class="sd">    Water-filling.</span>
@@ -91,33 +96,33 @@ can be simply solved using CVXPY.</p>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<p>As a simple example, we set <span class="math notranslate nohighlight">\(N = 3\)</span>, <span class="math notranslate nohighlight">\(P = 1\)</span> and
-<span class="math notranslate nohighlight">\(\boldsymbol{\alpha} = (0.8,1.0,1.2)\)</span>.</p>
+<p>As a simple example, we set <span class="math">\(N = 3\)</span>, <span class="math">\(P = 1\)</span> and
+<span class="math">\(\boldsymbol{\alpha} = (0.8,1.0,1.2)\)</span>.</p>
 <p>The function outputs whether the problem status, the maximum
 communication rate and the power allocation required is achieved with
 this maximum communication rate.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># As an example, we will solve the water filling problem with 3 buckets, each with different α</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># As an example, we will solve the water filling problem with 3 buckets, each with different α</span>
 <span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">buckets</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">alpha</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.8</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.2</span><span class="p">])</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">stat</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">water_filling</span><span class="p">(</span><span class="n">buckets</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">stat</span><span class="p">,</span> <span class="n">prob</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">water_filling</span><span class="p">(</span><span class="n">buckets</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Problem status: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">stat</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal communication rate = </span><span class="si">{:.4g}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prob</span><span class="p">))</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Transmitter powers:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
 <span class="n">Optimal</span> <span class="n">communication</span> <span class="n">rate</span> <span class="o">=</span> <span class="mf">0.863</span>
 <span class="n">Transmitter</span> <span class="n">powers</span><span class="p">:</span>
 <span class="p">[</span><span class="mf">0.533</span> <span class="mf">0.333</span> <span class="mf">0.133</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>To illustrate the water filling principle, we will plot
-<span class="math notranslate nohighlight">\(\alpha_i + x_i\)</span> and check that this level is flat where power has
+<span class="math">\(\alpha_i + x_i\)</span> and check that this level is flat where power has
 been allocated:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pylab</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 
@@ -136,8 +141,8 @@ been allocated:</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">xticks</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span><span class="n">buckets</span><span class="o">+</span><span class="mf">0.5</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">1.5</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">A</span><span class="p">,</span><span class="n">where</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span><span class="n">label</span> <span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\alpha$&#39;</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">where</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="sa">r</span><span class="s1">&#39;$\alpha + x$&#39;</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">A</span><span class="p">,</span><span class="n">where</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span><span class="n">label</span> <span class="o">=</span><span class="s1">r&#39;$\alpha$&#39;</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">step</span><span class="p">(</span><span class="n">axis</span><span class="p">,</span><span class="n">Y</span><span class="p">,</span><span class="n">where</span><span class="o">=</span><span class="s1">&#39;post&#39;</span><span class="p">,</span><span class="n">label</span><span class="o">=</span><span class="s1">r&#39;$\alpha + x$&#39;</span><span class="p">,</span><span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;lower right&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Bucket Number&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Power Level&#39;</span><span class="p">)</span>
@@ -151,7 +156,6 @@ been allocated:</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -162,12 +166,10 @@ been allocated:</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -209,15 +211,15 @@ been allocated:</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -226,11 +228,11 @@ been allocated:</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/water_filling_BVex5.2.rst.txt"
+      <a href="../../_sources/examples/applications/water_filling_BVex5.2.txt"
           rel="nofollow">Page source</a>
     </div>
 

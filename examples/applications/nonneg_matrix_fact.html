@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Nonnegative matrix factorization &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Nonnegative matrix factorization &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="nonnegative-matrix-factorization">
@@ -41,24 +46,24 @@
 <p>Joelle Skaf and Stephen Boyd</p>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>We are given a matrix <span class="math notranslate nohighlight">\(A \in \mathbf{\mbox{R}}^{m \times n}\)</span> and
+<p>We are given a matrix <span class="math">\(A \in \mathbf{\mbox{R}}^{m \times n}\)</span> and
 are interested in solving the problem:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
     \mbox{minimize}   &amp; \| A - YX \|_F \\
     \mbox{subject to} &amp; Y \succeq 0 \\
                       &amp; X \succeq 0,
     \end{array}\end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(Y \in \mathbf{\mbox{R}}^{m \times k}\)</span> and
-<span class="math notranslate nohighlight">\(X \in \mathbf{\mbox{R}}^{k \times n}\)</span>.</p>
-<p>This example generates a random matrix <span class="math notranslate nohighlight">\(A\)</span> and obtains an
+<p>where <span class="math">\(Y \in \mathbf{\mbox{R}}^{m \times k}\)</span> and
+<span class="math">\(X \in \mathbf{\mbox{R}}^{k \times n}\)</span>.</p>
+<p>This example generates a random matrix <span class="math">\(A\)</span> and obtains an
 <em>approximate</em> solution to the above problem by first generating a random
-initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and then alternatively minimizing over
-<span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> for a fixed number of iterations.</p>
+initial guess for <span class="math">\(Y\)</span> and then alternatively minimizing over
+<span class="math">\(X\)</span> and <span class="math">\(Y\)</span> for a fixed number of iterations.</p>
 </div>
 <div class="section" id="generate-problem-data">
 <h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Ensure repeatably random problem data.</span>
@@ -77,7 +82,7 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
 </div>
 <div class="section" id="perform-alternating-minimization">
 <h2>Perform alternating minimization<a class="headerlink" href="#perform-alternating-minimization" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Ensure same initial random Y, rather than generate new one</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Ensure same initial random Y, rather than generate new one</span>
 <span class="c1"># when executing this cell.</span>
 <span class="n">Y</span> <span class="o">=</span> <span class="n">Y_init</span>
 
@@ -117,7 +122,7 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
         <span class="n">Y</span> <span class="o">=</span> <span class="n">Y</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Iteration</span> <span class="mi">1</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">2.766300564135502</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Iteration</span> <span class="mi">1</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">2.766300564135502</span>
 <span class="n">Iteration</span> <span class="mi">2</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.5840356930600721</span>
 <span class="n">Iteration</span> <span class="mi">3</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.3356679970549085</span>
 <span class="n">Iteration</span> <span class="mi">4</span><span class="p">,</span> <span class="n">residual</span> <span class="n">norm</span> <span class="mf">0.18670276027770083</span>
@@ -152,7 +157,7 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
 </div>
 <div class="section" id="output-results">
 <h2>Output results<a class="headerlink" href="#output-results" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1">#</span>
 <span class="c1"># Plot residuals.</span>
 <span class="c1">#</span>
 
@@ -189,7 +194,7 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
 </pre></div>
 </div>
 <img alt="../../_images/nonneg_matrix_fact_5_0.png" src="../../_images/nonneg_matrix_fact_5_0.png" />
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Original</span> <span class="n">matrix</span><span class="p">:</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Original</span> <span class="n">matrix</span><span class="p">:</span>
 <span class="p">[[</span><span class="mf">1.323426</span>   <span class="mf">1.11061189</span> <span class="mf">1.69137835</span> <span class="mf">1.20020115</span> <span class="mf">1.13216889</span> <span class="mf">0.5980743</span>
   <span class="mf">1.64965406</span> <span class="mf">0.340611</span>   <span class="mf">1.69871738</span> <span class="mf">0.78278448</span><span class="p">]</span>
  <span class="p">[</span><span class="mf">1.73721109</span> <span class="mf">1.40464204</span> <span class="mf">1.90898877</span> <span class="mf">1.60774132</span> <span class="mf">1.53717253</span> <span class="mf">0.62647405</span>
@@ -286,7 +291,6 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -297,12 +301,10 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -344,15 +346,15 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -361,11 +363,11 @@ initial guess for <span class="math notranslate nohighlight">\(Y\)</span> and th
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/nonneg_matrix_fact.rst.txt"
+      <a href="../../_sources/examples/applications/nonneg_matrix_fact.txt"
           rel="nofollow">Page source</a>
     </div>
 

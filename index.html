@@ -1,38 +1,43 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta content="An open source Python-embedded modeling language for convex optimization problems. Express your problem in a natural way that follows the math." name="description" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta content="An open source Python-embedded modeling language for convex optimization problems. Express your problem in a natural way that follows the math." name="description" />
 <meta content="convex optimization, open source, software," name="keywords" />
 
-    <title>Welcome to CVXPY 1.1 &#8212; CVXPY 1.1.17 documentation</title>
+    <title>Welcome to CVXPY 1.1 &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-    <script src="_static/jquery.js"></script>
-    <script src="_static/underscore.js"></script>
-    <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="#" />
     <link rel="next" title="Install" href="install/index.html" />
    
-  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="welcome-to-cvxpy-1-1">
@@ -44,7 +49,7 @@ optimization problems. It lets you express your problem in a natural way that
 follows the math, rather than in the restrictive standard form required by
 solvers.</p>
 <p>For example, the following code solves a least-squares problem with box constraints:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Problem data.</span>
@@ -81,9 +86,9 @@ Additional solvers are supported, but must be installed separately.</p>
 <p>The CVXPY community consists of researchers, data scientists, software
 engineers, and students from all over the world. We welcome you to join us!</p>
 <ul class="simple">
-<li><p>To chat with the CVXPY community in real-time, join us <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>.</p></li>
-<li><p>To have longer, in-depth discussions with the CVXPY community, use <a class="reference external" href="https://github.com/cvxpy/cvxpy/discussions">Github discussions</a>.</p></li>
-<li><p>To share feature requests and bug reports, use the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">issue tracker</a>.</p></li>
+<li>To chat with the CVXPY community in real-time, join us <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>.</li>
+<li>To have longer, in-depth discussions with the CVXPY community, use <a class="reference external" href="https://github.com/cvxpy/cvxpy/discussions">Github discussions</a>.</li>
+<li>To share feature requests and bug reports, use the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">issue tracker</a>.</li>
 </ul>
 <p><strong>Development.</strong></p>
 <p>CVXPY is a community project, built from the contributions of many
@@ -100,10 +105,10 @@ Dembia.</p>
 guide</span></a> and join us <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>.</p>
 <p><strong>News.</strong></p>
 <ul class="simple">
-<li><p>CVXPY v1.1.0 has been released. This version makes
+<li>CVXPY v1.1.0 has been released. This version makes
 repeatedly canonicalizing <a class="reference internal" href="tutorial/advanced/index.html#dpp"><span class="std std-ref">parametrized problems</span></a> much faster than before,
 allows <a class="reference internal" href="tutorial/advanced/index.html#derivatives"><span class="std std-ref">differentiating the map</span></a> from parameters to optimal solutions, and introduces
-some new atoms. See <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">Changes to CVXPY</span></a> for more information.</p></li>
+some new atoms. See <a class="reference internal" href="updates/index.html#updates"><span class="std std-ref">Changes to CVXPY</span></a> for more information.</li>
 </ul>
 <div class="toctree-wrapper compound">
 </div>
@@ -131,7 +136,6 @@ some new atoms. See <a class="reference internal" href="updates/index.html#updat
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -142,12 +146,10 @@ some new atoms. See <a class="reference internal" href="updates/index.html#updat
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -189,15 +191,15 @@ some new atoms. See <a class="reference internal" href="updates/index.html#updat
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -206,11 +208,11 @@ some new atoms. See <a class="reference internal" href="updates/index.html#updat
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="_sources/index.rst.txt"
+      <a href="_sources/index.txt"
           rel="nofollow">Page source</a>
     </div>
 

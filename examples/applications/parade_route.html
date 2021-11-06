@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Optimal parade route &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Optimal parade route &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="optimal-parade-route">
@@ -38,33 +43,33 @@
 <div class="section" id="topic-references">
 <h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><p>Iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span>
-heuristic: <a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">slides</a></p></li>
+<li>Iterated weighted <span class="math">\(\ell_1\)</span>
+heuristic: <a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">slides</a></li>
 </ul>
 </div>
 <div class="section" id="problem-statement">
 <h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this headline">¶</a></h1>
-<p>In this notebook, we’ll tackle the problem of trying to protect a parade
+<p>In this notebook, we&#8217;ll tackle the problem of trying to protect a parade
 route by placing a limited number of guards.</p>
-<p>The parade route is discritized into <span class="math notranslate nohighlight">\(m\)</span> points. There are
-<span class="math notranslate nohighlight">\(n\)</span> possible guard locations with associated decision variable
-<span class="math notranslate nohighlight">\(x \in  \lbrace 0,1\rbrace^n\)</span>, where <span class="math notranslate nohighlight">\(x_i = 1\)</span> if and only
-if a guard is placed at location <span class="math notranslate nohighlight">\(i\)</span>. Associated with guard
-location <span class="math notranslate nohighlight">\(i\)</span> is a <em>coverage vector</em> <span class="math notranslate nohighlight">\(a_i \in \mathbf{R}^m\)</span>,
-which describes how well a guard placed at location <span class="math notranslate nohighlight">\(i\)</span> would
-‘cover’ each point in the parade route. We will assume that guard
+<p>The parade route is discritized into <span class="math">\(m\)</span> points. There are
+<span class="math">\(n\)</span> possible guard locations with associated decision variable
+<span class="math">\(x \in  \lbrace 0,1\rbrace^n\)</span>, where <span class="math">\(x_i = 1\)</span> if and only
+if a guard is placed at location <span class="math">\(i\)</span>. Associated with guard
+location <span class="math">\(i\)</span> is a <em>coverage vector</em> <span class="math">\(a_i \in \mathbf{R}^m\)</span>,
+which describes how well a guard placed at location <span class="math">\(i\)</span> would
+&#8216;cover&#8217; each point in the parade route. We will assume that guard
 coverage is additive, so that the vector describing the total coverage
-of every edge is given by <span class="math notranslate nohighlight">\(Ax\)</span>, where
-<span class="math notranslate nohighlight">\(A \in \mathbf{R}^{m \times n}\)</span> has <span class="math notranslate nohighlight">\(a_i\)</span> as its
-<span class="math notranslate nohighlight">\(i\)</span>th column.</p>
+of every edge is given by <span class="math">\(Ax\)</span>, where
+<span class="math">\(A \in \mathbf{R}^{m \times n}\)</span> has <span class="math">\(a_i\)</span> as its
+<span class="math">\(i\)</span>th column.</p>
 <p>The parade route is only as secure as its least well-covered point. Our
-goal is to place <span class="math notranslate nohighlight">\(k\)</span> guards to maximize the minimum coverage over
+goal is to place <span class="math">\(k\)</span> guards to maximize the minimum coverage over
 the points in the route.</p>
 </div>
 <div class="section" id="optimization-formulation">
 <h1>Optimization formulation<a class="headerlink" href="#optimization-formulation" title="Permalink to this headline">¶</a></h1>
 <p>We can formulate this as the optimization problem</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll} \mbox{maximize} &amp; t \\ \mbox{subject to} &amp; t \leq Ax\\ &amp; 0 \leq x \leq 1 \\ &amp; \mathbf{1}^Tx = k, \end{array}\end{split}\]</div>
 <p>This problem is nonconvex and, in general, NP-hard due to the Boolean
 decision variable.</p>
@@ -73,28 +78,28 @@ decision variable.</p>
 <h1>Relaxation<a class="headerlink" href="#relaxation" title="Permalink to this headline">¶</a></h1>
 <p>We can try to approach the problem with convex optimization by first
 forming the convex relaxation</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll} \mbox{maximize} &amp; t - w^Tx\\ \mbox{subject to} &amp; t \leq Ax\\ &amp; 0 \leq x \leq 1 \\ &amp; \mathbf{1}^Tx = k, \end{array}\end{split}\]</div>
-<p>by constraining <span class="math notranslate nohighlight">\(x \in [0,1]^n\)</span>.</p>
-<p>In general, the solution to this problem, <span class="math notranslate nohighlight">\(x^\star\)</span>, will have
+<p>by constraining <span class="math">\(x \in [0,1]^n\)</span>.</p>
+<p>In general, the solution to this problem, <span class="math">\(x^\star\)</span>, will have
 fractional values. As we want a Boolean allocation, we can use an
-iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span> heuristic to try to recover a Boolean solution.</p>
+iterated weighted <span class="math">\(\ell_1\)</span> heuristic to try to recover a Boolean solution.</p>
 </div>
-<div class="section" id="iterated-weighted-ell-1-heuristic">
-<h1>Iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span> heuristic<a class="headerlink" href="#iterated-weighted-ell-1-heuristic" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="iterated-weighted-heuristic">
+<h1>Iterated weighted <span class="math">\(\ell_1\)</span> heuristic<a class="headerlink" href="#iterated-weighted-heuristic" title="Permalink to this headline">¶</a></h1>
 <p>To try and recover a Boolean solution, we will solve a sequence of
-convex problems where we add a linear term <span class="math notranslate nohighlight">\(-w^Tx\)</span> to the
-objective, picking the weight vector <span class="math notranslate nohighlight">\(w \in \mathbf{R}^n_+\)</span> at
+convex problems where we add a linear term <span class="math">\(-w^Tx\)</span> to the
+objective, picking the weight vector <span class="math">\(w \in \mathbf{R}^n_+\)</span> at
 each iteration to try and induce a sparse solution vector
-<span class="math notranslate nohighlight">\(x^\star\)</span>. The details can be found in the <a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">Stanford EE364B
+<span class="math">\(x^\star\)</span>. The details can be found in the <a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">Stanford EE364B
 lecture
 notes</a>.</p>
-<p>The algorithm consists of initializing <span class="math notranslate nohighlight">\(w = 0\)</span> and repeating the
+<p>The algorithm consists of initializing <span class="math">\(w = 0\)</span> and repeating the
 two steps</p>
 <ol class="arabic simple">
 <li></li>
 </ol>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
 \mbox{maximize} &amp; t  - w^Tx\\
 \mbox{subject to} &amp; t \leq Ax\\
@@ -102,26 +107,26 @@ two steps</p>
 &amp; \mathbf{1}^Tx = k,
 \end{array}\end{split}\]</div>
 <ol class="arabic simple" start="2">
-<li><p>Let <span class="math notranslate nohighlight">\(w_i = \alpha/(\tau + x_i) \forall i\)</span></p></li>
+<li>Let <span class="math">\(w_i = \alpha/(\tau + x_i) \forall i\)</span></li>
 </ol>
-<p>until we reach a Boolean solution. Here, <span class="math notranslate nohighlight">\(\alpha\)</span> and <span class="math notranslate nohighlight">\(\tau\)</span>
+<p>until we reach a Boolean solution. Here, <span class="math">\(\alpha\)</span> and <span class="math">\(\tau\)</span>
 are adjusted to promote a sparse solution. Typical choices would be
-<span class="math notranslate nohighlight">\(\alpha = 1\)</span> and <span class="math notranslate nohighlight">\(\tau = 10^{-4}\)</span>.</p>
-<p>Intuitively, the weight vector <span class="math notranslate nohighlight">\(w\)</span> is incentivizing elements of
-<span class="math notranslate nohighlight">\(x\)</span> which were close to zero in the last iteration towards zero in
+<span class="math">\(\alpha = 1\)</span> and <span class="math">\(\tau = 10^{-4}\)</span>.</p>
+<p>Intuitively, the weight vector <span class="math">\(w\)</span> is incentivizing elements of
+<span class="math">\(x\)</span> which were close to zero in the last iteration towards zero in
 the next iteration.</p>
 </div>
 <div class="section" id="example">
 <h1>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h1>
-<p>We create a parade route in the unit square <span class="math notranslate nohighlight">\([0,1] \times [0,1]\)</span>
+<p>We create a parade route in the unit square <span class="math">\([0,1] \times [0,1]\)</span>
 by generating points along a connected sequence of line segments.
 Possible guard locations are a set of randomly placed points in the unit
-square. Guards’ coverage of points in the parade route is a function of
+square. Guards&#8217; coverage of points in the parade route is a function of
 distance between the two points. We also add buildings in the unit
-square to obstruct the guards’ view. The guard has no effect on a point
-if his line of sight is obstructed. We generate the <span class="math notranslate nohighlight">\(A\)</span> matrix for
+square to obstruct the guards&#8217; view. The guard has no effect on a point
+if his line of sight is obstructed. We generate the <span class="math">\(A\)</span> matrix for
 this problem instance below.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
@@ -236,7 +241,7 @@ this problem instance below.</p>
             <span class="n">locations</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">point</span><span class="p">,</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">detect_p</span><span class="p">)))</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
 <span class="n">buildings</span> <span class="o">=</span> <span class="p">[(</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">4</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
              <span class="p">(</span><span class="o">.</span><span class="mi">6</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">4</span><span class="p">),</span>
@@ -275,15 +280,15 @@ this problem instance below.</p>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">,:],</span><span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">,:],</span><span class="s1">&#39;ro&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=.</span><span class="mi">3</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x105d17cc0</span><span class="o">&gt;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x105d17cc0</span><span class="o">&gt;</span><span class="p">]</span>
 </pre></div>
 </div>
 <img alt="../../_images/parade_route_2_1.png" src="../../_images/parade_route_2_1.png" />
 <p>We perform the iterative algorithm below. At each step, we plot the
-vector <span class="math notranslate nohighlight">\(x\)</span>, demonstrating that it becomes increasingly sparse at
+vector <span class="math">\(x\)</span>, demonstrating that it becomes increasingly sparse at
 each iteration.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">num_guards</span> <span class="o">=</span> <span class="mi">12</span>
-<span class="n">tau</span> <span class="o">=</span> <span class="mf">1e-2</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">num_guards</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="n">tau</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">2</span>
 
 <span class="n">m</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span>
 
@@ -306,7 +311,7 @@ each iteration.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;final objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">objective</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">final</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="o">-</span><span class="mf">10.27091799207174</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">final</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="o">-</span><span class="mf">10.27091799207174</span>
 </pre></div>
 </div>
 <img alt="../../_images/parade_route_4_1.png" src="../../_images/parade_route_4_1.png" />
@@ -315,8 +320,8 @@ each iteration.</p>
 <p>Below, we plot the final Boolean allocation. The blue dots represent the
 parade route. The red dots represent the possible guard placement
 locations. The green dots show the actual guard placements. Yellow
-rectangles are buildings which obstruct the guards’ view.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+rectangles are buildings which obstruct the guards&#8217; view.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
 <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">111</span><span class="p">,</span><span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
     <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span> <span class="n">w</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">3</span><span class="p">)</span>
@@ -328,7 +333,7 @@ rectangles are buildings which obstruct the guards’ view.</p>
 <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="n">xsol</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">5</span><span class="p">],</span> <span class="n">g</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="n">xsol</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;go&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=.</span><span class="mi">5</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0xb1853f1d0</span><span class="o">&gt;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0xb1853f1d0</span><span class="o">&gt;</span><span class="p">]</span>
 </pre></div>
 </div>
 <img alt="../../_images/parade_route_6_1.png" src="../../_images/parade_route_6_1.png" />
@@ -336,7 +341,6 @@ rectangles are buildings which obstruct the guards’ view.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -347,12 +351,10 @@ rectangles are buildings which obstruct the guards’ view.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -394,15 +396,15 @@ rectangles are buildings which obstruct the guards’ view.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -411,11 +413,11 @@ rectangles are buildings which obstruct the guards’ view.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/parade_route.rst.txt"
+      <a href="../../_sources/examples/applications/parade_route.txt"
           rel="nofollow">Page source</a>
     </div>
 

@@ -1,51 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Problems &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Problems &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../index.html" />
+    <link rel="up" title="API Documentation" href="cvxpy.html" />
     <link rel="next" title="Reductions" href="cvxpy.reductions.html" />
     <link rel="prev" title="Expressions" href="cvxpy.expressions.html" />
    
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="problems">
 <h1>Problems<a class="headerlink" href="#problems" title="Permalink to this headline">¶</a></h1>
-<p>The <a class="reference internal" href="#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> class is the entry point to
+<p>The <code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> class is the entry point to
 specifying and solving optimization problems. Each
-<a class="reference internal" href="#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.problem.Problem</span></code></a> instance encapsulates an optimization
+<code class="xref py py-class docutils literal"><span class="pre">cvxpy.problems.problem.Problem</span></code> instance encapsulates an optimization
 problem, i.e., an objective and a set of constraints, and the
-<a class="reference internal" href="#cvxpy.problems.problem.Problem.solve" title="cvxpy.problems.problem.Problem.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a> method either solves the problem
+<code class="xref py py-meth docutils literal"><span class="pre">solve()</span></code> method either solves the problem
 encoded by the instance, returning the optimal value and setting variables
 values to optimal points, or reports that the problem was in fact infeasible or
 unbounded. You can construct a problem, solve it, and inspect both its value
 and the values of its variables like so:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 <span class="k">if</span> <span class="n">problem</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;infeasible&quot;</span><span class="p">,</span> <span class="s2">&quot;unbounded&quot;</span><span class="p">]:</span>
     <span class="c1"># Otherwise, problem.value is inf or -inf, respectively.</span>
@@ -55,776 +61,56 @@ and the values of its variables like so:</p>
 </pre></div>
 </div>
 <p>Problems are <strong>immutable</strong>, except through the specification of
-<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> values. This means
-that you <strong>cannot</strong> modify a problem’s objective or constraints after you have
+<code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code> values. This means
+that you <strong>cannot</strong> modify a problem&#8217;s objective or constraints after you have
 created it. If you find yourself wanting to add a constraint to an existing
 problem, you should instead create a new problem using, for example, the
 following idiom:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">expression</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
 <span class="n">problem</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="n">new_constraints</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Most users need not know anything about the
-<a class="reference internal" href="#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> class except how to instantiate it,
-how to solve problem instances (<a class="reference internal" href="#cvxpy.problems.problem.Problem.solve" title="cvxpy.problems.problem.Problem.solve"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code></a>),
+<code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> class except how to instantiate it,
+how to solve problem instances (<code class="xref py py-meth docutils literal"><span class="pre">solve()</span></code>),
 and how to query the solver results
-(<a class="reference internal" href="#cvxpy.problems.problem.Problem.status" title="cvxpy.problems.problem.Problem.status"><code class="xref py py-attr docutils literal notranslate"><span class="pre">status</span></code></a> and
-<a class="reference internal" href="#cvxpy.problems.problem.Problem.value" title="cvxpy.problems.problem.Problem.value"><code class="xref py py-attr docutils literal notranslate"><span class="pre">value</span></code></a>).</p>
+(<code class="xref py py-attr docutils literal"><span class="pre">status</span></code> and
+<code class="xref py py-attr docutils literal"><span class="pre">value</span></code>).</p>
 <p>Information about the size of a problem instance and statistics about the most
 recent solve invocation are captured by the
-<a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics" title="cvxpy.problems.problem.SizeMetrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">SizeMetrics</span></code></a> and
-<a class="reference internal" href="#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code></a> classes, respectively, and can be
-accessed via the <a class="reference internal" href="#cvxpy.problems.problem.Problem.size_metrics" title="cvxpy.problems.problem.Problem.size_metrics"><code class="xref py py-meth docutils literal notranslate"><span class="pre">size_metrics()</span></code></a> and
-<a class="reference internal" href="#cvxpy.problems.problem.Problem.solver_stats" title="cvxpy.problems.problem.Problem.solver_stats"><code class="xref py py-meth docutils literal notranslate"><span class="pre">solver_stats()</span></code></a> properties of the
-<a class="reference internal" href="#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> class.</p>
+<code class="xref py py-class docutils literal"><span class="pre">SizeMetrics</span></code> and
+<code class="xref py py-class docutils literal"><span class="pre">SolverStats</span></code> classes, respectively, and can be
+accessed via the <code class="xref py py-meth docutils literal"><span class="pre">size_metrics()</span></code> and
+<code class="xref py py-meth docutils literal"><span class="pre">solver_stats()</span></code> properties of the
+<code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> class.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#minimize" id="id1">Minimize</a></p></li>
-<li><p><a class="reference internal" href="#maximize" id="id2">Maximize</a></p></li>
-<li><p><a class="reference internal" href="#sizemetrics" id="id3">SizeMetrics</a></p></li>
-<li><p><a class="reference internal" href="#solverstats" id="id4">SolverStats</a></p></li>
-<li><p><a class="reference internal" href="#problem" id="id5">Problem</a></p></li>
+<li><a class="reference internal" href="#minimize" id="id1">Minimize</a></li>
+<li><a class="reference internal" href="#maximize" id="id2">Maximize</a></li>
+<li><a class="reference internal" href="#sizemetrics" id="id3">SizeMetrics</a></li>
+<li><a class="reference internal" href="#solverstats" id="id4">SolverStats</a></li>
+<li><a class="reference internal" href="#problem" id="id5">Problem</a></li>
 </ul>
 </div>
 <div class="section" id="minimize">
 <h2><a class="toc-backref" href="#id1">Minimize</a><a class="headerlink" href="#minimize" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="cvxpy.problems.objective.Minimize">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.objective.</code><code class="sig-name descname">Minimize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.objective.Objective</span></code></p>
-<p>An optimization objective for minimization.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>expr</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code>) – The expression to minimize. Must be a scalar.</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If expr is not a scalar.</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="cvxpy.problems.objective.Minimize.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize.is_dcp" title="Permalink to this definition">¶</a></dt>
-<dd><p>The objective must be convex.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.objective.Minimize.is_dgp">
-<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Minimize.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Minimize.is_dgp" title="Permalink to this definition">¶</a></dt>
-<dd><p>The objective must be log-log convex.</p>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="maximize">
 <h2><a class="toc-backref" href="#id2">Maximize</a><a class="headerlink" href="#maximize" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="cvxpy.problems.objective.Maximize">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.objective.</code><code class="sig-name descname">Maximize</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.objective.Objective</span></code></p>
-<p>An optimization objective for maximization.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>expr</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code>) – The expression to maximize. Must be a scalar.</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If expr is not a scalar.</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="cvxpy.problems.objective.Maximize.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize.is_dcp" title="Permalink to this definition">¶</a></dt>
-<dd><p>The objective must be concave.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.objective.Maximize.is_dgp">
-<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/objective.html#Maximize.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.objective.Maximize.is_dgp" title="Permalink to this definition">¶</a></dt>
-<dd><p>The objective must be log-log concave.</p>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="sizemetrics">
 <h2><a class="toc-backref" href="#id3">SizeMetrics</a><a class="headerlink" href="#sizemetrics" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="cvxpy.problems.problem.SizeMetrics">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">SizeMetrics</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem">cvxpy.problems.problem.Problem</a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#SizeMetrics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Reports various metrics regarding the problem.</p>
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_variables">
-<code class="sig-name descname">num_scalar_variables</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_variables" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of scalar variables in the problem.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">integer</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_data">
-<code class="sig-name descname">num_scalar_data</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of scalar constants and parameters in the problem. The number of
-constants used across all matrices, vectors, in the problem.
-Some constants are not apparent when the problem is constructed: for example,
-The sum_squares expression is a wrapper for a quad_over_lin expression with a
-constant 1 in the denominator.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">integer</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_eq_constr">
-<code class="sig-name descname">num_scalar_eq_constr</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_eq_constr" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of scalar equality constraints in the problem.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">integer</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.num_scalar_leq_constr">
-<code class="sig-name descname">num_scalar_leq_constr</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_leq_constr" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of scalar inequality constraints in the problem.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">integer</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.max_data_dimension">
-<code class="sig-name descname">max_data_dimension</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.max_data_dimension" title="Permalink to this definition">¶</a></dt>
-<dd><p>The longest dimension of any data block constraint or parameter.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">integer</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SizeMetrics.max_big_small_squared">
-<code class="sig-name descname">max_big_small_squared</code><a class="headerlink" href="#cvxpy.problems.problem.SizeMetrics.max_big_small_squared" title="Permalink to this definition">¶</a></dt>
-<dd><p>The maximum value of (big)(small)^2 over all data blocks of the problem, where
-(big) is the larger dimension and (small) is the smaller dimension
-for each data block.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">integer</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="solverstats">
 <h2><a class="toc-backref" href="#id4">SolverStats</a><a class="headerlink" href="#solverstats" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="cvxpy.problems.problem.SolverStats">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">SolverStats</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">results_dict</span></em>, <em class="sig-param"><span class="n">solver_name</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#SolverStats"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.SolverStats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Reports some of the miscellaneous information that is returned
-by the solver after solving but that is not captured directly by
-the Problem instance.</p>
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SolverStats.solver_name">
-<code class="sig-name descname">solver_name</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.solver_name" title="Permalink to this definition">¶</a></dt>
-<dd><p>The name of the solver.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SolverStats.solve_time">
-<code class="sig-name descname">solve_time</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.solve_time" title="Permalink to this definition">¶</a></dt>
-<dd><p>The time (in seconds) it took for the solver to solve the problem.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">double</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SolverStats.setup_time">
-<code class="sig-name descname">setup_time</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.setup_time" title="Permalink to this definition">¶</a></dt>
-<dd><p>The time (in seconds) it took for the solver to setup the problem.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">double</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SolverStats.num_iters">
-<code class="sig-name descname">num_iters</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.num_iters" title="Permalink to this definition">¶</a></dt>
-<dd><p>The number of iterations the solver had to go through to find a solution.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt id="cvxpy.problems.problem.SolverStats.extra_stats">
-<code class="sig-name descname">extra_stats</code><a class="headerlink" href="#cvxpy.problems.problem.SolverStats.extra_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extra statistics specific to the solver; these statistics are typically
-returned directly from the solver, without modification by CVXPY.
-This object may be a dict, or a custom Python object.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="problem">
 <h2><a class="toc-backref" href="#id5">Problem</a><a class="headerlink" href="#problem" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="cvxpy.problems.problem.Problem">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.problems.problem.</code><code class="sig-name descname">Problem</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">objective</span><span class="p">:</span> <span class="n">Union<span class="p">[</span><a class="reference internal" href="#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><span class="p">, </span><a class="reference internal" href="#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize">cvxpy.problems.objective.Maximize</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">constraints</span><span class="p">:</span> <span class="n">Optional<span class="p">[</span>List<span class="p">[</span><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint">cvxpy.constraints.constraint.Constraint</a><span class="p">]</span><span class="p">]</span></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.utilities.canonical.Canonical</span></code></p>
-<p>A convex optimization problem.</p>
-<p>Problems are immutable, save for modification through the specification
-of <code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>objective</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Minimize</span></code> or <code class="xref py py-class docutils literal notranslate"><span class="pre">Maximize</span></code>) – The problem’s objective.</p></li>
-<li><p><strong>constraints</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>) – The constraints on the problem variables.</p></li>
-</ul>
-</dd>
-</dl>
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.atoms">
-<code class="sig-name descname">atoms</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="cvxpy.atoms.html#cvxpy.atoms.atom.Atom" title="cvxpy.atoms.atom.Atom">cvxpy.atoms.atom.Atom</a><span class="p">]</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.atoms"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.atoms" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor method for atoms.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A list of the atom types in the problem; note that this list
-contains classes, not instances.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.backward">
-<code class="sig-name descname">backward</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.backward"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.backward" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute the gradient of a solution with respect to Parameters.</p>
-<p>This method differentiates through the solution map of the problem,
-obtaining the gradient of a solution with respect to the Parameters.
-In other words, it calculates the sensitivities of the Parameters
-with respect to perturbations in the optimal Variable values. This
-can be useful for integrating CVXPY into automatic differentiation
-toolkits.</p>
-<p><code class="docutils literal notranslate"><span class="pre">backward()</span></code> populates the <code class="docutils literal notranslate"><span class="pre">gradient</span></code> attribute of each Parameter
-in the problem as a side-effect. It can only be called after calling
-<code class="docutils literal notranslate"><span class="pre">solve()</span></code> with <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code>.</p>
-<p>Below is a simple example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="n">p</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">()</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
-<span class="n">quadratic</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span>
-<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">quadratic</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">])</span>
-<span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">3.0</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
-<span class="c1"># backward() populates the gradient attribute of the parameters</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-<span class="c1"># Because x* = 2 * p, dx*/dp = 2</span>
-<span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">gradient</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>In the above example, the gradient could easily be computed by hand.
-The <code class="docutils literal notranslate"><span class="pre">backward()</span></code> is useful because for almost all problems, the
-gradient cannot be computed analytically.</p>
-<p>This method can be used to differentiate through any DCP or DGP
-problem, as long as the problem is DPP compliant (i.e.,
-<code class="docutils literal notranslate"><span class="pre">problem.is_dcp(dpp=True)</span></code> or <code class="docutils literal notranslate"><span class="pre">problem.is_dgp(dpp=True)</span></code> evaluates to
-<code class="docutils literal notranslate"><span class="pre">True</span></code>).</p>
-<p>This method uses the chain rule to evaluate the gradients of a
-scalar-valued function of the Variables with respect to the Parameters.
-For example, let x be a variable and p a Parameter; x and p might be
-scalars, vectors, or matrices. Let f be a scalar-valued function, with
-z = f(x). Then this method computes dz/dp = (dz/dx) (dx/p). dz/dx
-is chosen as the all-ones vector by default, corresponding to
-choosing f to be the sum function. You can specify a custom value for
-dz/dx by setting the <code class="docutils literal notranslate"><span class="pre">gradient</span></code> attribute on your variables. For example,</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-
-<span class="n">b</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">()</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
-<span class="n">quadratic</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">b</span><span class="p">)</span>
-<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">quadratic</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">])</span>
-<span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">3.</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
-<span class="n">x</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="mf">4.</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-<span class="c1"># dz/dp = dz/dx dx/dp = 4. * 2. == 8.</span>
-<span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">b</span><span class="o">.</span><span class="n">gradient</span><span class="p">,</span> <span class="mf">8.</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">gradient</span></code> attribute on a variable can also be interpreted as a
-perturbation to its optimal value.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ValueError</strong> – if solve was not called with <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code></p></li>
-<li><p><strong>SolverError</strong> – if the problem is infeasible or unbounded</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.constants">
-<code class="sig-name descname">constants</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span>cvxpy.expressions.constants.constant.Constant<span class="p">]</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.constants"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.constants" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor method for constants.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A list of the constants in the problem.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of <code class="xref py py-class docutils literal notranslate"><span class="pre">Constant</span></code></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.constraints">
-<em class="property">property </em><code class="sig-name descname">constraints</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.constraints" title="Permalink to this definition">¶</a></dt>
-<dd><p>A shallow copy of the problem’s constraints.</p>
-<p>Note that constraints cannot be reassigned, appended to, or otherwise
-modified after creation, except through parameters.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.derivative">
-<code class="sig-name descname">derivative</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.derivative"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.derivative" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply the derivative of the solution map to perturbations in the Parameters</p>
-<p>This method applies the derivative of the solution map to perturbations
-in the Parameters to obtain perturbations in the optimal values of the
-Variables. In other words, it tells you how the optimal values of the
-Variables would be changed by small changes to the Parameters.</p>
-<p>You can specify perturbations in a Parameter by setting its <code class="docutils literal notranslate"><span class="pre">delta</span></code>
-attribute (if unspecified, the perturbation defaults to 0).</p>
-<p>This method populates the <code class="docutils literal notranslate"><span class="pre">delta</span></code> attribute of the Variables as a
-side-effect.</p>
-<p>This method can only be called after calling <code class="docutils literal notranslate"><span class="pre">solve()</span></code> with
-<code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code>. It is compatible with both DCP and DGP
-problems (that are also DPP-compliant).</p>
-<p>Below is a simple example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="n">p</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">()</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
-<span class="n">quadratic</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">p</span><span class="p">)</span>
-<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">quadratic</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">])</span>
-<span class="n">p</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">3.0</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
-<span class="c1"># derivative() populates the delta attribute of the variables</span>
-<span class="n">p</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-3</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">derivative</span><span class="p">()</span>
-<span class="c1"># Because x* = 2 * p, dx*/dp = 2, so (dx*/dp)(p.delta) == 2e-3</span>
-<span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">delta</span><span class="p">,</span> <span class="mf">2e-3</span><span class="p">)</span>
-</pre></div>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>ValueError</strong> – if solve was not called with <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code></p></li>
-<li><p><strong>SolverError</strong> – if the problem is infeasible or unbounded</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.get_problem_data">
-<code class="sig-name descname">get_problem_data</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span></em>, <em class="sig-param"><span class="n">gp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">enforce_dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.get_problem_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.get_problem_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the problem data used in the call to the solver.</p>
-<p>When a problem is solved, CVXPY creates a chain of reductions enclosed
-in a <a class="reference internal" href="cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code></a>,
-and compiles it to some low-level representation that is
-compatible with the targeted solver. This method returns that low-level
-representation.</p>
-<p>For some solving chains, this low-level representation is a dictionary
-that contains exactly those arguments that were supplied to the solver;
-however, for other solving chains, the data is an intermediate
-representation that is compiled even further by the solver interfaces.</p>
-<p>A solution to the equivalent low-level problem can be obtained via the
-data by invoking the <cite>solve_via_data</cite> method of the returned solving
-chain, a thin wrapper around the code external to CVXPY that further
-processes and solves the problem. Invoke the unpack_results method
-to recover a solution to the original problem.</p>
-<p>For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">objective</span> <span class="o">=</span> <span class="o">...</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="o">...</span>
-<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">data</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
-<span class="c1"># calls SCS using `data`</span>
-<span class="n">soln</span> <span class="o">=</span> <span class="n">chain</span><span class="o">.</span><span class="n">solve_via_data</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
-<span class="c1"># unpacks the solution returned by SCS into `problem`</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">unpack_results</span><span class="p">(</span><span class="n">soln</span><span class="p">,</span> <span class="n">chain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Alternatively, the <cite>data</cite> dictionary returned by this method
-contains enough information to bypass CVXPY and call the solver
-directly.</p>
-<p>For example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">data</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">problem</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">)</span>
-
-<span class="kn">import</span> <span class="nn">scs</span>
-<span class="n">probdata</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s1">&#39;A&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;A&#39;</span><span class="p">],</span>
-  <span class="s1">&#39;b&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;b&#39;</span><span class="p">],</span>
-  <span class="s1">&#39;c&#39;</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;c&#39;</span><span class="p">],</span>
-<span class="p">}</span>
-<span class="n">cone_dims</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;dims&#39;</span><span class="p">]</span>
-<span class="n">cones</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;f&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span>
-    <span class="s2">&quot;l&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">nonpos</span><span class="p">,</span>
-    <span class="s2">&quot;q&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span>
-    <span class="s2">&quot;ep&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span>
-    <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">cone_dims</span><span class="o">.</span><span class="n">psd</span><span class="p">,</span>
-<span class="p">}</span>
-<span class="n">soln</span> <span class="o">=</span> <span class="n">scs</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">cones</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>The structure of the data dict that CVXPY returns depends on the
-solver. For details, consult the solver interfaces in
-<cite>cvxpy/reductions/solvers</cite>.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>solver</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The solver the problem data is for.</p></li>
-<li><p><strong>gp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – If True, then parses the problem as a disciplined geometric program
-instead of a disciplined convex program.</p></li>
-<li><p><strong>enforce_dpp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – When True, a DPPError will be thrown when trying to parse a non-DPP
-problem (instead of just a warning). Defaults to False.</p></li>
-<li><p><strong>verbose</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – If True, print verbose output related to problem compilation.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><ul class="simple">
-<li><p><em>dict or object</em> – lowest level representation of problem</p></li>
-<li><p><em>SolvingChain</em> – The solving chain that created the data.</p></li>
-<li><p><em>list</em> – The inverse data generated by the chain.</p></li>
-</ul>
-</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.is_dcp">
-<code class="sig-name descname">is_dcp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dcp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does the problem satisfy DCP rules?</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dpp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – <p>If True, enforce the disciplined parametrized programming (DPP)
-ruleset; only relevant when the problem involves Parameters.
-DPP is a mild restriction of DCP. When a problem involving
-Parameters is DPP, subsequent solves can be much faster than
-the first one. For more information, consult the documentation at</p>
-<p><a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html#disciplined-parametrized-programming">https://www.cvxpy.org/tutorial/advanced/index.html#disciplined-parametrized-programming</a></p>
-</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the Expression is DCP, False otherwise.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.is_dgp">
-<code class="sig-name descname">is_dgp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dpp</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dgp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dgp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does the problem satisfy DGP rules?</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>dpp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – <p>If True, enforce the disciplined parametrized programming (DPP)
-ruleset; only relevant when the problem involves Parameters.
-DPP is a mild restriction of DGP. When a problem involving
-Parameters is DPP, subsequent solves can be much faster than
-the first one. For more information, consult the documentation at</p>
-<p><a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html#disciplined-parametrized-programming">https://www.cvxpy.org/tutorial/advanced/index.html#disciplined-parametrized-programming</a></p>
-</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>True if the Expression is DGP, False otherwise.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.is_dpp">
-<code class="sig-name descname">is_dpp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">context</span><span class="p">:</span> <span class="n">str</span> <span class="o">=</span> <span class="default_value">'dcp'</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dpp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dpp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does the problem satisfy DPP rules?</p>
-<p>DPP is a mild restriction of DGP. When a problem involving
-Parameters is DPP, subsequent solves can be much faster than
-the first one. For more information, consult the documentation at</p>
-<p><a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html#disciplined-parametrized-programming">https://www.cvxpy.org/tutorial/advanced/index.html#disciplined-parametrized-programming</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>context</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – Whether to check DPP-compliance for DCP or DGP; <code class="docutils literal notranslate"><span class="pre">context</span></code> should
-be either <code class="docutils literal notranslate"><span class="pre">'dcp'</span></code> or <code class="docutils literal notranslate"><span class="pre">'dgp'</span></code>. Calling <code class="docutils literal notranslate"><span class="pre">problem.is_dpp('dcp')</span></code>
-is equivalent to <code class="docutils literal notranslate"><span class="pre">problem.is_dcp(dpp=True)</span></code>, and
-<cite>problem.is_dpp(‘dgp’)`</cite> is equivalent to
-<cite>problem.is_dgp(dpp=True)</cite>.</p>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p>Whether the problem satisfies the DPP rules.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>bool</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.is_dqcp">
-<code class="sig-name descname">is_dqcp</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_dqcp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_dqcp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does the problem satisfy the DQCP rules?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.is_qp">
-<code class="sig-name descname">is_qp</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.is_qp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.is_qp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Is problem a quadratic program?</p>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.objective">
-<em class="property">property </em><code class="sig-name descname">objective</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.objective" title="Permalink to this definition">¶</a></dt>
-<dd><p>The problem’s objective.</p>
-<p>Note that the objective cannot be reassigned after creation,
-and modifying the objective after creation will result in
-undefined behavior.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">Minimize</a> or <a class="reference internal" href="#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize">Maximize</a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.parameters">
-<code class="sig-name descname">parameters</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.parameters" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor method for parameters.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A list of the parameters in the problem.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.register_solve">
-<em class="property">classmethod </em><code class="sig-name descname">register_solve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">func</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.register_solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.register_solve" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds a solve method to the Problem class.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>name</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>) – The keyword for the method.</p></li>
-<li><p><strong>func</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">function</span></code>) – The function that executes the solve method. This function must
-take as its first argument the problem instance to solve.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.size_metrics">
-<em class="property">property </em><code class="sig-name descname">size_metrics</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.size_metrics" title="Permalink to this definition">¶</a></dt>
-<dd><p>Information about the problem’s size.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics" title="cvxpy.problems.problem.SizeMetrics"><code class="xref py py-class docutils literal notranslate"><span class="pre">SizeMetrics</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.solve">
-<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.solve" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compiles and solves the problem using the specified method.</p>
-<p>Populates the <code class="code docutils literal notranslate"><span class="pre">status</span></code> and <code class="code docutils literal notranslate"><span class="pre">value</span></code> attributes on the
-problem object as a side-effect.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>solver</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <em>optional</em>) – The solver to use. For example, ‘ECOS’, ‘SCS’, or ‘OSQP’.</p></li>
-<li><p><strong>verbose</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – Overrides the default of hiding solver output, and prints
-logging information describing CVXPY’s compilation process.</p></li>
-<li><p><strong>gp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – If True, parses the problem as a disciplined geometric program
-instead of a disciplined convex program.</p></li>
-<li><p><strong>qcp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – If True, parses the problem as a disciplined quasiconvex program
-instead of a disciplined convex program.</p></li>
-<li><p><strong>requires_grad</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – <p>Makes it possible to compute gradients of a solution with respect to
-Parameters by calling <code class="docutils literal notranslate"><span class="pre">problem.backward()</span></code> after solving, or to
-compute perturbations to the variables given perturbations to Parameters by
-calling <code class="docutils literal notranslate"><span class="pre">problem.derivative()</span></code>.</p>
-<p>Gradients are only supported for DCP and DGP problems, not
-quasiconvex problems. When computing gradients (i.e., when
-this argument is True), the problem must satisfy the DPP rules.</p>
-</p></li>
-<li><p><strong>enforce_dpp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code>, <em>optional</em>) – When True, a DPPError will be thrown when trying to solve a non-DPP
-problem (instead of just a warning). Only relevant for problems
-involving Parameters. Defaults to False.</p></li>
-<li><p><strong>method</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">function</span></code>, <em>optional</em>) – A custom solve method to use.</p></li>
-<li><p><strong>kwargs</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">keywords</span></code>, <em>optional</em>) – Additional solver specific arguments. See Notes below.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p>CVXPY interfaces with a wide range of solvers; the algorithms used by these solvers
-have arguments relating to stopping criteria, and strategies to improve solution quality.</p>
-<p>There is no one choice of arguments which is perfect for every problem. If you are not
-getting satisfactory results from a solver, you can try changing its arguments. The
-exact way this is done depends on the specific solver. Here are some examples:</p>
-<blockquote>
-<div><p>prob.solve(solver=’ECOS’, abstol=1e-6)
-prob.solve(solver=’OSQP’, max_iter=10000).
-mydict = {“MSK_DPAR_INTPNT_CO_TOL_NEAR_REL”:  10}
-prob.solve(solver=’MOSEK’, mosek_params=mydict).</p>
-</div></blockquote>
-<p>You should refer to CVXPY’s web documentation for details on how to pass solver
-solver arguments, available at</p>
-<p><a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html#setting-solver-options">https://www.cvxpy.org/tutorial/advanced/index.html#setting-solver-options</a></p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>The optimal value for the problem, or a string indicating
-why the problem could not be solved.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>float</p>
-</dd>
-<dt class="field-odd">Raises</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>cvxpy.error.DCPError</strong> – Raised if the problem is not DCP and <cite>gp</cite> is False.</p></li>
-<li><p><strong>cvxpy.error.DGPError</strong> – Raised if the problem is not DGP and <cite>gp</cite> is True.</p></li>
-<li><p><strong>cvxpy.error.SolverError</strong> – Raised if no suitable solver exists among the installed solvers,
-    or if an unanticipated error is encountered.</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.solver_stats">
-<em class="property">property </em><code class="sig-name descname">solver_stats</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.solver_stats" title="Permalink to this definition">¶</a></dt>
-<dd><p>Information returned by the solver.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.status">
-<em class="property">property </em><code class="sig-name descname">status</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.status" title="Permalink to this definition">¶</a></dt>
-<dd><p>The status from the last time the problem was solved; one
-of optimal, infeasible, or unbounded (with or without
-suffix inaccurate).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>str</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.unpack_results">
-<code class="sig-name descname">unpack_results</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">chain</span><span class="p">:</span> <span class="n"><a class="reference internal" href="cvxpy.reductions.html#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain">cvxpy.reductions.solvers.solving_chain.SolvingChain</a></span></em>, <em class="sig-param"><span class="n">inverse_data</span></em><span class="sig-paren">)</span> &#x2192; None<a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.unpack_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.unpack_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Updates the problem state given the solver results.</p>
-<p>Updates problem.status, problem.value and value of
-primal and dual variables.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>solution</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code>) – The solution returned by applying the chain to the problem
-and invoking the solver on the resulting data.</p></li>
-<li><p><strong>chain</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">SolvingChain</span></code>) – A solving chain that was used to solve the problem.</p></li>
-<li><p><strong>inverse_data</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>) – The inverse data returned by applying the chain to the problem.</p></li>
-</ul>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>cvxpy.error.SolverError</strong> – If the solver failed</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.value">
-<em class="property">property </em><code class="sig-name descname">value</code><a class="headerlink" href="#cvxpy.problems.problem.Problem.value" title="Permalink to this definition">¶</a></dt>
-<dd><p>The value from the last time the problem was solved
-(or None if not solved).</p>
-<dl class="field-list simple">
-<dt class="field-odd">Type</dt>
-<dd class="field-odd"><p>float</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt id="cvxpy.problems.problem.Problem.variables">
-<code class="sig-name descname">variables</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; List<span class="p">[</span><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable">cvxpy.expressions.variable.Variable</a><span class="p">]</span><a class="reference internal" href="../_modules/cvxpy/problems/problem.html#Problem.variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.problems.problem.Problem.variables" title="Permalink to this definition">¶</a></dt>
-<dd><p>Accessor method for variables.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
-<dd class="field-odd"><p>A list of the variables in the problem.</p>
-</dd>
-<dt class="field-even">Return type</dt>
-<dd class="field-even"><p>list of <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a></p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
 </div>
 </div>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -835,12 +121,10 @@ and invoking the solver on the resulting data.</p></li>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -897,15 +181,15 @@ and invoking the solver on the resulting data.</p></li>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -914,11 +198,11 @@ and invoking the solver on the resulting data.</p></li>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../_sources/api_reference/cvxpy.problems.rst.txt"
+      <a href="../_sources/api_reference/cvxpy.problems.txt"
           rel="nofollow">Page source</a>
     </div>
 

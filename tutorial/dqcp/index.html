@@ -1,59 +1,65 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Disciplined Quasiconvex Programming &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Disciplined Quasiconvex Programming &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <link rel="up" title="Tutorial" href="../index.html" />
     <link rel="next" title="Advanced Features" href="../advanced/index.html" />
     <link rel="prev" title="Disciplined Geometric Programming" href="../dgp/index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="disciplined-quasiconvex-programming">
 <span id="dqcp"></span><h1>Disciplined Quasiconvex Programming<a class="headerlink" href="#disciplined-quasiconvex-programming" title="Permalink to this headline">¶</a></h1>
 <p>Disciplined quasiconvex programming (DQCP) is a generalization of DCP for
 quasiconvex functions. Quasiconvexity generalizes convexity: a function
-<span class="math notranslate nohighlight">\(f\)</span> is quasiconvex if and only if its domain is a convex set and its
-sublevel sets <span class="math notranslate nohighlight">\(\{x : f(x) \leq t\}\)</span> are convex, for all <span class="math notranslate nohighlight">\(t\)</span>. For a
+<span class="math">\(f\)</span> is quasiconvex if and only if its domain is a convex set and its
+sublevel sets <span class="math">\(\{x : f(x) \leq t\}\)</span> are convex, for all <span class="math">\(t\)</span>. For a
 thorough overview of quasiconvexity, see the paper <a class="reference external" href="http://web.stanford.edu/~boyd/papers/dqcp.html">Disciplined quasiconvex programming</a>.</p>
 <p>While DCP is a ruleset for constructing convex programs, DQCP
 is a ruleset for quasiconvex programs (QCPs), which are optimization problems
 in which the objective is to minimize a quasiconvex function over a convex
 set. The convex set can be specified using equalities of affine functions
 and inequalities of convex and concave functions, just as in DCP; additionally,
-DQCP permits inequalities of the form <span class="math notranslate nohighlight">\(f(x) \leq t\)</span>, where <cite>f(x)</cite> is
-a quasiconvex expression and <span class="math notranslate nohighlight">\(t\)</span> is constant, and <span class="math notranslate nohighlight">\(f(x) \geq t\)</span>,
-where <cite>f(x)</cite> is quasiconcave and <span class="math notranslate nohighlight">\(t\)</span> is constant. Every disciplined
+DQCP permits inequalities of the form <span class="math">\(f(x) \leq t\)</span>, where <cite>f(x)</cite> is
+a quasiconvex expression and <span class="math">\(t\)</span> is constant, and <span class="math">\(f(x) \geq t\)</span>,
+where <cite>f(x)</cite> is quasiconcave and <span class="math">\(t\)</span> is constant. Every disciplined
 convex program is a disciplined quasiconvex program, but the converse is not
 true.</p>
 <p>CVXPY lets you form and solve DQCP problems, just as it does for DCP
 problems. For example, the following code solves a simple QCP,</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -67,13 +73,13 @@ problems. For example, the following code solves a simple QCP,</p>
 </pre></div>
 </div>
 <p>and it prints the below output.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span>  <span class="o">-</span><span class="mf">0.4288821220397949</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span>  <span class="o">-</span><span class="mf">0.4288821220397949</span>
 <span class="n">x</span><span class="p">:</span>  <span class="mf">0.49999737143004713</span>
 <span class="n">y</span><span class="p">:</span>  <span class="mf">1.648717724845007</span>
 </pre></div>
 </div>
 <p>To solve DQCP problems, you must pass the option
-<code class="docutils literal notranslate"><span class="pre">qcp=True</span></code> to the <code class="docutils literal notranslate"><span class="pre">solve()</span></code> method.</p>
+<code class="docutils literal"><span class="pre">qcp=True</span></code> to the <code class="docutils literal"><span class="pre">solve()</span></code> method.</p>
 <p>This section explains what DQCP is, and it shows how to construct and solve DQCP
 problems using CVXPY. At the end of the section are tables listing all the
 atoms that can be used in DQCP problems, similar to the tables presented in
@@ -86,19 +92,19 @@ issue or make a pull request on</em> <a class="reference external" href="https:/
 <div class="section" id="curvature">
 <h2>Curvature<a class="headerlink" href="#curvature" title="Permalink to this headline">¶</a></h2>
 <p>DQCP adds two new types of curvature to CVXPY: quasiconvex and quasiconcave. A
-function <span class="math notranslate nohighlight">\(f\)</span> is quasiconvex if and only if its domain is a convex set and
-its sublevel sets <span class="math notranslate nohighlight">\(\{x : f(x) \leq t\}\)</span> are convex, for all <span class="math notranslate nohighlight">\(t\)</span>;
-<span class="math notranslate nohighlight">\(f\)</span> is quasiconcave if <span class="math notranslate nohighlight">\(-f\)</span> is quasiconvex. Every convex function
+function <span class="math">\(f\)</span> is quasiconvex if and only if its domain is a convex set and
+its sublevel sets <span class="math">\(\{x : f(x) \leq t\}\)</span> are convex, for all <span class="math">\(t\)</span>;
+<span class="math">\(f\)</span> is quasiconcave if <span class="math">\(-f\)</span> is quasiconvex. Every convex function
 is also quasiconvex, and every concave function is also quasiconcave; the
 converses of these statements are not true. An expression that is both
 quasiconvex and quasiconcave is called quasilinear.</p>
-<p>CVXPY’s curvature analysis can flag
+<p>CVXPY&#8217;s curvature analysis can flag
 Expressions as unknown even when they are quasiconvex or quasiconcave, but
 it will never mistakenly flag an expression as quasiconvex or quasiconcave.</p>
 <p>The curvature of an Expression is stored in its
-<code class="code docutils literal notranslate"><span class="pre">.curvature</span></code> attribute. For example, running the following
+<code class="code docutils literal"><span class="pre">.curvature</span></code> attribute. For example, running the following
 script</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">length</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
@@ -111,16 +117,16 @@ script</p>
 </pre></div>
 </div>
 <p>prints the following output.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">QUASICONVEX</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">QUASICONVEX</span>
 <span class="n">QUASICONCAVE</span>
 <span class="n">QUASILINEAR</span>
 </pre></div>
 </div>
 <p>You can also check the curvature of an Expression by
-calling the methods <code class="code docutils literal notranslate"><span class="pre">is_quasiconvex()</span></code> and <code class="code docutils literal notranslate"><span class="pre">is_quasiconcave()</span></code>. For
-example, <code class="code docutils literal notranslate"><span class="pre">y.is_quasiconvex()</span></code> and <code class="code docutils literal notranslate"><span class="pre">z.is_quasiconcave()</span></code> would
-evaluate to <code class="code docutils literal notranslate"><span class="pre">True</span></code>. You can check if an expression is quasilinear by
-calling the <code class="code docutils literal notranslate"><span class="pre">is_quasilinear()</span></code> method.</p>
+calling the methods <code class="code docutils literal"><span class="pre">is_quasiconvex()</span></code> and <code class="code docutils literal"><span class="pre">is_quasiconcave()</span></code>. For
+example, <code class="code docutils literal"><span class="pre">y.is_quasiconvex()</span></code> and <code class="code docutils literal"><span class="pre">z.is_quasiconcave()</span></code> would
+evaluate to <code class="code docutils literal"><span class="pre">True</span></code>. You can check if an expression is quasilinear by
+calling the <code class="code docutils literal"><span class="pre">is_quasilinear()</span></code> method.</p>
 </div>
 <div class="section" id="composition-rules">
 <h2>Composition rules<a class="headerlink" href="#composition-rules" title="Permalink to this headline">¶</a></h2>
@@ -128,39 +134,39 @@ calling the <code class="code docutils literal notranslate"><span class="pre">is
 convex analysis to each expression. An expression is verifiably
 quasiconvex under DQCP if it is one of the following:</p>
 <ul class="simple">
-<li><p>convex (under DCP);</p></li>
-<li><p>a quasiconvex atom, applied to a variable or constant:</p></li>
-<li><p>the max (<code class="code docutils literal notranslate"><span class="pre">cvxpy.maximum</span></code>) of quasiconvex expressions;</p></li>
-<li><p>an increasing function of a quasiconvex expression, or a decreasing function
-of a quasiconcave expression;</p></li>
-<li><p>an expression of the form <span class="math notranslate nohighlight">\(f(e_1, e_2, \ldots, e_n)\)</span> such
-that (1) <span class="math notranslate nohighlight">\(f\)</span> is a quasiconvex atom, and (2) for each <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(f\)</span> is
-increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(e_i\)</span> is convex, <span class="math notranslate nohighlight">\(f\)</span> is
-decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(e_i\)</span> is concave, or <span class="math notranslate nohighlight">\(e_i\)</span>
-is affine.</p></li>
+<li>convex (under DCP);</li>
+<li>a quasiconvex atom, applied to a variable or constant:</li>
+<li>the max (<code class="code docutils literal"><span class="pre">cvxpy.maximum</span></code>) of quasiconvex expressions;</li>
+<li>an increasing function of a quasiconvex expression, or a decreasing function
+of a quasiconcave expression;</li>
+<li>an expression of the form <span class="math">\(f(e_1, e_2, \ldots, e_n)\)</span> such
+that (1) <span class="math">\(f\)</span> is a quasiconvex atom, and (2) for each <span class="math">\(i\)</span>, <span class="math">\(f\)</span> is
+increasing in argument <span class="math">\(i\)</span> and <span class="math">\(e_i\)</span> is convex, <span class="math">\(f\)</span> is
+decreasing in argument <span class="math">\(i\)</span> and <span class="math">\(e_i\)</span> is concave, or <span class="math">\(e_i\)</span>
+is affine.</li>
 </ul>
 <p>An expression is quasiconcave under DQCP if it is one of the following:</p>
 <ul class="simple">
-<li><p>concave (under DCP);</p></li>
-<li><p>a quasiconcave atom, applied to a variable or constant:</p></li>
-<li><p>the min (<code class="code docutils literal notranslate"><span class="pre">cvxpy.minimum</span></code>) of quasiconcave expressions;</p></li>
-<li><p>an increasing function of a quasiconcave expression, or a decreasing function
-of a quasiconvex expression;</p></li>
-<li><p>an expression of the form <span class="math notranslate nohighlight">\(f(e_1, e_2, \ldots, e_n)\)</span> such
-that (1) <span class="math notranslate nohighlight">\(f\)</span> is a quasiconcave atom, and (2) for each <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(f\)</span> is
-increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(e_i\)</span> is concave, <span class="math notranslate nohighlight">\(f\)</span> is
-decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(e_i\)</span> is convex, or <span class="math notranslate nohighlight">\(e_i\)</span>
-is affine.</p></li>
+<li>concave (under DCP);</li>
+<li>a quasiconcave atom, applied to a variable or constant:</li>
+<li>the min (<code class="code docutils literal"><span class="pre">cvxpy.minimum</span></code>) of quasiconcave expressions;</li>
+<li>an increasing function of a quasiconcave expression, or a decreasing function
+of a quasiconvex expression;</li>
+<li>an expression of the form <span class="math">\(f(e_1, e_2, \ldots, e_n)\)</span> such
+that (1) <span class="math">\(f\)</span> is a quasiconcave atom, and (2) for each <span class="math">\(i\)</span>, <span class="math">\(f\)</span> is
+increasing in argument <span class="math">\(i\)</span> and <span class="math">\(e_i\)</span> is concave, <span class="math">\(f\)</span> is
+decreasing in argument <span class="math">\(i\)</span> and <span class="math">\(e_i\)</span> is convex, or <span class="math">\(e_i\)</span>
+is affine.</li>
 </ul>
 <p>Whether an atom is quasiconvex or quasiconcave may depend on the signs of its
-arguments. For example, the scalar product <span class="math notranslate nohighlight">\(xy\)</span> is quasiconcave when <cite>x</cite>
+arguments. For example, the scalar product <span class="math">\(xy\)</span> is quasiconcave when <cite>x</cite>
 and <cite>y</cite> are either both nonnegative or both nonpositive, and quasiconvex when
 one the arguments is nonnegative and the other is nonpositive.</p>
 <p>If an Expression satisfies the above rules, we colloquially say that
-the Expression “is DQCP.” You can check whether an Expression is DQCP
-by calling the method <code class="code docutils literal notranslate"><span class="pre">is_dqcp()</span></code>. For example, the assertions
+the Expression &#8220;is DQCP.&#8221; You can check whether an Expression is DQCP
+by calling the method <code class="code docutils literal"><span class="pre">is_dqcp()</span></code>. For example, the assertions
 in the following code block will pass.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -172,33 +178,33 @@ in the following code block will pass.</p>
 </pre></div>
 </div>
 <p>An Expression is DQCP precisely when it has known curvature, which means
-at least one of the methods <code class="code docutils literal notranslate"><span class="pre">is_constant()</span></code>
-<code class="code docutils literal notranslate"><span class="pre">is_affine()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_convex()</span></code>,
-<code class="code docutils literal notranslate"><span class="pre">is_concave()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_quasiconvex()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_quasiconvex()</span></code> will
-return <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p>
+at least one of the methods <code class="code docutils literal"><span class="pre">is_constant()</span></code>
+<code class="code docutils literal"><span class="pre">is_affine()</span></code>, <code class="code docutils literal"><span class="pre">is_convex()</span></code>,
+<code class="code docutils literal"><span class="pre">is_concave()</span></code>, <code class="code docutils literal"><span class="pre">is_quasiconvex()</span></code>, <code class="code docutils literal"><span class="pre">is_quasiconvex()</span></code> will
+return <code class="code docutils literal"><span class="pre">True</span></code>.</p>
 </div>
 <div class="section" id="dqcp-problems">
 <h2>DQCP problems<a class="headerlink" href="#dqcp-problems" title="Permalink to this headline">¶</a></h2>
-<p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
+<p>A <code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> is constructed from an objective and
 a list of constraints. If a problem follows the DQCP rules, it is guaranteed to
 be a DQCP and solvable by CVXPY (if a solution to the problem exists). The DQCP
 rules require that the problem objective have one of two forms:</p>
 <ul class="simple">
-<li><p>Minimize(quasiconvex)</p></li>
-<li><p>Maximize(quasiconcave)</p></li>
+<li>Minimize(quasiconvex)</li>
+<li>Maximize(quasiconcave)</li>
 </ul>
 <p>The only valid constraints under the DQCP rules are</p>
 <ul class="simple">
-<li><p>affine == affine</p></li>
-<li><p>convex &lt;= concave</p></li>
-<li><p>concave &gt;= convex</p></li>
-<li><p>quasiconvex &lt;= constant</p></li>
-<li><p>quasiconcave &gt;= constant</p></li>
+<li>affine == affine</li>
+<li>convex &lt;= concave</li>
+<li>concave &gt;= convex</li>
+<li>quasiconvex &lt;= constant</li>
+<li>quasiconcave &gt;= constant</li>
 </ul>
 <p>You can check that a problem, constraint, or objective satisfies the DQCP
-rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dqcp()</span></code>. Here are some examples of DQCP and
+rules by calling <code class="docutils literal"><span class="pre">object.is_dqcp()</span></code>. Here are some examples of DQCP and
 non-DQCP problems:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="c1"># The sign of variables affects curvature analysis.</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">nonneg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -216,7 +222,7 @@ non-DQCP problems:</p>
 <span class="k">assert</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">()</span>
 </pre></div>
 </div>
-<p>CVXPY will raise an exception if you call <code class="docutils literal notranslate"><span class="pre">problem.solve(qcp=True)</span></code> on a
+<p>CVXPY will raise an exception if you call <code class="docutils literal"><span class="pre">problem.solve(qcp=True)</span></code> on a
 non-DQCP problem.</p>
 </div>
 <div class="section" id="dqcp-atoms">
@@ -226,12 +232,12 @@ convex and concave atoms, using the curvature rules given above.
 This section describes new semantics for some existing atoms under DQCP,
 and introduces new atoms that are quasiconvex or quasiconcave (but not
 convex or concave). Many of these new atoms are integer-valued.</p>
-<p><strong>Ratio.</strong> The infix operator <code class="docutils literal notranslate"><span class="pre">/</span></code> is an atom, denoting ratio. This atom
+<p><strong>Ratio.</strong> The infix operator <code class="docutils literal"><span class="pre">/</span></code> is an atom, denoting ratio. This atom
 is both quasiconvex and quasiconcave when the denominator is known to be
-either nonnegative or nonpositive. The ratio <code class="docutils literal notranslate"><span class="pre">x/y</span></code> is increasing in <code class="docutils literal notranslate"><span class="pre">x</span></code>
-when <code class="docutils literal notranslate"><span class="pre">y</span></code> is nonnegative, increasing in <code class="docutils literal notranslate"><span class="pre">y</span></code> when <code class="docutils literal notranslate"><span class="pre">x</span></code> is nonpositive,
-decreasing in <code class="docutils literal notranslate"><span class="pre">x</span></code> when <code class="docutils literal notranslate"><span class="pre">y</span></code> is nonpositive, and decreasing in <code class="docutils literal notranslate"><span class="pre">y</span></code>
-when <code class="docutils literal notranslate"><span class="pre">x</span></code> is nonnegative.</p>
+either nonnegative or nonpositive. The ratio <code class="docutils literal"><span class="pre">x/y</span></code> is increasing in <code class="docutils literal"><span class="pre">x</span></code>
+when <code class="docutils literal"><span class="pre">y</span></code> is nonnegative, increasing in <code class="docutils literal"><span class="pre">y</span></code> when <code class="docutils literal"><span class="pre">x</span></code> is nonpositive,
+decreasing in <code class="docutils literal"><span class="pre">x</span></code> when <code class="docutils literal"><span class="pre">y</span></code> is nonpositive, and decreasing in <code class="docutils literal"><span class="pre">y</span></code>
+when <code class="docutils literal"><span class="pre">x</span></code> is nonnegative.</p>
 <p>The ratio atom can be used with the composition rule to construct interesting
 quasiconvex and quasiconcave expressions. For example, the ratio of a
 nonnegative concave function and a positive convex function is quasiconcave,
@@ -239,57 +245,56 @@ and the ratio of a nonnegative convex function and a positive concave function
 is quasiconvex. Similarly, the ratio of two affine functions is quasilinear
 when the denominator is positive.</p>
 <p><strong>Scalar product.</strong>
-The scalar product <code class="docutils literal notranslate"><span class="pre">*</span></code> is quasiconvex when one of its arguments is
+The scalar product <code class="docutils literal"><span class="pre">*</span></code> is quasiconvex when one of its arguments is
 nonnegative and the other is nonpositive, and it is quasiconcave when its
 arguments are both nonnegative or both nonpositive. Hence, by the composition
 rule, the product of two nonnegative quasiconcave functions is quasiconcave,
 and the product of a nonnegative concave function and a nonpositive convex
 function is quasiconvex.</p>
 <p><strong>Distance ratio function.</strong>
-The atom <code class="docutils literal notranslate"><span class="pre">cvxpy.dist_ratio(x,</span> <span class="pre">a,</span> <span class="pre">b)</span></code> denotes the function
-<span class="math notranslate nohighlight">\(\|x - a\|_2 / \|x - b\|_2\)</span>, implicitly enforcing the constraint
-that <span class="math notranslate nohighlight">\(\|x - a\|_2 \leq \|x - b\|_2\)</span>. The expressions <code class="docutils literal notranslate"><span class="pre">a</span></code> and <code class="docutils literal notranslate"><span class="pre">b</span></code>
+The atom <code class="docutils literal"><span class="pre">cvxpy.dist_ratio(x,</span> <span class="pre">a,</span> <span class="pre">b)</span></code> denotes the function
+<span class="math">\(\|x - a\|_2 / \|x - b\|_2\)</span>, implicitly enforcing the constraint
+that <span class="math">\(\|x - a\|_2 \leq \|x - b\|_2\)</span>. The expressions <code class="docutils literal"><span class="pre">a</span></code> and <code class="docutils literal"><span class="pre">b</span></code>
 must be constants. This atom is quasiconvex.</p>
 <p><strong>Maximum generalized eigenvalue.</strong>
-The atom <code class="docutils literal notranslate"><span class="pre">cvxpy.gen_lambda_max(A,</span> <span class="pre">B)</span></code> computes the maximum
-generalized eigenvalue of <code class="docutils literal notranslate"><span class="pre">A</span></code> and <code class="docutils literal notranslate"><span class="pre">B</span></code>, defined as the maximum
-<span class="math notranslate nohighlight">\(\lambda \in \mathbf{R}\)</span> such that <span class="math notranslate nohighlight">\(Ax = \lambda Bx\)</span> for some <span class="math notranslate nohighlight">\(x\)</span>.
-This atom is quasiconvex, and it enforces the constraint that <code class="docutils literal notranslate"><span class="pre">A</span></code> is
-symmetric and <code class="docutils literal notranslate"><span class="pre">B</span></code> is positive definite.</p>
+The atom <code class="docutils literal"><span class="pre">cvxpy.gen_lambda_max(A,</span> <span class="pre">B)</span></code> computes the maximum
+generalized eigenvalue of <code class="docutils literal"><span class="pre">A</span></code> and <code class="docutils literal"><span class="pre">B</span></code>, defined as the maximum
+<span class="math">\(\lambda \in \mathbf{R}\)</span> such that <span class="math">\(Ax = \lambda Bx\)</span> for some <span class="math">\(x\)</span>.
+This atom is quasiconvex, and it enforces the constraint that <code class="docutils literal"><span class="pre">A</span></code> is
+symmetric and <code class="docutils literal"><span class="pre">B</span></code> is positive definite.</p>
 <p><strong>Ceiling and floor.</strong>
-The atoms <code class="docutils literal notranslate"><span class="pre">cvxpy.ceil(x)</span></code> and <code class="docutils literal notranslate"><span class="pre">cvxpy.floor(x)</span></code> are quasilinear, and
+The atoms <code class="docutils literal"><span class="pre">cvxpy.ceil(x)</span></code> and <code class="docutils literal"><span class="pre">cvxpy.floor(x)</span></code> are quasilinear, and
 increasing in their arguments.</p>
 <p><strong>Sign.</strong>
-The atoms <code class="docutils literal notranslate"><span class="pre">cvxpy.sign(x)</span></code>, which returns <code class="docutils literal notranslate"><span class="pre">-1</span></code> for <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code> and <code class="docutils literal notranslate"><span class="pre">+1</span></code>
-for <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>, is quasilinear.</p>
+The atoms <code class="docutils literal"><span class="pre">cvxpy.sign(x)</span></code>, which returns <code class="docutils literal"><span class="pre">-1</span></code> for <code class="docutils literal"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">0</span></code> and <code class="docutils literal"><span class="pre">+1</span></code>
+for <code class="docutils literal"><span class="pre">x</span> <span class="pre">&gt;</span> <span class="pre">0</span></code>, is quasilinear.</p>
 <p><strong>Length of a vector.</strong>
-The atoms <code class="docutils literal notranslate"><span class="pre">cvxpy.length(x)</span></code>, which returns the index of the last nonzero
-element in <span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span>, is quasiconvex.</p>
+The atoms <code class="docutils literal"><span class="pre">cvxpy.length(x)</span></code>, which returns the index of the last nonzero
+element in <span class="math">\(x \in \mathbf{R}^n`\)</span>, is quasiconvex.</p>
 </div>
 <div class="section" id="solving-dqcp-problems">
 <h2>Solving DQCP problems<a class="headerlink" href="#solving-dqcp-problems" title="Permalink to this headline">¶</a></h2>
-<p>A DQCP problem <code class="docutils literal notranslate"><span class="pre">problem</span></code> can be solved by calling <code class="docutils literal notranslate"><span class="pre">problem.solve(qcp=True)</span></code>.
+<p>A DQCP problem <code class="docutils literal"><span class="pre">problem</span></code> can be solved by calling <code class="docutils literal"><span class="pre">problem.solve(qcp=True)</span></code>.
 CVXPY uses a bisection method on the optimal value of the problem to solve
 QCPs, and it will automatically find an upper and lower bound for the
 bisection. You can optionally provide your own upper and lower bound when
 solving a QCP, which can sometimes be helpful. You can provide these bounds via
-the keyword arguments <code class="docutils literal notranslate"><span class="pre">low</span></code> and <code class="docutils literal notranslate"><span class="pre">high</span></code>; for example,
-<code class="docutils literal notranslate"><span class="pre">problem.solve(qcp=True,</span> <span class="pre">low=12,</span> <span class="pre">high=17)</span></code> would limit the bisection to
+the keyword arguments <code class="docutils literal"><span class="pre">low</span></code> and <code class="docutils literal"><span class="pre">high</span></code>; for example,
+<code class="docutils literal"><span class="pre">problem.solve(qcp=True,</span> <span class="pre">low=12,</span> <span class="pre">high=17)</span></code> would limit the bisection to
 objective values that are greater than 12 and less than 17.</p>
 <p>Bisection involves solving a sequence of optimization problems. If your problem
-is ill-conditioned, or if you’re unlucky, a solver might fail to solve one
+is ill-conditioned, or if you&#8217;re unlucky, a solver might fail to solve one
 of these subproblems, which will result in an error. If this happens,
-you can try using a different solver via the <code class="docutils literal notranslate"><span class="pre">solver</span></code> keyword argument. (For
-example, <code class="docutils literal notranslate"><span class="pre">problem.solve(qcp=True,</span> <span class="pre">solver=cp.SCS)</span></code>.) To obtain
+you can try using a different solver via the <code class="docutils literal"><span class="pre">solver</span></code> keyword argument. (For
+example, <code class="docutils literal"><span class="pre">problem.solve(qcp=True,</span> <span class="pre">solver=cp.SCS)</span></code>.) To obtain
 verbose output describing the bisection, supply the keyword argument
-<code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> to the solve method (<code class="docutils literal notranslate"><span class="pre">problem.solve(qcp=True,</span>
+<code class="docutils literal"><span class="pre">verbose=True</span></code> to the solve method (<code class="docutils literal"><span class="pre">problem.solve(qcp=True,</span>
 <span class="pre">verbose=True)</span></code>).</p>
 </div>
 </div>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -300,12 +305,10 @@ verbose output describing the bisection, supply the keyword argument
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -362,15 +365,15 @@ verbose output describing the bisection, supply the keyword argument
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -379,11 +382,11 @@ verbose output describing the bisection, supply the keyword argument
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/tutorial/dqcp/index.rst.txt"
+      <a href="../../_sources/tutorial/dqcp/index.txt"
           rel="nofollow">Page source</a>
     </div>
 

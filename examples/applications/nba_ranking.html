@@ -1,46 +1,51 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TODO &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>TODO &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="todo">
 <h1>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
-<li><p>how to post data? small data file?</p></li>
+<li>how to post data? small data file?</li>
 </ul>
 </div>
 <div class="section" id="predicting-nba-game-wins">
 <h1>Predicting NBA game wins<a class="headerlink" href="#predicting-nba-game-wins" title="Permalink to this headline">¶</a></h1>
-<p>In this notebook, we’ll form a simple model to predict NBA game winners
+<p>In this notebook, we&#8217;ll form a simple model to predict NBA game winners
 based on which teams are playing, whether they are playing at home or
 away, and which players are playing in the game and for how long.</p>
 <p>The goal is to demonstrate implementing a simple (but non-standard)
@@ -52,10 +57,10 @@ regression model with CVXPY.</p>
 manipulate it, format it, and plot the results.</p>
 <p>The actual optimization code will be given in-line later in the
 notebook.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cvx</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -63,13 +68,13 @@ notebook.</p>
 <span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="mi">14</span><span class="p">})</span>
 
 <span class="k">class</span> <span class="nc">PlayerAppearance</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="vm">__slots__</span><span class="o">=</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s1">&#39;team&#39;</span>
+    <span class="n">__slots__</span><span class="o">=</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s1">&#39;team&#39;</span>
 
 <span class="k">class</span> <span class="nc">TeamAppearance</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;players&#39;</span><span class="p">,</span> <span class="s1">&#39;home&#39;</span><span class="p">,</span> <span class="s1">&#39;gameid&#39;</span>
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;players&#39;</span><span class="p">,</span> <span class="s1">&#39;home&#39;</span><span class="p">,</span> <span class="s1">&#39;gameid&#39;</span>
 
 <span class="k">class</span> <span class="nc">Game</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="vm">__slots__</span> <span class="o">=</span> <span class="s1">&#39;winner&#39;</span><span class="p">,</span> <span class="s1">&#39;loser&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;season&#39;</span>
+    <span class="n">__slots__</span> <span class="o">=</span> <span class="s1">&#39;winner&#39;</span><span class="p">,</span> <span class="s1">&#39;loser&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;season&#39;</span>
 
 
 <span class="k">def</span> <span class="nf">get_game_data</span><span class="p">():</span>
@@ -282,53 +287,53 @@ notebook.</p>
 </div>
 <div class="section" id="raw-data">
 <h1>Raw data<a class="headerlink" href="#raw-data" title="Permalink to this headline">¶</a></h1>
-<p>Below, we load the NBA game data from the ‘gamestats’ folder. We have
+<p>Below, we load the NBA game data from the &#8216;gamestats&#8217; folder. We have
 games from NBA seasons 2010-2013. For each game, we identify the winning
 and losing team and the NBA season in which the game was played. For
 each team appearance in a game, we have the score, a list of player
 appearances, and whether the team played at home or away. For each
-player appearance in a game, we have the player’s name, a unique player
+player appearance in a game, we have the player&#8217;s name, a unique player
 ID, and the number of minutes they played in the game.</p>
 </div>
 <div class="section" id="model">
 <h1>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h1>
-<p>We will train our model on a set of <span class="math notranslate nohighlight">\(m\)</span> games. The data point for
-game <span class="math notranslate nohighlight">\(i\)</span> consists of an ordered pair of feature vectors,
-<span class="math notranslate nohighlight">\((x^w_i, x^l_i) \in \mathbf{R}^n \times \mathbf{R}^n\)</span>. The first
+<p>We will train our model on a set of <span class="math">\(m\)</span> games. The data point for
+game <span class="math">\(i\)</span> consists of an ordered pair of feature vectors,
+<span class="math">\((x^w_i, x^l_i) \in \mathbf{R}^n \times \mathbf{R}^n\)</span>. The first
 vector in the pair represents the winning team. Feature vectors consist
-of <span class="math notranslate nohighlight">\(n\)</span> features which may include which team is playing, if they
+of <span class="math">\(n\)</span> features which may include which team is playing, if they
 are the home team, and how many minutes each player on the team played.</p>
-<p>We want to find model parameters <span class="math notranslate nohighlight">\(w\)</span> for the classifier function
-<span class="math notranslate nohighlight">\(f_w(x,y) = (x-y)^T w\)</span>. The model predicts that a team with
-features <span class="math notranslate nohighlight">\(x\)</span> will beat a team with features <span class="math notranslate nohighlight">\(y\)</span> if
-<span class="math notranslate nohighlight">\(f_w(x,y) &gt; 0\)</span>. Note that the classification inequality is
-homogenous in <span class="math notranslate nohighlight">\(w\)</span>. That is, the classifier is invariant to
-scalings of <span class="math notranslate nohighlight">\(w\)</span>.</p>
+<p>We want to find model parameters <span class="math">\(w\)</span> for the classifier function
+<span class="math">\(f_w(x,y) = (x-y)^T w\)</span>. The model predicts that a team with
+features <span class="math">\(x\)</span> will beat a team with features <span class="math">\(y\)</span> if
+<span class="math">\(f_w(x,y) &gt; 0\)</span>. Note that the classification inequality is
+homogenous in <span class="math">\(w\)</span>. That is, the classifier is invariant to
+scalings of <span class="math">\(w\)</span>.</p>
 <p>To properly predict all games, we would need
-<span class="math notranslate nohighlight">\(f_w(x^w_i, x^l_i) &gt; 0\)</span> for all games <span class="math notranslate nohighlight">\(i\)</span>. This set of
-homogenous strict inequalities in <span class="math notranslate nohighlight">\(w\)</span> is feasible if and only if
-there is some scaling <span class="math notranslate nohighlight">\(\tilde{w} = \alpha w\)</span> such that
-<span class="math notranslate nohighlight">\(f_{\tilde{w}}(x^w_i, x^l_i) \geq 1\)</span> for all <span class="math notranslate nohighlight">\(i\)</span>. This
-motivates the loss function which we’ll use:</p>
-<div class="math notranslate nohighlight">
+<span class="math">\(f_w(x^w_i, x^l_i) &gt; 0\)</span> for all games <span class="math">\(i\)</span>. This set of
+homogenous strict inequalities in <span class="math">\(w\)</span> is feasible if and only if
+there is some scaling <span class="math">\(\tilde{w} = \alpha w\)</span> such that
+<span class="math">\(f_{\tilde{w}}(x^w_i, x^l_i) \geq 1\)</span> for all <span class="math">\(i\)</span>. This
+motivates the loss function which we&#8217;ll use:</p>
+<div class="math">
 \[\begin{equation}
 L(w) = \frac{1}{m}\sum_{i=1}^m \max \lbrace 1 - (x^w_i - x^l_i)^T w, 0 \rbrace.
 \end{equation}\]</div>
-<p>The function <span class="math notranslate nohighlight">\(L(w)\)</span> assigns a positive loss whenever the
-classification inequality <span class="math notranslate nohighlight">\(f_w(x^w_i, x^l_i) \geq 1\)</span> is violated.</p>
-<p>We’ll choose <span class="math notranslate nohighlight">\(w\)</span> by minimizing the loss <span class="math notranslate nohighlight">\(L(w)\)</span>, plus a
-regularization term <span class="math notranslate nohighlight">\(\gamma \| w \|_2\)</span>. The regularization term is
+<p>The function <span class="math">\(L(w)\)</span> assigns a positive loss whenever the
+classification inequality <span class="math">\(f_w(x^w_i, x^l_i) \geq 1\)</span> is violated.</p>
+<p>We&#8217;ll choose <span class="math">\(w\)</span> by minimizing the loss <span class="math">\(L(w)\)</span>, plus a
+regularization term <span class="math">\(\gamma \| w \|_2\)</span>. The regularization term is
 used to prevent over-fitting.</p>
-<p>We use the <code class="docutils literal notranslate"><span class="pre">fit(W,L,gamma)</span></code> function defined below to solve the
+<p>We use the <code class="docutils literal"><span class="pre">fit(W,L,gamma)</span></code> function defined below to solve the
 optimization problem</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{array}{ll}
 \mbox{minimize} &amp; L(w) + \gamma \| w \|_2,
 \end{array}\]</div>
-<p>where <span class="math notranslate nohighlight">\(W,L \in \mathbf{R}^{m \times n}\)</span> are data matrices, with
-row <span class="math notranslate nohighlight">\(i\)</span> of <span class="math notranslate nohighlight">\(W\)</span> (<span class="math notranslate nohighlight">\(L\)</span>) corresponding to <span class="math notranslate nohighlight">\(x^w_i\)</span>
-(<span class="math notranslate nohighlight">\(x^l_i\)</span>).</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">):</span>
+<p>where <span class="math">\(W,L \in \mathbf{R}^{m \times n}\)</span> are data matrices, with
+row <span class="math">\(i\)</span> of <span class="math">\(W\)</span> (<span class="math">\(L\)</span>) corresponding to <span class="math">\(x^w_i\)</span>
+(<span class="math">\(x^l_i\)</span>).</p>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Return model parameters w trained on data (W,L) with regularization gamma.&#39;&#39;&#39;</span>
     <span class="n">m</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">w</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
@@ -345,28 +350,28 @@ row <span class="math notranslate nohighlight">\(i\)</span> of <span class="math
 </div>
 <div class="section" id="example">
 <h1>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h1>
-<p>Load the list of games from the <code class="docutils literal notranslate"><span class="pre">gamestats</span></code> directory and select only
+<p>Load the list of games from the <code class="docutils literal"><span class="pre">gamestats</span></code> directory and select only
 the games from a single season.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">games</span> <span class="o">=</span> <span class="n">get_game_data</span><span class="p">()</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">games</span> <span class="o">=</span> <span class="n">get_game_data</span><span class="p">()</span>
 
 <span class="c1"># select just games in a single season</span>
 <span class="n">games</span> <span class="o">=</span> <span class="p">[</span><span class="n">game</span> <span class="k">for</span> <span class="n">game</span> <span class="ow">in</span> <span class="n">games</span> <span class="k">if</span> <span class="n">game</span><span class="o">.</span><span class="n">season</span> <span class="o">==</span> <span class="mi">2010</span><span class="p">]</span>
 <span class="nb">len</span><span class="p">(</span><span class="n">games</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1230</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mi">1230</span>
 </pre></div>
 </div>
 <p>Choose some ordering of the teams and players for indexing purposes, and
 get a mapping between the index and unique identifiers.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">teams</span><span class="p">,</span> <span class="n">players</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="n">pid2idx</span> <span class="o">=</span> <span class="n">index_mappings</span><span class="p">(</span><span class="n">games</span><span class="p">)</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">teams</span><span class="p">,</span> <span class="n">players</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="n">pid2idx</span> <span class="o">=</span> <span class="n">index_mappings</span><span class="p">(</span><span class="n">games</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Randomly split the games so that 70% are in a training set and 30% are
-in a hold-out set. Produce the data matrices <span class="math notranslate nohighlight">\(W\)</span> and <span class="math notranslate nohighlight">\(L\)</span> for
+in a hold-out set. Produce the data matrices <span class="math">\(W\)</span> and <span class="math">\(L\)</span> for
 the training and hold-out sets. Use features giving the team id, if they
 are the home team, and the time played for each player.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">games_t</span><span class="p">,</span> <span class="n">games_h</span> <span class="o">=</span> <span class="n">split_games</span><span class="p">(</span><span class="n">games</span><span class="p">,</span> <span class="o">.</span><span class="mi">3</span><span class="p">)</span>
 
 <span class="n">W</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">data_mats</span><span class="p">(</span><span class="n">games_t</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">pid2idx</span><span class="p">)</span>
@@ -376,44 +381,44 @@ are the home team, and the time played for each player.</p>
 <p>Train the model with <strong>no</strong> regularization on the training set and
 evaluate the classification performance on both the training and
 hold-out set.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="mi">0</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">w</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">)</span>
 
 <span class="nb">print</span> <span class="s2">&quot;Training set </span><span class="si">%%</span><span class="s2"> correct: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
 <span class="nb">print</span> <span class="s2">&quot;Hold-out set </span><span class="si">%%</span><span class="s2"> correct: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">Wh</span><span class="p">,</span><span class="n">Lh</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Training</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">1.000000</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Training</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">1.000000</span>
 <span class="n">Hold</span><span class="o">-</span><span class="n">out</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">0.582656</span>
 </pre></div>
 </div>
-<p>We can see that we’ve over fit the model because the classification is
+<p>We can see that we&#8217;ve over fit the model because the classification is
 perfect on the training set, but low on the hold-out set. Adding some
 regularization should improve the predictive performance on the hold-out
 set:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="o">.</span><span class="mi">03</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="o">.</span><span class="mi">03</span>
 <span class="n">w</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">)</span>
 
 <span class="nb">print</span> <span class="s2">&quot;Training set </span><span class="si">%%</span><span class="s2"> correct: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
 <span class="nb">print</span> <span class="s2">&quot;Hold-out set </span><span class="si">%%</span><span class="s2"> correct: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">Wh</span><span class="p">,</span><span class="n">Lh</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Training</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">0.786295</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Training</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">0.786295</span>
 <span class="n">Hold</span><span class="o">-</span><span class="n">out</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">0.682927</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="regularization-paths">
 <h1>Regularization paths<a class="headerlink" href="#regularization-paths" title="Permalink to this headline">¶</a></h1>
-<p>We’ll find good choices for the regularization hyper-parameter
-<span class="math notranslate nohighlight">\(\gamma\)</span> by plotting a regularization path. We’ll randomly
+<p>We&#8217;ll find good choices for the regularization hyper-parameter
+<span class="math">\(\gamma\)</span> by plotting a regularization path. We&#8217;ll randomly
 partition the data into training and hold-out sets and plot the
 percentage of games predicted correctly over a range of choices of
-<span class="math notranslate nohighlight">\(\gamma\)</span>. We’ll do this several times for each choice of
-<span class="math notranslate nohighlight">\(\gamma\)</span> and plot the average result.</p>
-<p>We’ll plot the regularization path over different sets of features.
-First, we’ll just use team identities, then we’ll add whether the team
-played at home, and then we’ll add the times played of each player.</p>
+<span class="math">\(\gamma\)</span>. We&#8217;ll do this several times for each choice of
+<span class="math">\(\gamma\)</span> and plot the average result.</p>
+<p>We&#8217;ll plot the regularization path over different sets of features.
+First, we&#8217;ll just use team identities, then we&#8217;ll add whether the team
+played at home, and then we&#8217;ll add the times played of each player.</p>
 <p>We should see an increase in predictive power as we add features.</p>
 <p>Note that some of these examples may take a few minutes to run.</p>
 <div class="section" id="team-identities">
@@ -421,12 +426,12 @@ played at home, and then we’ll add the times played of each player.</p>
 <p>When the features include just the team identities, the model reduces to
 just assigning a ranking to each team. This model is so simple that it
 is hard to over-fit it on our data, so regularization has little effect.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
 <span class="n">v_t</span><span class="p">,</span> <span class="n">v_h</span> <span class="o">=</span> <span class="n">reg_path</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="n">gammas</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">1</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">2</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">3</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
@@ -438,14 +443,14 @@ is hard to over-fit it on our data, so regularization has little effect.</p>
 <div class="section" id="identities-home-away">
 <h2>Identities + home/away<a class="headerlink" href="#identities-home-away" title="Permalink to this headline">¶</a></h2>
 <p>We add a single feature denoting whether the teams played at home. This
-doesn’t add much to our model complexity, so it is still difficult to
+doesn&#8217;t add much to our model complexity, so it is still difficult to
 over-fit. The predictive power is about the same as the previous model.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
 <span class="n">v_t</span><span class="p">,</span> <span class="n">v_h</span> <span class="o">=</span> <span class="n">reg_path</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="n">gammas</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">1</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">2</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">3</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
@@ -461,12 +466,12 @@ adds many variables to the model and thus makes it much easier to
 over-fit. We can see that the classification is perfect on the training
 set, which suggests over fitting. We find that we get better performance
 on the hold-out set with some added regularization.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<div class="code highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span><span class="mi">40</span><span class="p">)</span>
 <span class="n">v_t</span><span class="p">,</span> <span class="n">v_h</span> <span class="o">=</span> <span class="n">reg_path</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="n">gammas</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">1</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">2</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
 <span class="n">Partition</span> <span class="mi">3</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
@@ -479,7 +484,6 @@ on the hold-out set with some added regularization.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -490,12 +494,10 @@ on the hold-out set with some added regularization.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -537,15 +539,15 @@ on the hold-out set with some added regularization.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -554,11 +556,11 @@ on the hold-out set with some added regularization.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/nba_ranking.rst.txt"
+      <a href="../../_sources/examples/applications/nba_ranking.txt"
           rel="nofollow">Page source</a>
     </div>
 

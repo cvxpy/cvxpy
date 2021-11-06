@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Minimize beamwidth of an array with arbitrary 2-D geometry &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Minimize beamwidth of an array with arbitrary 2-D geometry &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="minimize-beamwidth-of-an-array-with-arbitrary-2-d-geometry">
@@ -39,46 +44,46 @@ changes) from the CVX example of the same name, by Almir Mutapcic,
 2/2/2006.</p>
 <p>Topic References:</p>
 <ul class="simple">
-<li><p>“Convex optimization examples” lecture notes (EE364) by S. Boyd</p></li>
-<li><p>“Antenna array pattern synthesis via convex optimization” by H.
-Lebret and S. Boyd</p></li>
+<li>&#8220;Convex optimization examples&#8221; lecture notes (EE364) by S. Boyd</li>
+<li>&#8220;Antenna array pattern synthesis via convex optimization&#8221; by H.
+Lebret and S. Boyd</li>
 </ul>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>This algorithm designs an antenna array such that:</p>
 <ul class="simple">
-<li><p>it has unit sensitivity at some target direction</p></li>
-<li><p>it obeys a constraint on a minimum sidelobe level outside the beam</p></li>
-<li><p>it minimizes the beamwidth of the pattern.</p></li>
+<li>it has unit sensitivity at some target direction</li>
+<li>it obeys a constraint on a minimum sidelobe level outside the beam</li>
+<li>it minimizes the beamwidth of the pattern.</li>
 </ul>
 <p>This is a quasiconvex problem. Define the target direction as
-<span class="math notranslate nohighlight">\(\theta_{\mbox{tar}}\)</span>, and a beamwidth of
-<span class="math notranslate nohighlight">\(\Delta \theta_{\mbox{bw}}\)</span>. The beam occupies the angular
+<span class="math">\(\theta_{\mbox{tar}}\)</span>, and a beamwidth of
+<span class="math">\(\Delta \theta_{\mbox{bw}}\)</span>. The beam occupies the angular
 interval</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\Theta_b = \left(\theta_{\mbox{tar}}
 -\frac{1}{2}\Delta \theta_{\mbox{bw}},\; \theta_{\mbox{tar}}
 + \frac{1}{2}\Delta \theta_{\mbox{bw}}\right).\]</div>
-<p>Solving for the minimum beamwidth <span class="math notranslate nohighlight">\(\Delta \theta_{\mbox{bw}}\)</span> is
+<p>Solving for the minimum beamwidth <span class="math">\(\Delta \theta_{\mbox{bw}}\)</span> is
 performed by bisection, where the interval which contains the optimal
 value is bisected according to the result of the following feasibility
 problem:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize}   &amp;  0 \\
 \mbox{subject to} &amp; y(\theta_{\mbox{tar}}) = 1 \\
                   &amp;  \left|y(\theta)\right| \leq t_{\mbox{sb}}
                          \quad \forall \theta \notin \Theta_b.
 \end{array}\end{split}\]</div>
-<p><span class="math notranslate nohighlight">\(y\)</span> is the antenna array gain pattern (a complex-valued function),
-<span class="math notranslate nohighlight">\(t_{\mbox{sb}}\)</span> is the maximum allowed sideband gain threshold,
-and the variables are <span class="math notranslate nohighlight">\(w\)</span> (antenna array weights or shading
-coefficients). The gain pattern is a linear function of <span class="math notranslate nohighlight">\(w\)</span>:
-<span class="math notranslate nohighlight">\(y(\theta) = w^T a(\theta)\)</span> for some <span class="math notranslate nohighlight">\(a(\theta)\)</span> describing
+<p><span class="math">\(y\)</span> is the antenna array gain pattern (a complex-valued function),
+<span class="math">\(t_{\mbox{sb}}\)</span> is the maximum allowed sideband gain threshold,
+and the variables are <span class="math">\(w\)</span> (antenna array weights or shading
+coefficients). The gain pattern is a linear function of <span class="math">\(w\)</span>:
+<span class="math">\(y(\theta) = w^T a(\theta)\)</span> for some <span class="math">\(a(\theta)\)</span> describing
 the antenna array configuration and specs.</p>
-<p>Once the optimal beamwidth is found, the solution <span class="math notranslate nohighlight">\(w\)</span> is refined
+<p>Once the optimal beamwidth is found, the solution <span class="math">\(w\)</span> is refined
 with the following optimization:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize}   &amp;  \|w\| \\
 \mbox{subject to} &amp; y(\theta_{\mbox{tar}}) = 1 \\
@@ -86,7 +91,7 @@ with the following optimization:</p>
                           \quad \forall \theta \notin \Theta_b.
 \end{array}\end{split}\]</div>
 <p>The implementation below discretizes the angular quantities and their
-counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</span>.</p>
+counterparts, such as <span class="math">\(\theta\)</span>.</p>
 </div>
 <div class="section" id="problem-specification-and-data">
 <h2>Problem specification and data<a class="headerlink" href="#problem-specification-and-data" title="Permalink to this headline">¶</a></h2>
@@ -94,11 +99,11 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 <h3>Antenna array selection<a class="headerlink" href="#antenna-array-selection" title="Permalink to this headline">¶</a></h3>
 <p>Choose either:</p>
 <ul class="simple">
-<li><p>A random 2D positioning of antennas.</p></li>
-<li><p>A uniform 1D positioning of antennas along a line.</p></li>
-<li><p>A uniform 2D positioning of antennas along a grid.</p></li>
+<li>A random 2D positioning of antennas.</li>
+<li>A uniform 1D positioning of antennas along a line.</li>
+<li>A uniform 2D positioning of antennas along a grid.</li>
 </ul>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Select array geometry:</span>
@@ -111,7 +116,7 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 </div>
 <div class="section" id="data-generation">
 <h2>Data generation<a class="headerlink" href="#data-generation" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1">#</span>
 <span class="c1"># Problem specs.</span>
 <span class="c1">#</span>
 <span class="n">lambda_wl</span> <span class="o">=</span> <span class="mi">1</span>         <span class="c1"># wavelength</span>
@@ -179,7 +184,7 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 </div>
 <div class="section" id="solve-using-bisection-algorithm">
 <h2>Solve using bisection algorithm<a class="headerlink" href="#solve-using-bisection-algorithm" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Bisection range limits. Reduce by half each step.</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Bisection range limits. Reduce by half each step.</span>
 <span class="n">halfbeam_bot</span> <span class="o">=</span> <span class="mi">1</span>
 <span class="n">halfbeam_top</span> <span class="o">=</span> <span class="n">max_half_beam</span>
 
@@ -295,7 +300,7 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;final objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">We</span> <span class="n">are</span> <span class="n">only</span> <span class="n">considering</span> <span class="n">integer</span> <span class="n">values</span> <span class="n">of</span> <span class="n">the</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">We</span> <span class="n">are</span> <span class="n">only</span> <span class="n">considering</span> <span class="n">integer</span> <span class="n">values</span> <span class="n">of</span> <span class="n">the</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span>
 <span class="p">(</span><span class="n">since</span> <span class="n">we</span> <span class="n">are</span> <span class="n">sampling</span> <span class="n">the</span> <span class="n">angle</span> <span class="k">with</span> <span class="mi">1</span> <span class="n">degree</span> <span class="n">resolution</span><span class="p">)</span><span class="o">.</span>
 
 <span class="n">Problem</span> <span class="ow">is</span> <span class="n">feasible</span> <span class="k">for</span> <span class="n">half</span> <span class="n">beam</span><span class="o">-</span><span class="n">width</span> <span class="o">=</span> <span class="mf">26.0</span> <span class="n">degress</span>
@@ -311,7 +316,7 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 </div>
 <div class="section" id="result-plots">
 <h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Show plot inline in ipython.</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
@@ -351,7 +356,7 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">theta_tar</span><span class="o">+</span><span class="n">halfbeam</span><span class="p">,</span> <span class="n">theta_tar</span><span class="o">+</span><span class="n">halfbeam</span><span class="p">],</span> <span class="p">[</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="s1">&#39;r--&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">theta_tar</span><span class="o">-</span><span class="n">halfbeam</span><span class="p">,</span> <span class="n">theta_tar</span><span class="o">-</span><span class="n">halfbeam</span><span class="p">],</span> <span class="p">[</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">],</span> <span class="s1">&#39;r--&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;look angle&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;mag $y(\theta)$ in dB&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">r&#39;mag $y(\theta)$ in dB&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">ymin</span><span class="p">,</span> <span class="n">ymax</span><span class="p">)</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
@@ -401,7 +406,6 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -412,12 +416,10 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -459,15 +461,15 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -476,11 +478,11 @@ counterparts, such as <span class="math notranslate nohighlight">\(\theta\)</spa
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/ant_array_min_beamwidth.rst.txt"
+      <a href="../../_sources/examples/applications/ant_array_min_beamwidth.txt"
           rel="nofollow">Page source</a>
     </div>
 
