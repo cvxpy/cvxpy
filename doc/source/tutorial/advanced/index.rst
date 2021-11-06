@@ -865,6 +865,12 @@ The following cut-generators are available:
 ``'cplex_filename'``
     a string specifying the filename to which the problem will be written. For example, use "model.lp", "model.sav", or "model.mps" to export to the LP, SAV, and MPS formats, respectively.
 
+``reoptimize``
+    A boolean. This is only relevant for problems where CPLEX initially produces an "infeasible or unbounded" status.
+    Its default value is True, which means that if CPLEX produces an "infeasible or unbounded" status, then its algorithm
+    parameters are automatically changed and the problem is re-solved in order to determine its precise status.
+
+
 `NAG`_ options:
 
 ``'nag_params'``
@@ -888,6 +894,11 @@ In addition to Gurobi's parameters, the following options are available:
 
 ``'env'``
     Allows for the passage of a Gurobi Environment, which specifies parameters and license information.  Keyword arguments will override any settings in this environment.
+
+``reoptimize``
+    A boolean. This is only relevant for problems where GUROBI initially produces an "infeasible or unbounded" status.
+    Its default value is True, which means that if GUROBI produces an "infeasible or unbounded" status, then its algorithm
+    parameters are automatically changed and the problem is re-solved in order to determine its precise status.
 
 Getting the standard form
 -------------------------

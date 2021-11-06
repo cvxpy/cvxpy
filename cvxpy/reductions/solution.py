@@ -39,6 +39,12 @@ def failure_solution(status, attr=None) -> "Solution":
         opt_val = None
     if attr is None:
         attr = {}
+    if status == s.UNBOUNDED_INACCURATE:
+        attr['message'] = """
+        The problem is either infeasible or unbounded, but the solver
+        cannot tell which. Disable any solver-specific presolve methods
+        and re-solve to determine the precise problem status.
+        """
     return Solution(status, opt_val, {}, {}, attr)
 
 

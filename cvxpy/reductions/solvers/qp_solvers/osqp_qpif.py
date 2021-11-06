@@ -3,7 +3,7 @@ import scipy.sparse as sp
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.reductions import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
 
@@ -44,14 +44,10 @@ class OSQP(QpSolver):
             }
             dual_vars = {OSQP.DUAL_VAR_ID: solution.y}
             attr[s.NUM_ITERS] = solution.info.iter
+            sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            primal_vars = None
-            dual_vars = None
-            opt_val = np.inf
-            if status == s.UNBOUNDED:
-                opt_val = -np.inf
-
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+            sol = failure_solution(status, dict())
+        return sol
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts,
                        solver_cache=None):

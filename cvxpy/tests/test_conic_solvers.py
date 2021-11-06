@@ -23,6 +23,7 @@ import pytest
 import scipy.linalg as la
 
 import cvxpy as cp
+import cvxpy.tests.solver_test_helpers as sths
 from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
                                               INSTALLED_SOLVERS,)
 from cvxpy.tests.base_test import BaseTest
@@ -797,6 +798,12 @@ class TestCPLEX(BaseTest):
         StandardTestLPs.test_lp_2(solver='CPLEX')
 
     def test_cplex_lp_3(self) -> None:
+        # CPLEX initially produces an INFEASIBLE_OR_UNBOUNDED status,
+        # and the user will encounter that if they set reoptimize=False.
+        sth = sths.lp_3()
+        sth.prob.solve(solver='CPLEX', reoptimize=False)
+        self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+        # The user does nothing, and CPLEX silently reoptimizes.
         StandardTestLPs.test_lp_3(solver='CPLEX')
 
     def test_cplex_lp_4(self) -> None:
@@ -847,7 +854,8 @@ class TestCPLEX(BaseTest):
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
 class TestGUROBI(BaseTest):
-    """ Unit tests for solver specific behavior. """
+    """NOTE: solves of LPs (or MILPs) get routed through GUROBI's QP interface!
+    So many of these tests are testing the behavior of qurobi_qpif.py"""
 
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
@@ -1012,7 +1020,15 @@ class TestGUROBI(BaseTest):
         StandardTestLPs.test_lp_2(solver='GUROBI')
 
     def test_gurobi_lp_3(self) -> None:
-        StandardTestLPs.test_lp_3(solver='GUROBI', InfUnbdInfo=1)
+        # GUROBI initially produces an INFEASIBLE_OR_UNBOUNDED status,
+        # and the user will encounter that if they set reoptimize=False.
+        sth = sths.lp_3()
+        sth.prob.solve(solver='GUROBI', reoptimize=False)
+        self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+        # The user disables presolve and so makes reoptimization unnecessary
+        StandardTestLPs.test_lp_3(solver='GUROBI', InfUnbdInfo=1, reoptimize=False)
+        # The user does nothing, and GUROBI silently reoptimizes.
+        StandardTestLPs.test_lp_3(solver='GUROBI')
 
     def test_gurobi_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='GUROBI')

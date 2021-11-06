@@ -137,12 +137,21 @@ CVXPY provides the following constants as aliases for the different status strin
 *  ``OPTIMAL_INACCURATE``
 * ``INFEASIBLE_INACCURATE``
 * ``UNBOUNDED_INACCURATE``
+* ``INFEASIBLE_OR_UNBOUNDED``
 
-For example, to test if a problem was solved successfully, you would use
+To test if a problem was solved successfully, you would use
 
 .. code:: python
 
     prob.status == OPTIMAL
+
+The status ``INFEASIBLE_OR_UNBOUNDED`` is rare. It's used when a solver was able to
+determine that the problem was either infeasible or unbounded, but could not tell which.
+You can determine the precise status by re-solving the problem where you where you
+set the objective function to a constant (e.g., ``objective = cp.Minimize(0)``).
+If the new problem is solved with status code ``INFEASIBLE_OR_UNBOUNDED`` then the
+original problem was infeasible. If the new problem is solved with status ``OPTIMAL``
+then the original problem was unbounded.
 
 Vectors and matrices
 --------------------

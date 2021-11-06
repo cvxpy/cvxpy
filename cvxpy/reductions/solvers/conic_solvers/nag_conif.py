@@ -21,7 +21,7 @@ import scipy as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC, NonNeg, Zero
-from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
@@ -140,14 +140,10 @@ class NAG(ConicSolver):
         status = self.STATUS_MAP[solution['status']]
         sln = solution['sln']
 
-        opt_val = None
-        primal_vars = None
-        dual_vars = None
         attr = {}
         if status in s.SOLUTION_PRESENT:
             opt_val = sln.rinfo[0] + inverse_data[s.OBJ_OFFSET]
             nr = inverse_data['nr']
-            x = [0.0] * nr
             x = sln.x[0:nr]
             primal_vars = {inverse_data[self.VAR_ID]: x}
             attr[s.SOLVE_TIME] = sln.stats[5]
@@ -177,16 +173,10 @@ class NAG(ConicSolver):
                     else:
                         dual_vars[id] = np.array(sln.uc[idx:(idx + dim)])
                     idx += dim
+            sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            if status == s.INFEASIBLE:
-                opt_val = np.inf
-            elif status == s.UNBOUNDED:
-                opt_val = -np.inf
-            else:
-                opt_val = None
-            primal_vars = None
-            dual_vars = None
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+            sol = failure_solution(status)
+        return sol
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from naginterfaces.base import utils
