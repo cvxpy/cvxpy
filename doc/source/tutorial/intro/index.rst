@@ -147,7 +147,7 @@ To test if a problem was solved successfully, you would use
 
 The status ``INFEASIBLE_OR_UNBOUNDED`` is rare. It's used when a solver was able to
 determine that the problem was either infeasible or unbounded, but could not tell which.
-You can determine the precise status by re-solving the problem where you where you
+You can determine the precise status by re-solving the problem where you
 set the objective function to a constant (e.g., ``objective = cp.Minimize(0)``).
 If the new problem is solved with status code ``INFEASIBLE_OR_UNBOUNDED`` then the
 original problem was infeasible. If the new problem is solved with status ``OPTIMAL``
