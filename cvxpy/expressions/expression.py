@@ -142,6 +142,12 @@ class Expression(u.Canonical):
             curvature_str = s.CONVEX
         elif self.is_concave():
             curvature_str = s.CONCAVE
+        elif self.is_log_log_affine():
+            curvature_str = s.LOG_LOG_AFFINE
+        elif self.is_log_log_convex():
+            curvature_str = s.LOG_LOG_CONVEX
+        elif self.is_log_log_concave():
+            curvature_str = s.LOG_LOG_CONCAVE
         elif self.is_quasilinear():
             curvature_str = s.QUASILINEAR
         elif self.is_quasiconvex():
