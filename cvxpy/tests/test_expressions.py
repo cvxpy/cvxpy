@@ -1269,3 +1269,16 @@ class TestExpressions(BaseTest):
         row_scale = Variable([m, 1])
         R = A + row_scale
         self.assertEqual(R.shape, (m, n))
+
+    def test_log_log_curvature(self) -> None:
+        """Test that the curvature string is populated for log-log expressions.
+        """
+        x = Variable(pos=True)
+        monomial = x*x*x
+        assert monomial.curvature == s.LOG_LOG_AFFINE
+
+        posynomial = x*x*x + x
+        assert posynomial.curvature == s.LOG_LOG_CONVEX
+
+        llcv = 1/(x*x*x + x)
+        assert llcv.curvature == s.LOG_LOG_CONCAVE
