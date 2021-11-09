@@ -7,6 +7,11 @@ extend_skip = [
     "cvxpy/reductions/dcp2cone/atom_canonicalizers/__init__.py"
 ]
 
+[tool.pytest.ini_options]
+testpaths = [
+    "cvxpy/tests/"
+]
+
 [build-system]
 requires = [
     "numpy>=1.15,<1.16; python_version=='3.6'",
