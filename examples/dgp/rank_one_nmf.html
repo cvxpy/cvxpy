@@ -1,62 +1,57 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Rank-one nonnegative matrix factorization &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rank-one nonnegative matrix factorization &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="rank-one-nonnegative-matrix-factorization">
 <h1>Rank-one nonnegative matrix factorization<a class="headerlink" href="#rank-one-nonnegative-matrix-factorization" title="Permalink to this headline">¶</a></h1>
 <p>The DGP atom library has several functions of positive matrices,
 including the trace, (matrix) product, sum, Perron-Frobenius eigenvalue,
-and <span class="math">\((I - X)^{-1}\)</span> (eye-minus-inverse). In this notebook, we use
+and <span class="math notranslate nohighlight">\((I - X)^{-1}\)</span> (eye-minus-inverse). In this notebook, we use
 some of these atoms to approximate a partially known elementwise
 positive matrix as the outer product of two positive vectors.</p>
-<p>We would like to approximate <span class="math">\(A\)</span> as the outer product of two
-positive vectors <span class="math">\(x\)</span> and <span class="math">\(y\)</span>, with <span class="math">\(x\)</span> normalized so
-that the product of its entries equals <span class="math">\(1\)</span>. Our criterion is the
-average relative deviation between the entries of <span class="math">\(A\)</span> and
-<span class="math">\(xy^T\)</span>, that is,</p>
-<div class="math">
+<p>We would like to approximate <span class="math notranslate nohighlight">\(A\)</span> as the outer product of two
+positive vectors <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span>, with <span class="math notranslate nohighlight">\(x\)</span> normalized so
+that the product of its entries equals <span class="math notranslate nohighlight">\(1\)</span>. Our criterion is the
+average relative deviation between the entries of <span class="math notranslate nohighlight">\(A\)</span> and
+<span class="math notranslate nohighlight">\(xy^T\)</span>, that is,</p>
+<div class="math notranslate nohighlight">
 \[\frac{1}{mn} \sum_{i=1}^{m} \sum_{j=1}^{n} R(A_{ij}, x_iy_j),\]</div>
-<p>where <span class="math">\(R\)</span> is the relative deviation of two positive numbers,
+<p>where <span class="math notranslate nohighlight">\(R\)</span> is the relative deviation of two positive numbers,
 defined as</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[R(a, b) = \max\{a/b, b/a\} - 1.\]</div>
 <p>The corresponding optimization problem is</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{equation}
 \begin{array}{ll}
 \mbox{minimize} &amp; \frac{1}{mn} \sum_{i=1}^{m} \sum_{j=1}^{n} R(X_{ij}, x_iy_j)
@@ -65,20 +60,20 @@ defined as</p>
 &amp; X_{ij} = A_{ij}, \quad \text{for } (i, j) \in \Omega,
 \end{array}
 \end{equation}\end{split}\]</div>
-<p>with variables <span class="math">\(X \in \mathbf{R}^{m \times n}_{++}\)</span>,
-<span class="math">\(x \in \mathbf{R}^{m}_{++}\)</span>, and
-<span class="math">\(y \in \mathbf{R}^{n}_{++}\)</span>. We can cast this problem as an
-equivalent generalized geometric program by discarding the <span class="math">\(-1\)</span>
+<p>with variables <span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}_{++}\)</span>,
+<span class="math notranslate nohighlight">\(x \in \mathbf{R}^{m}_{++}\)</span>, and
+<span class="math notranslate nohighlight">\(y \in \mathbf{R}^{n}_{++}\)</span>. We can cast this problem as an
+equivalent generalized geometric program by discarding the <span class="math notranslate nohighlight">\(-1\)</span>
 from the relative deviations.</p>
 <p>The below code constructs and solves this optimization problem, with
 specific problem data</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}A = \begin{bmatrix}
 1.0 &amp; ? &amp;  1.9 \\
 ? &amp; 0.8 &amp;  ? \\
 3.2 &amp; 5.9&amp;  ?
 \end{bmatrix},\end{split}\]</div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">m</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">3</span>
@@ -108,7 +103,7 @@ specific problem data</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;y: &quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span>
  <span class="mf">1.7763568394002505e-14</span>
 
 <span class="n">Outer</span> <span class="n">product</span> <span class="n">approximation</span>
@@ -124,6 +119,7 @@ specific problem data</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -134,10 +130,12 @@ specific problem data</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -179,15 +177,15 @@ specific problem data</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -196,11 +194,11 @@ specific problem data</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/dgp/rank_one_nmf.txt"
+      <a href="../../_sources/examples/dgp/rank_one_nmf.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

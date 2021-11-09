@@ -1,163 +1,158 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Robust Kalman filtering for vehicle tracking &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Robust Kalman filtering for vehicle tracking &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="robust-kalman-filtering-for-vehicle-tracking">
 <h1>Robust Kalman filtering for vehicle tracking<a class="headerlink" href="#robust-kalman-filtering-for-vehicle-tracking" title="Permalink to this headline">¶</a></h1>
 <p>We will try to pinpoint the location of a moving vehicle with high
-accuracy from noisy sensor data. We&#8217;ll do this by modeling the vehicle
+accuracy from noisy sensor data. We’ll do this by modeling the vehicle
 state as a discrete-time linear dynamical system. Standard <strong>Kalman
 filtering</strong> can be used to approach this problem when the sensor noise
-is assumed to be Gaussian. We&#8217;ll use <strong>robust Kalman filtering</strong> to get
+is assumed to be Gaussian. We’ll use <strong>robust Kalman filtering</strong> to get
 a more accurate estimate of the vehicle state for a non-Gaussian case
 with outliers.</p>
 </div>
 <div class="section" id="problem-statement">
 <h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this headline">¶</a></h1>
 <p>A discrete-time linear dynamical system consists of a sequence of state
-vectors <span class="math">\(x_t \in \mathbf{R}^n\)</span>, indexed by time
-<span class="math">\(t \in \lbrace 0, \ldots, N-1 \rbrace\)</span> and dynamics equations</p>
-<div class="math">
+vectors <span class="math notranslate nohighlight">\(x_t \in \mathbf{R}^n\)</span>, indexed by time
+<span class="math notranslate nohighlight">\(t \in \lbrace 0, \ldots, N-1 \rbrace\)</span> and dynamics equations</p>
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
 x_{t+1} &amp;= Ax_t + Bw_t\\
 y_t &amp;=Cx_t + v_t,
 \end{align}\end{split}\]</div>
-<p>where <span class="math">\(w_t \in \mathbf{R}^m\)</span> is an input to the dynamical system
-(say, a drive force on the vehicle), <span class="math">\(y_t \in \mathbf{R}^r\)</span> is a
-state measurement, <span class="math">\(v_t \in \mathbf{R}^r\)</span> is noise, <span class="math">\(A\)</span> is
-the drift matrix, <span class="math">\(B\)</span> is the input matrix, and <span class="math">\(C\)</span> is the
+<p>where <span class="math notranslate nohighlight">\(w_t \in \mathbf{R}^m\)</span> is an input to the dynamical system
+(say, a drive force on the vehicle), <span class="math notranslate nohighlight">\(y_t \in \mathbf{R}^r\)</span> is a
+state measurement, <span class="math notranslate nohighlight">\(v_t \in \mathbf{R}^r\)</span> is noise, <span class="math notranslate nohighlight">\(A\)</span> is
+the drift matrix, <span class="math notranslate nohighlight">\(B\)</span> is the input matrix, and <span class="math notranslate nohighlight">\(C\)</span> is the
 observation matrix.</p>
-<p>Given <span class="math">\(A\)</span>, <span class="math">\(B\)</span>, <span class="math">\(C\)</span>, and <span class="math">\(y_t\)</span> for
-<span class="math">\(t = 0, \ldots, N-1\)</span>, the goal is to estimate <span class="math">\(x_t\)</span> for
-<span class="math">\(t = 0, \ldots, N-1\)</span>.</p>
+<p>Given <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(B\)</span>, <span class="math notranslate nohighlight">\(C\)</span>, and <span class="math notranslate nohighlight">\(y_t\)</span> for
+<span class="math notranslate nohighlight">\(t = 0, \ldots, N-1\)</span>, the goal is to estimate <span class="math notranslate nohighlight">\(x_t\)</span> for
+<span class="math notranslate nohighlight">\(t = 0, \ldots, N-1\)</span>.</p>
 </div>
 <div class="section" id="kalman-filtering">
 <h1>Kalman filtering<a class="headerlink" href="#kalman-filtering" title="Permalink to this headline">¶</a></h1>
-<p>A Kalman filter estimates <span class="math">\(x_t\)</span> by solving the optimization
+<p>A Kalman filter estimates <span class="math notranslate nohighlight">\(x_t\)</span> by solving the optimization
 problem</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize} &amp; \sum_{t=0}^{N-1} \left(
 \|w_t\|_2^2 + \tau \|v_t\|_2^2\right)\\
 \mbox{subject to} &amp; x_{t+1} = Ax_t + Bw_t,\quad t=0,\ldots, N-1\\
 &amp; y_t = Cx_t+v_t,\quad t = 0, \ldots, N-1,
 \end{array}\end{split}\]</div>
-<p>where <span class="math">\(\tau\)</span> is a tuning parameter. This problem is actually a
+<p>where <span class="math notranslate nohighlight">\(\tau\)</span> is a tuning parameter. This problem is actually a
 least squares problem, and can be solved via linear algebra, without the
 need for more general convex optimization. Note that since we have no
-observation <span class="math">\(y_{N}\)</span>, <span class="math">\(x_N\)</span> is only constrained via
-<span class="math">\(x_{N} = Ax_{N-1} + Bw_{N-1}\)</span>, which is trivially resolved when
-<span class="math">\(w_{N-1} = 0\)</span> and <span class="math">\(x_{N} = Ax_{N-1}\)</span>. We maintain this
+observation <span class="math notranslate nohighlight">\(y_{N}\)</span>, <span class="math notranslate nohighlight">\(x_N\)</span> is only constrained via
+<span class="math notranslate nohighlight">\(x_{N} = Ax_{N-1} + Bw_{N-1}\)</span>, which is trivially resolved when
+<span class="math notranslate nohighlight">\(w_{N-1} = 0\)</span> and <span class="math notranslate nohighlight">\(x_{N} = Ax_{N-1}\)</span>. We maintain this
 vestigial constraint only because it offers a concise problem statement.</p>
-<p>This model performs well when <span class="math">\(w_t\)</span> and <span class="math">\(v_t\)</span> are Gaussian.
+<p>This model performs well when <span class="math notranslate nohighlight">\(w_t\)</span> and <span class="math notranslate nohighlight">\(v_t\)</span> are Gaussian.
 However, the quadratic objective can be influenced by large outliers,
 which degrades the accuracy of the recovery. To improve estimation in
 the presence of outliers, we can use <strong>robust Kalman filtering</strong>.</p>
 </div>
 <div class="section" id="robust-kalman-filtering">
 <h1>Robust Kalman filtering<a class="headerlink" href="#robust-kalman-filtering" title="Permalink to this headline">¶</a></h1>
-<p>To handle outliers in <span class="math">\(v_t\)</span>, robust Kalman filtering replaces the
+<p>To handle outliers in <span class="math notranslate nohighlight">\(v_t\)</span>, robust Kalman filtering replaces the
 quadratic cost with a Huber cost, which results in the convex
 optimization problem</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize} &amp; \sum_{t=0}^{N-1} \left( \|w_t\|^2_2 + \tau \phi_\rho(v_t) \right)\\
 \mbox{subject to} &amp; x_{t+1} = Ax_t + Bw_t,\quad t=0,\ldots, N-1\\
 &amp; y_t = Cx_t+v_t,\quad t=0,\ldots, N-1,
 \end{array}\end{split}\]</div>
-<p>where <span class="math">\(\phi_\rho\)</span> is the Huber function</p>
-<div class="math">
+<p>where <span class="math notranslate nohighlight">\(\phi_\rho\)</span> is the Huber function</p>
+<div class="math notranslate nohighlight">
 \[\begin{split}\phi_\rho(a)= \left\{ \begin{array}{ll} \|a\|_2^2 &amp; \|a\|_2\leq \rho\\
 2\rho \|a\|_2-\rho^2 &amp; \|a\|_2&gt;\rho.
 \end{array}\right.\end{split}\]</div>
 <p>The Huber penalty function penalizes estimation error linearly outside
-of a ball of radius <span class="math">\(\rho\)</span>, whereas in standard Kalman filtering,
+of a ball of radius <span class="math notranslate nohighlight">\(\rho\)</span>, whereas in standard Kalman filtering,
 all errors are penalized quadratically. Thus, large errors are penalized
 less harshly, making this model more robust to outliers.</p>
 </div>
 <div class="section" id="vehicle-tracking-example">
 <h1>Vehicle tracking example<a class="headerlink" href="#vehicle-tracking-example" title="Permalink to this headline">¶</a></h1>
-<p>We&#8217;ll apply standard and robust Kalman filtering to a vehicle tracking
-problem with state <span class="math">\(x_t \in \mathbf{R}^4\)</span>, where
-<span class="math">\((x_{t,0}, x_{t,1})\)</span> is the position of the vehicle in two
-dimensions, and <span class="math">\((x_{t,2}, x_{t,3})\)</span> is the vehicle velocity. The
-vehicle has unknown drive force <span class="math">\(w_t\)</span>, and we observe noisy
-measurements of the vehicle&#8217;s position, <span class="math">\(y_t \in \mathbf{R}^2\)</span>.</p>
+<p>We’ll apply standard and robust Kalman filtering to a vehicle tracking
+problem with state <span class="math notranslate nohighlight">\(x_t \in \mathbf{R}^4\)</span>, where
+<span class="math notranslate nohighlight">\((x_{t,0}, x_{t,1})\)</span> is the position of the vehicle in two
+dimensions, and <span class="math notranslate nohighlight">\((x_{t,2}, x_{t,3})\)</span> is the vehicle velocity. The
+vehicle has unknown drive force <span class="math notranslate nohighlight">\(w_t\)</span>, and we observe noisy
+measurements of the vehicle’s position, <span class="math notranslate nohighlight">\(y_t \in \mathbf{R}^2\)</span>.</p>
 <p>The matrices for the dynamics are</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}A = \begin{bmatrix}
 1 &amp; 0 &amp; \left(1-\frac{\gamma}{2}\Delta t\right) \Delta t &amp; 0 \\
 0 &amp; 1 &amp; 0 &amp; \left(1-\frac{\gamma}{2} \Delta t\right) \Delta t\\
 0 &amp; 0 &amp; 1-\gamma \Delta t &amp; 0 \\
 0 &amp; 0 &amp; 0 &amp; 1-\gamma \Delta t
 \end{bmatrix},\end{split}\]</div>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}B = \begin{bmatrix}
 \frac{1}{2}\Delta t^2 &amp; 0 \\
 0 &amp; \frac{1}{2}\Delta t^2 \\
 \Delta t &amp; 0 \\
 0 &amp; \Delta t \\
 \end{bmatrix},\end{split}\]</div>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}C = \begin{bmatrix}
 1 &amp; 0 &amp; 0 &amp; 0 \\
 0 &amp; 1 &amp; 0 &amp; 0
 \end{bmatrix},\end{split}\]</div>
-<p>where <span class="math">\(\gamma\)</span> is a velocity damping parameter.</p>
+<p>where <span class="math notranslate nohighlight">\(\gamma\)</span> is a velocity damping parameter.</p>
 </div>
 <div class="section" id="d-model">
 <h1>1D Model<a class="headerlink" href="#d-model" title="Permalink to this headline">¶</a></h1>
 <p>The recurrence is derived from the following relations in a single
-dimension. For this subsection, let <span class="math">\(x_t, v_t, w_t\)</span> be the vehicle
+dimension. For this subsection, let <span class="math notranslate nohighlight">\(x_t, v_t, w_t\)</span> be the vehicle
 position, velocity, and input drive force. The resulting acceleration of
-the vehicle is <span class="math">\(w_t - \gamma v_t\)</span>, with <span class="math">\(- \gamma v_t\)</span> is a
-damping term depending on velocity with parameter <span class="math">\(\gamma\)</span>.</p>
+the vehicle is <span class="math notranslate nohighlight">\(w_t - \gamma v_t\)</span>, with <span class="math notranslate nohighlight">\(- \gamma v_t\)</span> is a
+damping term depending on velocity with parameter <span class="math notranslate nohighlight">\(\gamma\)</span>.</p>
 <p>The discretized dynamics are obtained from numerically integrating:</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{align}
 x_{t+1} &amp;= x_t + \left(1-\frac{\gamma \Delta t}{2}\right)v_t \Delta t + \frac{1}{2}w_{t} \Delta t^2\\
 v_{t+1} &amp;= \left(1-\gamma\right)v_t + w_t \Delta t.
 \end{align}\end{split}\]</div>
 <p>Extending these relations to two dimensions gives us the dynamics
-matrices <span class="math">\(A\)</span> and <span class="math">\(B\)</span>.</p>
+matrices <span class="math notranslate nohighlight">\(A\)</span> and <span class="math notranslate nohighlight">\(B\)</span>.</p>
 <div class="section" id="helper-functions">
 <h2>Helper Functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h2>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -222,13 +217,13 @@ matrices <span class="math">\(A\)</span> and <span class="math">\(B\)</span>.</p
 </div>
 <div class="section" id="problem-data">
 <h2>Problem Data<a class="headerlink" href="#problem-data" title="Permalink to this headline">¶</a></h2>
-<p>We generate the data for the vehicle tracking problem. We&#8217;ll have
-<span class="math">\(N=1000\)</span>, <span class="math">\(w_t\)</span> a standard Gaussian, and <span class="math">\(v_t\)</span> a
-standard Gaussian, except <span class="math">\(20\%\)</span> of the points will be outliers
-with <span class="math">\(\sigma = 20\)</span>.</p>
-<p>Below, we set the problem parameters and define the matrices <span class="math">\(A\)</span>,
-<span class="math">\(B\)</span>, and <span class="math">\(C\)</span>.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1"># number of timesteps</span>
+<p>We generate the data for the vehicle tracking problem. We’ll have
+<span class="math notranslate nohighlight">\(N=1000\)</span>, <span class="math notranslate nohighlight">\(w_t\)</span> a standard Gaussian, and <span class="math notranslate nohighlight">\(v_t\)</span> a
+standard Gaussian, except <span class="math notranslate nohighlight">\(20\%\)</span> of the points will be outliers
+with <span class="math notranslate nohighlight">\(\sigma = 20\)</span>.</p>
+<p>Below, we set the problem parameters and define the matrices <span class="math notranslate nohighlight">\(A\)</span>,
+<span class="math notranslate nohighlight">\(B\)</span>, and <span class="math notranslate nohighlight">\(C\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">1000</span> <span class="c1"># number of timesteps</span>
 <span class="n">T</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># time will vary from 0 to T with step delt</span>
 <span class="n">ts</span><span class="p">,</span> <span class="n">delt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="n">T</span><span class="p">,</span><span class="n">n</span><span class="p">,</span><span class="n">endpoint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">retstep</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">gamma</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span> <span class="c1"># damping, 0 is no damping</span>
@@ -257,14 +252,14 @@ with <span class="math">\(\sigma = 20\)</span>.</p>
 </div>
 <div class="section" id="simulation">
 <h1>Simulation<a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h1>
-<p>We seed <span class="math">\(x_0 = 0\)</span> (starting at the origin with zero velocity) and
+<p>We seed <span class="math notranslate nohighlight">\(x_0 = 0\)</span> (starting at the origin with zero velocity) and
 simulate the system forward in time. The results are the true vehicle
-positions <code class="docutils literal"><span class="pre">x_true</span></code> (which we will use to judge our recovery) and the
-observed positions <code class="docutils literal"><span class="pre">y</span></code>.</p>
-<p>We plot the position, velocity, and system input <span class="math">\(w\)</span> in both
+positions <code class="docutils literal notranslate"><span class="pre">x_true</span></code> (which we will use to judge our recovery) and the
+observed positions <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p>
+<p>We plot the position, velocity, and system input <span class="math notranslate nohighlight">\(w\)</span> in both
 dimensions as a function of time. We also plot the sets of true and
 observed vehicle positions.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">20</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">20</span>
 <span class="n">p</span> <span class="o">=</span> <span class="o">.</span><span class="mi">20</span>
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
 
@@ -301,7 +296,7 @@ observed vehicle positions.</p>
 <p>The code below solves the standard Kalman filtering problem using CVXPY.
 We plot and compare the true and recovered vehicle states. Note that the
 recovery is distorted by outliers in the measurements.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">time</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">time</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
@@ -330,7 +325,7 @@ recovery is distorted by outliers in the measurements.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
            <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
@@ -372,7 +367,7 @@ recovery is distorted by outliers in the measurements.</p>
 <p>Here we implement robust Kalman filtering with CVXPY. We get a better
 recovery than the standard Kalman filtering, which can be seen in the
 plots below.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">time</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="o">%%</span><span class="n">time</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
@@ -403,39 +398,39 @@ plots below.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">2.0</span><span class="o">.</span><span class="mi">4</span> <span class="o">-</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="n">embotech</span> <span class="n">GmbH</span><span class="p">,</span> <span class="n">Zurich</span> <span class="n">Switzerland</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">15.</span> <span class="n">Web</span><span class="p">:</span> <span class="n">www</span><span class="o">.</span><span class="n">embotech</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ECOS</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">2.0</span><span class="o">.</span><span class="mi">4</span> <span class="o">-</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="n">embotech</span> <span class="n">GmbH</span><span class="p">,</span> <span class="n">Zurich</span> <span class="n">Switzerland</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">15.</span> <span class="n">Web</span><span class="p">:</span> <span class="n">www</span><span class="o">.</span><span class="n">embotech</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ECOS</span>
 
 <span class="n">It</span>     <span class="n">pcost</span>       <span class="n">dcost</span>      <span class="n">gap</span>   <span class="n">pres</span>   <span class="n">dres</span>    <span class="n">k</span><span class="o">/</span><span class="n">t</span>    <span class="n">mu</span>     <span class="n">step</span>   <span class="n">sigma</span>     <span class="n">IR</span>    <span class="o">|</span>   <span class="n">BT</span>
- <span class="mi">0</span>  <span class="o">+</span><span class="mf">0.000e+00</span>  <span class="o">-</span><span class="mf">2.923e+02</span>  <span class="o">+</span><span class="mi">7</span><span class="n">e</span><span class="o">+</span><span class="mi">05</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">02</span>    <span class="o">---</span>    <span class="o">---</span>    <span class="mi">1</span>  <span class="mi">1</span>  <span class="o">-</span> <span class="o">|</span>  <span class="o">-</span>  <span class="o">-</span>
- <span class="mi">1</span>  <span class="o">+</span><span class="mf">5.090e+02</span>  <span class="o">+</span><span class="mf">4.360e+02</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">05</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">6</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mf">0.8051</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
- <span class="mi">2</span>  <span class="o">+</span><span class="mf">4.188e+03</span>  <span class="o">+</span><span class="mf">4.134e+03</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">05</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">9</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">5</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mf">0.4259</span>  <span class="mi">6</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
- <span class="mi">3</span>  <span class="o">+</span><span class="mf">9.956e+03</span>  <span class="o">+</span><span class="mf">9.923e+03</span>  <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">05</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">4</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">4</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mf">0.5830</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
- <span class="mi">4</span>  <span class="o">+</span><span class="mf">1.881e+04</span>  <span class="o">+</span><span class="mf">1.880e+04</span>  <span class="o">+</span><span class="mi">7</span><span class="n">e</span><span class="o">+</span><span class="mi">04</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mf">0.7189</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
- <span class="mi">5</span>  <span class="o">+</span><span class="mf">2.572e+04</span>  <span class="o">+</span><span class="mf">2.572e+04</span>  <span class="o">+</span><span class="mi">4</span><span class="n">e</span><span class="o">+</span><span class="mi">04</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mf">0.5464</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
- <span class="mi">6</span>  <span class="o">+</span><span class="mf">2.986e+04</span>  <span class="o">+</span><span class="mf">2.985e+04</span>  <span class="o">+</span><span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">04</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">6</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mf">0.5716</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
- <span class="mi">7</span>  <span class="o">+</span><span class="mf">3.262e+04</span>  <span class="o">+</span><span class="mf">3.262e+04</span>  <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">04</span>  <span class="mi">9</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">7</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mf">0.6007</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
- <span class="mi">8</span>  <span class="o">+</span><span class="mf">3.425e+04</span>  <span class="o">+</span><span class="mf">3.425e+04</span>  <span class="o">+</span><span class="mi">8</span><span class="n">e</span><span class="o">+</span><span class="mi">03</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">5</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mf">0.5871</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
- <span class="mi">9</span>  <span class="o">+</span><span class="mf">3.601e+04</span>  <span class="o">+</span><span class="mf">3.601e+04</span>  <span class="o">+</span><span class="mi">4</span><span class="n">e</span><span class="o">+</span><span class="mi">03</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">9</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mf">0.6383</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">10</span>  <span class="o">+</span><span class="mf">3.728e+04</span>  <span class="o">+</span><span class="mf">3.727e+04</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">03</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mf">0.7925</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">11</span>  <span class="o">+</span><span class="mf">3.759e+04</span>  <span class="o">+</span><span class="mf">3.759e+04</span>  <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">03</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mf">0.5191</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">12</span>  <span class="o">+</span><span class="mf">3.824e+04</span>  <span class="o">+</span><span class="mf">3.824e+04</span>  <span class="o">+</span><span class="mi">6</span><span class="n">e</span><span class="o">+</span><span class="mi">02</span>  <span class="mi">6</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mf">0.9890</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">13</span>  <span class="o">+</span><span class="mf">3.860e+04</span>  <span class="o">+</span><span class="mf">3.860e+04</span>  <span class="o">+</span><span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">02</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mf">0.6740</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">14</span>  <span class="o">+</span><span class="mf">3.864e+04</span>  <span class="o">+</span><span class="mf">3.864e+04</span>  <span class="o">+</span><span class="mi">3</span><span class="n">e</span><span class="o">+</span><span class="mi">02</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mf">0.2982</span>  <span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">15</span>  <span class="o">+</span><span class="mf">3.876e+04</span>  <span class="o">+</span><span class="mf">3.876e+04</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">02</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mf">0.9890</span>  <span class="mi">6</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">16</span>  <span class="o">+</span><span class="mf">3.889e+04</span>  <span class="o">+</span><span class="mf">3.889e+04</span>  <span class="o">+</span><span class="mi">8</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mf">0.7740</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">3</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">17</span>  <span class="o">+</span><span class="mf">3.899e+04</span>  <span class="o">+</span><span class="mf">3.899e+04</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">6</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mf">0.9702</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">3</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">18</span>  <span class="o">+</span><span class="mf">3.901e+04</span>  <span class="o">+</span><span class="mf">3.901e+04</span>  <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">+</span><span class="mi">01</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">6</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mf">0.6771</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">4</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">19</span>  <span class="o">+</span><span class="mf">3.903e+04</span>  <span class="o">+</span><span class="mf">3.903e+04</span>  <span class="o">+</span><span class="mi">7</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mf">0.9383</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">3</span>  <span class="mi">2</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">20</span>  <span class="o">+</span><span class="mf">3.905e+04</span>  <span class="o">+</span><span class="mf">3.905e+04</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">+</span><span class="mi">00</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">6</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mf">0.8982</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">4</span>  <span class="mi">4</span>  <span class="mi">4</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">21</span>  <span class="o">+</span><span class="mf">3.906e+04</span>  <span class="o">+</span><span class="mf">3.906e+04</span>  <span class="o">+</span><span class="mi">9</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mf">0.9342</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">3</span>  <span class="mi">2</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">22</span>  <span class="o">+</span><span class="mf">3.907e+04</span>  <span class="o">+</span><span class="mf">3.907e+04</span>  <span class="o">+</span><span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mf">0.8457</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">5</span>  <span class="mi">4</span>  <span class="mi">4</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">23</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mf">0.9890</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">3</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">24</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>  <span class="mf">0.9013</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">3</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">25</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">03</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">10</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mf">0.9207</span>  <span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">3</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">26</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mi">7</span><span class="n">e</span><span class="o">-</span><span class="mi">04</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">10</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mf">0.9890</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">27</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mi">8</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">11</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>  <span class="mf">0.9009</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">28</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">05</span>  <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">11</span>  <span class="mi">4</span><span class="n">e</span><span class="o">-</span><span class="mi">07</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span>  <span class="mf">0.9890</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
-<span class="mi">29</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">06</span>  <span class="mi">3</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">08</span>  <span class="mi">5</span><span class="n">e</span><span class="o">-</span><span class="mi">10</span>  <span class="mf">0.9058</span>  <span class="mi">2</span><span class="n">e</span><span class="o">-</span><span class="mi">02</span>   <span class="mi">2</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">0</span>  <span class="o">+</span><span class="mf">0.000e+00</span>  <span class="o">-</span><span class="mf">2.923e+02</span>  <span class="o">+</span><span class="mf">7e+05</span>  <span class="mf">3e-01</span>  <span class="mf">3e-02</span>  <span class="mf">1e+00</span>  <span class="mf">2e+02</span>    <span class="o">---</span>    <span class="o">---</span>    <span class="mi">1</span>  <span class="mi">1</span>  <span class="o">-</span> <span class="o">|</span>  <span class="o">-</span>  <span class="o">-</span>
+ <span class="mi">1</span>  <span class="o">+</span><span class="mf">5.090e+02</span>  <span class="o">+</span><span class="mf">4.360e+02</span>  <span class="o">+</span><span class="mf">2e+05</span>  <span class="mf">4e-01</span>  <span class="mf">1e-02</span>  <span class="mf">3e+01</span>  <span class="mf">6e+01</span>  <span class="mf">0.8051</span>  <span class="mf">2e-01</span>   <span class="mi">2</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">2</span>  <span class="o">+</span><span class="mf">4.188e+03</span>  <span class="o">+</span><span class="mf">4.134e+03</span>  <span class="o">+</span><span class="mf">2e+05</span>  <span class="mf">3e-01</span>  <span class="mf">9e-03</span>  <span class="mf">3e+01</span>  <span class="mf">5e+01</span>  <span class="mf">0.4259</span>  <span class="mf">6e-01</span>   <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">3</span>  <span class="o">+</span><span class="mf">9.956e+03</span>  <span class="o">+</span><span class="mf">9.923e+03</span>  <span class="o">+</span><span class="mf">1e+05</span>  <span class="mf">3e-01</span>  <span class="mf">8e-03</span>  <span class="mf">4e+01</span>  <span class="mf">4e+01</span>  <span class="mf">0.5830</span>  <span class="mf">5e-01</span>   <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">4</span>  <span class="o">+</span><span class="mf">1.881e+04</span>  <span class="o">+</span><span class="mf">1.880e+04</span>  <span class="o">+</span><span class="mf">7e+04</span>  <span class="mf">3e-01</span>  <span class="mf">5e-03</span>  <span class="mf">3e+01</span>  <span class="mf">2e+01</span>  <span class="mf">0.7189</span>  <span class="mf">3e-01</span>   <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">5</span>  <span class="o">+</span><span class="mf">2.572e+04</span>  <span class="o">+</span><span class="mf">2.572e+04</span>  <span class="o">+</span><span class="mf">4e+04</span>  <span class="mf">2e-01</span>  <span class="mf">3e-03</span>  <span class="mf">2e+01</span>  <span class="mf">1e+01</span>  <span class="mf">0.5464</span>  <span class="mf">3e-01</span>   <span class="mi">1</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">6</span>  <span class="o">+</span><span class="mf">2.986e+04</span>  <span class="o">+</span><span class="mf">2.985e+04</span>  <span class="o">+</span><span class="mf">3e+04</span>  <span class="mf">2e-01</span>  <span class="mf">2e-03</span>  <span class="mf">1e+01</span>  <span class="mf">6e+00</span>  <span class="mf">0.5716</span>  <span class="mf">3e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">7</span>  <span class="o">+</span><span class="mf">3.262e+04</span>  <span class="o">+</span><span class="mf">3.262e+04</span>  <span class="o">+</span><span class="mf">1e+04</span>  <span class="mf">9e-02</span>  <span class="mf">1e-03</span>  <span class="mf">7e+00</span>  <span class="mf">3e+00</span>  <span class="mf">0.6007</span>  <span class="mf">2e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">8</span>  <span class="o">+</span><span class="mf">3.425e+04</span>  <span class="o">+</span><span class="mf">3.425e+04</span>  <span class="o">+</span><span class="mf">8e+03</span>  <span class="mf">5e-02</span>  <span class="mf">7e-04</span>  <span class="mf">5e+00</span>  <span class="mf">2e+00</span>  <span class="mf">0.5871</span>  <span class="mf">3e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+ <span class="mi">9</span>  <span class="o">+</span><span class="mf">3.601e+04</span>  <span class="o">+</span><span class="mf">3.601e+04</span>  <span class="o">+</span><span class="mf">4e+03</span>  <span class="mf">3e-02</span>  <span class="mf">3e-04</span>  <span class="mf">2e+00</span>  <span class="mf">9e-01</span>  <span class="mf">0.6383</span>  <span class="mf">2e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">10</span>  <span class="o">+</span><span class="mf">3.728e+04</span>  <span class="o">+</span><span class="mf">3.727e+04</span>  <span class="o">+</span><span class="mf">2e+03</span>  <span class="mf">1e-02</span>  <span class="mf">2e-04</span>  <span class="mf">1e+00</span>  <span class="mf">5e-01</span>  <span class="mf">0.7925</span>  <span class="mf">4e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">11</span>  <span class="o">+</span><span class="mf">3.759e+04</span>  <span class="o">+</span><span class="mf">3.759e+04</span>  <span class="o">+</span><span class="mf">1e+03</span>  <span class="mf">1e-02</span>  <span class="mf">1e-04</span>  <span class="mf">1e+00</span>  <span class="mf">3e-01</span>  <span class="mf">0.5191</span>  <span class="mf">5e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">12</span>  <span class="o">+</span><span class="mf">3.824e+04</span>  <span class="o">+</span><span class="mf">3.824e+04</span>  <span class="o">+</span><span class="mf">6e+02</span>  <span class="mf">6e-03</span>  <span class="mf">5e-05</span>  <span class="mf">5e-01</span>  <span class="mf">2e-01</span>  <span class="mf">0.9890</span>  <span class="mf">4e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">13</span>  <span class="o">+</span><span class="mf">3.860e+04</span>  <span class="o">+</span><span class="mf">3.860e+04</span>  <span class="o">+</span><span class="mf">3e+02</span>  <span class="mf">3e-03</span>  <span class="mf">2e-05</span>  <span class="mf">3e-01</span>  <span class="mf">7e-02</span>  <span class="mf">0.6740</span>  <span class="mf">2e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">14</span>  <span class="o">+</span><span class="mf">3.864e+04</span>  <span class="o">+</span><span class="mf">3.864e+04</span>  <span class="o">+</span><span class="mf">3e+02</span>  <span class="mf">3e-03</span>  <span class="mf">2e-05</span>  <span class="mf">3e-01</span>  <span class="mf">7e-02</span>  <span class="mf">0.2982</span>  <span class="mf">7e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">15</span>  <span class="o">+</span><span class="mf">3.876e+04</span>  <span class="o">+</span><span class="mf">3.876e+04</span>  <span class="o">+</span><span class="mf">2e+02</span>  <span class="mf">2e-03</span>  <span class="mf">1e-05</span>  <span class="mf">2e-01</span>  <span class="mf">4e-02</span>  <span class="mf">0.9890</span>  <span class="mf">6e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">16</span>  <span class="o">+</span><span class="mf">3.889e+04</span>  <span class="o">+</span><span class="mf">3.889e+04</span>  <span class="o">+</span><span class="mf">8e+01</span>  <span class="mf">1e-03</span>  <span class="mf">4e-06</span>  <span class="mf">1e-01</span>  <span class="mf">2e-02</span>  <span class="mf">0.7740</span>  <span class="mf">4e-01</span>   <span class="mi">3</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">17</span>  <span class="o">+</span><span class="mf">3.899e+04</span>  <span class="o">+</span><span class="mf">3.899e+04</span>  <span class="o">+</span><span class="mf">2e+01</span>  <span class="mf">4e-04</span>  <span class="mf">1e-06</span>  <span class="mf">3e-02</span>  <span class="mf">6e-03</span>  <span class="mf">0.9702</span>  <span class="mf">3e-01</span>   <span class="mi">3</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">18</span>  <span class="o">+</span><span class="mf">3.901e+04</span>  <span class="o">+</span><span class="mf">3.901e+04</span>  <span class="o">+</span><span class="mf">1e+01</span>  <span class="mf">4e-04</span>  <span class="mf">6e-07</span>  <span class="mf">3e-02</span>  <span class="mf">4e-03</span>  <span class="mf">0.6771</span>  <span class="mf">5e-01</span>   <span class="mi">4</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">19</span>  <span class="o">+</span><span class="mf">3.903e+04</span>  <span class="o">+</span><span class="mf">3.903e+04</span>  <span class="o">+</span><span class="mf">7e+00</span>  <span class="mf">2e-04</span>  <span class="mf">3e-07</span>  <span class="mf">2e-02</span>  <span class="mf">2e-03</span>  <span class="mf">0.9383</span>  <span class="mf">5e-01</span>   <span class="mi">3</span>  <span class="mi">2</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">20</span>  <span class="o">+</span><span class="mf">3.905e+04</span>  <span class="o">+</span><span class="mf">3.905e+04</span>  <span class="o">+</span><span class="mf">2e+00</span>  <span class="mf">1e-04</span>  <span class="mf">1e-07</span>  <span class="mf">1e-02</span>  <span class="mf">6e-04</span>  <span class="mf">0.8982</span>  <span class="mf">3e-01</span>   <span class="mi">4</span>  <span class="mi">4</span>  <span class="mi">4</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">21</span>  <span class="o">+</span><span class="mf">3.906e+04</span>  <span class="o">+</span><span class="mf">3.906e+04</span>  <span class="o">+</span><span class="mf">9e-01</span>  <span class="mf">5e-05</span>  <span class="mf">5e-08</span>  <span class="mf">5e-03</span>  <span class="mf">2e-04</span>  <span class="mf">0.9342</span>  <span class="mf">3e-01</span>   <span class="mi">3</span>  <span class="mi">2</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">22</span>  <span class="o">+</span><span class="mf">3.907e+04</span>  <span class="o">+</span><span class="mf">3.907e+04</span>  <span class="o">+</span><span class="mf">3e-01</span>  <span class="mf">4e-05</span>  <span class="mf">3e-08</span>  <span class="mf">4e-03</span>  <span class="mf">8e-05</span>  <span class="mf">0.8457</span>  <span class="mf">3e-01</span>   <span class="mi">5</span>  <span class="mi">4</span>  <span class="mi">4</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">23</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">8e-02</span>  <span class="mf">1e-05</span>  <span class="mf">8e-09</span>  <span class="mf">1e-03</span>  <span class="mf">2e-05</span>  <span class="mf">0.9890</span>  <span class="mf">3e-01</span>   <span class="mi">3</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">24</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">1e-02</span>  <span class="mf">2e-06</span>  <span class="mf">2e-09</span>  <span class="mf">2e-04</span>  <span class="mf">3e-06</span>  <span class="mf">0.9013</span>  <span class="mf">5e-02</span>   <span class="mi">3</span>  <span class="mi">3</span>  <span class="mi">3</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">25</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">2e-03</span>  <span class="mf">4e-07</span>  <span class="mf">4e-10</span>  <span class="mf">4e-05</span>  <span class="mf">5e-07</span>  <span class="mf">0.9207</span>  <span class="mf">8e-02</span>   <span class="mi">3</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">26</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">7e-04</span>  <span class="mf">2e-07</span>  <span class="mf">2e-10</span>  <span class="mf">2e-05</span>  <span class="mf">2e-07</span>  <span class="mf">0.9890</span>  <span class="mf">4e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">27</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">8e-05</span>  <span class="mf">3e-08</span>  <span class="mf">5e-11</span>  <span class="mf">2e-06</span>  <span class="mf">2e-08</span>  <span class="mf">0.9009</span>  <span class="mf">2e-02</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">28</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">2e-05</span>  <span class="mf">1e-08</span>  <span class="mf">2e-11</span>  <span class="mf">4e-07</span>  <span class="mf">5e-09</span>  <span class="mf">0.9890</span>  <span class="mf">2e-01</span>   <span class="mi">2</span>  <span class="mi">2</span>  <span class="mi">2</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
+<span class="mi">29</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">3.908e+04</span>  <span class="o">+</span><span class="mf">2e-06</span>  <span class="mf">3e-09</span>  <span class="mf">5e-12</span>  <span class="mf">5e-08</span>  <span class="mf">5e-10</span>  <span class="mf">0.9058</span>  <span class="mf">2e-02</span>   <span class="mi">2</span>  <span class="mi">1</span>  <span class="mi">1</span> <span class="o">|</span>  <span class="mi">0</span>  <span class="mi">0</span>
 
 <span class="n">OPTIMAL</span> <span class="p">(</span><span class="n">within</span> <span class="n">feastol</span><span class="o">=</span><span class="mf">3.1e-09</span><span class="p">,</span> <span class="n">reltol</span><span class="o">=</span><span class="mf">5.3e-11</span><span class="p">,</span> <span class="n">abstol</span><span class="o">=</span><span class="mf">2.1e-06</span><span class="p">)</span><span class="o">.</span>
 <span class="n">Runtime</span><span class="p">:</span> <span class="mf">1.129066</span> <span class="n">seconds</span><span class="o">.</span>
@@ -452,6 +447,7 @@ plots below.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -462,10 +458,12 @@ plots below.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -507,15 +505,15 @@ plots below.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -524,11 +522,11 @@ plots below.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/applications/robust_kalman.txt"
+      <a href="../../_sources/examples/applications/robust_kalman.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

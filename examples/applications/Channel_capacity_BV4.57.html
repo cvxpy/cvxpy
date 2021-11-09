@@ -1,40 +1,35 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Capacity of a Communication Channel &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Capacity of a Communication Channel &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="capacity-of-a-communication-channel">
@@ -43,40 +38,40 @@
 Briggs</p>
 <p>from Boyd and Vandenberghe, Convex Optimization, exercise 4.57 pages
 207-8</p>
-<p>Convex optimization can be used to find the channel capacity <span class="math">\(C\)</span>
+<p>Convex optimization can be used to find the channel capacity <span class="math notranslate nohighlight">\(C\)</span>
 of a discrete memoryless channel. Consider a communication channel with
-input <span class="math">\(X(t) \in \{1,2,...,n\}\)</span> and output
-<span class="math">\(Y(t) \in \{1,2,...m\}\)</span>. This means that the random variables
-<span class="math">\(X\)</span> and <span class="math">\(Y\)</span> can take <span class="math">\(n\)</span> and <span class="math">\(m\)</span> different
+input <span class="math notranslate nohighlight">\(X(t) \in \{1,2,...,n\}\)</span> and output
+<span class="math notranslate nohighlight">\(Y(t) \in \{1,2,...m\}\)</span>. This means that the random variables
+<span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> can take <span class="math notranslate nohighlight">\(n\)</span> and <span class="math notranslate nohighlight">\(m\)</span> different
 values, respectively.</p>
 <p>In a discrete memoryless channel, the relation between the input and the
 output is given by the transition probability:</p>
-<p><span class="math">\(p_{ij} = \mathbb{P}(Y(t)=i | X(t)=j)\)</span></p>
+<p><span class="math notranslate nohighlight">\(p_{ij} = \mathbb{P}(Y(t)=i | X(t)=j)\)</span></p>
 <p>These transition probabilities form the channel transition matrix
-<span class="math">\(P\)</span>, with <span class="math">\(P \in \mathbb{R}^{m\times n}\)</span>.</p>
-<p>Assume that <span class="math">\(X\)</span> has a probability distribution denoted by
-<span class="math">\(x \in \mathbb{R}^n\)</span>, meaning that:</p>
-<p><span class="math">\(x_j = \mathbb{P}(X(t) = j) \quad j \in \{1,...,n\}\)</span>.</p>
+<span class="math notranslate nohighlight">\(P\)</span>, with <span class="math notranslate nohighlight">\(P \in \mathbb{R}^{m\times n}\)</span>.</p>
+<p>Assume that <span class="math notranslate nohighlight">\(X\)</span> has a probability distribution denoted by
+<span class="math notranslate nohighlight">\(x \in \mathbb{R}^n\)</span>, meaning that:</p>
+<p><span class="math notranslate nohighlight">\(x_j = \mathbb{P}(X(t) = j) \quad j \in \{1,...,n\}\)</span>.</p>
 <p>From Shannon, the channel capacity is given by the maximum possible
-mutual information <span class="math">\(I\)</span> between <span class="math">\(X\)</span> and <span class="math">\(Y\)</span>:</p>
-<p><span class="math">\(C = \sup_x I(X;Y)\)</span></p>
+mutual information <span class="math notranslate nohighlight">\(I\)</span> between <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span>:</p>
+<p><span class="math notranslate nohighlight">\(C = \sup_x I(X;Y)\)</span></p>
 <p>where,</p>
-<p><span class="math">\(I(X;Y) = -\sum_{i=1}^{m} y_i \log_2y_i + \sum_{j=1}^{n}\sum_{i=1}^{m}x_j p_{ij}\log_2p_{ij}\)</span></p>
-<p>Given that <span class="math">\(x\log x\)</span> is convex for <span class="math">\(x \geq 0\)</span>, we can
+<p><span class="math notranslate nohighlight">\(I(X;Y) = -\sum_{i=1}^{m} y_i \log_2y_i + \sum_{j=1}^{n}\sum_{i=1}^{m}x_j p_{ij}\log_2p_{ij}\)</span></p>
+<p>Given that <span class="math notranslate nohighlight">\(x\log x\)</span> is convex for <span class="math notranslate nohighlight">\(x \geq 0\)</span>, we can
 formulate this as a convex optimization problem:</p>
-<p>minimise <span class="math">\(-I(X;Y)\)</span></p>
-<p>subject to <span class="math">\(\sum_{i=1}^{n}x_i = 1 \quad x \succeq 0 \quad\)</span> since
-<span class="math">\(x\)</span> describes a probability</p>
+<p>minimise <span class="math notranslate nohighlight">\(-I(X;Y)\)</span></p>
+<p>subject to <span class="math notranslate nohighlight">\(\sum_{i=1}^{n}x_i = 1 \quad x \succeq 0 \quad\)</span> since
+<span class="math notranslate nohighlight">\(x\)</span> describes a probability</p>
 <p>Due to the entropy function in CVXPY, this can be written quite easily
 in DCP.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill &amp; K. Briggs</span>
 
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">channel_capacity</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">sum_x</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">channel_capacity</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">sum_x</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Boyd and Vandenberghe, Convex Optimization, exercise 4.57 page 207</span>
 <span class="sd">    Capacity of a communication channel.</span>
@@ -133,12 +128,12 @@ in DCP.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>In this example we consider a communication channel with two possible
-inputs and outputs, so <span class="math">\(n = m = 2\)</span>. The channel transition matrix
+inputs and outputs, so <span class="math notranslate nohighlight">\(n = m = 2\)</span>. The channel transition matrix
 we use in this case is:</p>
-<p><span class="math">\(P = \pmatrix{0.75,0.25\\0.25,0.75}\)</span></p>
-<p>Note that the rows of <span class="math">\(P\)</span> must sum to 1 and all elements of
-<span class="math">\(P\)</span> must be positive.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<p><span class="math notranslate nohighlight">\(P = \pmatrix{0.75,0.25\\0.25,0.75}\)</span></p>
+<p>Note that the rows of <span class="math notranslate nohighlight">\(P\)</span> must sum to 1 and all elements of
+<span class="math notranslate nohighlight">\(P\)</span> must be positive.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="n">m</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.75</span><span class="p">,</span><span class="mf">0.25</span><span class="p">],</span>
@@ -149,7 +144,7 @@ we use in this case is:</p>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal variable x = </span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span>  <span class="n">optimal</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span>  <span class="n">optimal</span>
 <span class="n">Optimal</span> <span class="n">value</span> <span class="n">of</span> <span class="n">C</span> <span class="o">=</span> <span class="mf">0.1181</span>
 <span class="n">Optimal</span> <span class="n">variable</span> <span class="n">x</span> <span class="o">=</span>
  <span class="p">[</span><span class="mf">0.5</span> <span class="mf">0.5</span><span class="p">]</span>
@@ -160,6 +155,7 @@ we use in this case is:</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -170,10 +166,12 @@ we use in this case is:</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -215,15 +213,15 @@ we use in this case is:</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -232,11 +230,11 @@ we use in this case is:</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/applications/Channel_capacity_BV4.57.txt"
+      <a href="../../_sources/examples/applications/Channel_capacity_BV4.57.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

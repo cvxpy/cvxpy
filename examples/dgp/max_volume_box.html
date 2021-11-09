@@ -1,53 +1,48 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Maximizing the volume of a box &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maximizing the volume of a box &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="maximizing-the-volume-of-a-box">
 <h1>Maximizing the volume of a box<a class="headerlink" href="#maximizing-the-volume-of-a-box" title="Permalink to this headline">¶</a></h1>
-<p><em>This example is adapted from Boyd, Kim, Vandenberghe, and Hassibi,</em> &#8220;<a class="reference external" href="https://web.stanford.edu/~boyd/papers/pdf/gp_tutorial.pdf">A
+<p><em>This example is adapted from Boyd, Kim, Vandenberghe, and Hassibi,</em> “<a class="reference external" href="https://web.stanford.edu/~boyd/papers/pdf/gp_tutorial.pdf">A
 Tutorial on Geometric
-Programming</a>&#8221;.</p>
-<p>In this example, we maximize the shape of a box with height <span class="math">\(h\)</span>,
-width <span class="math">\(w\)</span>, and depth <span class="math">\(w\)</span>, with limits on the wall area
-<span class="math">\(2(hw + hd)\)</span> and the floor area <span class="math">\(wd\)</span>, subject to bounds on
-the aspect ratios <span class="math">\(h/w\)</span> and <span class="math">\(w/d\)</span>. The optimization problem
+Programming</a>“.</p>
+<p>In this example, we maximize the shape of a box with height <span class="math notranslate nohighlight">\(h\)</span>,
+width <span class="math notranslate nohighlight">\(w\)</span>, and depth <span class="math notranslate nohighlight">\(w\)</span>, with limits on the wall area
+<span class="math notranslate nohighlight">\(2(hw + hd)\)</span> and the floor area <span class="math notranslate nohighlight">\(wd\)</span>, subject to bounds on
+the aspect ratios <span class="math notranslate nohighlight">\(h/w\)</span> and <span class="math notranslate nohighlight">\(w/d\)</span>. The optimization problem
 is</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
 \mbox{maximize} &amp; hwd \\
 \mbox{subject to} &amp; 2(hw + hd) \leq A_{\text wall}, \\
@@ -55,7 +50,7 @@ is</p>
 &amp; \alpha \leq h/w \leq \beta, \\
 &amp; \gamma \leq d/w \leq \delta.
 \end{array}\end{split}\]</div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="c1"># Problem data.</span>
 <span class="n">A_wall</span> <span class="o">=</span> <span class="mi">100</span>
@@ -86,7 +81,7 @@ is</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">maximize</span> <span class="n">h</span> <span class="o">*</span> <span class="n">w</span> <span class="o">*</span> <span class="n">d</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">maximize</span> <span class="n">h</span> <span class="o">*</span> <span class="n">w</span> <span class="o">*</span> <span class="n">d</span>
 <span class="n">subject</span> <span class="n">to</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">h</span> <span class="o">*</span> <span class="n">w</span> <span class="o">+</span> <span class="n">h</span> <span class="o">*</span> <span class="n">d</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">100.0</span>
            <span class="n">w</span> <span class="o">*</span> <span class="n">d</span> <span class="o">&lt;=</span> <span class="mf">10.0</span>
            <span class="mf">0.5</span> <span class="o">&lt;=</span> <span class="n">h</span> <span class="o">/</span> <span class="n">w</span>
@@ -95,53 +90,54 @@ is</p>
            <span class="n">d</span> <span class="o">/</span> <span class="n">w</span> <span class="o">&lt;=</span> <span class="mf">2.0</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">assert</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">assert</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
 <span class="k">assert</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">problem</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">77.45966630736292</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">77.45966630736292</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">h</span><span class="o">.</span><span class="n">value</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">h</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">7.7459666715289766</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">7.7459666715289766</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">w</span><span class="o">.</span><span class="n">value</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">w</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">3.872983364643079</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">3.872983364643079</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">d</span><span class="o">.</span><span class="n">value</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">d</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">2.581988871583608</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">2.581988871583608</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># A 1% increase in allowed wall space should yield approximately</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A 1% increase in allowed wall space should yield approximately</span>
 <span class="c1"># a 0.83% increase in maximum value.</span>
 <span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">0.8333333206334043</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.8333333206334043</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># A 1% increase in allowed wall space should yield approximately</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A 1% increase in allowed wall space should yield approximately</span>
 <span class="c1"># a 0.66% increase in maximum value.</span>
 <span class="n">constraints</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">0.6666666801983365</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.6666666801983365</span>
 </pre></div>
 </div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -152,10 +148,12 @@ is</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -197,15 +195,15 @@ is</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -214,11 +212,11 @@ is</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/dgp/max_volume_box.txt"
+      <a href="../../_sources/examples/dgp/max_volume_box.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

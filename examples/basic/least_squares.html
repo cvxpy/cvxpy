@@ -1,70 +1,65 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Least-squares &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Least-squares &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="least-squares">
 <h1>Least-squares<a class="headerlink" href="#least-squares" title="Permalink to this headline">¶</a></h1>
 <p>In a least-squares, or linear regression, problem, we have measurements
-<span class="math">\(A \in \mathcal{R}^{m \times n}\)</span> and <span class="math">\(b \in \mathcal{R}^m\)</span>
-and seek a vector <span class="math">\(x \in \mathcal{R}^{n}\)</span> such that <span class="math">\(Ax\)</span> is
-close to <span class="math">\(b\)</span>. Closeness is defined as the sum of the squared
+<span class="math notranslate nohighlight">\(A \in \mathcal{R}^{m \times n}\)</span> and <span class="math notranslate nohighlight">\(b \in \mathcal{R}^m\)</span>
+and seek a vector <span class="math notranslate nohighlight">\(x \in \mathcal{R}^{n}\)</span> such that <span class="math notranslate nohighlight">\(Ax\)</span> is
+close to <span class="math notranslate nohighlight">\(b\)</span>. Closeness is defined as the sum of the squared
 differences:</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\sum_{i=1}^m (a_i^Tx - b_i)^2,\]</div>
-<p>also known as the <span class="math">\(\ell_2\)</span>-norm squared, <span class="math">\(\|Ax - b\|_2^2\)</span>.</p>
-<p>For example, we might have a dataset of <span class="math">\(m\)</span> users, each
-represented by <span class="math">\(n\)</span> features. Each row <span class="math">\(a_i^T\)</span> of <span class="math">\(A\)</span>
-is the features for user <span class="math">\(i\)</span>, while the corresponding entry
-<span class="math">\(b_i\)</span> of <span class="math">\(b\)</span> is the measurement we want to predict from
-<span class="math">\(a_i^T\)</span>, such as ad spending. The prediction is given by
-<span class="math">\(a_i^Tx\)</span>.</p>
-<p>We find the optimal <span class="math">\(x\)</span> by solving the optimization problem</p>
-<div class="math">
+<p>also known as the <span class="math notranslate nohighlight">\(\ell_2\)</span>-norm squared, <span class="math notranslate nohighlight">\(\|Ax - b\|_2^2\)</span>.</p>
+<p>For example, we might have a dataset of <span class="math notranslate nohighlight">\(m\)</span> users, each
+represented by <span class="math notranslate nohighlight">\(n\)</span> features. Each row <span class="math notranslate nohighlight">\(a_i^T\)</span> of <span class="math notranslate nohighlight">\(A\)</span>
+is the features for user <span class="math notranslate nohighlight">\(i\)</span>, while the corresponding entry
+<span class="math notranslate nohighlight">\(b_i\)</span> of <span class="math notranslate nohighlight">\(b\)</span> is the measurement we want to predict from
+<span class="math notranslate nohighlight">\(a_i^T\)</span>, such as ad spending. The prediction is given by
+<span class="math notranslate nohighlight">\(a_i^Tx\)</span>.</p>
+<p>We find the optimal <span class="math notranslate nohighlight">\(x\)</span> by solving the optimization problem</p>
+<div class="math notranslate nohighlight">
 \[\begin{array}{ll}
 \mbox{minimize}   &amp; \|Ax - b\|_2^2.
 \end{array}\]</div>
-<p>Let <span class="math">\(x^\star\)</span> denote the optimal <span class="math">\(x\)</span>. The quantity
-<span class="math">\(r = Ax^\star - b\)</span> is known as the residual. If
-<span class="math">\(\|r\|_2 = 0\)</span>, we have a perfect fit.</p>
+<p>Let <span class="math notranslate nohighlight">\(x^\star\)</span> denote the optimal <span class="math notranslate nohighlight">\(x\)</span>. The quantity
+<span class="math notranslate nohighlight">\(r = Ax^\star - b\)</span> is known as the residual. If
+<span class="math notranslate nohighlight">\(\|r\|_2 = 0\)</span>, we have a perfect fit.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>In the following code, we solve a least-squares problem with CVXPY.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -88,7 +83,7 @@ is the features for user <span class="math">\(i\)</span>, while the correspondin
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The norm of the residual is &quot;</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">A</span> <span class="o">@</span> <span class="n">x</span> <span class="o">-</span> <span class="n">b</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="mf">7.005909828287484</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="mf">7.005909828287484</span>
 <span class="n">The</span> <span class="n">optimal</span> <span class="n">x</span> <span class="ow">is</span>
 <span class="p">[</span> <span class="mf">0.17492418</span> <span class="o">-</span><span class="mf">0.38102551</span>  <span class="mf">0.34732251</span>  <span class="mf">0.0173098</span>  <span class="o">-</span><span class="mf">0.0845784</span>  <span class="o">-</span><span class="mf">0.08134019</span>
   <span class="mf">0.293119</span>    <span class="mf">0.27019762</span>  <span class="mf">0.17493179</span> <span class="o">-</span><span class="mf">0.23953449</span>  <span class="mf">0.64097935</span> <span class="o">-</span><span class="mf">0.41633637</span>
@@ -101,6 +96,7 @@ is the features for user <span class="math">\(i\)</span>, while the correspondin
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -111,10 +107,12 @@ is the features for user <span class="math">\(i\)</span>, while the correspondin
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -156,15 +154,15 @@ is the features for user <span class="math">\(i\)</span>, while the correspondin
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -173,11 +171,11 @@ is the features for user <span class="math">\(i\)</span>, while the correspondin
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/basic/least_squares.txt"
+      <a href="../../_sources/examples/basic/least_squares.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

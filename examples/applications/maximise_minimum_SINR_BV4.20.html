@@ -1,40 +1,35 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Power Assignment in a Wireless Communication System &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Power Assignment in a Wireless Communication System &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="power-assignment-in-a-wireless-communication-system">
@@ -44,54 +39,54 @@ Briggs</p>
 <p>from Boyd and Vandenberghe, Convex Optimization, exercise 4.20 page 196</p>
 <p>Convex optimization can be used to maximise the minimum signal to
 inteference plus noise ratio (SINR) of a wireless communication system.
-Consider a system with <span class="math">\(n\)</span> transmitters, each with power
-<span class="math">\(p_j \geq 0\)</span>, transmitting to <span class="math">\(n\)</span> receivers. Let
-<span class="math">\(G_{ij} \geq 0\)</span> denote the path gain from transmitter <span class="math">\(j\)</span> to
-receiver <span class="math">\(i\)</span>. These path gains form the matrix
-<span class="math">\(G \in \mathbb{R}^{n \times n}\)</span>.</p>
+Consider a system with <span class="math notranslate nohighlight">\(n\)</span> transmitters, each with power
+<span class="math notranslate nohighlight">\(p_j \geq 0\)</span>, transmitting to <span class="math notranslate nohighlight">\(n\)</span> receivers. Let
+<span class="math notranslate nohighlight">\(G_{ij} \geq 0\)</span> denote the path gain from transmitter <span class="math notranslate nohighlight">\(j\)</span> to
+receiver <span class="math notranslate nohighlight">\(i\)</span>. These path gains form the matrix
+<span class="math notranslate nohighlight">\(G \in \mathbb{R}^{n \times n}\)</span>.</p>
 <p>Each receiver is assigned to a transmitter such that the signal power at
-receiver <span class="math">\(i\)</span>, <span class="math">\(S_i = G_{ii}p_i\)</span> and the interefence power at
-receiver <span class="math">\(i\)</span> is <span class="math">\(I_i = \sum_{k\neq i} G_{ik}p_k\)</span>. Given a
-noise power <span class="math">\(\sigma_i\)</span> at each receiver, the SINR at receiver
-<span class="math">\(i\)</span>, <span class="math">\(\gamma_i = \frac{S_i}{I_i + \sigma_i}\)</span>.</p>
+receiver <span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(S_i = G_{ii}p_i\)</span> and the interefence power at
+receiver <span class="math notranslate nohighlight">\(i\)</span> is <span class="math notranslate nohighlight">\(I_i = \sum_{k\neq i} G_{ik}p_k\)</span>. Given a
+noise power <span class="math notranslate nohighlight">\(\sigma_i\)</span> at each receiver, the SINR at receiver
+<span class="math notranslate nohighlight">\(i\)</span>, <span class="math notranslate nohighlight">\(\gamma_i = \frac{S_i}{I_i + \sigma_i}\)</span>.</p>
 <p>The objective is to maximise the minimum SINR of the system under
 certain power constraints. These constraints are:</p>
-<p>i - Each transmitter power <span class="math">\(p_j \leq P_j^{\text{max}}\)</span></p>
-<p>ii - If the transmitters are partitioned into <span class="math">\(m\)</span> nonoverlapping
-groups, <span class="math">\(K_1, ..., K_m\)</span>, which share a common power supply with
-total power <span class="math">\(P_l^{\text{gp}}\)</span>:
-<span class="math">\(\sum_{k\in K_l}p_k \leq P_l^{\text{gp}}\)</span>.</p>
+<p>i - Each transmitter power <span class="math notranslate nohighlight">\(p_j \leq P_j^{\text{max}}\)</span></p>
+<p>ii - If the transmitters are partitioned into <span class="math notranslate nohighlight">\(m\)</span> nonoverlapping
+groups, <span class="math notranslate nohighlight">\(K_1, ..., K_m\)</span>, which share a common power supply with
+total power <span class="math notranslate nohighlight">\(P_l^{\text{gp}}\)</span>:
+<span class="math notranslate nohighlight">\(\sum_{k\in K_l}p_k \leq P_l^{\text{gp}}\)</span>.</p>
 <p>iii - There is a maximum power that each receiver can receive
-<span class="math">\(P_i^{\text{rc}}\)</span>,
-<span class="math">\(\sum_{k=1}^{n}G_{ik}p_k \leq P_i^{\text{rc}}\)</span>.</p>
+<span class="math notranslate nohighlight">\(P_i^{\text{rc}}\)</span>,
+<span class="math notranslate nohighlight">\(\sum_{k=1}^{n}G_{ik}p_k \leq P_i^{\text{rc}}\)</span>.</p>
 <p>The objective function can be rewritten as:</p>
-<p>minimise <span class="math">\(\max_{i=1,...,n}\frac{I_i + \sigma_i}{S_i}\)</span></p>
+<p>minimise <span class="math notranslate nohighlight">\(\max_{i=1,...,n}\frac{I_i + \sigma_i}{S_i}\)</span></p>
 <p>However, since this is a quasiconvex objective function we cannot solve
 it directly using CVXPY. Instead we must use a bisection method. First
 we take the step of rewriting the objective,
-<span class="math">\(\alpha = \gamma^{-1} \geq 0\)</span>, as a constraint:</p>
-<p><span class="math">\(I_i+\sigma_i \leq S_i\alpha\)</span></p>
-<p>Then we choose initial lower and upper bounds <span class="math">\(L_0\)</span> and
-<span class="math">\(U_0\)</span> for <span class="math">\(\alpha\)</span>, which should be chosen such that
-<span class="math">\(L &lt; \alpha^* &lt; U\)</span>, where <span class="math">\(\alpha^*\)</span> is the optimal value of
-<span class="math">\(\alpha\)</span>. Starting with an initial value
-<span class="math">\(\alpha_0 = \frac{1}{2}(L_0+U_0)\)</span>, feasibility is checked for
-<span class="math">\(\alpha_0\)</span> by using an arbitrary objective function. The new upper
+<span class="math notranslate nohighlight">\(\alpha = \gamma^{-1} \geq 0\)</span>, as a constraint:</p>
+<p><span class="math notranslate nohighlight">\(I_i+\sigma_i \leq S_i\alpha\)</span></p>
+<p>Then we choose initial lower and upper bounds <span class="math notranslate nohighlight">\(L_0\)</span> and
+<span class="math notranslate nohighlight">\(U_0\)</span> for <span class="math notranslate nohighlight">\(\alpha\)</span>, which should be chosen such that
+<span class="math notranslate nohighlight">\(L &lt; \alpha^* &lt; U\)</span>, where <span class="math notranslate nohighlight">\(\alpha^*\)</span> is the optimal value of
+<span class="math notranslate nohighlight">\(\alpha\)</span>. Starting with an initial value
+<span class="math notranslate nohighlight">\(\alpha_0 = \frac{1}{2}(L_0+U_0)\)</span>, feasibility is checked for
+<span class="math notranslate nohighlight">\(\alpha_0\)</span> by using an arbitrary objective function. The new upper
 and lower bounds are determined from the feasibility:</p>
-<p>If <span class="math">\(\alpha_0\)</span> is feasible then <span class="math">\(L_1 = L_0\)</span>,
-<span class="math">\(U_1 = \alpha_0\)</span> and <span class="math">\(\alpha_1 = \frac{1}{2}(L_1+U_1)\)</span>.</p>
-<p>If <span class="math">\(\alpha_0\)</span> is infeasible then <span class="math">\(L_1 = \alpha_1\)</span>,
-<span class="math">\(U_1 = U_0\)</span> and <span class="math">\(\alpha_1 = \frac{1}{2}(L_1+U_1)\)</span>.</p>
-<p>This bisection process is repeated until <span class="math">\(U_N - L_N &lt; \epsilon\)</span>,
-where <span class="math">\(\epsilon\)</span> is the desired tolerance.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+<p>If <span class="math notranslate nohighlight">\(\alpha_0\)</span> is feasible then <span class="math notranslate nohighlight">\(L_1 = L_0\)</span>,
+<span class="math notranslate nohighlight">\(U_1 = \alpha_0\)</span> and <span class="math notranslate nohighlight">\(\alpha_1 = \frac{1}{2}(L_1+U_1)\)</span>.</p>
+<p>If <span class="math notranslate nohighlight">\(\alpha_0\)</span> is infeasible then <span class="math notranslate nohighlight">\(L_1 = \alpha_1\)</span>,
+<span class="math notranslate nohighlight">\(U_1 = U_0\)</span> and <span class="math notranslate nohighlight">\(\alpha_1 = \frac{1}{2}(L_1+U_1)\)</span>.</p>
+<p>This bisection process is repeated until <span class="math notranslate nohighlight">\(U_N - L_N &lt; \epsilon\)</span>,
+where <span class="math notranslate nohighlight">\(\epsilon\)</span> is the desired tolerance.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill &amp; K. Briggs</span>
 
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">maxmin_sinr</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">P_max</span><span class="p">,</span> <span class="n">P_received</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Group_max</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">maxmin_sinr</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">P_max</span><span class="p">,</span> <span class="n">P_received</span><span class="p">,</span> <span class="n">sigma</span><span class="p">,</span> <span class="n">Group</span><span class="p">,</span> <span class="n">Group_max</span><span class="p">,</span> <span class="n">epsilon</span> <span class="o">=</span> <span class="mf">0.001</span><span class="p">):</span>
     <span class="c1"># find n and m from the size of the path gain matrix</span>
     <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">G</span><span class="p">)</span>
 
@@ -131,7 +126,7 @@ where <span class="math">\(\epsilon\)</span> is the desired tolerance.</p>
     <span class="n">best</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
 
     <span class="c1"># set upper and lower bounds for sub-level set</span>
-    <span class="n">u</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e4</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="mf">1e4</span>
     <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="c1"># alpha defines the sub-level sets of the generalised linear fractional problem</span>
@@ -164,7 +159,7 @@ where <span class="math">\(\epsilon\)</span> is the desired tolerance.</p>
         <span class="k">return</span> <span class="s1">&#39;Error: no optimal solution within bounds&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="c1"># Bisection algortithm starts</span>
-    <span class="n">maxLoop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">1</span><span class="n">e7</span><span class="p">)</span>
+    <span class="n">maxLoop</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e7</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">maxLoop</span><span class="p">):</span>
         <span class="c1"># First check that u is in the feasible domain and l is not, loop finishes here if this is not the case</span>
         <span class="c1"># set α as the midpoint of the interval</span>
@@ -195,15 +190,15 @@ where <span class="math">\(\epsilon\)</span> is the desired tolerance.</p>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<p>As a simple example, we will consider a case with <span class="math">\(n=5\)</span>, where
-<span class="math">\(G_{ij} = 0.6\)</span> if <span class="math">\(i=j\)</span> and <span class="math">\(0.1\)</span> otherwise.</p>
-<p><span class="math">\(P_j^{\text{max}} = 1\)</span> for all transmitters and the transmitters
-are split into two groups, each with <span class="math">\(P_l^{\text{gp}} = 1.8\)</span>. The
+<p>As a simple example, we will consider a case with <span class="math notranslate nohighlight">\(n=5\)</span>, where
+<span class="math notranslate nohighlight">\(G_{ij} = 0.6\)</span> if <span class="math notranslate nohighlight">\(i=j\)</span> and <span class="math notranslate nohighlight">\(0.1\)</span> otherwise.</p>
+<p><span class="math notranslate nohighlight">\(P_j^{\text{max}} = 1\)</span> for all transmitters and the transmitters
+are split into two groups, each with <span class="math notranslate nohighlight">\(P_l^{\text{gp}} = 1.8\)</span>. The
 first group contains transmitters 1 &amp; 2, while the second group contains
 3,4 &amp; 5.</p>
-<p>For all receivers <span class="math">\(P_i^{\text{rc}} = 4\)</span> and
-<span class="math">\(\sigma_i = 0.1\)</span>.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<p>For all receivers <span class="math notranslate nohighlight">\(P_i^{\text{rc}} = 4\)</span> and
+<span class="math notranslate nohighlight">\(\sigma_i = 0.1\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 
 <span class="c1"># in this case we will use a gain matrix with a signal weight of 0.6 and interference weight of 0.1</span>
 <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.6</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">,</span><span class="mf">0.1</span><span class="p">],</span>
@@ -237,7 +232,7 @@ first group contains transmitters 1 &amp; 2, while the second group contains
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Power=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">best</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Minimum</span> <span class="n">SINR</span><span class="o">=</span><span class="mf">1.148</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Minimum</span> <span class="n">SINR</span><span class="o">=</span><span class="mf">1.148</span>
 <span class="n">Power</span><span class="o">=</span><span class="p">[</span><span class="mf">0.8</span> <span class="mf">0.8</span> <span class="mf">0.8</span> <span class="mf">0.8</span> <span class="mf">0.8</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -246,6 +241,7 @@ first group contains transmitters 1 &amp; 2, while the second group contains
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -256,10 +252,12 @@ first group contains transmitters 1 &amp; 2, while the second group contains
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -301,15 +299,15 @@ first group contains transmitters 1 &amp; 2, while the second group contains
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -318,11 +316,11 @@ first group contains transmitters 1 &amp; 2, while the second group contains
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/applications/maximise_minimum_SINR_BV4.20.txt"
+      <a href="../../_sources/examples/applications/maximise_minimum_SINR_BV4.20.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

@@ -1,40 +1,35 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>DGP fundamentals &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DGP fundamentals &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="dgp-fundamentals">
@@ -46,7 +41,7 @@ geometric programming</strong> (<strong>DGP</strong>), which lets you formulate 
 functions, and constraint functions are replaced with their logs, an
 operation that we refer to as a log-log transformation. LLCPs generalize
 geometric programming.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 </pre></div>
 </div>
 </div>
@@ -55,21 +50,21 @@ geometric programming.</p>
 <p>Just as every Expression in CVXPY has a curvature (constant, affine,
 convex, concave, or unknown), every Expression also has a log-log
 curvature.</p>
-<p>A function <span class="math">\(f : D \subseteq \mathbf{R}^{n}_{++} \to \mathbf{R}\)</span> is
-said to be <strong>log-log convex</strong> if the function <span class="math">\(F(u)=\log f(e^u)\)</span>,
-with domain <span class="math">\(\{u \in \mathbf{R}^n : e^u \in D\}\)</span>, is convex (where
-<span class="math">\(\mathbf{R}^{n}_{++}\)</span> denotes the set of positive reals and the
-logarithm and exponential are meant elementwise); the function <span class="math">\(F\)</span>
-is called the log-log transformation of <span class="math">\(f\)</span>. The function
-<span class="math">\(f\)</span> is <strong>log-log concave</strong> if <span class="math">\(F\)</span> is concave, and it is
-<strong>log-log affine</strong> if <span class="math">\(F\)</span> is affine.</p>
+<p>A function <span class="math notranslate nohighlight">\(f : D \subseteq \mathbf{R}^{n}_{++} \to \mathbf{R}\)</span> is
+said to be <strong>log-log convex</strong> if the function <span class="math notranslate nohighlight">\(F(u)=\log f(e^u)\)</span>,
+with domain <span class="math notranslate nohighlight">\(\{u \in \mathbf{R}^n : e^u \in D\}\)</span>, is convex (where
+<span class="math notranslate nohighlight">\(\mathbf{R}^{n}_{++}\)</span> denotes the set of positive reals and the
+logarithm and exponential are meant elementwise); the function <span class="math notranslate nohighlight">\(F\)</span>
+is called the log-log transformation of <span class="math notranslate nohighlight">\(f\)</span>. The function
+<span class="math notranslate nohighlight">\(f\)</span> is <strong>log-log concave</strong> if <span class="math notranslate nohighlight">\(F\)</span> is concave, and it is
+<strong>log-log affine</strong> if <span class="math notranslate nohighlight">\(F\)</span> is affine.</p>
 <p>Notice that if a function has log-log curvature, then its domain and
 range can only include positive numbers.</p>
-<p>The log-log curvature of an <code class="docutils literal"><span class="pre">Expression</span></code> can be accessed via its
-<code class="docutils literal"><span class="pre">.log_log_curvature</span></code> attribute. For an <code class="docutils literal"><span class="pre">Expression</span></code> to have known
-log-log curvature, all of the <code class="docutils literal"><span class="pre">Constant</span></code>s, <code class="docutils literal"><span class="pre">Variable</span></code>s, and
-<code class="docutils literal"><span class="pre">Parameter</span></code>s it refers to must be elementwise positive.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Only elementwise positive constants are allowed in DGP.</span>
+<p>The log-log curvature of an <code class="docutils literal notranslate"><span class="pre">Expression</span></code> can be accessed via its
+<code class="docutils literal notranslate"><span class="pre">.log_log_curvature</span></code> attribute. For an <code class="docutils literal notranslate"><span class="pre">Expression</span></code> to have known
+log-log curvature, all of the <code class="docutils literal notranslate"><span class="pre">Constant</span></code>s, <code class="docutils literal notranslate"><span class="pre">Variable</span></code>s, and
+<code class="docutils literal notranslate"><span class="pre">Parameter</span></code>s it refers to must be elementwise positive.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only elementwise positive constants are allowed in DGP.</span>
 <span class="n">c</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="mf">1.0</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
 
@@ -83,13 +78,13 @@ log-log curvature, all of the <code class="docutils literal"><span class="pre">C
 <span class="nb">print</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">1.0</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">1.0</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
 <span class="p">[</span><span class="mf">1.</span> <span class="mf">2.</span><span class="p">]</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
 <span class="p">[</span><span class="mf">1.</span> <span class="mf">0.</span><span class="p">]</span> <span class="n">UNKNOWN</span>
 <span class="o">-</span><span class="mf">2.0</span> <span class="n">UNKNOWN</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Variables and parameters must be positive, ie, they must be constructed with the option `pos=True`</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Variables and parameters must be positive, ie, they must be constructed with the option `pos=True`</span>
 <span class="n">v</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
 
@@ -103,7 +98,7 @@ log-log curvature, all of the <code class="docutils literal"><span class="pre">C
 <span class="nb">print</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">var0</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">AFFINE</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">var0</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">AFFINE</span>
 <span class="n">var1</span> <span class="n">UNKNOWN</span>
 <span class="n">param2</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
 <span class="n">param3</span> <span class="n">UNKNOWN</span>
@@ -111,12 +106,12 @@ log-log curvature, all of the <code class="docutils literal"><span class="pre">C
 </div>
 <div class="section" id="functions-from-geometric-programming">
 <h2>Functions from geometric programming<a class="headerlink" href="#functions-from-geometric-programming" title="Permalink to this headline">¶</a></h2>
-<p>A function <span class="math">\(f(x)\)</span> is log-log affine if and only if it is given by</p>
-<div class="math">
+<p>A function <span class="math notranslate nohighlight">\(f(x)\)</span> is log-log affine if and only if it is given by</p>
+<div class="math notranslate nohighlight">
 \[f(x) = cx_1^{a_1}x_2^{a_2} \ldots x_n^{a_n},\]</div>
-<p>where <span class="math">\(c &gt; 0\)</span> and the <span class="math">\(a_i\)</span> are real numbers. In the context
+<p>where <span class="math notranslate nohighlight">\(c &gt; 0\)</span> and the <span class="math notranslate nohighlight">\(a_i\)</span> are real numbers. In the context
 of geometric programming, such a function is called a monomial.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,),</span> <span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,),</span> <span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
 <span class="n">c</span> <span class="o">=</span> <span class="mf">2.0</span>
 <span class="n">a</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">1.8</span><span class="p">]</span>
 
@@ -129,13 +124,13 @@ of geometric programming, such a function is called a monomial.</p>
 <span class="k">assert</span> <span class="n">monomial</span><span class="o">.</span><span class="n">is_log_log_affine</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">9</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span> <span class="p">:</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">AFFINE</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">9</span><span class="o">/</span><span class="mi">5</span><span class="p">)</span> <span class="p">:</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">AFFINE</span>
 </pre></div>
 </div>
 <p>A sum of monomial functions is log-log convex; in the context of
 geometric programming, such a function is called a posynomial. There are
 functions that are not posynomials that are still log-log convex.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
 <span class="n">constant</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
@@ -151,7 +146,7 @@ functions that are not posynomials that are still log-log convex.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">unknown</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">unknown</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">2.0</span> <span class="p">:</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">2.0</span> <span class="p">:</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
 <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="p">:</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">AFFINE</span>
 <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONVEX</span>
 <span class="n">power</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">power</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="mi">3</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">power</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="p">:</span> <span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONCAVE</span>
@@ -163,31 +158,31 @@ functions that are not posynomials that are still log-log convex.</p>
 <div class="section" id="log-log-curvature-ruleset">
 <h1>2. Log-log curvature ruleset<a class="headerlink" href="#log-log-curvature-ruleset" title="Permalink to this headline">¶</a></h1>
 <p>CVXPY has a library of atomic functions with known log-log curvature and
-monotonicty. It uses this information to tag every <code class="docutils literal"><span class="pre">Expression</span></code>, i.e.,
+monotonicty. It uses this information to tag every <code class="docutils literal notranslate"><span class="pre">Expression</span></code>, i.e.,
 every composition of atomic functions, with a log-log curvature. In
 particular,</p>
-<p>A function <span class="math">\(f(expr_1,expr_2,...,expr_n)\)</span> is log-log convex if
-<span class="math">\(f\)</span> is a log-log convex function and for each expri one of the
+<p>A function <span class="math notranslate nohighlight">\(f(expr_1,expr_2,...,expr_n)\)</span> is log-log convex if
+<span class="math notranslate nohighlight">\(f\)</span> is a log-log convex function and for each expri one of the
 following conditions holds:</p>
-<p><span class="math">\(f\)</span> is increasing in argument i and <span class="math">\(expr_i\)</span> is log-log
-convex. <span class="math">\(f\)</span> is decreasing in argument <span class="math">\(i\)</span> and <span class="math">\(expr_i\)</span>
-is log-log concave. <span class="math">\(expr_i\)</span> is log-log affine. A function
-<span class="math">\(f(expr_1,expr_2,...,expr_n)\)</span> is log-log concave if <span class="math">\(f\)</span> is a
-log-log concave function and for each <span class="math">\(expr_i\)</span> one of the
+<p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument i and <span class="math notranslate nohighlight">\(expr_i\)</span> is log-log
+convex. <span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_i\)</span>
+is log-log concave. <span class="math notranslate nohighlight">\(expr_i\)</span> is log-log affine. A function
+<span class="math notranslate nohighlight">\(f(expr_1,expr_2,...,expr_n)\)</span> is log-log concave if <span class="math notranslate nohighlight">\(f\)</span> is a
+log-log concave function and for each <span class="math notranslate nohighlight">\(expr_i\)</span> one of the
 following conditions holds:</p>
-<p><span class="math">\(f\)</span> is increasing in argument <span class="math">\(i\)</span> and <span class="math">\(expr_i\)</span> is
-log-log concave. <span class="math">\(f\)</span> is decreasing in argument <span class="math">\(i\)</span> and
-<span class="math">\(expr_i\)</span> is log-log convex. <span class="math">\(expr_i\)</span> is log-log affine. A
-function <span class="math">\(f(expr_1,expr_2,...,expr_n)\)</span> is log-log affine if
-<span class="math">\(f\)</span> is an log-log affine function and each <span class="math">\(expr_i\)</span> is
+<p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_i\)</span> is
+log-log concave. <span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and
+<span class="math notranslate nohighlight">\(expr_i\)</span> is log-log convex. <span class="math notranslate nohighlight">\(expr_i\)</span> is log-log affine. A
+function <span class="math notranslate nohighlight">\(f(expr_1,expr_2,...,expr_n)\)</span> is log-log affine if
+<span class="math notranslate nohighlight">\(f\)</span> is an log-log affine function and each <span class="math notranslate nohighlight">\(expr_i\)</span> is
 log-log affine.</p>
 <p>If none of the three rules apply, the expression
-<span class="math">\(f(expr_1,expr_2,...,expr_n)\)</span> is marked as having unknown
+<span class="math notranslate nohighlight">\(f(expr_1,expr_2,...,expr_n)\)</span> is marked as having unknown
 curvature.</p>
 <p>If an Expression satisfies the composition rule, we colloquially say
-that the <code class="docutils literal"><span class="pre">Expression</span></code> “is DGP.” You can check whether an
-<code class="docutils literal"><span class="pre">Expression</span></code> is DGP by calling the method <code class="docutils literal"><span class="pre">is_dgp()</span></code>.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+that the <code class="docutils literal notranslate"><span class="pre">Expression</span></code> “is DGP.” You can check whether an
+<code class="docutils literal notranslate"><span class="pre">Expression</span></code> is DGP by calling the method <code class="docutils literal notranslate"><span class="pre">is_dgp()</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
 
 <span class="n">monomial</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
@@ -197,7 +192,7 @@ that the <code class="docutils literal"><span class="pre">Expression</span></cod
 <span class="nb">print</span><span class="p">(</span><span class="n">posynomial</span><span class="p">,</span> <span class="s2">&quot;is dgp?&quot;</span><span class="p">,</span> <span class="n">posynomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">())</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>2.0 * x * y is dgp? True
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>2.0 * x * y is dgp? True
 2.0 * x * y + power(x, 3/2) * power(y, -1) is dgp? True
 </pre></div>
 </div>
@@ -205,7 +200,7 @@ that the <code class="docutils literal"><span class="pre">Expression</span></cod
 <div class="section" id="dgp-problems">
 <h1>3. DGP problems<a class="headerlink" href="#dgp-problems" title="Permalink to this headline">¶</a></h1>
 <p>An LLCP is an optimization problem of the form</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{equation}
 \begin{array}{ll}
 \mbox{minimize} &amp; f_0(x) \\
@@ -213,15 +208,15 @@ that the <code class="docutils literal"><span class="pre">Expression</span></cod
 &amp; g_i(x) = \tilde{g_i}, \quad i=1, \ldots, p,
 \end{array}
 \end{equation}\end{split}\]</div>
-<p>where the functions <span class="math">\(f_i\)</span> are log-log convex, <span class="math">\(\tilde{f_i}\)</span>
-are log-log concave, and the functions <span class="math">\(g_i\)</span> and
-<span class="math">\(\tilde{g_i}\)</span> are log-log affine. An optimization problem with
+<p>where the functions <span class="math notranslate nohighlight">\(f_i\)</span> are log-log convex, <span class="math notranslate nohighlight">\(\tilde{f_i}\)</span>
+are log-log concave, and the functions <span class="math notranslate nohighlight">\(g_i\)</span> and
+<span class="math notranslate nohighlight">\(\tilde{g_i}\)</span> are log-log affine. An optimization problem with
 constraints of the above form in which the goal is to maximize a log-log
 concave function is also an LLCP.</p>
 <p>A problem is DGP if additionally all the functions are DGP. You can
-check whether a CVXPY <code class="docutils literal"><span class="pre">Problem</span></code> is DGP by calling its <code class="docutils literal"><span class="pre">.is_dgp()</span></code>
+check whether a CVXPY <code class="docutils literal notranslate"><span class="pre">Problem</span></code> is DGP by calling its <code class="docutils literal notranslate"><span class="pre">.is_dgp()</span></code>
 method.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
 <span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">)</span>
 
@@ -236,7 +231,7 @@ method.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Is this problem DGP?&quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">())</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span>maximize x * y * z
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>maximize x * y * z
 subject to 4.0 * x * y * z + 2.0 * x * z &lt;= 10.0
            x &lt;= 2.0 * y
            y &lt;= 2.0 * x
@@ -246,9 +241,9 @@ Is this problem DGP? True
 </div>
 <div class="section" id="solving-dgp-problems">
 <h2>Solving DGP problems<a class="headerlink" href="#solving-dgp-problems" title="Permalink to this headline">¶</a></h2>
-<p>You can solve a DGP <code class="docutils literal"><span class="pre">Problem</span></code> by calling its <code class="docutils literal"><span class="pre">solve</span></code> method with
-<code class="docutils literal"><span class="pre">gp=True</span></code>.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<p>You can solve a DGP <code class="docutils literal notranslate"><span class="pre">Problem</span></code> by calling its <code class="docutils literal notranslate"><span class="pre">solve</span></code> method with
+<code class="docutils literal notranslate"><span class="pre">gp=True</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value:&quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
@@ -256,23 +251,21 @@ Is this problem DGP? True
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Dual values: &quot;</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dual_value</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.9999999926890524</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.9999999926890524</span>
 <span class="n">x</span> <span class="p">:</span> <span class="mf">0.9999999989968756</span>
 <span class="n">y</span> <span class="p">:</span> <span class="mf">1.9999999529045318</span>
 <span class="n">z</span> <span class="p">:</span> <span class="mf">1.000000020895385</span>
 <span class="n">Dual</span> <span class="n">values</span><span class="p">:</span>  <span class="p">[</span><span class="mf">1.1111111199586956</span><span class="p">,</span> <span class="mf">1.94877846244994e-09</span><span class="p">,</span> <span class="mf">0.1111111217156332</span><span class="p">,</span> <span class="mf">0.11111112214962586</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>If you forget to supply <code class="docutils literal"><span class="pre">gp=True</span></code>, an error will be raised.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+<p>If you forget to supply <code class="docutils literal notranslate"><span class="pre">gp=True</span></code>, an error will be raised.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
     <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
 <span class="k">except</span> <span class="n">cp</span><span class="o">.</span><span class="n">DCPError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 </pre></div>
 </div>
-<pre class="literal-block">
-Problem does not follow DCP rules. However, the problem does follow DGP rules. Consider calling this function with <cite>gp=True</cite>.
-</pre>
+<pre class="literal-block">Problem does not follow DCP rules. However, the problem does follow DGP rules. Consider calling this function with <cite>gp=True</cite>.</pre>
 </div>
 </div>
 <div class="section" id="next-steps">
@@ -280,7 +273,7 @@ Problem does not follow DCP rules. However, the problem does follow DGP rules. C
 <div class="section" id="atoms">
 <h2>Atoms<a class="headerlink" href="#atoms" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY has a large library of log-log convex functions, including common
-functions like <span class="math">\(\exp\)</span>, <span class="math">\(\log\)</span>, and the difference between
+functions like <span class="math notranslate nohighlight">\(\exp\)</span>, <span class="math notranslate nohighlight">\(\log\)</span>, and the difference between
 two numbers. Check out the tutorial on our website for the full list of
 atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/index.html">https://www.cvxpy.org/tutorial/dgp/index.html</a></p>
 </div>
@@ -293,6 +286,7 @@ atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/in
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -303,10 +297,12 @@ atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/in
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -348,15 +344,15 @@ atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/in
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -365,11 +361,11 @@ atoms: <a class="reference external" href="https://www.cvxpy.org/tutorial/dgp/in
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/dgp/dgp_fundamentals.txt"
+      <a href="../../_sources/examples/dgp/dgp_fundamentals.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

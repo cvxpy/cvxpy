@@ -1,72 +1,67 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Linear program &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Linear program &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="linear-program">
 <h1>Linear program<a class="headerlink" href="#linear-program" title="Permalink to this headline">¶</a></h1>
 <p>A linear program is an optimization problem with a linear objective and
 affine inequality constraints. A common standard form is the following:</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize}   &amp; c^Tx \\
 \mbox{subject to} &amp; Ax \leq b.
 \end{array}\end{split}\]</div>
-<p>Here <span class="math">\(A \in \mathcal{R}^{m \times n}\)</span>,
-<span class="math">\(b \in \mathcal{R}^m\)</span>, and <span class="math">\(c \in \mathcal{R}^n\)</span> are problem
-data and <span class="math">\(x \in \mathcal{R}^{n}\)</span> is the optimization variable. The
-inequality constraint <span class="math">\(Ax \leq b\)</span> is elementwise.</p>
-<p>For example, we might have <span class="math">\(n\)</span> different products, each
-constructed out of <span class="math">\(m\)</span> components. Each entry <span class="math">\(A_{ij}\)</span> is
-the amount of component <span class="math">\(i\)</span> required to build one unit of product
-<span class="math">\(j\)</span>. Each entry <span class="math">\(b_i\)</span> is the total amount of component
-<span class="math">\(i\)</span> available. We lose <span class="math">\(c_j\)</span> for each unit of product
-<span class="math">\(j\)</span> (<span class="math">\(c_j &lt; 0\)</span> indicates profit). Our goal then is to choose
-how many units of each product <span class="math">\(j\)</span> to make, <span class="math">\(x_j\)</span>, in order
+<p>Here <span class="math notranslate nohighlight">\(A \in \mathcal{R}^{m \times n}\)</span>,
+<span class="math notranslate nohighlight">\(b \in \mathcal{R}^m\)</span>, and <span class="math notranslate nohighlight">\(c \in \mathcal{R}^n\)</span> are problem
+data and <span class="math notranslate nohighlight">\(x \in \mathcal{R}^{n}\)</span> is the optimization variable. The
+inequality constraint <span class="math notranslate nohighlight">\(Ax \leq b\)</span> is elementwise.</p>
+<p>For example, we might have <span class="math notranslate nohighlight">\(n\)</span> different products, each
+constructed out of <span class="math notranslate nohighlight">\(m\)</span> components. Each entry <span class="math notranslate nohighlight">\(A_{ij}\)</span> is
+the amount of component <span class="math notranslate nohighlight">\(i\)</span> required to build one unit of product
+<span class="math notranslate nohighlight">\(j\)</span>. Each entry <span class="math notranslate nohighlight">\(b_i\)</span> is the total amount of component
+<span class="math notranslate nohighlight">\(i\)</span> available. We lose <span class="math notranslate nohighlight">\(c_j\)</span> for each unit of product
+<span class="math notranslate nohighlight">\(j\)</span> (<span class="math notranslate nohighlight">\(c_j &lt; 0\)</span> indicates profit). Our goal then is to choose
+how many units of each product <span class="math notranslate nohighlight">\(j\)</span> to make, <span class="math notranslate nohighlight">\(x_j\)</span>, in order
 to minimize loss without exceeding our budget for any component.</p>
-<p>In addition to a solution <span class="math">\(x^\star\)</span>, we obtain a dual solution
-<span class="math">\(\lambda^\star\)</span>. A positive entry <span class="math">\(\lambda^\star_i\)</span>
-indicates that the constraint <span class="math">\(a_i^Tx \leq b_i\)</span> holds with
-equality for <span class="math">\(x^\star\)</span> and suggests that changing <span class="math">\(b_i\)</span>
+<p>In addition to a solution <span class="math notranslate nohighlight">\(x^\star\)</span>, we obtain a dual solution
+<span class="math notranslate nohighlight">\(\lambda^\star\)</span>. A positive entry <span class="math notranslate nohighlight">\(\lambda^\star_i\)</span>
+indicates that the constraint <span class="math notranslate nohighlight">\(a_i^Tx \leq b_i\)</span> holds with
+equality for <span class="math notranslate nohighlight">\(x^\star\)</span> and suggests that changing <span class="math notranslate nohighlight">\(b_i\)</span>
 would change the optimal value.</p>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>In the following code, we solve a linear program with CVXPY.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -96,7 +91,7 @@ would change the optimal value.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">constraints</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="o">-</span><span class="mf">15.220912604467838</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="o">-</span><span class="mf">15.220912604467838</span>
 <span class="n">A</span> <span class="n">solution</span> <span class="n">x</span> <span class="ow">is</span>
 <span class="p">[</span><span class="o">-</span><span class="mf">1.10131657</span> <span class="o">-</span><span class="mf">0.16370661</span> <span class="o">-</span><span class="mf">0.89711643</span>  <span class="mf">0.03228613</span>  <span class="mf">0.60662428</span> <span class="o">-</span><span class="mf">1.12655967</span>
   <span class="mf">1.12985839</span>  <span class="mf">0.88200333</span>  <span class="mf">0.49089264</span>  <span class="mf">0.89851057</span><span class="p">]</span>
@@ -111,6 +106,7 @@ would change the optimal value.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -121,10 +117,12 @@ would change the optimal value.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -166,15 +164,15 @@ would change the optimal value.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -183,11 +181,11 @@ would change the optimal value.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/basic/linear_program.txt"
+      <a href="../../_sources/examples/basic/linear_program.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

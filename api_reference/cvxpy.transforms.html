@@ -1,43 +1,37 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Transforms &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transforms &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../index.html" />
-    <link rel="up" title="API Documentation" href="cvxpy.html" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="FAQ" href="../faq/index.html" />
     <link rel="prev" title="Back-End Reductions" href="cvxpy.reductions.back_end.html" />
    
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="transforms">
@@ -51,15 +45,162 @@ transforms may also take Problem, Objective, or Constraint objects as input.</p>
 <p>The <em>scalarize</em> transforms convert a list of objectives into a single objective,
 for example a weighted sum. All scalarizations are monotone in each objective, which means that optimizing over the scalarized objective always returns a Pareto-optimal point with respect to the original list of objectives.
 Moreover, all points on the Pareto curve except for boundary points can be attained given some weighting of the objectives.</p>
+<dl class="py method">
+<dt id="cvxpy.transforms.scalarize.weighted_sum">
+<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">weighted_sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><span class="p">, </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize">cvxpy.problems.objective.Maximize</a><span class="p">]</span><a class="headerlink" href="#cvxpy.transforms.scalarize.weighted_sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines objectives as a weighted sum.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objectives</strong> – A list of Minimize/Maximize objectives.</p></li>
+<li><p><strong>weights</strong> – A vector of weights.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Minimize/Maximize objective.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.transforms.scalarize.max">
+<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><a class="headerlink" href="#cvxpy.transforms.scalarize.max" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines objectives as max of weighted terms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objectives</strong> – A list of Minimize/Maximize objectives.</p></li>
+<li><p><strong>weights</strong> – A vector of weights.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Minimize objective.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.transforms.scalarize.log_sum_exp">
+<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">log_sum_exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><a class="headerlink" href="#cvxpy.transforms.scalarize.log_sum_exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines objectives as log_sum_exp of weighted terms.</p>
+<dl class="simple">
+<dt>The objective takes the form</dt><dd><p>log(sum_{i=1}^n exp(gamma*weights[i]*objectives[i]))/gamma</p>
+</dd>
+</dl>
+<p>As gamma goes to 0, log_sum_exp approaches weighted_sum. As gamma goes to infinity,
+log_sum_exp approaches max.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objectives</strong> – A list of Minimize/Maximize objectives.</p></li>
+<li><p><strong>weights</strong> – A vector of weights.</p></li>
+<li><p><strong>gamma</strong> – Parameter interpolating between weighted_sum and max.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Minimize objective.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.transforms.scalarize.targets_and_priorities">
+<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">targets_and_priorities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">priorities</span></em>, <em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">limits</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">off_target</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-05</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><span class="p">, </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize">cvxpy.problems.objective.Maximize</a><span class="p">]</span><a class="headerlink" href="#cvxpy.transforms.scalarize.targets_and_priorities" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combines objectives with penalties within a range between target and limit.</p>
+<p>Each Minimize objective i has value</p>
+<blockquote>
+<div><p>priorities[i]*objectives[i] when objectives[i] &gt;= targets[i]</p>
+<p>+infinity when objectives[i] &gt; limits[i]</p>
+</div></blockquote>
+<p>Each Maximize objective i has value</p>
+<blockquote>
+<div><p>priorities[i]*objectives[i] when objectives[i] &lt;= targets[i]</p>
+<p>+infinity when objectives[i] &lt; limits[i]</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>objectives</strong> – A list of Minimize/Maximize objectives.</p></li>
+<li><p><strong>priorities</strong> – The weight within the trange.</p></li>
+<li><p><strong>targets</strong> – The start (end) of penalty for Minimize (Maximize)</p></li>
+<li><p><strong>limits</strong> – The hard end (start) of penalty for Minimize (Maximize)</p></li>
+<li><p><strong>off_target</strong> – Penalty outside of target.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A Minimize/Maximize objective.</p>
+</dd>
+</dl>
+</dd></dl>
+
 </div>
 <div class="section" id="other">
 <h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
 <p>Here we list other available transforms.</p>
+<dl class="py class">
+<dt id="cvxpy.transforms.indicator">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.transforms.</code><code class="sig-name descname">indicator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">constraints</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint">cvxpy.constraints.constraint.Constraint</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">err_tol</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/transforms/indicator.html#indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.transforms.indicator" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>An expression representing the convex function I(constraints) = 0</dt><dd><p>if constraints hold, +infty otherwise.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>constraints</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>) – A list of constraint objects.</p></li>
+<li><p><strong>err_tol</strong> – A numeric tolerance for determining whether the constraints hold.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.transforms.linearize">
+<code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">linearize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.linearize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an affine approximation to the expression computed at the variable/parameter values.</p>
+<p>Gives an elementwise lower (upper) bound for convex (concave)
+expressions that is tight at the current variable/parameter values.
+No guarantees for non-DCP expressions.</p>
+<p>If f and g are convex, the objective f - g can be (heuristically) minimized using
+the implementation below of the convex-concave method:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">iters</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+    <span class="n">Problem</span><span class="p">(</span><span class="n">Minimize</span><span class="p">(</span><span class="n">f</span> <span class="o">-</span> <span class="n">linearize</span><span class="p">(</span><span class="n">g</span><span class="p">)))</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Returns None if cannot be linearized.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>expr</strong> – An expression.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An affine expression or None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.transforms.partial_optimize">
+<code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">partial_optimize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.partial_optimize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Copyright 2013 Steven Diamond</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+</dd></dl>
+
 </div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -70,10 +211,12 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -127,15 +270,15 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -144,11 +287,11 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../_sources/api_reference/cvxpy.transforms.txt"
+      <a href="../_sources/api_reference/cvxpy.transforms.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
