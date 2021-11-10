@@ -17,6 +17,7 @@ limitations under the License.
 import unittest
 
 import numpy as np
+import pytest
 import scipy
 import scipy.sparse as sp
 import scipy.stats
@@ -293,17 +294,12 @@ class TestAtoms(BaseTest):
     def test_elemwise_arg_count(self) -> None:
         """Test arg count for max and min variants.
         """
-        with self.assertRaises(Exception) as cm:
+        error_message = r"__init__\(\) missing 1 required positional argument: 'arg2'"
+        with pytest.raises(TypeError, match=error_message):
             cp.maximum(1)
-        self.assertTrue(str(cm.exception) in (
-            "__init__() takes at least 3 arguments (2 given)",
-            "__init__() missing 1 required positional argument: 'arg2'"))
 
-        with self.assertRaises(Exception) as cm:
+        with pytest.raises(TypeError, match=error_message):
             cp.minimum(1)
-        self.assertTrue(str(cm.exception) in (
-            "__init__() takes at least 3 arguments (2 given)",
-            "__init__() missing 1 required positional argument: 'arg2'"))
 
     def test_matrix_frac(self) -> None:
         """Test for the matrix_frac atom.
