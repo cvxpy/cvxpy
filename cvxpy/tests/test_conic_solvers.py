@@ -1379,8 +1379,8 @@ class TestAllSolvers(BaseTest):
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
         if INSTALLED_MI_SOLVERS == [cp.ECOS_BB]:
-            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer"
-                                                              "solver for this model.*"):
+            with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
+                                                           "solver for this model"):
                 prob.solve()
         else:
             prob.solve()
@@ -1399,8 +1399,8 @@ class TestECOS_BB(unittest.TestCase):
             prob.solve()
             assert prob.solver_stats.solver_name != cp.ECOS_BB
         else:
-            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer"
-                                                              "solver for this model.*"):
+            with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
+                                                           "solver for this model"):
                 prob.solve()
 
     def test_ecos_bb_lp_0(self) -> None:
