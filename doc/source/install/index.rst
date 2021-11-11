@@ -17,18 +17,13 @@ pip
 
 (macOS only) Install the Xcode command line tools.
 
-(optional) Create and activate a virtual environment
+(optional) Create and activate a virtual environment.
 
-1. Install ``cvxpy``.
+Install CVXPY using `pip`_:
+
   ::
 
       pip install cvxpy
-
-2. Test the installation with ``pytest``.
-  ::
-
-      pip install pytest
-      pytest cvxpy/tests
 
 .. _conda-installation:
 
@@ -54,12 +49,6 @@ conda
 
       conda install -c conda-forge cvxpy
 
-4. Test the installation with ``pytest``.
-  ::
-
-       conda install pytest
-       pytest cvxpy/tests
-
 .. _install_from_source:
 
 Install from source
@@ -76,15 +65,13 @@ CVXPY has the following dependencies:
  * `NumPy`_ >= 1.15
  * `SciPy`_ >= 1.1.0
 
-To test the CVXPY installation, you additionally need `pytest`_.
+All required packages are installed automatically alongside CVXPY.
 
-CVXPY automatically installs `OSQP`_, `ECOS`_, `SCS`_. `NumPy`_ and
-`SciPy`_ will need to be installed manually,
-as will `Swig`_ . Once you’ve installed these dependencies, perform the following steps:
+Perform the following steps to install CVXPY from source:
 
  1. Clone the official `CVXPY git repository`_, or a newly minted fork of the CVXPY repository.
  2. Navigate to the top-level of the cloned directory.
- 3. If you want to use CVXPY with edited source code, run
+ 3. If you want to use CVXPY with editable source code, run
     ::
 
         pip install -e .
@@ -94,12 +81,27 @@ as will `Swig`_ . Once you’ve installed these dependencies, perform the follow
 
         pip install .
 
+Running the test suite
+------------------------------------
+CVXPY comes with an extensive test suite, which can be run after installing `pytest`_.
+If installed from source, navigate to the root of the repository and run
+
+  ::
+
+      pytest
+
+To run the tests when CVXPY was not installed from source, use
+
+  ::
+
+      pytest --pyargs cvxpy/tests/
+
 Install with CVXOPT and GLPK support
 ------------------------------------
 
 CVXPY supports the `CVXOPT`_ solver.
 Additionally, through CVXOPT, CVXPY supports the `GLPK`_ solver. On `most
-platforms <http://cvxopt.org/install/index.html#installing-a-pre-built-package>`_,
+platforms <https://cvxopt.org/install/index.html#installing-a-pre-built-package>`_,
 `CVXOPT`_ comes with GLPK bundled. On such platforms, installing CVXOPT with
 
   ::
@@ -128,7 +130,7 @@ Install with GUROBI support
 
 CVXPY supports the GUROBI solver.
 Install GUROBI version 7.5.2 or greater such that you can ``import gurobipy`` in Python.
-See the `GUROBI <http://www.gurobi.com/>`_ website for installation instructions.
+See the `GUROBI <https://www.gurobi.com/>`_ website for installation instructions.
 
 Install with MOSEK support
 ---------------------------
@@ -146,9 +148,8 @@ See the `Xpress Python documentation <https://www.fico.com/fico-xpress-optimizat
 
 Install with Cbc (Clp, Cgl) support
 -----------------------------------
-CVXPY supports the `Cbc <https://projects.coin-or.org/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
-Simply install cylp (you will need the Cbc sources which includes `Cgl <https://projects.coin-or.org/Cbc>`_) such you can import this library in Python.
-See the `cylp documentation <https://github.com/coin-or/CyLP>`_ for installation instructions.
+CVXPY supports the `Cbc <https://github.com/coin-or/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
+Simply install cylp and the corresponding prerequisites according to the `instructions <https://github.com/coin-or/CyLP#cylp>`_, such you can import this library in Python.
 
 Install with CPLEX support
 --------------------------
@@ -206,19 +207,15 @@ Installing using conda:
       conda install cvxpy-base
 
 
-.. _Anaconda: https://store.continuum.io/cshop/anaconda/
-.. _website: https://store.continuum.io/cshop/anaconda/
 .. _conda: https://docs.conda.io/en/latest/
-.. _setuptools: https://pypi.python.org/pypi/setuptools
-.. _CVXOPT: http://cvxopt.org/
+.. _CVXOPT: https://cvxopt.org/
 .. _OSQP: https://osqp.org/
-.. _ECOS: http://github.com/ifa-ethz/ecos
-.. _SCS: http://github.com/cvxgrp/scs
-.. _NumPy: http://www.numpy.org/
-.. _SciPy: http://www.scipy.org/
+.. _ECOS: https://github.com/ifa-ethz/ecos
+.. _SCS: https://github.com/cvxgrp/scs
+.. _NumPy: https://www.numpy.org/
+.. _SciPy: https://www.scipy.org/
 .. _pytest: https://docs.pytest.org/en/latest/
 .. _CVXPY git repository: https://github.com/cvxpy/cvxpy
-.. _Swig: http://www.swig.org/
 .. _pip: https://pip.pypa.io/
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
