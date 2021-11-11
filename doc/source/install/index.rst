@@ -94,7 +94,7 @@ To run the tests when CVXPY was not installed from source, use
 
   ::
 
-      pytest --pyargs cvxpy/tests/
+      pytest --pyargs cvxpy.tests
 
 Install with CVXOPT and GLPK support
 ------------------------------------
