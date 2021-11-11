@@ -1,67 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Method of multipliers &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Method of multipliers &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="method-of-multipliers">
 <h1>Method of multipliers<a class="headerlink" href="#method-of-multipliers" title="Permalink to this headline">¶</a></h1>
 <p>The method of multipliers is an algorithm for solving convex
 optimization problems. Suppose we have a problem of the form</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize} &amp; f(x)\\
 \mbox{subject to} &amp; Ax = b,
 \end{array}\end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(f\)</span> is convex, <span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span> is the
-optimization variable, and <span class="math notranslate nohighlight">\(A \in \mathbf{R}^{m \times n}\)</span> and
-<span class="math notranslate nohighlight">\(b \in \mathbf{R}^m\)</span> are problem data.</p>
+<p>where <span class="math">\(f\)</span> is convex, <span class="math">\(x \in \mathbf{R}^n\)</span> is the
+optimization variable, and <span class="math">\(A \in \mathbf{R}^{m \times n}\)</span> and
+<span class="math">\(b \in \mathbf{R}^m\)</span> are problem data.</p>
 <p>To apply the method of multipliers, we first form the augmented
 Lagrangian</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[L_{\rho}(x,y) = f(x) + y^T(Ax - b) + (\rho/2)\|Ax-b\|^2_2.\]</div>
 <p>The dual function associated with the augmented Lagrangian is
-<span class="math notranslate nohighlight">\(g_{\rho}(y) = \inf_x L_{\rho}(x,y)\)</span>. The dual function
-<span class="math notranslate nohighlight">\(g_{\rho}(y)\)</span> is concave and its maximal value is the same as the
+<span class="math">\(g_{\rho}(y) = \inf_x L_{\rho}(x,y)\)</span>. The dual function
+<span class="math">\(g_{\rho}(y)\)</span> is concave and its maximal value is the same as the
 optimal value of the original problem.</p>
 <p>We maximize the dual function using gradient ascent. Each step of
-gradient ascent reduces to the <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> updates</p>
-<div class="math notranslate nohighlight">
+gradient ascent reduces to the <span class="math">\(x\)</span> and <span class="math">\(y\)</span> updates</p>
+<div class="math">
 \[\begin{split}\begin{array}{lll}
 x^{k+1} &amp; := &amp; \mathop{\rm argmin}_{x}\left(f(x) + (y^k)^T(Ax - b) + (\rho/2)\left\|Ax-b\right\|^2_2 \right) \\
 y^{k+1} &amp; := &amp; y^{k} + \rho(Ax^{k+1}-b)
 \end{array}\end{split}\]</div>
 <p>The following CVXPY script implements the method of multipliers and uses
 it to solve an optimization problem.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
@@ -92,7 +97,7 @@ it to solve an optimization problem.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value from method of multipliers: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span> <span class="kn">from</span> <span class="nn">CVXPY</span><span class="p">:</span> <span class="mf">5.5905035557463005</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span> <span class="kn">from</span> <span class="nn">CVXPY</span><span class="p">:</span> <span class="mf">5.5905035557463005</span>
 <span class="n">Optimal</span> <span class="n">value</span> <span class="kn">from</span> <span class="nn">method</span> <span class="n">of</span> <span class="n">multipliers</span><span class="p">:</span> <span class="mf">5.572761551213633</span>
 </pre></div>
 </div>
@@ -100,7 +105,6 @@ it to solve an optimization problem.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -111,12 +115,10 @@ it to solve an optimization problem.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -158,15 +160,15 @@ it to solve an optimization problem.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -175,11 +177,11 @@ it to solve an optimization problem.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/MM.rst.txt"
+      <a href="../../_sources/examples/applications/MM.txt"
           rel="nofollow">Page source</a>
     </div>
 

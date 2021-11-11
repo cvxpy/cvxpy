@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aerospace Design via Quasiconvex Optimization &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Aerospace Design via Quasiconvex Optimization &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="aerospace-design-via-quasiconvex-optimization">
@@ -41,74 +46,52 @@ ratio), subject to certain geometric constraints. In this example, the
 wedge is known to have a constant hypotenuse, and our job is to choose
 its width and height.</p>
 <p>The drag-to-lift ratio is given by</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\frac{\mathrm{D}}{\mathrm{L}} = \frac{\mathrm{c_d}}{\mathrm{c_l}},\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathrm{c_d}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{c_l}\)</span> are drag and lift
+<p>where <span class="math">\(\mathrm{c_d}\)</span> and <span class="math">\(\mathrm{c_l}\)</span> are drag and lift
 coefficients, respectively, that are obtained by integrating the
 projection of the pressure coefficient in directions parallel to, and
 perpendicular to, the body.</p>
 <p>It turns out that the the drag-to-lift ratio is a quasilinear function,
-as we’ll now show. We will assume the pressure coefficient is given by
+as we&#8217;ll now show. We will assume the pressure coefficient is given by
 the Newtonian sine-squared law for whetted areas of the body,</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\mathrm{c_p} = 2(\hat{v}\cdot\hat{n})^2\]</div>
-<p>and elsewhere <span class="math notranslate nohighlight">\(\mathrm{c_p} = 0\)</span>. Here, <span class="math notranslate nohighlight">\(\hat{v}\)</span> is the
+<p>and elsewhere <span class="math">\(\mathrm{c_p} = 0\)</span>. Here, <span class="math">\(\hat{v}\)</span> is the
 free stream direction, which for simplicity we will assume is parallel
-to the body so that, <span class="math notranslate nohighlight">\(\hat{v} = \langle 1, 0 \rangle\)</span>, and
-<span class="math notranslate nohighlight">\(\hat{n}\)</span> is the local unit normal. For a wedge defined by width
-<span class="math notranslate nohighlight">\(\Delta x\)</span>, and height <span class="math notranslate nohighlight">\(\Delta y\)</span>,</p>
-<div class="math notranslate nohighlight">
+to the body so that, <span class="math">\(\hat{v} = \langle 1, 0 \rangle\)</span>, and
+<span class="math">\(\hat{n}\)</span> is the local unit normal. For a wedge defined by width
+<span class="math">\(\Delta x\)</span>, and height <span class="math">\(\Delta y\)</span>,</p>
+<div class="math">
 \[\hat{n} = \langle -\Delta y/s,-\Delta x/s \rangle\]</div>
-<p>where <span class="math notranslate nohighlight">\(s\)</span> is the hypotenuse length. Therefore,</p>
-<div class="math notranslate nohighlight">
+<p>where <span class="math">\(s\)</span> is the hypotenuse length. Therefore,</p>
+<div class="math">
 \[\mathrm{c_p} = 2((1)(-\Delta y/s)+(0)(-\Delta x/s))^2 = \frac{2 \Delta y^2}{s^2}\]</div>
 <p>The lift and drag coefficients are given by</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{align*}
 \mathrm{c_d} &amp;= \frac{1}{c}\int_0^s -\mathrm{c_p}\hat{n}_x \mathrm{d}s \\
 \mathrm{c_l} &amp;= \frac{1}{c}\int_0^s -\mathrm{c_p}\hat{n}_y \mathrm{d}s
 \end{align*}\end{split}\]</div>
-<p>Where <span class="math notranslate nohighlight">\(c\)</span> is the reference chord length of the body. Given that
-<span class="math notranslate nohighlight">\(\hat{n}\)</span>, and therefore <span class="math notranslate nohighlight">\(\mathrm{c_p}\)</span> are constant over
+<p>Where <span class="math">\(c\)</span> is the reference chord length of the body. Given that
+<span class="math">\(\hat{n}\)</span>, and therefore <span class="math">\(\mathrm{c_p}\)</span> are constant over
 the whetted surface of the body,</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{align*}
 \mathrm{c_d} &amp;= -\frac{s}{c}\mathrm{c_p}\hat{n}_x = \frac{s}{c}\frac{2 \Delta y^2}{s^2}\frac{\Delta y}{s} \\
 \mathrm{c_l} &amp;= -\frac{s}{c}\mathrm{c_p}\hat{n}_y = \frac{s}{c}\frac{2 \Delta y^2}{s^2}\frac{\Delta x}{s}
 \end{align*}\end{split}\]</div>
-<p>Assuming <span class="math notranslate nohighlight">\(s=1\)</span>, so that <span class="math notranslate nohighlight">\(\Delta y = \sqrt{1-\Delta x^2}\)</span>,
-plugging in the above into the equation for <span class="math notranslate nohighlight">\(D/L\)</span>, we obtain</p>
-<div class="math notranslate nohighlight">
+<p>Assuming <span class="math">\(s=1\)</span>, so that <span class="math">\(\Delta y = \sqrt{1-\Delta x^2}\)</span>,
+plugging in the above into the equation for <span class="math">\(D/L\)</span>, we obtain</p>
+<div class="math">
 \[\frac{\mathrm{D}}{\mathrm{L}} = \frac{\Delta y}{\Delta x} = \frac{\sqrt{1-\Delta x^2}}{\Delta x} = \sqrt{\frac{1}{\Delta x^2}-1}.\]</div>
 <p>This function is representable as a DQCP, quasilinear function. We plot
 it below, and then we write it using DQCP.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-
-<span class="kn">import</span> <span class="nn">matplotlib</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">math</span>
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">.</span><span class="mi">25</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">num</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">obj</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7f571d7bfdd8</span><span class="o">&gt;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7f571d7bfdd8</span><span class="o">&gt;</span><span class="p">]</span>
 </pre></div>
 </div>
 <img alt="../../_images/hypersonic_shape_design_1_1.png" src="../../_images/hypersonic_shape_design_1_1.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">inv_pos</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This objective function is&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">This</span> <span class="n">objective</span> <span class="n">function</span> <span class="ow">is</span> <span class="n">QUASILINEAR</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">This</span> <span class="n">objective</span> <span class="n">function</span> <span class="ow">is</span> <span class="n">QUASILINEAR</span>
 </pre></div>
 </div>
 <p>Minimizing this objective function subject to constraints representing
@@ -116,23 +99,11 @@ payload requirements is a standard aerospace design problem. In this
 case we will consider the constraint that the wedge must be able to
 contain a rectangle of given length and width internally along its
 hypotenuse. This is representable as a convex constraint.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span> <span class="c1"># USER INPUT: height of rectangle, should be at most b</span>
-<span class="n">b</span> <span class="o">=</span> <span class="o">.</span><span class="mi">65</span> <span class="c1"># USER INPUT: width of rectangle</span>
-<span class="n">constraint</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">inv_pos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Inequality</span><span class="p">(</span><span class="n">Expression</span><span class="p">(</span><span class="n">CONVEX</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">,</span> <span class="p">()))]</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Inequality</span><span class="p">(</span><span class="n">Expression</span><span class="p">(</span><span class="n">CONVEX</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">,</span> <span class="p">()))]</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">constraint</span><span class="p">)</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">qcp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final L/D Ratio = &#39;</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final width of wedge = &#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final height of wedge = &#39;</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
-</pre></div>
-</div>
-<pre class="literal-block"><strong>****************************************************************************</strong>
+<pre class="literal-block">
+<strong>****************************************************************************</strong>
 Preparing to bisect problem
 
 minimize 0.0
@@ -171,32 +142,11 @@ Bisection completed, with lower bound 0.145897 and upper bound 0.1458979
 
 Final L/D Ratio =  6.854107648695203
 Final width of wedge =  0.9895238539767502
-Final height of wedge =  0.14436946495363565</pre>
+Final height of wedge =  0.14436946495363565
+</pre>
 <p>Once the solution has been found, we can create a plot to verify that
 the rectangle is inscribed within the wedge.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">lambda1</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">y</span>
-<span class="n">lambda2</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">y</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">y</span>
-<span class="n">lambda3</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">-</span><span class="n">y</span><span class="o">*</span><span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">y</span><span class="o">-</span><span class="n">b</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;b.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="n">y</span><span class="p">],</span><span class="s1">&#39;b.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="n">y</span><span class="p">],</span><span class="s1">&#39;b.-&#39;</span><span class="p">)</span>
-
-<span class="n">pt1</span> <span class="o">=</span> <span class="p">[</span><span class="n">lambda1</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="o">-</span><span class="n">lambda1</span><span class="o">*</span><span class="n">y</span><span class="p">]</span>
-<span class="n">pt2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lambda1</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="o">-</span><span class="p">(</span><span class="n">lambda1</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">y</span><span class="p">]</span>
-<span class="n">pt3</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lambda1</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="o">-</span><span class="p">(</span><span class="n">lambda1</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
-<span class="n">pt4</span> <span class="o">=</span> <span class="p">[</span><span class="n">lambda1</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="o">-</span><span class="n">lambda1</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">pt1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt2</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="n">pt1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pt2</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="s1">&#39;r.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">pt2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt3</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="n">pt2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pt3</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="s1">&#39;r.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">pt3</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt4</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="n">pt3</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pt4</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="s1">&#39;r.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">pt4</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt1</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="n">pt4</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pt1</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="s1">&#39;r.-&#39;</span><span class="p">)</span>
-
-<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">-</span><span class="mf">0.04947620645689951</span><span class="p">,</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">-</span><span class="mf">0.04947620645689951</span><span class="p">,</span>
  <span class="mf">1.0390003355948896</span><span class="p">,</span>
  <span class="o">-</span><span class="mf">0.15158793820131744</span><span class="p">,</span>
  <span class="mf">0.0072184732476817896</span><span class="p">)</span>
@@ -207,7 +157,6 @@ the rectangle is inscribed within the wedge.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -218,12 +167,10 @@ the rectangle is inscribed within the wedge.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -265,15 +212,15 @@ the rectangle is inscribed within the wedge.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -282,11 +229,11 @@ the rectangle is inscribed within the wedge.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/dqcp/hypersonic_shape_design.rst.txt"
+      <a href="../../_sources/examples/dqcp/hypersonic_shape_design.txt"
           rel="nofollow">Page source</a>
     </div>
 

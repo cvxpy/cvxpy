@@ -1,53 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Structured prediction &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Structured prediction &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="structured-prediction">
 <h1>Structured prediction<a class="headerlink" href="#structured-prediction" title="Permalink to this headline">¶</a></h1>
 <p>In this
-example<span class="math notranslate nohighlight">\(\newcommand{\reals}{\mathbf{R}}\)</span><span class="math notranslate nohighlight">\(\newcommand{\ones}{\mathbf{1}}\)</span>,
+example<span class="math">\(\newcommand{\reals}{\mathbf{R}}\)</span><span class="math">\(\newcommand{\ones}{\mathbf{1}}\)</span>,
 we fit a regression model to structured data, using an LLCP. The
-training dataset <span class="math notranslate nohighlight">\(\mathcal D\)</span> contains <span class="math notranslate nohighlight">\(N\)</span> input-output
-pairs <span class="math notranslate nohighlight">\((x, y)\)</span>, where <span class="math notranslate nohighlight">\(x \in \reals^{n}_{++}\)</span> is an input
-and <span class="math notranslate nohighlight">\(y \in \reals^{m}_{++}\)</span> is an outputs. The entries of each
-output <span class="math notranslate nohighlight">\(y\)</span> are sorted in ascending order, meaning
-<span class="math notranslate nohighlight">\(y_1 \leq y_2 \leq \cdots \leq y_m\)</span>.</p>
-<p>Our regression model <span class="math notranslate nohighlight">\(\phi : \reals^{n}_{++} \to \reals^{m}_{++}\)</span>
-takes as input a vector <span class="math notranslate nohighlight">\(x \in \reals^{n}_{++}\)</span>, and solves an
-LLCP to produce a prediction <span class="math notranslate nohighlight">\(\hat y \in \reals^{m}_{++}\)</span>. In
-particular, the solution of the LLCP is model’s prediction. The model is
+training dataset <span class="math">\(\mathcal D\)</span> contains <span class="math">\(N\)</span> input-output
+pairs <span class="math">\((x, y)\)</span>, where <span class="math">\(x \in \reals^{n}_{++}\)</span> is an input
+and <span class="math">\(y \in \reals^{m}_{++}\)</span> is an outputs. The entries of each
+output <span class="math">\(y\)</span> are sorted in ascending order, meaning
+<span class="math">\(y_1 \leq y_2 \leq \cdots \leq y_m\)</span>.</p>
+<p>Our regression model <span class="math">\(\phi : \reals^{n}_{++} \to \reals^{m}_{++}\)</span>
+takes as input a vector <span class="math">\(x \in \reals^{n}_{++}\)</span>, and solves an
+LLCP to produce a prediction <span class="math">\(\hat y \in \reals^{m}_{++}\)</span>. In
+particular, the solution of the LLCP is model&#8217;s prediction. The model is
 of the form</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{equation}
 \begin{array}{lll}
 \phi(x) = &amp;
@@ -56,36 +61,36 @@ of the form</p>
 &amp;&amp; z_i = c_i x_1^{A_{i1}}x_2^{A_{i2}}\cdots x_n^{A_{in}}, \quad i = 1, \ldots, m.
 \end{array}\label{e-model}
 \end{equation}\end{split}\]</div>
-<p>Here, the minimization is over <span class="math notranslate nohighlight">\(y \in \reals^{m}_{++}\)</span> and an
-auxiliary variable <span class="math notranslate nohighlight">\(z \in \reals^{m}_{++}\)</span>, <span class="math notranslate nohighlight">\(\phi(x)\)</span> is the
-optimal value of <span class="math notranslate nohighlight">\(y\)</span>, and the parameters are
-<span class="math notranslate nohighlight">\(c \in \reals^{m}_{++}\)</span> and <span class="math notranslate nohighlight">\(A \in \reals^{m \times n}\)</span>. The
+<p>Here, the minimization is over <span class="math">\(y \in \reals^{m}_{++}\)</span> and an
+auxiliary variable <span class="math">\(z \in \reals^{m}_{++}\)</span>, <span class="math">\(\phi(x)\)</span> is the
+optimal value of <span class="math">\(y\)</span>, and the parameters are
+<span class="math">\(c \in \reals^{m}_{++}\)</span> and <span class="math">\(A \in \reals^{m \times n}\)</span>. The
 ratios in the objective are meant elementwise, as is the inequality
-<span class="math notranslate nohighlight">\(y \leq z\)</span>, and <span class="math notranslate nohighlight">\(\ones\)</span> denotes the vector of all ones.
-Given a vector <span class="math notranslate nohighlight">\(x\)</span>, this model finds a sorted vector
-<span class="math notranslate nohighlight">\(\hat y\)</span> whose entries are close to monomial functions of
-<span class="math notranslate nohighlight">\(x\)</span> (which are the entries of <span class="math notranslate nohighlight">\(z\)</span>), as measured by the
+<span class="math">\(y \leq z\)</span>, and <span class="math">\(\ones\)</span> denotes the vector of all ones.
+Given a vector <span class="math">\(x\)</span>, this model finds a sorted vector
+<span class="math">\(\hat y\)</span> whose entries are close to monomial functions of
+<span class="math">\(x\)</span> (which are the entries of <span class="math">\(z\)</span>), as measured by the
 fractional error.</p>
-<p>The training loss <span class="math notranslate nohighlight">\(\mathcal{L}(\phi)\)</span> of the model on the training
+<p>The training loss <span class="math">\(\mathcal{L}(\phi)\)</span> of the model on the training
 set is the mean squared loss</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\mathcal{L}(\phi) = \frac{1}{N}\sum_{(x, y) \in \mathcal D} \|y - \phi(x)\|_2^2.\]</div>
-<p>We emphasize that <span class="math notranslate nohighlight">\(\mathcal{L}(\phi)\)</span> depends on <span class="math notranslate nohighlight">\(c\)</span> and
-<span class="math notranslate nohighlight">\(A\)</span>. In this example, we fit the parameters <span class="math notranslate nohighlight">\(c\)</span> and
-<span class="math notranslate nohighlight">\(A\)</span> in the LLCP to minimize the training loss
-<span class="math notranslate nohighlight">\(\mathcal{L}(\phi)\)</span>.</p>
+<p>We emphasize that <span class="math">\(\mathcal{L}(\phi)\)</span> depends on <span class="math">\(c\)</span> and
+<span class="math">\(A\)</span>. In this example, we fit the parameters <span class="math">\(c\)</span> and
+<span class="math">\(A\)</span> in the LLCP to minimize the training loss
+<span class="math">\(\mathcal{L}(\phi)\)</span>.</p>
 <p><strong>Fitting.</strong> We fit the parameters by an iterative projected gradient
-descent method on <span class="math notranslate nohighlight">\(\mathcal L(\phi)\)</span>. In each iteration, we first
-compute predictions <span class="math notranslate nohighlight">\(\phi(x)\)</span> for each input in the training set;
-this requires solving <span class="math notranslate nohighlight">\(N\)</span> LLCPs. Next, we evaluate the training
-loss <span class="math notranslate nohighlight">\(\mathcal L(\phi)\)</span>. To update the parameters, we compute the
-gradient <span class="math notranslate nohighlight">\(\nabla \mathcal L(\phi)\)</span> of the training loss with
-respect to the parameters <span class="math notranslate nohighlight">\(c\)</span> and <span class="math notranslate nohighlight">\(A\)</span>. This requires
+descent method on <span class="math">\(\mathcal L(\phi)\)</span>. In each iteration, we first
+compute predictions <span class="math">\(\phi(x)\)</span> for each input in the training set;
+this requires solving <span class="math">\(N\)</span> LLCPs. Next, we evaluate the training
+loss <span class="math">\(\mathcal L(\phi)\)</span>. To update the parameters, we compute the
+gradient <span class="math">\(\nabla \mathcal L(\phi)\)</span> of the training loss with
+respect to the parameters <span class="math">\(c\)</span> and <span class="math">\(A\)</span>. This requires
 differentiating through the solution map of the LLCP. We can compute
-this gradient efficiently, using the <code class="docutils literal notranslate"><span class="pre">backward</span></code> method in CVXPY (or
+this gradient efficiently, using the <code class="docutils literal"><span class="pre">backward</span></code> method in CVXPY (or
 CVXPY Layers). Finally, we subtract a small multiple of the gradient
-from the parameters. Care must be taken to ensure that <span class="math notranslate nohighlight">\(c\)</span> is
-strictly positive; this can be done by clamping the entries of <span class="math notranslate nohighlight">\(c\)</span>
+from the parameters. Care must be taken to ensure that <span class="math">\(c\)</span> is
+strictly positive; this can be done by clamping the entries of <span class="math">\(c\)</span>
 at some small threshold slightly above zero. We run this method for a
 fixed number of iterations.</p>
 <p>This example is described in the paper <a class="reference external" href="http://web.stanford.edu/~boyd/papers/pdf/diff_llcvx.pdf">Differentiating through Log-Log
@@ -95,78 +100,13 @@ Programs</a>.</p>
 regress on sorted vectors.</p>
 <p><strong>Requirements.</strong> This example requires PyTorch and CvxpyLayers &gt;=
 v0.1.3.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">cvxpylayers.torch</span> <span class="kn">import</span> <span class="n">CvxpyLayer</span>
-
-
-<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">torch</span>
-
-<span class="n">torch</span><span class="o">.</span><span class="n">set_default_tensor_type</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">DoubleTensor</span><span class="p">)</span>
-<span class="o">%</span><span class="k">matplotlib</span> inline
-</pre></div>
-</div>
 <div class="section" id="data-generation">
 <h2>Data generation<a class="headerlink" href="#data-generation" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">n</span> <span class="o">=</span> <span class="mi">20</span>
-<span class="n">m</span> <span class="o">=</span> <span class="mi">10</span>
-
-<span class="c1"># Number of training input-output pairs</span>
-<span class="n">N</span> <span class="o">=</span> <span class="mi">100</span>
-
-<span class="c1"># Number of validation pairs</span>
-<span class="n">N_val</span> <span class="o">=</span> <span class="mi">50</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">torch</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">243</span><span class="p">)</span>
-<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">243</span><span class="p">)</span>
-
-<span class="n">normal</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">distributions</span><span class="o">.</span><span class="n">multivariate_normal</span><span class="o">.</span><span class="n">MultivariateNormal</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">torch</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
-<span class="n">lognormal</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">batch</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">normal</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">([</span><span class="n">batch</span><span class="p">])))</span>
-
-<span class="n">A_true</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">((</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span> <span class="o">/</span> <span class="mi">10</span>
-<span class="n">c_true</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">generate_data</span><span class="p">(</span><span class="n">num_points</span><span class="p">,</span> <span class="n">seed</span><span class="p">):</span>
-    <span class="n">torch</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-    <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
-
-    <span class="n">latent</span> <span class="o">=</span> <span class="n">lognormal</span><span class="p">(</span><span class="n">num_points</span><span class="p">)</span>
-    <span class="n">noise</span> <span class="o">=</span> <span class="n">lognormal</span><span class="p">(</span><span class="n">num_points</span><span class="p">)</span>
-    <span class="n">inputs</span> <span class="o">=</span> <span class="n">noise</span> <span class="o">+</span> <span class="n">latent</span>
-
-    <span class="n">input_cp</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,))</span>
-    <span class="n">prediction</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">c_true</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">cp</span><span class="o">.</span><span class="n">gmatmul</span><span class="p">(</span><span class="n">A_true</span><span class="o">.</span><span class="n">numpy</span><span class="p">(),</span> <span class="n">input_cp</span><span class="p">))</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,))</span>
-    <span class="n">objective_fn</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">prediction</span> <span class="o">/</span> <span class="n">y</span> <span class="o">+</span> <span class="n">y</span><span class="o">/</span><span class="n">prediction</span><span class="p">)</span>
-    <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-        <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
-    <span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
-
-    <span class="n">outputs</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_points</span><span class="p">):</span>
-        <span class="n">input_cp</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-        <span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">outputs</span><span class="p">])</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">train_inputs</span><span class="p">,</span> <span class="n">train_outputs</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="mi">243</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">train_outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x12b367cd0</span><span class="o">&gt;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x12b367cd0</span><span class="o">&gt;</span><span class="p">]</span>
 </pre></div>
 </div>
 <img alt="../../_images/structured_prediction_6_1.png" src="../../_images/structured_prediction_6_1.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">val_inputs</span><span class="p">,</span> <span class="n">val_outputs</span> <span class="o">=</span> <span class="n">generate_data</span><span class="p">(</span><span class="n">N_val</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">val_outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x12da7e410</span><span class="o">&gt;</span><span class="p">]</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x12da7e410</span><span class="o">&gt;</span><span class="p">]</span>
 </pre></div>
 </div>
 <img alt="../../_images/structured_prediction_7_1.png" src="../../_images/structured_prediction_7_1.png" />
@@ -174,29 +114,10 @@ v0.1.3.</p>
 <h3>Monomial fit to each component<a class="headerlink" href="#monomial-fit-to-each-component" title="Permalink to this headline">¶</a></h3>
 <p>We will initialize the parameters in our LLCP model by fitting monomials
 to the training data, without enforcing the monotonicity constraint.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">log_c</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">theta</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">))</span>
-<span class="n">inputs_np</span> <span class="o">=</span> <span class="n">train_inputs</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-<span class="n">log_outputs_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">train_outputs</span><span class="o">.</span><span class="n">numpy</span><span class="p">())</span><span class="o">.</span><span class="n">T</span>
-<span class="n">log_inputs_np</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">inputs_np</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-<span class="n">offsets</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">log_c</span><span class="p">]</span><span class="o">*</span><span class="n">N</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kc">True</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cp_preds</span> <span class="o">=</span> <span class="n">theta</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">log_inputs_np</span> <span class="o">+</span> <span class="n">offsets</span>
-<span class="n">objective_fn</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">N</span><span class="p">)</span> <span class="o">*</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum_squares</span><span class="p">(</span><span class="n">cp_preds</span> <span class="o">-</span> <span class="n">log_outputs_np</span><span class="p">)</span>
-<span class="n">lstq_problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">))</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lstq_problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kc">True</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">lstq_problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
            <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">6.0</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2019</span>
@@ -225,77 +146,16 @@ to the training data, without enforcing the monotonicity constraint.</p>
 <span class="n">optimal</span> <span class="n">rho</span> <span class="n">estimate</span><span class="p">:</span> <span class="mf">8.77e-05</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.010014212812318733</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">log_c</span><span class="o">.</span><span class="n">value</span><span class="p">))</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
-<span class="n">lstsq_val_preds</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_val</span><span class="p">):</span>
-    <span class="n">inp</span> <span class="o">=</span> <span class="n">val_inputs</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">c</span><span class="p">,</span><span class="n">cp</span><span class="o">.</span><span class="n">gmatmul</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">inp</span><span class="p">))</span>
-    <span class="n">lstsq_val_preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pred</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">0.010014212812318733</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="fitting">
 <h3>Fitting<a class="headerlink" href="#fitting" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">A_param</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
-<span class="n">c_param</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,))</span>
-<span class="n">x_slack</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,))</span>
-<span class="n">x_param</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,))</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="p">,))</span>
-
-<span class="n">prediction</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">c_param</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">gmatmul</span><span class="p">(</span><span class="n">A_param</span><span class="p">,</span> <span class="n">x_slack</span><span class="p">))</span>
-<span class="n">objective_fn</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">prediction</span> <span class="o">/</span> <span class="n">y</span> <span class="o">+</span> <span class="n">y</span> <span class="o">/</span> <span class="n">prediction</span><span class="p">)</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_slack</span> <span class="o">==</span> <span class="n">x_param</span><span class="p">]</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span>
-    <span class="n">constraints</span> <span class="o">+=</span> <span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]]</span>
-<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kc">True</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kc">True</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">A_param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
-<span class="n">x_param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
-<span class="n">c_param</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">m</span><span class="p">))</span>
-
-<span class="n">layer</span> <span class="o">=</span> <span class="n">CvxpyLayer</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="p">[</span><span class="n">A_param</span><span class="p">,</span> <span class="n">c_param</span><span class="p">,</span> <span class="n">x_param</span><span class="p">],</span> <span class="n">variables</span><span class="o">=</span><span class="p">[</span><span class="n">y</span><span class="p">],</span> <span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">torch</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">manual_seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">A_tch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="n">A_tch</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">c_tch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_c</span><span class="o">.</span><span class="n">value</span><span class="p">)))</span>
-<span class="n">c_tch</span><span class="o">.</span><span class="n">requires_grad_</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">train_losses</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">val_losses</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="n">lam1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1e-1</span><span class="p">)</span>
-<span class="n">lam2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1e-1</span><span class="p">)</span>
-
-<span class="n">opt</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">optim</span><span class="o">.</span><span class="n">SGD</span><span class="p">([</span><span class="n">A_tch</span><span class="p">,</span> <span class="n">c_tch</span><span class="p">],</span> <span class="n">lr</span><span class="o">=</span><span class="mf">5e-2</span><span class="p">)</span>
-<span class="k">for</span> <span class="n">epoch</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">):</span>
-    <span class="n">preds</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">A_tch</span><span class="p">,</span> <span class="n">c_tch</span><span class="p">,</span> <span class="n">train_inputs</span><span class="p">,</span> <span class="n">solver_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;acceleration_lookback&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">preds</span> <span class="o">-</span> <span class="n">train_outputs</span><span class="p">)</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="n">val_preds</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">A_tch</span><span class="p">,</span> <span class="n">c_tch</span><span class="p">,</span> <span class="n">val_inputs</span><span class="p">,</span> <span class="n">solver_args</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;acceleration_lookback&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">})[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">val_loss</span> <span class="o">=</span> <span class="p">(</span><span class="n">val_preds</span> <span class="o">-</span> <span class="n">val_outputs</span><span class="p">)</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;(epoch </span><span class="si">{0}</span><span class="s1">) train / val (</span><span class="si">{1:.4f}</span><span class="s1"> / </span><span class="si">{2:.4f}</span><span class="s1">) &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">epoch</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">val_loss</span><span class="p">))</span>
-    <span class="n">train_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
-    <span class="n">val_losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">val_loss</span><span class="o">.</span><span class="n">item</span><span class="p">())</span>
-
-    <span class="n">opt</span><span class="o">.</span><span class="n">zero_grad</span><span class="p">()</span>
-    <span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-    <span class="n">opt</span><span class="o">.</span><span class="n">step</span><span class="p">()</span>
-    <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-        <span class="n">c_tch</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">c_tch</span><span class="p">,</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="mf">1e-8</span><span class="p">))</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">epoch</span> <span class="mi">0</span><span class="p">)</span> <span class="n">train</span> <span class="o">/</span> <span class="n">val</span> <span class="p">(</span><span class="mf">0.0018</span> <span class="o">/</span> <span class="mf">0.0014</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">epoch</span> <span class="mi">0</span><span class="p">)</span> <span class="n">train</span> <span class="o">/</span> <span class="n">val</span> <span class="p">(</span><span class="mf">0.0018</span> <span class="o">/</span> <span class="mf">0.0014</span><span class="p">)</span>
 <span class="p">(</span><span class="n">epoch</span> <span class="mi">1</span><span class="p">)</span> <span class="n">train</span> <span class="o">/</span> <span class="n">val</span> <span class="p">(</span><span class="mf">0.0017</span> <span class="o">/</span> <span class="mf">0.0014</span><span class="p">)</span>
 <span class="p">(</span><span class="n">epoch</span> <span class="mi">2</span><span class="p">)</span> <span class="n">train</span> <span class="o">/</span> <span class="n">val</span> <span class="p">(</span><span class="mf">0.0017</span> <span class="o">/</span> <span class="mf">0.0014</span><span class="p">)</span>
 <span class="p">(</span><span class="n">epoch</span> <span class="mi">3</span><span class="p">)</span> <span class="n">train</span> <span class="o">/</span> <span class="n">val</span> <span class="p">(</span><span class="mf">0.0017</span> <span class="o">/</span> <span class="mf">0.0014</span><span class="p">)</span>
@@ -307,30 +167,6 @@ to the training data, without enforcing the monotonicity constraint.</p>
 <span class="p">(</span><span class="n">epoch</span> <span class="mi">9</span><span class="p">)</span> <span class="n">train</span> <span class="o">/</span> <span class="n">val</span> <span class="p">(</span><span class="mf">0.0016</span> <span class="o">/</span> <span class="mf">0.0014</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-    <span class="n">train_preds_tch</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">A_tch</span><span class="p">,</span> <span class="n">c_tch</span><span class="p">,</span> <span class="n">train_inputs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">train_preds</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">train_preds_tch</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
-    <span class="n">val_preds_tch</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">A_tch</span><span class="p">,</span> <span class="n">c_tch</span><span class="p">,</span> <span class="n">val_inputs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">val_preds</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">detach</span><span class="p">()</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">val_preds_tch</span><span class="p">]</span>
-</pre></div>
-</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-
-
-<span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">val_preds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;LLCP&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;teal&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lstsq_val_preds</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;least squares&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">val_outputs</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;true&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;-.&#39;</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;orange&#39;</span><span class="p">)</span>
-<span class="n">w</span><span class="p">,</span> <span class="n">h</span> <span class="o">=</span> <span class="mi">8</span><span class="p">,</span> <span class="mf">3.5</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$i$&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$y_i$&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-</pre></div>
-</div>
 <img alt="../../_images/structured_prediction_20_0.png" src="../../_images/structured_prediction_20_0.png" />
 </div>
 </div>
@@ -338,7 +174,6 @@ to the training data, without enforcing the monotonicity constraint.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -349,12 +184,10 @@ to the training data, without enforcing the monotonicity constraint.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -396,15 +229,15 @@ to the training data, without enforcing the monotonicity constraint.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -413,11 +246,11 @@ to the training data, without enforcing the monotonicity constraint.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/derivatives/structured_prediction.rst.txt"
+      <a href="../../_sources/examples/derivatives/structured_prediction.txt"
           rel="nofollow">Page source</a>
     </div>
 

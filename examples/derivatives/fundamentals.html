@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Derivatives fundamentals &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Derivatives fundamentals &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="derivatives-fundamentals">
@@ -41,7 +46,7 @@ change given small changes to the parameters, and to compute
 <strong>gradients</strong> of scalar-valued functions of the solution.</p>
 <p>In this notebook, we will consider a simple disciplined geometric
 program. The geometric program under consideration is</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{equation}
 \begin{array}{ll}
 \mbox{minimize} &amp; 1/(xyz) \\
@@ -49,123 +54,68 @@ program. The geometric program under consideration is</p>
 &amp; x \geq y^c,
 \end{array}
 \end{equation}\end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(x \in \mathbf{R}_{++}\)</span>, <span class="math notranslate nohighlight">\(y \in \mathbf{R}_{++}\)</span>, and
-<span class="math notranslate nohighlight">\(z \in \mathbf{R}_{++}\)</span> are the variables, and
-<span class="math notranslate nohighlight">\(a \in \mathbf{R}_{++}\)</span>, <span class="math notranslate nohighlight">\(b \in \mathbf{R}_{++}\)</span> and
-<span class="math notranslate nohighlight">\(c \in \mathbf{R}\)</span> are the parameters. The vector</p>
-<div class="math notranslate nohighlight">
+<p>where <span class="math">\(x \in \mathbf{R}_{++}\)</span>, <span class="math">\(y \in \mathbf{R}_{++}\)</span>, and
+<span class="math">\(z \in \mathbf{R}_{++}\)</span> are the variables, and
+<span class="math">\(a \in \mathbf{R}_{++}\)</span>, <span class="math">\(b \in \mathbf{R}_{++}\)</span> and
+<span class="math">\(c \in \mathbf{R}\)</span> are the parameters. The vector</p>
+<div class="math">
 \[\begin{split}\alpha = \begin{bmatrix} a \\ b \\ c \end{bmatrix}\end{split}\]</div>
 <p>is the vector of parameters.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-
-
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="n">a</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">b</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">()</span>
-
-<span class="n">objective_fn</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="o">*</span><span class="n">z</span><span class="p">)</span>
-<span class="n">objective</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">)</span>
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">*</span><span class="n">y</span> <span class="o">+</span> <span class="n">x</span><span class="o">*</span><span class="n">z</span> <span class="o">+</span> <span class="n">y</span><span class="o">*</span><span class="n">z</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">b</span><span class="p">,</span> <span class="n">x</span> <span class="o">&gt;=</span> <span class="n">y</span><span class="o">**</span><span class="n">c</span><span class="p">]</span>
-<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
-
-<span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="kc">True</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kc">True</span>
-</pre></div>
-</div>
-<p>Notice the keyword argument <code class="docutils literal notranslate"><span class="pre">dpp=True</span></code>. The parameters must enter in
-the DGP problem acording to special rules, which we refer to as <code class="docutils literal notranslate"><span class="pre">dpp</span></code>.
+<p>Notice the keyword argument <code class="docutils literal"><span class="pre">dpp=True</span></code>. The parameters must enter in
+the DGP problem acording to special rules, which we refer to as <code class="docutils literal"><span class="pre">dpp</span></code>.
 The DPP rules are described in an <a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html#disciplined-parametrized-programming">online
 tutorial</a>.</p>
-<p>Next, we solve the problem, setting the parameters <span class="math notranslate nohighlight">\(a\)</span>, <span class="math notranslate nohighlight">\(b\)</span>
-and <span class="math notranslate nohighlight">\(c\)</span> to <span class="math notranslate nohighlight">\(2\)</span>, <span class="math notranslate nohighlight">\(1\)</span>, and <span class="math notranslate nohighlight">\(0.5\)</span>.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">2.0</span>
-<span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">1.0</span>
-<span class="n">c</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">0.5</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.5612147353889386</span>
+<p>Next, we solve the problem, setting the parameters <span class="math">\(a\)</span>, <span class="math">\(b\)</span>
+and <span class="math">\(c\)</span> to <span class="math">\(2\)</span>, <span class="math">\(1\)</span>, and <span class="math">\(0.5\)</span>.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="mf">0.5612147353889386</span>
 <span class="mf">0.31496200373359456</span>
 <span class="mf">0.36892055859991446</span>
 </pre></div>
 </div>
-<p>Notice the keyword argument <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code>; this is necessary to
+<p>Notice the keyword argument <code class="docutils literal"><span class="pre">requires_grad=True</span></code>; this is necessary to
 subsequently compute derivatives.</p>
 <div class="section" id="solution-map">
 <h2>Solution map<a class="headerlink" href="#solution-map" title="Permalink to this headline">¶</a></h2>
 <p>The <strong>solution map</strong> of the above problem is a function</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\mathcal{S} : \mathbf{R}^2_{++} \times \mathbf{R} \to \mathbf{R}^3_{++}\]</div>
 <p>which maps the parameter vector to the vector of optimal solutions</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\mathcal S(\alpha) = \begin{bmatrix} x(\alpha) \\ y(\alpha) \\ z(\alpha)\end{bmatrix}.\end{split}\]</div>
-<p>Here, <span class="math notranslate nohighlight">\(x(\alpha)\)</span>, <span class="math notranslate nohighlight">\(y(\alpha)\)</span>, and <span class="math notranslate nohighlight">\(z(\alpha)\)</span> are
+<p>Here, <span class="math">\(x(\alpha)\)</span>, <span class="math">\(y(\alpha)\)</span>, and <span class="math">\(z(\alpha)\)</span> are
 the optimal values of the variables corresponding to the parameter
 vector.</p>
 <p>As an example, we just saw that</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\mathcal S((2.0, 1.0, 0.5)) = \begin{bmatrix} 0.5612 \\ 0.3150 \\ 0.3690 \end{bmatrix}.\end{split}\]</div>
 </div>
 <div class="section" id="sensitivity-analysis">
 <h2>Sensitivity analysis<a class="headerlink" href="#sensitivity-analysis" title="Permalink to this headline">¶</a></h2>
 <p>When the solution map is differentiable, we can use its derivative</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\mathsf{D}\mathcal{S}(\alpha) \in \mathbf{R}^{3 \times 3}\]</div>
 <p>to perform a <strong>sensitivity analysis</strong>, which studies how the solution
 would change given small changes to the parameters.</p>
 <p>Suppose we perturb the parameters by a vector of small magnitude
-<span class="math notranslate nohighlight">\(\mathsf{d}\alpha \in \mathbf{R}^3\)</span>. We can approximate the change
-<span class="math notranslate nohighlight">\(\Delta\)</span> in the solution due to the perturbation using the
+<span class="math">\(\mathsf{d}\alpha \in \mathbf{R}^3\)</span>. We can approximate the change
+<span class="math">\(\Delta\)</span> in the solution due to the perturbation using the
 derivative, as</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\Delta = \mathcal{S}(\alpha + \mathsf{d}\alpha) - \mathcal{S}(\alpha) \approx \mathsf{D}\mathcal{S}(\alpha) \mathsf{d}\alpha.\]</div>
 <p>We can compute this in CVXPY, as follows.</p>
 <p>Partition the perturbation as</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\mathsf{d}\alpha = \begin{bmatrix} \mathsf{d}a \\ \mathsf{d}b \\ \mathsf{d}c\end{bmatrix}.\end{split}\]</div>
-<p>We set the <code class="docutils literal notranslate"><span class="pre">delta</span></code> attributes of the parameters to their
-perturbations, and then call the <code class="docutils literal notranslate"><span class="pre">derivative</span></code> method.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">da</span><span class="p">,</span> <span class="n">db</span><span class="p">,</span> <span class="n">dc</span> <span class="o">=</span> <span class="mf">1e-2</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">,</span> <span class="mf">1e-2</span>
-
-<span class="n">a</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">da</span>
-<span class="n">b</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">db</span>
-<span class="n">c</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">dc</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">derivative</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">derivative</span></code> method populates the <code class="docutils literal notranslate"><span class="pre">delta</span></code> attributes of the
+<p>We set the <code class="docutils literal"><span class="pre">delta</span></code> attributes of the parameters to their
+perturbations, and then call the <code class="docutils literal"><span class="pre">derivative</span></code> method.</p>
+<p>The <code class="docutils literal"><span class="pre">derivative</span></code> method populates the <code class="docutils literal"><span class="pre">delta</span></code> attributes of the
 variables as a side-effect, with the predicted change in the variable.
 We can compare the predictions to the actual solution of the perturbed
 problem.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">x_hat</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">x</span><span class="o">.</span><span class="n">delta</span>
-<span class="n">y_hat</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">y</span><span class="o">.</span><span class="n">delta</span>
-<span class="n">z_hat</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span> <span class="o">+</span> <span class="n">z</span><span class="o">.</span><span class="n">delta</span>
-
-<span class="n">a</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">da</span>
-<span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">db</span>
-<span class="n">c</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">dc</span>
-
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;x: predicted </span><span class="si">{0:.5f}</span><span class="s1"> actual </span><span class="si">{1:.5f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">x_hat</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;y: predicted </span><span class="si">{0:.5f}</span><span class="s1"> actual </span><span class="si">{1:.5f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">y_hat</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;z: predicted </span><span class="si">{0:.5f}</span><span class="s1"> actual </span><span class="si">{1:.5f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">z_hat</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
-
-<span class="n">a</span><span class="o">.</span><span class="n">value</span> <span class="o">-=</span> <span class="n">da</span>
-<span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">-=</span> <span class="n">db</span>
-<span class="n">c</span><span class="o">.</span><span class="n">value</span> <span class="o">-=</span> <span class="n">dc</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">:</span> <span class="n">predicted</span> <span class="mf">0.55729</span> <span class="n">actual</span> <span class="mf">0.55734</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">:</span> <span class="n">predicted</span> <span class="mf">0.55729</span> <span class="n">actual</span> <span class="mf">0.55734</span>
 <span class="n">y</span><span class="p">:</span> <span class="n">predicted</span> <span class="mf">0.31783</span> <span class="n">actual</span> <span class="mf">0.31783</span>
 <span class="n">z</span><span class="p">:</span> <span class="n">predicted</span> <span class="mf">0.37179</span> <span class="n">actual</span> <span class="mf">0.37175</span>
 </pre></div>
@@ -176,55 +126,29 @@ problem.</p>
 <h2>Gradient<a class="headerlink" href="#gradient" title="Permalink to this headline">¶</a></h2>
 <p>We can compute gradient of a scalar-valued function of the solution with
 respect to the parameters. Let
-<span class="math notranslate nohighlight">\(f : \mathbf{R}^{3} \to \mathbf{R}\)</span>, and suppose we want to
-compute the gradient of the composition <span class="math notranslate nohighlight">\(f \circ \mathcal S\)</span>. By
+<span class="math">\(f : \mathbf{R}^{3} \to \mathbf{R}\)</span>, and suppose we want to
+compute the gradient of the composition <span class="math">\(f \circ \mathcal S\)</span>. By
 the chain rule,</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\nabla f(S(\alpha)) = \mathsf{D}^T\mathcal{S}(\alpha) \begin{bmatrix}\mathsf{d}x \\ \mathsf{d}y \\ \mathsf{d}z\end{bmatrix},\end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(\mathsf{D}^T\mathcal{S}\)</span> is the adjoint (or transpose) of
-the derivative operator, and <span class="math notranslate nohighlight">\(\mathsf{d}x\)</span>, <span class="math notranslate nohighlight">\(\mathsf{d}y\)</span>,
-and <span class="math notranslate nohighlight">\(\mathsf{d}z\)</span> are the partial derivatives of <span class="math notranslate nohighlight">\(f\)</span> with
+<p>where <span class="math">\(\mathsf{D}^T\mathcal{S}\)</span> is the adjoint (or transpose) of
+the derivative operator, and <span class="math">\(\mathsf{d}x\)</span>, <span class="math">\(\mathsf{d}y\)</span>,
+and <span class="math">\(\mathsf{d}z\)</span> are the partial derivatives of <span class="math">\(f\)</span> with
 respect to its arguments.</p>
-<p>We can compute the gradient in CVXPY, using the <code class="docutils literal notranslate"><span class="pre">backward</span></code> method. As
+<p>We can compute the gradient in CVXPY, using the <code class="docutils literal"><span class="pre">backward</span></code> method. As
 an example, suppose</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[f(x, y, z) = \frac{1}{2}(x^2 + y^2 + z^2),\]</div>
-<p>so that <span class="math notranslate nohighlight">\(\mathsf{d}x = x\)</span>, <span class="math notranslate nohighlight">\(\mathsf{d}y = y\)</span>, and
-<span class="math notranslate nohighlight">\(\mathsf{d}z = z\)</span>. Let
-<span class="math notranslate nohighlight">\(\mathsf{d}\alpha = \nabla f(S(\alpha))\)</span>, and suppose we subtract
-<span class="math notranslate nohighlight">\(\eta \mathsf{d}\alpha\)</span> from the parameter, where <span class="math notranslate nohighlight">\(\eta\)</span> is
+<p>so that <span class="math">\(\mathsf{d}x = x\)</span>, <span class="math">\(\mathsf{d}y = y\)</span>, and
+<span class="math">\(\mathsf{d}z = z\)</span>. Let
+<span class="math">\(\mathsf{d}\alpha = \nabla f(S(\alpha))\)</span>, and suppose we subtract
+<span class="math">\(\eta \mathsf{d}\alpha\)</span> from the parameter, where <span class="math">\(\eta\)</span> is
 a positive constant. Using the following code, we can compare
-<span class="math notranslate nohighlight">\(f(\mathcal S(\alpha - \eta \mathsf{d}\alpha))\)</span> with the value
+<span class="math">\(f(\mathcal S(\alpha - \eta \mathsf{d}\alpha))\)</span> with the value
 predicted by the gradient,</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[f(\mathcal S(\alpha - \eta \mathsf{d}\alpha)) \approx f(\mathcal S(\alpha)) - \eta \mathsf{d}\alpha^T\mathsf{d}\alpha.\]</div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
-    <span class="k">return</span> <span class="mi">1</span><span class="o">/</span><span class="mi">2</span><span class="o">*</span><span class="p">(</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">y</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="n">z</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-
-<span class="n">original</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
-
-<span class="n">x</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span>
-<span class="n">y</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span>
-<span class="n">z</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-
-<span class="n">eta</span> <span class="o">=</span> <span class="mf">0.5</span>
-<span class="n">dalpha</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">a</span><span class="o">.</span><span class="n">gradient</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">gradient</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">gradient</span><span class="p">])</span>
-<span class="n">predicted</span> <span class="o">=</span> <span class="nb">float</span><span class="p">((</span><span class="n">original</span> <span class="o">-</span> <span class="n">eta</span><span class="o">*</span><span class="n">dalpha</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">dalpha</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-
-<span class="n">a</span><span class="o">.</span><span class="n">value</span> <span class="o">-=</span> <span class="n">eta</span><span class="o">*</span><span class="n">a</span><span class="o">.</span><span class="n">gradient</span>
-<span class="n">b</span><span class="o">.</span><span class="n">value</span> <span class="o">-=</span> <span class="n">eta</span><span class="o">*</span><span class="n">b</span><span class="o">.</span><span class="n">gradient</span>
-<span class="n">c</span><span class="o">.</span><span class="n">value</span> <span class="o">-=</span> <span class="n">eta</span><span class="o">*</span><span class="n">c</span><span class="o">.</span><span class="n">gradient</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">actual</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;original </span><span class="si">{0:.5f}</span><span class="s1"> predicted </span><span class="si">{1:.5f}</span><span class="s1"> actual </span><span class="si">{2:.5f}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-       <span class="n">original</span><span class="p">,</span> <span class="n">predicted</span><span class="p">,</span> <span class="n">actual</span><span class="p">))</span>
-</pre></div>
-</div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">original</span> <span class="mf">0.27513</span> <span class="n">predicted</span> <span class="mf">0.22709</span> <span class="n">actual</span> <span class="mf">0.22942</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">original</span> <span class="mf">0.27513</span> <span class="n">predicted</span> <span class="mf">0.22709</span> <span class="n">actual</span> <span class="mf">0.22942</span>
 </pre></div>
 </div>
 </div>
@@ -232,7 +156,6 @@ predicted by the gradient,</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -243,12 +166,10 @@ predicted by the gradient,</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -290,15 +211,15 @@ predicted by the gradient,</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -307,11 +228,11 @@ predicted by the gradient,</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/derivatives/fundamentals.rst.txt"
+      <a href="../../_sources/examples/derivatives/fundamentals.txt"
           rel="nofollow">Page source</a>
     </div>
 

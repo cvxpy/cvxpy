@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sizing of clock meshes &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Sizing of clock meshes &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="sizing-of-clock-meshes">
@@ -39,24 +44,24 @@
 cosmetic modifications, by Judson Wilson, 5/26/2014.</p>
 <p>Topic References:</p>
 <ul class="simple">
-<li><p>Section 4, L. Vandenberghe, S. Boyd, and A. El Gamal “Optimal Wire
-and Transistor Sizing for Circuits with Non-Tree Topology”</p></li>
+<li>Section 4, L. Vandenberghe, S. Boyd, and A. El Gamal &#8220;Optimal Wire
+and Transistor Sizing for Circuits with Non-Tree Topology&#8221;</li>
 </ul>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>We consider the problem of sizing a clock mesh, so as to minimize the
 total dissipated power under a constraint on the dominant time constant.
-The numbers of nodes in the mesh is <span class="math notranslate nohighlight">\(N\)</span> per row or column (thus
-<span class="math notranslate nohighlight">\(n=(N+1)^2\)</span> in total). We divide the wire into m segments of width
-<span class="math notranslate nohighlight">\(x_i\)</span>, <span class="math notranslate nohighlight">\(i = 1,\dots,m\)</span> which is constrained as
-<span class="math notranslate nohighlight">\(0 \le x_i \le W_{\mbox{max}}\)</span>. We use a pi-model of each wire
-segment, with capacitance <span class="math notranslate nohighlight">\(\beta_i x_i\)</span> and conductance
-<span class="math notranslate nohighlight">\(\alpha_i x_i\)</span>. Defining
-<span class="math notranslate nohighlight">\(C(x) = C_0+x_1 C_1 + x_2 C_ 2 + \cdots + x_m C_m\)</span> we have that
-the dissipated power is equal to <span class="math notranslate nohighlight">\(\mathbf{1}^T C(x) \mathbf{1}\)</span>.
+The numbers of nodes in the mesh is <span class="math">\(N\)</span> per row or column (thus
+<span class="math">\(n=(N+1)^2\)</span> in total). We divide the wire into m segments of width
+<span class="math">\(x_i\)</span>, <span class="math">\(i = 1,\dots,m\)</span> which is constrained as
+<span class="math">\(0 \le x_i \le W_{\mbox{max}}\)</span>. We use a pi-model of each wire
+segment, with capacitance <span class="math">\(\beta_i x_i\)</span> and conductance
+<span class="math">\(\alpha_i x_i\)</span>. Defining
+<span class="math">\(C(x) = C_0+x_1 C_1 + x_2 C_ 2 + \cdots + x_m C_m\)</span> we have that
+the dissipated power is equal to <span class="math">\(\mathbf{1}^T C(x) \mathbf{1}\)</span>.
 Thus to minimize the dissipated power subject to a constraint in the
 widths and a constraint in the dominant time constant, we solve the SDP</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
     \mbox{minimize}   &amp; \mathbf{1}^T C(x) \mathbf{1}   \\
     \mbox{subject to} &amp;  T_{\mbox{max}} G(x) - C(x) \succeq 0 \\
@@ -65,7 +70,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 </div>
 <div class="section" id="import-and-setup-packages">
 <h2>Import and setup packages<a class="headerlink" href="#import-and-setup-packages" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">scipy</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
@@ -84,7 +89,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 </div>
 <div class="section" id="helper-functions">
 <h2>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Computes the step response of a linear system.</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Computes the step response of a linear system.</span>
 <span class="k">def</span> <span class="nf">simple_step</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">DT</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
     <span class="n">n</span>  <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">Ad</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">expm</span><span class="p">((</span><span class="n">A</span> <span class="o">*</span> <span class="n">DT</span><span class="p">))</span>
@@ -99,7 +104,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 </div>
 <div class="section" id="generate-problem-data">
 <h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1">#</span>
 <span class="c1"># Circuit parameters.</span>
 <span class="c1">#</span>
 
@@ -174,7 +179,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 </div>
 <div class="section" id="solve-problem-and-display-results">
 <h2>Solve problem and display results<a class="headerlink" href="#solve-problem-and-display-results" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Iterate over all points, and revisit specific points</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Iterate over all points, and revisit specific points</span>
 <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npts</span> <span class="o">+</span> <span class="n">xnpts</span><span class="p">):</span>
     <span class="c1"># First pass, only gather minimal data from all cases.</span>
     <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">npts</span><span class="p">:</span>
@@ -302,7 +307,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Point</span> <span class="mi">1</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">50.0</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Point</span> <span class="mi">1</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">50.0</span><span class="p">)</span>
 <span class="n">CVXOPT</span> <span class="n">failed</span><span class="p">,</span> <span class="n">trying</span> <span class="n">robust</span> <span class="n">KKT</span>
 <span class="n">Point</span> <span class="mi">2</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">52.04081632653061</span><span class="p">)</span>
 <span class="n">Point</span> <span class="mi">3</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">54.08163265306123</span><span class="p">)</span>
@@ -373,7 +378,7 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 </pre></div>
 </div>
 <img alt="../../_images/clock_mesh_7_1.png" src="../../_images/clock_mesh_7_1.png" />
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Particular</span> <span class="n">solution</span> <span class="mi">2</span> <span class="n">of</span> <span class="mi">2</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Particular</span> <span class="n">solution</span> <span class="mi">2</span> <span class="n">of</span> <span class="mi">2</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>
 <span class="n">Solution</span> <span class="mi">2</span><span class="p">:</span>
 <span class="n">Vertical</span> <span class="n">segments</span><span class="p">:</span>
 <span class="p">[[</span><span class="mf">0.2687881</span>  <span class="mf">0.04368684</span> <span class="mf">0.17122095</span> <span class="mf">0.133796</span>   <span class="mf">0.07360396</span><span class="p">]</span>
@@ -398,7 +403,6 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -409,12 +413,10 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -456,15 +458,15 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -473,11 +475,11 @@ widths and a constraint in the dominant time constant, we solve the SDP</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/clock_mesh.rst.txt"
+      <a href="../../_sources/examples/applications/clock_mesh.txt"
           rel="nofollow">Page source</a>
     </div>
 

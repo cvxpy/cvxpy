@@ -1,63 +1,68 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Chebychev design of an FIR filter given a desired \(H(\omega)\) &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Chebychev design of an FIR filter given a desired \(H(\omega)\) &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
-  <div class="section" id="chebychev-design-of-an-fir-filter-given-a-desired-h-omega">
-<h1>Chebychev design of an FIR filter given a desired <span class="math notranslate nohighlight">\(H(\omega)\)</span><a class="headerlink" href="#chebychev-design-of-an-fir-filter-given-a-desired-h-omega" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="chebychev-design-of-an-fir-filter-given-a-desired">
+<h1>Chebychev design of an FIR filter given a desired <span class="math">\(H(\omega)\)</span><a class="headerlink" href="#chebychev-design-of-an-fir-filter-given-a-desired" title="Permalink to this headline">¶</a></h1>
 <p>A derivative work by Judson Wilson, 5/27/2014. Adapted from the CVX
 example of the same name, by Almir Mutapcic, 2/2/2006.</p>
 <p>Topic References:</p>
 <ul class="simple">
-<li><p>“Filter design” lecture notes (EE364) by S. Boyd</p></li>
+<li>&#8220;Filter design&#8221; lecture notes (EE364) by S. Boyd</li>
 </ul>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
 <p>This program designs an FIR filter, given a desired frequency response
-<span class="math notranslate nohighlight">\(H_\mbox{des}(\omega)\)</span>. The design is judged by the maximum
+<span class="math">\(H_\mbox{des}(\omega)\)</span>. The design is judged by the maximum
 absolute error (Chebychev norm). This is a convex problem (after
 sampling it can be formulated as an SOCP), which may be written in the
 form:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{array}{ll}
     \mbox{minimize}   &amp;  \max |H(\omega) - H_\mbox{des}(\omega)|
                              \quad \mbox{ for }  0 \le \omega \le \pi,
     \end{array}\]</div>
-<p>where the variable <span class="math notranslate nohighlight">\(H\)</span> is the frequency response function,
-corresponding to an impulse response <span class="math notranslate nohighlight">\(h\)</span>.</p>
+<p>where the variable <span class="math">\(H\)</span> is the frequency response function,
+corresponding to an impulse response <span class="math">\(h\)</span>.</p>
 </div>
 <div class="section" id="initialize-problem-data">
 <h2>Initialize problem data<a class="headerlink" href="#initialize-problem-data" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="c1">#********************************************************************</span>
@@ -85,7 +90,7 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 </div>
 <div class="section" id="solve-the-minimax-chebychev-design-problem">
 <h2>Solve the minimax (Chebychev) design problem<a class="headerlink" href="#solve-the-minimax-chebychev-design-problem" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A is the matrix used to compute the frequency response</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># A is the matrix used to compute the frequency response</span>
 <span class="c1"># from a vector of filter coefficients:</span>
 <span class="c1">#     A[w,:] = [1 exp(-j*w) exp(-j*2*w) ... exp(-j*n*w)]</span>
 <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span> <span class="o">-</span><span class="mi">1</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">kron</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">)))</span>
@@ -127,14 +132,14 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;final objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
 <span class="n">final</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="mf">0.4999999999999996</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="result-plots">
 <h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Show plot inline in ipython.</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
@@ -161,8 +166,8 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;optimized&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">Hdes</span><span class="p">)),</span><span class="s1">&#39;--&#39;</span><span class="p">,</span>
          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;desired&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\omega$&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$|H(\omega)|$ in dB&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">r&#39;$\omega$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">r&#39;$|H(\omega)|$ in dB&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;FIR filter freq. response magnitude&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="mi">30</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
@@ -172,12 +177,12 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">angle</span><span class="p">(</span><span class="n">H</span><span class="p">))</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\omega$&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;$\angle H(\omega)$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">r&#39;$\omega$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">r&#39;$\angle H(\omega)$&#39;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;FIR filter freq. response angle&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Text</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;FIR filter freq. response angle&#39;</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Text</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s1">&#39;FIR filter freq. response angle&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
 <img alt="../../_images/fir_chebychev_design_5_1.png" src="../../_images/fir_chebychev_design_5_1.png" />
@@ -188,7 +193,6 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -199,12 +203,10 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -246,15 +248,15 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -263,11 +265,11 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/fir_chebychev_design.rst.txt"
+      <a href="../../_sources/examples/applications/fir_chebychev_design.txt"
           rel="nofollow">Page source</a>
     </div>
 

@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Computing a sparse solution of a set of linear inequalities &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Computing a sparse solution of a set of linear inequalities &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="computing-a-sparse-solution-of-a-set-of-linear-inequalities">
@@ -38,63 +43,63 @@
 example of the same name, by Almir Mutapcic, 2/28/2006.</p>
 <p>Topic References:</p>
 <ul class="simple">
-<li><p>Section 6.2, Boyd &amp; Vandenberghe “Convex Optimization”</p></li>
-<li><p>“Just relax: Convex programming methods for subset selection and
-sparse approximation” by J. A. Tropp</p></li>
+<li>Section 6.2, Boyd &amp; Vandenberghe &#8220;Convex Optimization&#8221;</li>
+<li>&#8220;Just relax: Convex programming methods for subset selection and
+sparse approximation&#8221; by J. A. Tropp</li>
 </ul>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>We consider a set of linear inequalities <span class="math notranslate nohighlight">\(Ax \preceq b\)</span> which are
-feasible. We apply two heuristics to find a sparse point <span class="math notranslate nohighlight">\(x\)</span> that
+<p>We consider a set of linear inequalities <span class="math">\(Ax \preceq b\)</span> which are
+feasible. We apply two heuristics to find a sparse point <span class="math">\(x\)</span> that
 satisfies these inequalities.</p>
-<p>The (standard) <span class="math notranslate nohighlight">\(\ell_1\)</span>-norm heuristic for finding a sparse
+<p>The (standard) <span class="math">\(\ell_1\)</span>-norm heuristic for finding a sparse
 solution is:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
     \mbox{minimize}   &amp;  \|x\|_1 \\
     \mbox{subject to} &amp; Ax \preceq b.
     \end{array}\end{split}\]</div>
 <p>The log-based heuristic is an iterative method for finding a sparse
 solution, by finding a local optimal point for the problem:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
     \mbox{minimize}   &amp;  \sum_i \log \left( \delta + \left|x_i\right| \right) \\
     \mbox{subject to} &amp; Ax \preceq b,
     \end{array}\end{split}\]</div>
-<p>where <span class="math notranslate nohighlight">\(\delta\)</span> is a small threshold value (which determines if a
+<p>where <span class="math">\(\delta\)</span> is a small threshold value (which determines if a
 value is close to zero). We cannot solve this problem since it is a
 minimization of a concave function and thus it is not a convex problem.
 However, we can apply a heuristic in which we linearize the objective,
-solve, and re-iterate. This becomes a weighted <span class="math notranslate nohighlight">\(\ell_1\)</span>-norm
+solve, and re-iterate. This becomes a weighted <span class="math">\(\ell_1\)</span>-norm
 heuristic:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}\begin{array}{ll}
     \mbox{minimize}   &amp;  \sum_i W_i \left|x_i\right| \\
     \mbox{subject to} &amp; Ax \preceq b,
     \end{array}\end{split}\]</div>
-<p>which in each iteration re-adjusts the weights <span class="math notranslate nohighlight">\(W_i\)</span> based on the
+<p>which in each iteration re-adjusts the weights <span class="math">\(W_i\)</span> based on the
 rule:</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[W_i = 1/(\delta + \left|x_i\right|),\]</div>
-<p>where <span class="math notranslate nohighlight">\(\delta\)</span> is a small threshold value.</p>
+<p>where <span class="math">\(\delta\)</span> is a small threshold value.</p>
 <p>This algorithm is described in papers:</p>
 <ul class="simple">
-<li><p>“An affine scaling methodology for best basis selection” by B. D. Rao
-and K. Kreutz-Delgado</p></li>
-<li><p>“Portfolio optimization with linear and fixed transaction costs” by
-M. S. Lobo, M. Fazel, and S. Boyd</p></li>
+<li>&#8220;An affine scaling methodology for best basis selection&#8221; by B. D. Rao
+and K. Kreutz-Delgado</li>
+<li>&#8220;Portfolio optimization with linear and fixed transaction costs&#8221; by
+M. S. Lobo, M. Fazel, and S. Boyd</li>
 </ul>
 </div>
 <div class="section" id="generate-problem-data">
 <h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Fix random number generator so we can repeat the experiment.</span>
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
 <span class="c1"># The threshold value below which we consider an element to be zero.</span>
-<span class="n">delta</span> <span class="o">=</span> <span class="mf">1e-8</span>
+<span class="n">delta</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span>
 
 <span class="c1"># Problem dimensions (m inequalities in n-dimensional space).</span>
 <span class="n">m</span> <span class="o">=</span> <span class="mi">100</span>
@@ -108,9 +113,9 @@ M. S. Lobo, M. Fazel, and S. Boyd</p></li>
 </pre></div>
 </div>
 </div>
-<div class="section" id="ell-1-norm-heuristic">
-<h2><span class="math notranslate nohighlight">\(\ell_1\)</span>-norm heuristic<a class="headerlink" href="#ell-1-norm-heuristic" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create variable.</span>
+<div class="section" id="norm-heuristic">
+<h2><span class="math">\(\ell_1\)</span>-norm heuristic<a class="headerlink" href="#norm-heuristic" title="Permalink to this headline">¶</a></h2>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Create variable.</span>
 <span class="n">x_l1</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
 
 <span class="c1"># Create constraint.</span>
@@ -130,7 +135,7 @@ M. S. Lobo, M. Fazel, and S. Boyd</p></li>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">status</span><span class="p">:</span> <span class="n">optimal</span>
 <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="n">that</span> <span class="n">has</span> <span class="mi">40</span> <span class="n">nonzeros</span><span class="o">.</span>
 <span class="n">optimal</span> <span class="n">objective</span> <span class="n">value</span><span class="p">:</span> <span class="mf">28.582394099513873</span>
 </pre></div>
@@ -138,7 +143,7 @@ M. S. Lobo, M. Fazel, and S. Boyd</p></li>
 </div>
 <div class="section" id="iterative-log-heuristic">
 <h2>Iterative log heuristic<a class="headerlink" href="#iterative-log-heuristic" title="Permalink to this headline">¶</a></h2>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Do 15 iterations, allocate variable to hold number of non-zeros</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Do 15 iterations, allocate variable to hold number of non-zeros</span>
 <span class="c1"># (cardinality of x) for each run.</span>
 <span class="n">NUM_RUNS</span> <span class="o">=</span> <span class="mi">15</span>
 <span class="n">nnzs_log</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(())</span>
@@ -176,7 +181,7 @@ M. S. Lobo, M. Fazel, and S. Boyd</p></li>
     <span class="n">W</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">delta</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">absolute</span><span class="p">(</span><span class="n">x_log</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Iteration</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="k">with</span> <span class="mi">48</span> <span class="n">nonzeros</span><span class="o">...</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Iteration</span> <span class="mi">1</span><span class="p">:</span> <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="k">with</span> <span class="mi">48</span> <span class="n">nonzeros</span><span class="o">...</span>
 <span class="n">Iteration</span> <span class="mi">2</span><span class="p">:</span> <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="k">with</span> <span class="mi">36</span> <span class="n">nonzeros</span><span class="o">...</span>
 <span class="n">Iteration</span> <span class="mi">3</span><span class="p">:</span> <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="k">with</span> <span class="mi">33</span> <span class="n">nonzeros</span><span class="o">...</span>
 <span class="n">Iteration</span> <span class="mi">4</span><span class="p">:</span> <span class="n">Found</span> <span class="n">a</span> <span class="n">feasible</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">R</span><span class="o">^</span><span class="mi">50</span> <span class="k">with</span> <span class="mi">33</span> <span class="n">nonzeros</span><span class="o">...</span>
@@ -196,10 +201,10 @@ M. S. Lobo, M. Fazel, and S. Boyd</p></li>
 </div>
 <div class="section" id="result-plots">
 <h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this headline">¶</a></h2>
-<p>The following code plots the result of the <span class="math notranslate nohighlight">\(\ell_1\)</span>-norm
+<p>The following code plots the result of the <span class="math">\(\ell_1\)</span>-norm
 heuristic, as well as the result for each iteration of the log
 heuristic.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Show plot inline in ipython.</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
@@ -230,7 +235,6 @@ heuristic.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -241,12 +245,10 @@ heuristic.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -288,15 +290,15 @@ heuristic.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -305,11 +307,11 @@ heuristic.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/sparse_solution.rst.txt"
+      <a href="../../_sources/examples/applications/sparse_solution.txt"
           rel="nofollow">Page source</a>
     </div>
 

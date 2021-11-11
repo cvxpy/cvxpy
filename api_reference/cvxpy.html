@@ -1,37 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>API Documentation &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>API Documentation &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-    <script src="../_static/jquery.js"></script>
-    <script src="../_static/underscore.js"></script>
-    <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../index.html" />
     <link rel="next" title="Atoms" href="cvxpy.atoms.html" />
     <link rel="prev" title="Examples" href="../examples/index.html" />
    
-  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="api-documentation">
@@ -41,19 +46,19 @@ without consulting an API reference; the tutorials will
 suffice in acquainting you with our software. Nonetheless, we include here an
 API reference for those who are comfortable reading technical documentation.</p>
 <p>All of the documented classes and functions are imported into the
-<code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> namespace; this means that they can be used by simply writing
-<code class="docutils literal notranslate"><span class="pre">cvxpy.symbol</span></code>, where <code class="docutils literal notranslate"><span class="pre">symbol</span></code> is the name of your class or function of
-choice, so long as you import the <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> package in your python source file.</p>
+<code class="docutils literal"><span class="pre">cvxpy</span></code> namespace; this means that they can be used by simply writing
+<code class="docutils literal"><span class="pre">cvxpy.symbol</span></code>, where <code class="docutils literal"><span class="pre">symbol</span></code> is the name of your class or function of
+choice, so long as you import the <code class="docutils literal"><span class="pre">cvxpy</span></code> package in your python source file.</p>
 <p>The documentation is grouped five sections: <em>atoms</em>, <em>constraints</em>,
 <em>expressions</em>, <em>problems</em>, and <em>reductions</em>. The atoms section
 documents the classes implementing atomic mathematical functions, like
-<code class="docutils literal notranslate"><span class="pre">exp</span></code>, <code class="docutils literal notranslate"><span class="pre">log</span></code>, and <code class="docutils literal notranslate"><span class="pre">sqrt</span></code>; the constraints section documents
+<code class="docutils literal"><span class="pre">exp</span></code>, <code class="docutils literal"><span class="pre">log</span></code>, and <code class="docutils literal"><span class="pre">sqrt</span></code>; the constraints section documents
 the constraints that can be imposed upon variables; the expressions section
 documents the classes implementing mathematical expression trees, including the
-<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and
-<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a> classes; the
+<code class="xref py py-class docutils literal"><span class="pre">Variable</span></code> and
+<code class="xref py py-class docutils literal"><span class="pre">Parameter</span></code> classes; the
 problem section documents the
-<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> class and other related classes;
+<code class="xref py py-class docutils literal"><span class="pre">Problem</span></code> class and other related classes;
 the reductions section documents principled operations that convert
 problems from a particular form to another equivalent form; and
 the transforms section documents additional operations available for manipulating
@@ -72,7 +77,6 @@ CVXPY objects;</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -83,12 +87,10 @@ CVXPY objects;</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -138,15 +140,15 @@ CVXPY objects;</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -155,11 +157,11 @@ CVXPY objects;</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../_sources/api_reference/cvxpy.rst.txt"
+      <a href="../_sources/api_reference/cvxpy.txt"
           rel="nofollow">Page source</a>
     </div>
 

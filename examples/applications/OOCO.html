@@ -1,35 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Object Oriented Convex Optimization &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Object Oriented Convex Optimization &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="object-oriented-convex-optimization">
@@ -38,12 +43,12 @@
 problems. An object-oriented approach is simpler and more flexible than
 the traditional method of constructing problems by embedding information
 in matrices.</p>
-<p>Consider the max-flow problem with <code class="docutils literal notranslate"><span class="pre">N</span></code> nodes and <code class="docutils literal notranslate"><span class="pre">E</span></code> edges. We can
-define the problem explicitly by constructing an <code class="docutils literal notranslate"><span class="pre">N</span></code> by <code class="docutils literal notranslate"><span class="pre">E</span></code>
-incidence matrix <code class="docutils literal notranslate"><span class="pre">A</span></code>. <code class="docutils literal notranslate"><span class="pre">A[i,</span> <span class="pre">j]</span></code> is +1 if edge <code class="docutils literal notranslate"><span class="pre">j</span></code> enters node
-<code class="docutils literal notranslate"><span class="pre">i</span></code>, -1 if edge <code class="docutils literal notranslate"><span class="pre">j</span></code> leaves node <code class="docutils literal notranslate"><span class="pre">i</span></code>, and 0 otherwise. The source
+<p>Consider the max-flow problem with <code class="docutils literal"><span class="pre">N</span></code> nodes and <code class="docutils literal"><span class="pre">E</span></code> edges. We can
+define the problem explicitly by constructing an <code class="docutils literal"><span class="pre">N</span></code> by <code class="docutils literal"><span class="pre">E</span></code>
+incidence matrix <code class="docutils literal"><span class="pre">A</span></code>. <code class="docutils literal"><span class="pre">A[i,</span> <span class="pre">j]</span></code> is +1 if edge <code class="docutils literal"><span class="pre">j</span></code> enters node
+<code class="docutils literal"><span class="pre">i</span></code>, -1 if edge <code class="docutils literal"><span class="pre">j</span></code> leaves node <code class="docutils literal"><span class="pre">i</span></code>, and 0 otherwise. The source
 and sink are the last two edges. The problem becomes</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A is the incidence matrix.</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># A is the incidence matrix.</span>
 <span class="c1"># c is a vector of edge capacities.</span>
 <span class="n">flows</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">E</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
 <span class="n">source</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
@@ -56,10 +61,10 @@ and sink are the last two edges. The problem becomes</p>
 </div>
 <p>The more natural way to frame the max-flow problem is not in terms of
 incidence matrices, however, but in terms of the properties of edges and
-nodes. We can write an <code class="docutils literal notranslate"><span class="pre">Edge</span></code> class to capture these properties.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Edge</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+nodes. We can write an <code class="docutils literal"><span class="pre">Edge</span></code> class to capture these properties.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Edge</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; An undirected, capacity limited edge. &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">capacity</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span> <span class="o">=</span> <span class="n">capacity</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">flow</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">()</span>
 
@@ -73,14 +78,14 @@ nodes. We can write an <code class="docutils literal notranslate"><span class="p
         <span class="k">return</span> <span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flow</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">capacity</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>The <code class="docutils literal notranslate"><span class="pre">Edge</span></code> class exposes the flow into and out of the edge. The
-capacity constraint is stored locally in the <code class="docutils literal notranslate"><span class="pre">Edge</span></code> object. The graph
+<p>The <code class="docutils literal"><span class="pre">Edge</span></code> class exposes the flow into and out of the edge. The
+capacity constraint is stored locally in the <code class="docutils literal"><span class="pre">Edge</span></code> object. The graph
 structure is also stored locally, by calling
-<code class="docutils literal notranslate"><span class="pre">edge.connect(node1,</span> <span class="pre">node2)</span></code> for each edge.</p>
-<p>We also define a <code class="docutils literal notranslate"><span class="pre">Node</span></code> class:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<code class="docutils literal"><span class="pre">edge.connect(node1,</span> <span class="pre">node2)</span></code> for each edge.</p>
+<p>We also define a <code class="docutils literal"><span class="pre">Node</span></code> class:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">class</span> <span class="nc">Node</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; A node with accumulation. &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">accumulation</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">accumulation</span> <span class="o">=</span> <span class="n">accumulation</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">edge_flows</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -91,9 +96,9 @@ structure is also stored locally, by calling
 </div>
 <p>Nodes have a target amount of flow to accumulate. Sources and sinks are
 Nodes with a variable as their accumulation target.</p>
-<p>Suppose <code class="docutils literal notranslate"><span class="pre">nodes</span></code> is a list of all the nodes, <code class="docutils literal notranslate"><span class="pre">edges</span></code> is a list of all
-the edges, and <code class="docutils literal notranslate"><span class="pre">sink</span></code> is the sink node. The problem becomes:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+<p>Suppose <code class="docutils literal"><span class="pre">nodes</span></code> is a list of all the nodes, <code class="docutils literal"><span class="pre">edges</span></code> is a list of all
+the edges, and <code class="docutils literal"><span class="pre">sink</span></code> is the sink node. The problem becomes:</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">nodes</span> <span class="o">+</span> <span class="n">edges</span><span class="p">:</span>
     <span class="n">constraints</span> <span class="o">+=</span> <span class="n">obj</span><span class="o">.</span><span class="n">constraints</span><span class="p">()</span>
 <span class="n">prob</span> <span class="o">=</span> <span class="n">Problem</span><span class="p">(</span><span class="n">Maximize</span><span class="p">(</span><span class="n">sink</span><span class="o">.</span><span class="n">accumulation</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
@@ -101,7 +106,7 @@ the edges, and <code class="docutils literal notranslate"><span class="pre">sink
 </div>
 <p>Note that the problem has been reframed from maximizing the flow along
 the source edge to maximizing the accumulation at the sink node. We
-could easily extend the <code class="docutils literal notranslate"><span class="pre">Edge</span></code> and <code class="docutils literal notranslate"><span class="pre">Node</span></code> class to model an
+could easily extend the <code class="docutils literal"><span class="pre">Edge</span></code> and <code class="docutils literal"><span class="pre">Node</span></code> class to model an
 electrical grid. Sink nodes would be consumers. Source nodes would be
 power stations, which generate electricity at a cost. A node could be
 both a source and a sink, which would represent energy storage
@@ -109,12 +114,11 @@ facilities or a consumer who contributes to the grid. We could add
 energy loss along edges to more accurately model transmission lines. The
 entire grid construct could be embedded in a time series model.</p>
 <p>To see the object-oriented approach applied to more complex flow
-problems, look in the <code class="docutils literal notranslate"><span class="pre">cvxpy/examples/flows/</span></code> directory.</p>
+problems, look in the <code class="docutils literal"><span class="pre">cvxpy/examples/flows/</span></code> directory.</p>
 </div>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -125,12 +129,10 @@ problems, look in the <code class="docutils literal notranslate"><span class="pr
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -172,15 +174,15 @@ problems, look in the <code class="docutils literal notranslate"><span class="pr
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -189,11 +191,11 @@ problems, look in the <code class="docutils literal notranslate"><span class="pr
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/OOCO.rst.txt"
+      <a href="../../_sources/examples/applications/OOCO.txt"
           rel="nofollow">Page source</a>
     </div>
 

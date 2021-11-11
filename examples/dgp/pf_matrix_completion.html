@@ -1,50 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Perron-Frobenius matrix completion &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Perron-Frobenius matrix completion &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="perron-frobenius-matrix-completion">
 <h1>Perron-Frobenius matrix completion<a class="headerlink" href="#perron-frobenius-matrix-completion" title="Permalink to this headline">¶</a></h1>
 <p>The DGP atom library has several functions of positive matrices,
 including the trace, (matrix) product, sum, Perron-Frobenius eigenvalue,
-and <span class="math notranslate nohighlight">\((I - X)^{-1}\)</span> (eye-minus-inverse). In this notebook, we use
+and <span class="math">\((I - X)^{-1}\)</span> (eye-minus-inverse). In this notebook, we use
 some of these atoms to formulate and solve an interesting matrix
 completion problem.</p>
 <p>In this problem, we are given some entries of an elementwise positive
-matrix <span class="math notranslate nohighlight">\(A\)</span>, and the goal is to choose the missing entries so as to
+matrix <span class="math">\(A\)</span>, and the goal is to choose the missing entries so as to
 minimize the Perron-Frobenius eigenvalue or spectral radius. Letting
-<span class="math notranslate nohighlight">\(\Omega\)</span> denote the set of indices <span class="math notranslate nohighlight">\((i, j)\)</span> for which
-<span class="math notranslate nohighlight">\(A_{ij}\)</span> is known, the optimization problem is</p>
-<div class="math notranslate nohighlight">
+<span class="math">\(\Omega\)</span> denote the set of indices <span class="math">\((i, j)\)</span> for which
+<span class="math">\(A_{ij}\)</span> is known, the optimization problem is</p>
+<div class="math">
 \[\begin{split}\begin{equation}
 \begin{array}{ll}
 \mbox{minimize} &amp; \lambda_{\text{pf}}(X) \\
@@ -54,14 +59,14 @@ minimize the Perron-Frobenius eigenvalue or spectral radius. Letting
 \end{equation}\end{split}\]</div>
 <p>which is a log-log convex program. Below is an implementation of this
 problem, with specific problem data</p>
-<div class="math notranslate nohighlight">
+<div class="math">
 \[\begin{split}A = \begin{bmatrix}
 1.0 &amp; ? &amp;  1.9 \\
 ? &amp; 0.8 &amp;  ? \\
 3.2 &amp; 5.9&amp;  ?
 \end{bmatrix},\end{split}\]</div>
 <p>where the question marks denote the missing entries.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 <span class="n">n</span> <span class="o">=</span> <span class="mi">3</span>
 <span class="n">known_value_indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]))</span>
@@ -78,7 +83,7 @@ problem, with specific problem data</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;X:</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span>  <span class="mf">4.702374203221372</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span>  <span class="mf">4.702374203221372</span>
 <span class="n">X</span><span class="p">:</span>
  <span class="p">[[</span><span class="mf">1.</span>         <span class="mf">4.63616907</span> <span class="mf">1.9</span>       <span class="p">]</span>
  <span class="p">[</span><span class="mf">0.49991744</span> <span class="mf">0.8</span>        <span class="mf">0.37774148</span><span class="p">]</span>
@@ -89,7 +94,6 @@ problem, with specific problem data</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -100,12 +104,10 @@ problem, with specific problem data</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -147,15 +149,15 @@ problem, with specific problem data</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -164,11 +166,11 @@ problem, with specific problem data</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/dgp/pf_matrix_completion.rst.txt"
+      <a href="../../_sources/examples/dgp/pf_matrix_completion.txt"
           rel="nofollow">Page source</a>
     </div>
 

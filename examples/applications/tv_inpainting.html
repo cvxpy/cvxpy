@@ -1,56 +1,61 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
-<!DOCTYPE html>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
   <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Total variation in-painting &#8212; CVXPY 1.1.17 documentation</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Total variation in-painting &mdash; CVXPY 1.1.17 documentation</title>
+    
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.17',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
    
-  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
-  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head><body>
-  
+  </head>
+  <body role="document">  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
-          
-
           <div class="body" role="main">
             
   <div class="section" id="total-variation-in-painting">
 <h1>Total variation in-painting<a class="headerlink" href="#total-variation-in-painting" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="grayscale-images">
 <h2>Grayscale Images<a class="headerlink" href="#grayscale-images" title="Permalink to this headline">¶</a></h2>
-<p>A grayscale image is represented as an <span class="math notranslate nohighlight">\(m \times n\)</span> matrix of
-intensities <span class="math notranslate nohighlight">\(U^\mathrm{orig}\)</span> (typically between the values
-<span class="math notranslate nohighlight">\(0\)</span> and <span class="math notranslate nohighlight">\(255\)</span>). We are given the values
-<span class="math notranslate nohighlight">\(U^\mathrm{orig}_{ij}\)</span>, for <span class="math notranslate nohighlight">\((i,j) \in \mathcal K\)</span>, where
-<span class="math notranslate nohighlight">\(\mathcal K \subset \{1,\ldots, m\} \times \{1, \ldots, n\}\)</span> is
+<p>A grayscale image is represented as an <span class="math">\(m \times n\)</span> matrix of
+intensities <span class="math">\(U^\mathrm{orig}\)</span> (typically between the values
+<span class="math">\(0\)</span> and <span class="math">\(255\)</span>). We are given the values
+<span class="math">\(U^\mathrm{orig}_{ij}\)</span>, for <span class="math">\((i,j) \in \mathcal K\)</span>, where
+<span class="math">\(\mathcal K \subset \{1,\ldots, m\} \times \{1, \ldots, n\}\)</span> is
 the set of indices corresponding to known pixel values. Our job is to
 <em>in-paint</em> the image by guessing the missing pixel values, <em>i.e.</em>, those
-with indices not in <span class="math notranslate nohighlight">\(\mathcal K\)</span>. The reconstructed image will be
-represented by <span class="math notranslate nohighlight">\(U \in {\bf R}^{m \times n}\)</span>, where <span class="math notranslate nohighlight">\(U\)</span>
-matches the known pixels, <em>i.e.</em>, <span class="math notranslate nohighlight">\(U_{ij} = U^\mathrm{orig}_{ij}\)</span>
-for <span class="math notranslate nohighlight">\((i,j) \in \mathcal K\)</span>.</p>
-<p>The reconstruction <span class="math notranslate nohighlight">\(U\)</span> is found by minimizing the total variation
-of <span class="math notranslate nohighlight">\(U\)</span>, subject to matching the known pixel values. We will use
-the <span class="math notranslate nohighlight">\(\ell_2\)</span> total variation, defined as</p>
-<div class="math notranslate nohighlight">
+with indices not in <span class="math">\(\mathcal K\)</span>. The reconstructed image will be
+represented by <span class="math">\(U \in {\bf R}^{m \times n}\)</span>, where <span class="math">\(U\)</span>
+matches the known pixels, <em>i.e.</em>, <span class="math">\(U_{ij} = U^\mathrm{orig}_{ij}\)</span>
+for <span class="math">\((i,j) \in \mathcal K\)</span>.</p>
+<p>The reconstruction <span class="math">\(U\)</span> is found by minimizing the total variation
+of <span class="math">\(U\)</span>, subject to matching the known pixel values. We will use
+the <span class="math">\(\ell_2\)</span> total variation, defined as</p>
+<div class="math">
 \[\begin{split}\mathop{\bf tv}(U) =
 \sum_{i=1}^{m-1} \sum_{j=1}^{n-1}
 \left\| \left[ \begin{array}{c}
@@ -59,7 +64,7 @@ the <span class="math notranslate nohighlight">\(\ell_2\)</span> total variation
 <p>We load the original image and the corrupted image and construct the
 Known matrix. Both images are displayed below. The corrupted image has
 the missing pixels whited out.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="c1"># Load the images.</span>
@@ -89,7 +94,7 @@ the missing pixels whited out.</p>
 <p>The total variation in-painting problem can be easily expressed in
 CVXPY. We use the solver SCS, which scales to larger problems than ECOS
 does.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Recover the original image using total variation in-painting.</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Recover the original image using total variation in-painting.</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 
@@ -103,7 +108,7 @@ does.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">----------------------------------------------------------------------------</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">----------------------------------------------------------------------------</span>
     <span class="n">SCS</span> <span class="n">v2</span><span class="o">.</span><span class="mf">0.2</span> <span class="o">-</span> <span class="n">Splitting</span> <span class="n">Conic</span> <span class="n">Solver</span>
     <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Brendan</span> <span class="n">O</span><span class="s1">&#39;Donoghue, Stanford University, 2012-2017</span>
 <span class="o">----------------------------------------------------------------------------</span>
@@ -145,10 +150,10 @@ does.</p>
 </pre></div>
 </div>
 <p>After solving the problem, the in-painted image is stored in
-<code class="docutils literal notranslate"><span class="pre">U.value</span></code>. We display the in-painted image and the intensity
+<code class="docutils literal"><span class="pre">U.value</span></code>. We display the in-painted image and the intensity
 difference between the original and in-painted images. The intensity
 difference is magnified by a factor of 10 so it is more visible.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
 <span class="c1"># Display the in-painted image.</span>
 <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">U</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">);</span>
 <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;In-Painted Image&quot;</span><span class="p">)</span>
@@ -166,23 +171,23 @@ difference is magnified by a factor of 10 so it is more visible.</p>
 <div class="section" id="color-images">
 <h1>Color Images<a class="headerlink" href="#color-images" title="Permalink to this headline">¶</a></h1>
 <p>For color images, the in-painting problem is similar to the grayscale
-case. A color image is represented as an <span class="math notranslate nohighlight">\(m \times n \times 3\)</span>
-matrix of RGB values <span class="math notranslate nohighlight">\(U^\mathrm{orig}\)</span> (typically between the
-values <span class="math notranslate nohighlight">\(0\)</span> and <span class="math notranslate nohighlight">\(255\)</span>). We are given the pixels
-<span class="math notranslate nohighlight">\(U^\mathrm{orig}_{ij}\)</span>, for <span class="math notranslate nohighlight">\((i,j) \in \mathcal K\)</span>, where
-<span class="math notranslate nohighlight">\(\mathcal K \subset \{1,\ldots, m\} \times \{1, \ldots, n\}\)</span> is
+case. A color image is represented as an <span class="math">\(m \times n \times 3\)</span>
+matrix of RGB values <span class="math">\(U^\mathrm{orig}\)</span> (typically between the
+values <span class="math">\(0\)</span> and <span class="math">\(255\)</span>). We are given the pixels
+<span class="math">\(U^\mathrm{orig}_{ij}\)</span>, for <span class="math">\((i,j) \in \mathcal K\)</span>, where
+<span class="math">\(\mathcal K \subset \{1,\ldots, m\} \times \{1, \ldots, n\}\)</span> is
 the set of indices corresponding to known pixels. Each pixel
-<span class="math notranslate nohighlight">\(U^\mathrm{orig}_{ij}\)</span> is a vector in <span class="math notranslate nohighlight">\({\bf R}^3\)</span> of RGB
+<span class="math">\(U^\mathrm{orig}_{ij}\)</span> is a vector in <span class="math">\({\bf R}^3\)</span> of RGB
 values. Our job is to <em>in-paint</em> the image by guessing the missing
-pixels, <em>i.e.</em>, those with indices not in <span class="math notranslate nohighlight">\(\mathcal K\)</span>. The
+pixels, <em>i.e.</em>, those with indices not in <span class="math">\(\mathcal K\)</span>. The
 reconstructed image will be represented by
-<span class="math notranslate nohighlight">\(U \in {\bf R}^{m \times n \times 3}\)</span>, where <span class="math notranslate nohighlight">\(U\)</span> matches the
-known pixels, <em>i.e.</em>, <span class="math notranslate nohighlight">\(U_{ij} = U^\mathrm{orig}_{ij}\)</span> for
-<span class="math notranslate nohighlight">\((i,j) \in \mathcal K\)</span>.</p>
-<p>The reconstruction <span class="math notranslate nohighlight">\(U\)</span> is found by minimizing the total variation
-of <span class="math notranslate nohighlight">\(U\)</span>, subject to matching the known pixel values. We will use
-the <span class="math notranslate nohighlight">\(\ell_2\)</span> total variation, defined as</p>
-<div class="math notranslate nohighlight">
+<span class="math">\(U \in {\bf R}^{m \times n \times 3}\)</span>, where <span class="math">\(U\)</span> matches the
+known pixels, <em>i.e.</em>, <span class="math">\(U_{ij} = U^\mathrm{orig}_{ij}\)</span> for
+<span class="math">\((i,j) \in \mathcal K\)</span>.</p>
+<p>The reconstruction <span class="math">\(U\)</span> is found by minimizing the total variation
+of <span class="math">\(U\)</span>, subject to matching the known pixel values. We will use
+the <span class="math">\(\ell_2\)</span> total variation, defined as</p>
+<div class="math">
 \[\begin{split}\mathop{\bf tv}(U) =
 \sum_{i=1}^{m-1} \sum_{j=1}^{n-1}
 \left\| \left[ \begin{array}{c}
@@ -194,7 +199,7 @@ the <span class="math notranslate nohighlight">\(\ell_2\)</span> total variation
 selecting 30% of the pixels to keep and discarding the others. The
 original and corrupted images are displayed below. The corrupted image
 has the missing pixels blacked out.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
@@ -228,8 +233,8 @@ has the missing pixels blacked out.</p>
 <p>We express the total variation color in-painting problem in CVXPY using
 three matrix variables (one for the red values, one for the blue values,
 and one for the green values). We use the solver SCS; the solvers ECOS
-and CVXOPT don’t scale to this large problem.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Recover the original image using total variation in-painting.</span>
+and CVXOPT don&#8217;t scale to this large problem.</p>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Recover the original image using total variation in-painting.</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
 
@@ -245,7 +250,7 @@ and CVXOPT don’t scale to this large problem.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal objective value: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">WARN</span><span class="p">:</span> <span class="n">A</span><span class="o">-&gt;</span><span class="n">p</span> <span class="p">(</span><span class="n">column</span> <span class="n">pointers</span><span class="p">)</span> <span class="ow">not</span> <span class="n">strictly</span> <span class="n">increasing</span><span class="p">,</span> <span class="n">column</span> <span class="mi">523264</span> <span class="n">empty</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">WARN</span><span class="p">:</span> <span class="n">A</span><span class="o">-&gt;</span><span class="n">p</span> <span class="p">(</span><span class="n">column</span> <span class="n">pointers</span><span class="p">)</span> <span class="ow">not</span> <span class="n">strictly</span> <span class="n">increasing</span><span class="p">,</span> <span class="n">column</span> <span class="mi">523264</span> <span class="n">empty</span>
 <span class="n">WARN</span><span class="p">:</span> <span class="n">A</span><span class="o">-&gt;</span><span class="n">p</span> <span class="p">(</span><span class="n">column</span> <span class="n">pointers</span><span class="p">)</span> <span class="ow">not</span> <span class="n">strictly</span> <span class="n">increasing</span><span class="p">,</span> <span class="n">column</span> <span class="mi">785408</span> <span class="n">empty</span>
 <span class="n">WARN</span><span class="p">:</span> <span class="n">A</span><span class="o">-&gt;</span><span class="n">p</span> <span class="p">(</span><span class="n">column</span> <span class="n">pointers</span><span class="p">)</span> <span class="ow">not</span> <span class="n">strictly</span> <span class="n">increasing</span><span class="p">,</span> <span class="n">column</span> <span class="mi">1047552</span> <span class="n">empty</span>
 <span class="o">----------------------------------------------------------------------------</span>
@@ -295,7 +300,7 @@ in-painted image and the difference in RGB values at each pixel of the
 original and in-painted image. Though the in-painted image looks almost
 identical to the original image, you can see that many of the RGB values
 differ.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="k">as</span> <span class="nn">cm</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 
@@ -315,7 +320,7 @@ differ.</p>
 <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">511.5</span><span class="p">,</span> <span class="mf">511.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">511.5</span><span class="p">,</span> <span class="mf">511.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>
 </pre></div>
 </div>
 <img alt="../../_images/tv_inpainting_13_1.png" src="../../_images/tv_inpainting_13_1.png" />
@@ -323,7 +328,6 @@ differ.</p>
 
 
           </div>
-          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -334,12 +338,10 @@ differ.</p>
 
 
 
-
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
-
 
 
 
@@ -381,15 +383,15 @@ differ.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3 id="searchlabel">Quick search</h3>
-    <div class="searchformwrapper">
+  <h3>Quick search</h3>
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" />
       <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
     </form>
-    </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script type="text/javascript">$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -398,11 +400,11 @@ differ.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
       
       |
-      <a href="../../_sources/examples/applications/tv_inpainting.rst.txt"
+      <a href="../../_sources/examples/applications/tv_inpainting.txt"
           rel="nofollow">Page source</a>
     </div>
 
