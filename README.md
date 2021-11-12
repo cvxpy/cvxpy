@@ -1,18 +1,23 @@
 CVXPY
 =====================
 [![Build Status](http://github.com/cvxpy/cvxpy/workflows/build/badge.svg?event=push)](https://github.com/cvxpy/cvxpy/actions/workflows/build.yml)
+![PyPI - downloads](https://img.shields.io/pypi/dm/cvxpy.svg?label=Pypi%20downloads)
+![Conda - downloads](https://img.shields.io/conda/dn/conda-forge/cvxpy.svg?label=Conda%20downloads)
+
 
 **The CVXPY documentation is at [cvxpy.org](http://www.cvxpy.org/).**
 
-**Join the [CVXPY discord](https://discord.gg/4urRQeGBCr), and use the [issue tracker](https://github.com/cvxpy/cvxpy/issues) and [StackOverflow](https://stackoverflow.com/questions/tagged/cvxpy) for the best support.**
+*We are building a CVXPY community on [Discord](https://discord.gg/4urRQeGBCr). Join the conversation! For issues and long-form discussions, use [Github Issues](https://github.com/cvxpy/cvxpy/issues) and [Github Discussions](https://github.com/cvxpy/cvxpy/discussions).*
 
+**Contents**
 - [Installation](#installation)
 - [Getting started](#getting-started)
 - [Issues](#issues)
-- [Communication](#communication)
+- [Community](#community)
 - [Contributing](#contributing)
-- [Citing](#citing)
 - [Team](#team)
+- [Citing](#citing)
+
 
 CVXPY is a Python-embedded modeling language for convex optimization problems. It allows you to express your problem in a natural way that follows the math, rather than in the restrictive standard form required by solvers.
 
@@ -43,6 +48,12 @@ print(x.value)
 # is stored in constraint.dual_value.
 print(constraints[0].dual_value)
 ```
+
+With CVXPY, you can model
+* convex optimization problems,
+* mixed-integer convex optimization problems,
+* geometric programs, and
+* quasiconvex programs.
 
 CVXPY is not a solver. It relies upon the open source solvers
 [ECOS](http://github.com/ifa-ethz/ecos), [SCS](https://github.com/bodono/scs-python),
@@ -88,8 +99,14 @@ We encourage you to report issues using the [Github tracker](https://github.com/
 
 For basic usage questions (e.g., "Why isn't my problem DCP?"), please use [StackOverflow](https://stackoverflow.com/questions/tagged/cvxpy) instead.
 
-## Communication
-To communicate with the CVXPY developer community, create a [Github issue](https://github.com/cvxpy/cvxpy/issues) or use the [CVXPY mailing list](https://groups.google.com/forum/#!forum/cvxpy). Please be respectful in your communications with the CVXPY community, and make sure to abide by our [code of conduct](https://github.com/cvxpy/cvxpy/blob/master/CODE_OF_CONDUCT.md).
+## Community
+The CVXPY community consists of researchers, data scientists, software engineers, and students from all over the world. We welcome you to join us!
+
+* To chat with the CVXPY community in real-time, join us on [Discord](https://discord.gg/4urRQeGBCr).
+* To have longer, in-depth discussions with the CVXPY community, use [Github Discussions](https://github.com/cvxpy/cvxpy/discussions).
+* To share feature requests and bug reports, use [Github Issues](https://github.com/cvxpy/cvxpy/issues).
+
+Please be respectful in your communications with the CVXPY community, and make sure to abide by our [code of conduct](https://github.com/cvxpy/cvxpy/blob/master/CODE_OF_CONDUCT.md).
 
 ## Contributing
 We appreciate all contributions. You don't need to be an expert in convex
@@ -114,17 +131,19 @@ you through the contributing process.
 
 Before starting work on your contribution, please read the [contributing guide](https://github.com/cvxpy/cvxpy/blob/master/CONTRIBUTING.md).
 
-## Citing
-If you use CVXPY for academic work, we encourage you to [cite our papers](https://www.cvxpy.org/citing/index.html). If you use CVXPY in industry, we'd love to hear from you as well; feel free to reach out to the developers directly.
-
 ## Team
 CVXPY is a community project, built from the contributions of many
 researchers and engineers.
 
 CVXPY is developed and maintained by [Steven
-Diamond](http://web.stanford.edu/~stevend2/), [Akshay
-Agrawal](https://akshayagrawal.com), and [Riley Murray](https://rileyjmurray.wordpress.com/), with many others contributing
+Diamond](https://stevendiamond.me/), [Akshay
+Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/), and [Bartolomeo Stellato](https://stellato.io/), with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
-years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
+years includes Stephen Boyd, Eric Chu, Robin Verschueren, Philipp Schiele, Michael Sommerauer,
 Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
 Dembia.
+
+For more information about the team and our processes, see our [governance document](https://github.com/cvxpy/org/blob/main/governance.md).
+
+## Citing
+If you use CVXPY for academic work, we encourage you to [cite our papers](https://www.cvxpy.org/citing/index.html). If you use CVXPY in industry, we'd love to hear from you as well, on Discord or over email.
