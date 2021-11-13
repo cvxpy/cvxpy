@@ -17,6 +17,15 @@ import numpy as np
 
 import cvxpy.settings as s
 
+INF_OR_UNB_MESSAGE = """
+    The problem is either infeasible or unbounded, but the solver
+    cannot tell which. Disable any solver-specific presolve methods
+    and re-solve to determine the precise problem status.
+
+    For GUROBI and CPLEX you can automatically perform this re-solve
+    with the keyword argument prob.solve(reoptimize=True, ...).
+    """
+
 
 def failure_solution(status, attr=None) -> "Solution":
     """Factory function for infeasible or unbounded solutions.
@@ -40,14 +49,7 @@ def failure_solution(status, attr=None) -> "Solution":
     if attr is None:
         attr = {}
     if status == s.INFEASIBLE_OR_UNBOUNDED:
-        attr['message'] = """
-        The problem is either infeasible or unbounded, but the solver
-        cannot tell which. Disable any solver-specific presolve methods
-        and re-solve to determine the precise problem status.
-
-        For GUROBI and CPLEX you can automatically perform this re-solve
-        with the keyword argument prob.solve(reoptimize=True, ...).
-        """
+        attr['message'] = INF_OR_UNB_MESSAGE
     return Solution(status, opt_val, {}, {}, attr)
 
 

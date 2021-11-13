@@ -800,8 +800,9 @@ class TestCPLEX(BaseTest):
     def test_cplex_lp_3(self) -> None:
         # CPLEX initially produces an INFEASIBLE_OR_UNBOUNDED status
         sth = sths.lp_3()
-        sth.prob.solve(solver='CPLEX')
-        self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='CPLEX')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
         # Determine the precise status with reoptimize=True.
         StandardTestLPs.test_lp_3(solver='CPLEX', reoptimize=True)
 
@@ -1021,15 +1022,16 @@ class TestGUROBI(BaseTest):
     def test_gurobi_lp_3(self) -> None:
         # GUROBI initially produces an INFEASIBLE_OR_UNBOUNDED status
         sth = sths.lp_3()
-        sth.prob.solve(solver='GUROBI')
-        self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='GUROBI')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
         # The user disables presolve and so makes reoptimization unnecessary
         StandardTestLPs.test_lp_3(solver='GUROBI', InfUnbdInfo=1)
         # The user determines the precise status with reoptimize=True
         StandardTestLPs.test_lp_3(solver='GUROBI', reoptimize=True)
 
     def test_gurobi_lp_4(self) -> None:
-        StandardTestLPs.test_lp_4(solver='GUROBI')
+        StandardTestLPs.test_lp_4(solver='GUROBI', reoptimize=True)
 
     def test_gurobi_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GUROBI')
