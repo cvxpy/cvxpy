@@ -359,7 +359,7 @@ class CPLEX(ConicSolver):
             model.parameters.preprocessing.qcpduals.values.force)
 
         # Set parameters
-        reoptimize = solver_opts.pop('reoptimize', True)
+        reoptimize = solver_opts.pop('reoptimize', False)
         set_parameters(model, solver_opts)
 
         # Solve problem

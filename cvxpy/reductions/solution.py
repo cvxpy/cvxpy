@@ -44,6 +44,9 @@ def failure_solution(status, attr=None) -> "Solution":
         The problem is either infeasible or unbounded, but the solver
         cannot tell which. Disable any solver-specific presolve methods
         and re-solve to determine the precise problem status.
+
+        For GUROBI and CPLEX you can automatically perform this re-solve
+        with the keyword argument prob.solve(reoptimize=True, ...).
         """
     return Solution(status, opt_val, {}, {}, attr)
 

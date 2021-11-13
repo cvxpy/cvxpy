@@ -979,7 +979,8 @@ class Problem(u.Canonical):
         if verbose:
             print(_FOOTER)
             s.LOGGER.info('Problem status: %s', self.status)
-            s.LOGGER.info('Optimal value: %.3e', self.value)
+            val = self.value if self.value is not None else np.NaN
+            s.LOGGER.info('Optimal value: %.3e', val)
             s.LOGGER.info('Compilation took %.3e seconds', self._compilation_time)
             s.LOGGER.info(
                     'Solver (including time spent in interface) took '

@@ -798,13 +798,12 @@ class TestCPLEX(BaseTest):
         StandardTestLPs.test_lp_2(solver='CPLEX')
 
     def test_cplex_lp_3(self) -> None:
-        # CPLEX initially produces an INFEASIBLE_OR_UNBOUNDED status,
-        # and the user will encounter that if they set reoptimize=False.
+        # CPLEX initially produces an INFEASIBLE_OR_UNBOUNDED status
         sth = sths.lp_3()
-        sth.prob.solve(solver='CPLEX', reoptimize=False)
+        sth.prob.solve(solver='CPLEX')
         self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
-        # The user does nothing, and CPLEX silently reoptimizes.
-        StandardTestLPs.test_lp_3(solver='CPLEX')
+        # Determine the precise status with reoptimize=True.
+        StandardTestLPs.test_lp_3(solver='CPLEX', reoptimize=True)
 
     def test_cplex_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='CPLEX')
@@ -1020,15 +1019,14 @@ class TestGUROBI(BaseTest):
         StandardTestLPs.test_lp_2(solver='GUROBI')
 
     def test_gurobi_lp_3(self) -> None:
-        # GUROBI initially produces an INFEASIBLE_OR_UNBOUNDED status,
-        # and the user will encounter that if they set reoptimize=False.
+        # GUROBI initially produces an INFEASIBLE_OR_UNBOUNDED status
         sth = sths.lp_3()
-        sth.prob.solve(solver='GUROBI', reoptimize=False)
+        sth.prob.solve(solver='GUROBI')
         self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
         # The user disables presolve and so makes reoptimization unnecessary
-        StandardTestLPs.test_lp_3(solver='GUROBI', InfUnbdInfo=1, reoptimize=False)
-        # The user does nothing, and GUROBI silently reoptimizes.
-        StandardTestLPs.test_lp_3(solver='GUROBI')
+        StandardTestLPs.test_lp_3(solver='GUROBI', InfUnbdInfo=1)
+        # The user determines the precise status with reoptimize=True
+        StandardTestLPs.test_lp_3(solver='GUROBI', reoptimize=True)
 
     def test_gurobi_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='GUROBI')

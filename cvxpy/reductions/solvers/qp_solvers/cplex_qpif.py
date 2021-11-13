@@ -145,7 +145,7 @@ class CPLEX(QpSolver):
             hide_solver_output(model)
 
         # Set parameters
-        reoptimize = solver_opts.pop('reoptimize', True)
+        reoptimize = solver_opts.pop('reoptimize', False)
         set_parameters(model, solver_opts)
 
         # Solve problem

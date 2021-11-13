@@ -234,10 +234,8 @@ class GUROBI(QpSolver):
         try:
             # Solve
             model.optimize()
-            if model.Status == 4 and solver_opts.get('reoptimize', True):
-                # INF_OR_UNBD. The user hasn't specifically said
-                # reoptimize=False, so we solve again to get a definitive
-                # answer.
+            if model.Status == 4 and solver_opts.get('reoptimize', False):
+                # INF_OR_UNBD. Solve again to get a definitive answer.
                 model.setParam("DualReductions", 0)
                 model.optimize()
         except Exception:  # Error in the solution
