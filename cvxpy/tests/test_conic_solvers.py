@@ -23,6 +23,7 @@ import pytest
 import scipy.linalg as la
 
 import cvxpy as cp
+import cvxpy.tests.solver_test_helpers as sths
 from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
                                               INSTALLED_SOLVERS,)
 from cvxpy.tests.base_test import BaseTest
@@ -797,7 +798,13 @@ class TestCPLEX(BaseTest):
         StandardTestLPs.test_lp_2(solver='CPLEX')
 
     def test_cplex_lp_3(self) -> None:
-        StandardTestLPs.test_lp_3(solver='CPLEX')
+        # CPLEX initially produces an INFEASIBLE_OR_UNBOUNDED status
+        sth = sths.lp_3()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='CPLEX')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+        # Determine the precise status with reoptimize=True.
+        StandardTestLPs.test_lp_3(solver='CPLEX', reoptimize=True)
 
     def test_cplex_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='CPLEX')
@@ -847,7 +854,8 @@ class TestCPLEX(BaseTest):
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
 class TestGUROBI(BaseTest):
-    """ Unit tests for solver specific behavior. """
+    """NOTE: solves of LPs (or MILPs) get routed through GUROBI's QP interface!
+    So many of these tests are testing the behavior of qurobi_qpif.py"""
 
     def setUp(self) -> None:
         self.a = cp.Variable(name='a')
@@ -1012,10 +1020,18 @@ class TestGUROBI(BaseTest):
         StandardTestLPs.test_lp_2(solver='GUROBI')
 
     def test_gurobi_lp_3(self) -> None:
+        # GUROBI initially produces an INFEASIBLE_OR_UNBOUNDED status
+        sth = sths.lp_3()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='GUROBI')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+        # The user disables presolve and so makes reoptimization unnecessary
         StandardTestLPs.test_lp_3(solver='GUROBI', InfUnbdInfo=1)
+        # The user determines the precise status with reoptimize=True
+        StandardTestLPs.test_lp_3(solver='GUROBI', reoptimize=True)
 
     def test_gurobi_lp_4(self) -> None:
-        StandardTestLPs.test_lp_4(solver='GUROBI')
+        StandardTestLPs.test_lp_4(solver='GUROBI', reoptimize=True)
 
     def test_gurobi_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GUROBI')

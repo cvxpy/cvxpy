@@ -2,7 +2,7 @@ import numpy as np
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.reductions import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
 
 
@@ -30,7 +30,7 @@ class GUROBI(QpSolver):
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
                   5: s.UNBOUNDED,
-                  4: s.INFEASIBLE_INACCURATE,
+                  4: s.INFEASIBLE_OR_UNBOUNDED,
                   6: s.INFEASIBLE,
                   7: s.SOLVER_ERROR,
                   8: s.SOLVER_ERROR,
@@ -94,14 +94,10 @@ class GUROBI(QpSolver):
                 y = -np.array([constraints_grb[i].Pi for i in range(m)])
                 dual_vars = {GUROBI.DUAL_VAR_ID: y}
 
+            sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            primal_vars = None
-            dual_vars = None
-            opt_val = np.inf
-            if status == s.UNBOUNDED:
-                opt_val = -np.inf
-
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+            sol = failure_solution(status, attr)
+        return sol
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import gurobipy as grb
@@ -238,6 +234,10 @@ class GUROBI(QpSolver):
         try:
             # Solve
             model.optimize()
+            if model.Status == 4 and solver_opts.get('reoptimize', False):
+                # INF_OR_UNBD. Solve again to get a definitive answer.
+                model.setParam("DualReductions", 0)
+                model.optimize()
         except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
 

@@ -2,7 +2,7 @@ import numpy as np
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.reductions import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
     get_status, hide_solver_output, set_parameters,)
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -65,14 +65,10 @@ class CPLEX(QpSolver):
                 y = -np.array(model.solution.get_dual_values())
                 dual_vars = {CPLEX.DUAL_VAR_ID: y}
 
+            sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            primal_vars = None
-            dual_vars = None
-            opt_val = np.inf
-            if status == s.UNBOUNDED:
-                opt_val = -np.inf
-
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+            sol = failure_solution(status, attr)
+        return sol
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cplex as cpx
@@ -149,6 +145,7 @@ class CPLEX(QpSolver):
             hide_solver_output(model)
 
         # Set parameters
+        reoptimize = solver_opts.pop('reoptimize', False)
         set_parameters(model, solver_opts)
 
         # Solve problem
@@ -158,6 +155,14 @@ class CPLEX(QpSolver):
             model.solve()
             end = model.get_time()
             results_dict["cputime"] = end - start
+
+            ambiguous_status = get_status(model) == s.INFEASIBLE_OR_UNBOUNDED
+            if ambiguous_status and reoptimize:
+                model.parameters.preprocessing.presolve.set(0)
+                start_time = model.get_time()
+                model.solve()
+                results_dict["cputime"] += model.get_time() - start_time
+
         except Exception:  # Error in the solution
             results_dict["status"] = s.SOLVER_ERROR
 

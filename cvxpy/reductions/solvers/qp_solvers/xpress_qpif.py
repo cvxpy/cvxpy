@@ -2,7 +2,7 @@ import numpy as np
 
 import cvxpy.interface as intf
 import cvxpy.settings as s
-from cvxpy.reductions import Solution
+from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (
     get_status_maps, makeMstart,)
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
@@ -80,14 +80,10 @@ class XPRESS(QpSolver):
                 y = -np.array(results['getDual'])
                 dual_vars = {XPRESS.DUAL_VAR_ID: y}
 
+            sol = Solution(status, opt_val, primal_vars, dual_vars, attr)
         else:
-            primal_vars = None
-            dual_vars = None
-            opt_val = np.inf
-            if status == s.UNBOUNDED:
-                opt_val = -np.inf
-
-        return Solution(status, opt_val, primal_vars, dual_vars, attr)
+            sol = failure_solution(status, attr)
+        return sol
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
 
