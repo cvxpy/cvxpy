@@ -93,33 +93,34 @@ class Complex2Real(Reduction):
                             1j*solution.primal_vars[imag_id]
                     else:
                         pvars[vid] = solution.primal_vars[vid]
-            for cid, cons in inverse_data.id2cons.items():
-                if cons.is_real():
-                    dvars[cid] = solution.dual_vars[cid]
-                elif cons.is_imag():
-                    imag_id = inverse_data.real2imag[cid]
-                    dvars[cid] = 1j*solution.dual_vars[imag_id]
-                # For equality and inequality constraints.
-                elif isinstance(cons,
-                                (Equality, Zero, Inequality,
-                                 NonNeg, NonPos)
-                                ) and cons.is_complex():
-                    imag_id = inverse_data.real2imag[cid]
-                    if imag_id in solution.dual_vars:
-                        dvars[cid] = solution.dual_vars[cid] + \
-                            1j*solution.dual_vars[imag_id]
-                    else:
+            if solution.dual_vars:
+                for cid, cons in inverse_data.id2cons.items():
+                    if cons.is_real():
                         dvars[cid] = solution.dual_vars[cid]
-                elif isinstance(cons, SOC) and cons.is_complex():
-                    # TODO add dual variables for complex SOC.
-                    pass
-                # For PSD constraints.
-                elif isinstance(cons, PSD) and cons.is_complex():
-                    n = cons.args[0].shape[0]
-                    dual = solution.dual_vars[cid]
-                    dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
-                else:
-                    raise Exception("Unknown constraint type.")
+                    elif cons.is_imag():
+                        imag_id = inverse_data.real2imag[cid]
+                        dvars[cid] = 1j*solution.dual_vars[imag_id]
+                    # For equality and inequality constraints.
+                    elif isinstance(cons,
+                                    (Equality, Zero, Inequality,
+                                     NonNeg, NonPos)
+                                    ) and cons.is_complex():
+                        imag_id = inverse_data.real2imag[cid]
+                        if imag_id in solution.dual_vars:
+                            dvars[cid] = solution.dual_vars[cid] + \
+                                1j*solution.dual_vars[imag_id]
+                        else:
+                            dvars[cid] = solution.dual_vars[cid]
+                    elif isinstance(cons, SOC) and cons.is_complex():
+                        # TODO add dual variables for complex SOC.
+                        pass
+                    # For PSD constraints.
+                    elif isinstance(cons, PSD) and cons.is_complex():
+                        n = cons.args[0].shape[0]
+                        dual = solution.dual_vars[cid]
+                        dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
+                    else:
+                        raise Exception("Unknown constraint type.")
 
         return Solution(solution.status, solution.opt_val, pvars, dvars,
                         solution.attr)
