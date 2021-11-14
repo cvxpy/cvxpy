@@ -14,11 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
-from cvxpy.expressions import cvxtypes
 import abc
+
 import numpy as np
+
+import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
+from cvxpy.expressions import cvxtypes
 
 
 class Constraint(u.Canonical):

@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import CVXOPT, Maximize, Minimize, Problem, Variable
-from mixed_integer import Assign, Boolean, Card, Choose
+import unittest
+
 import cvxopt
 import numpy as np
-import unittest
+from mixed_integer import Assign, Boolean, Card, Choose
+
+from cvxpy import CVXOPT, Maximize, Minimize, Problem, Variable
+
 
 class TestVars(unittest.TestCase):
     """ Unit tests for the variable types. """

@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
-import scipy.sparse as sp
+import cvxpy.utilities.eigvals as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf
-from scipy.sparse.linalg import eigsh
-from scipy.sparse.linalg.eigen.arpack.arpack import ArpackError
 
 
 class Constant(Leaf):
@@ -52,8 +52,8 @@ class Constant(Leaf):
         self._nonpos: Optional[bool] = None
         self._symm: Optional[bool] = None
         self._herm: Optional[bool] = None
-        self._top_eig: Optional[float] = None
-        self._bottom_eig: Optional[float] = None
+        self._psd_test: Optional[bool] = None
+        self._nsd_test: Optional[bool] = None
         self._cached_is_pos = None
         super(Constant, self).__init__(intf.shape(self.value))
 
@@ -100,7 +100,7 @@ class Constant(Leaf):
         return {}
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return self._shape
@@ -211,12 +211,11 @@ class Constant(Leaf):
         elif not self.is_hermitian():
             return False
 
-        # Compute bottom eigenvalue if absent.
-        if self._bottom_eig is None:
-            ev = extremal_eig_near_ref(self.value, EIGVAL_TOL, low=True)
-            self._bottom_eig = ev
+        # Compute sign of bottom eigenvalue if absent.
+        if self._psd_test is None:
+            self._psd_test = eig_util.is_psd_within_tol(self.value, EIGVAL_TOL)
 
-        return self._bottom_eig >= -EIGVAL_TOL
+        return self._psd_test
 
     @perf.compute_once
     def is_nsd(self) -> bool:
@@ -234,31 +233,8 @@ class Constant(Leaf):
         elif not self.is_hermitian():
             return False
 
-        # Compute top eigenvalue if absent.
-        if self._top_eig is None:
-            ev = extremal_eig_near_ref(self.value, EIGVAL_TOL, low=False)
-            self._top_eig = ev
+        # Compute sign of top eigenvalue if absent.
+        if self._nsd_test is None:
+            self._nsd_test = eig_util.is_psd_within_tol(-self.value, EIGVAL_TOL)
 
-        return self._top_eig <= EIGVAL_TOL
-
-
-def extremal_eig_near_ref(A, ref, low: bool = True):
-
-    def SA_eigsh(sigma):
-        return eigsh(A, k=1, sigma=sigma, return_eigenvectors=False)
-    # Run eigsh in shift-invert mode, since we're particularly interested in finding
-    # eigenvalues in a certain region.
-    try:
-        sigma = -ref if low else ref
-        ev = SA_eigsh(sigma)
-    except ArpackError:
-        temp = ref - np.finfo(A.dtype).eps
-        sigma = -temp if low else temp
-        ev = SA_eigsh(sigma)
-    else:
-        if np.isnan(ev):
-            # will be NaN if A has an eigenvalue which is exactly tol
-            temp = ref - np.finfo(A.dtype).eps
-            sigma = -temp if low else temp
-            ev = SA_eigsh(sigma)
-    return ev
+        return self._nsd_test

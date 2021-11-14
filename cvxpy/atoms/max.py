@@ -13,17 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Optional, Tuple
+
+import numpy as np
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
-import numpy as np
 
 
 class max(AxisAtom):
     """:math:`\\max_{i,j}\\{X_{i,j}\\}`.
     """
 
-    def __init__(self, x, axis=None, keepdims: bool = False) -> None:
+    def __init__(self, x, axis: Optional[int] = None, keepdims: bool = False) -> None:
         super(max, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric
@@ -63,7 +65,7 @@ class max(AxisAtom):
         D[idx] = 1
         return D
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Same as argument.

@@ -14,9 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.expression import Expression
-import cvxpy.utilities.performance_utils as perf
+from typing import List, Tuple
+
 import numpy as np
+
+import cvxpy.utilities.performance_utils as perf
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
 class indicator(Expression):
@@ -31,7 +35,7 @@ class indicator(Expression):
        A numeric tolerance for determining whether the constraints hold.
     """
 
-    def __init__(self, constraints, err_tol: float = 1e-3) -> None:
+    def __init__(self, constraints: List[Constraint], err_tol: float = 1e-3) -> None:
         self.args = constraints
         self.err_tol = err_tol
         super(indicator, self).__init__()
@@ -79,37 +83,37 @@ class indicator(Expression):
         """
         return False
 
-    def get_data(self):
+    def get_data(self) -> List[float]:
         """Returns info needed to reconstruct the expression besides the args.
         """
         return [self.err_tol]
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return ()
 
-    def name(self):
+    def name(self) -> str:
         """Returns the string representation of the expression.
         """
-        return "Indicator(%s)" % str(self.args)
+        return f"Indicator({self.args})"
 
-    def domain(self):
+    def domain(self) -> List[Constraint]:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
         return self.args
 
     @property
-    def value(self):
+    def value(self) -> float:
         """Returns the numeric value of the expression.
 
         Returns:
             A numpy matrix or a scalar.
         """
         if all(cons.value() for cons in self.args):
-            return 0
+            return 0.0
         else:
             return np.infty
 

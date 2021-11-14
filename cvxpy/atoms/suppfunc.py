@@ -1,10 +1,11 @@
+from typing import Tuple
+
+import numpy as np
+import scipy.sparse as sp
+
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.variable import Variable
-from typing import Tuple
-
-import scipy.sparse as sp
-import numpy as np
 
 
 class SuppFuncAtom(Atom):
@@ -23,7 +24,7 @@ class SuppFuncAtom(Atom):
         self.args = [Atom.cast_to_const(y)]
         self._parent = parent
         self._eta = None  # store for debugging purposes
-        self._shape = tuple()
+        self._shape: Tuple[int, ...] = tuple()
         self.validate_arguments()
 
     def validate_arguments(self) -> None:
@@ -42,7 +43,7 @@ class SuppFuncAtom(Atom):
     def constants(self):
         return []
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         return self._shape
 
     def sign_from_args(self) -> Tuple[bool, bool]:
@@ -105,8 +106,8 @@ class SuppFuncAtom(Atom):
         return False
 
     def _value_impl(self):
-        from cvxpy.problems.problem import Problem
         from cvxpy.problems.objective import Maximize
+        from cvxpy.problems.problem import Problem
         y_val = self.args[0].value.round(decimals=9).ravel(order='F')
         x_flat = self._parent.x.flatten()
         cons = self._parent.constraints

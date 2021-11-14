@@ -14,16 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import List, Optional, Tuple
+
 import cvxpy.settings as s
 import cvxpy.utilities as u
-from cvxpy.problems.objective import Minimize, Maximize
-from cvxpy.problems.problem import Problem
-from cvxpy.expressions.variable import Variable
+from cvxpy.atoms import sum, trace
+from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
-from cvxpy.atoms import trace, sum
+from cvxpy.expressions.variable import Variable
+from cvxpy.problems.objective import Maximize, Minimize
+from cvxpy.problems.problem import Problem
 
 
-def partial_optimize(prob, opt_vars=None, dont_opt_vars=None, solver=None) -> "PartialProblem":
+def partial_optimize(
+    prob: Problem,
+    opt_vars: Optional[List[Variable]] = None,
+    dont_opt_vars: Optional[List[Variable]] = None,
+    solver=None,
+    **kwargs
+) -> "PartialProblem":
     """Partially optimizes the given problem over the specified variables.
 
     Either opt_vars or dont_opt_vars must be given.
@@ -51,6 +60,8 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None, solver=None) -> "P
         The variables to not optimize over.
     solver : str, optional
         The default solver to use for value and grad.
+    kwargs : keywords, optional
+        Additional solver specific keyword arguments.
 
     Returns
     -------
@@ -87,7 +98,7 @@ def partial_optimize(prob, opt_vars=None, dont_opt_vars=None, solver=None) -> "P
     new_constrs = [con.tree_copy(id_to_new_var)
                    for con in prob.constraints]
     new_var_prob = Problem(new_obj, new_constrs)
-    return PartialProblem(new_var_prob, opt_vars, dont_opt_vars, solver)
+    return PartialProblem(new_var_prob, opt_vars, dont_opt_vars, solver, **kwargs)
 
 
 class PartialProblem(Expression):
@@ -101,11 +112,14 @@ class PartialProblem(Expression):
         The variables to not optimize over.
     """
 
-    def __init__(self, prob, opt_vars, dont_opt_vars, solver) -> None:
+    def __init__(
+            self, prob: Problem, opt_vars: List[Variable],
+            dont_opt_vars: List[Variable], solver, **kwargs) -> None:
         self.opt_vars = opt_vars
         self.dont_opt_vars = dont_opt_vars
         self.solver = solver
         self.args = [prob]
+        self._solve_kwargs = kwargs
         super(PartialProblem, self).__init__()
 
     def get_data(self):
@@ -128,7 +142,7 @@ class PartialProblem(Expression):
         return self.args[0].is_dcp() and \
             type(self.args[0].objective) == Maximize
 
-    def is_dpp(self, context='dcp') -> bool:
+    def is_dpp(self, context: str = 'dcp') -> bool:
         """The expression is a disciplined parameterized expression.
         """
         if context.lower() in ['dcp', 'dgp']:
@@ -169,7 +183,7 @@ class PartialProblem(Expression):
         return False
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """Returns the (row, col) dimensions of the expression.
         """
         return tuple()
@@ -177,9 +191,9 @@ class PartialProblem(Expression):
     def name(self) -> str:
         """Returns the string representation of the expression.
         """
-        return "PartialProblem(%s)" % str(self.args[0])
+        return f"PartialProblem({self.args[0]})"
 
-    def variables(self):
+    def variables(self) -> List[Variable]:
         """Returns the variables in the problem.
         """
         return self.args[0].variables()
@@ -189,7 +203,7 @@ class PartialProblem(Expression):
         """
         return self.args[0].parameters()
 
-    def constants(self):
+    def constants(self) -> List[Constant]:
         """Returns the constants in the problem.
         """
         return self.args[0].constants()
@@ -225,7 +239,7 @@ class PartialProblem(Expression):
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective,
                        fix_vars + self.args[0].constraints)
-        prob.solve(solver=self.solver)
+        prob.solve(solver=self.solver, **self._solve_kwargs)
         # Compute gradient.
         if prob.status in s.SOLUTION_PRESENT:
             sign = self.is_convex() - self.is_concave()
@@ -272,7 +286,7 @@ class PartialProblem(Expression):
             else:
                 fix_vars += [var == var.value]
         prob = Problem(self.args[0].objective, fix_vars + self.args[0].constraints)
-        prob.solve(solver=self.solver)
+        prob.solve(solver=self.solver, **self._solve_kwargs)
         # Restore the original values to the variables.
         for var in self.variables():
             var.value = old_vals[var.id]

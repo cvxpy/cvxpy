@@ -14,7 +14,7 @@ Changes in version 1.1.10
    CVXPY. Users would see errors like ``RuntimeError: module compiled
    against API version 0xe but this version of numpy is 0xd``. We changed our build files
    to avoid this problem, and it should be fixed as of CVXPY 1.1.10. For more information
-   you can refer to this `GitHub issue <https://github.com/cvxgrp/cvxpy/issues/1229>`_.
+   you can refer to this `GitHub issue <https://github.com/cvxpy/cvxpy/issues/1229>`_.
 
 .. _changes118:
 
@@ -117,7 +117,7 @@ the potential to meaningfully improve CVXPY 1.1.
  - Add :ref:`an interface <contrib_solver>` to an open-source mixed-integer nonlinear solver. CVXPY
    currently only supports commercial mixed-integer nonlinear solvers.
  - Help resolve any CVXPY GitHub issue with the label
-   "`help wanted <https://github.com/cvxgrp/cvxpy/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_."
+   "`help wanted <https://github.com/cvxpy/cvxpy/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_."
 
 Anyone interested in making contributions should read the
 :ref:`contributing guide<contributing>` before writing code.
@@ -128,7 +128,7 @@ CVXPY 1.0
 CVXPY 1.0 includes a major rewrite of the CVXPY internals, as well as a number of changes to the user interface. We first give an overview of the changes, before diving into the details.
 We only cover changes that might be of interest to users.
 
-We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available `here <https://github.com/cvxgrp/cvxpy/blob/1.0/cvxpy/utilities/cvxpy_upgrade.py>`_.
+We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available `here <https://github.com/cvxpy/cvxpy/blob/1.0/cvxpy/utilities/cvxpy_upgrade.py>`_.
 
 Overview
 ~~~~~~~~

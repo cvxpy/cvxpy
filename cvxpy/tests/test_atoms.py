@@ -14,19 +14,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
-import cvxpy.settings as s
-from cvxpy.transforms.partial_optimize import partial_optimize
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Parameter, Constant
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
-import numpy as np
-from cvxpy import Problem, Minimize
-from cvxpy.tests.base_test import BaseTest
 import unittest
+
+import numpy as np
+import pytest
 import scipy
 import scipy.sparse as sp
 import scipy.stats
+
+import cvxpy as cp
+import cvxpy.settings as s
+from cvxpy import Minimize, Problem
+from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS
+from cvxpy.tests.base_test import BaseTest
+from cvxpy.transforms.partial_optimize import partial_optimize
 
 
 class TestAtoms(BaseTest):
@@ -291,17 +294,12 @@ class TestAtoms(BaseTest):
     def test_elemwise_arg_count(self) -> None:
         """Test arg count for max and min variants.
         """
-        with self.assertRaises(Exception) as cm:
+        error_message = r"__init__\(\) missing 1 required positional argument: 'arg2'"
+        with pytest.raises(TypeError, match=error_message):
             cp.maximum(1)
-        self.assertTrue(str(cm.exception) in (
-            "__init__() takes at least 3 arguments (2 given)",
-            "__init__() missing 1 required positional argument: 'arg2'"))
 
-        with self.assertRaises(Exception) as cm:
+        with pytest.raises(TypeError, match=error_message):
             cp.minimum(1)
-        self.assertTrue(str(cm.exception) in (
-            "__init__() takes at least 3 arguments (2 given)",
-            "__init__() missing 1 required positional argument: 'arg2'"))
 
     def test_matrix_frac(self) -> None:
         """Test for the matrix_frac atom.
@@ -957,14 +955,14 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x + cp.exp(y)), [x+y >= 3, y >= 4, x >= 5])
-        p1.solve(solver=cp.SCS)
+        p1.solve(solver=cp.SCS, eps=1e-9)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(cp.exp(y)), [x+y >= 3, y >= 4])
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-9)
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve(solver=cp.SCS)
-        self.assertAlmostEqual(p1.value, p3.value)
+        p3.solve(solver=cp.SCS, eps=1e-9)
+        self.assertAlmostEqual(p1.value, p3.value, places=4)
 
     def test_partial_optimize_params(self) -> None:
         """Test partial optimize with parameters.
@@ -976,13 +974,13 @@ class TestAtoms(BaseTest):
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(x+y), [x+y >= gamma, y >= 4, x >= 5])
         gamma.value = 3
-        p1.solve(solver=cp.SCS)
+        p1.solve(solver=cp.SCS, eps=1e-6)
 
         # Solve the two-stage problem via partial_optimize
         p2 = Problem(Minimize(y), [x+y >= gamma, y >= 4])
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-6)
         p3 = Problem(Minimize(x+g), [x >= 5])
-        p3.solve(solver=cp.SCS)
+        p3.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(p1.value, p3.value)
 
     def test_partial_optimize_numeric_fn(self) -> None:
@@ -992,12 +990,12 @@ class TestAtoms(BaseTest):
         # Solve the (simple) two-stage problem by "combining" the two stages
         # (i.e., by solving a single linear program)
         p1 = Problem(Minimize(y), [xval+y >= 3])
-        p1.solve(solver=cp.SCS)
+        p1.solve(solver=cp.SCS, eps=1e-6)
 
         # Solve the two-stage problem via partial_optimize
         constr = [y >= -100]
         p2 = Problem(Minimize(y), [x+y >= 3] + constr)
-        g = partial_optimize(p2, [y], [x], solver=cp.SCS)
+        g = partial_optimize(p2, [y], [x], solver=cp.SCS, eps=1e-6)
         x.value = xval
         y.value = 42
         constr[0].dual_variables[0].value = 42
@@ -1008,7 +1006,7 @@ class TestAtoms(BaseTest):
 
         # No variables optimized over.
         p2 = Problem(Minimize(y), [x+y >= 3])
-        g = partial_optimize(p2, [], [x, y], solver=cp.SCS)
+        g = partial_optimize(p2, [], [x, y], solver=cp.SCS, eps=1e-6)
         x.value = xval
         y.value = 42
         p2.constraints[0].dual_variables[0].value = 42
@@ -1039,7 +1037,7 @@ class TestAtoms(BaseTest):
         """
         x = Variable(nonneg=True)
         p = Problem(Minimize(5+x), [x >= 3])
-        p.solve(solver=cp.SCS)
+        p.solve(solver=cp.SCS, eps=1e-5)
         self.assertAlmostEqual(p.value, 8)
         self.assertAlmostEqual(x.value, 3)
 

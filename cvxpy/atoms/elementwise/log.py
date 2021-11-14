@@ -13,11 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from cvxpy.atoms.elementwise.elementwise import Elementwise
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
+
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.constraints.constraint import Constraint
 
 
 class log(Elementwise):
@@ -90,7 +91,7 @@ class log(Elementwise):
             grad_vals = 1.0/values[0]
             return [log.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]

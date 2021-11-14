@@ -16,8 +16,8 @@ limitations under the License.
 
 from typing import Union
 
-from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.norm import norm
+from cvxpy.expressions.expression import Expression
 
 
 def mixed_norm(X, p: Union[int, str] = 2, q: Union[int, str] = 1):

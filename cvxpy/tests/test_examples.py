@@ -15,12 +15,15 @@ limitations under the License.
 """
 
 from __future__ import print_function
+
+import unittest
+
+import numpy as np
+
 import cvxpy as cvx
 import cvxpy.interface as intf
-from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.conic_solvers import ecos_conif
-import numpy as np
-import unittest
+from cvxpy.tests.base_test import BaseTest
 
 
 class TestExamples(BaseTest):
@@ -388,7 +391,7 @@ class TestExamples(BaseTest):
         prob = cvx.Problem(objective, constraints)
 
         # The optimal objective is returned by p.solve().
-        prob.solve(solver=cvx.SCS)
+        prob.solve(solver=cvx.SCS, eps=1e-6)
         # The optimal value for x is stored in x.value.
         print(x.value)
         # The optimal Lagrange multiplier for a constraint
@@ -410,7 +413,7 @@ class TestExamples(BaseTest):
 
         # Form and solve problem.
         prob = cvx.Problem(obj, constraints)
-        prob.solve(solver=cvx.SCS)  # Returns the optimal value.
+        prob.solve(solver=cvx.SCS, eps=1e-6)  # Returns the optimal value.
         print("status:", prob.status)
         print("optimal value", prob.value)
         print("optimal var", x.value, y.value)
@@ -430,7 +433,7 @@ class TestExamples(BaseTest):
 
         # Form and solve problem.
         prob = cvx.Problem(obj, constraints)
-        prob.solve(solver=cvx.SCS)  # Returns the optimal value.
+        prob.solve(solver=cvx.SCS, eps=1e-6)  # Returns the optimal value.
         print("status:", prob.status)
         print("optimal value", prob.value)
         print("optimal var", x.value, y.value)
@@ -444,7 +447,7 @@ class TestExamples(BaseTest):
 
         # Replace the objective.
         prob = cvx.Problem(cvx.Maximize(x + y), prob.constraints)
-        print("optimal value", prob.solve(solver=cvx.SCS))
+        print("optimal value", prob.solve(solver=cvx.SCS, eps=1e-6))
 
         self.assertAlmostEqual(prob.value, 1.0, places=3)
 
@@ -452,7 +455,7 @@ class TestExamples(BaseTest):
         constraints = prob.constraints
         constraints[0] = (x + y <= 3)
         prob = cvx.Problem(prob.objective, constraints)
-        print("optimal value", prob.solve(solver=cvx.SCS))
+        print("optimal value", prob.solve(solver=cvx.SCS, eps=1e-6))
 
         self.assertAlmostEqual(prob.value, 3.0, places=2)
 
@@ -462,7 +465,7 @@ class TestExamples(BaseTest):
 
         # An infeasible problem.
         prob = cvx.Problem(cvx.Minimize(x), [x >= 1, x <= 0])
-        prob.solve(solver=cvx.SCS)
+        prob.solve(solver=cvx.SCS, eps=1e-6)
         print("status:", prob.status)
         print("optimal value", prob.value)
 
@@ -505,7 +508,7 @@ class TestExamples(BaseTest):
         constraints = [0 <= x, x <= 1]
         prob = cvx.Problem(objective, constraints)
 
-        print("Optimal value", prob.solve(solver=cvx.SCS))
+        print("Optimal value", prob.solve(solver=cvx.SCS, eps=1e-6))
         print("Optimal var")
         print(x.value)  # A numpy matrix.
 
@@ -558,7 +561,7 @@ class TestExamples(BaseTest):
         gamma_vals = numpy.logspace(-4, 6)
         for val in gamma_vals:
             gamma.value = val
-            prob.solve(solver=cvx.SCS)
+            prob.solve(solver=cvx.SCS, eps=1e-6)
             # Use expr.value to get the numerical value of
             # an expression in the problem.
             sq_penalty.append(error.value)
@@ -624,6 +627,7 @@ class TestExamples(BaseTest):
         data, chain, inverse = prob.get_problem_data(cvx.SCS)
 
         import ecos
+
         # Get ECOS arguments.
         data, chain, inverse = prob.get_problem_data(cvx.ECOS)
         # Call ECOS solver.

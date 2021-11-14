@@ -16,11 +16,11 @@ limitations under the License.
 
 
 import abc
-
-from cvxpy.reductions.reduction import Reduction
 from typing import List, Tuple
 
 import numpy as np
+
+from cvxpy.reductions.reduction import Reduction
 
 
 def extract_mip_idx(variables) -> Tuple[List[int], List[int]]:

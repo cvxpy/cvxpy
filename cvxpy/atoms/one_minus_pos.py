@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.affine.binary_operators import multiply
 from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
+
+from cvxpy.atoms.affine.binary_operators import multiply
+from cvxpy.atoms.atom import Atom
 
 
 def diff_pos(x, y):
@@ -62,7 +63,7 @@ class one_minus_pos(Atom):
     def name(self) -> str:
         return "%s(%s)" % (self.__class__.__name__, self.args[0])
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.args[0].shape

@@ -16,11 +16,13 @@ limitations under the License.
 
 #!/usr/bin/env python
 
-from cvxpy import Minimize, Problem, SCS, Variable, conv, norm
-import numpy as np
 import random
+from math import exp, pi, sqrt
 
-from math import pi, sqrt, exp
+import numpy as np
+
+from cvxpy import SCS, Minimize, Problem, Variable, conv, norm
+
 
 def gauss(n: float = 11,sigma: float = 1):
     r = range(-int(n/2),int(n/2)+1)

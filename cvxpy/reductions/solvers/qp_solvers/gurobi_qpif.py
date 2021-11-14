@@ -1,8 +1,9 @@
-import cvxpy.settings as s
+import numpy as np
+
 import cvxpy.interface as intf
+import cvxpy.settings as s
 from cvxpy.reductions import Solution
 from cvxpy.reductions.solvers.qp_solvers.qp_solver import QpSolver
-import numpy as np
 
 
 def constrain_gurobi_infty(v) -> None:
@@ -104,6 +105,7 @@ class GUROBI(QpSolver):
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import gurobipy as grb
+
         # N.B. Here we assume that the matrices in data are in csc format
         P = data[s.P]
         q = data[s.Q]
@@ -118,7 +120,16 @@ class GUROBI(QpSolver):
         constrain_gurobi_infty(g)
 
         # Create a new model
-        model = grb.Model()
+        if 'env' in solver_opts:
+            # Specifies environment to create Gurobi model for control over licensing and parameters
+            # https://www.gurobi.com/documentation/9.1/refman/environments.html
+            default_env = solver_opts['env']
+            del solver_opts['env']
+            model = grb.Model(env=default_env)
+        else:
+            # Create Gurobi model using default (unspecified) environment
+            model = grb.Model()
+
         # Pass through verbosity
         model.setParam("OutputFlag", verbose)
 

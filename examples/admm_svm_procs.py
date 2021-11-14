@@ -15,10 +15,12 @@ limitations under the License.
 """
 
 # A SVM example with CVXPY.
-from multiprocessing import Process, Pipe
+from multiprocessing import Pipe, Process
 
 import numpy as np
-from cvxpy import norm, Minimize, Parameter, pos, Problem, sum_squares, Variable
+
+from cvxpy import (Minimize, Parameter, Problem, Variable, norm, pos,
+                   sum_squares,)
 
 # Divide the data into NUM_PROCS segments,
 # using NUM_PROCS processes.

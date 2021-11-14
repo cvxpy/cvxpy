@@ -14,13 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.atoms.affine.vec import vec
-from cvxpy.constraints.zero import Zero
-from cvxpy.constraints.nonpos import NonPos, NonNeg
 from collections import defaultdict
+
 import numpy as np
 import scipy.sparse as sp
+
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vec import vec
+from cvxpy.constraints.nonpos import NonNeg, NonPos
+from cvxpy.constraints.zero import Zero
 
 
 def lower_ineq_to_nonpos(inequality):

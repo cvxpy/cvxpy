@@ -14,10 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import unittest
+
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.variable import Variable
 from cvxpy.utilities import shape
-import unittest
 
 
 class TestShape(unittest.TestCase):

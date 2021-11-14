@@ -8,16 +8,17 @@
 # more or less the same as with the CVXPY interface and does not
 # require any specialization for Xpress.
 
+import numpy
+
 from cvxpy import Minimize, Variable, sum_squares
+from cvxpy.problems.xpress_problem import XpressProblem
 
 #
 # First (minor) difference: we must import the XpressProblem class
 # from xpress_problem.py in the problems/ directory.
 #
 
-from cvxpy.problems.xpress_problem import XpressProblem
 
-import numpy
 
 # Problem data.
 n = 2

@@ -1,13 +1,12 @@
+import numpy as np
+
 import cvxpy
-from cvxpy.atoms.affine.add_expr import AddExpression
 import cvxpy.error as error
 import cvxpy.reductions.dgp2dcp.atom_canonicalizers as dgp_atom_canon
+from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.reductions import solution
 from cvxpy.settings import SOLVER_ERROR
 from cvxpy.tests.base_test import BaseTest
-
-import numpy as np
-
 
 SOLVER = cvxpy.ECOS
 

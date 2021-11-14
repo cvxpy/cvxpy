@@ -15,12 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.constraints.constraint import Constraint
-from cvxpy.expressions import cvxtypes
-from cvxpy.utilities import scopes
 from typing import List, Tuple
 
 import numpy as np
+
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import cvxtypes
+from cvxpy.utilities import scopes
 
 
 class ExpCone(Constraint):
@@ -57,6 +58,11 @@ class ExpCone(Constraint):
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
         self.z = Expression.cast_to_const(z)
+        xs, ys, zs = self.x.shape, self.y.shape, self.z.shape
+        if xs != ys or xs != zs:
+            msg = ("All arguments must have the same shapes. Provided arguments have"
+                   "shapes %s" % str((xs, ys, zs)))
+            raise ValueError(msg)
         super(ExpCone, self).__init__([self.x, self.y, self.z],
                                       constr_id)
 
@@ -69,7 +75,7 @@ class ExpCone(Constraint):
     @property
     def residual(self):
         # TODO(akshayka): The projection should be implemented directly.
-        from cvxpy import Problem, Minimize, Variable, norm2, hstack
+        from cvxpy import Minimize, Problem, Variable, hstack, norm2
         if self.x.value is None or self.y.value is None or self.z.value is None:
             return None
         x = Variable(self.x.shape)

@@ -13,11 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List, Tuple
 
-from cvxpy.atoms.elementwise.elementwise import Elementwise
 import numpy as np
 from scipy.special import xlogy
-from typing import Tuple
+
+from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.constraints.constraint import Constraint
 
 # TODO(akshayka): DGP support.
 
@@ -87,7 +89,7 @@ class entr(Elementwise):
             grad_vals = -np.log(values[0]) - 1
             return [entr.elemwise_grad_to_diag(grad_vals, rows, cols)]
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0]

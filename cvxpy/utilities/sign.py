@@ -1,4 +1,7 @@
-from typing import Tuple
+from typing import TYPE_CHECKING, List, Tuple
+
+if TYPE_CHECKING:
+    from cvxpy.expressions.expression import Expression
 
 """
 Copyright 2013 Steven Diamond
@@ -17,7 +20,7 @@ limitations under the License.
 """
 
 
-def sum_signs(exprs) -> Tuple[bool, bool]:
+def sum_signs(exprs: List['Expression']) -> Tuple[bool, bool]:
     """Give the sign resulting from summing a list of expressions.
 
     Args:
@@ -31,7 +34,7 @@ def sum_signs(exprs) -> Tuple[bool, bool]:
     return (is_pos, is_neg)
 
 
-def mul_sign(lh_expr, rh_expr) -> Tuple[bool, bool]:
+def mul_sign(lh_expr: 'Expression', rh_expr: 'Expression') -> Tuple[bool, bool]:
     """Give the sign resulting from multiplying two expressions.
 
     Args:

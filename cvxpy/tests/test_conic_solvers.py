@@ -16,23 +16,21 @@ limitations under the License.
 
 import math
 import unittest
+from distutils.version import StrictVersion
 
 import numpy as np
-import scipy.linalg as la
 import pytest
+import scipy.linalg as la
 
 import cvxpy as cp
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS, INSTALLED_SOLVERS
+from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
+                                              INSTALLED_SOLVERS,)
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import (
-    StandardTestECPs,
-    StandardTestLPs,
-    StandardTestMixedCPs,
-    StandardTestSDPs,
-    StandardTestSOCPs,
-    StandardTestPCPs
-)
-from distutils.version import StrictVersion
+from cvxpy.tests.solver_test_helpers import (StandardTestECPs, StandardTestLPs,
+                                             StandardTestMixedCPs,
+                                             StandardTestPCPs,
+                                             StandardTestSDPs,
+                                             StandardTestSOCPs,)
 
 
 class TestECOS(BaseTest):
@@ -124,6 +122,24 @@ class TestSCS(BaseTest):
     # Overridden method to assume lower accuracy.
     def assertAlmostEqual(self, a, b, places: int = 2) -> None:
         super(TestSCS, self).assertAlmostEqual(a, b, places=places)
+
+    def test_scs_retry(self) -> None:
+        """Test that SCS retry doesn't trigger a crash.
+        """
+        n_sec = 20
+        np.random.seed(315)
+        mu = np.random.random(n_sec)
+        random_mat = np.random.rand(n_sec, n_sec)
+        C = np.dot(random_mat, random_mat.transpose())
+
+        x = cp.Variable(n_sec)
+        prob = cp.Problem(cp.Minimize(cp.QuadForm(x, C)),
+                          [cp.sum(x) == 1,
+                           0 <= x,
+                           x <= 1,
+                           x @ mu >= np.max(mu) - 1e-6])
+        prob.solve(cp.SCS)
+        assert prob.status in {cp.OPTIMAL, cp.OPTIMAL_INACCURATE}
 
     def test_scs_options(self) -> None:
         """Test that all the SCS solver options work.
@@ -265,9 +281,9 @@ class TestSCS(BaseTest):
         x = cp.Variable(10)
         obj = cp.Minimize(cp.sum(cp.exp(x)))
         prob = cp.Problem(obj, [cp.sum(x) == 1])
-        result = prob.solve(solver=cp.SCS, eps=1e-4)
+        result = prob.solve(solver=cp.SCS)
         time = prob.solver_stats.solve_time
-        result2 = prob.solve(solver=cp.SCS, warm_start=True, eps=1e-4)
+        result2 = prob.solve(solver=cp.SCS, warm_start=True)
         time2 = prob.solver_stats.solve_time
         self.assertAlmostEqual(result2, result, places=2)
         print(time > time2)
@@ -278,13 +294,13 @@ class TestSCS(BaseTest):
         try:
             import diffcp
             diffcp  # for flake8
-        except ImportError:
+        except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
         x = cp.Variable(10)
         obj = cp.Minimize(cp.sum(cp.exp(x)))
         prob = cp.Problem(obj, [cp.sum(x) == 1])
-        result = prob.solve(solver=cp.DIFFCP, eps=1e-4)
-        result2 = prob.solve(solver=cp.DIFFCP, warm_start=True, eps=1e-4)
+        result = prob.solve(solver=cp.DIFFCP)
+        result2 = prob.solve(solver=cp.DIFFCP, warm_start=True)
         self.assertAlmostEqual(result2, result, places=2)
 
     def test_psd_constraint(self) -> None:
@@ -310,10 +326,10 @@ class TestSCS(BaseTest):
         StandardTestLPs.test_lp_4(solver='SCS')
 
     def test_scs_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCS')
+        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-5)
 
     def test_scs_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='SCS')
+        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-5)
 
     def test_scs_socp_3(self) -> None:
         # axis 0
@@ -325,19 +341,22 @@ class TestSCS(BaseTest):
         StandardTestSDPs.test_sdp_1min(solver='SCS')
 
     def test_scs_sdp_2(self) -> None:
-        StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-8)
+        StandardTestSDPs.test_sdp_2(solver='SCS', eps=1e-5)
 
     def test_scs_expcone_1(self) -> None:
-        StandardTestECPs.test_expcone_1(solver='SCS')
+        StandardTestECPs.test_expcone_1(solver='SCS', eps=1e-5)
 
     def test_scs_exp_soc_1(self) -> None:
-        StandardTestMixedCPs.test_exp_soc_1(solver='SCS')
+        StandardTestMixedCPs.test_exp_soc_1(solver='SCS', eps=1e-5)
 
     def test_scs_pcp_1(self) -> None:
-        StandardTestPCPs.test_pcp_1(solver='SCS', eps=1e-8)
+        StandardTestPCPs.test_pcp_1(solver='SCS')
 
     def test_scs_pcp_2(self) -> None:
-        StandardTestPCPs.test_pcp_2(solver='SCS', eps=1e-8)
+        StandardTestPCPs.test_pcp_2(solver='SCS')
+
+    def test_scs_pcp_3(self) -> None:
+        StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
@@ -399,6 +418,9 @@ class TestMosek(unittest.TestCase):
 
     def test_mosek_pcp_2(self) -> None:
         StandardTestPCPs.test_pcp_2(solver='MOSEK')
+
+    def test_mosek_pcp_3(self) -> None:
+        StandardTestPCPs.test_pcp_3(solver='MOSEK')
 
     def test_mosek_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='MOSEK')
@@ -947,6 +969,39 @@ class TestGUROBI(BaseTest):
                 prob.solve(solver=cp.GUROBI, TimeLimit=0)
             self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.GUROBI)
 
+    def test_gurobi_environment(self) -> None:
+        """Tests that Gurobi environments can be passed to Model.
+        Gurobi environments can include licensing and model parameter data.
+        """
+        if cp.GUROBI in INSTALLED_SOLVERS:
+            import gurobipy
+
+            # Set a few parameters to random values close to their defaults
+            params = {
+                'MIPGap': np.random.random(),  # range {0, INFINITY}
+                'AggFill': np.random.randint(10),  # range {-1, MAXINT}
+                'PerturbValue': np.random.random(),  # range: {0, INFINITY}
+            }
+
+            # Create a custom environment and set some parameters
+            custom_env = gurobipy.Env()
+            for k, v in params.items():
+                custom_env.setParam(k, v)
+
+            # Testing Conic Solver Interface
+            sth = StandardTestSOCPs.test_socp_0(solver='GUROBI', env=custom_env)
+            model = sth.prob.solver_stats.extra_stats
+            for k, v in params.items():
+                # https://www.gurobi.com/documentation/9.1/refman/py_model_getparaminfo.html
+                name, p_type, p_val, p_min, p_max, p_def = model.getParamInfo(k)
+                self.assertEqual(v, p_val)
+
+        else:
+            with self.assertRaises(Exception) as cm:
+                prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)), [self.x == 0])
+                prob.solve(solver=cp.GUROBI, TimeLimit=0)
+            self.assertEqual(str(cm.exception), "The solver %s is not installed." % cp.GUROBI)
+
     def test_gurobi_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='GUROBI')
 
@@ -1296,8 +1351,9 @@ class TestAllSolvers(BaseTest):
     def test_installed_solvers(self) -> None:
         """Test the list of installed solvers.
         """
-        from cvxpy.reductions.solvers.defines import (SOLVER_MAP_CONIC, SOLVER_MAP_QP,
-                                                      INSTALLED_SOLVERS)
+        from cvxpy.reductions.solvers.defines import (INSTALLED_SOLVERS,
+                                                      SOLVER_MAP_CONIC,
+                                                      SOLVER_MAP_QP,)
         prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1) + 1.0), [self.x == 0])
         for solver in SOLVER_MAP_CONIC.keys():
             if solver in INSTALLED_SOLVERS:
@@ -1323,8 +1379,8 @@ class TestAllSolvers(BaseTest):
         objective = cp.Minimize(cp.sum(x))
         prob = cp.Problem(objective, [x >= 0])
         if INSTALLED_MI_SOLVERS == [cp.ECOS_BB]:
-            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer"
-                                                              "solver for this model.*"):
+            with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
+                                                           "solver for this model"):
                 prob.solve()
         else:
             prob.solve()
@@ -1343,8 +1399,8 @@ class TestECOS_BB(unittest.TestCase):
             prob.solve()
             assert prob.solver_stats.solver_name != cp.ECOS_BB
         else:
-            with self.assertRaisesRegex(cp.error.SolverError, "You need a mixed-integer"
-                                                              "solver for this model.*"):
+            with pytest.raises(cp.error.SolverError, match="You need a mixed-integer "
+                                                           "solver for this model"):
                 prob.solve()
 
     def test_ecos_bb_lp_0(self) -> None:

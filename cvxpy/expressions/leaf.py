@@ -15,17 +15,23 @@ limitations under the License.
 """
 
 import abc
-from cvxpy.expressions import expression
-from cvxpy.settings import (GENERAL_PROJECTION_TOL,
-                            PSD_NSD_PROJECTION_TOL,
-                            SPARSE_PROJECTION_TOL)
-from typing import Tuple
+from typing import TYPE_CHECKING, List, Tuple, Union
 
-import cvxpy.interface as intf
+if TYPE_CHECKING:
+    from cvxpy import Constant, Variable
+    from cvxpy.atoms.atom import Atom
+
 import numbers
+
 import numpy as np
 import numpy.linalg as LA
 import scipy.sparse as sp
+
+import cvxpy.interface as intf
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import expression
+from cvxpy.settings import (GENERAL_PROJECTION_TOL, PSD_NSD_PROJECTION_TOL,
+                            SPARSE_PROJECTION_TOL,)
 
 
 class Leaf(expression.Expression):
@@ -84,12 +90,14 @@ class Leaf(expression.Expression):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, shape: Tuple[int], value=None, nonneg: bool = False, nonpos: bool = False,
-                 complex: bool = False, imag: bool = False,
-                 symmetric: bool = False, diag: bool = False, PSD: bool = False,
-                 NSD: bool = False, hermitian: bool = False,
-                 boolean: bool = False, integer: bool = False,
-                 sparsity=None, pos: bool = False, neg: bool = False) -> None:
+    def __init__(
+        self, shape: Union[int, Tuple[int, ...]], value=None, nonneg: bool = False,
+        nonpos: bool = False, complex: bool = False, imag: bool = False,
+        symmetric: bool = False, diag: bool = False, PSD: bool = False,
+        NSD: bool = False, hermitian: bool = False,
+        boolean: bool = False, integer: bool = False,
+        sparsity=None, pos: bool = False, neg: bool = False
+    ) -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         elif len(shape) > 2:
@@ -174,12 +182,12 @@ class Leaf(expression.Expression):
         pass
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """ tuple : The dimensions of the expression.
         """
         return self._shape
 
-    def variables(self):
+    def variables(self) -> List['Variable']:
         """Default is empty list of Variables.
         """
         return []
@@ -189,7 +197,7 @@ class Leaf(expression.Expression):
         """
         return []
 
-    def constants(self):
+    def constants(self) -> List['Constant']:
         """Default is empty list of Constants.
         """
         return []
@@ -258,7 +266,7 @@ class Leaf(expression.Expression):
         return self.attributes['complex'] or self.is_imag() or self.attributes['hermitian']
 
     @property
-    def domain(self):
+    def domain(self) -> List[Constraint]:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
@@ -303,7 +311,7 @@ class Leaf(expression.Expression):
         elif self.attributes['imag']:
             return np.imag(val)*1j
         elif self.attributes['complex']:
-            return val.astype(np.complex)
+            return val.astype(complex)
         elif self.attributes['boolean']:
             # TODO(akshayka): respect the boolean indices.
             return np.round(np.clip(val, 0., 1.))
@@ -323,7 +331,7 @@ class Leaf(expression.Expression):
         elif any([self.attributes[key] for
                   key in ['symmetric', 'PSD', 'NSD']]):
             if val.dtype.kind in 'ib':
-                val = val.astype(np.float)
+                val = val.astype(float)
             val = val + val.T
             val /= 2.
             if self.attributes['symmetric']:
@@ -459,5 +467,5 @@ class Leaf(expression.Expression):
         """
         return True
 
-    def atoms(self):
+    def atoms(self) -> List['Atom']:
         return []

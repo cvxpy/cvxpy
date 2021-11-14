@@ -16,13 +16,14 @@ limitations under the License.
 
 from __future__ import division
 
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 from scipy.sparse import csc_matrix
 from scipy.special import kl_div as kl_div_scipy
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.constraints.constraint import Constraint
 
 
 class kl_div(Elementwise):
@@ -91,7 +92,7 @@ class kl_div(Elementwise):
                                                            rows, cols)]
             return grad_list
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0] >= 0, self.args[1] >= 0]

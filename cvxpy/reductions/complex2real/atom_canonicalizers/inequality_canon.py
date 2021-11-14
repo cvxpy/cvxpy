@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.constants import Constant
-from cvxpy.constraints import Inequality, NonPos, NonNeg
 import numpy as np
+
+from cvxpy.constraints import Inequality, NonNeg, NonPos
+from cvxpy.expressions.constants import Constant
 
 
 def inequality_canon(expr, real_args, imag_args, real2imag):

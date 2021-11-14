@@ -13,10 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from cvxpy.atoms.atom import Atom
 from typing import Tuple
 
 import numpy as np
+
+from cvxpy.atoms.atom import Atom
 
 
 class length(Atom):
@@ -34,7 +35,7 @@ class length(Atom):
         """
         return np.max(np.nonzero(values[0])) + 1
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

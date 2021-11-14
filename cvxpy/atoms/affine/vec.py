@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.expressions.expression import Expression
 
 
 def vec(X):

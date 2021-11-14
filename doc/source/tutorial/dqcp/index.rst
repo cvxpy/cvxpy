@@ -60,7 +60,7 @@ For an in-depth reference on DQCP, see our
 For interactive code examples, check out our :ref:`notebooks <dqcp-examples>`.
 
 *Note: DQCP is a recent addition to CVXPY. If you have feedback, please file an
-issue or make a pull request on* `Github <https://github.com/cvxgrp/cvxpy>`_.
+issue or make a pull request on* `Github <https://github.com/cvxpy/cvxpy>`_.
 
 Curvature
 ---------

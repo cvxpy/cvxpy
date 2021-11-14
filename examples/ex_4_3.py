@@ -18,7 +18,8 @@ limitations under the License.
 from __future__ import division
 
 import cvxopt
-from cvxpy import Minimize, Problem, quad_form, Variable
+
+from cvxpy import Minimize, Problem, Variable, quad_form
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Example: CVX Textbook exercise 4.3: Solve a simple QP with inequality constraints

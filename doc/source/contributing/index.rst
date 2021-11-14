@@ -6,19 +6,24 @@ Contributing
 We welcome all contributors to CVXPY. You don't need to be an expert in convex
 optimization to help out. Here are simple ways to start contributing immediately:
 
- * Help answer questions on the `CVXPY discord <https://discord.gg/SWUSgBu3Yz>`_ or `StackOverflow <https://stackoverflow.com/questions/tagged/cvxpy>`_
+ * Help answer questions on the `CVXPY discord <https://discord.gg/4urRQeGBCr>`_,
+   `Github discussions <https://github.com/cvxpy/cvxpy/discussions>`_,
+   or `StackOverflow <https://stackoverflow.com/questions/tagged/cvxpy>`_
 
  * Read the CVXPY source code and improve the documentation, or address TODOs
 
- * Fix typos or otherwise enhance the `website documentation <https://github.com/cvxgrp/cvxpy/tree/master/doc>`_
+ * Fix typos or otherwise enhance the `website documentation <https://github.com/cvxpy/cvxpy/tree/master/doc>`_
 
- * Browse the `issue tracker <https://github.com/cvxgrp/cvxpy/issues>`_, and work on unassigned bugs or feature requests
+ * Browse the `issue tracker <https://github.com/cvxpy/cvxpy/issues>`_, and work on unassigned bugs or feature requests
 
- * Polish the `example library <https://github.com/cvxgrp/cvxpy/tree/master/examples>`_
+ * Polish the `example library <https://github.com/cvxpy/cvxpy/tree/master/examples>`_
 
 If you'd like to add a new example to our library, or implement a new feature,
 please get in touch with us first by opening a GitHub issue to make sure that your
 priorities align with ours.
+
+CVXPY contributors must follow `our code of conduct <https://github.com/cvxpy/cvxpy/blob/master/CODE_OF_CONDUCT.md>`_.
+Overall development is guided by `our governance structure <https://github.com/cvxpy/org/blob/main/governance.md>`_.
 
 The remainder of this page goes into more detail on how to contribute to CVXPY.
 
@@ -37,7 +42,7 @@ Here's one way CVXPY contributors might configure git:
  1. Tell git about the existence of the official CVXPY repo:
    ::
 
-    git remote add upstream https://github.com/cvxgrp/cvxpy.git
+    git remote add upstream https://github.com/cvxpy/cvxpy.git
 
  2. Fetch a copy of the official master branch:
     ::
@@ -114,16 +119,26 @@ Please add the following license to new files:
 
 Code style
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-We use `flake8 <http://flake8.pycqa.org/en/latest/>`_ to enforce our Python coding
+We use `flake8 <http://flake8.pycqa.org/en/latest/>`_ and
+`isort <https://pycqa.github.io/isort/>`_ to enforce our Python coding
 style. Before sending us a pull request, navigate to the project root
 and run
 
   ::
 
     flake8 cvxpy/
+    isort .
 
 to make sure that your changes abide by our style conventions. Please fix any
-errors that flake8 reports before sending the pull request.
+errors that are reported before sending the pull request.
+
+Optionally, the package `pre-commit <https://pre-commit.com/>`_ can be installed
+to check these conventions automatically before every commit.
+
+  ::
+
+     pip install pre-commit
+     pre-commit install
 
 .. _contrib_unittests:
 
@@ -220,9 +235,9 @@ Conic solvers require that the objective is a linear function of the
 optimization variable; constraints must be expressed using convex cones and
 affine functions of the optimization variable.
 The codepath for conic solvers begins with
-`reductions/solvers/conic_solvers <https://github.com/cvxgrp/cvxpy/tree/master/cvxpy/reductions/solvers/conic_solvers>`_
+`reductions/solvers/conic_solvers <https://github.com/cvxpy/cvxpy/tree/master/cvxpy/reductions/solvers/conic_solvers>`_
 and in particular with the class ``ConicSolver`` in
-`conic_solver.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/conic_solver.py>`_.
+`conic_solver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/conic_solver.py>`_.
 
 Let's say you're writing a CVXPY interface for the "*Awesome*" conic solver,
 and that there's an existing package ``AwesomePy`` for calling *Awesome* from python.
@@ -315,7 +330,7 @@ meanings of ``A, b, cone_dims``, so that you can correctly build a primal
 problem using the third-party ``AwesomePy`` interface to the *Awesome* solver.
 The ``cone_dims`` object is an instance of the ConeDims class, as defined in
 `cone_matrix_stuffing.py
-<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.py>`_;
+<https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.py>`_;
 ``A`` is a SciPy sparse matrix, and ``b`` is a numpy ndarray with ``b.ndim == 1``.
 The rows of ``A`` and entries of ``b`` are given in a very specific order, as described below.
 
@@ -403,11 +418,11 @@ and :math:`\mu_i \in K_i^* \subset \mathbb{R}^{m_i}` for :math:`i \in \{3,4,5,6\
 Here, :math:`K_i^*` denotes the dual cone to :math:`K_i` under the standard inner product.
 
 More remarks on dual variables (particularly SOC dual variables) can be found in
-`this comment on a GitHub thread <https://github.com/cvxgrp/cvxpy/issues/948#issuecomment-592781675>`_.
+`this comment on a GitHub thread <https://github.com/cvxpy/cvxpy/issues/948#issuecomment-592781675>`_.
 
 Most concrete implementations of the ConicSolver class use a common set of helper
 functions for dual variable recovery, found in
-`reductions/solvers/utilities.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py>`_.
+`reductions/solvers/utilities.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py>`_.
 
 
 Registering a solver
@@ -416,9 +431,9 @@ Registering a solver
 Correctly implementing ``Awesome(ConicSolver)`` isn't enough to call *Awesome* from CVXPY.
 You need to make edits in a handful of other places, namely
 
- - `conic_solvers/__init__.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/__init__.py>`_,
- - `solvers/defines.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/reductions/solvers/defines.py>`_, and
- - `cvxpy/__init__.py <https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/__init__.py>`_.
+ - `conic_solvers/__init__.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/conic_solvers/__init__.py>`_,
+ - `solvers/defines.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/defines.py>`_, and
+ - `cvxpy/__init__.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/__init__.py>`_.
 
 The existing content of those files should make it clear what's needed
 to add *Awesome* to CVXPY.
@@ -427,11 +442,11 @@ Writing tests
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Tests for  ``Awesome(ConicSolver)`` should be placed in `cvxpy/tests/test_conic_solvers.py
-<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/tests/test_conic_solvers.py>`_.
+<https://github.com/cvxpy/cvxpy/blob/master/cvxpy/tests/test_conic_solvers.py>`_.
 The overwhelming majority of tests in that file only take a single line, because
 we make consistent use of a general testing framework defined in
 `solver_test_helpers.py
-<https://github.com/cvxgrp/cvxpy/blob/master/cvxpy/tests/solver_test_helpers.py>`_.
+<https://github.com/cvxpy/cvxpy/blob/master/cvxpy/tests/solver_test_helpers.py>`_.
 Here are examples of helper functions we invoke in ``test_conic_solvers.py``,
 
 .. code::
@@ -511,21 +526,21 @@ CVXPY 1.2
 
 - Move CI from Travis-CI to Github actions. [Large] [Done, thanks @phschiele!]
 - Add CI for Gurobi, CPLEX, GLPK, Cbc, and SCIP. [Small] [Done, thanks @phschiele!]
-- `Post-solver feasibility checks <https://github.com/cvxgrp/cvxpy/issues/582>`_. [Small]
-- `Developer documentation for key reduction files <https://github.com/cvxgrp/cvxpy/issues/582>`_. [Small]
-- `State required cone types for atoms <https://github.com/cvxgrp/cvxpy/issues/574>`_. [Small]
+- `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/582>`_. [Small]
+- `Developer documentation for key reduction files <https://github.com/cvxpy/cvxpy/issues/582>`_. [Small]
+- `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_. [Small]
 
 .. _contrib_major_roadmap
 
 CVXPY 2.0
 ~~~~~~~~~
 
-- Problem serialization [`532 <https://github.com/cvxgrp/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_] [Large]
+- Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_] [Large]
 - Pretty print method for summarizing a solution and its dual variables. [Large]
 - `Code generation for quadratic programs and cone programs <https://github.com/cvxpy/cvxpy/issues/1273>`_. [Large]
 - `Support for n-dimensional expressions, variables, parameters, etc <https://github.com/cvxpy/cvxpy/issues/198>`_. [Large]
 - `10x improvement in the speed and memory usage of cvxcore <https://github.com/cvxpy/cvxpy/issues/708>`_, `especially for DPP problems <https://github.com/cvxpy/cvxpy/issues/1332>`_. [Large]
-- Sophisticated affine transformations: [`457 <https://github.com/cvxgrp/cvxpy/issues/457>`_, `563 <https://github.com/cvxgrp/cvxpy/issues/563>`_, `808 <https://github.com/cvxgrp/cvxpy/issues/808>`_]. [Small]
+- Sophisticated affine transformations: [`457 <https://github.com/cvxpy/cvxpy/issues/457>`_, `563 <https://github.com/cvxpy/cvxpy/issues/563>`_, `808 <https://github.com/cvxpy/cvxpy/issues/808>`_]. [Small]
 - Full compatibility with NumPy broadcasting rules. [Large]
 
 

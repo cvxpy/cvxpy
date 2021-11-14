@@ -13,10 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List, Tuple
+
+from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
-from scipy import linalg as LA
-from typing import Tuple
+from cvxpy.constraints.constraint import Constraint
 
 
 class gen_lambda_max(Atom):
@@ -37,7 +39,7 @@ class gen_lambda_max(Atom):
                        eigvals_only=True,
                        eigvals=(lo, hi))[0]
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         return [self.args[0].H == self.args[0], self.args[1].H == self.args[1],
@@ -68,7 +70,7 @@ class gen_lambda_max(Atom):
                 "be square and have the same dimensions." % (
                  self.args[0].name(), self.args[1].name()))
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

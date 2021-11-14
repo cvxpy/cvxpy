@@ -14,16 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from collections import defaultdict
+
 import numpy as np
 import scipy as sp
-from cvxpy.reductions.solvers.utilities import expcone_permutor
+
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
-from cvxpy.reductions.solution import Solution
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.cone2cone import affine2direct as a2d
 from cvxpy.reductions.cone2cone.affine2direct import Dualize, Slacks
-from collections import defaultdict
+from cvxpy.reductions.solution import Solution
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.utilities import expcone_permutor
 
 
 def vectorized_lower_tri_to_mat(v, dim):
@@ -103,7 +105,8 @@ class MOSEK(ConicSolver):
                     return False
         return True
 
-    def psd_format_mat(self, constr):
+    @staticmethod
+    def psd_format_mat(constr):
         """Return a linear operator to multiply by PSD constraint coefficients.
 
         Special cases PSD constraints, as MOSEK expects constraints to be
@@ -261,6 +264,7 @@ class MOSEK(ConicSolver):
         "A @ x + A_bar(X_bars) == b".
         """
         import mosek
+
         # problem data
         c, A, b, K = data[s.C], data[s.A], data[s.B], data['K_dir']
         n, m = A.shape
@@ -534,11 +538,9 @@ class MOSEK(ConicSolver):
         import mosek
 
         if verbose:
-            import sys
 
             def streamprinter(text):
-                sys.stdout.write(text)
-                sys.stdout.flush()
+                s.LOGGER.info(text.replace('\n', ''))
 
             print('\n')
             env.set_Stream(mosek.streamtype.log, streamprinter)

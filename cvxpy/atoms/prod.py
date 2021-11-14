@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.hstack import hstack
-from cvxpy.atoms.axis_atom import AxisAtom
 from typing import Tuple
 
-import cvxpy.interface as intf
 import numpy as np
+
+import cvxpy.interface as intf
+from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class Prod(AxisAtom):

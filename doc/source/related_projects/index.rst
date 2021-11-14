@@ -15,7 +15,7 @@ Modeling frameworks
 
 - `NCVX <https://github.com/cvxgrp/ncvx>`_ is a CVXPY extension for modeling and solving problems with convex objectives and decision variables from a nonconvex set.
 
-- `cvxstoc <http://alnurali.github.io/cvxstoc/>`_ is a CVXPY extension that makes it easy to code and solve stochastic optimization problems, i.e., convex optimization problems that involve random variables.
+- `osmm <https://github.com/cvxgrp/osmm>`_ is a Python package for optimization problems that arise in stochastic optimization, which is built on PyTorch and CVXPY.
 
 - `cvxpylayers <https://github.com/cvxgrp/cvxpylayers/>`_ is a library that converts CVXPY problems into differentiable PyTorch and TensorFlow 2.0 layers.
 

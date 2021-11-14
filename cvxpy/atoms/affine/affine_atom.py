@@ -13,18 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 import abc
-import cvxpy.utilities as u
+from typing import Any, List, Tuple
+
+import scipy.sparse as sp
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
 from cvxpy.cvxcore.python import canonInterface
 from cvxpy.expressions.constants import Constant
 from cvxpy.utilities import performance_utils as perf
-from typing import Any, List
-
-import scipy.sparse as sp
 
 
 class AffAtom(Atom):
@@ -32,7 +32,7 @@ class AffAtom(Atom):
     __metaclass__ = abc.ABCMeta
     _allow_complex = True
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """By default, the sign is the most general of all the argument signs.
         """
         return u.sign.sum_signs([arg for arg in self.args])

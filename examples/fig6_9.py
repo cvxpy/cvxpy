@@ -16,15 +16,14 @@ limitations under the License.
 
 from __future__ import division
 
-import numpy as np
 from multiprocessing import Pool
 
 import cvxopt
-from cvxpy import norm, Minimize, Parameter, Problem, Variable
-from scipy import sparse
+import numpy as np
 from pylab import plot, show, title, xlabel, ylabel
+from scipy import sparse
 
-
+from cvxpy import Minimize, Parameter, Problem, Variable, norm
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Figure 6.9: An optimal tradeoff curve

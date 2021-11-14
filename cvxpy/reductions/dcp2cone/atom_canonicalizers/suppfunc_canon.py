@@ -1,7 +1,9 @@
-from cvxpy import hstack, SOC, Variable
-from cvxpy.constraints.exponential import ExpCone
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import scs_psdvec_to_psdmat
 import numpy as np
+
+from cvxpy import SOC, Variable, hstack
+from cvxpy.constraints.exponential import ExpCone
+from cvxpy.reductions.solvers.conic_solvers.scs_conif import (
+    scs_psdvec_to_psdmat,)
 
 
 def suppfunc_canon(expr, args):

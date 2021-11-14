@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 import cvxpy as cvx
+import cvxpy.problems.iterative as iterative
 import cvxpy.settings as s
 from cvxpy.lin_ops.tree_mat import prune_constants
-import cvxpy.problems.iterative as iterative
 from cvxpy.tests.base_test import BaseTest
-import numpy as np
 
 
 class TestConvolution(BaseTest):
@@ -108,3 +109,16 @@ class TestConvolution(BaseTest):
         v = cvx.conv(h, x)
         obj = cvx.Minimize(cvx.sum(cvx.multiply(y, v[0:N])))
         print(cvx.Problem(obj, []).solve(solver=cvx.ECOS))
+
+    def test_0D_conv(self) -> None:
+        """Convolution with 0D input.
+        """
+        x = cvx.Variable((1,))  # or cvx.Variable((1,1))
+        problem = cvx.Problem(
+            cvx.Minimize(
+                cvx.max(cvx.conv([1.], cvx.multiply(1., x)))
+            ),
+            [x >= 0]
+        )
+        problem.solve(cvx.ECOS)
+        assert problem.status == cvx.OPTIMAL

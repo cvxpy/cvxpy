@@ -13,15 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
-
-import sys
-from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
 import operator as op
-if sys.version_info >= (3, 0):
-    from functools import reduce
+from functools import reduce
+from typing import List, Tuple
+
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
 
 
 class AddExpression(AffAtom):
@@ -36,7 +36,7 @@ class AddExpression(AffAtom):
         for group in arg_groups:
             self.args += self.expand_args(group)
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
@@ -49,7 +49,7 @@ class AddExpression(AffAtom):
         else:
             return [expr]
 
-    def name(self):
+    def name(self) -> str:
         result = str(self.args[0])
         for i in range(1, len(self.args)):
             result += " + " + str(self.args[i])
@@ -102,7 +102,9 @@ class AddExpression(AffAtom):
         copy.__init__(args)
         return copy
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Sum the linear expressions.
 
         Parameters

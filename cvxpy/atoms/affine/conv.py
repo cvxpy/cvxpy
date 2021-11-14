@@ -14,13 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from typing import Tuple
+from typing import List, Tuple
 
-import cvxpy.utilities as u
-import cvxpy.interface as intf
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
+import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
 
 
 class conv(AffAtom):
@@ -70,7 +73,7 @@ class conv(AffAtom):
         rh_length = self.args[1].shape[0]
         return (lh_length + rh_length - 1, 1)
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Same as times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
@@ -85,7 +88,9 @@ class conv(AffAtom):
         """
         return self.args[0].is_nonpos()
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Convolve two vectors.
 
         Parameters

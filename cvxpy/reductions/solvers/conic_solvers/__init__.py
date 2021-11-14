@@ -23,8 +23,8 @@ from .glpk_conif import GLPK
 from .glpk_mi_conif import GLPK_MI
 from .gurobi_conif import GUROBI
 from .mosek_conif import MOSEK
+from .nag_conif import NAG
 from .scip_conif import SCIP
 from .scipy_conif import SCIPY
 from .scs_conif import SCS
 from .xpress_conif import XPRESS
-from .nag_conif import NAG

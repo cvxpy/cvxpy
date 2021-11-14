@@ -15,12 +15,14 @@ limitations under the License.
 """
 
 from __future__ import division
+
 from multiprocessing import Pool
 
 import cvxopt
 import numpy as np
-from cvxpy import norm, Minimize, Parameter, Problem, Variable
 from pylab import plot, show, title, xlabel, ylabel
+
+from cvxpy import Minimize, Parameter, Problem, Variable, norm
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Exercise 5.33: Parametrized l1-norm approximation

@@ -13,14 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
+from typing import List, Tuple, Union
 
+import numpy as np
+
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.vec import vec
-from typing import Union
-
-import cvxpy.lin_ops.lin_utils as lu
-import numpy as np
+from cvxpy.constraints.constraint import Constraint
 
 
 def diag(expr) -> Union["diag_mat", "diag_vec"]:
@@ -67,7 +68,7 @@ class diag_vec(AffAtom):
         """
         return np.diag(values[0])
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, int]:
         """A square matrix.
         """
         rows = self.args[0].shape[0]
@@ -93,7 +94,9 @@ class diag_vec(AffAtom):
         """
         return self.is_nonpos()
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Convolve two vectors.
 
         Parameters
@@ -137,7 +140,7 @@ class diag_mat(AffAtom):
         # The return type in numpy versions < 1.10 was ndarray.
         return np.diag(values[0])
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int]:
         """A column vector.
         """
         rows, _ = self.args[0].shape
@@ -148,7 +151,9 @@ class diag_mat(AffAtom):
         """
         return self.args[0].is_nonneg() or self.args[0].is_psd()
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Extracts the diagonal of a matrix.
 
         Parameters

@@ -14,28 +14,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from distutils.version import StrictVersion
 
-import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonNeg, PSD, SOC, ExpCone, PowCone3D
-from cvxpy.expressions.expression import Expression
-from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers import utilities
 import numpy as np
 import scipy.sparse as sp
 
+import cvxpy.settings as s
+from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
+from cvxpy.expressions.expression import Expression
+from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    dims_to_solver_dict as dims_to_solver_dict_default,)
 
-# Utility method for formatting a ConeDims instance into a dictionary
-# that can be supplied to scs.
+
 def dims_to_solver_dict(cone_dims):
-    cones = {
-        'f': cone_dims.zero,
-        'l': cone_dims.nonneg,
-        'q': cone_dims.soc,
-        'ep': cone_dims.exp,
-        's': cone_dims.psd,
-        'p': cone_dims.p3d
-    }
+    cones = dims_to_solver_dict_default(cone_dims)
+
+    import scs
+    if StrictVersion(scs.__version__) >= StrictVersion('3.0.0'):
+        cones['z'] = cones.pop('f')  # renamed to 'z' in SCS 3.0.0
     return cones
 
 
@@ -145,7 +144,8 @@ class SCS(ConicSolver):
         import scs
         scs  # For flake8
 
-    def psd_format_mat(self, constr):
+    @staticmethod
+    def psd_format_mat(constr):
         """Return a linear operator to multiply by PSD constraint coefficients.
 
         Special cases PSD constraints, as SCS expects constraints to be
@@ -181,31 +181,6 @@ class SCS(ConicSolver):
 
         return scaled_lower_tri @ symm_matrix
 
-    def _prepare_data_and_inv_data(self, problem):
-        data = {}
-        inv_data = {self.VAR_ID: problem.x.id}
-
-        # Format constraints
-        #
-        # SCS requires constraints to be specified in the following order:
-        # 1. zero cone
-        # 2. non-negative orthant
-        # 3. soc
-        # 4. psd
-        # 5. exponential
-        # 6. three-dimensional power cones
-        if not problem.formatted:
-            problem = self.format_constraints(problem, self.EXP_CONE_ORDER)
-        data[s.PARAM_PROB] = problem
-        data[self.DIMS] = problem.cone_dims
-        inv_data[self.DIMS] = problem.cone_dims
-
-        constr_map = problem.constr_map
-        inv_data[self.EQ_CONSTR] = constr_map[Zero]
-        inv_data[self.NEQ_CONSTR] = constr_map[NonNeg] + constr_map[SOC] + \
-            constr_map[PSD] + constr_map[ExpCone] + constr_map[PowCone3D]
-        return problem, data, inv_data
-
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -214,18 +189,10 @@ class SCS(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
-        problem, data, inv_data = self._prepare_data_and_inv_data(problem)
+        return super(SCS, self).apply(problem)
 
-        # Apply parameter values.
-        # Obtain A, b such that Ax + s = b, s \in cones.
-        c, d, A, b = problem.apply_parameters()
-        data[s.C] = c
-        inv_data[s.OFFSET] = d
-        data[s.A] = -A
-        data[s.B] = b
-        return data, inv_data
-
-    def extract_dual_value(self, result_vec, offset, constraint):
+    @staticmethod
+    def extract_dual_value(result_vec, offset, constraint):
         """Extracts the dual value for constraint starting at offset.
 
         Special cases PSD constraints, as per the SCS specification.
@@ -244,11 +211,20 @@ class SCS(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = self.STATUS_MAP[solution["info"]["statusVal"]]
-
+        import scs
         attr = {}
-        attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
-        attr[s.SETUP_TIME] = solution["info"]["setupTime"]
+        # SCS versions 1.*, SCS 2.*
+        if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+            status = self.STATUS_MAP[solution["info"]["statusVal"]]
+            attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
+            attr[s.SETUP_TIME] = solution["info"]["setupTime"]
+
+        # SCS version 3.*
+        else:
+            status = self.STATUS_MAP[solution["info"]["status_val"]]
+            attr[s.SOLVE_TIME] = solution["info"]["solve_time"]
+            attr[s.SETUP_TIME] = solution["info"]["setup_time"]
+
         attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
 
@@ -298,27 +274,53 @@ class SCS(ConicSolver):
         import scs
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
         if warm_start and solver_cache is not None and \
-           self.name() in solver_cache:
+                self.name() in solver_cache:
             args["x"] = solver_cache[self.name()]["x"]
             args["y"] = solver_cache[self.name()]["y"]
             args["s"] = solver_cache[self.name()]["s"]
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
-        # Default to eps = 1e-4 instead of 1e-3.
-        solver_opts["eps"] = solver_opts.get("eps", 1e-4)
 
-        results = scs.solve(args, cones, verbose=verbose, **solver_opts)
-        status = self.STATUS_MAP[results["info"]["statusVal"]]
+        # SCS versions 1.*, SCS 2.*
+        if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+            if "eps_abs" in solver_opts or "eps_rel" in solver_opts:
+                # Take the min of eps_rel and eps_abs to be eps
+                solver_opts["eps"] = min(solver_opts.get("eps_abs", 1),
+                                         solver_opts.get("eps_rel", 1))
+            else:
+                # Default to eps = 1e-4 instead of 1e-3.
+                solver_opts["eps"] = solver_opts.get("eps", 1e-4)
 
-        if (status == s.OPTIMAL_INACCURATE and
-                "acceleration_lookback" not in solver_opts):
-            # anderson acceleration is sometimes unstable; retry without it
-            results = scs.solve(
-                args,
-                cones,
-                verbose=verbose,
-                acceleration_lookback=0,
-                **solver_opts)
+            results = scs.solve(args, cones, verbose=verbose, **solver_opts)
+            status = self.STATUS_MAP[results["info"]["statusVal"]]
 
-        if solver_cache is not None:
+            # anderson acceleration (introduced in scs 2.0) is sometimes unstable; retry without it
+            acceleration_lookback_available = (StrictVersion(scs.__version__) >=
+                                               StrictVersion('2.0.0'))
+            if (
+                    status == s.OPTIMAL_INACCURATE
+                    and "acceleration_lookback" not in solver_opts
+                    and acceleration_lookback_available
+            ):
+                results = scs.solve(
+                    args,
+                    cones,
+                    verbose=verbose,
+                    acceleration_lookback=0,
+                    **solver_opts)
+
+        # SCS version 3.*
+        else:
+            if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
+                solver_opts["eps_abs"] = solver_opts["eps"]
+                solver_opts["eps_rel"] = solver_opts["eps"]
+                del solver_opts["eps"]
+            else:
+                solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
+                solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+
+            results = scs.solve(args, cones, verbose=verbose, **solver_opts)
+            status = self.STATUS_MAP[results["info"]["status_val"]]
+
+        if solver_cache is not None and status == s.OPTIMAL:
             solver_cache[self.name()] = results
         return results

@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from scipy import misc
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy import misc
 
 l = misc.ascent()
 l = l.astype(np.float64, copy=False)
@@ -57,6 +57,7 @@ idx2pair = np.array(idx2pair) #convert back to numpy array
 
 import scipy.sparse as sp
 from cvxopt import spmatrix
+
 
 def involvedpairs(pairs):
     ''' Get all the pixel pairs whose gradient involves an unknown pixel.
@@ -120,6 +121,7 @@ def formCOO(pair2idx, img):
 
 Gx, Gy, bx, by = formCOO(pair2idx, r)
 import cvxpy as cp
+
 m, n = Gx.size
 x = cp.Variable(n)
 
@@ -132,6 +134,7 @@ constraints = [z[:, 0] == x.__rmul__(Gx) + bx,
 objective = cp.Minimize(sum([cp.norm(z[i,:]) for i in range(m)]))
 p = cp.Problem(objective, constraints)
 import cProfile
+
 cProfile.run("""
 result = p.solve(solver=cp.ECOS, verbose=True)
 """)

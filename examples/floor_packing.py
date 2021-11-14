@@ -16,7 +16,9 @@ limitations under the License.
 import math
 
 import pylab
-from cvxpy import geo_mean, Minimize, Problem, Variable, vstack
+
+from cvxpy import Minimize, Problem, Variable, geo_mean, vstack
+
 
 # Based on http://cvxopt.org/examples/book/floorplan.html
 class Box:

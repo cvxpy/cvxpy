@@ -18,8 +18,9 @@ from __future__ import division
 
 import cvxopt
 import numpy as np
-from cvxpy import norm, Minimize, pos, Problem, Variable
 from pylab import hist, plot, show, subplot, title, ylabel
+
+from cvxpy import Minimize, Problem, Variable, norm, pos
 
 # Taken from CVX website http://cvxr.com/cvx/examples/
 # Figure 6.2: Penalty function approximation

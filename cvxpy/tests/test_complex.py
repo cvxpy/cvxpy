@@ -14,15 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cvx
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.constants import Parameter
-from cvxpy import Problem, Minimize
-from cvxpy.tests.base_test import BaseTest
+import sys
+
 import numpy as np
 import scipy.sparse as sp
-import sys
+
+import cvxpy as cvx
+from cvxpy import Minimize, Problem
+from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.expressions.variable import Variable
+from cvxpy.tests.base_test import BaseTest
+
 PY35 = sys.version_info >= (3, 5)
 
 
@@ -185,28 +187,28 @@ class TestComplex(BaseTest):
         x = Variable()
         expr = cvx.imag(x + 1j*x)
         prob = Problem(Minimize(expr), [x >= 0])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 0)
         self.assertAlmostEqual(x.value, 0)
 
         x = Variable(imag=True)
         expr = 1j*x
         prob = Problem(Minimize(expr), [cvx.imag(x) <= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -1)
         self.assertAlmostEqual(x.value, 1j)
 
         x = Variable(2)
         expr = x*1j
         prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) >= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -np.inf)
         prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) <= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -2)
         self.assertItemsAlmostEqual(x.value, [1, 1])
         prob = Problem(Minimize(expr[0]*1j + expr[1]*1j), [cvx.real(x + 1j) >= 1, cvx.conj(x) <= 0])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, np.inf)
 
         x = Variable((2, 2))
@@ -214,7 +216,7 @@ class TestComplex(BaseTest):
         expr = cvx.vstack([x, y])
         prob = Problem(Minimize(cvx.sum(cvx.imag(cvx.conj(expr)))),
                        [x == 0, cvx.real(y) == 0, cvx.imag(y) <= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
@@ -224,7 +226,7 @@ class TestComplex(BaseTest):
         expr = cvx.vstack([x, y])
         prob = Problem(Minimize(cvx.sum(cvx.imag(expr.H))),
                        [x == 0, cvx.real(y) == 0, cvx.imag(y) <= 1])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, -6)
         self.assertItemsAlmostEqual(y.value, 1j*np.ones((3, 2)))
         self.assertItemsAlmostEqual(x.value, np.zeros((2, 2)))
@@ -235,7 +237,7 @@ class TestComplex(BaseTest):
         p = cvx.Parameter(imag=True, value=1j)
         x = Variable(2, complex=True)
         prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.abs(p*x) <= 2])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 4*np.sqrt(2))
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
@@ -260,7 +262,7 @@ class TestComplex(BaseTest):
         """
         x = Variable(2, complex=True)
         prob = Problem(cvx.Maximize(cvx.sum(cvx.imag(x) + cvx.real(x))), [cvx.abs(x) <= 2])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 4*np.sqrt(2))
         val = np.ones(2)*np.sqrt(2)
         self.assertItemsAlmostEqual(x.value, val + 1j*val)
@@ -271,7 +273,7 @@ class TestComplex(BaseTest):
         x = Variable(2, complex=True)
         t = Variable()
         prob = Problem(cvx.Minimize(t), [cvx.SOC(t, x), x == 2j])
-        result = prob.solve(solver="SCS")
+        result = prob.solve(solver="SCS", eps=1e-6)
         self.assertAlmostEqual(result, 2*np.sqrt(2))
         self.assertItemsAlmostEqual(x.value, [2j, 2j])
 
@@ -592,3 +594,14 @@ class TestComplex(BaseTest):
         prob.solve(solver="SCS")
         self.assertEqual(prob.status, cvx.OPTIMAL)
         assert constraints[0].dual_value is not None
+
+    def test_quad_psd(self) -> None:
+        """Test PSD checking from #1491.
+        """
+        x = cvx.Variable(2, complex=True)
+        P1 = np.eye(2)
+        P2 = np.array([[1+0j, 0+0j],
+                       [0-0j, 1+0j]])
+        print("P1 is real:", cvx.quad_form(x, P1).curvature)
+        print("P2 is complex:", cvx.quad_form(x, P2).curvature)
+        assert cvx.quad_form(x, P2).is_dcp()

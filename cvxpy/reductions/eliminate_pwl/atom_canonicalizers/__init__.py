@@ -14,19 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import (abs, cummax, cumsum, maximum, max, minimum,
-                         min, norm1, norm_inf, sum_largest)
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import abs_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.cummax_canon import cummax_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.cumsum_canon import cumsum_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import maximum_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.minimum_canon import minimum_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import max_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.min_canon import min_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm1_canon import norm1_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm_inf_canon import norm_inf_canon
-from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.sum_largest_canon import sum_largest_canon
-
+from cvxpy.atoms import (abs, cummax, cumsum, max, maximum, min, minimum,
+                         norm1, norm_inf, sum_largest,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import (
+    abs_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.cummax_canon import (
+    cummax_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.cumsum_canon import (
+    cumsum_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import (
+    max_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import (
+    maximum_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.min_canon import (
+    min_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.minimum_canon import (
+    minimum_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm1_canon import (
+    norm1_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.norm_inf_canon import (
+    norm_inf_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.sum_largest_canon import (
+    sum_largest_canon,)
 
 CANON_METHODS = {
     abs: abs_canon,

@@ -16,11 +16,13 @@ limitations under the License.
 
 #!/usr/bin/env python
 
-from cvxpy import Minimize, Parameter, Problem, SCS, Variable, conv, norm
-import numpy as np
 import random
+from math import exp, pi, sqrt
 
-from math import pi, sqrt, exp
+import numpy as np
+
+from cvxpy import SCS, Minimize, Parameter, Problem, Variable, conv, norm
+
 
 def gauss(n: float = 11, sigma: float = 1):
     r = range(-int(n/2),int(n/2)+1)
@@ -65,6 +67,7 @@ data, dims = prob.get_problem_data(solver=SCS)
 
 # Plot result and fit.
 import matplotlib.pyplot as plt
+
 plt.plot(range(n), signal, label="true signal")
 plt.plot(range(n), np.asarray(noisy_signal.value[:n, 0]), label="noisy convolution")
 plt.plot(range(n), np.asarray(x.value[:,0]), label="recovered signal")

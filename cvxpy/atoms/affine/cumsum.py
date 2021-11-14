@@ -13,18 +13,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
+from typing import List, Tuple
 
-from cvxpy.atoms.axis_atom import AxisAtom
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.binary_operators import MulExpression
-from cvxpy.expressions.variable import Variable
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
 
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.binary_operators import MulExpression
+from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 
-def get_diff_mat(dim, axis):
+
+def get_diff_mat(dim: int, axis: int) -> sp.csc_matrix:
     """Return a sparse matrix representation of first order difference operator.
 
     Parameters
@@ -70,7 +74,7 @@ class cumsum(AffAtom, AxisAtom):
     axis : int
         The axis to sum across if 2D.
     """
-    def __init__(self, expr, axis: int = 0) -> None:
+    def __init__(self, expr: Expression, axis: int = 0) -> None:
         super(cumsum, self).__init__(expr, axis)
 
     @AffAtom.numpy_numeric
@@ -79,7 +83,7 @@ class cumsum(AffAtom, AxisAtom):
         """
         return np.cumsum(values[0], axis=self.axis)
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """The same as the input.
         """
         return self.args[0].shape
@@ -113,7 +117,9 @@ class cumsum(AffAtom, AxisAtom):
         """
         return [self.axis]
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Cumulative sum via difference matrix.
 
         Parameters

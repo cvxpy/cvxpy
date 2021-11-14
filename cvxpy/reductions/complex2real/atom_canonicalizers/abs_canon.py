@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import abs, vstack, pnorm, reshape
+from cvxpy.atoms import abs, pnorm, reshape, vstack
 
 
 def abs_canon(expr, real_args, imag_args, real2imag):

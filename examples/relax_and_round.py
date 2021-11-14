@@ -18,7 +18,8 @@ limitations under the License.
 from __future__ import division
 
 import numpy
-from cvxpy import Minimize, Parameter, Problem, sum_squares, Variable
+
+from cvxpy import Minimize, Parameter, Problem, Variable, sum_squares
 
 # def bool_vars(prob):
 #     return [var for var in prob.variables() if var.boolean]
@@ -125,6 +126,7 @@ def example(n, get_vals: bool = False):
 
 # Plot relaxation z_star.
 import matplotlib.pyplot as plt
+
 n = 20
 vals = range(1, n+1)
 relaxed, rounded, truth = map(numpy.asarray, example(n, True))
@@ -137,6 +139,7 @@ plt.show()
 
 # Plot optimal values.
 import matplotlib.pyplot as plt
+
 relaxed = []
 rounded = []
 truth = []

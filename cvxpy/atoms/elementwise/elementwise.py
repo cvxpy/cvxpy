@@ -17,18 +17,19 @@ limitations under the License.
 import abc
 from typing import Tuple
 
-from cvxpy.atoms.atom import Atom
-import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
+from cvxpy.atoms.atom import Atom
 
 
 class Elementwise(Atom):
     """ Abstract base class for elementwise atoms. """
     __metaclass__ = abc.ABCMeta
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Shape is the same as the sum of the arguments.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])

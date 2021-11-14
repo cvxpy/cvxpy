@@ -16,13 +16,12 @@ limitations under the License.
 from cvxpy import atoms
 from cvxpy.atoms.affine import binary_operators as bin_op
 from cvxpy.expressions.constants.parameter import Parameter
-import cvxpy.settings as s
 
 
 # Sublevel sets for quasiconvex atoms.
 #
-# In the below functions, s.INFEASIBLE is a placeholder for an infeasible
-# constraint (one that cannot be represented in a DCP way), and None
+# In the below functions, False is a placeholder for an infeasible
+# constraint (one that cannot be represented in a DCP way), and True
 # is a placeholder for the absence of a constraint
 def dist_ratio_sub(expr, t):
     x = expr.args[0]
@@ -31,7 +30,7 @@ def dist_ratio_sub(expr, t):
 
     def sublevel_set():
         if t.value > 1:
-            return s.INFEASIBLE
+            return False
         tsq = t.value**2
         return ((1-tsq**2)*atoms.sum_squares(x) -
                 atoms.matmul(2*(a-tsq*b), x) + atoms.sum_squares(a) -
@@ -84,9 +83,9 @@ def length_sub(expr, t):
     if isinstance(t, Parameter):
         def sublevel_set():
             if t.value < 0:
-                return s.INFEASIBLE
+                return False
             if t.value >= arg.size:
-                return None
+                return True
             return arg[int(atoms.floor(t).value):] == 0
         return [sublevel_set]
     else:
@@ -98,11 +97,11 @@ def sign_sup(expr, t):
 
     def superlevel_set():
         if t.value <= -1:
-            return None
+            return True
         elif t.value <= 1:
             return x >= 0
         else:
-            return s.INFEASIBLE
+            return False
     return [superlevel_set]
 
 
@@ -111,11 +110,11 @@ def sign_sub(expr, t):
 
     def sublevel_set():
         if t.value >= 1:
-            return None
+            return True
         elif t.value >= -1:
             return x <= 0
         else:
-            return s.INFEASIBLE
+            return False
     return [sublevel_set]
 
 
@@ -147,7 +146,12 @@ def sublevel(expr, t):
 
     Returned as a constraint phi_t(x) <= 0, where phi_t(x) is convex.
     """
-    return SUBLEVEL_SETS[type(expr)](expr, t)
+    try:
+        return SUBLEVEL_SETS[type(expr)](expr, t)
+    except KeyError:
+        raise RuntimeError(
+                f"The {type(expr)} atom is not yet supported in DQCP. Please "
+                "file an issue here: https://github.com/cvxpy/cvxpy/issues")
 
 
 def superlevel(expr, t):
@@ -155,4 +159,9 @@ def superlevel(expr, t):
 
     Returned as a constraint phi_t(x) >= 0, where phi_t(x) is concave.
     """
-    return SUPERLEVEL_SETS[type(expr)](expr, t)
+    try:
+        return SUPERLEVEL_SETS[type(expr)](expr, t)
+    except KeyError:
+        raise RuntimeError(
+                f"The {type(expr)} atom is not yet supported in DQCP. Please "
+                "file an issue here: https://github.com/cvxpy/cvxpy/issues")

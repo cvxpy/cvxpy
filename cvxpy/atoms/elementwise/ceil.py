@@ -13,12 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import cvxpy.settings as s
-from cvxpy.atoms.elementwise.elementwise import Elementwise
 from typing import Tuple
 
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.settings as s
+from cvxpy.atoms.elementwise.elementwise import Elementwise
 
 
 class ceil(Elementwise):
@@ -29,7 +30,7 @@ class ceil(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        decimals = np.int(np.abs(np.log10(s.ATOM_EVAL_TOL)))
+        decimals = int(np.abs(np.log10(s.ATOM_EVAL_TOL)))
         return np.ceil(np.around(values[0], decimals=decimals))
 
     def sign_from_args(self) -> Tuple[bool, bool]:

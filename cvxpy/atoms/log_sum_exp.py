@@ -14,11 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.axis_atom import AxisAtom
+from typing import Tuple
+
 import numpy as np
 from scipy.special import logsumexp
-from typing import Tuple
+
+from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.axis_atom import AxisAtom
 
 
 class log_sum_exp(AxisAtom):

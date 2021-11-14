@@ -15,9 +15,9 @@ limitations under the License.
 """
 
 import unittest
-from cvxpy import log
-from cvxpy import Constant, Variable
-from cvxpy.settings import UNKNOWN, QUASILINEAR
+
+from cvxpy import Constant, Variable, log
+from cvxpy.settings import QUASILINEAR, UNKNOWN
 
 
 class TestCurvature(unittest.TestCase):

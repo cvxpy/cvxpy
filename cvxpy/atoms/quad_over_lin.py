@@ -14,12 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
-import scipy.sparse as sp
 import scipy as scipy
+import scipy.sparse as sp
+
+from cvxpy.atoms.atom import Atom
+from cvxpy.constraints.constraint import Constraint
 
 
 class quad_over_lin(Atom):
@@ -39,7 +41,7 @@ class quad_over_lin(Atom):
             return (np.square(values[0].imag) + np.square(values[0].real)).sum()/values[1]
         return np.square(values[0]).sum()/values[1]
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         # y > 0.
@@ -73,7 +75,7 @@ class quad_over_lin(Atom):
             DX = scipy.sparse.csc_matrix(DX)
             return [DX, Dy]
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

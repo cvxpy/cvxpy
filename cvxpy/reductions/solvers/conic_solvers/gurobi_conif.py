@@ -15,27 +15,19 @@ limitations under the License.
 """
 
 import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.settings as s
 from cvxpy.constraints import SOC
-from cvxpy.reductions.solvers.conic_solvers.scs_conif import (SCS,
-                                                              dims_to_solver_dict)
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
-import scipy.sparse as sp
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
+    ConicSolver, dims_to_solver_dict,)
 
 
-class GUROBI(SCS):
+class GUROBI(ConicSolver):
     """
     An interface for the Gurobi solver.
-
-    * WARNING * This implementation takes an inadvisable approach by directly
-    inheriting from a concrete solver (SCS). This implementation should not be
-    used as a reference when writing other solver interfaces.
-
-    TODO: simplify this file so it doesn't inherit from SCS; see gurobi_qpif.py
-        for a very clean implementation of a quadratic programming interface.
     """
 
     # Solver capabilities.
@@ -154,7 +146,17 @@ class GUROBI(SCS):
 
         n = c.shape[0]
 
-        model = gurobipy.Model()
+        # Create a new model
+        if 'env' in solver_opts:
+            # Specifies environment to create Gurobi model for control over licensing and parameters
+            # https://www.gurobi.com/documentation/9.1/refman/environments.html
+            default_env = solver_opts['env']
+            del solver_opts['env']
+            model = gurobipy.Model(env=default_env)
+        else:
+            # Create Gurobi model using default (unspecified) environment
+            model = gurobipy.Model()
+
         # Pass through verbosity
         model.setParam("OutputFlag", verbose)
 

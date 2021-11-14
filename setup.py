@@ -4,7 +4,7 @@ import os
 import platform
 import sys
 
-from setuptools import setup, Extension, find_packages
+from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
 
@@ -73,14 +73,14 @@ canon = Extension(
 
 setup(
     name='cvxpy',
-    version='1.1.13',
+    version='1.1.17',
     author='Steven Diamond, Eric Chu, Stephen Boyd',
     author_email='stevend2@stanford.edu, akshayka@cs.stanford.edu, '
                  'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=[canon],
     packages=find_packages(exclude=["cvxpy.performance_tests"]),
-    url='http://github.com/cvxgrp/cvxpy/',
+    url='https://github.com/cvxpy/cvxpy',
     license='Apache License, Version 2.0',
     zip_safe=False,
     description='A domain-specific language for modeling convex optimization '
@@ -91,10 +91,12 @@ setup(
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
     python_requires='>=3.6',
-    install_requires=["osqp >= 0.4.1",
-                      "ecos >= 2",
-                      "scs >= 1.1.6",
-                      "numpy >= 1.15",
-                      "scipy >= 1.1.0"],
+    install_requires=[
+        "osqp >= 0.4.1",
+        "ecos >= 2",
+        "scs >= 1.1.6",
+        "numpy >= 1.15",
+        "scipy >= 1.1.0"
+    ],
     setup_requires=["numpy >= 1.15"],
 )

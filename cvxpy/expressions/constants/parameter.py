@@ -13,9 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List, Optional, Tuple
+
+import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
-import cvxpy.lin_ops.lin_utils as lu
 from cvxpy.utilities import scopes
 
 
@@ -41,13 +43,15 @@ class Parameter(Leaf):
     """
     PARAM_COUNT = 0
 
-    def __init__(self, shape=(), name=None, value=None, id=None, **kwargs) -> None:
+    def __init__(
+        self, shape: Tuple[int, ...] = (), name: Optional[str] = None, value=None, id=None, **kwargs
+    ) -> None:
         if id is None:
             self.id = lu.get_id()
         else:
             self.id = id
         if name is None:
-            self._name = "%s%d" % (s.PARAM_PREFIX, self.id)
+            self._name = f"{s.PARAM_PREFIX}{self.id}"
         else:
             self._name = name
         # Initialize with value if provided.
@@ -62,7 +66,7 @@ class Parameter(Leaf):
         """
         return [self.shape, self._name, self.value, self.id, self.attributes]
 
-    def name(self):
+    def name(self) -> str:
         return self._name
 
     def is_constant(self) -> bool:
@@ -92,7 +96,7 @@ class Parameter(Leaf):
         """
         return {}
 
-    def parameters(self):
+    def parameters(self) -> List["Parameter"]:
         """Returns itself as a parameter.
         """
         return [self]
@@ -106,7 +110,7 @@ class Parameter(Leaf):
         obj = lu.create_param(self.shape, self.id)
         return (obj, [])
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String to recreate the object.
         """
         attr_str = self._get_attr_str()

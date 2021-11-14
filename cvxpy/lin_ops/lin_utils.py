@@ -18,10 +18,11 @@ DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 from typing import Tuple
 
-from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
+import numpy as np
+
 import cvxpy.lin_ops.lin_op as lo
 import cvxpy.utilities as u
-import numpy as np
+from cvxpy.lin_ops.lin_constraints import LinEqConstr, LinLeqConstr
 
 # Utility functions for dealing with LinOp.
 

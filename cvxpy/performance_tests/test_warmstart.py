@@ -19,8 +19,10 @@ DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
 
 from __future__ import print_function
-import unittest
+
 import time
+import unittest
+
 import cvxpy as cp
 
 

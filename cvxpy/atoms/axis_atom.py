@@ -15,9 +15,12 @@ limitations under the License.
 """
 
 import abc
-from cvxpy.atoms.atom import Atom
+from typing import List, Optional, Tuple
+
 import numpy as np
 import scipy.sparse as sp
+
+from cvxpy.atoms.atom import Atom
 
 
 class AxisAtom(Atom):
@@ -27,12 +30,12 @@ class AxisAtom(Atom):
 
     __metaclass__ = abc.ABCMeta
 
-    def __init__(self, expr, axis=None, keepdims: bool = False) -> None:
+    def __init__(self, expr, axis: Optional[int] = None, keepdims: bool = False) -> None:
         self.axis = axis
         self.keepdims = keepdims
         super(AxisAtom, self).__init__(expr)
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Depends on axis.
         """
         shape = list(self.args[0].shape)
@@ -58,7 +61,7 @@ class AxisAtom(Atom):
             raise ValueError("Invalid argument for axis.")
         super(AxisAtom, self).validate_arguments()
 
-    def _axis_grad(self, values):
+    def _axis_grad(self, values) -> Optional[List[sp.csc_matrix]]:
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -78,7 +81,7 @@ class AxisAtom(Atom):
         else:
             m, n = self.args[0].shape
             if self.axis == 0:  # function apply to each column
-                D = sp.csc_matrix((m*n, n), dtype=np.float)
+                D = sp.csc_matrix((m*n, n), dtype=float)
                 for i in range(n):
                     value = values[0][:, i]
                     d = self._column_grad(value).T
@@ -92,7 +95,7 @@ class AxisAtom(Atom):
                                           shape=(m*n, n))  # d must be 1-D
             else:  # function apply to each row
                 values = np.transpose(values[0])
-                D = sp.csc_matrix((m*n, m), dtype=np.float)
+                D = sp.csc_matrix((m*n, m), dtype=float)
                 for i in range(m):
                     value = values[:, i]
                     d = self._column_grad(value).T

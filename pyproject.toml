@@ -1,3 +1,17 @@
+[tool.isort]
+include_trailing_comma = true
+use_parentheses = true
+extend_skip = [
+    "cvxpy/__init__.py",
+    "cvxpy/reductions/__init__.py",
+    "cvxpy/reductions/dcp2cone/atom_canonicalizers/__init__.py"
+]
+
+[tool.pytest.ini_options]
+testpaths = [
+    "cvxpy/tests/"
+]
+
 [build-system]
 requires = [
     "numpy>=1.15,<1.16; python_version=='3.6'",
@@ -8,4 +22,3 @@ requires = [
     "setuptools>=40.8.0",
     "wheel"
 ]
-build-backend = 'setuptools.build_meta'

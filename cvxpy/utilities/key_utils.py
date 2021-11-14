@@ -17,10 +17,11 @@ limitations under the License.
 # Utility functions to handle indexing/slicing into an expression.
 
 from __future__ import division
+
+import numbers
 from typing import Optional, Tuple
 
 import numpy as np
-import numbers
 
 
 # TODO(akshayka): This module needs to be updated in order to handle
@@ -168,7 +169,7 @@ def is_single_index(slc) -> bool:
         slc.start + step >= slc.stop
 
 
-def shape(key, orig_key, shape: Tuple[int, ...]):
+def shape(key, orig_key, shape: Tuple[int, ...]) -> Tuple[int, ...]:
     """Finds the dimensions of a sliced expression.
 
     Args:

@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
-import scipy.sparse as sp
 import numpy as np
+import scipy.sparse as sp
+
+from cvxpy.interface.numpy_interface.ndarray_interface import NDArrayInterface
 
 
 class SparseMatrixInterface(NDArrayInterface):
@@ -39,7 +40,7 @@ class SparseMatrixInterface(NDArrayInterface):
         # Convert cvxopt sparse to coo matrix.
         if isinstance(value, list):
             return sp.csc_matrix(value, dtype=np.double).T
-        if value.dtype in [np.double, np.complex]:
+        if value.dtype in [np.double, complex]:
             dtype = value.dtype
         else:
             # Cast bool, int, etc to double

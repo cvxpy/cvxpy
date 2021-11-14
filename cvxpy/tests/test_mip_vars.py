@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import unittest
-import cvxpy as cp
+
 import numpy as np
+
+import cvxpy as cp
 import cvxpy.settings as s
+from cvxpy.reductions.solvers.defines import (
+    INSTALLED_MI_SOLVERS as MIP_SOLVERS,)
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.reductions.solvers.defines import INSTALLED_MI_SOLVERS as MIP_SOLVERS
 
 
 @unittest.skipUnless(len(MIP_SOLVERS) > 0, 'No mixed-integer solver is installed.')

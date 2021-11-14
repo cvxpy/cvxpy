@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.elementwise.power import power
 from fractions import Fraction
+
+from cvxpy.atoms.elementwise.power import power
 
 
 def sqrt(x):

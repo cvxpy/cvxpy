@@ -14,18 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
-from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.expressions.variable import Variable
-from cvxpy.expressions.constants import Constant
-from cvxpy.expressions.constants import Parameter
-from cvxpy import Problem, Minimize
-import cvxpy.interface.matrix_utilities as intf
-import cvxpy.settings as s
-from cvxpy.tests.base_test import BaseTest
+import warnings
+
 import numpy as np
 import scipy.sparse as sp
-import warnings
+
+import cvxpy as cp
+import cvxpy.interface.matrix_utilities as intf
+import cvxpy.settings as s
+from cvxpy import Minimize, Problem
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.expressions.constants import Constant, Parameter
+from cvxpy.expressions.variable import Variable
+from cvxpy.tests.base_test import BaseTest
+from cvxpy.utilities.eigvals import gershgorin_psd_check
 
 
 class TestExpressions(BaseTest):
@@ -214,6 +216,66 @@ class TestExpressions(BaseTest):
         # Test repr.
         self.assertEqual(repr(c), "Constant(CONSTANT, NONNEGATIVE, (2,))")
 
+    def test_constant_psd_nsd(self):
+        n = 5
+        np.random.randn(0)
+        U = np.random.randn(n, n)
+        U = U @ U.T
+        (evals, U) = np.linalg.eigh(U)  # U is now an orthogonal matrix
+
+        # Try four indefinite matrices with different eigenvalue
+        # spread around the origin.
+        v1 = np.array([3, 2, 1, 1e-8, -1])
+        P = Constant(U @ np.diag(v1) @ U.T)
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+        v2 = np.array([3, 2, 2, 1e-6, -1])
+        P = Constant(U @ np.diag(v2) @ U.T)
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+        v3 = np.array([3, 2, 2, 1e-4, -1e-6])
+        P = Constant(U @ np.diag(v3) @ U.T)
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+        v4 = np.array([-1, 3, 0, 0, 0])
+        P = Constant(U @ np.diag(v4) @ U.T)
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+
+        # Try a test case given in GitHub issue 1451.
+        # (Should be equivalent to v4 above).
+        P = Constant(np.array([[1, 2], [2, 1]]))
+        x = Variable(shape=(2,))
+        expr = cp.quad_form(x, P)
+        self.assertFalse(expr.is_dcp())
+        self.assertFalse((-expr).is_dcp())
+        self.assertFalse(gershgorin_psd_check(P.value, tol=0.99))
+
+        # Useful Gershgorin disc check
+        P = Constant(np.array([[2, 1], [1, 2]]))
+        self.assertTrue(gershgorin_psd_check(P.value, tol=0.0))
+
+        # Verify good behavior for large eigenvalues
+        P = Constant(np.diag(9*[1e-4] + [-1e4]))
+        self.assertFalse(P.is_psd())
+        self.assertFalse(P.is_nsd())
+
+        # Check a case when the matrix is in fact PSD.
+        P = Constant(np.ones(shape=(5, 5)))
+        self.assertTrue(P.is_psd())
+        self.assertFalse(P.is_nsd())
+
+        # Check with sparse inputs
+        P = Constant(sp.eye(10))
+        self.assertTrue(gershgorin_psd_check(P.value, s.EIGVAL_TOL))
+        self.assertTrue(P.is_psd())
+        self.assertTrue((-P).is_nsd())
+        Q = -s.EIGVAL_TOL/2 * P
+        self.assertTrue(gershgorin_psd_check(Q.value, s.EIGVAL_TOL))
+        Q = -1.1*s.EIGVAL_TOL*P
+        self.assertFalse(gershgorin_psd_check(Q.value, s.EIGVAL_TOL))
+        self.assertFalse(Q.is_psd())
+
     def test_1D_array(self) -> None:
         """Test NumPy 1D arrays as constants.
         """
@@ -290,7 +352,8 @@ class TestExpressions(BaseTest):
         v1 = np.array([3, 2, 1, 1e-8, -1])
         v2 = np.array([3, 2, 2, 1e-6, -1])
         v3 = np.array([3, 2, 2, 1e-4, -1e-6])
-        vs = [v1, v2, v3]
+        v4 = np.array([-1, 3, 0, 0, 0])
+        vs = [v1, v2, v3, v4]
         for vi in vs:
             with self.assertRaises(Exception) as cm:
                 P.value = U @ np.diag(vi) @ U.T
@@ -697,8 +760,8 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             (self.x/[2, 2, 3])
         print(cm.exception)
-        self.assertRegexpMatches(str(cm.exception),
-                                 "Incompatible shapes for division.*")
+        self.assertRegex(str(cm.exception),
+                         "Incompatible shapes for division.*")
 
         c = Constant([3.0, 4.0, 12.0])
         self.assertItemsAlmostEqual(
@@ -738,8 +801,8 @@ class TestExpressions(BaseTest):
         with self.assertRaises(Exception) as cm:
             (x/c[:, 0])
         print(cm.exception)
-        self.assertRegexpMatches(str(cm.exception),
-                                 "Incompatible shapes for division.*")
+        self.assertRegex(str(cm.exception),
+                         "Incompatible shapes for division.*")
 
     # Test the NegExpression class.
     def test_neg_expression(self) -> None:
@@ -1206,3 +1269,16 @@ class TestExpressions(BaseTest):
         row_scale = Variable([m, 1])
         R = A + row_scale
         self.assertEqual(R.shape, (m, n))
+
+    def test_log_log_curvature(self) -> None:
+        """Test that the curvature string is populated for log-log expressions.
+        """
+        x = Variable(pos=True)
+        monomial = x*x*x
+        assert monomial.curvature == s.LOG_LOG_AFFINE
+
+        posynomial = x*x*x + x
+        assert posynomial.curvature == s.LOG_LOG_CONVEX
+
+        llcv = 1/(x*x*x + x)
+        assert llcv.curvature == s.LOG_LOG_CONCAVE

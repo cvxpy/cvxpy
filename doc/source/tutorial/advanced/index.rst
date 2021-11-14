@@ -204,7 +204,7 @@ You can construct mixed-integer programs by creating variables with the attribut
     constr2 = (expr2 == Z)
 
 CVXPY provides interfaces to many mixed-integer solvers, including open source and commercial solvers.
-For licencing reasons, CVXPY does not install any of the preferred solvers by default.
+For licensing reasons, CVXPY does not install any of the preferred solvers by default.
 
 The preferred open source mixed-integer solvers in CVXPY are GLPK_MI_, CBC_ and SCIP_. The CVXOPT_
 python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running
@@ -228,7 +228,7 @@ to problems where sum of variables count and constraint count does not exceed 50
 .. note::
    If you develop an open-source mixed-integer solver with a permissive license such
    as Apache 2.0, and you're interested in incorporating your solver into CVXPY's default installation,
-   please reach out to us at our `GitHub issues <https://github.com/cvxgrp/cvxpy/issues>`_. We are
+   please reach out to us at our `GitHub issues <https://github.com/cvxpy/cvxpy/issues>`_. We are
    particularly interested in incorporating a simple mixed-integer SOCP solver.
 
 Complex valued expressions
@@ -490,6 +490,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.SCS)
     print("optimal value with SCS:", prob.value)
 
+    # Solve with SciPy/HiGHS.
+    prob.solve(solver=cp.SCIPY, scipy_options={"method": "highs"})
+    print("optimal value with SciPy/HiGHS:", prob.value)
+
     # Solve with GLPK.
     prob.solve(solver=cp.GLPK)
     print("optimal value with GLPK:", prob.value)
@@ -512,19 +516,19 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 
     # Solve with CPLEX.
     prob.solve(solver=cp.CPLEX)
-    print "optimal value with CPLEX:", prob.value
+    print("optimal value with CPLEX:", prob.value)
 
     # Solve with NAG.
     prob.solve(solver=cp.NAG)
-    print "optimal value with NAG:", prob.value
+    print("optimal value with NAG:", prob.value)
 
     # Solve with SCIP.
     prob.solve(solver=cp.SCIP)
-    print "optimal value with SCIP:", prob.value
+    print("optimal value with SCIP:", prob.value)
 
-    # Solve with XPRESS
+    # Solve with XPRESS.
     prob.solve(solver=cp.XPRESS)
-    print "optimal value with XPRESS:", prob.value
+    print("optimal value with XPRESS:", prob.value)
 
 ::
 
@@ -532,6 +536,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with ECOS: 5.99999999551
     optimal value with CVXOPT: 6.00000000512
     optimal value with SCS: 6.00046055789
+    optimal value with SciPy/HiGHS: 6.0
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
@@ -550,7 +555,8 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS',
+     'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
 
 Viewing solver output
 ^^^^^^^^^^^^^^^^^^^^^
@@ -645,7 +651,7 @@ warm start would only be a good initial point.
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -873,6 +879,15 @@ SCIP_ options:
 * **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary and there should not be a nested dictionary called options. Some of the methods have different parameters so please check the parameters for the method you wish to use e.g. for method = 'highs-ipm'.
 
 * The main advantage of this solver is its ability to use the `HiGHS`_ LP solvers which are coded in C++, however these require a version of SciPy larger than 1.6.1. To use the `HiGHS`_ solvers simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). 
+
+`GUROBI`_ options:
+
+Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed `here <https://www.gurobi.com/documentation/9.1/refman/parameters.html>`_.
+
+In addition to Gurobi's parameters, the following options are available:
+
+``'env'``
+    Allows for the passage of a Gurobi Environment, which specifies parameters and license information.  Keyword arguments will override any settings in this environment.
 
 Getting the standard form
 -------------------------

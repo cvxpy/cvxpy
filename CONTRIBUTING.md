@@ -45,10 +45,10 @@ change on a Github issue, to make sure that your priorities align with ours.
 If you'd like to contribute code but don't know where to start, try one of the
 following:
 * Read the CVXPY source and enhance the documentation, or address TODOs
-* Browse the [issue tracker](https://github.com/cvxgrp/cvxpy/issues), and
+* Browse the [issue tracker](https://github.com/cvxpy/cvxpy/issues), and
   look for the issues tagged "help wanted".
 * Polish the [example library](https://www.cvxpy.org/examples/index.html) or add new examples
-* Add a [benchmark](https://github.com/cvxgrp/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
+* Add a [benchmark](https://github.com/cvxpy/cvxpy/tree/master/cvxpy/tests/test_benchmarks.py)
 
 ## License
 Please add the following license to new files:
@@ -72,16 +72,23 @@ limitations under the License.
 ```
 
 ## Code style
-We use [flake8](http://flake8.pycqa.org/en/latest/) to enforce our Python coding
+We use [flake8](https://flake8.pycqa.org/en/latest/) and [isort](https://pycqa.github.io/isort/) to enforce our Python coding
 style. Before sending us a pull request, navigate to the project root
 and run
 
 ```
 flake8 cvxpy/
+isort .
 ```
 
 to make sure that your changes abide by our style conventions. Please fix any
-errors that flake8 reports before sending the pull request.
+errors that are reported before sending the pull request.
+
+Optionally, the package [pre-commit](https://pre-commit.com/) can be installed to check these conventions automatically before every commit.
+```
+pip install pre-commit
+pre-commit install
+```
 
 ## Writing unit tests
 Most code changes will require new unit tests. (Even bug fixes require unit tests,

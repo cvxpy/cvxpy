@@ -13,12 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
+from typing import List, Tuple
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
-import cvxpy.utilities as u
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
+
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+import cvxpy.utilities as u
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
 
 
 class kron(AffAtom):
@@ -44,14 +47,14 @@ class kron(AffAtom):
         elif self.args[0].ndim != 2 or self.args[1].ndim != 2:
             raise ValueError("kron requires matrix arguments.")
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, int]:
         """The sum of the argument dimensions - 1.
         """
         rows = self.args[0].shape[0]*self.args[1].shape[0]
         cols = self.args[0].shape[1]*self.args[1].shape[1]
         return (rows, cols)
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Same as times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
@@ -66,7 +69,9 @@ class kron(AffAtom):
         """
         return self.args[0].is_nonpos()
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Kronecker product of two matrices.
 
         Parameters

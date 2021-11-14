@@ -14,12 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
+from typing import List, Optional, Tuple
+
 import numpy as np
 import scipy.sparse as sp
-from cvxpy.utilities.power_tools import (fracify, decompose, approx_error, lower_bound,
-                                         over_bound, prettydict)
-from typing import List, Optional, Tuple
+
+from cvxpy.atoms.atom import Atom
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.utilities.power_tools import (approx_error, decompose, fracify,
+                                         lower_bound, over_bound, prettydict,)
 
 
 class geo_mean(Atom):
@@ -236,7 +239,7 @@ class geo_mean(Atom):
             val *= x**float(p)
         return val
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         # No special case when only one non-zero weight.
@@ -272,7 +275,7 @@ class geo_mean(Atom):
     def pretty_tree(self) -> None:
         print(prettydict(self.tree))
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

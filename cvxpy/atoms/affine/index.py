@@ -13,15 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
+from typing import List, Tuple
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.vec import vec
-from cvxpy.atoms.affine.reshape import reshape
-from cvxpy.utilities import key_utils as ku
-import cvxpy.lin_ops.lin_utils as lu
-import scipy.sparse as sp
 import numpy as np
+import scipy.sparse as sp
+
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.reshape import reshape
+from cvxpy.atoms.affine.vec import vec
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
+from cvxpy.utilities import key_utils as ku
 
 
 class index(AffAtom):
@@ -70,7 +74,7 @@ class index(AffAtom):
         """
         return values[0][self._orig_key]
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the index expression.
         """
         return ku.shape(self.key, self._orig_key, self.args[0].shape)
@@ -80,7 +84,9 @@ class index(AffAtom):
         """
         return [self.key, self._orig_key]
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Index/slice into the expression.
 
         Parameters
@@ -112,7 +118,7 @@ class special_index(AffAtom):
         ndarrays or lists.
     """
 
-    def __init__(self, expr, key) -> None:
+    def __init__(self, expr: Expression, key) -> None:
         self.key = key
         # Order the entries of expr and select them using key.
         expr = index.cast_to_const(expr)
@@ -141,7 +147,7 @@ class special_index(AffAtom):
         """
         return values[0][self.key]
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape of the index expression.
         """
         return self._shape
@@ -168,7 +174,9 @@ class special_index(AffAtom):
           identity[select_vec] @ vec(self.args[0]), self._shape)
         return lowered.grad
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Index/slice into the expression.
 
         Parameters

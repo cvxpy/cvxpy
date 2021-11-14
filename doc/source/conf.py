@@ -11,7 +11,8 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys, os
+import os
+import sys
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -22,7 +23,7 @@ sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 sys.path.append('/home/docs/checkouts/readthedocs.org/user_builds/cvxpy/checkouts/1.0/cvxpy')
 
-__version__ = "1.1.13"
+__version__ = "1.1.17"
 
 # -- General configuration -----------------------------------------------------
 
@@ -75,7 +76,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'CVXPY'
-copyright = u'2020, The CVXPY authors'
+copyright = u'The CVXPY authors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -142,7 +143,7 @@ html_sidebars = {
 # further.  For a list of options available for each theme, see the
 # documentation.
 html_theme_options = {
-   'github_user': 'cvxgrp',
+   'github_user': 'cvxpy',
    'github_repo': 'cvxpy',
    'github_banner': True,
    'github_type': 'star',

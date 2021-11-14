@@ -13,14 +13,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List, Tuple, Union
+
+import numpy as np
+import scipy.sparse as sp
 
 from cvxpy.atoms.axis_atom import AxisAtom
 from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
-import numpy as np
-import scipy.sparse as sp
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.utilities.power_tools import pow_high, pow_mid, pow_neg
-from typing import Tuple, Union
 
 
 def pnorm(x, p: Union[int, str] = 2, axis=None, keepdims: bool = False, max_denom: int = 1024):
@@ -211,7 +213,7 @@ class Pnorm(AxisAtom):
                                self.args[0].name(),
                                self.p)
 
-    def _domain(self):
+    def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """
         if self.p < 1 and self.p != 0:

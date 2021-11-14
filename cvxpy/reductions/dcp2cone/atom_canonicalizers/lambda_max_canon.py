@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.diag import diag_vec
+from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable

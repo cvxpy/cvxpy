@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.atoms import bmat, reshape, vstack
 from cvxpy.atoms.affine.wraps import psd_wrap
-import numpy as np
 
 # We expand the matrix A to B = [[Re(A), -Im(A)], [Im(A), Re(A)]]
 # B has the same eigenvalues as A (if A is Hermitian).

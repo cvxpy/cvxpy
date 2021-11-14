@@ -13,29 +13,25 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from collections import namedtuple
+from typing import Any, List, Tuple
+
+import numpy as np
+
 from cvxpy import problems
-from cvxpy.atoms.max import max as max_atom
-from cvxpy.atoms.min import min as min_atom
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
+from cvxpy.atoms.max import max as max_atom
+from cvxpy.atoms.min import min as min_atom
 from cvxpy.constraints import Inequality
 from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.canonicalization import Canonicalization
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import CANON_METHODS
-from cvxpy.reductions.dqcp2dcp import inverse
-from cvxpy.reductions.dqcp2dcp import tighten
-from cvxpy.reductions.dqcp2dcp import sets
+from cvxpy.reductions.dqcp2dcp import inverse, sets, tighten
 from cvxpy.reductions.inverse_data import InverseData
 from cvxpy.reductions.solution import Solution
-import cvxpy.settings as s
-
-from collections import namedtuple
-from typing import Any, List, Tuple
-
-import numpy as np
-
 
 # A tuple (feas_problem, param, tighten_lower, tighten_upper), where
 #
@@ -52,6 +48,17 @@ import numpy as np
 BisectionData = namedtuple(
     "BisectionData",
     ['feas_problem', 'param', 'tighten_lower', 'tighten_upper'])
+
+
+def _get_lazy_and_real_constraints(constraints):
+    lazy_constraints = []
+    real_constraints = []
+    for c in constraints:
+        if callable(c):
+            lazy_constraints.append(c)
+        else:
+            real_constraints.append(c)
+    return lazy_constraints, real_constraints
 
 
 class Dqcp2Dcp(Canonicalization):
@@ -92,7 +99,9 @@ class Dqcp2Dcp(Canonicalization):
         constraints = []
         for constr in problem.constraints:
             constraints += self._canonicalize_constraint(constr)
-        feas_problem = problems.problem.Problem(Minimize(0), constraints)
+        lazy, real = _get_lazy_and_real_constraints(constraints)
+        feas_problem = problems.problem.Problem(Minimize(0), real)
+        feas_problem._lazy_constraints = lazy
 
         objective = problem.objective.expr
         if objective.is_nonneg():
@@ -102,7 +111,10 @@ class Dqcp2Dcp(Canonicalization):
         else:
             t = Parameter()
         constraints += self._canonicalize_constraint(objective <= t)
-        param_problem = problems.problem.Problem(Minimize(0), constraints)
+
+        lazy, real = _get_lazy_and_real_constraints(constraints)
+        param_problem = problems.problem.Problem(Minimize(0), real)
+        param_problem._lazy_constraints = lazy
         param_problem._bisection_data = BisectionData(
             feas_problem, t, *tighten.tighten_fns(objective))
         return param_problem, InverseData(problem)
@@ -132,18 +144,38 @@ class Dqcp2Dcp(Canonicalization):
         return canon_args, constrs
 
     def _canonicalize_constraint(self, constr):
-        """Recursively canonicalize a constraint."""
+        """Recursively canonicalize a constraint.
+
+        The DQCP grammar has expresions of the form
+
+            INCR* QCVX DCP
+
+        and
+
+            DECR* QCCV DCP
+
+        ie, zero or more real/scalar increasing (or decreasing) atoms, composed
+        with a quasiconvex (or quasiconcave) atom, composed with DCP
+        expressions.
+
+        The monotone functions are inverted by applying their inverses to
+        both sides of a constraint. The QCVX (QCCV) atom is lowered by
+        replacing it with its sublevel (superlevel) set. The DCP
+        expressions are canonicalized via graph implementations.
+        """
         lhs = constr.args[0]
         rhs = constr.args[1]
 
         if isinstance(constr, Inequality):
+            # taking inverses can yield +/- infinity; this is handled here.
             lhs_val = np.array(lhs.value)
             rhs_val = np.array(rhs.value)
             if np.all(lhs_val == -np.inf) or np.all(rhs_val == np.inf):
                 # constraint is redundant
-                return [None]
+                return [True]
             elif np.any(lhs_val == np.inf) or np.any(rhs_val == -np.inf):
-                return [s.INFEASIBLE]
+                # constraint is infeasible
+                return [False]
 
         if constr.is_dcp():
             canon_constr, aux_constr = self.canonicalize_tree(constr)
@@ -169,6 +201,7 @@ class Dqcp2Dcp(Canonicalization):
                 expr = lhs.args[idx]
                 if lhs.is_incr(idx):
                     return self._canonicalize_constraint(expr <= rhs)
+                assert lhs.is_decr(idx)
                 return self._canonicalize_constraint(expr >= rhs)
             elif isinstance(lhs, (maximum, max_atom)):
                 # Lower maximum.
@@ -190,6 +223,7 @@ class Dqcp2Dcp(Canonicalization):
             expr = rhs.args[idx]
             if rhs.is_incr(idx):
                 return self._canonicalize_constraint(lhs <= expr)
+            assert rhs.is_decr(idx)
             return self._canonicalize_constraint(lhs >= expr)
         elif isinstance(rhs, (minimum, min_atom)):
             # Lower minimum.

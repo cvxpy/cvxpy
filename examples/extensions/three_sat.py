@@ -14,10 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy import Boolean, ECOS, Minimize, Problem
-from mixed_integer import *
 import random
+
 import numpy as np
+from mixed_integer import *
+
+from cvxpy import ECOS, Boolean, Minimize, Problem
 
 # TODO this is wrong because Boolean.u and Boolean.z aren't reset
 # between iterations.

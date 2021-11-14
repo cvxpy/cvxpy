@@ -15,6 +15,8 @@ limitations under the License.
 """
 
 import abc
+
+from cvxpy import settings as s
 from cvxpy.reductions.reduction import Reduction
 
 
@@ -57,7 +59,12 @@ class Solver(Reduction):
         try:
             self.import_solver()
             return True
-        except ImportError:
+        except Exception as e:
+            if not isinstance(e, ModuleNotFoundError):
+                s.LOGGER.warning(
+                    f"Encountered unexpected exception importing solver {self.name()}:\n"
+                    + repr(e)
+                )
             return False
 
     @abc.abstractmethod

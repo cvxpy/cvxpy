@@ -14,8 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.expressions.expression import Expression
 from cvxpy.atoms.lambda_max import lambda_max
+from cvxpy.expressions.expression import Expression
 
 
 def lambda_min(X):

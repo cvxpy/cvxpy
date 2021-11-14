@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-import scipy.sparse as sp
-from numpy import linalg as LA
 from typing import Tuple
 
 import numpy as np
+import scipy.sparse as sp
+from numpy import linalg as LA
+
+from cvxpy.atoms.atom import Atom
 
 
 class sigma_max(Atom):
@@ -53,7 +54,7 @@ class sigma_max(Atom):
         D = U.dot(np.diag(ds)).dot(V)
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()

@@ -14,15 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cvx
 import mixed_integer as mi
+
+import cvxpy as cvx
 
 print(__doc__)
 
 from time import time
-import numpy as np
-import matplotlib.pyplot as plt
 
+import matplotlib.pyplot as plt
+import numpy as np
 from sklearn import metrics
 from sklearn.cluster import KMeans
 from sklearn.datasets import load_digits

@@ -16,7 +16,7 @@ limitations under the License.
 
 from __future__ import division
 
-from typing import List, Tuple, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 from scipy.sparse import csc_matrix

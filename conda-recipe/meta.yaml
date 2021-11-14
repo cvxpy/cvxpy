@@ -1,6 +1,6 @@
 package:
   name: cvxpy
-  version: "1.1.13"
+  version: "1.1.17"
 
 source:
   path: ..
@@ -21,7 +21,7 @@ requirements:
     - python
     - osqp >=0.4.1
     - ecos >=2
-    - scs >=1.1.13
+    - scs >=1.1
     - numpy >=1.15
     - scipy >=1.1
     - lapack
@@ -70,6 +70,6 @@ test:
     - pytest cvxpy/performance_tests
 
 about:
-  home: http://github.com/cvxgrp/cvxpy/
+  home: http://github.com/cvxpy/cvxpy/
   license: Apache License, Version 2.0
   summary: 'A domain-specific language for modeling convex optimization problems in Python.'

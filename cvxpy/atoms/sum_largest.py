@@ -14,10 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-import cvxpy.interface as intf
+from typing import Tuple
+
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.interface as intf
+from cvxpy.atoms.atom import Atom
 
 
 class sum_largest(Atom):
@@ -60,12 +63,12 @@ class sum_largest(Atom):
         D[indices] = 1
         return [sp.csc_matrix(D)]
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return tuple()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
         # Same as argument.

@@ -15,27 +15,21 @@ limitations under the License.
 """
 import warnings
 
-
-import cvxpy.settings as s
 import cvxpy.error as error
 import cvxpy.problems as problems
+import cvxpy.settings as s
 from cvxpy.problems.objective import Minimize
 from cvxpy.reductions.solution import failure_solution
 
 
 def _lower_problem(problem):
     """Evaluates lazy constraints."""
-    constrs = [c() if callable(c) else c for c in problem.constraints]
-    constrs = [c for c in constrs if c is not None]
-    if s.INFEASIBLE in constrs:
-        # Indicates that the problem is infeasible.
-        return None
-    return problems.problem.Problem(Minimize(0), constrs)
+    return problems.problem.Problem(
+            Minimize(0),
+            problem.constraints + [c() for c in problem._lazy_constraints])
 
 
 def _solve(problem, solver) -> None:
-    if problem is None:
-        return
     with warnings.catch_warnings():
         # TODO(akshayka): Try to emit DPP problems in Dqcp2Dcp
         warnings.filterwarnings('ignore', message=r'.*DPP.*')
@@ -94,7 +88,9 @@ def _find_bisection_interval(problem, t, solver=None, low=None, high=None,
         if infeasible_low and feasible_high:
             return low, high
 
-    raise error.SolverError("Unable to find suitable interval for bisection.")
+    raise error.SolverError(
+            "Unable to find suitable interval for bisection; "
+            "your problem may be unbounded..")
 
 
 def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
@@ -107,7 +103,7 @@ def _bisect(problem, solver, t, low, high, tighten_lower, tighten_higher,
         assert low <= high
         if soln is not None and (high - low) <= eps:
             # the previous iteration might have been infeasible, but
-            # the tigthen* functions might have narrowed the interval
+            # the tighten* functions might have narrowed the interval
             # to the optimal value in the previous iteration (hence the
             # soln is not None check)
             return soln, low, high

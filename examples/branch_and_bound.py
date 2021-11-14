@@ -23,7 +23,8 @@ subject to x in {0, 1}^n
 from queue import PriorityQueue
 
 import numpy
-from cvxpy import Minimize, Parameter, Problem, sum_squares, Variable
+
+from cvxpy import Minimize, Parameter, Problem, Variable, sum_squares
 
 # Problem data.
 m = 25

@@ -20,8 +20,9 @@ DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 
 # Methods for SCS iterative solver.
 
-from cvxpy.lin_ops.tree_mat import mul, tmul, sum_dicts
 import numpy as np
+
+from cvxpy.lin_ops.tree_mat import mul, sum_dicts, tmul
 
 
 def get_mul_funcs(sym_data):

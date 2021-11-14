@@ -13,16 +13,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
+from typing import List, Union
 
 import cvxpy.atoms as atoms
 from cvxpy import Constant
-from cvxpy.expressions.expression import Expression
-from cvxpy.problems.objective import Minimize, Maximize, Objective
+from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.transforms import indicator
 
 
-def weighted_sum(objectives: List[Objective], weights) -> Expression:
+def weighted_sum(objectives: List[Union[Minimize, Maximize]], weights) -> Union[Minimize, Maximize]:
     """Combines objectives as a weighted sum.
 
     Args:
@@ -36,7 +35,13 @@ def weighted_sum(objectives: List[Objective], weights) -> Expression:
     return sum(objectives[i]*weights[i] for i in range(num_objs))
 
 
-def targets_and_priorities(objectives, priorities, targets, limits=None, off_target: float = 1e-5):
+def targets_and_priorities(
+  objectives: List[Union[Minimize, Maximize]],
+  priorities,
+  targets,
+  limits=None,
+  off_target: float = 1e-5
+) -> Union[Minimize, Maximize]:
     """Combines objectives with penalties within a range between target and limit.
 
     Each Minimize objective i has value
@@ -62,7 +67,7 @@ def targets_and_priorities(objectives, priorities, targets, limits=None, off_tar
       A Minimize/Maximize objective.
     """
     num_objs = len(objectives)
-    new_objs = []
+    new_objs: List[Union[Minimize, Maximize]] = []
     for i in range(num_objs):
         obj = objectives[i]
         sign = 1 if Constant.cast_to_const(priorities[i]).is_nonneg() else -1
@@ -86,7 +91,7 @@ def targets_and_priorities(objectives, priorities, targets, limits=None, off_tar
         return Maximize(obj_expr)
 
 
-def max(objectives, weights):
+def max(objectives: List[Union[Minimize, Maximize]], weights) -> Minimize:
     """Combines objectives as max of weighted terms.
 
     Args:
@@ -101,7 +106,9 @@ def max(objectives, weights):
     return Minimize(expr)
 
 
-def log_sum_exp(objectives, weights, gamma: float = 1.0):
+def log_sum_exp(
+  objectives: List[Union[Minimize, Maximize]], weights, gamma: float = 1.0
+) -> Minimize:
     """Combines objectives as log_sum_exp of weighted terms.
 
 

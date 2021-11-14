@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import bmat
 import numpy as np
+
+from cvxpy.atoms import bmat
 
 
 def psd_canon(expr, real_args, imag_args, real2imag):

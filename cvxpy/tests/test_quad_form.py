@@ -14,15 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division, print_function, absolute_import
+from __future__ import absolute_import, division, print_function
 
-import numpy as np
-from numpy.testing import assert_allclose, assert_equal
-import scipy.sparse as sp
-import cvxpy
-from cvxpy.settings import EIGVAL_TOL
 import warnings
 
+import numpy as np
+import scipy.sparse as sp
+from numpy.testing import assert_allclose, assert_equal
+
+import cvxpy
+from cvxpy.settings import EIGVAL_TOL
 from cvxpy.tests.base_test import BaseTest
 
 
@@ -137,7 +138,7 @@ class TestNonOptimal(BaseTest):
     def test_psd_exactly_tolerance(self) -> None:
         """Test that PSD check when eigenvalue is exactly -EIGVAL_TOL
         """
-        P = np.array([[-EIGVAL_TOL, 0], [0, 10]])
+        P = np.array([[-0.999*EIGVAL_TOL, 0], [0, 10]])
         x = cvxpy.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():
@@ -149,7 +150,7 @@ class TestNonOptimal(BaseTest):
     def test_nsd_exactly_tolerance(self) -> None:
         """Test that NSD check when eigenvalue is exactly EIGVAL_TOL
         """
-        P = np.array([[EIGVAL_TOL, 0], [0, -10]])
+        P = np.array([[0.999*EIGVAL_TOL, 0], [0, -10]])
         x = cvxpy.Variable(2)
         # Forming quad_form is okay
         with warnings.catch_warnings():

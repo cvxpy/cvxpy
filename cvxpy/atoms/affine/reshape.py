@@ -13,15 +13,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
-from cvxpy.expressions.expression import Expression
-from cvxpy.atoms.affine.hstack import hstack
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from typing import Tuple
-
-import cvxpy.lin_ops.lin_utils as lu
 import numbers
+from typing import List, Tuple
+
 import numpy as np
+
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.hstack import hstack
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
 
 class reshape(AffAtom):
@@ -40,7 +42,7 @@ class reshape(AffAtom):
     order : F(ortran) or C
     """
 
-    def __init__(self, expr, shape: Tuple[int, ...], order: str = 'F') -> None:
+    def __init__(self, expr, shape: Tuple[int, int], order: str = 'F') -> None:
         if isinstance(shape, numbers.Integral):
             shape = (int(shape),)
         if len(shape) > 2:
@@ -77,7 +79,7 @@ class reshape(AffAtom):
                 "Invalid reshape dimensions %s." % (self._shape,)
             )
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the shape from the rows, cols arguments.
         """
         return self._shape
@@ -87,7 +89,9 @@ class reshape(AffAtom):
         """
         return [self._shape, self.order]
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Reshape
 
         Parameters

@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.atoms import promote
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.constants import Constant
 from cvxpy.expressions.variable import Variable
-import numpy as np
 
 
 def exp_canon(expr, args):

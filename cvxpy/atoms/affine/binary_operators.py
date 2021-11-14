@@ -15,24 +15,27 @@ limitations under the License.
 """
 
 from __future__ import division
-from typing import Tuple
-import sys
+
+import operator as op
+from functools import reduce
+from typing import List, Tuple
+
+import numpy as np
+import scipy.sparse as sp
 
 import cvxpy.interface as intf
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.atoms.affine.add_expr import AddExpression
-from cvxpy.atoms.affine.sum import sum as cvxpy_sum
-from cvxpy.atoms.affine.reshape import deep_flatten
-from cvxpy.atoms.affine.conj import conj
-from cvxpy.expressions.constants.parameter import is_param_affine, is_param_free
-from cvxpy.error import DCPError
+import cvxpy.lin_ops.lin_op as lo
 import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
-import numpy as np
-import operator as op
-import scipy.sparse as sp
-if sys.version_info >= (3, 0):
-    from functools import reduce
+from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.atoms.affine.conj import conj
+from cvxpy.atoms.affine.reshape import deep_flatten
+from cvxpy.atoms.affine.sum import sum as cvxpy_sum
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.error import DCPError
+from cvxpy.expressions.constants.parameter import (is_param_affine,
+                                                   is_param_free,)
 
 
 class BinaryOperator(AffAtom):
@@ -60,7 +63,7 @@ class BinaryOperator(AffAtom):
         """
         return reduce(self.OP_FUNC, values)
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         """Default to rules for times.
         """
         return u.sign.mul_sign(self.args[0], self.args[1])
@@ -111,7 +114,7 @@ class MulExpression(BinaryOperator):
         else:
             return np.matmul(values[0], values[1])
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.mul_shapes(self.args[0].shape, self.args[1].shape)
@@ -198,7 +201,9 @@ class MulExpression(BinaryOperator):
 
         return [DX, DY]
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Multiply the linear expressions.
 
         Parameters
@@ -267,7 +272,7 @@ class multiply(MulExpression):
         else:
             return np.multiply(values[0], values[1])
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """The sum of the argument dimensions - 1.
         """
         return u.shape.sum_shapes([arg.shape for arg in self.args])
@@ -284,7 +289,9 @@ class multiply(MulExpression):
         return (self.args[0].is_psd() and self.args[1].is_nsd()) or \
                (self.args[0].is_nsd() and self.args[1].is_psd())
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Multiply the expressions elementwise.
 
         Parameters
@@ -340,7 +347,7 @@ class DivExpression(BinaryOperator):
     def is_qpwa(self) -> bool:
         return self.args[0].is_qpwa() and self.args[1].is_constant()
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.args[0].shape
@@ -386,7 +393,9 @@ class DivExpression(BinaryOperator):
         else:
             return self.args[0].is_nonneg()
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Multiply the linear expressions.
 
         Parameters

@@ -14,8 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from scipy import linalg as LA
 import numpy as np
+from scipy import linalg as LA
+
 from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.sum_largest import sum_largest
 

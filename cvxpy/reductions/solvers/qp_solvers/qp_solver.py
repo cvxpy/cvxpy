@@ -14,14 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.reductions.cvx_attr2constr import convex_attributes
-from cvxpy.constraints import NonPos, Zero
-from cvxpy.reductions.solvers.solver import Solver
-from cvxpy.reductions.utilities import group_constraints
-from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import ParamQuadProg, ConeDims
-import cvxpy.settings as s
 import numpy as np
 import scipy.sparse as sp
+
+import cvxpy.settings as s
+from cvxpy.constraints import NonPos, Zero
+from cvxpy.reductions.cvx_attr2constr import convex_attributes
+from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import (ConeDims,
+                                                              ParamQuadProg,)
+from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.reductions.utilities import group_constraints
 
 
 class QpSolver(Solver):

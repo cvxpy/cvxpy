@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms.atom import Atom
-from cvxpy.expressions import cvxtypes
 from typing import Tuple
 
-import cvxpy.utilities as u
 import numpy as np
+
+import cvxpy.utilities as u
+from cvxpy.atoms.atom import Atom
+from cvxpy.expressions import cvxtypes
 
 
 class gmatmul(Atom):
@@ -80,7 +81,7 @@ class gmatmul(Atom):
                 "gmatmul(A, X) requires that X be positive."
             )
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return u.shape.mul_shapes(self.A.shape, self.args[0].shape)

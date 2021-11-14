@@ -16,11 +16,13 @@ limitations under the License.
 THIS FILE IS DEPRECATED AND MAY BE REMOVED WITHOUT WARNING!
 DO NOT CALL THESE FUNCTIONS IN YOUR CODE!
 """
-import cvxpy.interface as intf
-import cvxpy.lin_ops.lin_op as lo
 import copy
+
 import numpy as np
 from scipy.signal import fftconvolve
+
+import cvxpy.interface as intf
+import cvxpy.lin_ops.lin_op as lo
 
 # Utility functions for treating an expression tree as a matrix
 # and multiplying by it and it's transpose.

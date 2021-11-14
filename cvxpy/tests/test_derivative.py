@@ -1,90 +1,106 @@
+import warnings
+
+import numpy as np
+
 import cvxpy as cp
 import cvxpy.settings as s
 from cvxpy.tests.base_test import BaseTest
 
-import numpy as np
-import warnings
 warnings.filterwarnings("ignore")
 
+SOLVE_METHODS = [s.SCS, s.ECOS]
+EPS_NAME = {s.SCS: "eps",
+            s.ECOS: "abstol"}
 
-def perturbcheck(problem, gp: bool = False, delta: float = 1e-5,
-                 atol: float = 1e-8, eps: float = 1e-10, **kwargs) -> None:
+
+def perturbcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
+                 delta: float = 1e-5, atol: float = 1e-6, eps: float = 1e-9, **kwargs) -> None:
     """Checks the analytical derivative against a numerical computation."""
-    np.random.seed(0)
-    if not problem.parameters():
-        problem.solve(solver=cp.DIFFCP, gp=gp, requires_grad=True, eps=eps, **kwargs)
+
+    for solver in solve_methods:
+        np.random.seed(0)
+        eps_opt = {EPS_NAME[solver]: eps}
+        if not problem.parameters():
+            problem.solve(solver=s.DIFFCP, gp=gp, requires_grad=True, solve_method=solver,
+                          **eps_opt, **kwargs)
+            problem.derivative()
+            for variable in problem.variables():
+                np.testing.assert_equal(variable.delta, 0.0)
+
+        # Compute perturbations analytically
+        for param in problem.parameters():
+            param.delta = delta * np.random.randn(*param.shape)
+        problem.solve(solver=s.DIFFCP, gp=gp, requires_grad=True, solve_method=solver,
+                      **eps_opt, **kwargs)
         problem.derivative()
-        for variable in problem.variables():
-            np.testing.assert_equal(variable.delta, 0.0)
+        variable_values = [v.value for v in problem.variables()]
+        deltas = [v.delta for v in problem.variables()]
 
-    # Compute perturbations analytically
-    for param in problem.parameters():
-        param.delta = delta * np.random.randn(*param.shape)
-    problem.solve(solver=cp.DIFFCP, gp=gp, requires_grad=True, eps=eps, **kwargs)
-    problem.derivative()
-    variable_values = [v.value for v in problem.variables()]
-    deltas = [v.delta for v in problem.variables()]
+        # Compute perturbations numerically
+        old_values = {}
+        for param in problem.parameters():
+            old_values[param] = param.value
+            param.value += param.delta
+        problem.solve(solver=solver, gp=gp, **eps_opt, **kwargs)
+        num_deltas = [
+            v.value - old_value for (v, old_value)
+            in zip(problem.variables(), variable_values)]
 
-    # Compute perturbations numerically
-    old_values = {}
-    for param in problem.parameters():
-        old_values[param] = param.value
-        param.value += param.delta
-    problem.solve(solver=cp.SCS, gp=gp, eps=eps, **kwargs)
-    num_deltas = [
-        v.value - old_value for (v, old_value)
-        in zip(problem.variables(), variable_values)]
+        for analytical, numerical in zip(deltas, num_deltas):
+            np.testing.assert_allclose(analytical, numerical, atol=atol)
 
-    for analytical, numerical in zip(deltas, num_deltas):
-        np.testing.assert_allclose(analytical, numerical, atol=atol)
-
-    for param in problem.parameters():
-        param.value = old_values[param]
+        for param in problem.parameters():
+            param.value = old_values[param]
 
 
-def gradcheck(problem, gp: bool = False, delta: float = 1e-5,
-              atol: float = 1e-5, eps: float = 1e-10, **kwargs) -> None:
+def gradcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
+              delta: float = 1e-5, atol: float = 1e-4, eps: float = 1e-9, **kwargs) -> None:
     """Checks the analytical adjoint derivative against a numerical computation."""
-    size = sum(p.size for p in problem.parameters())
-    values = np.zeros(size)
-    offset = 0
-    for param in problem.parameters():
-        values[offset:offset + param.size] = np.asarray(param.value).flatten()
-        param.value = values[offset:offset + param.size].reshape(param.shape)
-        offset += param.size
+    for solver in solve_methods:
+        eps_opt = {EPS_NAME[solver]: eps}
 
-    numgrad = np.zeros(values.shape)
-    for i in range(values.size):
-        old = values[i]
-        values[i] = old + 0.5 * delta
-        problem.solve(cp.SCS, gp=gp, eps=eps, **kwargs)
-        left_solns = np.concatenate([x.value.flatten() for x in problem.variables()])
+        size = sum(p.size for p in problem.parameters())
+        values = np.zeros(size)
+        offset = 0
 
-        values[i] = old - 0.5 * delta
-        problem.solve(cp.SCS, gp=gp, eps=eps, **kwargs)
-        right_solns = np.concatenate([x.value.flatten() for x in problem.variables()])
+        for param in problem.parameters():
+            values[offset:offset + param.size] = np.asarray(param.value).flatten()
+            param.value = values[offset:offset + param.size].reshape(param.shape)
+            offset += param.size
 
-        numgrad[i] = (np.sum(left_solns) - np.sum(right_solns)) / delta
-        values[i] = old
-    numgrads = []
-    offset = 0
-    for param in problem.parameters():
-        numgrads.append(
-            numgrad[offset:offset + param.size].reshape(param.shape))
-        offset += param.size
+        numgrad = np.zeros(values.shape)
+        for i in range(values.size):
+            old = values[i]
+            values[i] = old + 0.5 * delta
+            problem.solve(solver=solver, gp=gp, **eps_opt, **kwargs)
+            left_solns = np.concatenate([x.value.flatten() for x in problem.variables()])
 
-    old_gradients = {}
-    for x in problem.variables():
-        old_gradients[x] = x.gradient
-        x.gradient = None
-    problem.solve(solver=cp.DIFFCP, requires_grad=True, gp=gp, eps=eps, **kwargs)
-    problem.backward()
+            values[i] = old - 0.5 * delta
+            problem.solve(solver=solver, gp=gp, **eps_opt, **kwargs)
+            right_solns = np.concatenate([x.value.flatten() for x in problem.variables()])
 
-    for param, numgrad in zip(problem.parameters(), numgrads):
-        np.testing.assert_allclose(param.gradient, numgrad, atol=atol)
+            numgrad[i] = (np.sum(left_solns) - np.sum(right_solns)) / delta
+            values[i] = old
+        numgrads = []
+        offset = 0
+        for param in problem.parameters():
+            numgrads.append(
+                numgrad[offset:offset + param.size].reshape(param.shape))
+            offset += param.size
 
-    for x in problem.variables():
-        x.gradient = old_gradients[x]
+        old_gradients = {}
+        for x in problem.variables():
+            old_gradients[x] = x.gradient
+            x.gradient = None
+        problem.solve(solver=s.DIFFCP, requires_grad=True, gp=gp, solve_method=solver,
+                      **eps_opt, **kwargs)
+        problem.backward()
+
+        for param, numgrad in zip(problem.parameters(), numgrads):
+            np.testing.assert_allclose(param.gradient, numgrad, atol=atol)
+
+        for x in problem.variables():
+            x.gradient = old_gradients[x]
 
 
 class TestBackward(BaseTest):
@@ -93,7 +109,7 @@ class TestBackward(BaseTest):
         try:
             import diffcp
             diffcp  # for flake8
-        except ImportError:
+        except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
 
     def test_scalar_quadratic(self) -> None:
@@ -148,8 +164,8 @@ class TestBackward(BaseTest):
 
         A.value = np.random.randn(m, n)
         b.value = np.random.randn(m)
-        gradcheck(problem)
-        perturbcheck(problem)
+        gradcheck(problem, atol=1e-3)
+        perturbcheck(problem, atol=1e-3)
 
     def test_least_squares(self) -> None:
         np.random.seed(0)
@@ -162,8 +178,8 @@ class TestBackward(BaseTest):
 
         A.value = np.random.randn(m, n)
         b.value = np.random.randn(m)
-        gradcheck(problem)
-        perturbcheck(problem)
+        gradcheck(problem, solve_methods=[s.SCS])
+        perturbcheck(problem, solve_methods=[s.SCS])
 
     def test_logistic_regression(self) -> None:
         np.random.seed(0)
@@ -189,8 +205,8 @@ class TestBackward(BaseTest):
         X.value = X_np
         lam.value = 1
         # TODO(akshayka): too low but this problem is ill-conditioned
-        gradcheck(problem, atol=1e-1, eps=1e-8)
-        perturbcheck(problem, atol=1e-4)
+        gradcheck(problem, solve_methods=[s.SCS], atol=1e-1, eps=1e-8)
+        perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
 
     def test_entropy_maximization(self) -> None:
         np.random.seed(0)
@@ -215,8 +231,8 @@ class TestBackward(BaseTest):
         b.value = b_np
         F.value = F_np
         g.value = g_np
-        gradcheck(problem, atol=1e-2, eps=1e-8)
-        perturbcheck(problem, atol=1e-4)
+        gradcheck(problem, solve_methods=[s.SCS], atol=1e-2, eps=1e-8)
+        perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
 
     def test_lml(self) -> None:
         np.random.seed(0)
@@ -229,8 +245,8 @@ class TestBackward(BaseTest):
 
         x.value = np.array([1., -1., -1., -1.])
         # TODO(akshayka): This tolerance is too low.
-        gradcheck(problem, atol=1e-2)
-        perturbcheck(problem, atol=1e-4)
+        gradcheck(problem, solve_methods=[s.SCS], atol=1e-2)
+        perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
 
     def test_sdp(self) -> None:
         np.random.seed(0)
@@ -249,8 +265,8 @@ class TestBackward(BaseTest):
         constraints = [cp.trace(As[i] @ X) == bs[i] for i in range(p)]
         problem = cp.Problem(cp.Minimize(cp.trace(C @ X) + cp.sum_squares(X)),
                              constraints)
-        gradcheck(problem, atol=1e-3)
-        perturbcheck(problem)
+        gradcheck(problem, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, solve_methods=[s.SCS])
 
     def test_forget_requires_grad(self) -> None:
         np.random.seed(0)
@@ -324,7 +340,7 @@ class TestBackwardDgp(BaseTest):
         try:
             import diffcp
             diffcp  # for flake8
-        except ImportError:
+        except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
 
     def test_one_minus_analytic(self) -> None:
@@ -346,8 +362,8 @@ class TestBackwardDgp(BaseTest):
         self.assertAlmostEqual(alpha.gradient, -2*0.4, places=3)
         self.assertAlmostEqual(x.delta, -2*0.4*1e-5, places=3)
 
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
         alpha.value = 0.5
         alpha.delta = 1e-5
@@ -358,8 +374,8 @@ class TestBackwardDgp(BaseTest):
         self.assertAlmostEqual(alpha.gradient, -2*0.5, places=3)
         self.assertAlmostEqual(x.delta, -2*0.5*1e-5, places=3)
 
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
     def test_analytic_param_in_exponent(self) -> None:
         # construct a problem with solution
@@ -374,27 +390,27 @@ class TestBackwardDgp(BaseTest):
 
         alpha.value = -1.0
         alpha.delta = 1e-5
-        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-6)
         self.assertAlmostEqual(x.value, 1 - base**(-1.0))
         problem.backward()
         problem.derivative()
         self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(-1.0))
         self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
 
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
         alpha.value = -1.2
         alpha.delta = 1e-5
-        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-6)
         self.assertAlmostEqual(x.value, 1 - base**(-1.2))
         problem.backward()
         problem.derivative()
         self.assertAlmostEqual(alpha.gradient, -np.log(base)*base**(-1.2))
         self.assertAlmostEqual(x.delta, alpha.gradient*1e-5, places=3)
 
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
     def test_param_used_twice(self) -> None:
         # construct a problem with solution
@@ -408,15 +424,15 @@ class TestBackwardDgp(BaseTest):
 
         alpha.value = 0.4
         alpha.delta = 1e-5
-        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-5)
+        problem.solve(solver=cp.DIFFCP, gp=True, requires_grad=True, eps=1e-6)
         self.assertAlmostEqual(x.value, 1 - 0.4**2 - 0.4**3)
         problem.backward()
         problem.derivative()
         self.assertAlmostEqual(alpha.gradient, -2*0.4 - 3*0.4**2)
         self.assertAlmostEqual(x.delta, alpha.gradient*1e-5)
 
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
     def test_param_used_in_exponent_and_elsewhere(self) -> None:
         # construct a problem with solution
@@ -451,8 +467,8 @@ class TestBackwardDgp(BaseTest):
         a.value = 2.0
         b.value = 1.0
         c.value = 0.5
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
     def test_maximum(self) -> None:
         x = cp.Variable(pos=True)
@@ -502,8 +518,8 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Maximize(x)
         constr = [cp.one_minus_pos(a*x) >= a*b]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, atol=1e-4)
-        perturbcheck(problem, gp=True, atol=1e-4)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
 
     def test_paper_example_one_minus_pos(self) -> None:
         x = cp.Variable(pos=True)
@@ -514,8 +530,8 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Minimize(x * y)
         constr = [(y * cp.one_minus_pos(x / y)) ** a >= b, x >= y/c]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-3)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-3)
+        perturbcheck(problem, solve_methods=[s.SCS], gp=True, atol=1e-3)
 
     def test_matrix_constraint(self) -> None:
         X = cp.Variable((2, 2), pos=True)
@@ -535,8 +551,8 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Minimize(x * y)
         constr = [cp.exp(a*y/x) <= cp.log(b*y)]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, atol=1e-2)
-        perturbcheck(problem, gp=True, atol=1e-2)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=5000)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=5000)
 
     def test_matrix_completion(self) -> None:
         X = cp.Variable((3, 3), pos=True)
@@ -553,8 +569,8 @@ class TestBackwardDgp(BaseTest):
           X[0, 1] * X[1, 0] * X[1, 2] * X[2, 2] == beta,
         ]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, atol=1e-3)
-        perturbcheck(problem, gp=True, atol=1e-4)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-4)
 
     def test_rank_one_nmf(self) -> None:
         X = cp.Variable((3, 3), pos=True)
@@ -579,8 +595,8 @@ class TestBackwardDgp(BaseTest):
         problem = cp.Problem(cp.Minimize(objective), constraints)
         # SCS struggles to solves this problem (solved/inaccurate, unless
         # max_iters is very high like 10000)
-        gradcheck(problem, gp=True, atol=1e-2)
-        perturbcheck(problem, gp=True, atol=1e-2)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=1000)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=1000)
 
     def test_documentation_prob(self) -> None:
         x = cp.Variable(pos=True)
@@ -595,8 +611,8 @@ class TestBackwardDgp(BaseTest):
         constraints = [
           a * x * y * z + b * x * z <= c, x <= b*y, y <= b*x, z >= d]
         problem = cp.Problem(cp.Maximize(objective_fn), constraints)
-        gradcheck(problem, gp=True, atol=1e-2)
-        perturbcheck(problem, gp=True, atol=1e-2)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2)
 
     def test_sum_squares_vector(self) -> None:
         alpha = cp.Parameter(shape=(2,), pos=True, value=[1.0, 1.0])
@@ -607,8 +623,8 @@ class TestBackwardDgp(BaseTest):
         problem = cp.Problem(cp.Minimize(cp.sum_squares(alpha + h)),
                              [cp.multiply(w, h) >= beta,
                               cp.sum(alpha + w) <= kappa])
-        gradcheck(problem, gp=True, atol=1e-1)
-        perturbcheck(problem, gp=True, atol=1e-1)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1, max_iters=1000)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1, max_iters=1000)
 
     def test_sum_matrix(self) -> None:
         w = cp.Variable((2, 2), pos=True)
@@ -619,5 +635,5 @@ class TestBackwardDgp(BaseTest):
         problem = cp.Problem(cp.Minimize(alpha*cp.sum(h)),
                              [cp.multiply(w, h) >= beta,
                               cp.sum(w) <= kappa])
-        gradcheck(problem, gp=True, atol=1e-1)
-        perturbcheck(problem, gp=True, atol=1e-1)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1)
+        perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-1)

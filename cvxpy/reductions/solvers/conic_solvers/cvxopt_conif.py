@@ -14,21 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy.interface as intf
-import cvxpy.settings as s
-from cvxpy.constraints import Zero, NonNeg, SOC, PSD
-from cvxpy.reductions.solution import failure_solution, Solution
-from cvxpy.reductions.solvers import utilities
-from cvxpy.reductions.solvers.conic_solvers.ecos_conif import ECOS
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.compr_matrix import compress_matrix
-from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
-from cvxpy.expressions.constants.constant import extremal_eig_near_ref
 from typing import Dict, List, Union
 
-import scipy.sparse as sp
-import scipy
 import numpy as np
+import scipy
+import scipy.sparse as sp
+from scipy.sparse.linalg import eigsh
+
+import cvxpy.interface as intf
+import cvxpy.settings as s
+from cvxpy.constraints import PSD, SOC, NonNeg, Zero
+from cvxpy.reductions.solvers.compr_matrix import compress_matrix
+from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.reductions.solvers.kktsolver import setup_ldl_factor
 
 
 # Utility method for formatting a ConeDims instance into a dictionary
@@ -42,7 +40,7 @@ def dims_to_solver_dict(cone_dims) -> Dict[str, Union[List[int], int]]:
     return cones
 
 
-class CVXOPT(ECOS):
+class CVXOPT(ConicSolver):
     """An interface for the CVXOPT solver.
     """
 
@@ -133,27 +131,11 @@ class CVXOPT(ECOS):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        status = solution['status']
-
-        if status in s.SOLUTION_PRESENT:
-            opt_val = solution['value'] + inverse_data[s.OFFSET]
-            primal_vars = {inverse_data[self.VAR_ID]: solution['primal']}
-            eq_dual = utilities.get_dual_values(
-                solution[s.EQ_DUAL],
-                utilities.extract_dual_value,
-                inverse_data[self.EQ_CONSTR])
-            leq_dual = utilities.get_dual_values(
-                solution[s.INEQ_DUAL],
-                utilities.extract_dual_value,
-                inverse_data[self.NEQ_CONSTR])
-            eq_dual.update(leq_dual)
-            dual_vars = eq_dual
-            return Solution(status, opt_val, primal_vars, dual_vars, {})
-        else:
-            return failure_solution(status)
+        return super(CVXOPT, self).invert(solution, inverse_data)
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cvxopt.solvers
+
         # Save original cvxopt solver options.
         old_options = cvxopt.solvers.options.copy()
         # Save old data in case need to use robust solver.
@@ -285,7 +267,7 @@ class CVXOPT(ECOS):
                 data[s.A] = None
                 data[s.B] = None
                 return s.OPTIMAL
-        eig = extremal_eig_near_ref(gram, ref=TOL)
+        eig = eigsh(gram, k=1, which='SM', return_eigenvectors=False)
         if eig > TOL:
             return s.OPTIMAL
         #

@@ -17,14 +17,15 @@ limitations under the License.
 from __future__ import division
 
 import warnings
+from typing import Tuple
 
 import numpy as np
+import scipy.sparse as sp
 from scipy import linalg as LA
+
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
-import scipy.sparse as sp
-from typing import Tuple
 
 
 class CvxPyDomainError(Exception):
@@ -113,7 +114,7 @@ class QuadForm(Atom):
         D = (P + np.conj(P.T)) @ x.T
         return [sp.csc_matrix(D.ravel(order='F')).T]
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         return tuple() if self.args[0].ndim == 0 else (1, 1)
 
 
@@ -144,10 +145,10 @@ class SymbolicQuadForm(Atom):
     def is_incr(self, idx) -> bool:
         return self.original_expression.is_incr(idx)
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         return self.original_expression.shape_from_args()
 
-    def sign_from_args(self):
+    def sign_from_args(self) -> Tuple[bool, bool]:
         return self.original_expression.sign_from_args()
 
     def is_quadratic(self) -> bool:

@@ -14,10 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from .boolean import Boolean
-import cvxpy.lin_ops.lin_utils as lu
-from munkres import Munkres
 import numpy as np
+from munkres import Munkres
+
+import cvxpy.lin_ops.lin_utils as lu
+
+from .boolean import Boolean
+
 
 class Assign(Boolean):
     """ An assignment matrix. """

@@ -13,15 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
+from typing import List, Tuple
 
-from cvxpy.atoms.affine.affine_atom import AffAtom
-from cvxpy.expressions.expression import Expression
-import cvxpy.lin_ops.lin_utils as lu
 import numpy as np
 
+import cvxpy.lin_ops.lin_op as lo
+import cvxpy.lin_ops.lin_utils as lu
+from cvxpy.atoms.affine.affine_atom import AffAtom
+from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.expression import Expression
 
-def promote(expr, shape: Tuple[int, ...]):
+
+def promote(expr: Expression, shape: Tuple[int, ...]):
     """ Promote a scalar expression to a vector/matrix.
 
     Parameters
@@ -80,7 +83,7 @@ class Promote(AffAtom):
         """Is the atom log-log concave?"""
         return True
 
-    def shape_from_args(self):
+    def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
         """
         return self.promoted_shape
@@ -90,7 +93,9 @@ class Promote(AffAtom):
         """
         return [self.promoted_shape]
 
-    def graph_implementation(self, arg_objs, shape: Tuple[int, ...], data=None):
+    def graph_implementation(
+        self, arg_objs, shape: Tuple[int, ...], data=None
+    ) -> Tuple[lo.LinOp, List[Constraint]]:
         """Promote scalar to vector/matrix
 
         Parameters
