@@ -1,61 +1,56 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Semidefinite program &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Semidefinite program &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="semidefinite-program">
 <h1>Semidefinite program<a class="headerlink" href="#semidefinite-program" title="Permalink to this headline">¶</a></h1>
 <p>A semidefinite program (SDP) is an optimization problem of the form</p>
-<div class="math">
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize}   &amp; \mathbf{tr}(CX) \\
 \mbox{subject to} &amp; \mathbf{tr}(A_iX) = b_i, \quad i=1,\ldots,p \\
                   &amp; X \succeq 0,
 \end{array}\end{split}\]</div>
-<p>where <span class="math">\(\mathbf{tr}\)</span> is the trace function,
-<span class="math">\(X \in \mathcal{S}^{n}\)</span> is the optimization variable and
-<span class="math">\(C, A_1, \ldots, A_p \in \mathcal{S}^{n}\)</span>, and
-<span class="math">\(b_1, \ldots, b_p \in \mathcal{R}\)</span> are problem data, and
-<span class="math">\(X \succeq 0\)</span> is a matrix inequality. Here <span class="math">\(\mathcal{S}^{n}\)</span>
-denotes the set of <span class="math">\(n\)</span>-by-<span class="math">\(n\)</span> symmetric matrices.</p>
+<p>where <span class="math notranslate nohighlight">\(\mathbf{tr}\)</span> is the trace function,
+<span class="math notranslate nohighlight">\(X \in \mathcal{S}^{n}\)</span> is the optimization variable and
+<span class="math notranslate nohighlight">\(C, A_1, \ldots, A_p \in \mathcal{S}^{n}\)</span>, and
+<span class="math notranslate nohighlight">\(b_1, \ldots, b_p \in \mathcal{R}\)</span> are problem data, and
+<span class="math notranslate nohighlight">\(X \succeq 0\)</span> is a matrix inequality. Here <span class="math notranslate nohighlight">\(\mathcal{S}^{n}\)</span>
+denotes the set of <span class="math notranslate nohighlight">\(n\)</span>-by-<span class="math notranslate nohighlight">\(n\)</span> symmetric matrices.</p>
 <p>An example of an SDP is to complete a covariance matrix
-<span class="math">\(\tilde \Sigma \in \mathcal{S}^{n}_+\)</span> with missing entries
-<span class="math">\(M \subset \{1,\ldots,n\} \times \{1,\ldots,n\}\)</span>:</p>
-<div class="math">
+<span class="math notranslate nohighlight">\(\tilde \Sigma \in \mathcal{S}^{n}_+\)</span> with missing entries
+<span class="math notranslate nohighlight">\(M \subset \{1,\ldots,n\} \times \{1,\ldots,n\}\)</span>:</p>
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
 \mbox{minimize}   &amp; 0 \\
 \mbox{subject to} &amp; \Sigma_{ij} = \tilde \Sigma_{ij}, \quad (i,j) \notin M \\
@@ -64,7 +59,7 @@ denotes the set of <span class="math">\(n\)</span>-by-<span class="math">\(n\)</
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>In the following code, we solve a SDP with CVXPY.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -97,7 +92,7 @@ denotes the set of <span class="math">\(n\)</span>-by-<span class="math">\(n\)</
 <span class="nb">print</span><span class="p">(</span><span class="n">X</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="mf">2.654348003008652</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="mf">2.654348003008652</span>
 <span class="n">A</span> <span class="n">solution</span> <span class="n">X</span> <span class="ow">is</span>
 <span class="p">[[</span> <span class="mf">1.6080571</span>  <span class="o">-</span><span class="mf">0.59770202</span> <span class="o">-</span><span class="mf">0.69575904</span><span class="p">]</span>
  <span class="p">[</span><span class="o">-</span><span class="mf">0.59770202</span>  <span class="mf">0.22228637</span>  <span class="mf">0.24689205</span><span class="p">]</span>
@@ -109,6 +104,7 @@ denotes the set of <span class="math">\(n\)</span>-by-<span class="math">\(n\)</
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -119,10 +115,12 @@ denotes the set of <span class="math">\(n\)</span>-by-<span class="math">\(n\)</
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -164,15 +162,15 @@ denotes the set of <span class="math">\(n\)</span>-by-<span class="math">\(n\)</
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -181,11 +179,11 @@ denotes the set of <span class="math">\(n\)</span>-by-<span class="math">\(n\)</
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/basic/sdp.txt"
+      <a href="../../_sources/examples/basic/sdp.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

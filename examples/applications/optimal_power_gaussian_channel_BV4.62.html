@@ -1,40 +1,35 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Optimal Power and Bandwidth Allocation in a Gaussian Channel &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Optimal Power and Bandwidth Allocation in a Gaussian Channel &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="optimal-power-and-bandwidth-allocation-in-a-gaussian-channel">
@@ -43,41 +38,41 @@
 Briggs</p>
 <p>from Boyd and Vandenberghe, Convex Optimization, exercise 4.62 page 210</p>
 <p>Consider a system in which a central node transmits messages to
-<span class="math">\(n\)</span> receivers. Each receiver channel <span class="math">\(i \in \{1,...,n\}\)</span> has
-a transmit power <span class="math">\(P_i\)</span> and bandwidth <span class="math">\(W_i\)</span>. A fraction of
+<span class="math notranslate nohighlight">\(n\)</span> receivers. Each receiver channel <span class="math notranslate nohighlight">\(i \in \{1,...,n\}\)</span> has
+a transmit power <span class="math notranslate nohighlight">\(P_i\)</span> and bandwidth <span class="math notranslate nohighlight">\(W_i\)</span>. A fraction of
 the total power and bandwidth is allocated to each channel, such that
-<span class="math">\(\sum_{i=1}^{n}P_i = P_{tot}\)</span> and
-<span class="math">\(\sum_{i=1}^{n}W_i = W_{tot}\)</span>. Given some utility function of the
-bit rate of each channel, <span class="math">\(u_i(R_i)\)</span>, the objective is to maximise
-the total utility <span class="math">\(U = \sum_{i=1}^{n}u_i(R_i)\)</span>.</p>
+<span class="math notranslate nohighlight">\(\sum_{i=1}^{n}P_i = P_{tot}\)</span> and
+<span class="math notranslate nohighlight">\(\sum_{i=1}^{n}W_i = W_{tot}\)</span>. Given some utility function of the
+bit rate of each channel, <span class="math notranslate nohighlight">\(u_i(R_i)\)</span>, the objective is to maximise
+the total utility <span class="math notranslate nohighlight">\(U = \sum_{i=1}^{n}u_i(R_i)\)</span>.</p>
 <p>Assuming that each channel is corrupted by Gaussian white noise, the
-signal to noise ratio is given by <span class="math">\(\beta_i P_i/W_i\)</span>. This means
+signal to noise ratio is given by <span class="math notranslate nohighlight">\(\beta_i P_i/W_i\)</span>. This means
 that the bit rate is given by:</p>
-<p><span class="math">\(R_i = \alpha_i W_i \log_2(1+\beta_iP_i/W_i)\)</span></p>
-<p>where <span class="math">\(\alpha_i\)</span> and <span class="math">\(\beta_i\)</span> are known positive constants.</p>
+<p><span class="math notranslate nohighlight">\(R_i = \alpha_i W_i \log_2(1+\beta_iP_i/W_i)\)</span></p>
+<p>where <span class="math notranslate nohighlight">\(\alpha_i\)</span> and <span class="math notranslate nohighlight">\(\beta_i\)</span> are known positive constants.</p>
 <p>One of the simplest utility functions is the data rate itself, which
 also gives a convex objective function.</p>
 <p>The optimisation problem can be thus be formulated as:</p>
-<p>minimise <span class="math">\(\sum_{i=1}^{n}-\alpha_i W_i \log_2(1+\beta_iP_i/W_i)\)</span></p>
+<p>minimise <span class="math notranslate nohighlight">\(\sum_{i=1}^{n}-\alpha_i W_i \log_2(1+\beta_iP_i/W_i)\)</span></p>
 <p>subject to
-<span class="math">\(\sum_{i=1}^{n}P_i = P_{tot} \quad \sum_{i=1}^{n}W_i = W_{tot} \quad P \succeq 0 \quad W \succeq 0\)</span></p>
+<span class="math notranslate nohighlight">\(\sum_{i=1}^{n}P_i = P_{tot} \quad \sum_{i=1}^{n}W_i = W_{tot} \quad P \succeq 0 \quad W \succeq 0\)</span></p>
 <p>Although this is a convex optimisation problem, it must be rewritten in
-DCP form since <span class="math">\(P_i\)</span> and <span class="math">\(W_i\)</span> are variables and DCP
+DCP form since <span class="math notranslate nohighlight">\(P_i\)</span> and <span class="math notranslate nohighlight">\(W_i\)</span> are variables and DCP
 prohibits dividing one variable by another directly. In order to rewrite
-the problem in DCP format, we utilise the <span class="math">\(\texttt{kl_div}\)</span>
+the problem in DCP format, we utilise the <span class="math notranslate nohighlight">\(\texttt{kl_div}\)</span>
 function in CVXPY, which calculates the Kullback-Leibler divergence.</p>
-<p><span class="math">\(\text{kl_div}(x,y) = x\log(x/y)-x+y\)</span></p>
-<p><span class="math">\(-R_i = \text{kl_div}(\alpha_i W_i, \alpha_i(W_i+\beta_iP_i)) - \alpha_i\beta_iP_i\)</span></p>
+<p><span class="math notranslate nohighlight">\(\text{kl_div}(x,y) = x\log(x/y)-x+y\)</span></p>
+<p><span class="math notranslate nohighlight">\(-R_i = \text{kl_div}(\alpha_i W_i, \alpha_i(W_i+\beta_iP_i)) - \alpha_i\beta_iP_i\)</span></p>
 <p>Now that the objective function is in DCP form, the problem can be
 solved using CVXPY.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill &amp; K. Briggs</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 </pre></div>
 </div>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">optimal_power</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a_val</span><span class="p">,</span> <span class="n">b_val</span><span class="p">,</span> <span class="n">P_tot</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">W_tot</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">optimal_power</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">a_val</span><span class="p">,</span> <span class="n">b_val</span><span class="p">,</span> <span class="n">P_tot</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">W_tot</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
     <span class="c1"># Input parameters: α and β are constants from R_i equation</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">a_val</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">b_val</span><span class="p">):</span>
@@ -112,10 +107,10 @@ solved using CVXPY.</p>
 </div>
 <div class="section" id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
-<p>Consider the case where there are 5 channels, <span class="math">\(n=5\)</span>,
-<span class="math">\(\alpha = \beta = (2.0,2.2,2.4,2.6,2.8)\)</span>,
-<span class="math">\(P_{\text{tot}} = 0.5\)</span> and <span class="math">\(W_{\text{tot}}=1\)</span>.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<p>Consider the case where there are 5 channels, <span class="math notranslate nohighlight">\(n=5\)</span>,
+<span class="math notranslate nohighlight">\(\alpha = \beta = (2.0,2.2,2.4,2.6,2.8)\)</span>,
+<span class="math notranslate nohighlight">\(P_{\text{tot}} = 0.5\)</span> and <span class="math notranslate nohighlight">\(W_{\text{tot}}=1\)</span>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">5</span>               <span class="c1"># number of receivers in the system</span>
 
 <span class="n">a_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="n">n</span><span class="o">+</span><span class="mi">10</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">1.0</span><span class="o">*</span><span class="n">n</span><span class="p">)</span>  <span class="c1"># α</span>
@@ -130,7 +125,7 @@ solved using CVXPY.</p>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Optimal bandwidth:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">bandwidth</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Status</span><span class="p">:</span> <span class="n">optimal</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Status</span><span class="p">:</span> <span class="n">optimal</span>
 <span class="n">Optimal</span> <span class="n">utility</span> <span class="n">value</span> <span class="o">=</span> <span class="mf">2.451</span>
 <span class="n">Optimal</span> <span class="n">power</span> <span class="n">level</span><span class="p">:</span>
 <span class="p">[</span><span class="mf">1.151e-09</span> <span class="mf">1.708e-09</span> <span class="mf">2.756e-09</span> <span class="mf">5.788e-09</span> <span class="mf">5.000e-01</span><span class="p">]</span>
@@ -143,6 +138,7 @@ solved using CVXPY.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -153,10 +149,12 @@ solved using CVXPY.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -198,15 +196,15 @@ solved using CVXPY.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -215,11 +213,11 @@ solved using CVXPY.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/applications/optimal_power_gaussian_channel_BV4.62.txt"
+      <a href="../../_sources/examples/applications/optimal_power_gaussian_channel_BV4.62.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

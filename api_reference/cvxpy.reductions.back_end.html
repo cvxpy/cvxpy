@@ -1,43 +1,37 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Back-End Reductions &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Back-End Reductions &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../index.html" />
-    <link rel="up" title="Reductions" href="cvxpy.reductions.html" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Transforms" href="cvxpy.transforms.html" />
     <link rel="prev" title="Middle-End Reductions" href="cvxpy.reductions.middle_end.html" />
    
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="back-end-reductions">
@@ -45,11 +39,11 @@
 <p>The reductions listed here are specific to the choice of back end, i.e.,
 solver. Currently, we support two types of back ends: conic solvers and
 quadratic program solvers.  When a problem is solved through the
-<code class="xref py py-meth docutils literal"><span class="pre">solve()</span></code> method, CVXPY attempts to find
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">solve()</span></code> method, CVXPY attempts to find
 the best back end for your problem. The
-<code class="xref py py-class docutils literal"><span class="pre">Dcp2Cone</span></code> reduction converts DCP-compliant
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Dcp2Cone</span></code> reduction converts DCP-compliant
 problems into conic form, while the
-<code class="xref py py-class docutils literal"><span class="pre">Qp2SymbolicQp</span></code> converts problems with
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Qp2SymbolicQp</span></code> converts problems with
 quadratic, piecewise affine objectives, affine equality constraints, and
 piecewise-linear inequality constraints into a form that is closer to what is
 accepted by solvers. The problems output by both reductions must be passed
@@ -57,20 +51,65 @@ through another sequence of reductions, not documented here, before they are
 ready for to be solved.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
-<li><a class="reference internal" href="#dcp2cone" id="id1">Dcp2Cone</a></li>
-<li><a class="reference internal" href="#qp2symbolicqp" id="id2">Qp2SymbolicQp</a></li>
+<li><p><a class="reference internal" href="#dcp2cone" id="id1">Dcp2Cone</a></p></li>
+<li><p><a class="reference internal" href="#qp2symbolicqp" id="id2">Qp2SymbolicQp</a></p></li>
 </ul>
 </div>
 <div class="section" id="dcp2cone">
 <h2><a class="toc-backref" href="#id1">Dcp2Cone</a><a class="headerlink" href="#dcp2cone" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.dcp2cone.dcp2cone.</code><code class="sig-name descname">Dcp2Cone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
+<p>Reduce DCP problems to a conic form.</p>
+<p>This reduction takes as input (minimization) DCP problems and converts
+them into problems with affine objectives and conic constraints whose
+arguments are affine.</p>
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
+<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>A problem is accepted if it is a minimization and is DCP.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a DCP problem to a conic form.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="qp2symbolicqp">
 <h2><a class="toc-backref" href="#id2">Qp2SymbolicQp</a><a class="headerlink" href="#qp2symbolicqp" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</code><code class="sig-name descname">Qp2SymbolicQp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
+<p>Reduces a quadratic problem to a problem that consists of affine
+expressions and symbolic quadratic forms.</p>
+<dl class="py method">
+<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts">
+<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Problems with quadratic, piecewise affine objectives,
+piecewise-linear constraints inequality constraints, and
+affine equality constraints are accepted.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a QP to an even more symbolic form.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -81,10 +120,12 @@ ready for to be solved.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -146,15 +187,15 @@ ready for to be solved.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -163,11 +204,11 @@ ready for to be solved.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../_sources/api_reference/cvxpy.reductions.back_end.txt"
+      <a href="../_sources/api_reference/cvxpy.reductions.back_end.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

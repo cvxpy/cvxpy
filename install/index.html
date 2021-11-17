@@ -1,42 +1,37 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Install &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Install &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../index.html" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorial" href="../tutorial/index.html" />
     <link rel="prev" title="Welcome to CVXPY 1.1" href="../index.html" />
    
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="install">
@@ -54,7 +49,7 @@ or a conda environment.</p>
 <p>(optional) Create and activate a virtual environment.</p>
 <p>Install CVXPY using <a class="reference external" href="https://pip.pypa.io/">pip</a>:</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -64,12 +59,12 @@ or a conda environment.</p>
 <p><a class="reference external" href="https://docs.conda.io/en/latest/">conda</a> is a system for package and environment management.</p>
 <p>(Windows only) Download the <a class="reference external" href="https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&amp;rel=16">Visual Studio build tools for Python 3</a>.</p>
 <ol class="arabic simple">
-<li>Install <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a>.</li>
-<li>Create a new conda environment,</li>
+<li><p>Install <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a>.</p></li>
+<li><p>Create a new conda environment,</p></li>
 </ol>
 <blockquote>
 <div><blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">cvxpy_env</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">create</span> <span class="o">--</span><span class="n">name</span> <span class="n">cvxpy_env</span>
 <span class="n">conda</span> <span class="n">activate</span> <span class="n">cvxpy_env</span>
 </pre></div>
 </div>
@@ -77,8 +72,8 @@ or a conda environment.</p>
 <p>or activate an existing one</p>
 </div></blockquote>
 <ol class="arabic" start="3">
-<li><p class="first">Install <code class="docutils literal"><span class="pre">cvxpy</span></code> from <a class="reference external" href="https://conda-forge.org/">conda-forge</a></p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">cvxpy</span>
+<li><p>Install <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> from <a class="reference external" href="https://conda-forge.org/">conda-forge</a></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="o">-</span><span class="n">c</span> <span class="n">conda</span><span class="o">-</span><span class="n">forge</span> <span class="n">cvxpy</span>
 </pre></div>
 </div>
 </li>
@@ -90,28 +85,26 @@ or a conda environment.</p>
 <p>CVXPY has the following dependencies:</p>
 <blockquote>
 <div><ul class="simple">
-<li>Python &gt;= 3.6</li>
-<li><a class="reference external" href="https://osqp.org/">OSQP</a> &gt;= 0.4.1</li>
-<li><a class="reference external" href="https://github.com/ifa-ethz/ecos">ECOS</a> &gt;= 2</li>
-<li><a class="reference external" href="https://github.com/cvxgrp/scs">SCS</a> &gt;= 1.1.6</li>
-<li><a class="reference external" href="https://www.numpy.org/">NumPy</a> &gt;= 1.15</li>
-<li><a class="reference external" href="https://www.scipy.org/">SciPy</a> &gt;= 1.1.0</li>
+<li><p>Python &gt;= 3.6</p></li>
+<li><p><a class="reference external" href="https://osqp.org/">OSQP</a> &gt;= 0.4.1</p></li>
+<li><p><a class="reference external" href="https://github.com/ifa-ethz/ecos">ECOS</a> &gt;= 2</p></li>
+<li><p><a class="reference external" href="https://github.com/cvxgrp/scs">SCS</a> &gt;= 1.1.6</p></li>
+<li><p><a class="reference external" href="https://www.numpy.org/">NumPy</a> &gt;= 1.15</p></li>
+<li><p><a class="reference external" href="https://www.scipy.org/">SciPy</a> &gt;= 1.1.0</p></li>
 </ul>
 </div></blockquote>
 <p>All required packages are installed automatically alongside CVXPY.</p>
 <p>Perform the following steps to install CVXPY from source:</p>
 <blockquote>
 <div><ol class="arabic">
-<li><p class="first">Clone the official <a class="reference external" href="https://github.com/cvxpy/cvxpy">CVXPY git repository</a>, or a newly minted fork of the CVXPY repository.</p>
-</li>
-<li><p class="first">Navigate to the top-level of the cloned directory.</p>
-</li>
-<li><p class="first">If you want to use CVXPY with editable source code, run</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
+<li><p>Clone the official <a class="reference external" href="https://github.com/cvxpy/cvxpy">CVXPY git repository</a>, or a newly minted fork of the CVXPY repository.</p></li>
+<li><p>Navigate to the top-level of the cloned directory.</p></li>
+<li><p>If you want to use CVXPY with editable source code, run</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="o">.</span>
 </pre></div>
 </div>
 <p>otherwise, run</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">.</span>
 </pre></div>
 </div>
 </li>
@@ -123,13 +116,13 @@ or a conda environment.</p>
 <p>CVXPY comes with an extensive test suite, which can be run after installing <a class="reference external" href="https://docs.pytest.org/en/latest/">pytest</a>.
 If installed from source, navigate to the root of the repository and run</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pytest</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>To run the tests when CVXPY was not installed from source, use</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">--</span><span class="n">pyargs</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">tests</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">--</span><span class="n">pyargs</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">tests</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -141,18 +134,17 @@ Additionally, through CVXOPT, CVXPY supports the <a class="reference external" h
 platforms</a>,
 <a class="reference external" href="https://cvxopt.org/">CVXOPT</a> comes with GLPK bundled. On such platforms, installing CVXOPT with</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>should suffice to get support for both CVXOPT and GLPK.</p>
 <p>On other platforms, to install CVXPY and its dependencies with GLPK support, follow these instructions:</p>
 <ol class="arabic">
-<li><p class="first">Install <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a>. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.</p>
-</li>
-<li><p class="first">Install <a class="reference external" href="https://cvxopt.org/">CVXOPT</a> with GLPK bindings.</p>
+<li><p>Install <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a>. We recommend either installing the latest GLPK from source or using a package manager such as apt-get on Ubuntu and homebrew on OS X.</p></li>
+<li><p>Install <a class="reference external" href="https://cvxopt.org/">CVXOPT</a> with GLPK bindings.</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CVXOPT_BUILD_GLPK</span><span class="o">=</span><span class="mi">1</span>
 <span class="n">CVXOPT_GLPK_LIB_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">lib</span>
 <span class="n">CVXOPT_GLPK_INC_DIR</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">glpk</span><span class="o">-</span><span class="n">X</span><span class="o">.</span><span class="n">X</span><span class="o">/</span><span class="n">include</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="n">cvxopt</span>
@@ -160,26 +152,25 @@ platforms</a>,
 </div>
 </div></blockquote>
 </li>
-<li><p class="first">Follow the standard installation procedure to install CVXPY and its remaining dependencies.</p>
-</li>
+<li><p>Follow the standard installation procedure to install CVXPY and its remaining dependencies.</p></li>
 </ol>
 </div>
 <div class="section" id="install-with-gurobi-support">
 <h2>Install with GUROBI support<a class="headerlink" href="#install-with-gurobi-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the GUROBI solver.
-Install GUROBI version 7.5.2 or greater such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">gurobipy</span></code> in Python.
+Install GUROBI version 7.5.2 or greater such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">gurobipy</span></code> in Python.
 See the <a class="reference external" href="https://www.gurobi.com/">GUROBI</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-mosek-support">
 <h2>Install with MOSEK support<a class="headerlink" href="#install-with-mosek-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the MOSEK solver.
-Simply install MOSEK such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">mosek</span></code> in Python.
+Simply install MOSEK such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">mosek</span></code> in Python.
 See the <a class="reference external" href="https://www.mosek.com/">MOSEK</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-xpress-support">
 <h2>Install with XPRESS support<a class="headerlink" href="#install-with-xpress-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the FICO Xpress solver.
-Simply install XPRESS such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
+Simply install XPRESS such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">xpress</span></code> in Python.
 See the <a class="reference external" href="https://www.fico.com/fico-xpress-optimization/docs/latest/solver/optimizer/python/HTML/GUID-616C323F-05D8-3460-B0D7-80F77DA7D046.html">Xpress Python documentation</a> pages for installation instructions.</p>
 </div>
 <div class="section" id="install-with-cbc-clp-cgl-support">
@@ -190,7 +181,7 @@ Simply install cylp and the corresponding prerequisites according to the <a clas
 <div class="section" id="install-with-cplex-support">
 <h2>Install with CPLEX support<a class="headerlink" href="#install-with-cplex-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the CPLEX solver.
-Simply install CPLEX such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">cplex</span></code> in Python.
+Simply install CPLEX such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">cplex</span></code> in Python.
 See the <a class="reference external" href="https://www.ibm.com/support/knowledgecenter/SSSA5P">CPLEX</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-sdpt3-support">
@@ -200,35 +191,35 @@ See the <a class="reference external" href="https://www.ibm.com/support/knowledg
 <div class="section" id="install-with-nag-support">
 <h2>Install with NAG support<a class="headerlink" href="#install-with-nag-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the NAG solver.
-Simply install NAG such that you can <code class="docutils literal"><span class="pre">import</span> <span class="pre">naginterfaces</span></code> in Python.
+Simply install NAG such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">naginterfaces</span></code> in Python.
 See the <a class="reference external" href="https://www.nag.co.uk/nag-library-python">NAG</a> website for installation instructions.</p>
 </div>
 <div class="section" id="install-with-scip-support">
 <h2>Install with SCIP support<a class="headerlink" href="#install-with-scip-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the SCIP solver.
-Simply install SCIP such that you can <code class="docutils literal"><span class="pre">from</span> <span class="pre">pyscipopt.scip</span> <span class="pre">import</span> <span class="pre">Model</span></code> in Python.
+Simply install SCIP such that you can <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">pyscipopt.scip</span> <span class="pre">import</span> <span class="pre">Model</span></code> in Python.
 See the <a class="reference external" href="https://github.com/SCIP-Interfaces/PySCIPOpt#installation">PySCIPOpt</a> github for installation instructions.</p>
-<p>CVXPY&#8217;s SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.</p>
+<p>CVXPY’s SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.</p>
 </div>
 <div class="section" id="install-with-scipy-support">
 <h2>Install with SCIPY support<a class="headerlink" href="#install-with-scipy-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the SCIPY solver for LPs.
-This requires the <a class="reference external" href="https://www.scipy.org/">SciPy</a> package in Python which should already be installed as it is a requirement for CVXPY. <a class="reference external" href="https://www.scipy.org/">SciPy</a>&#8216;s &#8220;interior-point&#8221; and &#8220;revised-simplex&#8221; implementations are written in python and are always available however the main advantage of this solver, is its ability to use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP solvers (which are written in C++) that comes bundled with <a class="reference external" href="https://www.scipy.org/">SciPy</a> version 1.6.1 and higher.</p>
+This requires the <a class="reference external" href="https://www.scipy.org/">SciPy</a> package in Python which should already be installed as it is a requirement for CVXPY. <a class="reference external" href="https://www.scipy.org/">SciPy</a>’s “interior-point” and “revised-simplex” implementations are written in python and are always available however the main advantage of this solver, is its ability to use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP solvers (which are written in C++) that comes bundled with <a class="reference external" href="https://www.scipy.org/">SciPy</a> version 1.6.1 and higher.</p>
 </div>
 <div class="section" id="install-without-default-solvers">
 <h2>Install without default solvers<a class="headerlink" href="#install-without-default-solvers" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY can also be installed without the default solver dependencies.
 This can be useful if the intention is to only use non-default solvers.</p>
-<p>The solver-less installation, <code class="docutils literal"><span class="pre">cvxpy-base</span></code>, can currently be installed through pip and conda.</p>
+<p>The solver-less installation, <code class="docutils literal notranslate"><span class="pre">cvxpy-base</span></code>, can currently be installed through pip and conda.</p>
 <p>Installing using pip:</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span><span class="o">-</span><span class="n">base</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">cvxpy</span><span class="o">-</span><span class="n">base</span>
 </pre></div>
 </div>
 </div></blockquote>
 <p>Installing using conda:</p>
 <blockquote>
-<div><div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">cvxpy</span><span class="o">-</span><span class="n">base</span>
+<div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">conda</span> <span class="n">install</span> <span class="n">cvxpy</span><span class="o">-</span><span class="n">base</span>
 </pre></div>
 </div>
 </div></blockquote>
@@ -237,6 +228,7 @@ This can be useful if the intention is to only use non-default solvers.</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -247,10 +239,12 @@ This can be useful if the intention is to only use non-default solvers.</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -309,15 +303,15 @@ This can be useful if the intention is to only use non-default solvers.</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -326,11 +320,11 @@ This can be useful if the intention is to only use non-default solvers.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../_sources/install/index.txt"
+      <a href="../_sources/install/index.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

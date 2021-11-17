@@ -1,40 +1,35 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Sparse covariance estimation for Gaussian variables &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sparse covariance estimation for Gaussian variables &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../../index.html" />
+    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
    
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="sparse-covariance-estimation-for-gaussian-variables">
@@ -44,31 +39,31 @@ improvements and fixes) from the CVX example of the same name, by Joelle
 Skaf, 4/24/2008.</p>
 <p>Topic References:</p>
 <ul class="simple">
-<li>Section 7.1.1, Boyd &amp; Vandenberghe “Convex Optimization”</li>
+<li><p>Section 7.1.1, Boyd &amp; Vandenberghe “Convex Optimization”</p></li>
 </ul>
 <div class="section" id="introduction">
 <h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
-<p>Suppose <span class="math">\(y \in \mathbf{\mbox{R}}^n\)</span> is a Gaussian random variable
+<p>Suppose <span class="math notranslate nohighlight">\(y \in \mathbf{\mbox{R}}^n\)</span> is a Gaussian random variable
 with zero mean and covariance matrix
-<span class="math">\(R = \mathbf{\mbox{E}}[yy^T]\)</span>, with sparse inverse
-<span class="math">\(S = R^{-1}\)</span> (<span class="math">\(S_{ij} = 0\)</span> means that <span class="math">\(y_i\)</span> and
-<span class="math">\(y_j\)</span> are conditionally independent). We want to estimate the
-covariance matrix <span class="math">\(R\)</span> based on <span class="math">\(N\)</span> independent samples
-<span class="math">\(y_1,\dots,y_N\)</span> drawn from the distribution, and using prior
-knowledge that <span class="math">\(S\)</span> is sparse</p>
-<p>A good heuristic for estimating <span class="math">\(R\)</span> is to solve the problem</p>
-<div class="math">
+<span class="math notranslate nohighlight">\(R = \mathbf{\mbox{E}}[yy^T]\)</span>, with sparse inverse
+<span class="math notranslate nohighlight">\(S = R^{-1}\)</span> (<span class="math notranslate nohighlight">\(S_{ij} = 0\)</span> means that <span class="math notranslate nohighlight">\(y_i\)</span> and
+<span class="math notranslate nohighlight">\(y_j\)</span> are conditionally independent). We want to estimate the
+covariance matrix <span class="math notranslate nohighlight">\(R\)</span> based on <span class="math notranslate nohighlight">\(N\)</span> independent samples
+<span class="math notranslate nohighlight">\(y_1,\dots,y_N\)</span> drawn from the distribution, and using prior
+knowledge that <span class="math notranslate nohighlight">\(S\)</span> is sparse</p>
+<p>A good heuristic for estimating <span class="math notranslate nohighlight">\(R\)</span> is to solve the problem</p>
+<div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
     \mbox{maximize}   &amp; \log \det(S) - \mbox{tr}(SY) \\
     \mbox{subject to} &amp; \sum_{i=1}^n \sum_{j=1}^n |S_{ij}| \le \alpha \\
                       &amp; S \succeq 0,
     \end{array}\end{split}\]</div>
-<p>where <span class="math">\(Y\)</span> is the sample covariance of <span class="math">\(y_1,\dots,y_N\)</span>, and
-<span class="math">\(\alpha\)</span> is a sparsity parameter to be chosen or tuned.</p>
+<p>where <span class="math notranslate nohighlight">\(Y\)</span> is the sample covariance of <span class="math notranslate nohighlight">\(y_1,\dots,y_N\)</span>, and
+<span class="math notranslate nohighlight">\(\alpha\)</span> is a sparsity parameter to be chosen or tuned.</p>
 </div>
 <div class="section" id="generate-problem-data">
 <h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">scipy</span>
 
@@ -97,9 +92,9 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
 </pre></div>
 </div>
 </div>
-<div class="section" id="solve-for-several-values">
-<h2>Solve for several <span class="math">\(\alpha\)</span> values<a class="headerlink" href="#solve-for-several-values" title="Permalink to this headline">¶</a></h2>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="c1"># The alpha values for each attempt at generating a sparse inverse cov. matrix.</span>
+<div class="section" id="solve-for-several-alpha-values">
+<h2>Solve for several <span class="math notranslate nohighlight">\(\alpha\)</span> values<a class="headerlink" href="#solve-for-several-alpha-values" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># The alpha values for each attempt at generating a sparse inverse cov. matrix.</span>
 <span class="n">alphas</span> <span class="o">=</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
 
 <span class="c1"># Empty list of result matrixes S</span>
@@ -130,7 +125,7 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
 
     <span class="c1"># Threshold S element values to enforce exact zeros:</span>
     <span class="n">S</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">value</span>
-    <span class="n">S</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">S</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">S</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mf">1e-4</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="c1"># Store this S in the list of results for later plotting.</span>
     <span class="n">Ss</span> <span class="o">+=</span> <span class="p">[</span><span class="n">S</span><span class="p">]</span>
@@ -138,7 +133,7 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
     <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Completed optimization parameterized by alpha = </span><span class="si">{}</span><span class="s1">, obj value = </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">alpha</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Completed</span> <span class="n">optimization</span> <span class="n">parameterized</span> <span class="n">by</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">obj</span> <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mf">16.167608186713004</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Completed</span> <span class="n">optimization</span> <span class="n">parameterized</span> <span class="n">by</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">obj</span> <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mf">16.167608186713004</span>
 <span class="n">Completed</span> <span class="n">optimization</span> <span class="n">parameterized</span> <span class="n">by</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mi">2</span><span class="p">,</span> <span class="n">obj</span> <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mf">22.545759632606043</span>
 <span class="n">Completed</span> <span class="n">optimization</span> <span class="n">parameterized</span> <span class="n">by</span> <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">obj</span> <span class="n">value</span> <span class="o">=</span> <span class="o">-</span><span class="mf">26.989407069609157</span>
 </pre></div>
@@ -146,7 +141,7 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
 </div>
 <div class="section" id="result-plots">
 <h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this headline">¶</a></h2>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Show plot inline in ipython.</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
@@ -171,7 +166,7 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
     <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Estimated inv. cov matrix, $</span><span class="se">\\</span><span class="s1">alpha$=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">alphas</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">Figure</span> <span class="n">size</span> <span class="mi">432</span><span class="n">x288</span> <span class="k">with</span> <span class="mi">0</span> <span class="n">Axes</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">Figure</span> <span class="n">size</span> <span class="mi">432</span><span class="n">x288</span> <span class="k">with</span> <span class="mi">0</span> <span class="n">Axes</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <img alt="../../_images/sparse_covariance_est_5_1.png" src="../../_images/sparse_covariance_est_5_1.png" />
@@ -180,6 +175,7 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -190,10 +186,12 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -235,15 +233,15 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -252,11 +250,11 @@ knowledge that <span class="math">\(S\)</span> is sparse</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../../_sources/examples/applications/sparse_covariance_est.txt"
+      <a href="../../_sources/examples/applications/sparse_covariance_est.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 

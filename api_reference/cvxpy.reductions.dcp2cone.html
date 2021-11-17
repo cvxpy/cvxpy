@@ -1,40 +1,35 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
+<!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>cvxpy.reductions.dcp2cone package &mdash; CVXPY 1.1.17 documentation</title>
-    
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cvxpy.reductions.dcp2cone package &#8212; CVXPY 1.1.17 documentation</title>
     <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '1.1.17',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="CVXPY 1.1.17 documentation" href="../index.html" />
+    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/language_data.js"></script>
+    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
    
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
 
-  </head>
-  <body role="document">  
+  </head><body>
+  
 
     <div class="document">
       <div class="documentwrapper">
         <div class="bodywrapper">
+          
+
           <div class="body" role="main">
             
   <div class="section" id="cvxpy-reductions-dcp2cone-package">
@@ -42,26 +37,303 @@
 <div class="section" id="subpackages">
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
-<ul class="simple">
-</ul>
 </div>
 </div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="cvxpy-reductions-dcp2cone-cone-matrix-stuffing-module">
-<h2>cvxpy.reductions.dcp2cone.cone_matrix_stuffing module<a class="headerlink" href="#cvxpy-reductions-dcp2cone-cone-matrix-stuffing-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-cvxpy.reductions.dcp2cone.cone_matrix_stuffing">
+<span id="cvxpy-reductions-dcp2cone-cone-matrix-stuffing-module"></span><h2>cvxpy.reductions.dcp2cone.cone_matrix_stuffing module<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone.cone_matrix_stuffing" title="Permalink to this headline">¶</a></h2>
+<p>Copyright 2013 Steven Diamond</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+<dl class="py class">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</code><code class="sig-name descname">ConeDims</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">constr_map</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeDims"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Summary of cone dimensions present in constraints.</p>
+<p>Constraints must be formatted as dictionary that maps from
+constraint type to a list of constraints of that type.</p>
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.zero">
+<code class="sig-name descname">zero</code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.zero" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dimension of the zero cone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.nonneg">
+<code class="sig-name descname">nonneg</code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.nonneg" title="Permalink to this definition">¶</a></dt>
+<dd><p>The dimension of the non-negative cone.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.exp">
+<code class="sig-name descname">exp</code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.exp" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of 3-dimensional exponential cones.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.soc">
+<code class="sig-name descname">soc</code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.soc" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the second-order cone dimensions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.psd">
+<code class="sig-name descname">psd</code><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.psd" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of the positive semidefinite cone dimensions, where the
+dimension of the PSD cone of k by k matrices is k.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EQ_DIM">
+<code class="sig-name descname">EQ_DIM</code><em class="property"> = 'f'</em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EQ_DIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EXP_DIM">
+<code class="sig-name descname">EXP_DIM</code><em class="property"> = 'ep'</em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.EXP_DIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.LEQ_DIM">
+<code class="sig-name descname">LEQ_DIM</code><em class="property"> = 'l'</em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.LEQ_DIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.P3D_DIM">
+<code class="sig-name descname">P3D_DIM</code><em class="property"> = 'p3'</em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.P3D_DIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.PSD_DIM">
+<code class="sig-name descname">PSD_DIM</code><em class="property"> = 's'</em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.PSD_DIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.SOC_DIM">
+<code class="sig-name descname">SOC_DIM</code><em class="property"> = 'q'</em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeDims.SOC_DIM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</code><code class="sig-name descname">ConeMatrixStuffing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.matrix_stuffing.MatrixStuffing</span></code></p>
+<p>Construct matrices for linear cone problems.</p>
+<p>Linear cone problems are assumed to have a linear objective and cone
+constraints which may have zero or more arguments, all of which must be
+affine.</p>
+<dl class="py attribute">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.CONSTRAINTS">
+<code class="sig-name descname">CONSTRAINTS</code><em class="property"> = 'ordered_constraints'</em><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.CONSTRAINTS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts">
+<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>States whether the reduction accepts a problem.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>problem</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code>) – The problem to check.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a stuffed problem.</p>
+<p>The returned problem is a minimization problem in which every
+constraint in the problem has affine arguments that are expressed in
+the form A &#64; x + b.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>problem</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">The</span> <span class="pre">problem</span></code> to <code class="xref py py-class docutils literal notranslate"><span class="pre">stuff;</span> <span class="pre">the</span> <span class="pre">arguments</span></code> of <code class="xref py py-class docutils literal notranslate"><span class="pre">every</span> <span class="pre">constraint</span></code>) – must be affine</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Problem</em> – The stuffed problem</p></li>
+<li><p><em>InverseData</em> – Data for solution retrieval</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert">
+<code class="sig-name descname">invert</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solution</span></em>, <em class="sig-param"><span class="n">inverse_data</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.invert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.invert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves a solution to the original problem</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective">
+<code class="sig-name descname">stuffed_objective</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em>, <em class="sig-param"><span class="n">extractor</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ConeMatrixStuffing.stuffed_objective"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ConeMatrixStuffing.stuffed_objective" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.dcp2cone.cone_matrix_stuffing.</code><code class="sig-name descname">ParamConeProg</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">c</span></em>, <em class="sig-param"><span class="n">x</span></em>, <em class="sig-param"><span class="n">A</span></em>, <em class="sig-param"><span class="n">variables</span></em>, <em class="sig-param"><span class="n">var_id_to_col</span></em>, <em class="sig-param"><span class="n">constraints</span></em>, <em class="sig-param"><span class="n">parameters</span></em>, <em class="sig-param"><span class="n">param_id_to_col</span></em>, <em class="sig-param"><span class="n">formatted</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.problems.param_prob.ParamProb</span></code></p>
+<p>Represents a parameterized cone program</p>
+<p>minimize   c’x  + d
+subject to cone_constr1(A_1*x + b_1, …)</p>
+<blockquote>
+<div><p>…
+cone_constrK(A_i*x + b_i, …)</p>
+</div></blockquote>
+<p>The constant offsets d and b are the last column of c and A.</p>
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac">
+<code class="sig-name descname">apply_param_jac</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">delc</span></em>, <em class="sig-param"><span class="n">delA</span></em>, <em class="sig-param"><span class="n">delb</span></em>, <em class="sig-param"><span class="n">active_params</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.apply_param_jac"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_param_jac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiplies by Jacobian of parameter mapping.</p>
+<p>Assumes delA is sparse.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>A dictionary param.id -&gt; dparam</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters">
+<code class="sig-name descname">apply_parameters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">id_to_param_value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">zero_offset</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em>, <em class="sig-param"><span class="n">keep_zeros</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.apply_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.apply_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns A, b after applying parameters (and reshaping).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>id_to_param_value</strong> – (optional) dict mapping parameter ids to values</p></li>
+<li><p><strong>zero_offset</strong> – (optional) if True, zero out the constant offset in the
+parameter vector</p></li>
+<li><p><strong>keep_zeros</strong> – (optional) if True, store explicit zeros in A where
+parameters are affected</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer">
+<code class="sig-name descname">is_mixed_integer</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.is_mixed_integer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.is_mixed_integer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is the problem mixed-integer?</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint">
+<code class="sig-name descname">split_adjoint</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">del_vars</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.split_adjoint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_adjoint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adjoint of split_solution.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution">
+<code class="sig-name descname">split_solution</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">sltn</span></em>, <em class="sig-param"><span class="n">active_vars</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html#ParamConeProg.split_solution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.cone_matrix_stuffing.ParamConeProg.split_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Splits the solution into individual variables.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="cvxpy-reductions-dcp2cone-dcp2cone-module">
-<h2>cvxpy.reductions.dcp2cone.dcp2cone module<a class="headerlink" href="#cvxpy-reductions-dcp2cone-dcp2cone-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-cvxpy.reductions.dcp2cone.dcp2cone">
+<span id="cvxpy-reductions-dcp2cone-dcp2cone-module"></span><h2>cvxpy.reductions.dcp2cone.dcp2cone module<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone.dcp2cone" title="Permalink to this headline">¶</a></h2>
+<p>Copyright 2013 Steven Diamond, 2017 Akshay Agrawal, 2017 Robin Verschueren</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
+<dl class="py class">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
+<em class="property">class </em><code class="sig-prename descclassname">cvxpy.reductions.dcp2cone.dcp2cone.</code><code class="sig-name descname">Dcp2Cone</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.canonicalization.Canonicalization</span></code></p>
+<p>Reduce DCP problems to a conic form.</p>
+<p>This reduction takes as input (minimization) DCP problems and converts
+them into problems with affine objectives and conic constraints whose
+arguments are affine.</p>
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">
+<code class="sig-name descname">accepts</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.accepts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts" title="Permalink to this definition">¶</a></dt>
+<dd><p>A problem is accepted if it is a minimization and is DCP.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">
+<code class="sig-name descname">apply</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">problem</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone.apply"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a DCP problem to a conic form.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
-<div class="section" id="module-contents">
-<h2>Module contents<a class="headerlink" href="#module-contents" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-cvxpy.reductions.dcp2cone">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-cvxpy.reductions.dcp2cone" title="Permalink to this headline">¶</a></h2>
+<p>Copyright 2013 Steven Diamond</p>
+<p>Licensed under the Apache License, Version 2.0 (the “License”);
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at</p>
+<blockquote>
+<div><p><a class="reference external" href="http://www.apache.org/licenses/LICENSE-2.0">http://www.apache.org/licenses/LICENSE-2.0</a></p>
+</div></blockquote>
+<p>Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an “AS IS” BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</p>
 </div>
 </div>
 
 
           </div>
+          
         </div>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
@@ -72,10 +344,12 @@
 
 
 
+
 <p>
-<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large"
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
   allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
 </p>
+
 
 
 
@@ -117,15 +391,15 @@
 
 
 <div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" />
+      <input type="text" name="q" aria-labelledby="searchlabel" />
       <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
     </form>
+    </div>
 </div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script>
         </div>
       </div>
       <div class="clearer"></div>
@@ -134,11 +408,11 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
-      <a href="../_sources/api_reference/cvxpy.reductions.dcp2cone.txt"
+      <a href="../_sources/api_reference/cvxpy.reductions.dcp2cone.rst.txt"
           rel="nofollow">Page source</a>
     </div>
 
