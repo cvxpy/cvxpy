@@ -28,6 +28,9 @@ class LinOp:
         self.args = args
         self.data = data
 
+    def __repr__(self) -> str:
+        return f"LinOp({self.type}, {self.shape})"
+
 
 # The types of linear operators.
 

@@ -290,7 +290,8 @@ def multiply(lh_op, rh_op):
     LinOp
         A linear operator representing the product.
     """
-    return lo.LinOp(lo.MUL_ELEM, lh_op.shape, [rh_op], lh_op)
+    shape = max(lh_op.shape, rh_op.shape)
+    return lo.LinOp(lo.MUL_ELEM, shape, [rh_op], lh_op)
 
 
 def kron(lh_op, rh_op, shape: Tuple[int, ...]):
