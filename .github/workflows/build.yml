@@ -54,7 +54,6 @@ jobs:
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
-      COVERAGE: "False"
       DEPLOY_PYPI_SOURCE: "${{ matrix.deploy_pypi_source == 'True' && 'True' || 'False' }}"
       USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
@@ -84,8 +83,12 @@ jobs:
         run: |
           source continuous_integration/test_script.sh
 
-      - name: Coverage
-        run: if [[ "$COVERAGE" == "True" ]]; then coveralls; fi
+      - name: Upload coverage file
+        uses: actions/upload-artifact@v2
+        if: ${{env.DEPLOY_PYPI_SOURCE == 'True'}}
+        with:
+          name: coverage
+          path: .coverage
 
       - name: Build wheels
         if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
@@ -195,12 +198,21 @@ jobs:
           path: ./wheelhouse
 
   sonarcloud:
+    needs: build
     name: SonarCloud
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: actions/download-artifact@v2
+        with:
+          name: coverage
+      - name: Fix coverage paths
+        run: |
+          # Fix paths in coverage file https://stackoverflow.com/a/43895011
+          pip install coverage
+          coverage xml -i
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
