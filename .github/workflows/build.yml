@@ -88,7 +88,7 @@ jobs:
         if: ${{env.DEPLOY_PYPI_SOURCE == 'True'}}
         with:
           name: coverage
-          path: .coverage
+          path: coverage.xml
 
       - name: Build wheels
         if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
@@ -208,11 +208,6 @@ jobs:
       - uses: actions/download-artifact@v2
         with:
           name: coverage
-      - name: Fix coverage paths
-        run: |
-          # Fix paths in coverage file https://stackoverflow.com/a/43895011
-          pip install coverage
-          coverage xml -i
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:

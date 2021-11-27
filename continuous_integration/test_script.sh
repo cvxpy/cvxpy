@@ -19,7 +19,7 @@ fi
 python -c "import cvxpy; print(cvxpy.installed_solvers())"
 
 if [[ "$DEPLOY_PYPI_SOURCE" == "True" ]]; then
-    pytest cvxpy/tests --cov=cvxpy
+    pytest cvxpy/tests --cov=cvxpy --cov-report xml:coverage.xml
 else
     pytest cvxpy/tests
 fi
