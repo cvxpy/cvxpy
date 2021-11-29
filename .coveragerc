@@ -1,9 +1,3 @@
 [run]
 source = cvxpy
-omit =
-    */python2.7/*
-    */lib-python/2.7/*.py
-    */lib_pypy/_*.py
-    */site-packages/ordereddict.py
-    */site-packages/nose/*
-    */unittest2/*
+relative_files = True

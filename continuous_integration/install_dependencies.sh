@@ -11,7 +11,7 @@ conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
 if [[ "$PYTHON_VERSION" == "3.6" ]] || [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  conda install scipy=1.3 numpy=1.16 mkl pip pytest lapack ecos scs osqp cvxopt
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt
   python -m pip install cplex  # CPLEX is not available yet on 3.9
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
@@ -42,8 +42,4 @@ fi
 
 if [[ "$USE_OPENMP" == "True" ]]; then
   conda install -c conda-forge openmp
-fi
-
-if [[ "$COVERAGE" == "True" ]]; then
-  python -m pip install coverage coveralls
 fi
