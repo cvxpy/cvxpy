@@ -43,17 +43,20 @@ class huber(Elementwise):
         The expression to which the huber function will be applied.
     M : Constant
         A scalar constant.
+    T : Constant
+        Scaling constant if non null
     """
 
-    def __init__(self, x, M: int = 1) -> None:
+    def __init__(self, x, M: int = 1, T: float = 0) -> None:
         self.M = self.cast_to_const(M)
+        self.T = self.cast_to_const(T)
         super(huber, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values) -> float:
         """Returns the huber function applied elementwise to x.
         """
-        return 2*scipy.special.huber(self.M.value, values[0])
+        return 2*scipy.special.huber(self.M.value, values[0]) if self.T.value == 0 else self.T.value*(1 + 2*scipy.special.huber(self.M.value/self.T.value, values[0]))
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
