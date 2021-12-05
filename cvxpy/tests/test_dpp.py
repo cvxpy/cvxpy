@@ -466,7 +466,7 @@ class TestDgp(BaseTest):
         self.assertTrue(problem.is_dgp(dpp=True))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         # max(1*2, 3*1*2) = 6
-        self.assertAlmostEqual(problem.value, 6.0)
+        self.assertAlmostEqual(problem.value, 6.0, places=4)
         self.assertAlmostEqual(x.value, 1.0)
         self.assertAlmostEqual(y.value, 4.0)
 
@@ -476,7 +476,7 @@ class TestDgp(BaseTest):
         tau.value = 3.0    # y
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         # max(2*9, 0.5*2*9) == 18
-        self.assertAlmostEqual(problem.value, 18.0)
+        self.assertAlmostEqual(problem.value, 18.0, places=4)
         self.assertAlmostEqual(x.value, 2.0)
         self.assertAlmostEqual(y.value, 3.0)
 
@@ -498,7 +498,7 @@ class TestDgp(BaseTest):
         self.assertTrue(problem.is_dgp(dpp=True))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         # max(1*2, 3*1*2) = 6
-        self.assertAlmostEqual(problem.value, 6.0)
+        self.assertAlmostEqual(problem.value, 6.0, places=4)
         self.assertAlmostEqual(x.value, 1.0)
         self.assertAlmostEqual(y.value, 4.0)
 
@@ -508,7 +508,7 @@ class TestDgp(BaseTest):
         tau.value = 3.0    # y
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         # max(2*9, 0.5*2*9) == 18
-        self.assertAlmostEqual(problem.value, 18.0)
+        self.assertAlmostEqual(problem.value, 18.0, places=4)
         self.assertAlmostEqual(x.value, 2.0)
         self.assertAlmostEqual(y.value, 3.0)
 
