@@ -258,7 +258,7 @@ class TestDcp(BaseTest):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             prob.solve(solver=cp.SCS, eps=1e-6)
-        np.testing.assert_almost_equal(prob.value, 2.)
+        np.testing.assert_almost_equal(prob.value, 2., decimal=3)
 
         s = cp.Parameter(1, nonneg=True)
         x = cp.Variable(1)
@@ -269,7 +269,7 @@ class TestDcp(BaseTest):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             prob.solve(solver=cp.SCS, eps=1e-6)
-        np.testing.assert_almost_equal(prob.value, 2.)
+        np.testing.assert_almost_equal(prob.value, 2., decimal=3)
 
         s = cp.Parameter(1, nonneg=True)
         x = cp.Variable(1)
@@ -280,7 +280,7 @@ class TestDcp(BaseTest):
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
             prob.solve(solver=cp.SCS, eps=1e-6)
-        np.testing.assert_almost_equal(prob.value, 1.)
+        np.testing.assert_almost_equal(prob.value, 1., decimal=3)
 
 
 class TestDgp(BaseTest):
@@ -725,8 +725,8 @@ class TestDgp(BaseTest):
                               cp.sum(alpha + w) <= 10])
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         self.assertAlmostEqual(problem.value, 10)
-        np.testing.assert_almost_equal(h.value, np.array([5, 5]))
-        np.testing.assert_almost_equal(w.value, np.array([4, 4]))
+        np.testing.assert_almost_equal(h.value, np.array([5, 5]), decimal=3)
+        np.testing.assert_almost_equal(w.value, np.array([4, 4]), decimal=3)
 
         alpha.value = [4.0, 4.0]
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
@@ -742,8 +742,8 @@ class TestDgp(BaseTest):
                              [cp.multiply(w, h) >= 20,
                               cp.sum(alpha + w) <= 10])
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(w.value, np.array([4, 4]))
-        np.testing.assert_almost_equal(h.value, np.array([5, 5]))
+        np.testing.assert_almost_equal(w.value, np.array([4, 4]), decimal=3)
+        np.testing.assert_almost_equal(h.value, np.array([5, 5]), decimal=3)
         self.assertAlmostEqual(problem.value, 6**2 + 6**2)
 
         alpha.value = [4.0, 4.0]
@@ -760,29 +760,29 @@ class TestDgp(BaseTest):
                              [cp.multiply(w, h) >= 10,
                               cp.sum(w) <= 20])
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 8)
-        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]))
-        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]))
+        np.testing.assert_almost_equal(problem.value, 8, decimal=4)
+        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]), decimal=4)
+        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]), decimal=4)
 
         alpha.value = 2.0
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 16)
+        np.testing.assert_almost_equal(problem.value, 16, decimal=4)
 
         w = cp.Variable((2, 2), pos=True)
         h = cp.Parameter((2, 2), pos=True)
         h.value = np.ones((2, 2))
-        alpha = cp.Parameter(pos=True, value=1.0)
-        problem = cp.Problem(cp.Minimize(cp.sum(h)), [w == h])
+        alpha.value = 1.0
+        problem = cp.Problem(cp.Minimize(cp.sum(alpha * h)), [w == h])
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 4.0)
+        np.testing.assert_almost_equal(problem.value, 4.0, decimal=4)
 
         h.value = 2.0 * np.ones((2, 2))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 8.0)
+        np.testing.assert_almost_equal(problem.value, 8.0, decimal=4)
 
         h.value = 3.0 * np.ones((2, 2))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 12.0)
+        np.testing.assert_almost_equal(problem.value, 12.0, decimal=4)
 
     def test_exp(self) -> None:
         x = cp.Variable(4, pos=True)
