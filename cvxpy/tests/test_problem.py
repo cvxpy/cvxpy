@@ -1972,3 +1972,18 @@ class TestProblem(BaseTest):
         prob = cp.Problem(cp.Minimize(cp.sum(cp.huber(A @ x - b))))
 
         prob.solve(solver=cp.SCS)
+
+    def test_rmul_param(self) -> None:
+        """Test a complex rmul expression with a parameter.
+           See issue #1555.
+        """
+        b = cp.Variable((1,))
+        param = cp.Parameter(1)
+
+        constraints = []
+        objective = cp.Minimize((2 * b) @ param)
+        prob = cp.Problem(objective, constraints)
+
+        param.value = np.array([1])
+        prob.solve()
+        assert prob.value == -np.inf

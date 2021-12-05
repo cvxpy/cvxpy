@@ -193,9 +193,10 @@ def get_status(model):
                      status.feasible_relaxed_inf,
                      status.feasible_relaxed_sum):
         return s.SOLVER_ERROR
-    elif solstat in (status.unbounded,
-                     status.infeasible_or_unbounded):
+    elif solstat == status.unbounded:
         return s.UNBOUNDED
+    elif solstat == status.infeasible_or_unbounded:
+        return s.INFEASIBLE_OR_UNBOUNDED
     else:
         return s.SOLVER_ERROR
 
@@ -358,6 +359,7 @@ class CPLEX(ConicSolver):
             model.parameters.preprocessing.qcpduals.values.force)
 
         # Set parameters
+        reoptimize = solver_opts.pop('reoptimize', False)
         set_parameters(model, solver_opts)
 
         # Solve problem
@@ -366,6 +368,14 @@ class CPLEX(ConicSolver):
             start_time = model.get_time()
             model.solve()
             solution[s.SOLVE_TIME] = model.get_time() - start_time
+
+            ambiguous_status = get_status(model) == s.INFEASIBLE_OR_UNBOUNDED
+            if ambiguous_status and reoptimize:
+                model.parameters.preprocessing.presolve.set(0)
+                start_time = model.get_time()
+                model.solve()
+                solution[s.SOLVE_TIME] += model.get_time() - start_time
+
         except Exception:
             pass
 

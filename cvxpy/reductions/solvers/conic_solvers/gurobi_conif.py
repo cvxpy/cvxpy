@@ -37,7 +37,7 @@ class GUROBI(ConicSolver):
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
                   3: s.INFEASIBLE,
-                  4: s.SOLVER_ERROR,  # Triggers reoptimize.
+                  4: s.INFEASIBLE_OR_UNBOUNDED,  # Triggers reoptimize.
                   5: s.UNBOUNDED,
                   6: s.SOLVER_ERROR,
                   7: s.SOLVER_ERROR,
@@ -221,8 +221,8 @@ class GUROBI(ConicSolver):
         solution = {}
         try:
             model.optimize()
-            # Reoptimize if INF_OR_UNBD, to get definitive answer.
-            if model.Status == 4:
+            if model.Status == 4 and solver_opts.get('reoptimize', False):
+                # INF_OR_UNBD. Solve again to get a definitive answer.
                 model.setParam("DualReductions", 0)
                 model.optimize()
             solution["value"] = model.ObjVal

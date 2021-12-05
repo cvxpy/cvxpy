@@ -49,7 +49,7 @@ STATUS_MAP = {
     # INF_OR_UNB
     "infeasible": s.INFEASIBLE,
     "unbounded": s.UNBOUNDED,
-    "inforunbd": s.UNBOUNDED_INACCURATE,
+    "inforunbd": s.INFEASIBLE_OR_UNBOUNDED,
     # ERROR
     "userinterrupt": s.SOLVER_ERROR,
     "memlimit": s.SOLVER_ERROR,

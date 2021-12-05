@@ -18,11 +18,10 @@ fi
 
 python -c "import cvxpy; print(cvxpy.installed_solvers())"
 
-if [[ "$COVERAGE" == "True" ]]; then
-    export WITH_COVERAGE="--with-coverage"
+if [[ "$SINGLE_ACTION_CONFIG" == "True" ]]; then
+    pytest cvxpy/tests --cov=cvxpy --cov-report xml:coverage.xml
 else
-    export WITH_COVERAGE=""
+    pytest cvxpy/tests
 fi
 
-pytest $WITH_COVERAGE cvxpy/tests
-pytest $WITH_COVERAGE cvxpy/performance_tests
+pytest cvxpy/performance_tests

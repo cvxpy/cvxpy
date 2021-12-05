@@ -47,15 +47,14 @@ jobs:
             python-version: 3.8
           - os: macos-10.15
             python-version: 3.8
-            deploy_pypi_source: "True"
+            single_action_config: "True"
           - os: windows-2019
             python-version: 3.8
 
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
-      COVERAGE: "False"
-      DEPLOY_PYPI_SOURCE: "${{ matrix.deploy_pypi_source == 'True' && 'True' || 'False' }}"
+      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' && 'True' || 'False' }}"
       USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
@@ -84,8 +83,12 @@ jobs:
         run: |
           source continuous_integration/test_script.sh
 
-      - name: Coverage
-        run: if [[ "$COVERAGE" == "True" ]]; then coveralls; fi
+      - name: Upload coverage file
+        uses: actions/upload-artifact@v2
+        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
+        with:
+          name: coverage
+          path: coverage.xml
 
       - name: Build wheels
         if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
@@ -96,7 +99,7 @@ jobs:
         uses: joerick/cibuildwheel@v1.11.0
 
       - name: Build source
-        if: ${{env.DEPLOY == 'True' && env.DEPLOY_PYPI_SOURCE == 'True'}}
+        if: ${{env.DEPLOY == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           python setup.py sdist --dist-dir=wheelhouse
 
@@ -128,13 +131,13 @@ jobs:
             python-version: 3.8
           - os: macos-10.15
             python-version: 3.8
-            deploy_pypi_source: "True"
+            single_action_config: "True"
           - os: windows-2019
             python-version: 3.8
 
     env:
       PYTHON_VERSION: ${{ matrix.python-version }}
-      DEPLOY_PYPI_SOURCE: "${{ matrix.deploy_pypi_source == 'True' && 'True' || 'False' }}"
+      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' && 'True' || 'False' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -161,7 +164,7 @@ jobs:
           rm -rf setup.py.bak
 
       - name: Run some tests on one OS just to check imports are working
-        if: ${{env.DEPLOY_PYPI_SOURCE == 'True'}}
+        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           pip install . pytest cplex
           pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
@@ -175,7 +178,7 @@ jobs:
         uses: joerick/cibuildwheel@v1.11.0
 
       - name: Build source
-        if: ${{env.DEPLOY == 'True' && env.DEPLOY_PYPI_SOURCE == 'True'}}
+        if: ${{env.DEPLOY == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           python setup.py sdist --dist-dir=wheelhouse
 
@@ -193,3 +196,26 @@ jobs:
         with:
           name: wheels-base
           path: ./wheelhouse
+
+  sonarcloud:
+    needs: build
+    name: SonarCloud
+    runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - uses: actions/download-artifact@v2
+        with:
+          name: coverage
+      - name: Check if environment variable exists
+        run: |
+          echo "RUN_SONAR=$( [[ -n "$SONAR_TOKEN" ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
+      - name: SonarCloud Scan
+        if: ${{env.RUN_SONAR == 'True'}}
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
