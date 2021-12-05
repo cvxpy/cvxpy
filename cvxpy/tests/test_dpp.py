@@ -466,7 +466,7 @@ class TestDgp(BaseTest):
         self.assertTrue(problem.is_dgp(dpp=True))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         # max(1*2, 3*1*2) = 6
-        self.assertAlmostEqual(problem.value, 6.0, places=4)
+        self.assertAlmostEqual(problem.value, 6.0, decimal=4)
         self.assertAlmostEqual(x.value, 1.0)
         self.assertAlmostEqual(y.value, 4.0)
 
@@ -476,7 +476,7 @@ class TestDgp(BaseTest):
         tau.value = 3.0    # y
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         # max(2*9, 0.5*2*9) == 18
-        self.assertAlmostEqual(problem.value, 18.0, places=4)
+        self.assertAlmostEqual(problem.value, 18.0, decimal=4)
         self.assertAlmostEqual(x.value, 2.0)
         self.assertAlmostEqual(y.value, 3.0)
 
@@ -498,7 +498,7 @@ class TestDgp(BaseTest):
         self.assertTrue(problem.is_dgp(dpp=True))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         # max(1*2, 3*1*2) = 6
-        self.assertAlmostEqual(problem.value, 6.0, places=4)
+        self.assertAlmostEqual(problem.value, 6.0, decimal=4)
         self.assertAlmostEqual(x.value, 1.0)
         self.assertAlmostEqual(y.value, 4.0)
 
@@ -508,7 +508,7 @@ class TestDgp(BaseTest):
         tau.value = 3.0    # y
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
         # max(2*9, 0.5*2*9) == 18
-        self.assertAlmostEqual(problem.value, 18.0, places=4)
+        self.assertAlmostEqual(problem.value, 18.0, decimal=4)
         self.assertAlmostEqual(x.value, 2.0)
         self.assertAlmostEqual(y.value, 3.0)
 
@@ -760,9 +760,9 @@ class TestDgp(BaseTest):
                              [cp.multiply(w, h) >= 10,
                               cp.sum(w) <= 20])
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 8)
-        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]))
-        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]))
+        np.testing.assert_almost_equal(problem.value, 8, decimal=4)
+        np.testing.assert_almost_equal(h.value, np.array([[2, 2], [2, 2]]), decimal=4)
+        np.testing.assert_almost_equal(w.value, np.array([[5, 5], [5, 5]]), decimal=4)
 
         alpha.value = 2.0
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
@@ -771,18 +771,18 @@ class TestDgp(BaseTest):
         w = cp.Variable((2, 2), pos=True)
         h = cp.Parameter((2, 2), pos=True)
         h.value = np.ones((2, 2))
-        alpha = cp.Parameter(pos=True, value=1.0)
-        problem = cp.Problem(cp.Minimize(cp.sum(h)), [w == h])
+        alpha.value = 1.0
+        problem = cp.Problem(cp.Minimize(cp.sum(alpha * h)), [w == h])
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 4.0)
+        np.testing.assert_almost_equal(problem.value, 4.0, decimal=4)
 
         h.value = 2.0 * np.ones((2, 2))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 8.0)
+        np.testing.assert_almost_equal(problem.value, 8.0, decimal=4)
 
         h.value = 3.0 * np.ones((2, 2))
         problem.solve(SOLVER, gp=True, enforce_dpp=True)
-        np.testing.assert_almost_equal(problem.value, 12.0)
+        np.testing.assert_almost_equal(problem.value, 12.0, decimal=4)
 
     def test_exp(self) -> None:
         x = cp.Variable(4, pos=True)
