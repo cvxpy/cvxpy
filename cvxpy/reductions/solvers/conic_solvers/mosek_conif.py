@@ -545,8 +545,6 @@ class MOSEK(ConicSolver):
             print('\n')
             env.set_Stream(mosek.streamtype.log, streamprinter)
             task.set_Stream(mosek.streamtype.log, streamprinter)
-            task.putintparam(mosek.iparam.infeas_report_auto, mosek.onoffkey.on)
-            task.putintparam(mosek.iparam.log_presolve, 0)
 
         # Parse all user-specified parameters (override default logging
         # parameters if applicable).
