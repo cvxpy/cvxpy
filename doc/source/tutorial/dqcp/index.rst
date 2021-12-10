@@ -241,7 +241,7 @@ when the denominator is positive.
 The scalar product ``*`` is quasiconvex when one of its arguments is
 nonnegative and the other is nonpositive, and it is quasiconcave when its
 arguments are both nonnegative or both nonpositive. Hence, by the composition
-rule, the product of two nonnegative quasiconcave functions is quasiconcave,
+rule, the product of two nonnegative concave functions is quasiconcave,
 and the product of a nonnegative concave function and a nonpositive convex
 function is quasiconvex.
 
