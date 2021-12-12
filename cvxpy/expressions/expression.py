@@ -119,7 +119,7 @@ class Expression(u.Canonical):
                                            self.shape)
 
     @abc.abstractmethod
-    def name(self):
+    def name(self) -> str:
         """str : The string representation of the expression.
         """
         raise NotImplementedError()
@@ -448,7 +448,7 @@ class Expression(u.Canonical):
         else:
             return cvxtypes.conj()(self).T
 
-    def __pow__(self, power) -> "Expression":
+    def __pow__(self, power: float) -> "Expression":
         """Raise expression to a power.
 
         Parameters
@@ -465,7 +465,7 @@ class Expression(u.Canonical):
 
     # Arithmetic operators.
     @staticmethod
-    def cast_to_const(expr):
+    def cast_to_const(expr: "Expression"):
         """Converts a non-Expression to a Constant.
         """
         if isinstance(expr, list):
@@ -478,7 +478,7 @@ class Expression(u.Canonical):
         return expr if isinstance(expr, Expression) else cvxtypes.constant()(expr)
 
     @staticmethod
-    def broadcast(lh_expr, rh_expr):
+    def broadcast(lh_expr: "Expression", rh_expr: "Expression"):
         """Broacast the binary operator.
         """
         lh_expr = Expression.cast_to_const(lh_expr)
@@ -504,7 +504,7 @@ class Expression(u.Canonical):
         return lh_expr, rh_expr
 
     @_cast_other
-    def __add__(self, other) -> "Expression":
+    def __add__(self, other: "Expression") -> "Expression":
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
@@ -513,7 +513,7 @@ class Expression(u.Canonical):
         return cvxtypes.add_expr()([self, other])
 
     @_cast_other
-    def __radd__(self, other) -> "Expression":
+    def __radd__(self, other: "Expression") -> "Expression":
         """Expression : Sum two expressions.
         """
         if isinstance(other, cvxtypes.constant()) and other.is_zero():
@@ -521,19 +521,19 @@ class Expression(u.Canonical):
         return other + self
 
     @_cast_other
-    def __sub__(self, other) -> "Expression":
+    def __sub__(self, other: "Expression") -> "Expression":
         """Expression : The difference of two expressions.
         """
         return self + -other
 
     @_cast_other
-    def __rsub__(self, other) -> "Expression":
+    def __rsub__(self, other: "Expression") -> "Expression":
         """Expression : The difference of two expressions.
         """
         return other - self
 
     @_cast_other
-    def __mul__(self, other) -> "Expression":
+    def __mul__(self, other: "Expression") -> "Expression":
         """Expression : The product of two expressions.
         """
         if self.shape == () or other.shape == ():
@@ -567,7 +567,7 @@ class Expression(u.Canonical):
             return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __matmul__(self, other) -> "Expression":
+    def __matmul__(self, other: "Expression") -> "Expression":
         """Expression : Matrix multiplication of two expressions.
         """
         if self.shape == () or other.shape == ():
@@ -575,13 +575,13 @@ class Expression(u.Canonical):
         return cvxtypes.matmul_expr()(self, other)
 
     @_cast_other
-    def __truediv__(self, other) -> "Expression":
+    def __truediv__(self, other: "Expression") -> "Expression":
         """Expression : One expression divided by another.
         """
         return self.__div__(other)
 
     @_cast_other
-    def __div__(self, other) -> "Expression":
+    def __div__(self, other: "Expression") -> "Expression":
         """Expression : One expression divided by another.
         """
         self, other = self.broadcast(self, other)
@@ -592,25 +592,25 @@ class Expression(u.Canonical):
                              self.shape, other.shape))
 
     @_cast_other
-    def __rdiv__(self, other) -> "Expression":
+    def __rdiv__(self, other: "Expression") -> "Expression":
         """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
-    def __rtruediv__(self, other) -> "Expression":
+    def __rtruediv__(self, other: "Expression") -> "Expression":
         """Expression : Called for Number / Expression.
         """
         return other / self
 
     @_cast_other
-    def __rmul__(self, other) -> "Expression":
+    def __rmul__(self, other: "Expression") -> "Expression":
         """Expression : Called for Number * Expression.
         """
         return other * self
 
     @_cast_other
-    def __rmatmul__(self, other) -> "Expression":
+    def __rmatmul__(self, other: "Expression") -> "Expression":
         """Expression : Called for matrix @ Expression.
         """
         if self.shape == () or other.shape == ():
@@ -623,25 +623,25 @@ class Expression(u.Canonical):
         return cvxtypes.neg_expr()(self)
 
     @_cast_other
-    def __rshift__(self, other) -> PSD:
+    def __rshift__(self, other: "Expression") -> PSD:
         """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(self - other)
 
     @_cast_other
-    def __rrshift__(self, other) -> PSD:
+    def __rrshift__(self, other: "Expression") -> PSD:
         """PSD : Creates a positive semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
-    def __lshift__(self, other) -> PSD:
+    def __lshift__(self, other: "Expression") -> PSD:
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(other - self)
 
     @_cast_other
-    def __rlshift__(self, other) -> PSD:
+    def __rlshift__(self, other: "Expression") -> PSD:
         """PSD : Creates a negative semidefinite inequality.
         """
         return PSD(self - other)
@@ -652,29 +652,29 @@ class Expression(u.Canonical):
 
     # Comparison operators.
     @_cast_other
-    def __eq__(self, other):
+    def __eq__(self, other: "Expression"):
         """Equality : Creates a constraint ``self == other``.
         """
         return Equality(self, other)
 
     @_cast_other
-    def __le__(self, other):
+    def __le__(self, other: "Expression"):
         """Inequality : Creates an inequality constraint ``self <= other``.
         """
         return Inequality(self, other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: "Expression"):
         """Unsupported.
         """
         raise NotImplementedError("Strict inequalities are not allowed.")
 
     @_cast_other
-    def __ge__(self, other):
+    def __ge__(self, other: "Expression"):
         """NonPos : Creates an inequality constraint.
         """
         return other.__le__(self)
 
-    def __gt__(self, other):
+    def __gt__(self, other: "Expression"):
         """Unsupported.
         """
         raise NotImplementedError("Strict inequalities are not allowed.")
