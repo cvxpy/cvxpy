@@ -15,9 +15,10 @@ The infix operators ``+, -, *, /, @`` are treated as functions. The operators ``
 CVXPY when one of the expressions is constant, and ``expr1/expr2`` is affine
 when ``expr2`` is a scalar constant.
 
-Historically, CVXPY has used ``expr1 * expr2`` to denote matrix multiplication.
-Starting with Python 3.5, users could also write ``expr1 @ expr2`` for
-matrix multiplication. As of CVXPY version 1.1, we are adopting a new standard:
+Historically, CVXPY used ``expr1 * expr2`` to denote matrix multiplication.
+This is now deprecated. Starting with Python 3.5, users can write
+``expr1 @ expr2`` for matrix multiplication and dot products.
+As of CVXPY version 1.1, we are adopting a new standard:
 
 * ``@`` should be used for matrix-matrix and matrix-vector multiplication,
 * ``*`` should be matrix-scalar and vector-scalar multiplication
@@ -432,7 +433,7 @@ The syntax ``func(expr, axis=1, keepdims=True)`` applies ``func`` to each row,
 returning an ``m`` by 1 expression.
 By default ``keepdims=False``, which means dimensions of length 1 are dropped.
 For example, the following code sums
-along the columns and rows of a matrix variable: 
+along the columns and rows of a matrix variable:
 
 .. code:: python
 
@@ -548,7 +549,7 @@ scalars, which are promoted.
 
      - :math:`\max \left\{x, y\right\}`
      - :math:`x,y \in \mathbf{R}`
-     - depends on x,y 
+     - depends on x,y
      - |convex| convex
      - |incr| incr.
 
