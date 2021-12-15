@@ -45,9 +45,10 @@ the <a class="reference internal" href="../dcp/index.html#dcp"><span class="std 
 <code class="docutils literal notranslate"><span class="pre">-</span></code> are always affine functions. The expression <code class="docutils literal notranslate"><span class="pre">expr1*expr2</span></code> is affine in
 CVXPY when one of the expressions is constant, and <code class="docutils literal notranslate"><span class="pre">expr1/expr2</span></code> is affine
 when <code class="docutils literal notranslate"><span class="pre">expr2</span></code> is a scalar constant.</p>
-<p>Historically, CVXPY has used <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">*</span> <span class="pre">expr2</span></code> to denote matrix multiplication.
-Starting with Python 3.5, users could also write <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">&#64;</span> <span class="pre">expr2</span></code> for
-matrix multiplication. As of CVXPY version 1.1, we are adopting a new standard:</p>
+<p>Historically, CVXPY used <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">*</span> <span class="pre">expr2</span></code> to denote matrix multiplication.
+This is now deprecated. Starting with Python 3.5, users can write
+<code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">&#64;</span> <span class="pre">expr2</span></code> for matrix multiplication and dot products.
+As of CVXPY version 1.1, we are adopting a new standard:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">&#64;</span></code> should be used for matrix-matrix and matrix-vector multiplication,</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">*</span></code> should be matrix-scalar and vector-scalar multiplication</p></li>
