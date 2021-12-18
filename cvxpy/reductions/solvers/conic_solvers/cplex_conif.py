@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from collections import namedtuple
+from operator import attrgetter
 
 import numpy as np
 from scipy.sparse import dok_matrix
@@ -37,14 +38,13 @@ _CpxConstr = namedtuple("_CpxConstr", ["constr_type", "index"])
 
 def set_parameters(model, solver_opts) -> None:
     """Sets CPLEX parameters."""
-    # TODO: Parameter support is functional, but perhaps not ideal.
-    # The user must pass parameter names as used in the CPLEX Python
-    # API, and raw values (i.e., no enum support).
     kwargs = sorted(solver_opts.keys())
     if "cplex_params" in kwargs:
         for param, value in solver_opts["cplex_params"].items():
             try:
-                eval("model.parameters.{0}.set({1})".format(param, value))
+                f = attrgetter(param)
+                parameter = f(model.parameters)
+                parameter.set(value)
             except AttributeError:
                 raise ValueError(
                     "invalid CPLEX parameter, value pair ({0}, {1})".format(
