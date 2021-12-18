@@ -379,7 +379,7 @@ class Expression(u.Canonical):
         """
         raise NotImplementedError()
 
-    @abc.abstractproperty
+    @abc.abstractmethod
     def is_complex(self) -> bool:
         """Is the Leaf complex valued?
         """
