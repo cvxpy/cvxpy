@@ -64,14 +64,15 @@ formulate this as a convex optimization problem:</p>
 <span class="math notranslate nohighlight">\(x\)</span> describes a probability</p>
 <p>Due to the entropy function in CVXPY, this can be written quite easily
 in DCP.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="ch">#!/usr/bin/env python3</span>
 <span class="c1"># @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill &amp; K. Briggs</span>
 
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">channel_capacity</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">sum_x</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">channel_capacity</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">sum_x</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Boyd and Vandenberghe, Convex Optimization, exercise 4.57 page 207</span>
 <span class="sd">    Capacity of a communication channel.</span>
@@ -79,7 +80,7 @@ in DCP.</p>
 <span class="sd">    We consider a communication channel, with input X(t)∈{1,..,n} and</span>
 <span class="sd">    output Y(t)∈{1,...,m}, for t=1,2,... .The relation between the</span>
 <span class="sd">    input and output is given statistically:</span>
-<span class="sd">    p_(i,j) = ℙ(Y(t)=i|X(t)=j), i=1,..,m  j=1,...,m</span>
+<span class="sd">    p_(i,j) = ℙ(Y(t)=i|X(t)=j), i=1,..,m  j=1,...,n</span>
 
 <span class="sd">    The matrix P ∈ ℝ^(m*n) is called the channel transition matrix, and</span>
 <span class="sd">    the channel is called a discrete memoryless channel. Assuming X has a</span>
@@ -106,11 +107,11 @@ in DCP.</p>
 
     <span class="c1"># y is the probability distribution of the output signal Y(t)</span>
     <span class="c1"># P is the channel transition matrix</span>
-    <span class="n">y</span> <span class="o">=</span> <span class="n">P</span><span class="o">*</span><span class="n">x</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">P</span><span class="nd">@x</span>
 
     <span class="c1"># I is the mutual information between x and y</span>
-    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">P</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">P</span><span class="p">),</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-    <span class="n">I</span> <span class="o">=</span> <span class="n">c</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">entr</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+    <span class="n">c</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">xlogy</span><span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">P</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">I</span> <span class="o">=</span> <span class="n">c</span><span class="nd">@x</span> <span class="o">+</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">entr</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
 
     <span class="c1"># Channel capacity maximised by maximising the mutual information</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="o">-</span><span class="n">I</span><span class="p">)</span>
@@ -131,9 +132,9 @@ in DCP.</p>
 inputs and outputs, so <span class="math notranslate nohighlight">\(n = m = 2\)</span>. The channel transition matrix
 we use in this case is:</p>
 <p><span class="math notranslate nohighlight">\(P = \pmatrix{0.75,0.25\\0.25,0.75}\)</span></p>
-<p>Note that the rows of <span class="math notranslate nohighlight">\(P\)</span> must sum to 1 and all elements of
+<p>Note that the columns of <span class="math notranslate nohighlight">\(P\)</span> must sum to 1 and all elements of
 <span class="math notranslate nohighlight">\(P\)</span> must be positive.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">set_printoptions</span><span class="p">(</span><span class="n">precision</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="n">m</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="n">P</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mf">0.75</span><span class="p">,</span><span class="mf">0.25</span><span class="p">],</span>

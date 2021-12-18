@@ -1,4 +1,3 @@
-
 Capacity of a Communication Channel
 ===================================
 
@@ -48,15 +47,16 @@ subject to :math:`\sum_{i=1}^{n}x_i = 1 \quad x \succeq 0 \quad` since
 Due to the entropy function in CVXPY, this can be written quite easily
 in DCP.
 
-.. code:: python
+.. code:: ipython3
 
     #!/usr/bin/env python3
     # @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill & K. Briggs
     
     import cvxpy as cp
     import numpy as np
+    import math
 
-.. code:: python
+.. code:: ipython3
 
     def channel_capacity(n, m, P, sum_x=1):
         '''
@@ -66,7 +66,7 @@ in DCP.
         We consider a communication channel, with input X(t)∈{1,..,n} and
         output Y(t)∈{1,...,m}, for t=1,2,... .The relation between the
         input and output is given statistically:
-        p_(i,j) = ℙ(Y(t)=i|X(t)=j), i=1,..,m  j=1,...,m
+        p_(i,j) = ℙ(Y(t)=i|X(t)=j), i=1,..,m  j=1,...,n
         
         The matrix P ∈ ℝ^(m*n) is called the channel transition matrix, and
         the channel is called a discrete memoryless channel. Assuming X has a
@@ -93,11 +93,11 @@ in DCP.
         
         # y is the probability distribution of the output signal Y(t)
         # P is the channel transition matrix
-        y = P*x
+        y = P@x
         
         # I is the mutual information between x and y
-        c = np.sum(P*np.log2(P),axis=0)
-        I = c*x + cp.sum(cp.entr(y))
+        c = np.sum(np.array((xlogy(P, P) / math.log(2))), axis=0)
+        I = c@x + cp.sum(cp.entr(y) / math.log(2))
     
         # Channel capacity maximised by maximising the mutual information
         obj = cp.Minimize(-I)
@@ -121,10 +121,10 @@ we use in this case is:
 
 :math:`P = \pmatrix{0.75,0.25\\0.25,0.75}`
 
-Note that the rows of :math:`P` must sum to 1 and all elements of
+Note that the columns of :math:`P` must sum to 1 and all elements of
 :math:`P` must be positive.
 
-.. code:: python
+.. code:: ipython3
 
     np.set_printoptions(precision=3)
     n = 2
