@@ -70,6 +70,7 @@ in DCP.</p>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">xlogy</span>
 </pre></div>
 </div>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">channel_capacity</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">sum_x</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
@@ -114,7 +115,7 @@ in DCP.</p>
     <span class="n">I</span> <span class="o">=</span> <span class="n">c</span><span class="nd">@x</span> <span class="o">+</span> <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">entr</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="o">/</span> <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
 
     <span class="c1"># Channel capacity maximised by maximising the mutual information</span>
-    <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="o">-</span><span class="n">I</span><span class="p">)</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">I</span><span class="p">)</span>
     <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">==</span> <span class="n">sum_x</span><span class="p">,</span><span class="n">x</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">]</span>
 
     <span class="c1"># Form and solve problem</span>
@@ -146,7 +147,7 @@ we use in this case is:</p>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span>  <span class="n">optimal</span>
-<span class="n">Optimal</span> <span class="n">value</span> <span class="n">of</span> <span class="n">C</span> <span class="o">=</span> <span class="mf">0.1181</span>
+<span class="n">Optimal</span> <span class="n">value</span> <span class="n">of</span> <span class="n">C</span> <span class="o">=</span> <span class="mf">0.1887</span>
 <span class="n">Optimal</span> <span class="n">variable</span> <span class="n">x</span> <span class="o">=</span>
  <span class="p">[</span><span class="mf">0.5</span> <span class="mf">0.5</span><span class="p">]</span>
 </pre></div>
