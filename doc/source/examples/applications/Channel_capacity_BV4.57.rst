@@ -55,6 +55,7 @@ in DCP.
     import cvxpy as cp
     import numpy as np
     import math
+    from scipy.special import xlogy
 
 .. code:: ipython3
 
@@ -100,7 +101,7 @@ in DCP.
         I = c@x + cp.sum(cp.entr(y) / math.log(2))
     
         # Channel capacity maximised by maximising the mutual information
-        obj = cp.Minimize(-I)
+        obj = cp.Maximize(I)
         constraints = [cp.sum(x) == sum_x,x >= 0]
         
         # Form and solve problem
@@ -140,7 +141,7 @@ Note that the columns of :math:`P` must sum to 1 and all elements of
 .. parsed-literal::
 
     Problem status:  optimal
-    Optimal value of C = 0.1181
+    Optimal value of C = 0.1887
     Optimal variable x = 
      [0.5 0.5]
 
