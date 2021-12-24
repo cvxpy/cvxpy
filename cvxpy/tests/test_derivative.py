@@ -58,6 +58,9 @@ def gradcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
     """Checks the analytical adjoint derivative against a numerical computation."""
     for solver in solve_methods:
         eps_opt = {EPS_NAME[solver]: eps}
+        # Default of 10k iterations for SCS.
+        if solver == s.SCS and "max_iters" not in kwargs:
+            kwargs["max_iters"] = 10_000
 
         size = sum(p.size for p in problem.parameters())
         values = np.zeros(size)
@@ -231,7 +234,7 @@ class TestBackward(BaseTest):
         b.value = b_np
         F.value = F_np
         g.value = g_np
-        gradcheck(problem, solve_methods=[s.SCS], atol=1e-2, eps=1e-8)
+        gradcheck(problem, solve_methods=[s.SCS], atol=1e-2, eps=1e-8, max_iters=10_000)
         perturbcheck(problem, solve_methods=[s.SCS], atol=1e-4)
 
     def test_lml(self) -> None:
@@ -551,7 +554,7 @@ class TestBackwardDgp(BaseTest):
         obj = cp.Minimize(x * y)
         constr = [cp.exp(a*y/x) <= cp.log(b*y)]
         problem = cp.Problem(obj, constr)
-        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=5000)
+        gradcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=10_000)
         perturbcheck(problem, gp=True, solve_methods=[s.SCS], atol=1e-2, max_iters=5000)
 
     def test_matrix_completion(self) -> None:
