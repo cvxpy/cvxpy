@@ -37,7 +37,11 @@ if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
   conda install pyscipopt
 fi
 
-python -m pip install diffcp gurobipy xpress
+if [[ "$PYTHON_VERSION" == "3.10.*" ]]; then
+  python -m pip install diffcp gurobipy
+else
+  python -m pip install diffcp gurobipy xpress
+fi
 
 # Only install Mosek if license is available (secret is not copied to forks)
 if [[ -n "$MOSEK_CI_BASE64" ]]; then
