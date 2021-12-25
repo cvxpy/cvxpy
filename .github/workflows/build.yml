@@ -170,12 +170,12 @@ jobs:
           pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
 
       - name: Build wheels
-        if: ${{env.DEPLOY == 'True'}}
+        if: ${{'True' == 'True' || env.DEPLOY == 'True'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
-        uses: joerick/cibuildwheel@v1.11.0
+        uses: joerick/cibuildwheel@v2.3.1
 
       - name: Build source
         if: ${{env.DEPLOY == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
