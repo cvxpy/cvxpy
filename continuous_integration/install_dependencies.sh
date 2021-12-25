@@ -17,7 +17,7 @@ elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
   # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
   conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp cvxopt
-elif [[ "$PYTHON_VERSION" == "3.10.*" ]]; then
+elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     # The earliest version of numpy that works is 1.19.
     # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
     conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt
@@ -28,7 +28,7 @@ fi
 if [[ "$RUNNER_OS" != "Windows" ]]; then
   conda install coin-or-cbc
 fi
-if [[ "$PYTHON_VERSION" != "3.6" ]] && [[ "$PYTHON_VERSION" != "3.10.*" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
+if [[ "$PYTHON_VERSION" != "3.6" ]] && [[ "$PYTHON_VERSION" != "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   python -m pip install cylp
 fi
 
@@ -37,7 +37,7 @@ if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
   conda install pyscipopt
 fi
 
-if [[ "$PYTHON_VERSION" == "3.10.*" ]]; then
+if [[ "$PYTHON_VERSION" == "3.10" ]]; then
   python -m pip install diffcp gurobipy
 else
   python -m pip install diffcp gurobipy xpress
