@@ -58,9 +58,9 @@ def gradcheck(problem, gp: bool = False, solve_methods: list = SOLVE_METHODS,
     """Checks the analytical adjoint derivative against a numerical computation."""
     for solver in solve_methods:
         eps_opt = {EPS_NAME[solver]: eps}
-        # Default of 10k iterations for SCS.
+        # Default of 15k iterations for SCS.
         if solver == s.SCS and "max_iters" not in kwargs:
-            kwargs["max_iters"] = 10_000
+            kwargs["max_iters"] = 15_000
 
         size = sum(p.size for p in problem.parameters())
         values = np.zeros(size)
