@@ -93,6 +93,15 @@ Machine learning
 
 - `Quantile regression <https://colab.research.google.com/github/cvxpy/cvx_short_course/blob/master/applications/quantile_regression.ipynb>`_
 
+.. _finance
+
+Finance
+-------
+
+- `Portfolio optimization <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/portfolio_optimization.ipynb>`_
+
+- `Cryptocurrency trading <https://nbviewer.org/github/rcroessmann/sharing_public/blob/master/arbitrage_identification.ipynb>`_
+
 .. _advanced-python:
 
 Advanced
