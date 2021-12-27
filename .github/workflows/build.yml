@@ -123,7 +123,7 @@ jobs:
         if: ${{'True' == 'True' && env.USE_OPENMP != 'True'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
-          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux"
+          CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
         uses: joerick/cibuildwheel@v2.3.1
 
