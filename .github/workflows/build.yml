@@ -56,9 +56,6 @@ jobs:
       PYTHON_VERSION: ${{ matrix.python-version }}
       SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' && 'True' || 'False' }}"
       USE_OPENMP: "${{ matrix.openmp == 'True' && 'True' || 'False' }}"
-      PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
-      PYPI_USER: ${{ secrets.PYPI_USER }}
-      PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       MOSEK_CI_BASE64: ${{ secrets.MOSEK_CI_BASE64 }}
 
     steps:
