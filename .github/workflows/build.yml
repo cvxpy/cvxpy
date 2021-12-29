@@ -108,7 +108,7 @@ jobs:
     env:
       RUNNER_OS: ${{ matrix.os }}
       PYTHON_VERSION: ${{ matrix.python-version }}
-      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' && 'True' || 'False' }}"
+      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -134,12 +134,12 @@ jobs:
         uses: joerick/cibuildwheel@v2.3.1
 
       - name: Build source
-        if: ${{env.DEPLOY == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{'True' == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           python setup.py sdist --dist-dir=wheelhouse
 
       - name: Release to pypi
-        if: ${{env.DEPLOY == 'True' &&  env.USE_OPENMP != 'True'}}
+        if: ${{'True' == 'True' &&  env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           python -m pip install --upgrade twine
@@ -173,7 +173,7 @@ jobs:
 
     env:
       PYTHON_VERSION: ${{ matrix.python-version }}
-      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True'}}"
+      SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -214,13 +214,13 @@ jobs:
         uses: joerick/cibuildwheel@v2.3.1
 
       - name: Build source
-        if: ${{'True' == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{env.DEPLOY == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           python setup.py sdist --dist-dir=wheelhouse
 
       - name: Release to pypi
         shell: bash
-        if: ${{'True' == 'True'}}
+        if: ${{env.DEPLOY == 'True'}}
         run: |
           python -m pip install --upgrade twine
           twine check wheelhouse/*
