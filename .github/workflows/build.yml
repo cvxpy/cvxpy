@@ -134,12 +134,12 @@ jobs:
         uses: joerick/cibuildwheel@v2.3.1
 
       - name: Build source
-        if: ${{'True' == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
+        if: ${{env.DEPLOY == 'True' && env.SINGLE_ACTION_CONFIG == 'True'}}
         run: |
           python setup.py sdist --dist-dir=wheelhouse
 
       - name: Release to pypi
-        if: ${{'True' == 'True' &&  env.USE_OPENMP != 'True'}}
+        if: ${{env.DEPLOY == 'True' &&  env.USE_OPENMP != 'True'}}
         shell: bash
         run: |
           python -m pip install --upgrade twine
