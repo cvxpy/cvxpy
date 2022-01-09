@@ -9,13 +9,27 @@ import sys
 from setuptools import Extension, find_packages, setup
 from setuptools.command.build_ext import build_ext
 
+# IMPORTANT NOTE
+#
+#   Our versioning infrastructure is adapted from that used in SciPy v 1.9.0.
+#   Specifically, much of this content came from
+#   https://github.com/scipy/scipy/blob/91faf1ed4c3e83afe5009ffb7a9d18eab8dae683/tools/version_utils.py
+#   It's possible that our adaptation has unnecessary complexity.
+#   For example, SciPy might have certain contingencies in place for backwards
+#   compatibilities that CVXPY does not guarantee.
+#
+#   Some comments in the SciPy source provide justification for individual code
+#   snippets. We have mostly left those comments in-place, but we sometimes preface
+#   them with the following remark:
+#      "The comment below is from the SciPy code which we repurposed for cvxpy."
+#
+
 MAJOR = 1
 MINOR = 2
 MICRO = 0
 IS_RELEASED = False
 IS_RELEASE_BRANCH = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
-
 
 # Return the git revision as a string
 def git_version():
@@ -37,13 +51,15 @@ def git_version():
         out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
         GIT_REVISION = out.strip().decode('ascii')[:7]
 
-        # We need a version number that's regularly incrementing for newer commits,
-        # so the sort order in a wheelhouse of nightly builds is correct (see
-        # https://github.com/MacPython/scipy-wheels/issues/114). It should also be
-        # a reproducible version number, so don't rely on date/time but base it on
-        # commit history. This gives the commit count since the previous branch
-        # point from the current branch (assuming a full `git clone`, it may be
-        # less if `--depth` was used - commonly the default in CI):
+        # The comment below is from the SciPy code which we repurposed for cvxpy.
+        #
+        #   We need a version number that's regularly incrementing for newer commits,
+        #   so the sort order in a wheelhouse of nightly builds is correct (see
+        #   https://github.com/MacPython/scipy-wheels/issues/114). It should also be
+        #   a reproducible version number, so don't rely on date/time but base it on
+        #   commit history. This gives the commit count since the previous branch
+        #   point from the current branch (assuming a full `git clone`, it may be
+        #   less if `--depth` was used - commonly the default in CI):
         prev_version_tag = '^v{}.{}.0'.format(MAJOR, MINOR - 2)
         out = _minimal_ext_cmd(['git', 'rev-list', 'HEAD', prev_version_tag,
                                 '--count'])
@@ -62,23 +78,27 @@ def git_version():
 if os.path.exists('MANIFEST'):
     os.remove('MANIFEST')
 
-# This is a bit hackish: we are setting a global variable so that the main
-# scipy __init__ can detect if it is being loaded by the setup routine, to
-# avoid attempting to load components that aren't built yet.  While ugly, it's
-# a lot more robust than what was previously being used.
+# The comment below is from the SciPy code which we adapted for cvxpy.
+#
+#   This is a bit hackish: we are setting a global variable so that the main
+#   cvxpy __init__ can detect if it is being loaded by the setup routine, to
+#   avoid attempting to load components that aren't built yet.  While ugly, it's
+#   a lot more robust than what was previously being used.
 builtins.__CVXPY_SETUP__ = True
 
 
 def get_version_info():
-    # Adding the git rev number needs to be done inside
-    # write_version_py(), otherwise the import of scipy.version messes
-    # up the build under Python 3.
+    # The comment below is from the SciPy code which we adapted for cvxpy.
+    #
+    #   Adding the git rev number needs to be done inside
+    #   write_version_py(), otherwise the import of cvxpy.version messes
+    #   up the build under Python 3.
     FULLVERSION = VERSION
     if os.path.exists('.git'):
         GIT_REVISION, COMMIT_COUNT = git_version()
     elif os.path.exists('cvxpy/version.py'):
         # must be a source distribution, use existing version file
-        # load it as a separate module to not load scipy/__init__.py
+        # load it as a separate module to not load cvxpy/__init__.py
         import runpy
         ns = runpy.run_path('cvxpy/version.py')
         GIT_REVISION = ns['git_revision']

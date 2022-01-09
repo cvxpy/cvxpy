@@ -1,3 +1,5 @@
+This file has not been maintained since 2018.
+
 Version 1.0 (targets)
 ---------------------
 * TODO change *args to lists.

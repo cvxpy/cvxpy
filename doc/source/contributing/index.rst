@@ -515,25 +515,13 @@ call modified versions of a test with different solver parameters, for example
 Development roadmap
 -------------------
 
-This roadmap highlights the development goals for the next minor and major release of CVXPY.
+This roadmap highlights the some development goals for future releases of CVXPY.
 New contributors are encouraged to focus on the development goals marked [Small].
 If you are interested in working on a [Large] development goal, please contact a project maintainer.
 
-.. _contrib_minor_roadmap
-
-CVXPY 1.2
-~~~~~~~~~
-
-- Move CI from Travis-CI to Github actions. [Large] [Done, thanks @phschiele!]
-- Add CI for Gurobi, CPLEX, GLPK, Cbc, and SCIP. [Small] [Done, thanks @phschiele!]
 - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/582>`_. [Small]
 - `Developer documentation for key reduction files <https://github.com/cvxpy/cvxpy/issues/582>`_. [Small]
 - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_. [Small]
-
-.. _contrib_major_roadmap
-
-CVXPY 2.0
-~~~~~~~~~
 
 - Problem serialization [`532 <https://github.com/cvxpy/cvxpy/issues/532>`_, `1333 <https://github.com/cvxpy/cvxpy/issues/1333>`_] [Large]
 - Pretty print method for summarizing a solution and its dual variables. [Large]
@@ -541,13 +529,7 @@ CVXPY 2.0
 - `Support for n-dimensional expressions, variables, parameters, etc <https://github.com/cvxpy/cvxpy/issues/198>`_. [Large]
 - `10x improvement in the speed and memory usage of cvxcore <https://github.com/cvxpy/cvxpy/issues/708>`_, `especially for DPP problems <https://github.com/cvxpy/cvxpy/issues/1332>`_. [Large]
 - Sophisticated affine transformations: [`457 <https://github.com/cvxpy/cvxpy/issues/457>`_, `563 <https://github.com/cvxpy/cvxpy/issues/563>`_, `808 <https://github.com/cvxpy/cvxpy/issues/808>`_]. [Small]
-- Full compatibility with NumPy broadcasting rules. [Large]
-
-
-
-
-
-
+- Full compatibility with NumPy broadcasting rules. This will be a breaking change, and can only go in CVXPY 2.0. [Large]
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
 .. _CVXOPT: http://cvxopt.org/
