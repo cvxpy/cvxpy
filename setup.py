@@ -138,7 +138,6 @@ if not release:
         a.close()
 
 
-
 # inject numpy headers
 class build_ext_cvxpy(build_ext):
     def finalize_options(self) -> None:

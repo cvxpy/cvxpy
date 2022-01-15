@@ -83,9 +83,9 @@ CVXPY is developed and maintained by
 `Riley Murray <https://rileyjmurray.wordpress.com/>`_, and
 `Bartolomeo Stellato <https://stellato.io/>`_ with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
-years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
-Dembia.
+years includes Stephen Boyd, Eric Chu, Robin Verschueren,
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
+Philipp Schiele.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
 guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeGBCr>`_.
