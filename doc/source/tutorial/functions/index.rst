@@ -764,6 +764,14 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on C
 
+   * - :ref:`partial_trace(X, dims, axis=0) <partial-trace>`
+
+     - partial trace
+     - :math:`X \in\mathbf{R}^{n \times n}`
+     - same as X
+     - |affine| affine
+     - |incr| incr.
+
    * - :ref:`reshape(X, (m', n')) <reshape>`
 
      - :math:`X' \in\mathbf{R}^{m' \times n'}`
