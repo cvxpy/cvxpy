@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "../../../ecos-python"
+		},
+		{
+			"path": "../../../scs-python"
+		},
+		{
+			"path": "../.."
+		},
+		{
+			"path": "../../../diffcp"
+		}
+	],
+	"settings": {}
+}
