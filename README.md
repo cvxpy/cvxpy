@@ -140,8 +140,8 @@ Diamond](https://stevendiamond.me/), [Akshay
 Agrawal](https://akshayagrawal.com), [Riley Murray](https://rileyjmurray.wordpress.com/), and [Bartolomeo Stellato](https://stellato.io/), with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren, Philipp Schiele, Michael Sommerauer,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
-Dembia.
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris
+Dembia, and Philipp Schiele.
 
 For more information about the team and our processes, see our [governance document](https://github.com/cvxpy/org/blob/main/governance.md).
 
