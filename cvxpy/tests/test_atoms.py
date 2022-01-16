@@ -1226,11 +1226,11 @@ class TestAtoms(BaseTest):
         rho_C_test = cp.partial_trace(rho_AC_test, [4, 2], axis=0)
 
         # See if the outputs of partial_trace are correct
-        print("rho_AB test correct? ", np.allclose(rho_AB_test.value, rho_AB))
-        print("rho_AC test correct? ", np.allclose(rho_AC_test.value, rho_AC))
-        print("rho_A test correct? ", np.allclose(rho_A_test.value, rho_A))
-        print("rho_B test correct? ", np.allclose(rho_B_test.value, rho_B))
-        print("rho_C test correct? ", np.allclose(rho_C_test.value, rho_C))
+        assert np.allclose(rho_AB_test.value, rho_AB)
+        assert np.allclose(rho_AC_test.value, rho_AC)
+        assert np.allclose(rho_A_test.value, rho_A)
+        assert np.allclose(rho_B_test.value, rho_B)
+        assert np.allclose(rho_C_test.value, rho_C)
 
     def test_partial_trace_exceptions(self) -> None:
         """Test exceptions raised by partial trace.
