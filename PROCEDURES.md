@@ -32,7 +32,7 @@ Let's say we're releasing 1.2.0.
    IS_RELEASE_BRANCH = False
    ```
    Set ``IS_RELEASE_BRANCH = True`` and ``IS_RELEASED = True``.
-   Commit these changes and tag the commit as the release of CVXPY 1.2.0.
+   Commit these changes and tag the commit as ``v1.2.0``.
 3. Lay the groundwork for the next release on this branch.
    Do this by setting ``MICRO = 1``, ``IS_RELEASED = False``, and
    committing those changes.
@@ -56,8 +56,8 @@ Let's say we're releasing CVXPY 1.2.1
    IS_RELEASED = False
    IS_RELEASE_BRANCH = True
    ```
-   Change ``IS_RELEASED = True`` and commit that change.
-   Tag the commit as the release of CVXPY 1.2.1.
+   Change ``IS_RELEASED = True`` and commit that change with
+   the tag ``v1.2.1``.
 2. Lay the groundwork for the next release on this branch.
    Do this by setting ``MICRO = 2``, ``IS_RELEASED = False``, and 
    committing those changes.
