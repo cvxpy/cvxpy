@@ -45,33 +45,6 @@ class TestAtoms(BaseTest):
         self.B = Variable((2, 2), name='B')
         self.C = Variable((3, 2), name='C')
 
-    def np_partial_trace(rho, dims, axis=0):
-        """
-        Takes partial trace over the subsystem defined by 'axis'
-        rho: a matrix
-        dims: a list containing the dimension of each subsystem
-        axis: the index of the subsytem to be traced out
-        (We assume that each subsystem is square)
-        """
-        dims_ = np.array(dims)
-        # Reshape the matrix into a tensor with the following shape:
-        # [dim_0, dim_1, ..., dim_n, dim_0, dim_1, ..., dim_n]
-        # Each subsystem gets one index for its row and another one for its column
-        reshaped_rho = np.reshape(rho, np.concatenate((dims_, dims_), axis=None))
-
-        # Move the subsystems to be traced towards the end
-        reshaped_rho = np.moveaxis(reshaped_rho, axis, -1)
-        reshaped_rho = np.moveaxis(reshaped_rho, len(dims)+axis-1, -1)
-
-        # Trace over the very last row and column indices
-        traced_out_rho = np.trace(reshaped_rho, axis1=-2, axis2=-1)
-
-        # traced_out_rho is still in the shape of a tensor
-        # Reshape back to a matrix
-        dims_untraced = np.delete(dims_, axis)
-        rho_dim = np.prod(dims_untraced)
-        return traced_out_rho.reshape([rho_dim, rho_dim])
-
     def test_add_expr_copy(self) -> None:
         """Test the copy function for AddExpresion class.
         """
