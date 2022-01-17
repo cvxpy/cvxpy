@@ -619,3 +619,34 @@ class TestComplex(BaseTest):
         prob = cp.Problem(obj, constraints)
         prob.solve(solver='ECOS_BB')
         self.assertAlmostEqual(prob.value, 1, places=4)
+
+    def test_partial_trace(self) -> None:
+        """
+        Test a problem with partial_trace.
+        rho_ABC = rho_A \\otimes rho_B \\otimes rho_C
+        Each rho_i is normalized, i.e. Tr(rho_i) = 1
+        """
+
+        # Generate test case.
+        rho_A = np.random.rand(4, 4) + 1j*np.random.rand(4, 4)
+        rho_A /= np.trace(rho_A)
+        rho_B = np.random.rand(3, 3) + 1j*np.random.rand(3, 3)
+        rho_B /= np.trace(rho_B)
+        rho_C = np.random.rand(2, 2) + 1j*np.random.rand(2, 2)
+        rho_C /= np.trace(rho_C)
+        rho_AB = np.kron(rho_A, rho_B)
+        rho_AC = np.kron(rho_A, rho_C)
+
+        # Construct a cvxpy Variable with value equal to rho_A \otimes rho_B \otimes rho_C.
+        rho_ABC_val = np.kron(rho_AB, rho_C)
+        rho_ABC = cp.Variable(shape=rho_ABC_val.shape, complex=True)
+        cons = [
+            rho_ABC_val == rho_ABC,
+            rho_AB == cp.partial_trace(rho_ABC, [4, 3, 2], axis=2),
+            rho_AC == cp.partial_trace(rho_ABC, [4, 3, 2], axis=1),
+        ]
+        prob = cp.Problem(cp.Minimize(0), cons)
+        prob.solve()
+
+        print(rho_ABC_val)
+        assert np.allclose(rho_ABC.value, rho_ABC_val)

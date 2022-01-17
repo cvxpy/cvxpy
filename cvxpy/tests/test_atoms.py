@@ -1170,7 +1170,7 @@ class TestAtoms(BaseTest):
 
     def test_partial_trace(self) -> None:
         """
-        Test partial_trace against a NumPy implementation.
+        Test partial_trace atom.
         rho_ABC = rho_A \\otimes rho_B \\otimes rho_C
         Each rho_i is normalized, i.e. Tr(rho_i) = 1
         """

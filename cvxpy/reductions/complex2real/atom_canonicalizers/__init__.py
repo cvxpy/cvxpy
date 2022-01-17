@@ -24,6 +24,7 @@ from cvxpy.atoms.affine.binary_operators import (DivExpression, MulExpression,
 from cvxpy.atoms.affine.diag import diag_mat, diag_vec
 from cvxpy.atoms.affine.hstack import Hstack
 from cvxpy.atoms.affine.index import index, special_index
+from cvxpy.atoms.affine.partial_trace import partial_trace
 from cvxpy.atoms.affine.promote import Promote
 from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.transpose import transpose
@@ -67,6 +68,7 @@ CANON_METHODS = {
     Hstack: separable_canon,
     index: separable_canon,
     special_index: separable_canon,
+    partial_trace: separable_canon,
     Promote: separable_canon,
     reshape: separable_canon,
     Sum: separable_canon,
