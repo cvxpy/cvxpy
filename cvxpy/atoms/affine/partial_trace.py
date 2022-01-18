@@ -31,7 +31,7 @@ def _term(expr, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     j : int
         Term in the partial trace sum.
     dims : tuple of ints.
-        Whether to drop dimensions after summing.
+        A tuple of integers encoding the dimensions of each subsystem.
     axis : int
         The axis along which to take the partial trace.
     """
@@ -65,7 +65,7 @@ def partial_trace(expr, dims: Tuple[int], axis: Optional[int] = 0):
     expr : :class:`~cvxpy.expressions.expression.Expression`
         The expression to take the partial trace of.
     dims : tuple of ints.
-        Whether to drop dimensions after summing.
+        A tuple of integers encoding the dimensions of each subsystem.
     axis : int
         The axis along which to take the partial trace.
     """

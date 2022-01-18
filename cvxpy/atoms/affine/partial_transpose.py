@@ -27,15 +27,15 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     Parameters
     ----------
     expr : :class:`~cvxpy.expressions.expression.Expression`
-        The expression to take the partial trace of.
+        The expression to take the partial transpose of.
     i : int
-        Term in the partial trace sum.
+        Term in the partial transpose sum.
     j : int
-        Term in the partial trace sum.
+        Term in the partial transpose sum.
     dims : tuple of ints.
-        Whether to drop dimensions after summing.
+        A tuple of integers encoding the dimensions of each subsystem.
     axis : int
-        The axis along which to take the partial trace.
+        The axis along which to take the partial transpose.
     """
     # (I ⊗ |i><j| ⊗ I) x (I ⊗ |i><j| ⊗ I) for all (i,j)'s
     # in the system we want to transpose.
@@ -62,11 +62,11 @@ def partial_transpose(expr, dims: Tuple[int], axis: Optional[int] = 0):
     Parameters
     ----------
     expr : :class:`~cvxpy.expressions.expression.Expression`
-        The expression to take the partial trace of.
+        The expression to take the partial transpose of.
     dims : tuple of ints.
-        Whether to drop dimensions after summing.
+        A tuple of integers encoding the dimensions of each subsystem.
     axis : int
-        The axis along which to take the partial trace.
+        The axis along which to take the partial transpose.
     """
     expr = Atom.cast_to_const(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:
