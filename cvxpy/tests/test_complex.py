@@ -650,3 +650,35 @@ class TestComplex(BaseTest):
 
         print(rho_ABC_val)
         assert np.allclose(rho_ABC.value, rho_ABC_val)
+
+    def test_partial_transpose(self) -> None:
+        """
+        Test a problem with partial_transpose.
+        rho_ABC = rho_A \\otimes rho_B \\otimes rho_C
+        Each rho_i is normalized, i.e. Tr(rho_i) = 1
+        """
+
+        # Generate three test cases
+        rho_A = np.random.rand(8, 8) + 1j*np.random.rand(8, 8)
+        rho_A /= np.trace(rho_A)
+        rho_B = np.random.rand(6, 6) + 1j*np.random.rand(6, 6)
+        rho_B /= np.trace(rho_B)
+        rho_C = np.random.rand(4, 4) + 1j*np.random.rand(4, 4)
+        rho_C /= np.trace(rho_C)
+
+        rho_TC = np.kron(np.kron(rho_A, rho_B), rho_C.T)
+        rho_TB = np.kron(np.kron(rho_A, rho_B.T), rho_C)
+
+        # Construct a cvxpy Variable with value equal to rho_A \otimes rho_B \otimes rho_C.
+        rho_ABC_val = np.kron(np.kron(rho_A, rho_B), rho_C)
+        rho_ABC = cp.Variable(shape=rho_ABC_val.shape, complex=True)
+        cons = [
+            rho_ABC_val == rho_ABC,
+            rho_TC == cp.partial_transpose(rho_ABC, [8, 6, 4], axis=2),
+            rho_TB == cp.partial_transpose(rho_ABC, [8, 6, 4], axis=1),
+        ]
+        prob = cp.Problem(cp.Minimize(0), cons)
+        prob.solve()
+
+        print(rho_ABC_val)
+        assert np.allclose(rho_ABC.value, rho_ABC_val)

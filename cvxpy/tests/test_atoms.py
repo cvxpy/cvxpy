@@ -1225,3 +1225,58 @@ class TestAtoms(BaseTest):
             cp.partial_trace(X, dims=[2, 4], axis=0)
         self.assertEqual(str(cm.exception),
                          "Dimension of system doesn't correspond to dimension of subsystems.")
+
+    def test_partial_transpose(self) -> None:
+        """
+        Test out the partial_transpose atom.
+        rho_ABC = rho_A \\otimes rho_B \\otimes rho_C
+        Each rho_i is normalized, i.e. Tr(rho_i) = 1
+        """
+        # Generate three test cases
+        rho_A = np.random.rand(8, 8) + 1j*np.random.rand(8, 8)
+        rho_A /= np.trace(rho_A)
+        rho_B = np.random.rand(6, 6) + 1j*np.random.rand(6, 6)
+        rho_B /= np.trace(rho_B)
+        rho_C = np.random.rand(4, 4) + 1j*np.random.rand(4, 4)
+        rho_C /= np.trace(rho_C)
+
+        rho_TC = np.kron(np.kron(rho_A, rho_B), rho_C.T)
+        rho_TB = np.kron(np.kron(rho_A, rho_B.T), rho_C)
+        rho_TA = np.kron(np.kron(rho_A.T, rho_B), rho_C)
+
+        # Construct a cvxpy Variable with value equal to rho_A \otimes rho_B \otimes rho_C.
+        temp = np.kron(np.kron(rho_A, rho_B), rho_C)
+        rho_ABC = cp.Variable(shape=temp.shape, complex=True)
+        rho_ABC.value = temp
+
+        # Try to recover simpler tensors products by taking partial transposes of
+        # more complicated tensors.
+        rho_TC_test = cp.partial_transpose(rho_ABC, [8, 6, 4], axis=2)
+        rho_TB_test = cp.partial_transpose(rho_ABC, [8, 6, 4], axis=1)
+        rho_TA_test = cp.partial_transpose(rho_ABC, [8, 6, 4], axis=0)
+
+        # See if the outputs of partial_transpose are correct
+        assert np.allclose(rho_TC_test.value, rho_TC)
+        assert np.allclose(rho_TB_test.value, rho_TB)
+        assert np.allclose(rho_TA_test.value, rho_TA)
+
+    def test_partial_transpose_exceptions(self) -> None:
+        """Test exceptions raised by partial trace.
+        """
+        X = cp.Variable((4, 3))
+        with self.assertRaises(ValueError) as cm:
+            cp.partial_transpose(X, dims=[2, 3], axis=0)
+        self.assertEqual(str(cm.exception),
+                         "Only supports square matrices.")
+
+        X = cp.Variable((6, 6))
+        with self.assertRaises(ValueError) as cm:
+            cp.partial_transpose(X, dims=[2, 3], axis=-1)
+        self.assertEqual(str(cm.exception),
+                         "Invalid axis argument, should be between 0 and 2, got -1.")
+
+        X = cp.Variable((6, 6))
+        with self.assertRaises(ValueError) as cm:
+            cp.partial_transpose(X, dims=[2, 4], axis=0)
+        self.assertEqual(str(cm.exception),
+                         "Dimension of system doesn't correspond to dimension of subsystems.")

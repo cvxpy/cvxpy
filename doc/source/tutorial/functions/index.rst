@@ -772,6 +772,14 @@ and returns a vector or matrix.
      - |affine| affine
      - |incr| incr.
 
+   * - :ref:`partial_transpose(X, dims, axis=0) <partial-transpose>`
+
+     - partial transpose
+     - :math:`X \in\mathbf{R}^{n \times n}`
+     - same as X
+     - |affine| affine
+     - |incr| incr.
+
    * - :ref:`reshape(X, (m', n')) <reshape>`
 
      - :math:`X' \in\mathbf{R}^{m' \times n'}`

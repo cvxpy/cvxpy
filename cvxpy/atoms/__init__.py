@@ -26,6 +26,7 @@ from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.imag import imag
 from cvxpy.atoms.affine.kron import kron
 from cvxpy.atoms.affine.partial_trace import partial_trace
+from cvxpy.atoms.affine.partial_transpose import partial_transpose
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.real import real
 from cvxpy.atoms.affine.reshape import deep_flatten, reshape
