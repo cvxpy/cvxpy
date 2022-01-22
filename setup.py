@@ -31,6 +31,7 @@ IS_RELEASED = False
 IS_RELEASE_BRANCH = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
+
 # Return the git revision as a string
 def git_version():
     def _minimal_ext_cmd(cmd):
