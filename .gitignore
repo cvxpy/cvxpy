@@ -56,3 +56,6 @@ env_*
 venv/
 pip-wheel-metadata/
 tags
+
+# Things specific to this project
+cvxpy/version.py

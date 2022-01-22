@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CVXPY 1.1
-====================
+Welcome to CVXPY
+================
 
 .. meta::
    :description: An open source Python-embedded modeling language for convex optimization problems.
@@ -79,18 +79,23 @@ researchers and engineers.
 
 CVXPY is developed and maintained by
 `Steven Diamond <https://stevendiamond.me/>`_,
-`Akshay Agrawal <https://akshayagrawal.com>`_, and
-`Riley Murray <https://rileyjmurray.wordpress.com/>`_, with many others contributing
+`Akshay Agrawal <https://akshayagrawal.com>`_,
+`Riley Murray <https://rileyjmurray.wordpress.com/>`_, and
+`Bartolomeo Stellato <https://stellato.io/>`_ with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
-years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, and Chris
-Dembia.
+years includes Stephen Boyd, Eric Chu, Robin Verschueren,
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
+Philipp Schiele.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
 guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeGBCr>`_.
 
 **News.**
 
+* In early 2022 we moved CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
+  assign version numbers following the specification at `semver.org <https://semver.org/>`_.
+  This will result in us incrementing CVXPY's minor version number (the "x" in "CVXPY 1.x.y")
+  much more often than before.
 * CVXPY v1.1.0 has been released. This version makes
   repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
   allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
