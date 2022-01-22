@@ -23,7 +23,7 @@ as one makes new minor and micro releases.
 Let's say we're releasing 1.2.0.
 
 1. Starting from ``master``, checkout a new branch called ``release/1.2.x``.
-2. The versioning data in setup.py should be
+2. The versioning data in setup.py should already be
    ```
    MAJOR = 1
    MINOR = 2
@@ -48,7 +48,7 @@ Let's say we're releasing 1.2.0.
 
 Let's say we're releasing CVXPY 1.2.1
 
-1. Starting from ``release/1.2.x``, the versioning data in setup.py should be
+1. Starting from ``release/1.2.x``, the versioning data in setup.py should already be
    ```
    MAJOR = 1
    MINOR = 2
