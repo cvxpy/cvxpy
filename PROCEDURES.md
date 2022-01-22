@@ -69,4 +69,31 @@ Let's say we're releasing CVXPY 1.2.1
 
 ## Deploying a release to conda-forge
 
+The following remarks are based on [@h-vetinari's comment on this GitHub Pull Request](https://github.com/cvxpy/cvxpy/pull/1598#discussion_r787062572).
+
+Upon creating a tagged commit in the cvxpy repo, a bot will open an upgrade PR on [cvxpy's conda-forge feedstock](https://github.com/conda-forge/cvxpy-feedstock).
+All necessary changes will be concentrated in recipe/meta.yaml.
+The changes include 
+ 1. updating dependency requirements,
+ 2. updating the version number, and 
+ 3. adding the hash of the sources.
+
+The conda-forge bot will handle (2) and (3) automatically.
+Any changes to (1) require manual intervention but are rare.
+
+Once the PR is opened the conda-forge bot will build the packages and run the full test suite
+(except for cross-compiled architectures like osx-arm).
+If there are failures, then the PR is not mergeable
+(resp. no artefacts will be uploaded for failing jobs once merged).
+The updated cvxpy release will be available on conda-forge after the PR is merged.
+Merging PRs needs maintainership rights on the feedstock (which several cvxpy-people have)
+
+If issues come up then we can ask h-vetinari or conda-forge/core for help,
+although we should only ping conda-forge/core if h-vetinari is unavailable.
+
+An import note: cvxpy's conda-forge feedstock includes a patch to remove ``pyproject.toml``,
+because it ignores and tramples over the required build dependencies as conda-forge sets them up.
+If this file has changed between versions, the old patch will fail to apply and will need to be rebased.
+
+
 ## Deploying updated documentation to gh-pages
