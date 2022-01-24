@@ -4,23 +4,16 @@ on:
     workflow_dispatch:
 
 jobs:
-  cleanup-runs:
+  webdocs:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash -l {0}
     steps:
       - uses: actions/checkout@v2
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/setup-python@v2
         with:
-          auto-update-conda: true
           python-version: 3.8
-          channels: conda-forge,anaconda
       - name: Install
-        env:
-          PYTHON_VERSION: "3.8"
         run: |
-          source continuous_integration/install_dependencies.sh
+          python -m pip install -e .
           python -m pip install sphinx
           cd doc
           make html
