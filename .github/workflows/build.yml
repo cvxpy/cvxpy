@@ -18,9 +18,15 @@ jobs:
           cd doc
           make html
 
-      - name: deploy
+      - name: Set version
+        run:  echo VERSION=/version/$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))") >> $GITHUB_ENV
+
+      - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
+          target_folder: ${{ env.VERSION }}
+          clean: true # Automatically remove deleted files from the deploy branch
+          clean_exclude: '["version"]'
           
