@@ -1171,19 +1171,20 @@ class TestAtoms(BaseTest):
     def test_partial_trace(self) -> None:
         """
         Test partial_trace atom.
-        rho_ABC = rho_A \\otimes rho_B \\otimes rho_C
-        Each rho_i is normalized, i.e. Tr(rho_i) = 1
+        rho_ABC = rho_A \\otimes rho_B \\otimes rho_C.
+        Here \\otimes signifies Kronecker product.
+        Each rho_i is normalized, i.e. Tr(rho_i) = 1.
         """
         # Set random state.
         seed = 1
         rng = np.random.default_rng(seed)
 
         # Generate five test cases
-        rho_A = rng.rand(4, 4) + 1j*rng.rand(4, 4)
+        rho_A = rng.random((4, 4)) + 1j*rng.random((4, 4))
         rho_A /= np.trace(rho_A)
-        rho_B = rng.rand(3, 3) + 1j*rng.rand(3, 3)
+        rho_B = rng.random((3, 3)) + 1j*rng.random((3, 3))
         rho_B /= np.trace(rho_B)
-        rho_C = rng.rand(2, 2) + 1j*rng.rand(2, 2)
+        rho_C = rng.random((2, 2)) + 1j*rng.random((2, 2))
         rho_C /= np.trace(rho_C)
         rho_AB = np.kron(rho_A, rho_B)
         rho_AC = np.kron(rho_A, rho_C)
@@ -1232,19 +1233,20 @@ class TestAtoms(BaseTest):
     def test_partial_transpose(self) -> None:
         """
         Test out the partial_transpose atom.
-        rho_ABC = rho_A \\otimes rho_B \\otimes rho_C
-        Each rho_i is normalized, i.e. Tr(rho_i) = 1
+        rho_ABC = rho_A \\otimes rho_B \\otimes rho_C.
+        Here \\otimes signifies Kronecker product.
+        Each rho_i is normalized, i.e. Tr(rho_i) = 1.
         """
         # Set random state.
         seed = 1
         rng = np.random.default_rng(seed)
 
         # Generate three test cases
-        rho_A = rng.rand(8, 8) + 1j*rng.rand(8, 8)
+        rho_A = rng.random((8, 8)) + 1j*rng.random((8, 8))
         rho_A /= np.trace(rho_A)
-        rho_B = rng.rand(6, 6) + 1j*rng.rand(6, 6)
+        rho_B = rng.random((6, 6)) + 1j*rng.random((6, 6))
         rho_B /= np.trace(rho_B)
-        rho_C = rng.rand(4, 4) + 1j*rng.rand(4, 4)
+        rho_C = rng.random((4, 4)) + 1j*rng.random((4, 4))
         rho_C /= np.trace(rho_C)
 
         rho_TC = np.kron(np.kron(rho_A, rho_B), rho_C.T)

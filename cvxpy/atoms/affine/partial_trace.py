@@ -1,5 +1,5 @@
 """
-Copyright 2022, taken from Convex.jl.
+Copyright 2022, adapted from Convex.jl.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -27,13 +27,14 @@ def _term(expr, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     Parameters
     ----------
     expr : :class:`~cvxpy.expressions.expression.Expression`
-        The expression to take the partial trace of.
+        The 2D expression to take the partial trace of.
     j : int
         Term in the partial trace sum.
     dims : tuple of ints.
         A tuple of integers encoding the dimensions of each subsystem.
     axis : int
-        The axis along which to take the partial trace.
+        The index of the subsystem to be traced out
+        from the tensor product that defines expr.
     """
     # (I ⊗ <j| ⊗ I) x (I ⊗ |j> ⊗ I) for all j's
     # in the system we want to trace out.
@@ -56,18 +57,21 @@ def _term(expr, j: int, dims: Tuple[int], axis: Optional[int] = 0):
 def partial_trace(expr, dims: Tuple[int], axis: Optional[int] = 0):
     """Partial trace of a matrix.
 
-    Assumes expr = X1 \\odots ... \\odots Xn.
-    Let axis=k be the dimension along which the partial trace is taken.
-    Returns tr(Xk) * (X1 \\odots ... \\odots Xk-1 \\odots Xk+1 \\odots ... \\odots Xn).
+    Assumes :math:`expr = X1 \\odots ... \\odots Xn` is a 2D tensor product
+    composed implicitly of n subsystems. Here :math:`\\odots` denotes the Kronecker product,
+    and axis=k is the index of the subsystem to be traced out
+    from the tensor product that defines expr.
+    Returns :math:`tr(Xk) (X1 \\odots ... \\odots Xk-1 \\odots Xk+1 \\odots ... \\odots Xn)`
 
     Parameters
     ----------
     expr : :class:`~cvxpy.expressions.expression.Expression`
-        The expression to take the partial trace of.
+        The 2D expression to take the partial trace of.
     dims : tuple of ints.
         A tuple of integers encoding the dimensions of each subsystem.
     axis : int
-        The axis along which to take the partial trace.
+        The index of the subsystem to be traced out
+        from the tensor product that defines expr.
     """
     expr = Atom.cast_to_const(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:

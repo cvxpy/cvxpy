@@ -1,5 +1,5 @@
 """
-Copyright 2022, @duguyipiao.
+Copyright 2022, the CVXPY authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -13,6 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+# The implementation of partial_transpose is due to @duguyipiao.
+
 from typing import Optional, Tuple
 
 import numpy as np
@@ -27,7 +30,7 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     Parameters
     ----------
     expr : :class:`~cvxpy.expressions.expression.Expression`
-        The expression to take the partial transpose of.
+        The 2D expression to take the partial transpose of.
     i : int
         Term in the partial transpose sum.
     j : int
@@ -35,7 +38,8 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     dims : tuple of ints.
         A tuple of integers encoding the dimensions of each subsystem.
     axis : int
-        The axis along which to take the partial transpose.
+        The index of the subsystem to be transposed
+        from the tensor product that defines expr.
     """
     # (I ⊗ |i><j| ⊗ I) x (I ⊗ |i><j| ⊗ I) for all (i,j)'s
     # in the system we want to transpose.
@@ -55,18 +59,21 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
 def partial_transpose(expr, dims: Tuple[int], axis: Optional[int] = 0):
     """Partial transpose of a matrix.
 
-    Assumes expr = X1 \\odots ... \\odots Xn.
-    Let axis=k be the dimension along which the partial transpose is taken.
-    Returns X1 \\odots ... \\odots Xk^T \\odots ... \\odots Xn.
+    Assumes :math:`expr = X1 \\odots ... \\odots Xn` is a 2D tensor product
+    composed implicitly of n subsystems. Here :math:`\\odots` denotes the Kronecker product,
+    and axis=k is the index of the subsystem to be transposed
+    from the tensor product that defines expr.
+    Returns :math:`X1 \\odots ... \\odots Xk^T \\odots ... \\odots Xn`
 
     Parameters
     ----------
     expr : :class:`~cvxpy.expressions.expression.Expression`
-        The expression to take the partial transpose of.
+        The 2D expression to take the partial transpose of.
     dims : tuple of ints.
         A tuple of integers encoding the dimensions of each subsystem.
     axis : int
-        The axis along which to take the partial transpose.
+        The index of the subsystem to be transposed
+        from the tensor product that defines expr.
     """
     expr = Atom.cast_to_const(expr)
     if expr.ndim < 2 or expr.shape[0] != expr.shape[1]:
