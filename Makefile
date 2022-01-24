@@ -170,6 +170,7 @@ gh-pages:
 	rm -rf $(GH_PAGES_SOURCES) build doc
 	git add -A
 	git commit --no-verify -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
+# TODO(phschiele): define documentation deployment procedures in PROCEDURES.md and update or remove the command above.
 
 develop:
 	rm -f *.so

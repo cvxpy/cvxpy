@@ -39,6 +39,8 @@ fi
 
 if [[ "$PYTHON_VERSION" == "3.10" ]]; then
   python -m pip install diffcp gurobipy
+elif [[ "$PYTHON_VERSION" == "3.6" ]]; then
+  python -m pip install diffcp xpress
 else
   python -m pip install diffcp gurobipy xpress
 fi
