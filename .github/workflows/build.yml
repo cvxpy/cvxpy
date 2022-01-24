@@ -7,10 +7,18 @@ jobs:
   webdocs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8
+      - uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+      - name: Set latest version
+        run: echo LATEST_VERSION=$(python -c "sorted([float(i) for i in os.listdir("version")])[-1]") >> $GITHUB_ENV
+
+        # Checkout master
+      - uses: actions/checkout@v2
+
       - name: Install
         run: |
           python -m pip install -e .
@@ -18,8 +26,8 @@ jobs:
           cd doc
           make html
 
-      - name: Set version
-        run:  echo VERSION=/version/$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))") >> $GITHUB_ENV
+      - name: Set current version
+        run: echo VERSION=/version/$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))") >> $GITHUB_ENV
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.2.2
@@ -29,4 +37,13 @@ jobs:
           target-folder: ${{ env.VERSION }}
           clean: true # Automatically remove deleted files from the deploy branch
           clean-exclude: '["version"]'
-          
+
+      - name: Deploy latest version
+        if: ${{env.VERSION == env.}}
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: doc/build/html # The folder the action should deploy.
+          target-folder: ${{ env.LATEST_VERSION }}
+          clean: true # Automatically remove deleted files from the deploy branch
+          clean-exclude: '["version"]'
