@@ -14,7 +14,7 @@ jobs:
         with:
           ref: gh-pages
       - name: Set latest version
-        run: echo LATEST_VERSION=$(python -c "sorted([float(i) for i in os.listdir("version")])[-1]") >> $GITHUB_ENV
+        run: echo LATEST_VERSION=$(python -c "import os;sorted([float(i) for i in os.listdir("version")])[-1]") >> $GITHUB_ENV
 
         # Checkout master
       - uses: actions/checkout@v2
