@@ -26,7 +26,7 @@ jobs:
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
-          target_folder: ${{ env.VERSION }}
+          target-folder: ${{ env.VERSION }}
           clean: true # Automatically remove deleted files from the deploy branch
-          clean_exclude: '["version"]'
+          clean-exclude: '["version"]'
           
