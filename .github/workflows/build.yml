@@ -39,7 +39,7 @@ jobs:
           clean-exclude: '["version"]'
 
       - name: Deploy latest version
-        if: ${{env.VERSION == env.}}
+        if: ${{env.VERSION == env.LATEST_VERSION}}
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
           branch: gh-pages # The branch the action should deploy to.
