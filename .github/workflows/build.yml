@@ -14,7 +14,7 @@ jobs:
         with:
           ref: gh-pages
       - name: Set latest version
-        run: echo LATEST_VERSION=$(python -c "import os;print(sorted([float(i) for i in os.listdir('version')])[-1])") >> $GITHUB_ENV
+        run: echo LATEST_VERSION=/version/$(python -c "import os;print(sorted([float(i) for i in os.listdir('version')])[-1])") >> $GITHUB_ENV
 
         # Checkout master
       - uses: actions/checkout@v2
@@ -36,7 +36,6 @@ jobs:
           folder: doc/build/html # The folder the action should deploy.
           target-folder: ${{ env.VERSION }}
           clean: true # Automatically remove deleted files from the deploy branch
-          clean-exclude: '["version"]'
 
       - name: Deploy latest version
         if: ${{env.VERSION == env.LATEST_VERSION}}
