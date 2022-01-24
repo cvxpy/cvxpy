@@ -1176,15 +1176,14 @@ class TestAtoms(BaseTest):
         Each rho_i is normalized, i.e. Tr(rho_i) = 1.
         """
         # Set random state.
-        seed = 1
-        rng = np.random.default_rng(seed)
+        np.random.seed(1)
 
         # Generate five test cases
-        rho_A = rng.random((4, 4)) + 1j*rng.random((4, 4))
+        rho_A = np.random.random((4, 4)) + 1j*np.random.random((4, 4))
         rho_A /= np.trace(rho_A)
-        rho_B = rng.random((3, 3)) + 1j*rng.random((3, 3))
+        rho_B = np.random.random((3, 3)) + 1j*np.random.random((3, 3))
         rho_B /= np.trace(rho_B)
-        rho_C = rng.random((2, 2)) + 1j*rng.random((2, 2))
+        rho_C = np.random.random((2, 2)) + 1j*np.random.random((2, 2))
         rho_C /= np.trace(rho_C)
         rho_AB = np.kron(rho_A, rho_B)
         rho_AC = np.kron(rho_A, rho_C)
@@ -1238,15 +1237,14 @@ class TestAtoms(BaseTest):
         Each rho_i is normalized, i.e. Tr(rho_i) = 1.
         """
         # Set random state.
-        seed = 1
-        rng = np.random.default_rng(seed)
+        np.random.seed(1)
 
         # Generate three test cases
-        rho_A = rng.random((8, 8)) + 1j*rng.random((8, 8))
+        rho_A = np.random.random((8, 8)) + 1j*np.random.random((8, 8))
         rho_A /= np.trace(rho_A)
-        rho_B = rng.random((6, 6)) + 1j*rng.random((6, 6))
+        rho_B = np.random.random((6, 6)) + 1j*np.random.random((6, 6))
         rho_B /= np.trace(rho_B)
-        rho_C = rng.random((4, 4)) + 1j*rng.random((4, 4))
+        rho_C = np.random.random((4, 4)) + 1j*np.random.random((4, 4))
         rho_C /= np.trace(rho_C)
 
         rho_TC = np.kron(np.kron(rho_A, rho_B), rho_C.T)
