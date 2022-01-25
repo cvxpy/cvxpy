@@ -23,7 +23,7 @@ jobs:
 
       - name: Install
         run: |
-          python -m pip install -e .
+          # python -m pip install -e .
           python -m pip install sphinx
           cd doc
           make html
@@ -41,7 +41,6 @@ jobs:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
           target-folder: ${{ env.VERSION_PATH }}
-          clean: true # Automatically remove deleted files from the deploy branch
 
       - name: Deploy latest version
         if: ${{env.DEPLOY_LATEST == 'True'}}
@@ -49,5 +48,4 @@ jobs:
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
-          clean: true # Automatically remove deleted files from the deploy branch
           clean-exclude: '["version"]'
