@@ -14,7 +14,7 @@ jobs:
         with:
           ref: gh-pages
       - name: Set latest deployed version
-        run:
+        run: |
           python -m pip install packaging
           echo LATEST_DEPLOYED_VERSION=$(python -c "import os;from packaging import version;print(sorted([version.parse(i) for i in os.listdir('version')])[-1])") >> $GITHUB_ENV
 
@@ -29,7 +29,7 @@ jobs:
           make html
 
       - name: Set current version
-        run:
+        run: |
           export CURRENT_VERSION=$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))")
           echo CURRENT_VERSION=$CURRENT_VERSION >> $GITHUB_ENV
           echo VERSION_PATH=/version/$CURRENT_VERSION
