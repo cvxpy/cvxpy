@@ -32,8 +32,8 @@ jobs:
         run: |
           export CURRENT_VERSION=$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))")
           echo CURRENT_VERSION=$CURRENT_VERSION >> $GITHUB_ENV
-          echo VERSION_PATH=/version/$CURRENT_VERSION
-          echo DEPLOY_LATEST=$(python -c "import os;from packaging import version;print(version.parse(os.environ["CURRENT_VERSION"])>=version.parse(os.environ["LATEST_DEPLOYED_VERSION"]))")
+          echo VERSION_PATH=/version/$CURRENT_VERSION >> $GITHUB_ENV
+          echo DEPLOY_LATEST=$(python continuous_integration/doc_deploy.py --c "CURRENT_VERSION" --l "$LATEST_DEPLOYED_VERSION") >> $GITHUB_ENV
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.2.2
