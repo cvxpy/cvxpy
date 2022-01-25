@@ -67,7 +67,7 @@ Let's say we're releasing CVXPY 1.2.1
 
 ## Deploying a release to PyPI
 
-Releases to PyPI are automatically triggered for every tagged commit.
+Deployments to PyPI are automatically triggered for every tagged commit of the release process described above.
 This workflow is defined as a GitHub action and can be found [here](https://github.com/cvxpy/cvxpy/blob/master/.github/workflows/build.yml).
 The progress of the deploy can be inspected by opening the workflow run marked with `v*` from the [actions tab](https://github.com/cvxpy/cvxpy/actions).
 
