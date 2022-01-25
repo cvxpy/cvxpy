@@ -30,7 +30,6 @@ jobs:
         run:
           echo CURRENT_VERSION=$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))") >> $GITHUB_ENV
           echo VERSION_PATH=/version/$CURRENT_VERSION
-          # Deploy to the root if this version >= the latest deployed version
           echo DEPLOY_LATEST=$(python -c "import os;from packaging import version;print(version.parse(os.environ["CURRENT_VERSION"])>=version.parse(os.environ["LATEST_DEPLOYED_VERSION"]))")
 
       - name: Deploy
