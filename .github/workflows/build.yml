@@ -13,8 +13,8 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: gh-pages
-      - name: Set latest version
-        run: echo LATEST_VERSION=/version/$(python -c "import os;print(sorted([float(i) for i in os.listdir('version')])[-1])") >> $GITHUB_ENV
+      - name: Set latest deployed version
+        run: echo LATEST_DEPLOYED_VERSION=$(python -c "import os;from packaging import version;print(sorted([version.parse(i) for i in os.listdir('version')])[-1])") >> $GITHUB_ENV
 
         # Checkout master
       - uses: actions/checkout@v2
@@ -27,22 +27,25 @@ jobs:
           make html
 
       - name: Set current version
-        run: echo VERSION=/version/$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))") >> $GITHUB_ENV
+        run:
+          echo CURRENT_VERSION=$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))") >> $GITHUB_ENV
+          echo VERSION_PATH=/version/$CURRENT_VERSION
+          # Deploy to the root if this version >= the latest deployed version
+          echo DEPLOY_LATEST=$(python -c "import os;from packaging import version;print(version.parse(os.environ["CURRENT_VERSION"])>=version.parse(os.environ["LATEST_DEPLOYED_VERSION"]))")
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
-          target-folder: ${{ env.VERSION }}
+          target-folder: ${{ env.VERSION_PATH }}
           clean: true # Automatically remove deleted files from the deploy branch
 
       - name: Deploy latest version
-        if: ${{env.VERSION == env.LATEST_VERSION}}
+        if: ${{env.DEPLOY_LATEST == 'True'}}
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
-          target-folder: ${{ env.LATEST_VERSION }}
           clean: true # Automatically remove deleted files from the deploy branch
           clean-exclude: '["version"]'

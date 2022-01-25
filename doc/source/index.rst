@@ -13,6 +13,8 @@ Welcome to CVXPY
 
 **Convex optimization, for everyone.**
 
+This is test 1
+
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
 
 CVXPY is an open source Python-embedded modeling language for convex
