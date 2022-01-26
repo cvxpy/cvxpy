@@ -67,6 +67,18 @@ Let's say we're releasing CVXPY 1.2.1
 
 ## Deploying a release to PyPI
 
+Deployments to PyPI are automatically triggered for every tagged commit of the release process described above.
+This workflow is defined as a GitHub action and can be found [here](https://github.com/cvxpy/cvxpy/blob/master/.github/workflows/build.yml).
+The progress of the deploy can be inspected by opening the workflow run marked with `v*` from the [actions tab](https://github.com/cvxpy/cvxpy/actions).
+
+After a successful deployment, the result should be verified on PyPI.
+In particular, for both [cvxpy](https://pypi.org/project/cvxpy/) and [cvxpy-base](https://pypi.org/project/cvxpy-base/) 
+source files as well as all expected wheel files should be present.
+
+If the action fails intermittently, e.g., because of time-outs during the installation of the dependencies, it can be retriggered from the [actions tab](https://github.com/cvxpy/cvxpy/actions).
+If changes are required, the `DEPLOY` variable needs to be set manually in the workflow to allow deploys from a non-tagged commit.
+
+
 ## Deploying a release to conda-forge
 
 The following remarks are based on [@h-vetinari's comment on this GitHub Pull Request](https://github.com/cvxpy/cvxpy/pull/1598#discussion_r787062572).
