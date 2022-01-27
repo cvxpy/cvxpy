@@ -543,7 +543,7 @@ class Problem(u.Canonical):
             cone_dims = data['dims']
             cones = {
                 "f": cone_dims.zero,
-                "l": cone_dims.nonpos,
+                "l": cone_dims.nonneg,
                 "q": cone_dims.soc,
                 "ep": cone_dims.exp,
                 "s": cone_dims.psd,
