@@ -671,6 +671,9 @@ class TestGLPK(unittest.TestCase):
     def test_glpk_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='GLPK_MI')
 
+    def test_glpk_mi_lp_4(self) -> None:
+        StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
+
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
 class TestCPLEX(BaseTest):

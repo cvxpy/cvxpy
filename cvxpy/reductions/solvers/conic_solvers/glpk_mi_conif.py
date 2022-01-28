@@ -19,6 +19,7 @@ import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers.conic_solvers import GLPK
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+import numpy as np
 
 
 class GLPK_MI(GLPK):
@@ -51,6 +52,15 @@ class GLPK_MI(GLPK):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cvxopt
         import cvxopt.solvers
+
+        # handle missing constraints
+        var_length = data[s.C].size[0]
+        if data[s.A] is None:
+            data[s.A] = intf.sparse2cvxopt(np.zeros((1, var_length)))
+            data[s.B] = intf.dense2cvxopt(np.zeros((1, 1)))
+        if data[s.G] is None:
+            data[s.G] = intf.sparse2cvxopt(np.zeros((1, var_length)))
+            data[s.H] = intf.dense2cvxopt(np.zeros((1, 1)))
 
         # Save original cvxopt solver options.
         old_options = cvxopt.glpk.options.copy()

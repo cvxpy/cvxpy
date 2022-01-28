@@ -693,6 +693,17 @@ def mi_lp_3() -> SolverTestHelper:
     return sth
 
 
+def mi_lp_4() -> SolverTestHelper:
+    """Test MI without constraints"""
+    x = cp.Variable(boolean=True)
+    from cvxpy.expressions.constants import Constant
+    objective = cp.Maximize(Constant(0.23) * x)
+    obj_pair = (objective, 0.23)
+    var_pairs = [(x, 1)]
+    sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
 def mi_socp_1() -> SolverTestHelper:
     """
     Formulate the following mixed-integer SOCP with cvxpy
@@ -861,6 +872,13 @@ class StandardTestLPs:
         sth.verify_primal_values(places)
         return sth
 
+    @staticmethod
+    def test_mi_lp_4(solver, places: int = 4, **kwargs) -> SolverTestHelper:
+        sth = mi_lp_4()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        return sth
 
 class StandardTestSOCPs:
 
