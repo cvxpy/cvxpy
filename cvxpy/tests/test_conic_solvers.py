@@ -659,6 +659,9 @@ class TestGLPK(unittest.TestCase):
     def test_glpk_lk_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GLPK')
 
+    def test_glpk_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver='GLPK')
+
     def test_glpk_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='GLPK_MI')
 

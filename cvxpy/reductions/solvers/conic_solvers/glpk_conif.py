@@ -18,6 +18,7 @@ import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.cvxopt_conif import CVXOPT
+import numpy as np
 
 
 class GLPK(CVXOPT):
@@ -65,6 +66,17 @@ class GLPK(CVXOPT):
         """
         return super(GLPK, self).invert(solution, inverse_data)
 
+    @staticmethod
+    def _handle_missing_constraints(data: dict) -> dict:
+        var_length = data[s.C].size[0]
+        if data[s.A] is None:
+            data[s.A] = intf.sparse2cvxopt(np.zeros((1, var_length)))
+            data[s.B] = intf.dense2cvxopt(np.zeros((1, 1)))
+        if data[s.G] is None:
+            data[s.G] = intf.sparse2cvxopt(np.zeros((1, var_length)))
+            data[s.H] = intf.dense2cvxopt(np.zeros((1, 1)))
+        return data
+
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cvxopt.solvers
 
@@ -75,6 +87,8 @@ class GLPK(CVXOPT):
             cvxopt.solvers.options["msg_lev"] = "GLP_MSG_ON"
         else:
             cvxopt.solvers.options["msg_lev"] = "GLP_MSG_OFF"
+
+        data = self._handle_missing_constraints(data)
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
