@@ -902,6 +902,7 @@ class StandardTestLPs:
         sth.verify_primal_values(places)
         return sth
 
+
 class StandardTestSOCPs:
 
     @staticmethod
