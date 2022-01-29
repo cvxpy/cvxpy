@@ -17,6 +17,7 @@ jobs:
         run: |
           python -m pip install packaging
           echo LATEST_DEPLOYED_VERSION=$(python -c "import os;from packaging import version;print(sorted([version.parse(i) for i in os.listdir('version')])[-1])") >> $GITHUB_ENV
+          echo ALL_DEPLOYED_VERSIONS=$(python -c "import os;from packaging import version;print(os.listdir('version'))") >> $GITHUB_ENV
 
         # Checkout master
       - uses: actions/checkout@v2
@@ -41,6 +42,11 @@ jobs:
           branch: gh-pages # The branch the action should deploy to.
           folder: doc/build/html # The folder the action should deploy.
           target-folder: ${{ env.VERSION_PATH }}
+
+      - name: Create version json
+        run: |
+          python continuous_integration/doc_write_versions.py
+          mv versions.json doc/build/html
 
       - name: Deploy latest version
         if: ${{env.DEPLOY_LATEST == 'True'}}
