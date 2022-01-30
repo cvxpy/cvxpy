@@ -17,10 +17,12 @@ import os
 
 from packaging import version
 
-# This script creates a "versions.json" file listing all currently deployed version of the documentation
+# This script creates a "versions.json" file listing all deployed version of the documentation
 
 if os.environ["ALL_DEPLOYED_VERSIONS"]:
-    deployed_versions = [version.parse(v) for v in ast.literal_eval(os.environ["ALL_DEPLOYED_VERSIONS"])]
+    deployed_versions = [
+        version.parse(v) for v in ast.literal_eval(os.environ["ALL_DEPLOYED_VERSIONS"])
+    ]
 else:
     deployed_versions = []
 this_version = version.parse(os.environ["CURRENT_VERSION"])

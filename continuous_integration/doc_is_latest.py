@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-# This is a helper file to determine if the doc version that is currently deployed is the latest version
+# This is a helper to determine if the doc version that is currently deployed is the latest version
 
 import argparse
 
