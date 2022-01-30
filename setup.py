@@ -25,7 +25,7 @@ from setuptools.command.build_ext import build_ext
 #
 
 MAJOR = 1
-MINOR = 4
+MINOR = 1
 MICRO = 0
 IS_RELEASED = True
 IS_RELEASE_BRANCH = True
