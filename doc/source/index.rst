@@ -13,7 +13,7 @@ Welcome to CVXPY
 
 **Convex optimization, for everyone.**
 
-This is test 2
+This is test 3
 
 *We are building a CVXPY community* `on Discord <https://discord.gg/4urRQeGBCr>`_. *Join the conversation!*
 
