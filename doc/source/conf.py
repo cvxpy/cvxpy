@@ -137,7 +137,7 @@ extensions += ['alabaster']
 html_theme = 'cvxpy_alabaster'
 html_sidebars = {
    '**': [
-       'about.html', 'navigation.html', 'searchbox.html',
+       'about.html', 'navigation.html', 'searchbox.html', 'version_selector.html',
    ]
 }
 
