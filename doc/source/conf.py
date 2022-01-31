@@ -135,6 +135,8 @@ table_styling_embed_css = False
 html_theme_path = [alabaster.get_path(), "../themes"]
 extensions += ['alabaster']
 html_theme = 'cvxpy_alabaster'
+# Note: the version selector could be omitted for local builds.
+# See https://github.com/cvxpy/cvxpy/pull/1624#discussion_r795207339 for a discussion on the topic
 html_sidebars = {
    '**': [
        'about.html', 'navigation.html', 'searchbox.html', 'version_selector.html',

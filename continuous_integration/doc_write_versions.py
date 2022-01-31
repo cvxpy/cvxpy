@@ -18,6 +18,8 @@ import os
 from packaging import version
 
 # This script creates a "versions.json" file listing all deployed version of the documentation
+# The file is versioned on the gh-pages branch: https://github.com/cvxpy/cvxpy/commits/gh-pages/versions.json
+# (Link to discussion in PR: https://github.com/cvxpy/cvxpy/pull/1624#discussion_r795327821 )
 
 if os.environ["ALL_DEPLOYED_VERSIONS"]:
     deployed_versions = [
