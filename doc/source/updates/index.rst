@@ -44,7 +44,8 @@ We summarize those accumulated features below.
 
 The following features are new in 1.2.0 and have not appeared in any earlier release.
 
- * INSERT HERE.
+ * `Partial trace <https://en.wikipedia.org/wiki/Partial_trace>`_ and partial transpose, 
+ important linear operators in quantum information.
 
 
 CVXPY 1.1

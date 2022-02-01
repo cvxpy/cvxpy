@@ -439,6 +439,8 @@ class Problem(u.Canonical):
         getting satisfactory results from a solver, you can try changing its arguments. The
         exact way this is done depends on the specific solver. Here are some examples:
 
+        ::
+
             prob.solve(solver='ECOS', abstol=1e-6)
             prob.solve(solver='OSQP', max_iter=10000).
             mydict = {"MSK_DPAR_INTPNT_CO_TOL_NEAR_REL":  10}
@@ -541,7 +543,7 @@ class Problem(u.Canonical):
             cone_dims = data['dims']
             cones = {
                 "f": cone_dims.zero,
-                "l": cone_dims.nonpos,
+                "l": cone_dims.nonneg,
                 "q": cone_dims.soc,
                 "ep": cone_dims.exp,
                 "s": cone_dims.psd,

@@ -67,6 +67,18 @@ Let's say we're releasing CVXPY 1.2.1
 
 ## Deploying a release to PyPI
 
+Deployments to PyPI are automatically triggered for every tagged commit of the release process described above.
+This workflow is defined as a GitHub action and can be found [here](https://github.com/cvxpy/cvxpy/blob/master/.github/workflows/build.yml).
+The progress of the deploy can be inspected by opening the workflow run marked with `v*` from the [actions tab](https://github.com/cvxpy/cvxpy/actions).
+
+After a successful deployment, the result should be verified on PyPI.
+In particular, for both [cvxpy](https://pypi.org/project/cvxpy/) and [cvxpy-base](https://pypi.org/project/cvxpy-base/) 
+source files as well as all expected wheel files should be present.
+
+If the action fails intermittently, e.g., because of time-outs during the installation of the dependencies, it can be retriggered from the [actions tab](https://github.com/cvxpy/cvxpy/actions).
+If changes are required, the `DEPLOY` variable needs to be set manually in the workflow to allow deploys from a non-tagged commit.
+
+
 ## Deploying a release to conda-forge
 
 The following remarks are based on [@h-vetinari's comment on this GitHub Pull Request](https://github.com/cvxpy/cvxpy/pull/1598#discussion_r787062572).
@@ -96,4 +108,12 @@ because it ignores and tramples over the required build dependencies as conda-fo
 If this file has changed between versions, the old patch will fail to apply and will need to be rebased.
 
 ## Deploying updated documentation to gh-pages
+
+The web documentation is built and deployed using a GitHub action that can be found [here](https://github.com/cvxpy/cvxpy/blob/master/.github/workflows/docs.yml).
+
+To deploy the docs for a specific version, navigate to the [actions tab](https://github.com/cvxpy/cvxpy/actions) and select the `docs` workflow.
+Under `Use workflow from`, select the **Tags** tab and choose the version you want to deploy the docs for.
+This builds the docs and commits them to the `gh-pages` branch. This in turn triggers the deployment through the `github-pages bot`, which can also be monitored in the [actions tab](https://github.com/cvxpy/cvxpy/actions).
+
+After the deployment, make sure that the docs are accessible through the browser, and the version selector displays all expected versions.
 
