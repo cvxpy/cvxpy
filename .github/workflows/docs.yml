@@ -1,0 +1,57 @@
+name: doc_deploy
+
+on:
+    workflow_dispatch:
+
+jobs:
+  doc_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: actions/checkout@v2
+        with:
+          ref: gh-pages
+      - name: Set already deployed versions
+        run: |
+          python -m pip install packaging
+          echo LATEST_DEPLOYED_VERSION=$(python -c "import os;from packaging import version;print(sorted([version.parse(i) for i in os.listdir('version')])[-1])") >> $GITHUB_ENV
+          echo ALL_DEPLOYED_VERSIONS=$(python -c "import os;from packaging import version;print(os.listdir('version'))") >> $GITHUB_ENV
+
+        # Checkout master
+      - uses: actions/checkout@v2
+      - name: Install
+        run: |
+          python -m pip install -e .
+          python -m pip install sphinx
+          cd doc
+          make html
+
+      - name: Set current version
+        run: |
+          export CURRENT_VERSION=$(python -c "import cvxpy;__version__ = cvxpy.__version__;print('.'.join(__version__.split('.')[:2]))")
+          echo CURRENT_VERSION=$CURRENT_VERSION >> $GITHUB_ENV
+          echo VERSION_PATH=/version/$CURRENT_VERSION >> $GITHUB_ENV
+          echo DEPLOY_LATEST=$(python continuous_integration/doc_is_latest.py --c "$CURRENT_VERSION" --l "$LATEST_DEPLOYED_VERSION") >> $GITHUB_ENV
+
+      - name: Deploy this version
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: doc/build/html # The folder the action should deploy.
+          target-folder: ${{ env.VERSION_PATH }}
+
+      - name: Create version json
+        run: |
+          python continuous_integration/doc_write_versions.py
+          mv versions.json doc/build/html
+
+      - name: Deploy to root if latest version
+        if: ${{env.DEPLOY_LATEST == 'True'}}
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        with:
+          branch: gh-pages # The branch the action should deploy to.
+          folder: doc/build/html # The folder the action should deploy.
+          clean-exclude: |
+            version/

@@ -109,3 +109,11 @@ If this file has changed between versions, the old patch will fail to apply and 
 
 
 ## Deploying updated documentation to gh-pages
+
+The web documentation is built and deployed using a GitHub action that can be found [here](https://github.com/cvxpy/cvxpy/blob/master/.github/workflows/docs.yml).
+
+To deploy the docs for a specific version, navigate to the [actions tab](https://github.com/cvxpy/cvxpy/actions) and select the `docs` workflow.
+Under `Use workflow from`, select the **Tags** tab and choose the version you want to deploy the docs for.
+This builds the docs and commits them to the `gh-pages` branch. This in turn triggers the deployment through the `github-pages bot`, which can also be monitored in the [actions tab](https://github.com/cvxpy/cvxpy/actions).
+
+After the deployment, make sure that the docs are accessible through the browser, and the version selector displays all expected versions.
