@@ -14,8 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import numpy as np
-
 import cvxpy.interface as intf
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
@@ -29,6 +27,9 @@ class GLPK(CVXOPT):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
+    # When constraints aren't provided, use zero matrix and vector of this length
+    MIN_CONSTRAINT_LENGTH = 1
+
     def name(self):
         """The name of the solver.
         """
@@ -40,43 +41,10 @@ class GLPK(CVXOPT):
         from cvxopt import glpk
         glpk  # For flake8
 
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution.
-
-        Returns
-        -------
-        tuple
-            (dict of arguments needed for the solver, inverse data)
-        """
-        data, inv_data = super(GLPK, self).apply(problem)
-        # Convert A, b, G, h, c to CVXOPT matrices.
-        if data[s.A] is not None:
-            data[s.A] = intf.sparse2cvxopt(data[s.A])
-        if data[s.G] is not None:
-            data[s.G] = intf.sparse2cvxopt(data[s.G])
-        if data[s.B] is not None:
-            data[s.B] = intf.dense2cvxopt(data[s.B])
-        if data[s.H] is not None:
-            data[s.H] = intf.dense2cvxopt(data[s.H])
-        if data[s.C] is not None:
-            data[s.C] = intf.dense2cvxopt(data[s.C])
-        return data, inv_data
-
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
         return super(GLPK, self).invert(solution, inverse_data)
-
-    @staticmethod
-    def _handle_missing_constraints(data: dict) -> dict:
-        var_length = data[s.C].size[0]
-        if data[s.A] is None:
-            data[s.A] = intf.sparse2cvxopt(np.zeros((1, var_length)))
-            data[s.B] = intf.dense2cvxopt(np.zeros((1, 1)))
-        if data[s.G] is None:
-            data[s.G] = intf.sparse2cvxopt(np.zeros((1, var_length)))
-            data[s.H] = intf.dense2cvxopt(np.zeros((1, 1)))
-        return data
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cvxopt.solvers
@@ -89,7 +57,7 @@ class GLPK(CVXOPT):
         else:
             cvxopt.solvers.options["msg_lev"] = "GLP_MSG_OFF"
 
-        data = self._handle_missing_constraints(data)
+        data = self._prepare_cvxopt_matrices(data)
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.

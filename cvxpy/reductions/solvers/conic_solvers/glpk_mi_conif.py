@@ -60,7 +60,7 @@ class GLPK_MI(GLPK):
         else:
             cvxopt.glpk.options["msg_lev"] = "GLP_MSG_OFF"
 
-        data = self._handle_missing_constraints(data)
+        data = self._prepare_cvxopt_matrices(data)
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
