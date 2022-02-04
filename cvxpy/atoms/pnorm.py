@@ -245,7 +245,7 @@ class Pnorm(AxisAtom):
         Returns:
             A NumPy ndarray or None.
         """
-        rows = value[0].size
+        rows = value.size
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):
             return None
