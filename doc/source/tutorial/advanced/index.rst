@@ -1046,7 +1046,8 @@ because ``F + G`` is parameter-affine and ``x`` is parameter-free. The differenc
 ``(F + G) @ x - g`` is affine because the addition atom is affine and both
 ``(F + G) @ x`` and  ``- g`` are affine. Likewise ``gamma * cp.norm(x)`` is affine
 under DPP because ``gamma`` is parameter-affine and ``cp.norm(x)`` is
-parameter-free.
+parameter-free. The final objective is then affine under DPP because addition is
+affine.
 
 Some expressions are DCP-compliant but not DPP-compliant. For example,
 DPP forbids taking the product of two parametrized expressions:
