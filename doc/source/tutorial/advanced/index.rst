@@ -1012,8 +1012,8 @@ Then, we describe the DPP ruleset for DGP problems.
 
 **DCP problems.**
 In DPP, an expression is said to be parameter-affine if it does
-not involve variables and is affine in its parameters, and it is variable-free
-if it does not have variables. DPP introduces two restrictions to DCP:
+not involve variables and is affine in its parameters, and it is parameter-free
+if it does not have parameters. DPP introduces two restrictions to DCP:
 
 1. Under DPP, all parameters are classified as affine, just like variables.
 2. Under DPP, the product of two expressions is affine when
@@ -1042,13 +1042,11 @@ default, this keyword argument is ``False``). For example,
 
 prints ``True``. We can walk through the DPP analysis to understand why
 ``objective`` is DPP-compliant. The product ``(F + G) @ x`` is affine under DPP,
-because ``F + G`` is parameter-affine and ``x`` is variable-free. The difference
+because ``F + G`` is parameter-affine and ``x`` is parameter-free. The difference
 ``(F + G) @ x - g`` is affine because the addition atom is affine and both
-``(F + G) @ x`` and  ``- g`` are affine. The product ``gamma * cp.norm(x)`` is convex because
-``cp.norm(x)`` is convex, the product is affine because ``gamma`` is
-parameter-affine and ``cp.norm(x)`` is variable-free, and the expression
-``gamma * cp.norm(x)`` is convex because the product is increasing in its second
-argument (since ``gamma`` is nonnegative).
+``(F + G) @ x`` and  ``- g`` are affine. Likewise ``gamma * cp.norm(x)`` is affine
+under DPP because ``gamma`` is parameter-affine and ``cp.norm(x)`` is
+parameter-free.
 
 Some expressions are DCP-compliant but not DPP-compliant. For example,
 DPP forbids taking the product of two parametrized expressions:
