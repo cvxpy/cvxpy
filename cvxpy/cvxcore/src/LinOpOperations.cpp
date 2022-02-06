@@ -355,34 +355,37 @@ Tensor get_kronr_mat(const LinOp &lin, int arg_idx) {
  */
 Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == KRON_L);
-  Matrix constant = get_constant_data(*lin.get_linOp_data(), false);
-  int rh_rows = constant.rows(); // OLD: int lh_rows = constant.rows();
-  int rh_cols = constant.cols(); // OLD: int lh_cols = constant.cols();
-  int lh_rows = lin.get_args()[0]->get_shape()[0]; // OLD: int rh_rows = lin.get_args()[0]->get_shape()[0];
-  int lh_cols = lin.get_args()[0]->get_shape()[1]; // OLD: int rh_cols = lin.get_args()[0]->get_shape()[1];
+  Matrix rh = get_constant_data(*lin.get_linOp_data(), false);
+  int rh_rows = rh.rows();
+  int rh_cols = rh.cols();
+  int lh_rows = lin.get_args()[0]->get_shape()[0];
+  int lh_cols = lin.get_args()[0]->get_shape()[1];
+  int lh_size = lh_rows * lh_cols;
 
-  int rows = rh_rows * rh_cols * lh_rows * lh_cols;
-  int cols = lh_rows * lh_cols; // OLD: int cols = rh_rows * rh_cols;
-  Matrix coeffs(rows, cols);
+  Matrix mat(lh_size * rh_rows * rh_cols, lh_size);
 
   std::vector<Triplet> tripletList;
-  tripletList.reserve(lh_rows * lh_cols * constant.nonZeros()); // OLD: tripletList.reserve(rh_rows * rh_cols * constant.nonZeros());
-  for (int k = 0; k < constant.outerSize(); ++k) {
-    for (Matrix::InnerIterator it(constant, k); it; ++it) {
-      int row = (rh_rows * rh_cols * (lh_rows * it.col())) + (it.row() * rh_rows); // ORIGINAL
-      int col = 0;
-      for (int j = 0; j < lh_cols; ++j) {  // OLD: for (int j = 0; j < rh_cols; ++j) {
-        for (int i = 0; i < lh_rows; ++i) { // OLD: for (int i = 0; i < rh_rows; ++i) {
-          tripletList.push_back(Triplet(row + i, col, it.value()));
+  tripletList.reserve(lh_size * rh.nonZeros()); // OLD: tripletList.reserve(rh_rows * rh_cols * constant.nonZeros());
+  int kron_rows = lh_rows * rh_rows;
+  int row_offset, col;
+  double val;
+  for (int k = 0; k < rh.outerSize(); ++k) {
+    for (Matrix::InnerIterator it(rh, k); it; ++it) {
+      row_offset = (kron_rows * lh_cols) * it.col() + lh_rows * it.row();
+      val = it.value();
+      col = 0;
+      for (int j = 0; j < lh_cols; ++j) {
+        for (int i = 0; i < lh_rows; ++i) {
+          tripletList.push_back(Triplet(row_offset + i, col, val));
           col++;
         }
-        row += lh_rows * rh_rows;
+        row_offset += kron_rows;
       }
     }
   }
-  coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
-  coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  mat.setFromTriplets(tripletList.begin(), tripletList.end());
+  mat.makeCompressed();
+  return build_tensor(mat);
 }
 
 /**

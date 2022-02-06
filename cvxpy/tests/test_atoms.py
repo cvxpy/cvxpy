@@ -838,8 +838,6 @@ class TestAtoms(BaseTest):
         """Test canonicalization of kron with a variable as
         the first argument, by using it in optimization problems."""
         X = cp.Variable(shape=(2, 2), symmetric=True)
-        # y = cp.Variable(shape=(1, 1))
-        # A = cp.Constant(value=np.ones((2, 2)))
         b = cp.Constant(value=np.ones((1, 1)))
         L = np.array([[0.5, 1], [2, 3]])
         U = np.array([[10, 11], [12, 13]])
@@ -860,7 +858,18 @@ class TestAtoms(BaseTest):
         prob.solve()
         self.assertItemsAlmostEqual(X.value, np.array([[10, 11], [11, 13]]))
 
-        # krony = cp.kron(y, A)  # should be 2-by-2 matrix with all y's.
+        y = cp.Variable(shape=(1, 1))
+        A = np.array([[1., 2.], [3., 4.]])
+        krony = cp.kron(y, A)  # should be equal to y * A
+        objective = cp.Minimize(y)
+        constraints = [U >= krony, krony >= L]
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
+        self.assertItemsAlmostEqual(y.value, np.array([[np.max(L / A)]]))
+        objective = cp.Maximize(y)
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
+        self.assertItemsAlmostEqual(y.value, np.array([[np.min(U / A)]]))
         pass
 
     def test_partial_optimize_dcp(self) -> None:
