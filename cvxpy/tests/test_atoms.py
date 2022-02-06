@@ -818,7 +818,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The arguments to conv must resolve to vectors.")
 
-    def test_kron(self) -> None:
+    def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
         a = np.ones((3, 2))
@@ -833,6 +833,35 @@ class TestAtoms(BaseTest):
             cp.kron(self.x, -1)
         self.assertEqual(str(cm.exception),
                          "The first argument to kron must be constant.")
+
+    def test_kron_canon(self) -> None:
+        """Test canonicalization of kron with a variable as
+        the first argument, by using it in optimization problems."""
+        X = cp.Variable(shape=(2, 2), symmetric=True)
+        # y = cp.Variable(shape=(1, 1))
+        # A = cp.Constant(value=np.ones((2, 2)))
+        b = cp.Constant(value=np.ones((1, 1)))
+        L = np.array([[0.5, 1], [2, 3]])
+        U = np.array([[10, 11], [12, 13]])
+        """
+        kron(M, N) = [M[0,0] * N   , ..., M[0, end] * N  ]
+                     [M[1,0] * N   , ..., M[1, end] * N  ]
+                     ...
+                     [M[end, 0] * N, ..., M[end, end] * N]
+        """
+        kronX = cp.kron(X, b)  # should be equal to X
+        objective = cp.Minimize(cp.sum(X.flatten()))
+        constraints = [U >= kronX, kronX >= L]
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
+        self.assertItemsAlmostEqual(X.value, np.array([[0.5, 2], [2, 3]]))
+        objective = cp.Maximize(cp.sum(X.flatten()))
+        prob = cp.Problem(objective, constraints)
+        prob.solve()
+        self.assertItemsAlmostEqual(X.value, np.array([[10, 11], [11, 13]]))
+
+        # krony = cp.kron(y, A)  # should be 2-by-2 matrix with all y's.
+        pass
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.

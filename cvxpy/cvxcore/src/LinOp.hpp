@@ -46,7 +46,8 @@ enum operatortype {
   DENSE_CONST,
   SPARSE_CONST,
   NO_OP,
-  KRON
+  KRON_R,
+  KRON_L
 };
 
 /* linOp TYPE */

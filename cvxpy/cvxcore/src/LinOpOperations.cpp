@@ -41,7 +41,8 @@ Tensor get_upper_tri_mat(const LinOp &lin, int arg_idx);
 Tensor get_conv_mat(const LinOp &lin, int arg_idx);
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx);
 Tensor get_vstack_mat(const LinOp &lin, int arg_idx);
-Tensor get_kron_mat(const LinOp &lin, int arg_idx);
+Tensor get_kronr_mat(const LinOp &lin, int arg_idx);
+Tensor get_kronl_mat(const LinOp &lin, int arg_idx);
 Tensor get_variable_coeffs(const LinOp &lin, int arg_idx);
 Tensor get_const_coeffs(const LinOp &lin, int arg_idx);
 Tensor get_param_coeffs(const LinOp &lin, int arg_idx);
@@ -133,9 +134,12 @@ Tensor get_node_coeffs(const LinOp &lin, int arg_idx) {
   case VSTACK:
     coeffs = get_vstack_mat(lin, arg_idx);
     break;
-  case KRON:
-    coeffs = get_kron_mat(lin, arg_idx);
+  case KRON_R:
+    coeffs = get_kronr_mat(lin, arg_idx);
     break;
+  case KRON_L:
+  	coeffs = get_kronl_mat(lin, arg_idx);
+  	break;
   default:
     std::cerr << "Error: linOp type invalid." << std::endl;
     exit(-1);
@@ -302,14 +306,54 @@ int get_id_data(const LinOp &lin, int arg_idx) {
  * LinOP -> Matrix FUNCTIONS
  *****************************/
 /**
- * Return the coefficients for KRON.
+ * Return the coefficients for KRON_R.
  *
- * Parameters: linOp LIN with type KRON
+ * Parameters: linOp LIN with type KRON_R
  * Returns: vector containing the coefficient matrix for the Kronecker
-                                                product.
+            product with a Variable in the right operand
  */
-Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.get_type() == KRON);
+Tensor get_kronr_mat(const LinOp &lin, int arg_idx) {
+  assert(lin.get_type() == KRON_R);
+  Matrix constant = get_constant_data(*lin.get_linOp_data(), false);
+  int lh_rows = constant.rows();
+  int lh_cols = constant.cols();
+  int rh_rows = lin.get_args()[0]->get_shape()[0];
+  int rh_cols = lin.get_args()[0]->get_shape()[1];
+
+  int rows = rh_rows * rh_cols * lh_rows * lh_cols;
+  int cols = rh_rows * rh_cols;
+  Matrix coeffs(rows, cols);
+
+  std::vector<Triplet> tripletList;
+  tripletList.reserve(rh_rows * rh_cols * constant.nonZeros());
+  for (int k = 0; k < constant.outerSize(); ++k) {
+    for (Matrix::InnerIterator it(constant, k); it; ++it) {
+      int row =
+          (rh_rows * rh_cols * (lh_rows * it.col())) + (it.row() * rh_rows);
+      int col = 0;
+      for (int j = 0; j < rh_cols; ++j) {
+        for (int i = 0; i < rh_rows; ++i) {
+          tripletList.push_back(Triplet(row + i, col, it.value()));
+          col++;
+        }
+        row += lh_rows * rh_rows;
+      }
+    }
+  }
+  coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
+  coeffs.makeCompressed();
+  return build_tensor(coeffs);
+}
+
+/**
+ * Return the coefficients for KRON_L.
+ *
+ * Parameters: linOp LIN with type KRON_L
+ * Returns: vector containing the coefficient matrix for the Kronecker
+            product with a Variable in left operand
+ */
+Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
+  assert(lin.get_type() == KRON_L);
   Matrix constant = get_constant_data(*lin.get_linOp_data(), false);
   int lh_rows = constant.rows();
   int lh_cols = constant.cols();

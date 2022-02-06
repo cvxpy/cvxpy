@@ -401,7 +401,8 @@ TYPE_MAP = {
     "DENSE_CONST": cvxcore.DENSE_CONST,
     "SPARSE_CONST": cvxcore.SPARSE_CONST,
     "NO_OP": cvxcore.NO_OP,
-    "KRON": cvxcore.KRON
+    "KRON_R": cvxcore.KRON_R,
+    "KRON_L": cvxcore.KRON_L
 }
 
 

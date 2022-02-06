@@ -27,7 +27,6 @@ from cvxpy.constraints.constraint import Constraint
 class kron(AffAtom):
     """Kronecker product.
     """
-    # TODO work with right hand constant.
     # TODO(akshayka): make DGP-compatible
 
     def __init__(self, lh_expr, rh_expr) -> None:
@@ -42,17 +41,15 @@ class kron(AffAtom):
     def validate_arguments(self) -> None:
         """Checks that both arguments are vectors, and the first is constant.
         """
-        if not self.args[0].is_constant():
-            raise ValueError("The first argument to kron must be constant.")
+        if not (self.args[0].is_constant() or self.args[1].is_constant()):
+            raise ValueError("At least one argument to kron must be constant.")
         elif self.args[0].ndim != 2 or self.args[1].ndim != 2:
             raise ValueError("kron requires matrix arguments.")
 
     def shape_from_args(self) -> Tuple[int, int]:
-        """The sum of the argument dimensions - 1.
-        """
         rows = self.args[0].shape[0]*self.args[1].shape[0]
         cols = self.args[0].shape[1]*self.args[1].shape[1]
-        return (rows, cols)
+        return rows, cols
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Same as times.
@@ -62,12 +59,30 @@ class kron(AffAtom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return self.args[0].is_nonneg()
+        cst_loc = 0 if self.args[0].is_constant() else 1
+        return self.args[cst_loc].is_nonneg()
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        return self.args[0].is_nonpos()
+        cst_loc = 0 if self.args[0].is_constant() else 1
+        return self.args[cst_loc].is_nonpos()
+
+    def is_psd(self):
+        """Check a *sufficient condition* that the expression is PSD,
+        by checking if both arguments are PSD or both are NSD.
+        """
+        case1 = self.args[0].is_psd() and self.args[1].is_psd()
+        case2 = self.args[0].is_nsd() and self.args[1].is_nsd()
+        return case1 or case2
+
+    def is_nsd(self):
+        """Check a *sufficient condition* that the expression is NSD,
+        by checking if one argument is PSD and the other is NSD.
+        """
+        case1 = self.args[0].is_psd() and self.args[1].is_nsd()
+        case2 = self.args[0].is_nsd() and self.args[1].is_psd()
+        return case1 or case2
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
@@ -88,4 +103,7 @@ class kron(AffAtom):
         tuple
             (LinOp for objective, list of constraints)
         """
-        return (lu.kron(arg_objs[0], arg_objs[1], shape), [])
+        if self.args[0].is_constant():
+            return lu.kron(arg_objs[0], arg_objs[1], shape), []
+        else:
+            return lu.kron_l(arg_objs[0], arg_objs[1], shape), []
