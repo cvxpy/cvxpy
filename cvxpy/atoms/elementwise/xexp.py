@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond, Eric Chu
+Copyright 2020, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.constraints.constraint import Constraint
 
 
 class xexp(Elementwise):
@@ -36,13 +37,13 @@ class xexp(Elementwise):
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        # Always positive.
-        return (True, False)
+        # Depends upon the sign of x.
+        return (self.args[0].is_nonneg(), self.args[0].is_nonpos())
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return True
+        return self.args[0].is_nonneg()
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
@@ -82,5 +83,10 @@ class xexp(Elementwise):
         """
         rows = self.args[0].size
         cols = self.size
-        grad_vals = np.exp(values[0])
+        grad_vals = np.exp(values[0]) * (1 + values[0])
         return [xexp.elemwise_grad_to_diag(grad_vals, rows, cols)]
+    
+    def _domain(self) -> List[Constraint]:
+        """Returns constraints describing the domain of the node.
+        """
+        return [self.args[0] >= 0]
