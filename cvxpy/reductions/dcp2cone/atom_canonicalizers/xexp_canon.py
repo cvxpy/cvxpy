@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2020, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import cvxpy as cp
+from cvxpy.constraints.exponential import ExpCone
+from cvxpy.atoms.elementwise.power import power
+from cvxpy.expressions.variable import Variable
 
 
 def xexp_canon(expr, args):
-    x = cp.Variable(nonneg=True)
-    u = cp.Variable(nonneg=True)
-    t = cp.Variable(nonneg=True)
+    x = Variable(nonneg=True)
+    u = Variable(nonneg=True)
+    t = Variable(nonneg=True)
 
-    constraints = [cp.constraints.ExpCone(u, x, t),
-                   u >= cp.power(x, 2),
+    constraints = [ExpCone(u, x, t),
+                   u >= power(x, 2),
                    x >= 2]
     return t, constraints
