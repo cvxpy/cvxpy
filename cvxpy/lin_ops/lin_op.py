@@ -26,7 +26,7 @@ class LinOp:
         self.type = type
         self.shape = shape
         self.args = args
-        self.data = data
+        self.data = data  # This is later set to C++ LinOp objects' linOp_data_ field.
 
     def __repr__(self) -> str:
         return f"LinOp({self.type}, {self.shape})"

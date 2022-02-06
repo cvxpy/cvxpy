@@ -327,7 +327,7 @@ def kron_l(lh_op, rh_op, shape: Tuple[int, ...]):
     LinOp
         A linear operator representing the Kronecker product.
     """
-    return lo.LinOp(lo.KRON_L, shape, [rh_op], lh_op)
+    return lo.LinOp(lo.KRON_L, shape, [lh_op], rh_op)
 
 
 def div_expr(lh_op, rh_op):

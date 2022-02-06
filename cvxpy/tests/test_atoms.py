@@ -830,9 +830,9 @@ class TestAtoms(BaseTest):
         expr = cp.kron(a, b)
         assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
-            cp.kron(self.x, -1)
+            cp.kron(self.x, self.x)
         self.assertEqual(str(cm.exception),
-                         "The first argument to kron must be constant.")
+                         "At least one argument to kron must be constant.")
 
     def test_kron_canon(self) -> None:
         """Test canonicalization of kron with a variable as
