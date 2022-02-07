@@ -159,6 +159,17 @@ class TestAtoms(BaseTest):
                 self.assertEqual(copy.get_data(), atom.get_data())
 
         assert cp.power(-1, 2).value == 1
+    
+    # Test the xexp class
+    def test_xexp(self) -> None:
+        atom = cp.xexp(self.x)
+
+        if self.x >= 0:
+            self.assertEqual(atom.curvature, s.CONVEX)
+            self.assertEqual(atom.sign, s.NONNEG)
+        else:
+            self.assertEqual(atom.curvature, s.CONCAVE)
+            self.assertEqual(atom.sign, s.NONPOS)
 
     # Test the geo_mean class.
     def test_geo_mean(self) -> None:
