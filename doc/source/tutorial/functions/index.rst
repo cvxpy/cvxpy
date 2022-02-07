@@ -682,7 +682,7 @@ scalars, which are promoted.
    * - :ref:`xexp(x) <xexp>`
 
      - :math:`x*e^x`
-     - :math:`x > 0`
+     - :math:`x \geq 0`
      - |positive| positive
      - |convex| convex
      - |incr| incr.
