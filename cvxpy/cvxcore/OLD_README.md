@@ -1,8 +1,5 @@
 # cvxcore
 
-## 0. Preface
-
-
 
 ## 1. Introduction
 Convex optimization modeling tools like CVX, CVXPY, and Convex.Jl translate high-level problem descriptions into low-level, canonical forms that are then passed to an backend solver. cvxcore is a software package that factors out the common operations that all such modeling systems perform into a single library with a simple C++ interface. cvxcore removes the need to reimplement this canonicalization process in new languages and provides significant performance gains over high level language implemententations.
