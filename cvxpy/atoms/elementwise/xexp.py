@@ -85,7 +85,7 @@ class xexp(Elementwise):
         cols = self.size
         grad_vals = np.exp(values[0]) * (1 + values[0])
         return [xexp.elemwise_grad_to_diag(grad_vals, rows, cols)]
-    
+
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
         """

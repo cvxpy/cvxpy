@@ -23,7 +23,6 @@ import scipy.sparse as sp
 import scipy.stats
 
 import cvxpy as cp
-from cvxpy.constraints.nonpos import NonNeg
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
 from cvxpy.expressions.constants import Constant, Parameter
@@ -160,7 +159,7 @@ class TestAtoms(BaseTest):
                 self.assertEqual(copy.get_data(), atom.get_data())
 
         assert cp.power(-1, 2).value == 1
-    
+
     # Test the xexp class
     def test_xexp(self) -> None:
         # Test for positive x
@@ -174,7 +173,6 @@ class TestAtoms(BaseTest):
         atom = cp.xexp(x)
         self.assertNotEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.NONPOS)
-
 
     # Test the geo_mean class.
     def test_geo_mean(self) -> None:
