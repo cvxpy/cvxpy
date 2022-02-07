@@ -360,28 +360,48 @@ Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
   int rh_cols = rh.cols();
   int lh_rows = lin.get_args()[0]->get_shape()[0];
   int lh_cols = lin.get_args()[0]->get_shape()[1];
-  int lh_size = lh_rows * lh_cols;
 
-  Matrix mat(lh_size * rh_rows * rh_cols, lh_size);
-
-  std::vector<Triplet> tripletList;
-  tripletList.reserve(lh_size * rh.nonZeros()); // OLD: tripletList.reserve(rh_rows * rh_cols * constant.nonZeros());
+  // Construct row indices for the first column of mat.
+  //   We rely on the fact that rh is an Eigen sparse matrix,
+  //   and assume its storage order is CSC. Note that Eigen's
+  //   default order is CSC-like, and when "compressed" the storage
+  //   is actually CSC.
+  int row_offset = 0;
   int kron_rows = lh_rows * rh_rows;
-  int row_offset, col;
-  double val;
-  for (int k = 0; k < rh.outerSize(); ++k) {
-    for (Matrix::InnerIterator it(rh, k); it; ++it) {
-      row_offset = (kron_rows * lh_cols) * it.col() + lh_rows * it.row();
-      val = it.value();
-      col = 0;
-      for (int j = 0; j < lh_cols; ++j) {
-        for (int i = 0; i < lh_rows; ++i) {
-          tripletList.push_back(Triplet(row_offset + i, col, val));
-          col++;
-        }
-        row_offset += kron_rows;
-      }
-    }
+  int rh_nnz = rh.nonZeros();
+  std::vector<int> base_row_indices;
+  std::vector<double> vec_rh;
+  base_row_indices.reserve(rh_nnz);
+  vec_rh.reserve(rh_nnz);
+  for (int k = 0; k < rh.outerSize(); ++k) {  // loop over columns
+  	for (Matrix::InnerIterator it(rh, k); it; ++it) { // loop over nonzeros in this column
+  	  base_row_indices.push_back(it.row() + row_offset);
+  	  vec_rh.push_back(it.value());
+  	}
+  	row_offset += kron_rows;
+  }
+  // NOTE: vec_rh is *surely* a copy of easily accessible data in rh.
+  // TODO: should get a pointer to that data instead of copying.
+
+  int lh_size = lh_rows * lh_cols;
+  int rh_size = rh_rows * rh_cols;
+  Matrix mat(lh_size * rh_size, lh_size);
+  std::vector<Triplet> tripletList;
+  tripletList.reserve(lh_size * rh_nnz);
+
+  int row, col;
+  int outer_row_offset = 0;
+  for (int j = 0; j < lh_cols; ++j) {
+  	row_offset = outer_row_offset;
+  	for (int i = 0; i < lh_rows; ++i) {
+  	  col = i + j * lh_rows;
+  	  for (int ell = 0; ell < rh_nnz; ++ell) {
+  	  	row = base_row_indices[ell] + row_offset;
+  	  	tripletList.push_back(Triplet(row , col, vec_rh[ell]));
+  	  }
+  	  row_offset += rh_rows;
+  	}
+  	outer_row_offset += lh_rows * rh_size;
   }
   mat.setFromTriplets(tripletList.begin(), tripletList.end());
   mat.makeCompressed();
