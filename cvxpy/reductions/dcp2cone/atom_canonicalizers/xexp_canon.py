@@ -17,14 +17,18 @@ limitations under the License.
 from cvxpy.atoms.elementwise.power import power
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.expressions.variable import Variable
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import (
+    power_canon,)
 
 
 def xexp_canon(expr, args):
-    x = Variable(nonneg=True)
-    u = Variable(nonneg=True)
-    t = Variable(nonneg=True)
+    x = args[0]
+    u = Variable(expr.shape, nonneg=True)
+    t = Variable(expr.shape, nonneg=True)
+    power_expr = power(x, 2)
+    power_obj, constraints = power_canon(power_expr, power_expr.args)
 
-    constraints = [ExpCone(u, x, t),
-                   u >= power(x, 2),
-                   x >= 2]
+    constraints += [ExpCone(u, x, t),
+                    u >= power_obj,
+                    x >= 0]
     return t, constraints
