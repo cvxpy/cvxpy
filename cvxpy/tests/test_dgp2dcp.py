@@ -610,3 +610,15 @@ class TestDgp2Dcp(BaseTest):
         prob.solve(solver=SOLVER, gp=True)
         sltn = np.exp(np.linalg.solve(A, np.log(b)))
         self.assertItemsAlmostEqual(x.value, sltn)
+
+    def test_xexp(self) -> None:
+        x = cvxpy.Variable(2, pos=True)
+        b = np.array([1, 0.5])
+        expr = cvxpy.xexp(x)
+        x.value = b
+        self.assertItemsAlmostEqual(expr.value, [np.e, 0.5 * np.e**.5])
+
+        prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.prod(expr)),
+                             [x == b])
+        prob.solve(solver=SOLVER, gp=True)
+        self.assertItemsAlmostEqual(expr.value, [np.e, 0.5 * np.e**.5])
