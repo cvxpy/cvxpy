@@ -21657,6 +21657,7 @@ SWIG_init(void) {
   SWIG_Python_SetConstant(d, "DENSE_CONST",SWIG_From_int(static_cast< int >(DENSE_CONST)));
   SWIG_Python_SetConstant(d, "SPARSE_CONST",SWIG_From_int(static_cast< int >(SPARSE_CONST)));
   SWIG_Python_SetConstant(d, "NO_OP",SWIG_From_int(static_cast< int >(NO_OP)));
+  SWIG_Python_SetConstant(d, "KRON",SWIG_From_int(static_cast< int >(KRON)));
   SWIG_Python_SetConstant(d, "KRON_R",SWIG_From_int(static_cast< int >(KRON_R)));
   SWIG_Python_SetConstant(d, "KRON_L",SWIG_From_int(static_cast< int >(KRON_L)));
   globals = SWIG_globals();

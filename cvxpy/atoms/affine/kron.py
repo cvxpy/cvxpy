@@ -104,6 +104,6 @@ class kron(AffAtom):
             (LinOp for objective, list of constraints)
         """
         if self.args[0].is_constant():
-            return lu.kron(arg_objs[0], arg_objs[1], shape), []
+            return lu.kron_r(arg_objs[0], arg_objs[1], shape), []
         else:
             return lu.kron_l(arg_objs[0], arg_objs[1], shape), []

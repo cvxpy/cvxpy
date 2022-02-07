@@ -140,6 +140,9 @@ Tensor get_node_coeffs(const LinOp &lin, int arg_idx) {
   case KRON_L:
   	coeffs = get_kronl_mat(lin, arg_idx);
   	break;
+  case KRON:
+    coeffs = get_kronr_mat(lin, arg_idx);
+    break;
   default:
     std::cerr << "Error: linOp type invalid." << std::endl;
     exit(-1);

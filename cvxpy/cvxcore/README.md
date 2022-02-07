@@ -1,74 +1,79 @@
 # cvxcore
 
-## Introduction
-Convex optimization modeling tools like CVX, CVXPY, and Convex.Jl translate high-level problem descriptions into low-level, canonical forms that are then passed to an backend solver. cvxcore is a software package that factors out the common operations that all such modeling systems perform into a single library with a simple C++ interface. cvxcore removes the need to reimplement this canonicalization process in new languages and provides significant performance gains over high level language implemententations.
+cvxcore was originally written to serve as a C++ back-end for multiple high-level optimization modeling languages,
+including CVX, CVXPY, and Convex.jl.
+It didn't end up catching on with that full scope, and so now it's only used in CVXPY.
+cvxcore is officially deprecated and may undergo API-breaking changes without notice.
 
+This file contains informal notes written by CVXPY project maintainers for the rare situations
+when we want to change cvxcore.
 
-## Usage with CVXPY
-If you're using CVXPY update to it 0.3.0 or higher.
+## 1. Making changes in cvxcore visible from CVXPY
 
-One can expect a 3 - 10x  speed-up over the original CVXPY implementation on most other problems.
+You will need an appropriately configured SWIG installation to make changes to cvxcore and actually see them in CVXPY.
+To get started, run ``conda install -c anaconda swig -y`` (note that swig is not a Python package, so you shouldn't try to get it from PyPI).
 
-<!-- ## Installation -->
-<!-- cvxcore supports both Python 2 and Python 3. -->
-
-<!-- 1. Install ``numpy`` with ``pip`` from the command-line. -->
-
-<!-- ``` -->
-<!-- pip install numpy -->
-<!-- ``` -->
-
-<!-- 2. Install ``cvxcore`` with ``pip`` from the command-line. -->
-
-<!-- ``` -->
-<!-- pip install cvxcore -->
-<!-- ``` -->
-
-<!-- Note: If you're installing cvxcore on Windows, a nonstandard system, or wish to build cvxcore directly from source, you need to install ```swig.``` We are currently working to remove this dependency. -->
-
-<!-- On Linux, -->
-
-<!-- ``` -->
-<!-- sudo apt-get install swig -->
-<!-- ``` -->
-
-<!-- On Mac OSX, using homebrew, -->
-
-<!-- ``` -->
-<!-- brew install swig -->
-<!-- ``` -->
-
-
-## Integration with other CVX.* solvers
-To use cvxcore with the CVX solver of your choice one must take the following steps:
-
-1. Represent the problem's objective and constraints each as linear atom trees at some point during the solve process. To convert the linOp trees to a matrix representation, first call the wrapper to convert the high level language linOp tree into a C++ LinOp tree. This involves tree traversal, and some special cases depending on the representation of dense and sparse matrices. You may refer to the ```build_lin_op_tree``` function in **canonInterface.py** to see an example of how this is done.
-
-2. Pass your vector of C++ LinOps into cvxcore's build matrix function. This will return a ```ProblemData``` structure, containing a sparse matrix representation of the problem data. Currently, final problem data is stored in COO representation using ```std::vector```. You should convert this to a data format accessable to the target language. For Python, this unpacking can be done efficiently using cvxcore's get{V/I/J} functions, which converts the representation to NUMPY arrays. For future languages, some work may be needed to do this efficiently.
-
-3. With these two steps implemented, you have essentially recreated **canonInterface.py** in the language of your choice. You now should be able to execute code of the form
-
-```python
-V, I, J, b = canonInterface.get_problem_matrix(lin_expr_tree, var_offset_map)
+Changes you make to cvxcore will most likely be confined to files in ``cvxpy/cvxcore/src/``.
+Once you make your desired changes, change directory so that ``src`` is in your working directory, and run
 ```
-where ```V, I, J``` is a COO representation of the problem matrix ```A```. Matrix ```V, I, J``` and vector ```b``` can then be passed to your solver as needed.
+swig -Isrc -c++ -python python/cvxcore.i
+```
+That step can succeed even if your new code leads to compiler errors (e.g., missing semicolons).
+The next step is to rebuild all of CVXPY -- including cvxcore -- by first changing directory so you
+can see CVXPY's ``setup.py`` and then running
+```
+pip install -e .
+```
+That step can result in compiler errors if you made bad edits to cvxcore.
+You can combine those steps into one by starting in the directory with ``setup.py`` and then running
+``` 
+bash rebuild_cvxcore.sh
+```
 
-## Code Organization
-- **/src/** contains the source code for cvxcore
-	- **cvxcore.(c/h)pp** implements the matrix building algorithm. This file also provides the main access point into cvxcore's functionality, the ```build_matrix``` function.
-	-  **LinOp.hpp** defines the LinOp class, linear atoms which we traverse during construction of the matrix.
-	- **LinOpOperations.(c/h)pp** defines functions to get coefficients corresponding to each of the LinOps. This includes 18 special cases, one for each LinOp.
-    - **ProblemData.hpp** defines the structure returned by ```build_matrix```, which includes a sparse representation of the problem matrix and the dense constant vector.
+## 2. Notes about Python files which interact with cvxcore
 
-- **/src/python** contains code specific to our integration of cvxcore with CVXPY.
-	- **canonInterface.py** implements code which calls our SWIG binding of cvxcore, including the function ```get_problem_matrix```. It also defines a function to create a C++ LinOp tree from a Python LinOp tree, handling a variety of special cases related to data representation.
-    - **cvxcore.py** the Python binding autmatically generated by SWIG.
-
- - **cvxcore.i** exposes functions and data types to SWIG, which automatically generate bindings for cvxcore in a variety of common programming languages.
-
-- **/tests/** contains code to test the accuracy and performance of cvxcore. **test_linops.py** tests a variety of problems to ensure that our basic LinOp construction and representation is correct. **huge_testman.py** benchmarks cvxcore on a variety of EE364A problems.
+The directory ``cvxcore/python`` contains ``cvxcore.py`` and ``canonInterface.py``.
+The former file is generated by SWIG.
+The latter file is written by hand and handles the task of connecting Python ``LinOp`` objects (``cvxpy/lin_ops/lin_op.py:LinOp``)
+to C++ ``LinOp`` objects (``cvxpy/cvxcore/src/LinOpp.hpp:LinOp``).
+That task is actually pretty delicate.
+There is only one ``LinOp`` class in Python; the mathematical nature of a specific Python LinOp ``lin`` is indicated
+with a string stored in ``lin.type``.
+Example LinOp types are "mul", "rmul", "transpose", and "kron_r".
 
 
+## 3. Creating new a LinOp
 
-## Contact
-If you have comments or concerns, please do not hesitate to contact one of us at  {piq93,jackzhu,millerjp}@stanford.edu.
+It sometimes happens that we want new types of affine operators in CVXPY.
+For example, ``cp.kron(A, B)`` originally required that ``A`` was constant.
+In 2022, we extended kron to let ``B`` be a constant and ``A`` be a non-constant affine Expression.
+This required renaming the existing occurrences of the "kron" LinOp (in Python and C++) to "kron_r"
+and creating new a LinOp (again, in Python and C++) called "kron_l".
+
+Changes to LinOps at the Python level were needed in ``cvxpy/lin_ops/lin_op.py``, ``cvxpy/lin_ops/lin_utils.py``, and
+``cvxpy/atoms/affine/kron.py:kron``.
+The respective changes in each file were to ...
+ 1. Define ``KRON_R`` and ``KRON_L`` string constants.
+ 2. Define a super simple ``kron_l`` function for building Python LinOp's that represent ``kron(A, B)`` where ``A`` is non-constant.
+    Rename the existing ``kron`` function to ``kron_r``.
+ 3. Modify ``kron.__init__`` so the left operand to ``cp.kron`` could be non-constant.
+    Have ``kron.graph_implementation`` call ``kron_r`` if the right operand is non-constant and
+    ``kron_l`` if the left operand was non-constant. 
+
+Creating a LinOp at the C++ level required changing the enumeration defined in 
+``cvxpy/cvxcore/src/LinOp.hpp``: we added ``KRON_R`` and ``KRON_L`` after the existing ``KRON``.
+We also made the following changes to ``cvxpy/cvxcore/src/LinOpOperations.cpp``:
+ 1. Renamed an existing function ``get_kron_mat`` to ``get_kronr_mat``. This function did the heavy
+    lifting in canonicalizing Kronecker products when the right-side operand was non-constant.
+ 2. Created a nontrivial new function called ``get_kronl_mat``.
+ 3. Updated ``get_node_coeffs`` so (1) it checked for the new ``KRON_R`` and ``KRON_L`` enums and (2)
+   it routed the old ``KRON`` enum to the ``get_kronr_mat`` function for backwards compatibility.
+ 
+
+## 4. Miscellaneous notes on cvxcore's C++ implementation
+
+The cvxcore ``Matrix`` datatype is equal to ``Eigen::SparseMatrix<double>``. That datatype can store
+information in a generalized CSC or CSR format. The default format is a generalized CSC. You can 
+assume a ``SparseMatrix`` object ``mat`` is standard CSC or CSR by calling ``mat.makeCompressed()``.
+See ``cvxpy/cvxcore/src/Utils.hpp`` for the definitions of cvxcore's ``Vector``, ``Triplet``, and ``Tensor``
+datatypes.

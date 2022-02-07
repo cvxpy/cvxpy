@@ -294,7 +294,7 @@ def multiply(lh_op, rh_op):
     return lo.LinOp(lo.MUL_ELEM, shape, [rh_op], lh_op)
 
 
-def kron(lh_op, rh_op, shape: Tuple[int, ...]):
+def kron_r(lh_op, rh_op, shape: Tuple[int, ...]):
     """Kronecker product of two matrices, where the right operand is a Variable
 
     Parameters

@@ -147,6 +147,7 @@ SCALAR_CONST = _cvxcore.SCALAR_CONST
 DENSE_CONST = _cvxcore.DENSE_CONST
 SPARSE_CONST = _cvxcore.SPARSE_CONST
 NO_OP = _cvxcore.NO_OP
+KRON = _cvxcore.KRON
 KRON_R = _cvxcore.KRON_R
 KRON_L = _cvxcore.KRON_L
 class LinOp(object):
