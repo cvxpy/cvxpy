@@ -74,7 +74,7 @@ atoms_minimize = [
     (cp.diag, (2, 2), [[-5, 1]], Constant([[-5, 0], [0, 1]])),
     (cp.exp, (2, 2), [[[1, 0], [2, -1]]],
      Constant([[math.e, 1], [math.e**2, 1.0 / math.e]])),
-    (cp.xexp, (2, 2), [[[1, 1], [2, 1]]],
+    (cp.xexp, (2, 2), [[[1, 6], [3, 2]]],
      Constant([[math.e, 1], [math.e**2, 1.0 / math.e]])),
     (cp.huber, (2, 2), [[[0.5, -1.5], [4, 0]]],
      Constant([[0.25, 2], [7, 0]])),
