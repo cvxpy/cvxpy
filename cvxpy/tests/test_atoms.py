@@ -172,7 +172,7 @@ class TestAtoms(BaseTest):
         # Test for negative x
         x = Variable(neg=True)
         atom = cp.xexp(x)
-        self.assertEqual(atom.curvature, s.CONCAVE)
+        self.assertNotEqual(atom.curvature, s.CONCAVE)
         self.assertEqual(atom.sign, s.NONPOS)
 
 
