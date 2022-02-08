@@ -56,35 +56,33 @@ The full constructor for :py:class:`Leaf <cvxpy.expressions.leaf.Leaf>` (the par
 of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
 :py:class:`Parameter <cvxpy.expressions.constants.parameter.Parameter>`) is given below.
 
-.. function:: Leaf(shape=None, name=None, value=None, nonneg=False, nonpos=False, symmetric=False, diag=False, PSD=False, NSD=False, boolean=False, integer=False)
+.. function:: Leaf(shape=None, value=None, nonneg=False, nonpos=False, complex=False, imag=False, symmetric=False, diag=False, PSD=False, NSD=False, hermitian=False, boolean=False, integer=False, sparsity=None, pos=False, neg=False)
 
     Creates a Leaf object (e.g., Variable or Parameter).
     Only one attribute can be active (set to True).
 
     :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
     :type shape: tuple or int
-    :param name: The variable name.
-    :type name: str
     :param value: A value to assign to the variable.
     :type value: numeric type
     :param nonneg: Is the variable constrained to be nonnegative?
     :type nonneg: bool
     :param nonpos: Is the variable constrained to be nonpositive?
     :type nonpos: bool
+    :param complex: Is the variable constrained to be complex-valued?
+    :type complex: bool
+    :param imag: Is the variable constrained to be imaginary?
+    :type imag: bool
     :param symmetric: Is the variable constrained to be symmetric?
     :type symmetric: bool
-    :param hermitian: Is the variable constrained to be Hermitian?
-    :type hermitian: bool
     :param diag: Is the variable constrained to be diagonal?
     :type diag: bool
-    :param complex: Is the variable complex valued?
-    :type complex: bool
-    :param imag: Is the variable purely imaginary?
-    :type imag: bool
     :param PSD: Is the variable constrained to be symmetric positive semidefinite?
     :type PSD: bool
     :param NSD: Is the variable constrained to be symmetric negative semidefinite?
     :type NSD: bool
+    :param hermitian: Is the variable constrained to be Hermitian?
+    :type hermitian: bool
     :param boolean:
         Is the variable boolean (i.e., 0 or 1)? True, which constrains
         the entire variable to be boolean, False, or a list of
@@ -94,6 +92,12 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     :type boolean: bool or list of tuple
     :param integer: Is the variable integer? The semantics are the same as the boolean argument.
     :type integer: bool or list of tuple
+    :param sparsity: Fixed sparsity pattern for the variable.
+    :type sparsity: list of tuplewith
+    :param pos: Is the variable constrained to be positive?
+    :type pos: bool
+    :param neg: Is the variable constrained to be negative?
+    :type neg: bool
 
 The ``value`` field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
