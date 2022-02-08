@@ -619,6 +619,6 @@ class TestDgp2Dcp(BaseTest):
         self.assertItemsAlmostEqual(expr.value, [np.e, 0.5 * np.e**.5])
 
         prob = cvxpy.Problem(cvxpy.Minimize(cvxpy.prod(expr)),
-                             [x == b])
+                             [x >= b])
         prob.solve(solver=SOLVER, gp=True)
         self.assertItemsAlmostEqual(expr.value, [np.e, 0.5 * np.e**.5])
