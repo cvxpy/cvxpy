@@ -81,8 +81,6 @@ def create_param(shape: Tuple[int, ...], param_id=None):
 
     Parameters
     ----------
-    value : CVXPY Expression
-        A function of parameters.
     shape : tuple
         The (rows, cols) dimensions of the operator.
 

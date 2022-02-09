@@ -138,9 +138,10 @@ Tensor get_node_coeffs(const LinOp &lin, int arg_idx) {
     coeffs = get_kronr_mat(lin, arg_idx);
     break;
   case KRON_L:
-  	coeffs = get_kronl_mat(lin, arg_idx);
+    coeffs = get_kronl_mat(lin, arg_idx);
   	break;
   case KRON:
+    // here for backwards compatibility
     coeffs = get_kronr_mat(lin, arg_idx);
     break;
   default:
@@ -376,10 +377,15 @@ Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
   std::vector<double> vec_rh;
   base_row_indices.reserve(rh_nnz);
   vec_rh.reserve(rh_nnz);
+  std::cerr << "The outer size is: " << rh.outerSize() << "." << std::endl;
   for (int k = 0; k < rh.outerSize(); ++k) {  // loop over columns
   	for (Matrix::InnerIterator it(rh, k); it; ++it) { // loop over nonzeros in this column
-  	  base_row_indices.push_back(it.row() + row_offset);
-  	  vec_rh.push_back(it.value());
+  	  int cur_row = it.row() + row_offset;
+  	  base_row_indices.push_back(cur_row);
+  	  double cur_val = it.value();
+  	  vec_rh.push_back(cur_val);
+  	  std::cerr << "\tThe current row is: " << cur_row << "." << std::endl;
+  	  std::cerr << "\tThe current val is: " << cur_val << "." << std::endl;
   	}
   	row_offset += kron_rows;
   }
