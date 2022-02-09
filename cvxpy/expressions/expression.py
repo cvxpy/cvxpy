@@ -61,6 +61,29 @@ Using ``*`` for matrix multiplication has been deprecated since CVXPY 1.1.
 This code path has been hit %s times so far.
 """
 
+__NUMPY_UFUNC_ERROR__ = """
+You're calling a NumPy function on a CVXPY expression. This is prone to causing
+errors or code that doesn't behave as expected. Consider using one of the
+functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
+"""
+__BINARY_EXPRESSION_UFUNCS__ = {
+        np.add: lambda self, a: self.__radd__(a),
+        np.subtract: lambda self, a: self.__rsub__(a),
+        np.multiply: lambda self, a: self.__rmul__(a),
+        np.divide: lambda self, a: self.__rdiv__(a),
+        np.matmul: lambda self, a: self.__rmatmul__(a),
+        np.power: lambda self, a: self.__rpow__(a),
+        np.left_shift: lambda self, a: self.__rlshift__(a),
+        np.right_shift: lambda self, a: self.__rrshift__(a),
+        np.equal: lambda self, a: self.__eq__(a),
+        # <= and >= are backwards because this is only called for code of the
+        # form ndarray <= Expression
+        np.less_equal: lambda self, a: self.__ge__(a),
+        np.greater_equal: lambda self, a: self.__le__(a),
+        np.less: lambda self, a: self.__gt__(a),
+        np.greater: lambda self, a: self.__lt__(a),
+}
+
 
 class Expression(u.Canonical):
     """A mathematical expression in a convex optimization problem.
@@ -463,6 +486,12 @@ class Expression(u.Canonical):
         """
         return cvxtypes.power()(self, power)
 
+    def __rpow__(self, base: float) -> "Expression":
+        raise NotImplementedError("CVXPY currently does not support variables "
+                                  "on the right side of **. Consider using the"
+                                  " identity that a**x = cp.exp(cp.multiply(np"
+                                  ".log(a), x)).")
+
     # Arithmetic operators.
     @staticmethod
     def cast_to_const(expr: "Expression"):
@@ -678,3 +707,15 @@ class Expression(u.Canonical):
         """Unsupported.
         """
         raise NotImplementedError("Strict inequalities are not allowed.")
+
+    def __array_ufunc__(self, ufunc, method, *args, **kwargs):
+        try:
+            ufunc_handler = __BINARY_EXPRESSION_UFUNCS__[ufunc]
+            if kwargs == {} and \
+                    len(args) == 2 and \
+                    args[1] is self:
+                return ufunc_handler(self, args[0])
+        except KeyError:
+            pass
+
+        raise RuntimeError(__NUMPY_UFUNC_ERROR__)
