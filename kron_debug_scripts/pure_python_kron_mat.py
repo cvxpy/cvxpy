@@ -4,7 +4,7 @@ import numpy as np
 import scipy.sparse as spar
 
 
-def kron_mat(lh_dims, rh: Union[np.ndarray, spar.spmatrix], sparse=False):
+def get_kronl_mat(lh_dims, rh: Union[np.ndarray, spar.spmatrix], sparse=False):
     """
     Let A be an operator of dimensions "lh_dims", and rh be an ndarray.
     Returns a representation of the parameterized kronecker product operator
@@ -64,9 +64,9 @@ def kron_mat(lh_dims, rh: Union[np.ndarray, spar.spmatrix], sparse=False):
         return mat.A
 
 
-def check_kron_mat(lh: np.ndarray, rh: Union[np.ndarray, spar.spmatrix]):
+def check_kronl_mat(lh: np.ndarray, rh: Union[np.ndarray, spar.spmatrix]):
     lh_vec = lh.flatten(order='F')
-    mat = kron_mat(lh.shape, rh)
+    mat = get_kronl_mat(lh.shape, rh)
     kron_vec = mat @ lh_vec
     if isinstance(rh, spar.spmatrix):
         rh = rh.A
@@ -79,6 +79,6 @@ if __name__ == '__main__':
     z_dims = (2, 2)
     for c_dims in [(1, 1), (2, 1), (1, 2), (5, 5), (3, 7), (7, 9), (11, 3)]:
         # use a sparse constant
-        check_kron_mat(np.random.rand(*z_dims), spar.random(*c_dims, density=0.9))
+        check_kronl_mat(np.random.rand(*z_dims), spar.random(*c_dims, density=0.9))
         # use a dense constant
-        check_kron_mat(np.random.rand(*z_dims), spar.random(*c_dims, density=0.9).A)
+        check_kronl_mat(np.random.rand(*z_dims), spar.random(*c_dims, density=0.9).A)
