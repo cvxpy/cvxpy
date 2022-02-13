@@ -10,26 +10,34 @@ kron(M, N) = [M[0,0] * N   , ..., M[0, end] * N  ]
 """
 
 
-def random_problem(z_dims, c_dims, left=True, param=True, seed=0):
-    Z = cp.Variable(shape=z_dims)
+def random_problem(z_dims, c_dims, var_left, param, seed=0):
     np.random.seed(seed)
-    C_value = np.random.rand(*c_dims).round(decimals=2)
+    _C_value = np.random.rand(*c_dims).round(decimals=2)
     if param:
-        C = cp.Parameter(shape=c_dims)
-        C.value = C_value
+        _C = cp.Parameter(shape=c_dims)
+        _C.value = _C_value
     else:
-        C = cp.Constant(C_value)
-    L = np.random.rand(*Z.shape)
-    U = L + np.random.rand(*Z.shape)
-    U = U.round(decimals=2)
-    if left:
-        constraints = [cp.kron(U, C) >= cp.kron(Z, C), cp.kron(Z, C) >= cp.kron(L, C)]
+        _C = cp.Constant(_C_value)
+    _Z = cp.Variable(shape=z_dims)
+    _L = np.random.rand(*z_dims).round(decimals=2)
+    if var_left:
+        _constraints = [cp.kron(_Z, _C) >= cp.kron(_L, _C), _Z >= 0]
     else:
-        constraints = [cp.kron(C, U) >= cp.kron(C, Z), cp.kron(C, Z) >= cp.kron(C, L)]
-    obj_expr = cp.sum(Z)
+        _constraints = [cp.kron(_C, _Z) >= cp.kron(_C, _L), _Z >= 0]
+    # ^ Only the first constraint matters. We use two constraints because that
+    # makes it easier to set conditional breakpoints in canonInterface.py.
+    #
+    #   Specifically, canonInterface.py:get_problem_matrix is called once for
+    #   the objective function and once for the constraint matrix. When it's
+    #   called for the objective function the linOps argument is a list of length
+    #   one, and when it's called for the constraint matrix the linOps argument
+    #   is a list of length equal to the number of constraints.
+    #
+    _obj_expr = cp.sum(_Z)
 
-    prob = cp.Problem(cp.Minimize(obj_expr), constraints)
-    return Z, C, U, prob
+    _prob = cp.Problem(cp.Minimize(_obj_expr), _constraints)
+    # The optimal solution is Z.value == L.
+    return _Z, _C, _L, _prob
 
 
 if __name__ == '__main__':
@@ -44,26 +52,54 @@ if __name__ == '__main__':
     """
     seed = 0
     z_dims = (2, 2)
-    c_dims = (2, 3)
+    c_dims = (1, 2)
 
-    LEFT = True  # True means we test the new functionality, with a Variable in left argument
     solve = False  # I haven't found much value in setting this to True
+    var_left = False  # True means we test the new functionality, with a Variable in left argument
     param = True  # tests pass when param=False. But maybe worth looking at ...
     #   (param, LEFT) = (False, False) shows what kron(const, var) canonicalizes to w/o parameters
     #   (param, LEFT) = (False, True) shows what kron(var, const) canonicalizes to w/o parameters
 
-    Z_t, C_t, U_t, prob = random_problem(z_dims, c_dims, left=LEFT, param=True, seed=0)
+    Z, C, L, prob = random_problem(z_dims, c_dims, var_left, param, seed=seed)
     if solve:
         prob.solve(solver='ECOS')
     else:
-        data_t = prob.get_problem_data(solver='ECOS', enforce_dpp=True)[0]
-        G = data_t['G'].A
-        h = data_t['h']
         print('\nDimensions')
         print(f'\tz_dims = {z_dims}')
         print(f'\tc_dims = {c_dims}')
-        print(f'\nData for param=True and LEFT={LEFT}')
+        data = prob.get_problem_data(solver='ECOS', enforce_dpp=True)[0]
+        G = data['G'].A
+        h = data['h']
+        print(f'\nData for param={param} and var_left={var_left}')
         print(f'\tnnz(G) = {np.count_nonzero(G)}')
-        print(f'\tnnz(h) = {np.count_nonzero(h)}')
+        print(f'\tnnz(h) = {np.count_nonzero(h)}\n')
+        print(G)
+        print(h)
         print()
 
+        data = prob.get_problem_data(solver='ECOS', enforce_dpp=True)[0]
+        G = data['G'].A
+        h = data['h']
+        print(f'\nData for param={param} and var_left={var_left}')
+        print(f'\tnnz(G) = {np.count_nonzero(G)}')
+        print(f'\tnnz(h) = {np.count_nonzero(h)}\n')
+        print(G)
+        print(h)
+        print()
+
+    Z, C, L, prob = random_problem(z_dims, c_dims, var_left, param, seed=seed)
+    if solve:
+        prob.solve(solver='ECOS')
+    else:
+        print('\nDimensions')
+        print(f'\tz_dims = {z_dims}')
+        print(f'\tc_dims = {c_dims}')
+        data = prob.get_problem_data(solver='ECOS', enforce_dpp=True)[0]
+        G = data['G'].A
+        h = data['h']
+        print(f'\nData for param={param} and var_left={var_left}')
+        print(f'\tnnz(G) = {np.count_nonzero(G)}')
+        print(f'\tnnz(h) = {np.count_nonzero(h)}\n')
+        print(G)
+        print(h)
+        print()
