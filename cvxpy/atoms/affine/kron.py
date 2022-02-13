@@ -22,6 +22,7 @@ import cvxpy.lin_ops.lin_utils as lu
 import cvxpy.utilities as u
 from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions.constants.parameter import is_param_free
 
 
 class kron(AffAtom):
@@ -50,6 +51,23 @@ class kron(AffAtom):
         rows = self.args[0].shape[0]*self.args[1].shape[0]
         cols = self.args[0].shape[1]*self.args[1].shape[1]
         return rows, cols
+
+    def is_atom_convex(self) -> bool:
+        """Is the atom convex?
+        """
+        if u.scopes.dpp_scope_active():
+            # kron is not DPP if any parameters are present.
+            x = self.args[0]
+            y = self.args[1]
+            return ((x.is_constant() or y.is_constant()) and
+                    (is_param_free(x) and is_param_free(y)))
+        else:
+            return self.args[0].is_constant() or self.args[1].is_constant()
+
+    def is_atom_concave(self) -> bool:
+        """Is the atom concave?
+        """
+        return self.is_atom_convex()
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Same as times.
@@ -83,13 +101,6 @@ class kron(AffAtom):
         case1 = self.args[0].is_psd() and self.args[1].is_nsd()
         case2 = self.args[0].is_nsd() and self.args[1].is_psd()
         return case1 or case2
-
-    def is_dpp(self) -> bool:
-        """cvxcore doesn't properly canonicalize kron with Parameter objects.
-        Changes are needed to two functions in cvxpy/cvxcore/src/LinOpOperations.cpp:
-        get_kronr_mat and  get_kronl_mat.
-        """
-        return False
 
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
