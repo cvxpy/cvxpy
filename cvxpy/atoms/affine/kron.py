@@ -84,6 +84,13 @@ class kron(AffAtom):
         case2 = self.args[0].is_nsd() and self.args[1].is_psd()
         return case1 or case2
 
+    def is_dpp(self) -> bool:
+        """cvxcore doesn't properly canonicalize kron with Parameter objects.
+        Changes are needed to two functions in cvxpy/cvxcore/src/LinOpOperations.cpp:
+        get_kronr_mat and  get_kronl_mat.
+        """
+        return False
+
     def graph_implementation(
         self, arg_objs, shape: Tuple[int, ...], data=None
     ) -> Tuple[lo.LinOp, List[Constraint]]:

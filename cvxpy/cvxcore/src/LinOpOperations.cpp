@@ -317,6 +317,9 @@ int get_id_data(const LinOp &lin, int arg_idx) {
             product with a Variable in the right operand
  */
 Tensor get_kronr_mat(const LinOp &lin, int arg_idx) {
+  // This function doesn't properly canonicalize LinOp objects derived from CVXPY Parameters.
+  // See get_mul_elemwise_mat (or other multiplication functions other than kronr)
+  // for examples of correct parameter handling.
   assert(lin.get_type() == KRON_R);
   Matrix lh = get_constant_data(*lin.get_linOp_data(), false);
   int lh_rows = lh.rows();
@@ -358,6 +361,9 @@ Tensor get_kronr_mat(const LinOp &lin, int arg_idx) {
             product with a Variable in left operand
  */
 Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
+  // This function doesn't properly canonicalize LinOp objects derived from CVXPY Parameters.
+  // See get_mul_elemwise_mat (or other multiplication functions other than kronr)
+  // for examples of correct parameter handling.
   assert(lin.get_type() == KRON_L);
   Matrix rh = get_constant_data(*lin.get_linOp_data(), false);
   int rh_rows = rh.rows();
@@ -377,20 +383,14 @@ Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
   std::vector<double> vec_rh;
   base_row_indices.reserve(rh_nnz);
   vec_rh.reserve(rh_nnz);
-  std::cerr << "The outer size is: " << rh.outerSize() << "." << std::endl;
   for (int k = 0; k < rh.outerSize(); ++k) {  // loop over columns
   	for (Matrix::InnerIterator it(rh, k); it; ++it) { // loop over nonzeros in this column
   	  int cur_row = it.row() + row_offset;
   	  base_row_indices.push_back(cur_row);
-  	  double cur_val = it.value();
-  	  vec_rh.push_back(cur_val);
-  	  std::cerr << "\tThe current row is: " << cur_row << "." << std::endl;
-  	  std::cerr << "\tThe current val is: " << cur_val << "." << std::endl;
+  	  vec_rh.push_back(it.value());
   	}
   	row_offset += kron_rows;
   }
-  // NOTE: vec_rh is *surely* a copy of easily accessible data in rh.
-  // TODO: should get a pointer to that data instead of copying.
 
   int lh_size = lh_rows * lh_cols;
   int rh_size = rh_rows * rh_cols;

@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+# import unittest
 from typing import Tuple
 
 import numpy as np
@@ -82,6 +83,7 @@ class TestKronRightVar(TestKron):
 
     C_DIMS = [(1, 1), (2, 1), (1, 2), (2, 2)]
 
+    # @unittest.skip("kron doesn't currently support Parameter objects")
     def test_gen_kronr_param(self):
         z_dims = (2, 2)
         for c_dims in TestKronRightVar.C_DIMS:
@@ -134,6 +136,7 @@ class TestKronLeftVar(TestKron):
         self.assertItemsAlmostEqual(X.value, np.array([[10, 11], [11, 13]]) / 1.5)
         pass
 
+    # @unittest.skip("kron doesn't currently support Parameter objects")
     def test_symvar_kronl_param(self):
         self.symvar_kronl(param=True)
 
@@ -164,12 +167,14 @@ class TestKronLeftVar(TestKron):
         self.assertItemsAlmostEqual(y.value, np.array([[np.min(U / A_val)]]))
         pass
 
+    # @unittest.skip("kron doesn't currently support Parameter objects")
     def test_scalar_kronl_param(self):
         self.scalar_kronl(param=True)
 
     def test_scalar_kronl_const(self):
         self.scalar_kronl(param=False)
 
+    # @unittest.skip("kron doesn't currently support Parameter objects")
     def test_gen_kronl_param(self):
         z_dims = (2, 2)
         for c_dims in TestKronLeftVar.C_DIMS:

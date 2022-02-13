@@ -30,6 +30,12 @@ You can combine those steps into one by starting in the directory with ``setup.p
 bash rebuild_cvxcore.sh
 ```
 
+Rebuilding cvxcore will automatically generate ``cvxpy/cvxcore/python/cvxpy.py``.
+That generated file will probably have flake8 style errors.
+If you use ``pre-commit`` as part of development then it will
+automatically fix those, but you'll need to add the modified
+file again before attempting to commit.
+
 ## 2. Notes about Python files which interact with cvxcore
 
 The directory ``cvxcore/python`` contains ``cvxcore.py`` and ``canonInterface.py``.
