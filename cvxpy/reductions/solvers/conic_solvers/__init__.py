@@ -19,6 +19,7 @@ from .cplex_conif import CPLEX
 from .cvxopt_conif import CVXOPT
 from .diffcp_conif import DIFFCP
 from .ecos_conif import ECOS
+from .glop_conif import GLOP
 from .glpk_conif import GLPK
 from .glpk_mi_conif import GLPK_MI
 from .gurobi_conif import GUROBI

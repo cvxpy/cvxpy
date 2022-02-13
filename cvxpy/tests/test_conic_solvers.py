@@ -678,6 +678,37 @@ class TestGLPK(unittest.TestCase):
         StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
 
 
+@unittest.skipUnless('GLOP' in INSTALLED_SOLVERS, 'GLOP is not installed.')
+class TestGLOP(unittest.TestCase):
+
+    def test_glop_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='GLOP')
+
+    def test_glop_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='GLOP')
+
+    def test_glop_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='GLOP')
+
+    def test_glop_lp_3(self) -> None:
+        # Disabled because Glop detects INFEASIBLE_OR_UNBOUNDED.
+        # TODO run this test with Glop's presolve disabled.
+        # StandardTestLPs.test_lp_3(solver='GLOP')
+        pass
+
+    def test_glop_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='GLOP')
+
+    def test_glop_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='GLOP')
+
+    def test_glop_lp_6(self) -> None:
+        # Disabled because Glop detects INFEASIBLE_OR_UNBOUNDED.
+        # TODO run this test with Glop's presolve disabled.
+        # StandardTestLPs.test_lp_6(solver='GLOP')
+        pass
+
+
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
 class TestCPLEX(BaseTest):
     """ Unit tests for solver specific behavior. """
