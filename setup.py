@@ -193,15 +193,14 @@ canon = Extension(
                   'cvxpy/cvxcore/python/',
                   'cvxpy/cvxcore/include/'],
     extra_compile_args=[
-        '-O0',
-        '-g',
+        '-O3',
         '-std=c++11',
         '-Wall',
         '-pedantic',
         not_on_windows('-Wextra'),
         not_on_windows('-Wno-unused-parameter'),
     ],
-    extra_link_args=['-O0'],
+    extra_link_args=['-O3'],
 )
 
 setup(

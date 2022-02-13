@@ -139,7 +139,7 @@ Tensor get_node_coeffs(const LinOp &lin, int arg_idx) {
     break;
   case KRON_L:
     coeffs = get_kronl_mat(lin, arg_idx);
-  	break;
+    break;
   case KRON:
     // here for backwards compatibility
     coeffs = get_kronr_mat(lin, arg_idx);
