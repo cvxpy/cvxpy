@@ -50,7 +50,8 @@ def random_problem(z_dims, c_dims, var_left, param, seed=0):
     _Z = cp.Variable(shape=z_dims)
     _L = np.random.rand(*z_dims).round(decimals=2)
     if var_left:
-        _constraints = [cp.kron(_Z, _C) >= cp.kron(_L, _C), _Z >= 0]
+        _constraints = [cp.kron(_Z, _C) >= cp.kron(_L, _C), _Z >= 0]  # fails
+        # _constraints = [cp.kron(_Z - _L, _C) >= 0, _Z >= 0]  # succeeds
     else:
         _constraints = [cp.kron(_C, _Z) >= cp.kron(_C, _L), _Z >= 0]
     _obj_expr = cp.sum(_Z)
@@ -71,11 +72,12 @@ def run_example(z_dims, c_dims, var_left=True, param=True, solve=True, seed=0):
     if solve:
         prob.solve(solver='ECOS')
         print('\nSolving with ECOS ...')
-        violations = prob.constraints[0].violation()
         print(f'\tProblem status: {prob.status}')
-        print(f'\tZ.value = ...\n')
-        print_array_indented(Z.value, indent_level=2)
-        print(f'\n\tConstraint violation: {np.max(violations)}')
+        if prob.status == cp.OPTIMAL:
+            violations = prob.constraints[0].violation()
+            print(f'\tZ.value = ...\n')
+            print_array_indented(Z.value, indent_level=2)
+            print(f'\n\tConstraint violation: {np.max(violations)}')
 
     data = prob.get_problem_data(solver='ECOS', enforce_dpp=True)[0]
     # ^ Changing to enforce_dpp=False doesn't make a difference
@@ -97,12 +99,14 @@ if __name__ == '__main__':
     https://docs.google.com/presentation/d/1ETKlAkz1XrSfikvnF27T-JGYF5niLoA936fOSduvy6U/edit?usp=sharing
     feel free to edit by adding more slides.
     """
+    cp.Parameter(shape=(1,))  # dead-store, to increment counter
+
     seed = 0
-    z_dims = (1, 1)
+    z_dims = (2, 2)
     c_dims = (1, 2)
 
     solve = True
-    var_left = False  # True means we test the new functionality, with a Variable in left argument
+    var_left = True  # True means we test the new functionality, with a Variable in left argument
     param = True  # tests pass when param=False. But maybe worth looking at ...
     #   (param, var_left) = (False, False) shows what kron(const, var) canonicalizes to w/o parameters
     #   (param, var_left) = (False, True) shows what kron(var, const) canonicalizes to w/o parameters

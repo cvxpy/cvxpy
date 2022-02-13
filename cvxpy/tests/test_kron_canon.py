@@ -68,7 +68,9 @@ class TestKron(BaseTest):
         Z = cp.Variable(shape=z_dims)
         L = np.random.rand(*Z.shape).round(decimals=2)
         if var_left:
-            constraints = [cp.kron(Z, C) >= cp.kron(L, C), Z >= 0]
+            constraints = [cp.kron(Z, C) >= cp.kron(L, C), Z >= 0]  # fails
+            # constraints = [cp.kron(Z - L, C) >= 0, Z >= 0]  # passes
+            # constraints = [cp.kron(Z, 2*C) >= cp.kron(L, 2*C), Z >= 0]  # fails
         else:
             constraints = [cp.kron(C, Z) >= cp.kron(C, L), Z >= 0]
         obj_expr = cp.sum(Z)
