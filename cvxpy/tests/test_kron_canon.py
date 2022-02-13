@@ -13,7 +13,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import unittest
 from typing import Tuple
 
 import numpy as np
@@ -81,12 +80,6 @@ class TestKronRightVar(TestKron):
 
     C_DIMS = [(1, 1), (2, 1), (1, 2), (2, 2)]
 
-    """
-    If you run test_gen_kronr_param on its own, then it fails.
-    If you run test_gen_kronr_const on its own, then it passes.
-    If you run both tests at the same time, then they both pass.
-    """
-
     def test_gen_kronr_param(self):
         z_dims = (2, 2)
         for c_dims in TestKronRightVar.C_DIMS:
@@ -98,7 +91,6 @@ class TestKronRightVar(TestKron):
             self.assertLessEqual(np.max(con_viols), 1e-4)
             self.assertItemsAlmostEqual(Z.value, L, places=4)
 
-    @unittest.skip
     def test_gen_kronr_const(self):
         z_dims = (2, 2)
         for c_dims in TestKronRightVar.C_DIMS:
@@ -109,16 +101,6 @@ class TestKronRightVar(TestKron):
             con_viols = prob.constraints[0].violation()
             self.assertLessEqual(np.max(con_viols), 1e-4)
             self.assertItemsAlmostEqual(Z.value, L, places=4)
-
-
-class TestKronRightVar_IsolateParam(TestKronRightVar):
-
-    def test_gen_kronr_param(self):
-        super().test_gen_kronr_param()
-
-    @unittest.skip
-    def test_gen_kronr_const(self):
-        super().test_gen_kronr_const()
 
 
 class TestKronLeftVar(TestKron):

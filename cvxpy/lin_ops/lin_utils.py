@@ -37,7 +37,7 @@ class Counter:
     """
 
     def __init__(self) -> None:
-        self.count = 0
+        self.count = 1
 
 
 ID_COUNTER = Counter()
