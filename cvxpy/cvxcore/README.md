@@ -48,7 +48,7 @@ with a string stored in ``lin.type``.
 Example LinOp types are "mul", "rmul", "transpose", and "kron_r".
 
 
-## 3. Creating new a LinOp
+## 3. Creating a new LinOp
 
 It sometimes happens that we want new types of affine operators in CVXPY.
 For example, ``cp.kron(A, B)`` originally required that ``A`` was constant.
