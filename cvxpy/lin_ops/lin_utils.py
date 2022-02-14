@@ -37,7 +37,7 @@ class Counter:
     """
 
     def __init__(self) -> None:
-        self.count = 0
+        self.count = 1
 
 
 ID_COUNTER = Counter()
@@ -81,8 +81,6 @@ def create_param(shape: Tuple[int, ...], param_id=None):
 
     Parameters
     ----------
-    value : CVXPY Expression
-        A function of parameters.
     shape : tuple
         The (rows, cols) dimensions of the operator.
 
@@ -294,8 +292,8 @@ def multiply(lh_op, rh_op):
     return lo.LinOp(lo.MUL_ELEM, shape, [rh_op], lh_op)
 
 
-def kron(lh_op, rh_op, shape: Tuple[int, ...]):
-    """Kronecker product of two matrices.
+def kron_r(lh_op, rh_op, shape: Tuple[int, ...]):
+    """Kronecker product of two matrices, where the right operand is a Variable
 
     Parameters
     ----------
@@ -309,7 +307,25 @@ def kron(lh_op, rh_op, shape: Tuple[int, ...]):
     LinOp
         A linear operator representing the Kronecker product.
     """
-    return lo.LinOp(lo.KRON, shape, [rh_op], lh_op)
+    return lo.LinOp(lo.KRON_R, shape, [rh_op], lh_op)
+
+
+def kron_l(lh_op, rh_op, shape: Tuple[int, ...]):
+    """Kronecker product of two matrices, where the left operand is a Variable
+
+    Parameters
+    ----------
+    lh_op : LinOp
+        The left-hand operator in the product.
+    rh_op : LinOp
+        The right-hand operator in the product.
+
+    Returns
+    -------
+    LinOp
+        A linear operator representing the Kronecker product.
+    """
+    return lo.LinOp(lo.KRON_L, shape, [lh_op], rh_op)
 
 
 def div_expr(lh_op, rh_op):

@@ -90,8 +90,27 @@ atoms_minimize = [
     (cp.rel_entr, tuple(), [math.e, 1], Constant([math.e])),
     (cp.rel_entr, tuple(), [math.e, math.e], Constant([0])),
     (cp.rel_entr, (2,), [[math.e, 1], 1], Constant([math.e, 0])),
-    (lambda x: cp.kron(np.array([[1, 2], [3, 4]]), x), (4, 4), [np.array([[5, 6], [7, 8]])],
+    # kron with variable in the right operand
+    (lambda x: cp.kron(np.array([[1, 2], [3, 4]]), x), (4, 4),
+     [np.array([[5, 6], [7, 8]])],
      Constant(np.kron(np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8]])))),
+    (lambda x: cp.kron(np.array([[1, 2], [3, 4], [5, 6]]), x), (6, 4),
+     [np.array([[5, 6], [7, 8]])],
+     Constant(np.kron(np.array([[1, 2], [3, 4], [5, 6]]), np.array([[5, 6], [7, 8]])))),
+    (lambda x: cp.kron(np.array([[1, 2], [3, 4]]), x), (6, 4),
+     [np.array([[5, 6], [7, 8], [9, 10]])],
+     Constant(np.kron(np.array([[1, 2], [3, 4]]), np.array([[5, 6], [7, 8], [9, 10]])))),
+
+    # kron with variable in the left operand
+    (lambda x: cp.kron(x, np.array([[1, 2], [3, 4]])), (4, 4),
+     [np.array([[5, 6], [7, 8]])],
+     Constant(np.kron(np.array([[5, 6], [7, 8]]), np.array([[1, 2], [3, 4]])))),
+    (lambda x: cp.kron(x, np.array([[1, 2], [3, 4], [5, 6]])), (6, 4),
+     [np.array([[5, 6], [7, 8]])],
+     Constant(np.kron(np.array([[5, 6], [7, 8]]), np.array([[1, 2], [3, 4], [5, 6]])))),
+    (lambda x: cp.kron(x, np.array([[1, 2], [3, 4]])), (6, 4),
+     [np.array([[5, 6], [7, 8], [9, 10]])],
+     Constant(np.kron(np.array([[5, 6], [7, 8], [9, 10]]), np.array([[1, 2], [3, 4]])))),
     (cp.lambda_max, tuple(), [[[2, 0], [0, 1]]], Constant([2])),
     (cp.lambda_max, tuple(), [[[2, 0, 0], [0, 3, 0], [0, 0, 1]]], Constant([3])),
 
