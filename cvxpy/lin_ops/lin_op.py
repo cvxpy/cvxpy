@@ -26,7 +26,7 @@ class LinOp:
         self.type = type
         self.shape = shape
         self.args = args
-        self.data = data
+        self.data = data  # This is later set to C++ LinOp objects' linOp_data_ field.
 
     def __repr__(self) -> str:
         return f"LinOp({self.type}, {self.shape})"
@@ -84,8 +84,10 @@ UPPER_TRI = "upper_tri"
 # Data: LinOp evaluating to the left hand term.
 CONV = "conv"
 # The Kronecker product of two matrices.
-# Data: LinOp evaluating to the left hand term.
-KRON = "kron"
+# Data: LinOp evaluating to the left hand term (variable in the right-hand term).
+KRON_R = "kron_r"
+# Data: LinOp evaluating to the right hand term (variable in the left-hand term).
+KRON_L = "kron_l"
 # Horizontally concatenating operators.
 # Data: None
 HSTACK = "hstack"

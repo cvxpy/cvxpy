@@ -56,35 +56,33 @@ The full constructor for :py:class:`Leaf <cvxpy.expressions.leaf.Leaf>` (the par
 of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
 :py:class:`Parameter <cvxpy.expressions.constants.parameter.Parameter>`) is given below.
 
-.. function:: Leaf(shape=None, name=None, value=None, nonneg=False, nonpos=False, symmetric=False, diag=False, PSD=False, NSD=False, boolean=False, integer=False)
+.. function:: Leaf(shape=None, value=None, nonneg=False, nonpos=False, complex=False, imag=False, symmetric=False, diag=False, PSD=False, NSD=False, hermitian=False, boolean=False, integer=False, sparsity=None, pos=False, neg=False)
 
     Creates a Leaf object (e.g., Variable or Parameter).
     Only one attribute can be active (set to True).
 
     :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
     :type shape: tuple or int
-    :param name: The variable name.
-    :type name: str
     :param value: A value to assign to the variable.
     :type value: numeric type
     :param nonneg: Is the variable constrained to be nonnegative?
     :type nonneg: bool
     :param nonpos: Is the variable constrained to be nonpositive?
     :type nonpos: bool
+    :param complex: Is the variable constrained to be complex-valued?
+    :type complex: bool
+    :param imag: Is the variable constrained to be imaginary?
+    :type imag: bool
     :param symmetric: Is the variable constrained to be symmetric?
     :type symmetric: bool
-    :param hermitian: Is the variable constrained to be Hermitian?
-    :type hermitian: bool
     :param diag: Is the variable constrained to be diagonal?
     :type diag: bool
-    :param complex: Is the variable complex valued?
-    :type complex: bool
-    :param imag: Is the variable purely imaginary?
-    :type imag: bool
     :param PSD: Is the variable constrained to be symmetric positive semidefinite?
     :type PSD: bool
     :param NSD: Is the variable constrained to be symmetric negative semidefinite?
     :type NSD: bool
+    :param hermitian: Is the variable constrained to be Hermitian?
+    :type hermitian: bool
     :param boolean:
         Is the variable boolean (i.e., 0 or 1)? True, which constrains
         the entire variable to be boolean, False, or a list of
@@ -94,6 +92,12 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     :type boolean: bool or list of tuple
     :param integer: Is the variable integer? The semantics are the same as the boolean argument.
     :type integer: bool or list of tuple
+    :param sparsity: Fixed sparsity pattern for the variable.
+    :type sparsity: list of tuplewith
+    :param pos: Is the variable constrained to be positive?
+    :type pos: bool
+    :param neg: Is the variable constrained to be negative?
+    :type neg: bool
 
 The ``value`` field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
@@ -1012,8 +1016,8 @@ Then, we describe the DPP ruleset for DGP problems.
 
 **DCP problems.**
 In DPP, an expression is said to be parameter-affine if it does
-not involve variables and is affine in its parameters, and it is variable-free
-if it does not have variables. DPP introduces two restrictions to DCP:
+not involve variables and is affine in its parameters, and it is parameter-free
+if it does not have parameters. DPP introduces two restrictions to DCP:
 
 1. Under DPP, all parameters are classified as affine, just like variables.
 2. Under DPP, the product of two expressions is affine when
@@ -1042,13 +1046,12 @@ default, this keyword argument is ``False``). For example,
 
 prints ``True``. We can walk through the DPP analysis to understand why
 ``objective`` is DPP-compliant. The product ``(F + G) @ x`` is affine under DPP,
-because ``F + G`` is parameter-affine and ``x`` is variable-free. The difference
+because ``F + G`` is parameter-affine and ``x`` is parameter-free. The difference
 ``(F + G) @ x - g`` is affine because the addition atom is affine and both
-``(F + G) @ x`` and  ``- g`` are affine. The product ``gamma * cp.norm(x)`` is convex because
-``cp.norm(x)`` is convex, the product is affine because ``gamma`` is
-parameter-affine and ``cp.norm(x)`` is variable-free, and the expression
-``gamma * cp.norm(x)`` is convex because the product is increasing in its second
-argument (since ``gamma`` is nonnegative).
+``(F + G) @ x`` and  ``- g`` are affine. Likewise ``gamma * cp.norm(x)`` is affine
+under DPP because ``gamma`` is parameter-affine and ``cp.norm(x)`` is
+parameter-free. The final objective is then affine under DPP because addition is
+affine.
 
 Some expressions are DCP-compliant but not DPP-compliant. For example,
 DPP forbids taking the product of two parametrized expressions:

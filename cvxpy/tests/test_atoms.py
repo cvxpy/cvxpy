@@ -160,6 +160,20 @@ class TestAtoms(BaseTest):
 
         assert cp.power(-1, 2).value == 1
 
+    # Test the xexp class
+    def test_xexp(self) -> None:
+        # Test for positive x
+        x = Variable(pos=True)
+        atom = cp.xexp(x)
+        self.assertEqual(atom.curvature, s.CONVEX)
+        self.assertEqual(atom.sign, s.NONNEG)
+
+        # Test for negative x
+        x = Variable(neg=True)
+        atom = cp.xexp(x)
+        self.assertNotEqual(atom.curvature, s.CONCAVE)
+        self.assertEqual(atom.sign, s.NONPOS)
+
     # Test the geo_mean class.
     def test_geo_mean(self) -> None:
         atom = cp.geo_mean(self.x)
@@ -818,7 +832,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The arguments to conv must resolve to vectors.")
 
-    def test_kron(self) -> None:
+    def test_kron_expr(self) -> None:
         """Test the kron atom.
         """
         a = np.ones((3, 2))
@@ -830,9 +844,9 @@ class TestAtoms(BaseTest):
         expr = cp.kron(a, b)
         assert expr.is_nonpos()
         with self.assertRaises(Exception) as cm:
-            cp.kron(self.x, -1)
+            cp.kron(self.x, self.x)
         self.assertEqual(str(cm.exception),
-                         "The first argument to kron must be constant.")
+                         "At least one argument to kron must be constant.")
 
     def test_partial_optimize_dcp(self) -> None:
         """Test DCP properties of partial optimize.

@@ -188,7 +188,7 @@ canon = Extension(
     sources=['cvxpy/cvxcore/src/cvxcore.cpp',
              'cvxpy/cvxcore/src/LinOpOperations.cpp',
              'cvxpy/cvxcore/src/Utils.cpp',
-             'cvxpy/cvxcore/python/cvxcore_wrap.cpp'],
+             'cvxpy/cvxcore/python/cvxcore_wrap.cxx'],
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
                   'cvxpy/cvxcore/include/'],

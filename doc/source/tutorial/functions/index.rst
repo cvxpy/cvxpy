@@ -694,6 +694,14 @@ scalars, which are promoted.
      - |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
+    
+   * - :ref:`xexp(x) <xexp>`
+   
+     - :math:`x e^x`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
 
 Clarifications
 ^^^^^^^^^^^^^^
