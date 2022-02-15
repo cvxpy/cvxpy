@@ -696,7 +696,7 @@ scalars, which are promoted.
        |decr| for :math:`x \leq 0`
     
    * - :ref:`xexp(x) <xexp>`
-   
+
      - :math:`x e^x`
      - :math:`x \geq 0`
      - |positive| positive
