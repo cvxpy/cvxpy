@@ -529,6 +529,14 @@ scalars, which are promoted.
      - |concave| concave
      - |incr| incr.
 
+   * - :ref:`log_normcdf(x) <log-normcdf>`
+
+     - log of the standard normal CDF
+     - :math:`x \in \mathbf{R}`
+     - |negative| negative
+     - |concave| concave
+     - |incr| incr.
+
    * - :ref:`log1p(x) <log1p>`
 
      - :math:`\log(x+1)`
@@ -536,6 +544,14 @@ scalars, which are promoted.
      - same as x
      - |concave| concave
      - |incr| incr.
+
+   * - :ref:`loggamma(x) <loggamma>`
+
+     - `log of the Gamma function <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.loggamma.html>`_
+     - :math:`x > 0`
+     - |unknown| unknown
+     - |convex| convex
+     - None
 
    * - :ref:`logistic(x) <logistic>`
 
@@ -679,6 +695,11 @@ scalars, which are promoted.
 
        |decr| for :math:`x \leq 0`
 
+Clarifications
+^^^^^^^^^^^^^^
+
+The functions ``log_normcdf`` and ``loggamma`` are defined via approximations. ``log_normcdf`` has highest accuracy
+over the range -4 to 4, while ``loggamma`` has similar accuracy over all positive reals.
 
 Vector/matrix functions
 -----------------------
