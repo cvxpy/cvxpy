@@ -1410,9 +1410,9 @@ on derivatives.
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
+.. _GLOP: https://developers.google.com/optimization
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
-.. _GLOP: https://developers.google.com/optimization
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
 .. _CBC: https://projects.coin-or.org/Cbc
