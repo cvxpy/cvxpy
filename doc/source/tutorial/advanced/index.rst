@@ -415,8 +415,7 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `ECOS`_, `GLOP`_, `OSQP`_,
-and `SCS`_.
+CVXPY is distributed with the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
