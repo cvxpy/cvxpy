@@ -415,7 +415,8 @@ We will discuss the optional arguments in detail below.
 Choosing a solver
 ^^^^^^^^^^^^^^^^^
 
-CVXPY is distributed with the open source solvers `ECOS`_, `OSQP`_, and `SCS`_.
+CVXPY is distributed with the open source solvers `ECOS`_, `GLOP`_, `OSQP`_,
+and `SCS`_.
 Many other solvers can be called by CVXPY if installed separately.
 The table below shows the types of problems the supported solvers can handle.
 
@@ -423,6 +424,8 @@ The table below shows the types of problems the supported solvers can handle.
 |                | LP | QP | SOCP | SDP | EXP | POW | MIP |
 +================+====+====+======+=====+=====+=====+=====+
 | `CBC`_         | X  |    |      |     |     |     | X   |
++----------------+----+----+------+-----+-----+-----+-----+
+| `GLOP`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GLPK`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -501,6 +504,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.SCIPY, scipy_options={"method": "highs"})
     print("optimal value with SciPy/HiGHS:", prob.value)
 
+    # Solve with GLOP.
+    prob.solve(solver=cp.GLOP)
+    print("optimal value with GLOP:", prob.value)
+
     # Solve with GLPK.
     prob.solve(solver=cp.GLPK)
     print("optimal value with GLPK:", prob.value)
@@ -544,6 +551,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CVXOPT: 6.00000000512
     optimal value with SCS: 6.00046055789
     optimal value with SciPy/HiGHS: 6.0
+    optimal value with GLOP: 6.0
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
@@ -658,7 +666,7 @@ warm start would only be a good initial point.
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -738,6 +746,18 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
 
 ``'feastol_inacc'``
     tolerance for feasibility condition for inaccurate solution (default: 1e-4).
+
+`GLOP`_ options:
+
+``'time_limit_sec'``
+    Time limit for the solve, in seconds.
+
+``'parameters_str'``
+    A GlopParameters protocol buffer message in text serialized format. Example:
+    ``use_preprocessing: false``. For the definition of the GlopParameters
+    protocol buffer message, see
+    `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
+
 
 `MOSEK`_ options:
 
@@ -1392,6 +1412,7 @@ on derivatives.
 .. _SCS: http://github.com/cvxgrp/scs
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
+.. _GLOP: https://developers.google.com/optimization
 .. _GUROBI: http://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
 .. _CBC: https://projects.coin-or.org/Cbc

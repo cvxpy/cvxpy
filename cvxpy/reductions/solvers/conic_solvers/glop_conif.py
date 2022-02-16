@@ -66,10 +66,11 @@ class GLOP(ConicSolver):
 
         # Min c'x + d such that Ax + b = s, s \in cones.
         c, d, A, b = problem.apply_parameters()
-        # TODO is csr_matrix necessary? What's the format of A?
         A = csr_matrix(A)
         data["num_constraints"], data["num_vars"] = A.shape
 
+        # TODO: Switch to a vectorized model-building interface when one is
+        # available in OR-Tools.
         model = linear_solver_pb2.MPModelProto()
         model.objective_offset = d
         for var_index, obj_coef in enumerate(c):
@@ -132,18 +133,18 @@ class GLOP(ConicSolver):
 
         response = linear_solver_pb2.MPSolutionResponse()
 
-        # TODO support GLOP solver_specific_parameters
-        # TODO respect verbose
-
-        # TODO Use pywraplp.Solver.SolveWithProto (code commented below)
-        # request = linear_solver_pb2.MPModelRequest()
-        # request.solver_type =
-        #   linear_solver_pb2.MPModelRequest.GLOP_LINEAR_PROGRAMMING
-        # request.model.CopyFrom(data[self.MODEL_PROTO])
-        # pywraplp.Solver.SolveWithProto(model_request=request,
-        #   response=response)
         solver = pywraplp.Solver.CreateSolver('GLOP')
         solver.LoadModelFromProto(data[self.MODEL_PROTO])
+        if verbose:
+            solver.EnableOutput()
+        # TODO Accept a GlopParameters proto object in addition to a
+        # text-serialized proto.
+        if "parameters_str" in solver_opts:
+            if not solver.SetSolverSpecificParametersAsString(
+                    solver_opts["parameters_str"]):
+                return {"status": s.SOLVER_ERROR}
+        if "time_limit_sec" in solver_opts:
+            solver.SetTimeLimit(1000 * float(solver_opts["time_limit_sec"]))
         solver.Solve()
         solver.FillSolutionResponseProto(response)
 
@@ -161,14 +162,10 @@ class GLOP(ConicSolver):
         else:
             solution["dual"] = None
 
-        # Make solution statuses more precise depending on whether a solution
-        # is present.
+        # Make solution status more precise depending on whether a solution is
+        # present.
         if solution["status"] == s.SOLVER_ERROR and has_primal and has_dual:
-            solution["status"] == s.USER_LIMIT
-        if solution["status"] == s.UNBOUNDED and not has_primal:
-            solution["status"] == s.INFEASIBLE_OR_UNBOUNDED
-        if solution["status"] == s.INFEASIBLE and not has_dual:
-            solution["status"] == s.INFEASIBLE_OR_UNBOUNDED
+            solution["status"] = s.USER_LIMIT
 
         return solution
 

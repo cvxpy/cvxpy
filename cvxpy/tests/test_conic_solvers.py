@@ -690,11 +690,17 @@ class TestGLOP(unittest.TestCase):
     def test_glop_lp_2(self) -> None:
         StandardTestLPs.test_lp_2(solver='GLOP')
 
+    def test_glop_lp_3_no_preprocessing(self) -> None:
+        params = "use_preprocessing: false"
+        StandardTestLPs.test_lp_3(solver='GLOP', parameters_str=params)
+
+    # With preprocessing enabled, Glop internally detects
+    # INFEASIBLE_OR_UNBOUNDED. This status is translated to
+    # MPSOLVER_INFEASIBLE. See
+    # https://github.com/google/or-tools/blob/b37d9c786b69128f3505f15beca09e89bf078a89/ortools/linear_solver/glop_utils.cc#L25-L38.
+    @unittest.skip('Known limitation of the GLOP interface.')
     def test_glop_lp_3(self) -> None:
-        # Disabled because Glop detects INFEASIBLE_OR_UNBOUNDED.
-        # TODO run this test with Glop's presolve disabled.
-        # StandardTestLPs.test_lp_3(solver='GLOP')
-        pass
+        StandardTestLPs.test_lp_3(solver='GLOP')
 
     def test_glop_lp_4(self) -> None:
         StandardTestLPs.test_lp_4(solver='GLOP')
@@ -702,11 +708,21 @@ class TestGLOP(unittest.TestCase):
     def test_glop_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GLOP')
 
+    def test_glop_lp_6_no_preprocessing(self) -> None:
+        params = "use_preprocessing: false"
+        StandardTestLPs.test_lp_6(solver='GLOP', parameters_str=params)
+
+    # Same issue as with test_glop_lp_3.
+    @unittest.skip('Known limitation of the GLOP interface.')
     def test_glop_lp_6(self) -> None:
-        # Disabled because Glop detects INFEASIBLE_OR_UNBOUNDED.
-        # TODO run this test with Glop's presolve disabled.
-        # StandardTestLPs.test_lp_6(solver='GLOP')
-        pass
+        StandardTestLPs.test_lp_6(solver='GLOP')
+
+    def test_glop_bad_parameters(self) -> None:
+        x = cp.Variable(1)
+        prob = cp.Problem(cp.Maximize(x), [x <= 1])
+        params = "garbage string"
+        with self.assertRaises(cp.error.SolverError):
+            prob.solve(solver='GLOP', parameters_str=params)
 
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
