@@ -102,6 +102,11 @@ class TestGrad(BaseTest):
         self.A.value = np.array([[0, 0], [10, 0]])
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
                                     np.array([[0, 0], [0, 1], [0, 0], [0, 0]]))
+        
+        expr = cp.pnorm(self.A, 1, axis=1)
+        self.A.value = np.array([[0, 0], [10, 0]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
+                                    np.array([[0, 0], [0, 1], [0, 0], [0, 0]]))
 
         expr = cp.pnorm(self.A, 0.5)
         self.A.value = np.array([[3, -4], [4, 3]])
