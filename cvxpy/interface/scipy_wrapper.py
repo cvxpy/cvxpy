@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from scipy.sparse.base import spmatrix
+from scipy.sparse import spmatrix
 
 from cvxpy.expressions import expression as exp
 
