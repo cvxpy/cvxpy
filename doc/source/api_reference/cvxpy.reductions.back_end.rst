@@ -15,7 +15,7 @@ accepted by solvers. The problems output by both reductions must be passed
 through another sequence of reductions, not documented here, before they are
 ready for to be solved.
 
-Please see `our disclaimer <reductions_disclaimer>`_ about the
+Please see :ref:`our disclaimer <reductions_disclaimer>` about the
 Reductions API before using these directly in your code.
 
 .. contents:: :local:

@@ -17,8 +17,7 @@ support function. When the function handle is evaluated it returns a `SuppFuncAt
 Such objects can be used like any other CVXPY Expression for purposes of convex optimization modeling.
 
 .. autoclass:: cvxpy.transforms.suppfunc.SuppFunc
-    :members:
-    :show-inheritance:
+    :members: __call__
 
 
 Scalarize

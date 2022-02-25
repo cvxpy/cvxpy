@@ -20,6 +20,17 @@ Many new features were added *after* CVXPY 1.1.0 but *before* CVXPY 1.2.0.
 These features accumulated over the course of CVXPY 1.1.1 and 1.1.18.
 We review those features and the new features in CVXPY 1.2.0 below.
 
+Constraints and atoms
+~~~~~~~~~~~~~~~~~~~~~
+ * 1.2.0: added atoms for `partial trace <https://en.wikipedia.org/wiki/Partial_trace>`_ and partial transpose,
+   which are important linear operators in quantum information
+ * 1.2.0: updated ``kron`` so that either argument in ``kron(A, B)`` can be a non-constant affine Expression,
+   provided the other argument is constant. We previously required that ``A`` was constant.
+ * 1.1.14: added ``loggamma``: an atom which approximates the log of the gamma function
+ * 1.1.14: added ``rel_entr``: an atom with the same semantics as the SciPy's "rel_entr"
+ * 1.1.8: added ``log_normcdf``: an atom that approximates the log of the Gaussian distribution's CDF
+ * 1.1.8: added power cone constraints
+
 Solver interfaces
 ~~~~~~~~~~~~~~~~~
  * 1.2.0: support GLOP, via OR-Tools
@@ -33,26 +44,14 @@ Solver interfaces
  * 1.1.2: support for SCIP
  * 1.1.2: users can provide their own implementation of a KKT solver for use with CVXOPT
 
-Constraints and atoms
-~~~~~~~~~~~~~~~~~~~~~
- * 1.2.0: added atoms for `partial trace <https://en.wikipedia.org/wiki/Partial_trace>`_ and partial transpose,
-   which are important linear operators in quantum information
- * 1.2.0: updated ``kron`` so that either argument in ``kron(A, B)`` can be a non-constant affine Expression,
-   provided the other argument is constant. We previously required that ``A`` was constant.
- * 1.1.14: added ``loggamma``: an atom which approximates the log of the gamma function
- * 1.1.14: added ``rel_entr``: an atom with the same semantics as the SciPy's "rel_entr"
- * 1.1.8: added ``log_normcdf``: an atom that approximates the log of the Gaussian distribution's CDF
- * 1.1.8: added power cone constraints
-
-Wider system changes
-~~~~~~~~~~~~~~~~~~~~
+General system improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
  * 1.1.18: A problem status "infeasible or unbounded", for use by specific solvers in rare situations
  * 1.1.11: verbose logging
  * 1.1.11: several improvements to CVXPY's  C++ backend rewriting system, "cvxcore."
    In particular, CVXPY can now be compiled from source with openmp enabled, which allows
    canonicalization to take advantage of multithreading.
  * 1.1.6: a "Dualize" reduction
-
 
 CVXPY 1.1
 ---------

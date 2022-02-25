@@ -5,7 +5,7 @@ The reductions listed here are not specific to a type of solver.
 They can be applied regardless of whether you wish to target, for example,
 a quadratic program solver or a conic solver.
 
-Please see `our disclaimer <reductions_disclaimer>`_ about the
+Please see :ref:`our disclaimer <reductions_disclaimer>` about the
 Reductions API before using these directly in your code.
 
 .. contents:: :local:
