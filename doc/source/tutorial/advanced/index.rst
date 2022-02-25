@@ -823,7 +823,7 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     solving the linear systems encountered in CVXOPT's interior-point algorithm. The API for
     KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
     solvers. The precise API that CVXPY users are held to is described in the CVXPY source
-    code: cvxpy/reductions/solvers/kktsolver.py
+    code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
 
 `SCS`_ options:
 

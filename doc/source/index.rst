@@ -92,10 +92,11 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-* In early 2022 we moved CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
+* In early 2022 we started moving CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
   assign version numbers following the specification at `semver.org <https://semver.org/>`_.
   This will result in us incrementing CVXPY's minor version number (the "x" in "CVXPY 1.x.y")
-  much more often than before.
+  much more often than before. Moving forward we will also make it a priority to differentiate
+  between what is and is-not part of CVXPY's public API.
 * CVXPY v1.1.0 has been released. This version makes
   repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
   allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
@@ -115,7 +116,7 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
     :maxdepth: 3
     :hidden:
 
-    tutorial/index
+    User's Guide <tutorial/index>
 
 .. toctree::
    :hidden:

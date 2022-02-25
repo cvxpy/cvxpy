@@ -6,6 +6,19 @@ Transforms provide additional ways of manipulating CVXPY objects
 beyond the atomic functions.
 While atomic functions operate only on expressions,
 transforms may also take Problem, Objective, or Constraint objects as input.
+Transforms do not need to conform to any specific API.
+
+SuppFunc
+--------
+
+The *SuppFunc* transform accepts an implicit representation of a convex set in terms
+of some CVXPY Variable and returns a function handle representing the convex set's
+support function. When the function handle is evaluated it returns a `SuppFuncAtom object <suppfuncatom>`_.
+Such objects can be used like any other CVXPY Expression for purposes of convex optimization modeling.
+
+.. autoclass:: cvxpy.transforms.suppfunc.SuppFunc
+    :members:
+    :show-inheritance:
 
 
 Scalarize

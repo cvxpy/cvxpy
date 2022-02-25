@@ -54,14 +54,17 @@ def _term(expr, j: int, dims: Tuple[int], axis: Optional[int] = 0):
     return a @ expr @ b
 
 
+# flake8: noqa: E501
 def partial_trace(expr, dims: Tuple[int], axis: Optional[int] = 0):
-    """Partial trace of a matrix.
+    """
+    Assumes :math:`\\texttt{expr} = X_1 \\otimes \\cdots \\otimes X_n` is a 2D Kronecker
+    product composed of :math:`n = \\texttt{len(dims)}` implicit subsystems.
+    Letting :math:`k = \\texttt{axis}`, the returned expression represents
+    the *partial trace* of :math:`\\texttt{expr}` along its :math:`k^{\\text{th}}` implicit subsystem:
 
-    Assumes :math:`expr = X1 \\odots ... \\odots Xn` is a 2D tensor product
-    composed implicitly of n subsystems. Here :math:`\\odots` denotes the Kronecker product,
-    and axis=k is the index of the subsystem to be traced out
-    from the tensor product that defines expr.
-    Returns :math:`tr(Xk) (X1 \\odots ... \\odots Xk-1 \\odots Xk+1 \\odots ... \\odots Xn)`
+    .. math::
+
+        \\text{tr}(X_k) (X_1 \\otimes \\cdots \\otimes X_{k-1} \\otimes X_{k+1} \\otimes \\cdots \\otimes X_n).
 
     Parameters
     ----------

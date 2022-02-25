@@ -1,6 +1,9 @@
 cvxpy\.reductions\.qp2quad\_form package
 ========================================
 
+Please see `our disclaimer <reductions_disclaimer>`_ about the
+Reductions API before using these directly in your code.
+
 Subpackages
 -----------
 

@@ -16,11 +16,11 @@ limitations under the License.
 
 import math
 import unittest
-from distutils.version import StrictVersion
 
 import numpy as np
 import pytest
 import scipy.linalg as la
+from packaging.version import Version
 
 import cvxpy as cp
 import cvxpy.tests.solver_test_helpers as sths
@@ -1533,7 +1533,7 @@ class TestSCIPY(unittest.TestCase):
 
     def setUp(self):
         import scipy
-        self.d = StrictVersion(scipy.__version__) >= StrictVersion('1.7.0')
+        self.d = Version(scipy.__version__) >= Version('1.7.0')
 
     def test_scipy_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)

@@ -14,10 +14,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from distutils.version import StrictVersion
-
 import numpy as np
 import scipy.sparse as sp
+from packaging.version import Version
 
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
@@ -33,7 +32,7 @@ def dims_to_solver_dict(cone_dims):
     cones = dims_to_solver_dict_default(cone_dims)
 
     import scs
-    if StrictVersion(scs.__version__) >= StrictVersion('3.0.0'):
+    if Version(scs.__version__) >= Version('3.0.0'):
         cones['z'] = cones.pop('f')  # renamed to 'z' in SCS 3.0.0
     return cones
 
@@ -214,7 +213,7 @@ class SCS(ConicSolver):
         import scs
         attr = {}
         # SCS versions 1.*, SCS 2.*
-        if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+        if Version(scs.__version__) < Version('3.0.0'):
             status = self.STATUS_MAP[solution["info"]["statusVal"]]
             attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
             attr[s.SETUP_TIME] = solution["info"]["setupTime"]
@@ -281,7 +280,7 @@ class SCS(ConicSolver):
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
 
         # SCS versions 1.*, SCS 2.*
-        if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+        if Version(scs.__version__) < Version('3.0.0'):
             if "eps_abs" in solver_opts or "eps_rel" in solver_opts:
                 # Take the min of eps_rel and eps_abs to be eps
                 solver_opts["eps"] = min(solver_opts.get("eps_abs", 1),
@@ -294,8 +293,8 @@ class SCS(ConicSolver):
             status = self.STATUS_MAP[results["info"]["statusVal"]]
 
             # anderson acceleration (introduced in scs 2.0) is sometimes unstable; retry without it
-            acceleration_lookback_available = (StrictVersion(scs.__version__) >=
-                                               StrictVersion('2.0.0'))
+            acceleration_lookback_available = (Version(scs.__version__) >=
+                                               Version('2.0.0'))
             if (
                     status == s.OPTIMAL_INACCURATE
                     and "acceleration_lookback" not in solver_opts

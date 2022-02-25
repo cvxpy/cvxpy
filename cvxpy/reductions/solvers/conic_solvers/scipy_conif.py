@@ -16,9 +16,9 @@ limitations under the License.
 
 
 import warnings
-from distutils.version import StrictVersion
 
 import scipy  # For version checks
+from packaging.version import Version
 
 import cvxpy.settings as s
 from cvxpy.constraints import NonNeg, Zero
@@ -98,7 +98,7 @@ class SCIPY(ConicSolver):
         from scipy import optimize as opt
 
         # Set default method which can be overriden by user inputs
-        if (StrictVersion(scipy.__version__) < StrictVersion('1.6.1')):
+        if (Version(scipy.__version__) < Version('1.6.1')):
             meth = "interior-point"
         else:
             meth = "highs"
@@ -130,7 +130,7 @@ class SCIPY(ConicSolver):
 
                 # Check to see if scipy version larger than 1.6.1 is installed
                 # if method chosen is one of the highs methods.
-                ver = (StrictVersion(scipy.__version__) < StrictVersion('1.6.1'))
+                ver = (Version(scipy.__version__) < Version('1.6.1'))
                 if ((meth in ['highs-ds', 'highs-ipm', 'highs']) & ver):
                     raise ValueError("The HiGHS solvers require a SciPy version >= 1.6.1")
 

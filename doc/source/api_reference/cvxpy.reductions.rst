@@ -21,10 +21,20 @@ of solvers is called a :doc:`back-end reduction <cvxpy.reductions.back_end>`.
 Each solver (along with the mode in which it is invoked) is called a *back-end*
 or *target*.
 
-The majority of users will not need to know anything about the reduction
-API; indeed, most users need not even know that reductions exist.
-But those who wish to extend CVXPY or contribute to it may find the API useful,
-as might those who are simply curious to learn how CVXPY works.
+The majority of users do not need to know anything about CVXPY's reduction system.
+Indeed, most users need not even know that reductions exist!
+
+.. _reductions_disclaimer:
+
+Disclaimer
+~~~~~~~~~~
+
+*CVXPY's reductions are not considered part of the public API. They can change
+without notice in future releases.
+We document them here for potential CVXPY contributors, for the curious, and for
+those who are okay with building on an API that may not be available in future
+versions of CVXPY.*
+
 
 .. toctree::
 

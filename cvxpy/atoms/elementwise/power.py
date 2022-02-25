@@ -57,16 +57,22 @@ class power(Elementwise):
 
     .. note::
 
-        For DCP problems, ``p`` cannot be represented exactly, so a rational,
-        i.e., fractional, **approximation** must be made. (No such approximation
-        is made for DGP problems.)
-
-        Internally, ``power`` computes a rational approximation
+        For DCP problems, ``power`` assumes ``p`` has a rational representation
+        with a small denominator. **Approximations** are employed when this is not
+        the case. Specifically, ``power`` computes a rational approximation
         to ``p`` with a denominator up to ``max_denom``.
         Increasing ``max_denom`` can give better approximations.
-
         When ``p`` is an ``int`` or ``Fraction`` object, the approximation
-        is usually **exact**.
+        is usually *exact*. No such approximation
+        is used for DGP problems.
+
+        *UPDATE*: CVXPY supports exponential cone and power cone constraints.
+        Such constraints could be used to handle the ``power`` atom in DCP problems
+        without relying on approximations. Such an approach would also result in
+        fewer variables than the current method, even when the current method is
+        an exact reformulation. If you're interested in helping enhance CVXPY with
+        this ability, please get in touch with us and check out
+        `GitHub Issue 1222 <https://github.com/cvxpy/cvxpy/issues/1222>`_!
 
     .. note::
 
