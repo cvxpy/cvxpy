@@ -19,13 +19,26 @@ import numpy as np
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.expressions import cvxtypes
 
 
 class min(AxisAtom):
     """:math:`\\min{i,j}\\{X_{i,j}\\}`.
     """
 
+    __EXPR_AXIS_ERROR__ = """
+
+    The second argument to "min" was a cvxpy Expression, when it should have
+    been an int or None. This is probably a result of calling "cp.min" when you
+    should call "cp.minimum". The difference is that cp.min represents the
+    minimum entry in a single vector or matrix, while cp.minimum represents
+    the entry-wise min of a sequence of arguments that all have the same shape.
+
+    """
+
     def __init__(self, x, axis: Optional[int] = None, keepdims: bool = False) -> None:
+        if isinstance(axis, cvxtypes.expression()):
+            raise ValueError(min.__EXPR_AXIS_ERROR__)
         super(min, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric

@@ -66,7 +66,7 @@ class power(Elementwise):
         is usually *exact*. No such approximation
         is used for DGP problems.
 
-        *UPDATE*: CVXPY supports exponential cone and power cone constraints.
+        CVXPY supports exponential cone and power cone constraints.
         Such constraints could be used to handle the ``power`` atom in DCP problems
         without relying on approximations. Such an approach would also result in
         fewer variables than the current method, even when the current method is

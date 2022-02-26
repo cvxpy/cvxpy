@@ -16,7 +16,6 @@ limitations under the License.
 """
 import numpy as np
 import scipy.sparse as sp
-from packaging.version import Version
 
 import cvxpy.settings as s
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
@@ -26,6 +25,7 @@ from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     dims_to_solver_dict as dims_to_solver_dict_default,)
+from cvxpy.utilities.versioning import Version
 
 
 def dims_to_solver_dict(cone_dims):
@@ -131,6 +131,22 @@ class SCS(ConicSolver):
 
     # Order of exponential cone arguments for solver.
     EXP_CONE_ORDER = [0, 1, 2]
+
+    ACCELERATION_RETRY_MESSAGE = """
+
+    CVXPY has just called the numerical solver SCS, which could not
+    accurately solve the problem with the provided solver options.
+    No value was specified for the SCS solver option called
+    "acceleration_lookback". That option often has a major impact on
+    whether SCS converges to an accurate solution.
+
+    We will try to solve the problem again by setting acceleration_lookback = 0.
+
+    More information on SCS options can be found at the URL below:
+
+    https://www.cvxgrp.org/scs/api/settings.html
+
+    """
 
     def name(self):
         """The name of the solver.
@@ -252,6 +268,27 @@ class SCS(ConicSolver):
         else:
             return failure_solution(status, attr)
 
+    @staticmethod
+    def parse_solver_options(solver_opts):
+        import scs
+        if Version(scs.__version__) < Version('3.0.0'):
+            if "eps_abs" in solver_opts or "eps_rel" in solver_opts:
+                # Take the min of eps_rel and eps_abs to be eps
+                solver_opts["eps"] = min(solver_opts.get("eps_abs", 1),
+                                         solver_opts.get("eps_rel", 1))
+            else:
+                # Default to eps = 1e-4 instead of 1e-3.
+                solver_opts["eps"] = solver_opts.get("eps", 1e-4)
+        else:
+            if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
+                solver_opts["eps_abs"] = solver_opts["eps"]
+                solver_opts["eps_rel"] = solver_opts["eps"]
+                del solver_opts["eps"]
+            else:
+                solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
+                solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+        return solver_opts
+
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         """Returns the result of the call to the solver.
 
@@ -279,46 +316,25 @@ class SCS(ConicSolver):
             args["s"] = solver_cache[self.name()]["s"]
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
 
-        # SCS versions 1.*, SCS 2.*
-        if Version(scs.__version__) < Version('3.0.0'):
-            if "eps_abs" in solver_opts or "eps_rel" in solver_opts:
-                # Take the min of eps_rel and eps_abs to be eps
-                solver_opts["eps"] = min(solver_opts.get("eps_abs", 1),
-                                         solver_opts.get("eps_rel", 1))
+        def solve(_solver_opts):
+            if Version(scs.__version__) < Version('3.0.0'):
+                _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
+                _status = self.STATUS_MAP[_results["info"]["statusVal"]]
             else:
-                # Default to eps = 1e-4 instead of 1e-3.
-                solver_opts["eps"] = solver_opts.get("eps", 1e-4)
+                _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
+                _status = self.STATUS_MAP[_results["info"]["status_val"]]
+            return _results, _status
 
-            results = scs.solve(args, cones, verbose=verbose, **solver_opts)
-            status = self.STATUS_MAP[results["info"]["statusVal"]]
-
-            # anderson acceleration (introduced in scs 2.0) is sometimes unstable; retry without it
-            acceleration_lookback_available = (Version(scs.__version__) >=
-                                               Version('2.0.0'))
-            if (
-                    status == s.OPTIMAL_INACCURATE
-                    and "acceleration_lookback" not in solver_opts
-                    and acceleration_lookback_available
-            ):
-                results = scs.solve(
-                    args,
-                    cones,
-                    verbose=verbose,
-                    acceleration_lookback=0,
-                    **solver_opts)
-
-        # SCS version 3.*
-        else:
-            if "eps" in solver_opts:  # eps replaced by eps_abs, eps_rel
-                solver_opts["eps_abs"] = solver_opts["eps"]
-                solver_opts["eps_rel"] = solver_opts["eps"]
-                del solver_opts["eps"]
-            else:
-                solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
-                solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
-
-            results = scs.solve(args, cones, verbose=verbose, **solver_opts)
-            status = self.STATUS_MAP[results["info"]["status_val"]]
+        solver_opts = SCS.parse_solver_options(solver_opts)
+        results, status = solve(solver_opts)
+        if status in s.INACCURATE and status != s.USER_LIMIT:
+            acceleration_available = Version(scs.__version__) >= Version('2.0.0')
+            if acceleration_available and "acceleration_lookback" not in solver_opts:
+                import warnings
+                warnings.warn(SCS.ACCELERATION_RETRY_MESSAGE)
+                retry_opts = solver_opts.copy()
+                retry_opts["acceleration_lookback"] = 0
+                results, status = solve(retry_opts)
 
         if solver_cache is not None and status == s.OPTIMAL:
             solver_cache[self.name()] = results

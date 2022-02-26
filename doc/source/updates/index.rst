@@ -26,6 +26,7 @@ Constraints and atoms
    which are important linear operators in quantum information
  * 1.2.0: updated ``kron`` so that either argument in ``kron(A, B)`` can be a non-constant affine Expression,
    provided the other argument is constant. We previously required that ``A`` was constant.
+ * 1.2.0: added ``xexp``: an atom that implements :math:`\\texttt{xexp}(x) = x e^{x}`.
  * 1.1.14: added ``loggamma``: an atom which approximates the log of the gamma function
  * 1.1.14: added ``rel_entr``: an atom with the same semantics as the SciPy's "rel_entr"
  * 1.1.8: added ``log_normcdf``: an atom that approximates the log of the Gaussian distribution's CDF

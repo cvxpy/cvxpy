@@ -116,7 +116,7 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
     :maxdepth: 3
     :hidden:
 
-    User's Guide <tutorial/index>
+    User Guide <tutorial/index>
 
 .. toctree::
    :hidden:

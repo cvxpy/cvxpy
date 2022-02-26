@@ -268,7 +268,7 @@ class TestBackward(BaseTest):
         constraints = [cp.trace(As[i] @ X) == bs[i] for i in range(p)]
         problem = cp.Problem(cp.Minimize(cp.trace(C @ X) + cp.sum_squares(X)),
                              constraints)
-        gradcheck(problem, solve_methods=[s.SCS], atol=1e-3)
+        gradcheck(problem, solve_methods=[s.SCS], atol=1e-3, eps=1e-10)
         perturbcheck(problem, solve_methods=[s.SCS])
 
     def test_forget_requires_grad(self) -> None:
