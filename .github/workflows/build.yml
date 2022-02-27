@@ -165,15 +165,19 @@ jobs:
         include:
           - os: ubuntu-18.04
             python-version: 3.8
+            pip_intall: "True"
           - os: macos-10.15
             python-version: 3.8
+            pip_install: "True"
             single_action_config: "True"
           - os: windows-2019
             python-version: 3.8
+            pip_install: "True"
 
     env:
       PYTHON_VERSION: ${{ matrix.python-version }}
       SINGLE_ACTION_CONFIG: "${{ matrix.single_action_config == 'True' }}"
+      PIP_INSTALL: "${{ matrix.pip_install == 'True' }}"
       PYPI_SERVER: ${{ secrets.PYPI_SERVER }}
       PYPI_USER: ${{ secrets.PYPI_USER }}
       PYPI_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
@@ -199,8 +203,8 @@ jobs:
           sed -i.bak '/scs >= /d' setup.py
           rm -rf setup.py.bak
 
-      - name: Run some tests on one OS just to check imports are working
-        if: ${{env.SINGLE_ACTION_CONFIG == 'True'}}
+      - name: Verify that we can build by pip-install on each OS.
+        if: ${{env.PIP_INSTALL == 'True'}}
         run: |
           pip install . pytest cplex
           pytest cvxpy/tests/test_conic_solvers.py -k 'TestCPLEX'
