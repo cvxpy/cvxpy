@@ -133,19 +133,18 @@ class SCS(ConicSolver):
     EXP_CONE_ORDER = [0, 1, 2]
 
     ACCELERATION_RETRY_MESSAGE = """
-
-    CVXPY has just called the numerical solver SCS, which could not
-    accurately solve the problem with the provided solver options.
-    No value was specified for the SCS solver option called
+    CVXPY has just called the numerical solver SCS (version %s),
+    which could not accurately solve the problem with the provided solver
+    options. No value was specified for the SCS option called
     "acceleration_lookback". That option often has a major impact on
-    whether SCS converges to an accurate solution.
+    whether this version of SCS converges to an accurate solution.
 
     We will try to solve the problem again by setting acceleration_lookback = 0.
+    To avoid this error in the future we recommend installing SCS version 3.0
+    or higher.
 
-    More information on SCS options can be found at the URL below:
-
+    More information on SCS options can be found at the following URL:
     https://www.cvxgrp.org/scs/api/settings.html
-
     """
 
     def name(self):
@@ -308,6 +307,7 @@ class SCS(ConicSolver):
         The result returned by a call to scs.solve().
         """
         import scs
+        scs_version = Version(scs.__version__)
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
         if warm_start and solver_cache is not None and \
                 self.name() in solver_cache:
@@ -317,7 +317,7 @@ class SCS(ConicSolver):
         cones = dims_to_solver_dict(data[ConicSolver.DIMS])
 
         def solve(_solver_opts):
-            if Version(scs.__version__) < Version('3.0.0'):
+            if scs_version.major < 3:
                 _results = scs.solve(args, cones, verbose=verbose, **_solver_opts)
                 _status = self.STATUS_MAP[_results["info"]["statusVal"]]
             else:
@@ -327,14 +327,13 @@ class SCS(ConicSolver):
 
         solver_opts = SCS.parse_solver_options(solver_opts)
         results, status = solve(solver_opts)
-        if status in s.INACCURATE and status != s.USER_LIMIT:
-            acceleration_available = Version(scs.__version__) >= Version('2.0.0')
-            if acceleration_available and "acceleration_lookback" not in solver_opts:
-                import warnings
-                warnings.warn(SCS.ACCELERATION_RETRY_MESSAGE)
-                retry_opts = solver_opts.copy()
-                retry_opts["acceleration_lookback"] = 0
-                results, status = solve(retry_opts)
+        if (status in s.INACCURATE and scs_version.major == 2
+                and "acceleration_lookback" not in solver_opts):
+            import warnings
+            warnings.warn(SCS.ACCELERATION_RETRY_MESSAGE % str(scs_version))
+            retry_opts = solver_opts.copy()
+            retry_opts["acceleration_lookback"] = 0
+            results, status = solve(retry_opts)
 
         if solver_cache is not None and status == s.OPTIMAL:
             solver_cache[self.name()] = results
