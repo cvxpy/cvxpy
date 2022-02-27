@@ -19,13 +19,26 @@ import numpy as np
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.atoms.axis_atom import AxisAtom
+from cvxpy.expressions import cvxtypes
 
 
 class max(AxisAtom):
     """:math:`\\max_{i,j}\\{X_{i,j}\\}`.
     """
 
+    __EXPR_AXIS_ERROR__ = """
+
+    The second argument to "max" was a cvxpy Expression, when it should have
+    been an int or None. This is probably a result of calling "cp.max" when you
+    should call "cp.maximum". The difference is that cp.max represents the
+    maximum entry in a single vector or matrix, while cp.maximum represents
+    the entry-wise max of a sequence of arguments that all have the same shape.
+
+    """
+
     def __init__(self, x, axis: Optional[int] = None, keepdims: bool = False) -> None:
+        if isinstance(axis, cvxtypes.expression()):
+            raise ValueError(max.__EXPR_AXIS_ERROR__)
         super(max, self).__init__(x, axis=axis, keepdims=keepdims)
 
     @Atom.numpy_numeric

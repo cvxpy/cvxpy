@@ -94,26 +94,69 @@ def scs_cone_selectors(K):
     return selectors
 
 
+# flake8: noqa: E501
 class SuppFunc:
+    """
+    Given a list of CVXPY Constraint objects :math:`\\texttt{constraints}`
+    involving a real CVXPY Variable :math:`\\texttt{x}`, consider the convex set
 
-    def __init__(self, x, constraints) -> None:
-        """
-        A callable python object, representing the support function of the convex set:
+    .. math::
 
-            S = { val : it is possible to satisfy the given constraints, when x.value = val }.
+        S = \\{ v : \\text{it's possible to satisfy all } \\texttt{constraints}
+                    \\text{ when } \\texttt{x.value} = v \\}.
 
-        See ``https://en.wikipedia.org/wiki/Support_function`` for background on support functions.
+    This object represents the *support function* of :math:`S`.
+    This is the convex function
 
-        Parameters
-        ----------
-        x : cvxpy.Variable
-            This variable cannot have any attributes, such as PSD=True, nonneg=True,
-            symmetric=True, etc...
+    .. math::
 
-        constraints : list of cvxpy.constraints.constraint.Constraint
-            Usually, these are constraints over ``x``, and some number of auxiliary
-            cvxpy Variables. It is valid to supply ``constraints=[]``.
-        """
+        y \\mapsto \\max\\{ \\langle y, v \\rangle : v \\in S \\}.
+
+    The support function is a fundamental object in convex analysis.
+    It's extremely useful for expressing dual problems using
+    `Fenchel duality <https://en.wikipedia.org/wiki/Fenchel%27s_duality_theorem>`_.
+
+    Parameters
+    ----------
+    x : Variable
+        This variable cannot have any attributes, such as PSD=True, nonneg=True,
+        symmetric=True, etc...
+
+    constraints : list[Constraint]
+        Usually, these are constraints over :math:`\\texttt{x}`, and some number of auxiliary
+        CVXPY Variables. It is valid to supply :math:`\\texttt{constraints = []}`.
+
+    Examples
+    --------
+    If :math:`\\texttt{h = cp.SuppFunc(x, constraints)}`, then you can use
+    :math:`\\texttt{h}` just like any other scalar-valued atom in CVXPY.
+    For example, if :math:`\\texttt{x}` was a CVXPY Variable with
+    :math:`\\texttt{x.ndim == 1}`, you could do the following:
+
+    .. code::
+
+        z = cp.Variable(shape=(10,))
+        A = np.random.standard_normal((x.size, 10))
+        c = np.random.rand(10)
+        objective =  h(A @ z) - c @ z
+        prob = cp.Problem(cp.Minimize(objective), [])
+        prob.solve()
+
+    Notes
+    -----
+    You are allowed to use CVXPY Variables other than :math:`\\texttt{x}` to define
+    :math:`\\texttt{constraints}`, but the set :math:`S` only consists of objects
+    (vectors or matrices) with the same shape as :math:`\\texttt{x}`.
+
+    It's possible for the support function to take the value :math:`+\\infty`
+    for a fixed vector :math:`\\texttt{y}`. This is an important point, and
+    it's one reason why support functions are actually formally defined with
+    the supremum ":math:`\\sup`" rather than the maximum ":math:`\\max`".
+    For more information on support functions, check out
+    `this Wikipedia page <https://en.wikipedia.org/wiki/Support_function>`_.
+    """
+
+    def __init__(self, x, constraints):
         if not isinstance(x, Variable):
             raise ValueError('The first argument must be an unmodified cvxpy Variable object.')
         if any(x.attributes[attr] for attr in CONVEX_ATTRIBUTES):
@@ -130,7 +173,7 @@ class SuppFunc:
         self._compute_conic_repr_of_set()
         pass
 
-    def __call__(self, y):
+    def __call__(self, y) -> SuppFuncAtom:
         """
         Return an atom representing
 

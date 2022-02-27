@@ -259,6 +259,14 @@ sum_squares
 
 .. autofunction:: cvxpy.atoms.sum_squares.sum_squares
 
+
+.. _suppfuncatom:
+
+SuppFuncAtom
+------------
+
+.. autoclass:: cvxpy.atoms.suppfunc.SuppFuncAtom
+
 .. _tv:
 
 tv

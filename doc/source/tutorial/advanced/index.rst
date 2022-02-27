@@ -823,7 +823,7 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     solving the linear systems encountered in CVXOPT's interior-point algorithm. The API for
     KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
     solvers. The precise API that CVXPY users are held to is described in the CVXPY source
-    code: cvxpy/reductions/solvers/kktsolver.py
+    code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
 
 `SCS`_ options:
 
@@ -835,6 +835,18 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
 
 ``'alpha'``
     relaxation parameter (default: 1.8).
+
+
+``'acceleration_lookback'``
+    Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
+    its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
+    for more information.
+
+    .. warning::
+        The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
+        If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
+        will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
+        No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
 
 ``'scale'``
     balance between minimizing primal and dual residual (default: 5.0).

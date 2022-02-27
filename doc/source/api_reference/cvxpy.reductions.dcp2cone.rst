@@ -1,6 +1,10 @@
 cvxpy\.reductions\.dcp2cone package
 ===================================
 
+
+Please see :ref:`our disclaimer <reductions_disclaimer>` about the
+Reductions API before using these directly in your code.
+
 Subpackages
 -----------
 

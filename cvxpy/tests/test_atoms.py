@@ -350,8 +350,10 @@ class TestAtoms(BaseTest):
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.max(self.x, axis=4)
-        self.assertEqual(str(cm.exception),
-                         "Invalid argument for axis.")
+        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+        with self.assertRaises(ValueError) as cm:
+            cp.max(self.x, self.x)  # a common erroneous use-case
+        self.assertEqual(str(cm.exception), cp.max.__EXPR_AXIS_ERROR__)
 
     def test_min(self) -> None:
         """Test min.
@@ -371,8 +373,10 @@ class TestAtoms(BaseTest):
         # Invalid axis.
         with self.assertRaises(Exception) as cm:
             cp.min(self.x, axis=4)
-        self.assertEqual(str(cm.exception),
-                         "Invalid argument for axis.")
+        self.assertEqual(str(cm.exception), "Invalid argument for axis.")
+        with self.assertRaises(ValueError) as cm:
+            cp.min(self.x, self.x)  # a common erroneous use-case
+        self.assertEqual(str(cm.exception), cp.min.__EXPR_AXIS_ERROR__)
 
     # Test sign logic for maximum.
     def test_maximum_sign(self) -> None:

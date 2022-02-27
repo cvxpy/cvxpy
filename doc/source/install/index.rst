@@ -58,7 +58,7 @@ We strongly recommend using a fresh virtual environment (virtualenv or conda) wh
 
 CVXPY has the following dependencies:
 
- * Python >= 3.6
+ * Python >= 3.7
  * `OSQP`_ >= 0.4.1
  * `ECOS`_ >= 2
  * `SCS`_ >= 1.1.6

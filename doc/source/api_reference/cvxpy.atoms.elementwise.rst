@@ -9,7 +9,7 @@ expressions that are supplied to it.
 abs
 -------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.abs.abs
+.. autoclass:: cvxpy.abs
     :show-inheritance:
 
 .. _entr:
@@ -17,7 +17,7 @@ abs
 entr
 --------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.entr.entr
+.. autoclass:: cvxpy.entr
     :show-inheritance:
 
 .. _exp:
@@ -25,7 +25,7 @@ entr
 exp
 -------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.exp.exp
+.. autoclass:: cvxpy.exp
     :show-inheritance:
 
 .. _huber:
@@ -33,7 +33,7 @@ exp
 huber
 ---------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.huber.huber
+.. autoclass:: cvxpy.huber
     :show-inheritance:
 
 .. _inv-pos:
@@ -41,14 +41,14 @@ huber
 inv_pos
 ------------------------------------------
 
-.. autofunction:: cvxpy.atoms.elementwise.inv_pos.inv_pos
+.. autofunction:: cvxpy.inv_pos
 
 .. _kl-div:
 
 kl_div
 -----------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.kl_div.kl_div
+.. autoclass:: cvxpy.kl_div
     :show-inheritance:
 
 .. _log:
@@ -56,7 +56,15 @@ kl_div
 log
 -------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.log.log
+.. autoclass:: cvxpy.log
+    :show-inheritance:
+
+.. _log-normcdf:
+
+log_normcdf
+-------------------------------------
+
+.. autoclass:: cvxpy.log_normcdf
     :show-inheritance:
 
 .. _log1p:
@@ -64,15 +72,25 @@ log
 log1p
 ---------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.log1p.log1p
+.. autoclass:: cvxpy.log1p
     :show-inheritance:
+
+
+.. _loggamma:
+
+loggamma
+-------------------------------------
+
+.. autoclass:: cvxpy.loggamma
+    :show-inheritance:
+
 
 .. _logistic:
 
 logistic
 ------------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.logistic.logistic
+.. autoclass:: cvxpy.logistic
     :show-inheritance:
 
 
@@ -81,7 +99,7 @@ logistic
 maximum
 -----------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.maximum.maximum
+.. autoclass:: cvxpy.maximum
     :show-inheritance:
 
 .. _minimum:
@@ -89,36 +107,36 @@ maximum
 minimum
 -----------------------------------------
 
-.. autofunction:: cvxpy.atoms.elementwise.minimum.minimum
+.. autofunction:: cvxpy.minimum
 
 .. _neg:
 
 neg
 -------------------------------------
 
-.. autofunction:: cvxpy.atoms.elementwise.neg.neg
+.. autofunction:: cvxpy.neg
 
 .. _pos:
 
 pos
 -------------------------------------
 
-.. autofunction:: cvxpy.atoms.elementwise.pos.pos
+.. autofunction:: cvxpy.pos
 
 .. _power:
 
 power
 ---------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.power.power
+.. autoclass:: cvxpy.power
     :show-inheritance:
 
 .. _rel-entr:
 
-rel-entr
+rel_entr
 -----------------------------------------
 
-.. autoclass:: cvxpy.atoms.elementwise.rel_entr.rel_entr
+.. autoclass:: cvxpy.rel_entr
     :show-inheritance:
 
 .. _scalene:
@@ -126,18 +144,26 @@ rel-entr
 scalene
 -----------------------------------------
 
-.. autofunction:: cvxpy.atoms.elementwise.scalene.scalene
+.. autofunction:: cvxpy.scalene
 
 .. _sqrt:
 
 sqrt
 --------------------------------------
 
-.. autofunction:: cvxpy.atoms.elementwise.sqrt.sqrt
+.. autofunction:: cvxpy.sqrt
 
 .. _square:
 
 square
 ----------------------------------------
 
-.. autofunction:: cvxpy.atoms.elementwise.square.square
+.. autofunction:: cvxpy.square
+
+.. _xexp:
+
+xexp
+-------------------------------------
+
+.. autoclass:: cvxpy.xexp
+    :show-inheritance:
