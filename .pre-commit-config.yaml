@@ -11,4 +11,4 @@ repos:
     hooks:
       - id: flake8
         args: ['--config=setup.cfg']
-        files: cvxpy/
+        files: ^(cvxpy|continuous_integration)/

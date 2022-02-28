@@ -23,7 +23,9 @@ sys.path.insert(0, os.path.abspath('../..'))
 sys.path.insert(0, os.path.abspath('../sphinxext'))
 sys.path.append('/home/docs/checkouts/readthedocs.org/user_builds/cvxpy/checkouts/1.0/cvxpy')
 
-__version__ = "1.1.18"
+import cvxpy
+
+__version__ = cvxpy.__version__
 
 # -- General configuration -----------------------------------------------------
 
@@ -135,7 +137,8 @@ extensions += ['alabaster']
 html_theme = 'cvxpy_alabaster'
 html_sidebars = {
    '**': [
-       'about.html', 'navigation.html', 'searchbox.html',
+       'about.html', 'navigation.html',
+       'searchbox.html', 'version_selector.html',
    ]
 }
 

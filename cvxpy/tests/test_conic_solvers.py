@@ -153,7 +153,7 @@ class TestSCS(BaseTest):
         x = cp.Variable(2, name='x')
         prob = cp.Problem(cp.Minimize(cp.norm(x, 1) + 1.0), [x == 0])
         for i in range(2):
-            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=EPS,
+            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.4,
                        verbose=True, normalize=True, use_indirect=False)
         self.assertAlmostEqual(prob.value, 1.0, places=2)
         self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
@@ -327,10 +327,10 @@ class TestSCS(BaseTest):
         StandardTestLPs.test_lp_4(solver='SCS')
 
     def test_scs_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-5)
+        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-6)
 
     def test_scs_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-5)
+        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-6)
 
     def test_scs_socp_3(self) -> None:
         # axis 0
