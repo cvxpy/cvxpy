@@ -60,6 +60,8 @@ class GLPK_MI(GLPK):
         else:
             cvxopt.glpk.options["msg_lev"] = "GLP_MSG_OFF"
 
+        data = self._prepare_cvxopt_matrices(data)
+
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
         if "max_iters" in solver_opts:
