@@ -173,6 +173,10 @@ GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
 
+# DPP is slow when total size of parameters
+# exceed this threshold.
+PARAM_THRESHOLD = 1e4
+
 # threads to use during compilation
 # -1 defaults to system default (configurable via the OMP_NUM_THREADS
 # environment variable)

@@ -1,6 +1,7 @@
 import warnings
 
 import numpy as np
+import pytest
 
 import cvxpy as cp
 import cvxpy.error as error
@@ -281,6 +282,23 @@ class TestDcp(BaseTest):
             warnings.simplefilter('ignore')
             prob.solve(solver=cp.SCS, eps=1e-6)
         np.testing.assert_almost_equal(prob.value, 1., decimal=3)
+
+    def test_ignore_dpp(self) -> None:
+        """Test the ignore_dpp flag.
+        """
+        x = cp.Parameter()
+        x.value = 5
+        y = cp.Variable()
+        problem = cp.Problem(cp.Minimize(x + y), [x == y])
+        self.assertTrue(problem.is_dpp())
+        self.assertTrue(problem.is_dcp())
+        # Basic solve functionality.
+        result = problem.solve(cp.SCS, ignore_dpp=True)
+        self.assertAlmostEqual(result, 10)
+
+        # enforce_dpp clashes with ignore_dpp
+        with pytest.raises(error.DPPError):
+            problem.solve(cp.SCS, enforce_dpp=True, ignore_dpp=True)
 
 
 class TestDgp(BaseTest):
