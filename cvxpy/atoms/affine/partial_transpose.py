@@ -57,13 +57,15 @@ def _term(expr, i: int, j: int, dims: Tuple[int], axis: Optional[int] = 0):
 
 
 def partial_transpose(expr, dims: Tuple[int], axis: Optional[int] = 0):
-    """Partial transpose of a matrix.
+    """
+    Assumes :math:`\\texttt{expr} = X_1 \\otimes ... \\otimes X_n` is a 2D Kronecker
+    product composed of :math:`n = \\texttt{len(dims)}` implicit subsystems.
+    Letting :math:`k = \\texttt{axis}`, the returned expression is a
+    *partial transpose* of :math:`\\texttt{expr}`, with the transpose applied to its
+    :math:`k^{\\text{th}}` implicit subsystem:
 
-    Assumes :math:`expr = X1 \\odots ... \\odots Xn` is a 2D tensor product
-    composed implicitly of n subsystems. Here :math:`\\odots` denotes the Kronecker product,
-    and axis=k is the index of the subsystem to be transposed
-    from the tensor product that defines expr.
-    Returns :math:`X1 \\odots ... \\odots Xk^T \\odots ... \\odots Xn`
+    .. math::
+        X_1 \\otimes ... \\otimes X_k^T \\otimes ... \\otimes X_n.
 
     Parameters
     ----------

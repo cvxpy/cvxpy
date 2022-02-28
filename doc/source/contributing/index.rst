@@ -41,15 +41,14 @@ Please contact a project maintainer if you're interested in working on a project
 Small scope projects
  - `State required cone types for atoms <https://github.com/cvxpy/cvxpy/issues/574>`_.
  - `Specify a list of solvers sorted by priority rather than just a single solver <https://github.com/cvxpy/cvxpy/issues/1529>`_.
- - `Implement (the hypograph of) the Lambert W-function <https://github.com/cvxpy/cvxpy/issues/1517>`_.
  - Add matrix condition number as a quasi-convex atom [`858 <https://github.com/cvxpy/cvxpy/issues/858>`_].
+ - Add support for an "offset" argument to the ``diag`` atom [`808 <https://github.com/cvxpy/cvxpy/issues/808>`_]
 
 Medium scope projects
  - `Support integer variables in geometric programming <https://github.com/cvxpy/cvxpy/issues/1590>`_.
  - Add an interface to `COSMO.jl <https://oxfordcontrol.github.io/COSMO.jl/stable/>`_ [`1161 <https://github.com/cvxpy/cvxpy/issues/1161>`_].
  - Support more open-source interior-point SDP solvers [`1093 <https://github.com/cvxpy/cvxpy/issues/1093>`_, `1419 <https://github.com/cvxpy/cvxpy/discussions/1419>`_].
  - `Post-solver feasibility checks <https://github.com/cvxpy/cvxpy/issues/434>`_.
- - Sophisticated affine transformations: [`457 <https://github.com/cvxpy/cvxpy/issues/457>`_, `808 <https://github.com/cvxpy/cvxpy/issues/808>`_].
  - `Citation generator <https://github.com/cvxpy/cvxpy/issues/1341>`_.
  - `Developer documentation for key reduction files <https://github.com/cvxpy/cvxpy/issues/582>`_.
 
