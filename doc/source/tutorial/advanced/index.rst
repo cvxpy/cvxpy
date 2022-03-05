@@ -435,6 +435,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `OSQP`_        | X  | X  |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `PDLP`_        | X  |    |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `CPLEX`_       | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `NAG`_         | X  | X  | X    |     |     |     |     |
@@ -538,6 +540,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.NAG)
     print("optimal value with NAG:", prob.value)
 
+    # Solve with PDLP.
+    prob.solve(solver=cp.PDLP)
+    print("optimal value with PDLP:", prob.value)
+
     # Solve with SCIP.
     prob.solve(solver=cp.SCIP)
     print("optimal value with SCIP:", prob.value)
@@ -561,6 +567,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CBC: 6.0
     optimal value with CPLEX: 6.0
     optimal value with NAG: 6.000000003182365
+    optimal value with PDLP: 6.0
     optimal value with SCIP: 6.0
     optimal value with XPRESS: 6.0
 
@@ -668,7 +675,7 @@ warm start would only be a good initial point.
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -754,10 +761,9 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
 ``'time_limit_sec'``
     Time limit for the solve, in seconds.
 
-``'parameters_str'``
-    A GlopParameters protocol buffer message in text serialized format. Example:
-    ``use_preprocessing: false``. For the definition of the GlopParameters
-    protocol buffer message, see
+``'parameters_proto'``
+    A `ortools.glop.parameters_pb2.GlopParameters` protocol buffer message.
+    For the definition of GlopParameters, see
     `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
 
 
@@ -926,6 +932,17 @@ SCIP_ options:
 * **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary and there should not be a nested dictionary called options. Some of the methods have different parameters so please check the parameters for the method you wish to use e.g. for method = 'highs-ipm'.
 
 * The main advantage of this solver is its ability to use the `HiGHS`_ LP solvers which are coded in C++, however these require a version of SciPy larger than 1.6.1. To use the `HiGHS`_ solvers simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). 
+
+`PDLP`_ options:
+
+``'time_limit_sec'``
+    Time limit for the solve, in seconds.
+
+``'parameters_proto'``
+    A `ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams` protocol buffer message.
+    For the definition of PrimalDualHybridGradientParams, see
+    `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
+
 
 `GUROBI`_ options:
 
@@ -1434,6 +1451,7 @@ on derivatives.
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
+.. _PDLP: https://developers.google.com/optimization
 .. _SCIP: https://scip.zib.de/
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
