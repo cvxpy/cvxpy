@@ -1987,3 +1987,47 @@ class TestProblem(BaseTest):
         param.value = np.array([1])
         prob.solve()
         assert prob.value == -np.inf
+
+    def test_cumsum_axis(self) -> None:
+        """Test the cumsum axis bug with row or column matrix
+           See issue #1678
+        """
+        n = 5
+
+        # Solve for axis = 0
+        x1 = cp.Variable((1, n))
+        expr1 = cp.cumsum(x1, axis=0)
+        prob1 = cp.Problem(cp.Minimize(0), [expr1 == 1])
+        prob1.solve()
+        expect = np.ones((1, n))
+        self.assertItemsAlmostEqual(expr1.value, expect)
+
+        # Solve for axis = 1
+        x2 = cp.Variable((n, 1))
+        expr2 = cp.cumsum(x2, axis=1)
+        prob2 = cp.Problem(cp.Minimize(0), [expr2 == 1])
+        prob2.solve()
+        expect = np.ones((n, 1))
+        self.assertItemsAlmostEqual(expr2.value, expect)
+
+    def test_cummax_axis(self) -> None:
+        """Test the cumsum axis bug with row or column matrix
+           See issue #1678
+        """
+        n = 5
+
+        # Solve for axis = 0
+        x1 = cp.Variable((1, n))
+        expr1 = cp.cummax(x1, axis=0)
+        prob1 = cp.Problem(cp.Maximize(cp.sum(x1)), [expr1 <= 1])
+        prob1.solve()
+        expect = np.ones((1, n))
+        self.assertItemsAlmostEqual(expr1.value, expect)
+
+        # Solve for axis = 1
+        x2 = cp.Variable((n, 1))
+        expr2 = cp.cummax(x2, axis=1)
+        prob2 = cp.Problem(cp.Maximize(cp.sum(x2)), [expr2 <= 1])
+        prob2.solve()
+        expect = np.ones((n, 1))
+        self.assertItemsAlmostEqual(expr2.value, expect)

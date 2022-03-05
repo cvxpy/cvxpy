@@ -27,7 +27,13 @@ def cummax_canon(expr, args):
     Y = Variable(expr.shape)
     constr = [X <= Y]
     if axis == 0:
-        constr += [Y[:-1] <= Y[1:]]
+        if expr.shape[0] == 1:
+            return X, []
+        else:
+            constr += [Y[:-1] <= Y[1:]]
     else:
-        constr += [Y[:, :-1] <= Y[:, 1:]]
-    return (Y, constr)
+        if expr.shape[1] == 1:
+            return X, []
+        else:
+            constr += [Y[:, :-1] <= Y[:, 1:]]
+    return Y, constr
