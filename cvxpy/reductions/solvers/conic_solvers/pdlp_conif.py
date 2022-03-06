@@ -27,6 +27,7 @@ from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ParamConeProg
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.versioning import Version
 
 log = logging.getLogger(__name__)
 
@@ -45,9 +46,11 @@ class PDLP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        # TODO: Check for OR-Tools version >= 9.3
         import google.protobuf
         import ortools
+        if Version(ortools.__version__) <= Version('9.3.0'):
+            raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
+                               f'is too old. Expected >= 9.3.0.')
         ortools, google.protobuf  # For flake8
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
