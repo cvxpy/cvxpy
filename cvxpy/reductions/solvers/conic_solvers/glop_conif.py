@@ -45,9 +45,11 @@ class GLOP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        # TODO: Check for OR-Tools version >= 9.3
         import google.protobuf
         import ortools
+        if Version(ortools.__version__) <= Version('9.3.0'):
+            raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
+                               f'is too old. Expected >= 9.3.0.')
         ortools, google.protobuf  # For flake8
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
