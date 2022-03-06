@@ -185,6 +185,14 @@ CVXPY supports the NAG solver.
 Simply install NAG such that you can ``import naginterfaces`` in Python.
 See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
 
+Install with GLOP and PDLP support
+----------------------------------
+
+CVXPY supports the GLOP and PDLP solvers. Both solvers are provided by
+the open source `OR-Tools <https://github.com/google/or-tools>`_ package.
+Install OR-Tools such that you can run ``import ortools`` in Python. OR-Tools
+version 9.3 or greater is required.
+
 Install with SCIP support
 -------------------------
 

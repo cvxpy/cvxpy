@@ -34,7 +34,7 @@ Constraints and atoms
 
 Solver interfaces
 ~~~~~~~~~~~~~~~~~
- * 1.2.0: support GLOP, via OR-Tools
+ * 1.2.0: support PDLP and GLOP, via OR-Tools
  * 1.1.17: support for SCS 3.0
  * 1.1.14: support for HiGHS (and other LP solvers that come with SciPy)
  * 1.1.12: ECOS, ECOS_BB, and SCS report solver statistics

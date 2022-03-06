@@ -17,7 +17,7 @@ limitations under the License.
 import logging
 from typing import Any, Dict, Tuple
 
-from numpy import array
+import numpy as np
 from scipy.sparse import csr_matrix
 
 import cvxpy.settings as s
@@ -32,8 +32,8 @@ from cvxpy.utilities.versioning import Version
 log = logging.getLogger(__name__)
 
 
-class GLOP(ConicSolver):
-    """An interface to Glop via OR-Tools."""
+class PDLP(ConicSolver):
+    """An interface to PDLP via OR-Tools."""
 
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
@@ -42,7 +42,7 @@ class GLOP(ConicSolver):
 
     def name(self) -> str:
         """The name of the solver."""
-        return 'GLOP'
+        return 'PDLP'
 
     def import_solver(self) -> None:
         """Imports the solver."""
@@ -134,78 +134,75 @@ class GLOP(ConicSolver):
     ) -> Solution:
         """Returns the result of the call to the solver."""
         from google.protobuf import text_format
-        from ortools.glop import parameters_pb2
-        from ortools.linear_solver import linear_solver_pb2, pywraplp
+        from ortools.linear_solver import linear_solver_pb2
+        from ortools.model_builder.python import model_builder_helper
+        from ortools.pdlp import solvers_pb2
 
-        response = linear_solver_pb2.MPSolutionResponse()
-
-        solver = pywraplp.Solver.CreateSolver('GLOP')
-        solver.LoadModelFromProto(data[self.MODEL_PROTO])
-        if verbose:
-            solver.EnableOutput()
+        # TODO: Switch to a direct numpy interface to PDLP when available.
+        # model_builder_helper is known to be slow because of proto
+        # serialization.
+        pdlp_solver = linear_solver_pb2.MPModelRequest.PDLP_LINEAR_PROGRAMMING
+        request = linear_solver_pb2.MPModelRequest(
+            model=data[self.MODEL_PROTO],
+            enable_internal_solver_output=verbose,
+            solver_type=pdlp_solver
+        )
+        parameters = solvers_pb2.PrimalDualHybridGradientParams()
+        # CVXPY reductions can leave a messy problem (e.g., no variable bounds),
+        # so we turn on presolving by default.
+        parameters.presolve_options.use_glop = True
         if "parameters_proto" in solver_opts:
             proto = solver_opts["parameters_proto"]
-            if not isinstance(proto, parameters_pb2.GlopParameters):
-                log.error("parameters_proto must be a GlopParameters")
+            if not isinstance(proto, solvers_pb2.PrimalDualHybridGradientParams):
+                log.error("parameters_proto must be a PrimalDualHybridGradientParams")
                 return {"status": s.SOLVER_ERROR}
-            proto_str = text_format.MessageToString(proto)
-            if not solver.SetSolverSpecificParametersAsString(proto_str):
-                return {"status": s.SOLVER_ERROR}
+            parameters.MergeFrom(proto)
         if "time_limit_sec" in solver_opts:
-            solver.SetTimeLimit(1000 * float(solver_opts["time_limit_sec"]))
-        solver.Solve()
-        solver.FillSolutionResponseProto(response)
+            request.solver_time_limit_sec = float(solver_opts["time_limit_sec"])
+
+        request.solver_specific_parameters = text_format.MessageToString(parameters)
+        solver = model_builder_helper.ModelSolverHelper()
+        response = solver.Solve(request)
 
         solution = {}
         solution["value"] = response.objective_value
         solution["status"] = self._status_map(response)
-        has_primal = data["num_vars"] == 0 or len(response.variable_value) > 0
-        if has_primal:
-            solution["primal"] = array(response.variable_value)
-        else:
-            solution["primal"] = None
-        has_dual = data["num_constraints"] == 0 or len(response.dual_value) > 0
-        if has_dual:
-            solution["dual"] = array(response.dual_value)
-        else:
-            solution["dual"] = None
-
-        # Make solution status more precise depending on whether a solution is
-        # present.
-        if solution["status"] == s.SOLVER_ERROR and has_primal and has_dual:
-            solution["status"] = s.USER_LIMIT
+        solution["primal"] = np.array(response.variable_value)
+        solution["dual"] = np.array(response.dual_value)
 
         return solution
 
     def _status_map(self, response):
-        from ortools.linear_solver import linear_solver_pb2
-        MPSolverResponseStatus = linear_solver_pb2.MPSolverResponseStatus
-        status = response.status
-        if status == MPSolverResponseStatus.MPSOLVER_OPTIMAL:
+        from ortools.pdlp import solve_log_pb2
+        solve_log = solve_log_pb2.SolveLog.FromString(response.solver_specific_info)
+        TerminationReason = solve_log_pb2.TerminationReason
+        status = solve_log.termination_reason
+        if status == TerminationReason.TERMINATION_REASON_OPTIMAL:
             return s.OPTIMAL
-        elif status == MPSolverResponseStatus.MPSOLVER_FEASIBLE:
-            return s.USER_LIMIT
-        elif status == MPSolverResponseStatus.MPSOLVER_INFEASIBLE:
+        elif status == TerminationReason.TERMINATION_REASON_PRIMAL_INFEASIBLE:
             return s.INFEASIBLE
-        elif status == MPSolverResponseStatus.MPSOLVER_UNBOUNDED:
+        elif status == TerminationReason.TERMINATION_REASON_DUAL_INFEASIBLE:
+            # Not technically correct, but this seems to be the convention.
             return s.UNBOUNDED
-        elif status == MPSolverResponseStatus.MPSOLVER_ABNORMAL:
+        elif status == TerminationReason.TERMINATION_REASON_TIME_LIMIT:
+            return s.USER_LIMIT
+        elif status == TerminationReason.TERMINATION_REASON_ITERATION_LIMIT:
+            return s.USER_LIMIT
+        elif status == TerminationReason.TERMINATION_REASON_KKT_MATRIX_PASS_LIMIT:
+            return s.USER_LIMIT
+        elif status == TerminationReason.TERMINATION_REASON_NUMERICAL_ERROR:
+            log.warning('PDLP reported a numerical error.')
+            return s.USER_LIMIT
+        elif status == TerminationReason.TERMINATION_REASON_INVALID_PROBLEM:
+            log.error('Invalid problem: %s', solve_log.termination_string)
             return s.SOLVER_ERROR
-        # Skipping NOT_SOLVED and MODEL_IS_VALID because they shouldn't occur
-        # for statuses obtained from a response.
-        elif status == MPSolverResponseStatus.MPSOLVER_CANCELLED_BY_USER:
+        elif status == TerminationReason.TERMINATION_REASON_INVALID_PARAMETER:
+            log.error('Invalid parameter: %s', solve_log.termination_string)
             return s.SOLVER_ERROR
-        elif status == MPSolverResponseStatus.MPSOLVER_MODEL_INVALID:
-            log.error("Solver reported that the model is invalid. Message: %s",
-                      response.status_str)
-            return s.SOLVER_ERROR
-        # Skipping MPSOLVER_MODEL_INVALID_SOLUTION_HINT because we don't accept
-        # solution hints.
-        elif status == MPSolverResponseStatus.MPSOLVER_MODEL_INVALID_SOLVER_PARAMETERS:  # noqa
-            log.error("Invalid solver parameters: %s", response.status_str)
-            return s.SOLVER_ERROR
+        elif status == TerminationReason.TERMINATION_REASON_PRIMAL_OR_DUAL_INFEASIBLE:
+            return s.INFEASIBLE_OR_UNBOUNDED
         else:
-            log.warning("Unrecognized status: %s Message: %s",
-                        linear_solver_pb2.MPSolverResponseStatus.Name(status),
-                        response.status_str)
+            log.error("Unexpected status: %s Message: %s",
+                      TerminationReason.Name(status),
+                      solve_log.termination_string)
             return s.SOLVER_ERROR

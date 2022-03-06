@@ -691,8 +691,10 @@ class TestGLOP(unittest.TestCase):
         StandardTestLPs.test_lp_2(solver='GLOP')
 
     def test_glop_lp_3_no_preprocessing(self) -> None:
-        params = "use_preprocessing: false"
-        StandardTestLPs.test_lp_3(solver='GLOP', parameters_str=params)
+        from ortools.glop import parameters_pb2
+        params = parameters_pb2.GlopParameters()
+        params.use_preprocessing = False
+        StandardTestLPs.test_lp_3(solver='GLOP', parameters_proto=params)
 
     # With preprocessing enabled, Glop internally detects
     # INFEASIBLE_OR_UNBOUNDED. This status is translated to
@@ -709,8 +711,10 @@ class TestGLOP(unittest.TestCase):
         StandardTestLPs.test_lp_5(solver='GLOP')
 
     def test_glop_lp_6_no_preprocessing(self) -> None:
-        params = "use_preprocessing: false"
-        StandardTestLPs.test_lp_6(solver='GLOP', parameters_str=params)
+        from ortools.glop import parameters_pb2
+        params = parameters_pb2.GlopParameters()
+        params.use_preprocessing = False
+        StandardTestLPs.test_lp_6(solver='GLOP', parameters_proto=params)
 
     # Same issue as with test_glop_lp_3.
     @unittest.skip('Known limitation of the GLOP interface.')
@@ -720,9 +724,67 @@ class TestGLOP(unittest.TestCase):
     def test_glop_bad_parameters(self) -> None:
         x = cp.Variable(1)
         prob = cp.Problem(cp.Maximize(x), [x <= 1])
-        params = "garbage string"
         with self.assertRaises(cp.error.SolverError):
-            prob.solve(solver='GLOP', parameters_str=params)
+            prob.solve(solver='GLOP', parameters_proto="not a proto")
+
+
+@unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
+class TestPDLP(unittest.TestCase):
+
+    def test_pdlp_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='PDLP')
+
+    def test_pdlp_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='PDLP')
+
+    def test_pdlp_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='PDLP')
+
+    def test_pdlp_lp_3(self) -> None:
+        sth = sths.lp_3()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    # We get the precise status when presolve is disabled.
+    def test_pdlp_lp_3_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_3(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_lp_4(self) -> None:
+        sth = sths.lp_4()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_pdlp_lp_4_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_4(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='PDLP')
+
+    def test_pdlp_lp_6(self) -> None:
+        sth = sths.lp_6()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_pdlp_lp_6_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_6(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_bad_parameters(self) -> None:
+        x = cp.Variable(1)
+        prob = cp.Problem(cp.Maximize(x), [x <= 1])
+        with self.assertRaises(cp.error.SolverError):
+            prob.solve(solver='PDLP', parameters_proto="not a proto")
 
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
