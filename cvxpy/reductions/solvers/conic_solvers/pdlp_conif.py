@@ -48,7 +48,7 @@ class PDLP(ConicSolver):
         """Imports the solver."""
         import google.protobuf
         import ortools
-        if Version(ortools.__version__) <= Version('9.3.0'):
+        if Version(ortools.__version__) < Version('9.3.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.3.0.')
         ortools, google.protobuf  # For flake8
