@@ -863,6 +863,23 @@ class StandardTestLPs:
         return sth
 
     @staticmethod
+    def test_lp_reset_options(solver,
+                              places: int = 4,
+                              duals: bool = True,
+                              **kwargs) -> SolverTestHelper:
+        sth = lp_6()
+        import cvxopt
+        assert "tm_lim" not in cvxopt.solvers.options
+        sth.solve(solver, glpk={'tm_lim': 10}, **kwargs)
+        assert "tm_lim" not in cvxopt.solvers.options
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.check_dual_domains(places)
+        return sth
+
+    @staticmethod
     def test_mi_lp_0(solver, places: int = 4, **kwargs) -> SolverTestHelper:
         sth = mi_lp_0()
         sth.solve(solver, **kwargs)
@@ -898,6 +915,17 @@ class StandardTestLPs:
     def test_mi_lp_4(solver, places: int = 4, **kwargs) -> SolverTestHelper:
         sth = mi_lp_4()
         sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        return sth
+
+    @staticmethod
+    def test_mi_lp_reset_options(solver, places: int = 4, **kwargs) -> SolverTestHelper:
+        sth = mi_lp_4()
+        import cvxopt
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.solve(solver, tm_lim=10, **kwargs)
+        assert "tm_lim" not in cvxopt.glpk.options
         sth.verify_objective(places)
         sth.verify_primal_values(places)
         return sth

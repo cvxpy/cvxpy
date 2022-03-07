@@ -55,7 +55,10 @@ class GLPK(CVXOPT):
         if verbose:
             cvxopt.solvers.options["msg_lev"] = "GLP_MSG_ON"
         else:
-            cvxopt.solvers.options["msg_lev"] = "GLP_MSG_OFF"
+            if "glpk" in solver_opts:
+                solver_opts["glpk"]["msg_lev"] = "GLP_MSG_OFF"
+            else:
+                solver_opts["glpk"] = {"msg_lev": "GLP_MSG_OFF"}
 
         data = self._prepare_cvxopt_matrices(data)
 
