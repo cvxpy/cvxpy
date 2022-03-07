@@ -863,11 +863,14 @@ class StandardTestLPs:
         return sth
 
     @staticmethod
-    def test_lp_reset_options(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+    def test_lp_reset_options(solver,
+                              places: int = 4,
+                              duals: bool = True,
+                              **kwargs) -> SolverTestHelper:
         sth = lp_6()
         import cvxopt
         assert "tm_lim" not in cvxopt.solvers.options
-        sth.solve(solver, glpk={'tm_lim':10}, **kwargs)
+        sth.solve(solver, glpk={'tm_lim': 10}, **kwargs)
         assert "tm_lim" not in cvxopt.solvers.options
         sth.verify_objective(places)
         sth.check_primal_feasibility(places)

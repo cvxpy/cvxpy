@@ -661,7 +661,7 @@ class TestGLPK(unittest.TestCase):
 
     def test_glpk_lp_6(self) -> None:
         StandardTestLPs.test_lp_6(solver='GLPK')
-        
+
     def test_glpk_resetting_options(self) -> None:
         StandardTestLPs.test_lp_reset_options(solver='GLPK')
 
@@ -679,7 +679,7 @@ class TestGLPK(unittest.TestCase):
 
     def test_glpk_mi_lp_4(self) -> None:
         StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
-        
+
     def test_glpk_mi_resetting_options(self) -> None:
         StandardTestLPs.test_mi_lp_reset_options(solver='GLPK_MI')
 
