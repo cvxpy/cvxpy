@@ -927,7 +927,7 @@ class StandardTestLPs:
         sth.solve(solver, tm_lim=10, **kwargs)
         assert "tm_lim" not in cvxopt.glpk.options
         sth.verify_objective(places)
-        sth.check_primal_values(places)
+        sth.verify_primal_values(places)
         return sth
 
 
