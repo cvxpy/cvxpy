@@ -15,13 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import time
-from distutils.version import StrictVersion
 
 import cvxpy.settings as s
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers import scs_conif
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
+from cvxpy.utilities.versioning import Version
 
 
 class DIFFCP(scs_conif.SCS):
@@ -71,7 +71,7 @@ class DIFFCP(scs_conif.SCS):
         attr = {}
         if solution["solve_method"] == s.SCS:
             import scs
-            if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+            if Version(scs.__version__) < Version('3.0.0'):
                 status = scs_conif.SCS.STATUS_MAP[solution["info"]["statusVal"]]
                 attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
                 attr[s.SETUP_TIME] = solution["info"]["setupTime"]
@@ -142,7 +142,7 @@ class DIFFCP(scs_conif.SCS):
 
         if solver_opts["solve_method"] == s.SCS:
             import scs
-            if StrictVersion(scs.__version__) < StrictVersion('3.0.0'):
+            if Version(scs.__version__) < Version('3.0.0'):
                 # Default to eps = 1e-4 instead of 1e-3.
                 solver_opts["eps"] = solver_opts.get("eps", 1e-4)
             else:

@@ -62,6 +62,9 @@ class CVXOPT(ConicSolver):
                   "undefined": s.SOLVER_ERROR,
                   "solver_error": s.SOLVER_ERROR}
 
+    # When constraints aren't provided, use zero matrix and vector of this length
+    MIN_CONSTRAINT_LENGTH = 0
+
     def name(self):
         """The name of the solver.
         """
@@ -133,6 +136,31 @@ class CVXOPT(ConicSolver):
         """
         return super(CVXOPT, self).invert(solution, inverse_data)
 
+    @classmethod
+    def _prepare_cvxopt_matrices(cls, data) -> dict:
+        """Convert constraints and cost to solver-specific format
+        """
+        cvxopt_data = data.copy()
+
+        # convert cost to cvxopt format
+        cvxopt_data[s.C] = intf.dense2cvxopt(cvxopt_data[s.C])
+
+        # handle missing constraints
+        var_length = cvxopt_data[s.C].size[0]
+        if cvxopt_data[s.A] is None:
+            cvxopt_data[s.A] = np.zeros((cls.MIN_CONSTRAINT_LENGTH, var_length))
+            cvxopt_data[s.B] = np.zeros((cls.MIN_CONSTRAINT_LENGTH, 1))
+        if cvxopt_data[s.G] is None:
+            cvxopt_data[s.G] = np.zeros((cls.MIN_CONSTRAINT_LENGTH, var_length))
+            cvxopt_data[s.H] = np.zeros((cls.MIN_CONSTRAINT_LENGTH, 1))
+
+        # convert constraints into cvxopt format
+        cvxopt_data[s.A] = intf.sparse2cvxopt(cvxopt_data[s.A])
+        cvxopt_data[s.B] = intf.dense2cvxopt(cvxopt_data[s.B])
+        cvxopt_data[s.G] = intf.sparse2cvxopt(cvxopt_data[s.G])
+        cvxopt_data[s.H] = intf.dense2cvxopt(cvxopt_data[s.H])
+        return cvxopt_data
+
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         import cvxopt.solvers
 
@@ -146,19 +174,7 @@ class CVXOPT(ConicSolver):
             if self.remove_redundant_rows(data) == s.INFEASIBLE:
                 return {s.STATUS: s.INFEASIBLE}
 
-        # Convert A, b, G, h, c to CVXOPT matrices.
-        data[s.C] = intf.dense2cvxopt(data[s.C])
-        var_length = data[s.C].size[0]
-        if data[s.A] is None:
-            data[s.A] = np.zeros((0, var_length))
-            data[s.B] = np.zeros((0, 1))
-        data[s.A] = intf.sparse2cvxopt(data[s.A])
-        data[s.B] = intf.dense2cvxopt(data[s.B])
-        if data[s.G] is None:
-            data[s.G] = np.zeros((0, var_length))
-            data[s.H] = np.zeros((0, 1))
-        data[s.G] = intf.sparse2cvxopt(data[s.G])
-        data[s.H] = intf.dense2cvxopt(data[s.H])
+        data = self._prepare_cvxopt_matrices(data)
 
         c, G, h, dims = data[s.C], data[s.G], data[s.H], data[s.DIMS]
         A, b = data[s.A], data[s.B]

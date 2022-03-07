@@ -58,7 +58,7 @@ We strongly recommend using a fresh virtual environment (virtualenv or conda) wh
 
 CVXPY has the following dependencies:
 
- * Python >= 3.6
+ * Python >= 3.7
  * `OSQP`_ >= 0.4.1
  * `ECOS`_ >= 2
  * `SCS`_ >= 1.1.6
@@ -80,6 +80,21 @@ Perform the following steps to install CVXPY from source:
     ::
 
         pip install .
+
+Apple M1 users
+~~~~~~~~~~~~~~
+Apple M1 users have had trouble installing CVXPY using the commands above.
+That trouble stemmed partly from a configuration error in CVXPY's
+``pyproject.toml``, which has been fixed in CVXPY 1.1.19 and 1.2.0.
+If you have those versions (or newer) then the above commands should
+work *provided* (1) you have ``cmake`` installed via Homebrew and (2)
+you have an ECOS 2.0.5 wheel. The cmake requirement stems from OSQP
+and there appear to be problems building more recent versions of ECOS on M1 machines.
+See `this comment <https://github.com/cvxpy/cvxpy/issues/1190#issuecomment-994613793>`_
+on the CVXPY repo and
+`this issue <https://github.com/embotech/ecos-python/issues/33>`_ on the ECOS repo
+for more information.
+
 
 Running the test suite
 ------------------------------------
@@ -169,6 +184,14 @@ Install with NAG support
 CVXPY supports the NAG solver.
 Simply install NAG such that you can ``import naginterfaces`` in Python.
 See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
+
+Install with GLOP and PDLP support
+----------------------------------
+
+CVXPY supports the GLOP and PDLP solvers. Both solvers are provided by
+the open source `OR-Tools <https://github.com/google/or-tools>`_ package.
+Install OR-Tools such that you can run ``import ortools`` in Python. OR-Tools
+version 9.3 or greater is required.
 
 Install with SCIP support
 -------------------------

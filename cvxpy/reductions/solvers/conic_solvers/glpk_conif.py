@@ -27,6 +27,9 @@ class GLPK(CVXOPT):
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
+    # When constraints aren't provided, use zero matrix and vector of this length
+    MIN_CONSTRAINT_LENGTH = 1
+
     def name(self):
         """The name of the solver.
         """
@@ -37,28 +40,6 @@ class GLPK(CVXOPT):
         """
         from cvxopt import glpk
         glpk  # For flake8
-
-    def apply(self, problem):
-        """Returns a new problem and data for inverting the new solution.
-
-        Returns
-        -------
-        tuple
-            (dict of arguments needed for the solver, inverse data)
-        """
-        data, inv_data = super(GLPK, self).apply(problem)
-        # Convert A, b, G, h, c to CVXOPT matrices.
-        if data[s.A] is not None:
-            data[s.A] = intf.sparse2cvxopt(data[s.A])
-        if data[s.G] is not None:
-            data[s.G] = intf.sparse2cvxopt(data[s.G])
-        if data[s.B] is not None:
-            data[s.B] = intf.dense2cvxopt(data[s.B])
-        if data[s.H] is not None:
-            data[s.H] = intf.dense2cvxopt(data[s.H])
-        if data[s.C] is not None:
-            data[s.C] = intf.dense2cvxopt(data[s.C])
-        return data, inv_data
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
@@ -75,6 +56,8 @@ class GLPK(CVXOPT):
             cvxopt.solvers.options["msg_lev"] = "GLP_MSG_ON"
         else:
             cvxopt.solvers.options["msg_lev"] = "GLP_MSG_OFF"
+
+        data = self._prepare_cvxopt_matrices(data)
 
         # Apply any user-specific options.
         # Rename max_iters to maxiters.

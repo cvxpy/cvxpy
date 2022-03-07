@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import Any, List, Optional
+
 import scipy.sparse as sp
 
 import cvxpy.lin_ops.lin_utils as lu
@@ -63,7 +65,9 @@ class Variable(Leaf):
     """The optimization variables in a problem.
     """
 
-    def __init__(self, shape=(), name=None, var_id=None, **kwargs) -> None:
+    def __init__(
+        self, shape=(), name: Optional[str] = None, var_id: Optional[int] = None, **kwargs: Any
+    ) -> None:
         if var_id is None:
             self.id = lu.get_id()
         else:
@@ -75,13 +79,13 @@ class Variable(Leaf):
         else:
             raise TypeError("Variable name %s must be a string." % name)
 
-        self._variable_with_attributes = None
+        self._variable_with_attributes: Optional["Variable"] = None
         self._value = None
         self.delta = None
         self.gradient = None
         super(Variable, self).__init__(shape, **kwargs)
 
-    def name(self):
+    def name(self) -> str:
         """str : The name of the variable."""
         return self._name
 
@@ -100,7 +104,7 @@ class Variable(Leaf):
         # TODO(akshayka): Do not assume shape is 2D.
         return {self: sp.eye(self.size).tocsc()}
 
-    def variables(self):
+    def variables(self) -> List["Variable"]:
         """Returns itself as a variable.
         """
         return [self]
@@ -114,12 +118,12 @@ class Variable(Leaf):
         obj = lu.create_var(self.shape, self.id)
         return (obj, [])
 
-    def attributes_were_lowered(self):
+    def attributes_were_lowered(self) -> bool:
         """True iff variable generated when lowering a variable with attributes.
         """
         return self._variable_with_attributes is not None
 
-    def set_variable_of_provenance(self, variable):
+    def set_variable_of_provenance(self, variable: "Variable"):
         assert variable.attributes
         self._variable_with_attributes = variable
 
@@ -127,7 +131,7 @@ class Variable(Leaf):
         """Returns a variable with attributes from which this variable was generated."""
         return self._variable_with_attributes
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """String to recreate the object.
         """
         attr_str = self._get_attr_str()

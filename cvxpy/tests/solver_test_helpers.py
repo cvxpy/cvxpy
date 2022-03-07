@@ -245,6 +245,17 @@ def lp_5() -> SolverTestHelper:
     return sth
 
 
+def lp_6() -> SolverTestHelper:
+    """Test LP with no constraints"""
+    x = cp.Variable()
+    from cvxpy.expressions.constants import Constant
+    objective = cp.Maximize(Constant(0.23) * x)
+    obj_pair = (objective, np.inf)
+    var_pairs = [(x, None)]
+    sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
 def socp_0() -> SolverTestHelper:
     x = cp.Variable(shape=(2,))
     obj_pair = (cp.Minimize(cp.norm(x, 2) + 1), 1)
@@ -693,6 +704,17 @@ def mi_lp_3() -> SolverTestHelper:
     return sth
 
 
+def mi_lp_4() -> SolverTestHelper:
+    """Test MI without constraints"""
+    x = cp.Variable(boolean=True)
+    from cvxpy.expressions.constants import Constant
+    objective = cp.Maximize(Constant(0.23) * x)
+    obj_pair = (objective, 0.23)
+    var_pairs = [(x, 1)]
+    sth = SolverTestHelper(obj_pair, var_pairs, [])
+    return sth
+
+
 def mi_socp_1() -> SolverTestHelper:
     """
     Formulate the following mixed-integer SOCP with cvxpy
@@ -830,6 +852,17 @@ class StandardTestLPs:
         return sth
 
     @staticmethod
+    def test_lp_6(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+        sth = lp_6()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.check_primal_feasibility(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.check_dual_domains(places)
+        return sth
+
+    @staticmethod
     def test_mi_lp_0(solver, places: int = 4, **kwargs) -> SolverTestHelper:
         sth = mi_lp_0()
         sth.solve(solver, **kwargs)
@@ -856,6 +889,14 @@ class StandardTestLPs:
     @staticmethod
     def test_mi_lp_3(solver, places: int = 4, **kwargs) -> SolverTestHelper:
         sth = mi_lp_3()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        return sth
+
+    @staticmethod
+    def test_mi_lp_4(solver, places: int = 4, **kwargs) -> SolverTestHelper:
+        sth = mi_lp_4()
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)

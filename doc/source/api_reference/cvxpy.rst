@@ -33,5 +33,5 @@ CVXPY objects;
    Constraints <cvxpy.constraints>
    Expressions <cvxpy.expressions>
    Problems <cvxpy.problems>
-   Reductions <cvxpy.reductions>
    Transforms <cvxpy.transforms>
+   Reductions <cvxpy.reductions>

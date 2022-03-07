@@ -31,16 +31,20 @@ class upper_tri(AffAtom):
 
     The vectorization is performed by concatenating (partial) rows.
     For example, if
-    ```
-    A = np.array([[10, 11, 12, 13],
-                  [14, 15, 16, 17],
-                  [18, 19, 20, 21],
-                  [22, 23, 24, 25]])
-    ```
+
+    ::
+
+        A = np.array([[10, 11, 12, 13],
+                      [14, 15, 16, 17],
+                      [18, 19, 20, 21],
+                      [22, 23, 24, 25]])
+
     then we have
-    ```
-    upper_tri(A).value == np.array([11, 12, 13, 16, 17, 21])
-    ```
+
+    ::
+
+        upper_tri(A).value == np.array([11, 12, 13, 16, 17, 21])
+
     """
 
     def __init__(self, expr) -> None:

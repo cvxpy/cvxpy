@@ -15,6 +15,9 @@ accepted by solvers. The problems output by both reductions must be passed
 through another sequence of reductions, not documented here, before they are
 ready for to be solved.
 
+Please see :ref:`our disclaimer <reductions_disclaimer>` about the
+Reductions API before using these directly in your code.
+
 .. contents:: :local:
 
 Dcp2Cone
@@ -31,3 +34,16 @@ Qp2SymbolicQp
 .. autoclass:: cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp
     :members:
     :show-inheritance:
+
+Dualize
+------------------------------------------
+
+.. autoclass:: cvxpy.reductions.cone2cone.affine2direct.Dualize
+   :members:
+
+Slacks
+------------------------------------------
+
+.. autoclass:: cvxpy.reductions.cone2cone.affine2direct.Slacks
+   :members:
+

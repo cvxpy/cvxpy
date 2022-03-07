@@ -996,21 +996,21 @@ class TestProblem(BaseTest):
         c = numpy.ones((1, 4))
         p = Problem(cp.Minimize(c @ cp.vstack([x, x])),
                     [x == [[1, 2]]])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
         p = Problem(cp.Minimize(cp.sum(cp.vstack([self.A, self.C]))),
                     [self.A >= 2*c,
                      self.C == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, -4)
 
         c = numpy.ones((1, 2))
         p = Problem(cp.Minimize(cp.sum(cp.vstack([c @ self.A, c @ self.B]))),
                     [self.A >= 2,
                      self.B == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 0)
 
         c = numpy.array([[1, -1]]).T
@@ -1034,20 +1034,20 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(c @ cp.hstack([x.T, y.T]).T),
                     [x == [[1, 2]],
                      y == [[3, 4, 5]]])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
         p = Problem(cp.Minimize(c @ cp.hstack([x.T, x.T]).T),
                     [x == [[1, 2]]])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
         p = Problem(cp.Minimize(cp.sum(cp.hstack([self.A.T, self.C.T]))),
                     [self.A >= 2*c,
                      self.C == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, -4)
 
         D = Variable((3, 3))
@@ -1055,7 +1055,7 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(expr[0, 1] + cp.sum(cp.hstack([expr, expr]))),
                     [self.C >= 0,
                      D >= 0, D[0, 0] == 2, self.C[0, 1] == 3])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 13)
 
         c = numpy.array([[1, -1]]).T
@@ -1385,7 +1385,7 @@ class TestProblem(BaseTest):
         tt = cp.Variable(5)
         prob = cp.Problem(cp.Minimize(cp.sum(tt)),
                           [cp.cumsum(tt, 0) >= -0.0001])
-        result = prob.solve(solver=cp.SCS, eps=1e-5)
+        result = prob.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, -0.0001)
 
     def test_cummax(self) -> None:
@@ -1987,3 +1987,47 @@ class TestProblem(BaseTest):
         param.value = np.array([1])
         prob.solve()
         assert prob.value == -np.inf
+
+    def test_cumsum_axis(self) -> None:
+        """Test the cumsum axis bug with row or column matrix
+           See issue #1678
+        """
+        n = 5
+
+        # Solve for axis = 0
+        x1 = cp.Variable((1, n))
+        expr1 = cp.cumsum(x1, axis=0)
+        prob1 = cp.Problem(cp.Minimize(0), [expr1 == 1])
+        prob1.solve()
+        expect = np.ones((1, n))
+        self.assertItemsAlmostEqual(expr1.value, expect)
+
+        # Solve for axis = 1
+        x2 = cp.Variable((n, 1))
+        expr2 = cp.cumsum(x2, axis=1)
+        prob2 = cp.Problem(cp.Minimize(0), [expr2 == 1])
+        prob2.solve()
+        expect = np.ones((n, 1))
+        self.assertItemsAlmostEqual(expr2.value, expect)
+
+    def test_cummax_axis(self) -> None:
+        """Test the cumsum axis bug with row or column matrix
+           See issue #1678
+        """
+        n = 5
+
+        # Solve for axis = 0
+        x1 = cp.Variable((1, n))
+        expr1 = cp.cummax(x1, axis=0)
+        prob1 = cp.Problem(cp.Maximize(cp.sum(x1)), [expr1 <= 1])
+        prob1.solve()
+        expect = np.ones((1, n))
+        self.assertItemsAlmostEqual(expr1.value, expect)
+
+        # Solve for axis = 1
+        x2 = cp.Variable((n, 1))
+        expr2 = cp.cummax(x2, axis=1)
+        prob2 = cp.Problem(cp.Maximize(cp.sum(x2)), [expr2 <= 1])
+        prob2.solve()
+        expect = np.ones((n, 1))
+        self.assertItemsAlmostEqual(expr2.value, expect)

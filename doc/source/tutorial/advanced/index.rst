@@ -56,35 +56,33 @@ The full constructor for :py:class:`Leaf <cvxpy.expressions.leaf.Leaf>` (the par
 of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
 :py:class:`Parameter <cvxpy.expressions.constants.parameter.Parameter>`) is given below.
 
-.. function:: Leaf(shape=None, name=None, value=None, nonneg=False, nonpos=False, symmetric=False, diag=False, PSD=False, NSD=False, boolean=False, integer=False)
+.. function:: Leaf(shape=None, value=None, nonneg=False, nonpos=False, complex=False, imag=False, symmetric=False, diag=False, PSD=False, NSD=False, hermitian=False, boolean=False, integer=False, sparsity=None, pos=False, neg=False)
 
     Creates a Leaf object (e.g., Variable or Parameter).
     Only one attribute can be active (set to True).
 
     :param shape: The variable dimensions (0D by default). Cannot be more than 2D.
     :type shape: tuple or int
-    :param name: The variable name.
-    :type name: str
     :param value: A value to assign to the variable.
     :type value: numeric type
     :param nonneg: Is the variable constrained to be nonnegative?
     :type nonneg: bool
     :param nonpos: Is the variable constrained to be nonpositive?
     :type nonpos: bool
+    :param complex: Is the variable constrained to be complex-valued?
+    :type complex: bool
+    :param imag: Is the variable constrained to be imaginary?
+    :type imag: bool
     :param symmetric: Is the variable constrained to be symmetric?
     :type symmetric: bool
-    :param hermitian: Is the variable constrained to be Hermitian?
-    :type hermitian: bool
     :param diag: Is the variable constrained to be diagonal?
     :type diag: bool
-    :param complex: Is the variable complex valued?
-    :type complex: bool
-    :param imag: Is the variable purely imaginary?
-    :type imag: bool
     :param PSD: Is the variable constrained to be symmetric positive semidefinite?
     :type PSD: bool
     :param NSD: Is the variable constrained to be symmetric negative semidefinite?
     :type NSD: bool
+    :param hermitian: Is the variable constrained to be Hermitian?
+    :type hermitian: bool
     :param boolean:
         Is the variable boolean (i.e., 0 or 1)? True, which constrains
         the entire variable to be boolean, False, or a list of
@@ -94,6 +92,12 @@ of :py:class:`Variable <cvxpy.expressions.variable.Variable>` and
     :type boolean: bool or list of tuple
     :param integer: Is the variable integer? The semantics are the same as the boolean argument.
     :type integer: bool or list of tuple
+    :param sparsity: Fixed sparsity pattern for the variable.
+    :type sparsity: list of tuplewith
+    :param pos: Is the variable constrained to be positive?
+    :type pos: bool
+    :param neg: Is the variable constrained to be negative?
+    :type neg: bool
 
 The ``value`` field of Variables and Parameters can be assigned a value after construction,
 but the assigned value must satisfy the object attributes.
@@ -208,17 +212,20 @@ For licensing reasons, CVXPY does not install any of the preferred solvers by de
 
 The preferred open source mixed-integer solvers in CVXPY are GLPK_MI_, CBC_ and SCIP_. The CVXOPT_
 python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running
-`pip install cvxopt`` in your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.
+`pip install cvxopt`` in your command line or terminal. SCIP supports nonlinear models, but
+GLPK_MI and CBC do not.
 
 CVXPY comes with ECOS_BB -- an open source mixed-integer nonlinear solver -- by default. However
 ECOS_BB will not be called automatically; you must explicitly call ``prob.solve(solver='ECOS_BB')``
 if you want to use it (:ref:`changed in CVXPY 1.1.6 <changes116>`). This policy stems from the fact
 that there are recurring correctness issues with ECOS_BB. If you rely on this solver for some
 application then you need to be aware of the increased risks that come with using it.
+If you need to use an open-source mixed-integer nonlinear solver from CVXPY, then we recommend you install SCIP.
 
 If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
-model, then you will need to use a commercial solver such as CPLEX_, GUROBI_, XPRESS_, or MOSEK_.
-Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK provide free licenses to those
+model that is challenging for SCIP, then you will need to use a commercial solver such as CPLEX_,
+GUROBI_, XPRESS_, or MOSEK_. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
+provide free licenses to those
 in academia (both students and faculty), as well as trial versions to those outside academia.
 CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
 online registration, and it's limited to problems at with most 1000 variables and 1000 constraints.
@@ -398,6 +405,9 @@ parses and solves the problem.
         a non-DPP problem (instead of just a warning). Only relevant for
         problems involving Parameters. Defaults to ``False``.
    :type enforce_dpp: bool, optional
+   :param ignore_dpp : When True, DPP problems will be treated as non-DPP,
+        which may speed up compilation. Defaults to False.
+   :type ignore_dpp: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
    :return: The optimal value for the problem, or a string indicating why the problem could not be solved.
 
@@ -417,11 +427,15 @@ The table below shows the types of problems the supported solvers can handle.
 +================+====+====+======+=====+=====+=====+=====+
 | `CBC`_         | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `GLOP`_        | X  |    |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `GLPK`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GLPK_MI`_     | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `OSQP`_        | X  | X  |      |     |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `PDLP`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CPLEX`_       | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -494,6 +508,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.SCIPY, scipy_options={"method": "highs"})
     print("optimal value with SciPy/HiGHS:", prob.value)
 
+    # Solve with GLOP.
+    prob.solve(solver=cp.GLOP)
+    print("optimal value with GLOP:", prob.value)
+
     # Solve with GLPK.
     prob.solve(solver=cp.GLPK)
     print("optimal value with GLPK:", prob.value)
@@ -522,6 +540,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.NAG)
     print("optimal value with NAG:", prob.value)
 
+    # Solve with PDLP.
+    prob.solve(solver=cp.PDLP)
+    print("optimal value with PDLP:", prob.value)
+
     # Solve with SCIP.
     prob.solve(solver=cp.SCIP)
     print("optimal value with SCIP:", prob.value)
@@ -537,6 +559,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CVXOPT: 6.00000000512
     optimal value with SCS: 6.00046055789
     optimal value with SciPy/HiGHS: 6.0
+    optimal value with GLOP: 6.0
     optimal value with GLPK: 6.0
     optimal value with GLPK_MI: 6.0
     optimal value with GUROBI: 6.0
@@ -544,6 +567,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with CBC: 6.0
     optimal value with CPLEX: 6.0
     optimal value with NAG: 6.000000003182365
+    optimal value with PDLP: 6.0
     optimal value with SCIP: 6.0
     optimal value with XPRESS: 6.0
 
@@ -651,7 +675,7 @@ warm start would only be a good initial point.
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -732,6 +756,17 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
 ``'feastol_inacc'``
     tolerance for feasibility condition for inaccurate solution (default: 1e-4).
 
+`GLOP`_ options:
+
+``'time_limit_sec'``
+    Time limit for the solve, in seconds.
+
+``'parameters_proto'``
+    A `ortools.glop.parameters_pb2.GlopParameters` protocol buffer message.
+    For the definition of GlopParameters, see
+    `here <https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26>`_.
+
+
 `MOSEK`_ options:
 
 ``'mosek_params'``
@@ -797,7 +832,7 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
     solving the linear systems encountered in CVXOPT's interior-point algorithm. The API for
     KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
     solvers. The precise API that CVXPY users are held to is described in the CVXPY source
-    code: cvxpy/reductions/solvers/kktsolver.py
+    code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
 
 `SCS`_ options:
 
@@ -809,6 +844,18 @@ For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_setti
 
 ``'alpha'``
     relaxation parameter (default: 1.8).
+
+
+``'acceleration_lookback'``
+    Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
+    its default value is 10. See `this page of the SCS documentation <https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs>`_
+    for more information.
+
+    .. warning::
+        The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
+        If you don't *explicitly* set ``acceleration_lookback`` and SCS 2.X fails to converge, then CVXPY
+        will raise a warning and try to re-solve the problem with ``acceleration_lookback=0``.
+        No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.
 
 ``'scale'``
     balance between minimizing primal and dual residual (default: 5.0).
@@ -885,6 +932,17 @@ SCIP_ options:
 * **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary and there should not be a nested dictionary called options. Some of the methods have different parameters so please check the parameters for the method you wish to use e.g. for method = 'highs-ipm'.
 
 * The main advantage of this solver is its ability to use the `HiGHS`_ LP solvers which are coded in C++, however these require a version of SciPy larger than 1.6.1. To use the `HiGHS`_ solvers simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). 
+
+`PDLP`_ options:
+
+``'time_limit_sec'``
+    Time limit for the solve, in seconds.
+
+``'parameters_proto'``
+    A `ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams` protocol buffer message.
+    For the definition of PrimalDualHybridGradientParams, see
+    `here <https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150>`_.
+
 
 `GUROBI`_ options:
 
@@ -1009,8 +1067,8 @@ Then, we describe the DPP ruleset for DGP problems.
 
 **DCP problems.**
 In DPP, an expression is said to be parameter-affine if it does
-not involve variables and is affine in its parameters, and it is variable-free
-if it does not have variables. DPP introduces two restrictions to DCP:
+not involve variables and is affine in its parameters, and it is parameter-free
+if it does not have parameters. DPP introduces two restrictions to DCP:
 
 1. Under DPP, all parameters are classified as affine, just like variables.
 2. Under DPP, the product of two expressions is affine when
@@ -1039,13 +1097,12 @@ default, this keyword argument is ``False``). For example,
 
 prints ``True``. We can walk through the DPP analysis to understand why
 ``objective`` is DPP-compliant. The product ``(F + G) @ x`` is affine under DPP,
-because ``F + G`` is parameter-affine and ``x`` is variable-free. The difference
+because ``F + G`` is parameter-affine and ``x`` is parameter-free. The difference
 ``(F + G) @ x - g`` is affine because the addition atom is affine and both
-``(F + G) @ x`` and  ``- g`` are affine. The product ``gamma * cp.norm(x)`` is convex because
-``cp.norm(x)`` is convex, the product is affine because ``gamma`` is
-parameter-affine and ``cp.norm(x)`` is variable-free, and the expression
-``gamma * cp.norm(x)`` is convex because the product is increasing in its second
-argument (since ``gamma`` is nonnegative).
+``(F + G) @ x`` and  ``- g`` are affine. Likewise ``gamma * cp.norm(x)`` is affine
+under DPP because ``gamma`` is parameter-affine and ``cp.norm(x)`` is
+parameter-free. The final objective is then affine under DPP because addition is
+affine.
 
 Some expressions are DCP-compliant but not DPP-compliant. For example,
 DPP forbids taking the product of two parametrized expressions:
@@ -1384,6 +1441,7 @@ on derivatives.
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
+.. _GLOP: https://developers.google.com/optimization
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
 .. _GUROBI: http://www.gurobi.com/
@@ -1393,6 +1451,7 @@ on derivatives.
 .. _CPLEX: https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/
 .. _NAG: https://www.nag.co.uk/nag-library-python/
 .. _OSQP: https://osqp.org/
+.. _PDLP: https://developers.google.com/optimization
 .. _SCIP: https://scip.zib.de/
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog

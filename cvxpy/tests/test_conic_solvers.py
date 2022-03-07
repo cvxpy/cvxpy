@@ -16,7 +16,6 @@ limitations under the License.
 
 import math
 import unittest
-from distutils.version import StrictVersion
 
 import numpy as np
 import pytest
@@ -32,6 +31,7 @@ from cvxpy.tests.solver_test_helpers import (StandardTestECPs, StandardTestLPs,
                                              StandardTestPCPs,
                                              StandardTestSDPs,
                                              StandardTestSOCPs,)
+from cvxpy.utilities.versioning import Version
 
 
 class TestECOS(BaseTest):
@@ -153,7 +153,7 @@ class TestSCS(BaseTest):
         x = cp.Variable(2, name='x')
         prob = cp.Problem(cp.Minimize(cp.norm(x, 1) + 1.0), [x == 0])
         for i in range(2):
-            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=EPS,
+            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.2,
                        verbose=True, normalize=True, use_indirect=False)
         self.assertAlmostEqual(prob.value, 1.0, places=2)
         self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
@@ -327,10 +327,10 @@ class TestSCS(BaseTest):
         StandardTestLPs.test_lp_4(solver='SCS')
 
     def test_scs_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-5)
+        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-6)
 
     def test_scs_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-5)
+        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-6)
 
     def test_scs_socp_3(self) -> None:
         # axis 0
@@ -659,6 +659,9 @@ class TestGLPK(unittest.TestCase):
     def test_glpk_lk_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GLPK')
 
+    def test_glpk_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver='GLPK')
+
     def test_glpk_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='GLPK_MI')
 
@@ -670,6 +673,118 @@ class TestGLPK(unittest.TestCase):
 
     def test_glpk_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='GLPK_MI')
+
+    def test_glpk_mi_lp_4(self) -> None:
+        StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
+
+
+@unittest.skipUnless('GLOP' in INSTALLED_SOLVERS, 'GLOP is not installed.')
+class TestGLOP(unittest.TestCase):
+
+    def test_glop_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='GLOP')
+
+    def test_glop_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='GLOP')
+
+    def test_glop_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='GLOP')
+
+    def test_glop_lp_3_no_preprocessing(self) -> None:
+        from ortools.glop import parameters_pb2
+        params = parameters_pb2.GlopParameters()
+        params.use_preprocessing = False
+        StandardTestLPs.test_lp_3(solver='GLOP', parameters_proto=params)
+
+    # With preprocessing enabled, Glop internally detects
+    # INFEASIBLE_OR_UNBOUNDED. This status is translated to
+    # MPSOLVER_INFEASIBLE. See
+    # https://github.com/google/or-tools/blob/b37d9c786b69128f3505f15beca09e89bf078a89/ortools/linear_solver/glop_utils.cc#L25-L38.
+    @unittest.skip('Known limitation of the GLOP interface.')
+    def test_glop_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='GLOP')
+
+    def test_glop_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='GLOP')
+
+    def test_glop_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='GLOP')
+
+    def test_glop_lp_6_no_preprocessing(self) -> None:
+        from ortools.glop import parameters_pb2
+        params = parameters_pb2.GlopParameters()
+        params.use_preprocessing = False
+        StandardTestLPs.test_lp_6(solver='GLOP', parameters_proto=params)
+
+    # Same issue as with test_glop_lp_3.
+    @unittest.skip('Known limitation of the GLOP interface.')
+    def test_glop_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver='GLOP')
+
+    def test_glop_bad_parameters(self) -> None:
+        x = cp.Variable(1)
+        prob = cp.Problem(cp.Maximize(x), [x <= 1])
+        with self.assertRaises(cp.error.SolverError):
+            prob.solve(solver='GLOP', parameters_proto="not a proto")
+
+
+@unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
+class TestPDLP(unittest.TestCase):
+
+    def test_pdlp_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='PDLP')
+
+    def test_pdlp_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='PDLP')
+
+    def test_pdlp_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='PDLP')
+
+    def test_pdlp_lp_3(self) -> None:
+        sth = sths.lp_3()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    # We get the precise status when presolve is disabled.
+    def test_pdlp_lp_3_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_3(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_lp_4(self) -> None:
+        sth = sths.lp_4()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_pdlp_lp_4_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_4(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='PDLP')
+
+    def test_pdlp_lp_6(self) -> None:
+        sth = sths.lp_6()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_pdlp_lp_6_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_6(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_bad_parameters(self) -> None:
+        x = cp.Variable(1)
+        prob = cp.Problem(cp.Maximize(x), [x <= 1])
+        with self.assertRaises(cp.error.SolverError):
+            prob.solve(solver='PDLP', parameters_proto="not a proto")
 
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
@@ -1480,7 +1595,7 @@ class TestSCIPY(unittest.TestCase):
 
     def setUp(self):
         import scipy
-        self.d = StrictVersion(scipy.__version__) >= StrictVersion('1.7.0')
+        self.d = Version(scipy.__version__) >= Version('1.7.0')
 
     def test_scipy_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)

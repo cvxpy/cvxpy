@@ -14,8 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import functools
+from typing import Callable, TypeVar
 
 from cvxpy.utilities import scopes
+
+R = TypeVar("R")
+T = TypeVar("T")
 
 
 def lazyprop(func):
@@ -44,7 +48,7 @@ def _cache_key(args, kwargs):
     return key
 
 
-def compute_once(func):
+def compute_once(func: Callable[[T], R]) -> Callable[[T], R]:
     """Computes an instance method caches the result.
 
     A result is stored for each unique combination of arguments and
@@ -57,7 +61,7 @@ def compute_once(func):
      """
 
     @functools.wraps(func)
-    def _compute_once(self, *args, **kwargs):
+    def _compute_once(self, *args, **kwargs) -> R:
         cache_name = func.__name__ + '__cache__'
         if not hasattr(self, cache_name):
             # On first call, the cache is created and stored in self

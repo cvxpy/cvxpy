@@ -10,6 +10,7 @@ from cvxpy.atoms.elementwise.log import log
 from cvxpy.atoms.elementwise.maximum import maximum
 from cvxpy.atoms.elementwise.minimum import minimum
 from cvxpy.atoms.elementwise.power import power
+from cvxpy.atoms.elementwise.xexp import xexp
 from cvxpy.atoms.eye_minus_inv import eye_minus_inv
 from cvxpy.atoms.geo_mean import geo_mean
 from cvxpy.atoms.gmatmul import gmatmul
@@ -61,6 +62,7 @@ from cvxpy.reductions.dgp2dcp.atom_canonicalizers.quad_over_lin_canon import (
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.sum_canon import sum_canon
 from cvxpy.reductions.dgp2dcp.atom_canonicalizers.trace_canon import (
     trace_canon,)
+from cvxpy.reductions.dgp2dcp.atom_canonicalizers.xexp_canon import xexp_canon
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
     CANON_METHODS as PWL_METHODS,)
 
@@ -86,6 +88,7 @@ CANON_METHODS = {
     quad_over_lin : quad_over_lin_canon,
     trace : trace_canon,
     Sum : sum_canon,
+    xexp : xexp_canon,
     Variable : None,
     Parameter : None,
 }
