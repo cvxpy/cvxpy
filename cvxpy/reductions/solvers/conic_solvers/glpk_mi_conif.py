@@ -110,3 +110,12 @@ class GLPK_MI(GLPK):
             return Solution(status, opt_val, primal_vars, None, {})
         else:
             return failure_solution(status)
+        
+    @staticmethod
+    def _restore_solver_options(old_options) -> None:
+        import cvxopt.glpk
+        for key, value in list(cvxopt.glpk.options.items()):
+            if key in old_options:
+                cvxopt.glpk.options[key] = old_options[key]
+            else:
+                del cvxopt.glpk.options[key]
