@@ -49,7 +49,6 @@ class TestGeoMean(BaseTest):
             [14., 21., 217., 57., 6.],
             [3., 36., 77., 8., 8.]
         ])
-        np.random.seed(0)
         for i, b in enumerate(bs):
             log_objective = cp.Maximize(b @ cp.log(u))
             log_prob = cp.Problem(log_objective, cons)
@@ -64,6 +63,12 @@ class TestGeoMean(BaseTest):
                 self.assertItemsAlmostEqual(actual_X, expect_X, places=3)
             except AssertionError as e:
                 print(f'Failure at index {i} (when b={str(b)}).')
+                log_prob.solve(**log_solve_args, verbose=True)
+                print(X.value)
+                geo_prob.solve(verbose=True)
+                print(X.value)
+                print('The valuation matrix was')
+                print(V)
                 raise e
 
     def test_3d_power_cone_approx(self):
