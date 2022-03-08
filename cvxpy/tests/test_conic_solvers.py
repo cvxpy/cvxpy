@@ -153,7 +153,7 @@ class TestSCS(BaseTest):
         x = cp.Variable(2, name='x')
         prob = cp.Problem(cp.Minimize(cp.norm(x, 1) + 1.0), [x == 0])
         for i in range(2):
-            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=EPS,
+            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.4,
                        verbose=True, normalize=True, use_indirect=False)
         self.assertAlmostEqual(prob.value, 1.0, places=2)
         self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
@@ -327,10 +327,10 @@ class TestSCS(BaseTest):
         StandardTestLPs.test_lp_4(solver='SCS')
 
     def test_scs_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-5)
+        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-6)
 
     def test_scs_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-5)
+        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-6)
 
     def test_scs_socp_3(self) -> None:
         # axis 0
@@ -659,6 +659,9 @@ class TestGLPK(unittest.TestCase):
     def test_glpk_lk_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='GLPK')
 
+    def test_glpk_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver='GLPK')
+
     def test_glpk_mi_lp_0(self) -> None:
         StandardTestLPs.test_mi_lp_0(solver='GLPK_MI')
 
@@ -670,6 +673,29 @@ class TestGLPK(unittest.TestCase):
 
     def test_glpk_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='GLPK_MI')
+
+    def test_glpk_mi_lp_4(self) -> None:
+        StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
+
+    def test_glpk_options(self) -> None:
+        sth = sths.lp_1()
+        import cvxopt
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.solve(solver='GLPK', tm_lim=100)
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.verify_objective(places=4)
+        sth.check_primal_feasibility(places=4)
+        sth.check_complementarity(places=4)
+        sth.check_dual_domains(places=4)
+
+    def test_glpk_mi_options(self) -> None:
+        sth = sths.mi_lp_1()
+        import cvxopt
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.solve(solver='GLPK_MI', tm_lim=100, verbose=True)
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.verify_objective(places=4)
+        sth.verify_primal_values(places=4)
 
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')

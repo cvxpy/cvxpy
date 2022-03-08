@@ -60,6 +60,8 @@ class GLPK_MI(GLPK):
         else:
             cvxopt.glpk.options["msg_lev"] = "GLP_MSG_OFF"
 
+        data = self._prepare_cvxopt_matrices(data)
+
         # Apply any user-specific options.
         # Rename max_iters to maxiters.
         if "max_iters" in solver_opts:
@@ -108,3 +110,12 @@ class GLPK_MI(GLPK):
             return Solution(status, opt_val, primal_vars, None, {})
         else:
             return failure_solution(status)
+
+    @staticmethod
+    def _restore_solver_options(old_options) -> None:
+        import cvxopt.glpk
+        for key, value in list(cvxopt.glpk.options.items()):
+            if key in old_options:
+                cvxopt.glpk.options[key] = old_options[key]
+            else:
+                del cvxopt.glpk.options[key]

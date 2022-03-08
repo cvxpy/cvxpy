@@ -66,8 +66,9 @@ def gm_constrs(t, x_list, p):
     d = defaultdict(lambda: Variable(t.shape))
     d[w] = t
 
-    if len(x_list) < len(w):
-        x_list += [t]
+    long_w = len(w) - len(x_list)
+    if long_w > 0:
+        x_list += [t]*long_w
 
     assert len(x_list) == len(w)
 
@@ -225,6 +226,14 @@ def is_weight(w) -> bool:
     return valid_elems and sum(w) == 1
 
 
+__EXCEED_DENOMINATOR_LIMIT__ = \
+    """
+    Can't reliably represent the input weight vector.
+    Try increasing `max_denom` or checking the denominators
+    of your input fractions.
+    """
+
+
 def fracify(a, max_denom: int = 1024, force_dyad: bool = False):
     """ Return a valid fractional weight tuple (and its dyadic completion)
         to represent the weights given by ``a``.
@@ -362,17 +371,18 @@ def fracify(a, max_denom: int = 1024, force_dyad: bool = False):
         w_frac = tuple(Fraction(v, total) for v in a)
         d = max(v.denominator for v in w_frac)
         if d > max_denom:
-            msg = ("Can't reliably represent the input weight vector."
-                   "\nTry increasing `max_denom` or checking the denominators "
-                   "of your input fractions.")
-            raise ValueError(msg)
+            raise ValueError(__EXCEED_DENOMINATOR_LIMIT__)
     else:
         # fall through code
         w_frac = tuple(Fraction(float(v)/total).limit_denominator(max_denom) for v in a)
         if sum(w_frac) != 1:
             w_frac = make_frac(a, max_denom)
 
-    return w_frac, dyad_completion(w_frac)
+    w_dyad = dyad_completion(w_frac)
+    if max(v.denominator for v in w_dyad) > max_denom:
+        raise ValueError(__EXCEED_DENOMINATOR_LIMIT__)
+
+    return w_frac, w_dyad
 
 
 def make_frac(a, denom):
@@ -388,14 +398,13 @@ def make_frac(a, denom):
     """
 
     a = np.array(a, dtype=float)/sum(a)
-    b = [float(v*denom) for v in a]
-    b = np.array(b, dtype=int)
+    b = (denom * a).astype(int)
     err = b/float(denom) - a
 
     inds = np.argsort(err)[:(denom - sum(b))]
     b[inds] += 1
 
-    denom = np.int32(denom)
+    denom = int(denom)
     b = b.tolist()
 
     return tuple(Fraction(v, denom) for v in b)
@@ -423,16 +432,15 @@ def dyad_completion(w):
     (Fraction(1, 1), Fraction(0, 1), Fraction(0, 1), Fraction(0, 1))
     """
     w = tuple(Fraction(v) for v in w)
-    d = max(v.denominator for v in w)
-
-    # if extra_index:
-    p = next_pow2(d)
-    if p == d:
-        # the tuple of fractions is already dyadic
-        return w
-    else:
+    non_dyad_dens = [v.denominator for v in w if not is_power2(v.denominator)]
+    if len(non_dyad_dens) > 0:
         # need to add the dummy variable to represent as dyadic
-        return tuple(Fraction(v*d, p) for v in w) + (Fraction(p-d, p),)
+        d = max(non_dyad_dens)
+        p = next_pow2(d)
+        w_aug = tuple(Fraction(v*d, p) for v in w) + (Fraction(p-d, p),)
+        return dyad_completion(w_aug)
+    else:
+        return w
 
 
 def approx_error(a_orig, w_approx):

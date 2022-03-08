@@ -26,8 +26,7 @@ std::vector<Matrix> mat_vec_mul(const std::vector<Matrix> &lh_vec,
   result.reserve(lh_vec.size() * rh_vec.size());
   for (unsigned i = 0; i < lh_vec.size(); ++i) {
     for (unsigned j = 0; j < rh_vec.size(); ++j) {
-      // prune away explicit nonzeros
-      result.push_back((lh_vec[i] * rh_vec[j]).pruned());
+      result.push_back((lh_vec[i] * rh_vec[j]));
     }
   }
   return result;

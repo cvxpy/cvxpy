@@ -102,8 +102,9 @@ class norm1(AxisAtom):
         Returns:
             A NumPy ndarray matrix or None.
         """
-        rows = self.args[0].size
+        rows = value.size
         D_null = sp.csc_matrix((rows, 1), dtype='float64')
+        value = value.reshape((rows, 1))
         D_null += (value > 0)
         D_null -= (value < 0)
-        return sp.csc_matrix(D_null.A.ravel(order='F')).T
+        return D_null

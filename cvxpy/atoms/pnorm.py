@@ -245,7 +245,7 @@ class Pnorm(AxisAtom):
         Returns:
             A NumPy ndarray or None.
         """
-        rows = self.args[0].size
+        rows = value.size
         # Outside domain.
         if self.p < 1 and np.any(value <= 0):
             return None
@@ -255,7 +255,7 @@ class Pnorm(AxisAtom):
         # Subgrad is 0 when denom is 0 (or undefined).
         if denominator == 0:
             if self.p > 1:
-                return D_null
+                return D_null.todense()
             else:
                 return None
         else:
