@@ -193,6 +193,13 @@ class TestAtoms(BaseTest):
         self.assertTrue(type(copy) is type(atom))
         self.assertTrue(copy.args[0] is self.y)
         self.assertEqual(copy.get_data(), atom.get_data())
+        # Check for proper handling of non-dyadic rationals (GH Issue #1685).
+        w = cp.Variable(shape=(5,))
+        p = np.array([1/8, 1/6, 1/12, 3/16, 7/16])
+        expr = cp.geo_mean(w, p)
+        prob = cp.Problem(cp.Maximize(cp.min(w)), [0 <= w, expr >= 1, w <= 1])
+        prob.solve()
+        self.assertItemsAlmostEqual(w.value, [1, 1, 1, 1, 1])
 
     # Test the harmonic_mean class.
     def test_harmonic_mean(self) -> None:

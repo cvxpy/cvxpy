@@ -388,14 +388,13 @@ def make_frac(a, denom):
     """
 
     a = np.array(a, dtype=float)/sum(a)
-    b = [float(v*denom) for v in a]
-    b = np.array(b, dtype=int)
+    b = (denom * a).astype(int)
     err = b/float(denom) - a
 
     inds = np.argsort(err)[:(denom - sum(b))]
     b[inds] += 1
 
-    denom = np.int32(denom)
+    denom = int(denom)
     b = b.tolist()
 
     return tuple(Fraction(v, denom) for v in b)
