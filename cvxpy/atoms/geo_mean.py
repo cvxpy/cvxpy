@@ -217,7 +217,7 @@ class geo_mean(Atom):
         if any(v < 0 for v in p) or sum(p) <= 0:
             raise ValueError('powers must be nonnegative and not all zero.')
 
-        self.w, self.w_dyad = fracify(p, max_denom, force_dyad=True)
+        self.w, self.w_dyad = fracify(p, max_denom)
         self.approx_error = approx_error(p, self.w)
 
         self.tree = decompose(self.w_dyad)

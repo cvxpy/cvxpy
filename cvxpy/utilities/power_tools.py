@@ -422,16 +422,14 @@ def dyad_completion(w):
     (Fraction(1, 1), Fraction(0, 1), Fraction(0, 1), Fraction(0, 1))
     """
     w = tuple(Fraction(v) for v in w)
-    d = max(v.denominator for v in w)
-
-    # if extra_index:
-    p = next_pow2(d)
-    if p == d:
-        # the tuple of fractions is already dyadic
-        return w
-    else:
+    non_dyad_dens = [v.denominator for v in w if not is_power2(v.denominator)]
+    if len(non_dyad_dens) > 0:
         # need to add the dummy variable to represent as dyadic
+        d = max(non_dyad_dens)
+        p = next_pow2(d)
         return tuple(Fraction(v*d, p) for v in w) + (Fraction(p-d, p),)
+    else:
+        return w
 
 
 def approx_error(a_orig, w_approx):
