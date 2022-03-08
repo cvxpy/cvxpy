@@ -1640,20 +1640,6 @@ class TestProblem(BaseTest):
         xval = np.array(x.value).flatten()
         self.assertTrue(np.allclose(xval, x_true, 1e-3))
 
-        # GH Issue #1685 (first try Fractions, then try floats)
-        p = np.array([Fraction(1, 8), Fraction(1, 6), Fraction(1, 12),
-                      Fraction(3, 16), Fraction(7, 16)])
-        expr = cp.geo_mean(x, p)
-        prob = cp.Problem(cp.Maximize(cp.min(x)), [0 <= x, expr >= 1, x <= 1])
-        prob.solve()
-        self.assertItemsAlmostEqual(x.value, x_true)  # using Fractions
-
-        p = np.array([1/8, 1/6, 1/12, 3/16, 7/16])
-        expr = cp.geo_mean(x, p)
-        prob = cp.Problem(cp.Maximize(cp.min(x)), [0 <= x, expr >= 1, x <= 1])
-        prob.solve()
-        self.assertItemsAlmostEqual(x.value, x_true)  # using floats
-
     def test_pnorm(self) -> None:
         import numpy as np
 

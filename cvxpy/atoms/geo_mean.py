@@ -21,6 +21,7 @@ import scipy.sparse as sp
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
+from cvxpy.expressions import cvxtypes
 from cvxpy.utilities.power_tools import (approx_error, decompose, fracify,
                                          lower_bound, over_bound, prettydict,)
 
@@ -199,6 +200,12 @@ class geo_mean(Atom):
             The number of second order cones used to form this geometric mean
 
         """
+        if p is not None and hasattr(p, '__getitem__'):
+            p = np.array(p)
+            idxs = p > 0
+            Expression = cvxtypes.expression()
+            x = Expression.cast_to_const(x)[idxs]
+            p = p[idxs]
         super(geo_mean, self).__init__(x)
 
         x = self.args[0]
