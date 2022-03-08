@@ -35,7 +35,7 @@ class TestGeoMean(BaseTest):
         if 'MOSEK' in cp.installed_solvers():
             log_solve_args = {'solver': 'MOSEK'}
         else:
-            log_solve_args = {'solver': 'SCS', 'eps': 1e-10}
+            log_solve_args = {'solver': 'ECOS'}
         n_buyer = 5
         n_items = 7
         np.random.seed(0)
