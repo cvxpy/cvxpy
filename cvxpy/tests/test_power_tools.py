@@ -24,7 +24,7 @@ class TestGeoMean(BaseTest):
 
     def test_multi_step_dyad_completion(self) -> None:
         """
-        Consider three market equilibrium problems.
+        Consider four market equilibrium problems.
 
         The budgets "b" in these problems are chosen so that canonicalization
         of geo_mean(u, b) hits a recursive code-path in power_tools.dyad_completion(...).
@@ -45,6 +45,7 @@ class TestGeoMean(BaseTest):
         u = cp.sum(cp.multiply(V, X), axis=1)
         bs = np.array([
             [110, 14, 6, 77, 108],
+            [15., 4., 8., 0., 9.],
             [14., 21., 217., 57., 6.],
             [3., 36., 77., 8., 8.]
         ])
