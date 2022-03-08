@@ -677,6 +677,26 @@ class TestGLPK(unittest.TestCase):
     def test_glpk_mi_lp_4(self) -> None:
         StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
 
+    def test_glpk_options(self) -> None:
+        sth = sths.lp_1()
+        import cvxopt
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.solve(solver='GLPK', tm_lim=100)
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.verify_objective(places=4)
+        sth.check_primal_feasibility(places=4)
+        sth.check_complementarity(places=4)
+        sth.check_dual_domains(places=4)
+
+    def test_glpk_mi_options(self) -> None:
+        sth = sths.mi_lp_1()
+        import cvxopt
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.solve(solver='GLPK_MI', tm_lim=100, verbose=True)
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.verify_objective(places=4)
+        sth.verify_primal_values(places=4)
+
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
 class TestCPLEX(BaseTest):
