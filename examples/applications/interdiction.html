@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TODO &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>TODO &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="todo">
+  <section id="todo">
 <h1>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p>time-varying graphs</p></li>
@@ -41,8 +41,8 @@
 <li><p>remove <span class="math notranslate nohighlight">\(\mathcal{P}\)</span>. just describe a path with <span class="math notranslate nohighlight">\(x\)</span> from
 the start?</p></li>
 </ul>
-</div>
-<div class="section" id="topic-references">
+</section>
+<section id="topic-references">
 <h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference external" href="http://web.stanford.edu/~boyd/cvxbook/">Convex Optimization book</a></p></li>
@@ -54,8 +54,8 @@ theory</a></p></li>
 <li><p><cite>Iterated weighted :math:</cite>ell_1`
 heuristic &lt;<a class="reference external" href="http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf</a>&gt;`__</p></li>
 </ul>
-</div>
-<div class="section" id="allocating-interdiction-effort-to-catch-a-smuggler">
+</section>
+<section id="allocating-interdiction-effort-to-catch-a-smuggler">
 <h1>Allocating interdiction effort to catch a smuggler<a class="headerlink" href="#allocating-interdiction-effort-to-catch-a-smuggler" title="Permalink to this headline">¶</a></h1>
 <p>We’ll explore a game between a smuggler moving through a graph and a
 security team trying to catch him.</p>
@@ -77,8 +77,8 @@ etc. We’ll keep this abstract for now, and just consider that security
 can modify the evasion probabilities subject to some constraints. Their
 goal is to choose evasion probabilities to minimize the chance that the
 smuggler gets through undetected.</p>
-</div>
-<div class="section" id="transformations-and-mathematical-formulation">
+</section>
+<section id="transformations-and-mathematical-formulation">
 <h1>Transformations and mathematical formulation<a class="headerlink" href="#transformations-and-mathematical-formulation" title="Permalink to this headline">¶</a></h1>
 <p>We’ll take the logarithm of all probabilities to make the problem
 amenable to convex optimization and simplify the remaining discussion.
@@ -96,8 +96,8 @@ that path. That is,</p>
 <p>Define <span class="math notranslate nohighlight">\(P(c, \mathcal{P}) = -\infty\)</span> if <span class="math notranslate nohighlight">\(\mathcal{P}\)</span> is not
 a valid path from source to sink. We do this to implicitly encode the
 constraint that the smuggler’s path must be valid.</p>
-</div>
-<div class="section" id="min-max-game">
+</section>
+<section id="min-max-game">
 <h1>Min/max game<a class="headerlink" href="#min-max-game" title="Permalink to this headline">¶</a></h1>
 <p>We can now interpret this problem as a min/max game. The smuggler is
 trying to maximize his chance of getting through undetected by choosing
@@ -124,8 +124,8 @@ some constraints on <span class="math notranslate nohighlight">\(c\)</span>, whi
 <p>In the remainder, we’ll first consider the smuggler’s objective so as to
 obtain a convex formulation of <span class="math notranslate nohighlight">\(P^\mathrm{opt}(c)\)</span>, which we can
 then use to analyze and optimize the security team’s objective.</p>
-</div>
-<div class="section" id="helper-functions">
+</section>
+<section id="helper-functions">
 <h1>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h1>
 <p>The next cell contains some helper functions for generating the examples
 and plotting the results. This is the majority of the code. The actual
@@ -174,7 +174,7 @@ optimization code later in the notebook.</p>
 
     <span class="c1"># add dummy nodes for multiple entry/exit example</span>
     <span class="k">if</span> <span class="n">dummyNodes</span><span class="p">:</span>
-        <span class="n">pos</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-.</span><span class="mi">5</span><span class="p">,</span><span class="o">.</span><span class="mi">5</span><span class="p">)]</span> <span class="o">+</span> <span class="n">pos</span> <span class="o">+</span> <span class="p">[(</span><span class="mf">1.5</span><span class="p">,</span><span class="o">.</span><span class="mi">5</span><span class="p">)]</span>
+        <span class="n">pos</span> <span class="o">=</span> <span class="p">[(</span><span class="o">-</span><span class="mf">.5</span><span class="p">,</span><span class="mf">.5</span><span class="p">)]</span> <span class="o">+</span> <span class="n">pos</span> <span class="o">+</span> <span class="p">[(</span><span class="mf">1.5</span><span class="p">,</span><span class="mf">.5</span><span class="p">)]</span>
 
     <span class="n">pos</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
     <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span>
@@ -228,7 +228,7 @@ optimization code later in the notebook.</p>
 
     <span class="c1"># draw the origin and destination nodes</span>
     <span class="k">for</span> <span class="n">nodes</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="n">Gnodes</span><span class="p">,</span><span class="n">Rnodes</span><span class="p">],[</span><span class="s1">&#39;g&#39;</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">]):</span>
-        <span class="k">for</span> <span class="n">color2</span><span class="p">,</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">color</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">2</span><span class="p">]):</span>
+        <span class="k">for</span> <span class="n">color2</span><span class="p">,</span> <span class="n">alpha</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">([</span><span class="s1">&#39;w&#39;</span><span class="p">,</span><span class="n">color</span><span class="p">],[</span><span class="mi">1</span><span class="p">,</span><span class="mf">.2</span><span class="p">]):</span>
             <span class="n">nx</span><span class="o">.</span><span class="n">draw_networkx_nodes</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span>
                            <span class="n">nodelist</span><span class="o">=</span><span class="n">nodes</span><span class="p">,</span>
                            <span class="n">node_color</span><span class="o">=</span><span class="n">color2</span><span class="p">,</span>
@@ -245,7 +245,7 @@ optimization code later in the notebook.</p>
     <span class="k">if</span> <span class="n">path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">alpha</span> <span class="o">=</span> <span class="o">.</span><span class="mi">15</span>
+        <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.15</span>
 
     <span class="c1"># start messing with edges</span>
     <span class="n">edge2ind</span> <span class="o">=</span> <span class="p">{</span><span class="n">e</span><span class="p">:</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">e</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">edges</span><span class="p">())}</span>
@@ -353,9 +353,9 @@ optimization code later in the notebook.</p>
 <span class="sd">        Return the log of the detection probabilities for each guard.</span>
 
 <span class="sd">    &#39;&#39;&#39;</span>
-    <span class="k">def</span> <span class="nf">evadeProb</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">radius</span><span class="o">=.</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">evadeProb</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">radius</span><span class="o">=</span><span class="mf">.2</span><span class="p">):</span>
         <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">/</span><span class="n">radius</span>
-        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">r</span><span class="o">+.</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">r</span><span class="o">+</span><span class="mf">.1</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="n">m</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_edges</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">buildings</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -384,7 +384,7 @@ optimization code later in the notebook.</p>
             <span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">dummyNodes</span> <span class="ow">or</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">dummyNodes</span><span class="p">:</span>
                 <span class="n">blocked</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">blocked</span><span class="p">:</span>
-                <span class="n">edgeVals</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">evadeProb</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span><span class="o">-</span><span class="n">edgeCenters</span><span class="p">[</span><span class="n">j</span><span class="p">,:],</span><span class="o">.</span><span class="mi">3</span><span class="p">))</span>
+                <span class="n">edgeVals</span><span class="p">[</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">]</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">evadeProb</span><span class="p">(</span><span class="n">pos</span><span class="p">[</span><span class="n">gid</span><span class="p">]</span><span class="o">-</span><span class="n">edgeCenters</span><span class="p">[</span><span class="n">j</span><span class="p">,:],</span><span class="mf">.3</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">edgeVals</span>
 
 <span class="k">def</span> <span class="nf">get_a</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -405,8 +405,8 @@ optimization code later in the notebook.</p>
     <span class="k">return</span> <span class="n">a</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="smuggler-s-objective">
+</section>
+<section id="smuggler-s-objective">
 <h1>Smuggler’s objective<a class="headerlink" href="#smuggler-s-objective" title="Permalink to this headline">¶</a></h1>
 <p>The smuggler chooses a path <span class="math notranslate nohighlight">\(\mathcal{P}\)</span> only after <span class="math notranslate nohighlight">\(c\)</span> is
 fixed. His goal is to find a valid path in the graph which maximizes
@@ -450,8 +450,8 @@ still be recovered.</p>
 and LP optimal values are equal. Before continuing on to security’s
 perspective, we’ll look at an example of the smuggler choosing an
 optimal path in a given graph.</p>
-</div>
-<div class="section" id="smuggler-s-path-example">
+</section>
+<section id="smuggler-s-path-example">
 <h1>Smuggler’s path example<a class="headerlink" href="#smuggler-s-path-example" title="Permalink to this headline">¶</a></h1>
 <p>We’ll solve the smuggler’s problem on an example network to see an
 example of an optimal path.</p>
@@ -469,7 +469,7 @@ upper-left corner of the graph plot to node <span class="math notranslate nohigh
 lower-right corner of the graph plot.</p>
 <p>We show the graph with the edge evasion probabilities below.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="o">.</span><span class="mi">12</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mf">.12</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
 
 <span class="n">a</span> <span class="o">=</span> <span class="n">get_a</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
@@ -478,7 +478,7 @@ lower-right corner of the graph plot.</p>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">cvxpy</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="o">.</span><span class="mi">6</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">networkx</span><span class="o">/</span><span class="n">drawing</span><span class="o">/</span><span class="n">nx_pylab</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">611</span><span class="p">:</span> <span class="n">MatplotlibDeprecationWarning</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">)</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">/</span><span class="n">anaconda3</span><span class="o">/</span><span class="n">envs</span><span class="o">/</span><span class="n">cvxpy</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.6</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">networkx</span><span class="o">/</span><span class="n">drawing</span><span class="o">/</span><span class="n">nx_pylab</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">611</span><span class="p">:</span> <span class="n">MatplotlibDeprecationWarning</span><span class="p">:</span> <span class="nb">isinstance</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">numbers</span><span class="o">.</span><span class="n">Number</span><span class="p">)</span>
   <span class="k">if</span> <span class="n">cb</span><span class="o">.</span><span class="n">is_numlike</span><span class="p">(</span><span class="n">alpha</span><span class="p">):</span>
 </pre></div>
 </div>
@@ -513,7 +513,7 @@ optimal path. We plot the path below.</p>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
-           <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
+           <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
 <span class="o">-----------------------------------------------------------------</span>
@@ -540,7 +540,7 @@ optimal path. We plot the path below.</p>
 <span class="n">optimal</span> <span class="n">rho</span> <span class="n">estimate</span><span class="p">:</span> <span class="mf">5.09e-01</span>
 </pre></div>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
 <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s &quot;</span>
       <span class="s2">&quot;optimal path is </span><span class="si">%e</span><span class="s2">, or </span><span class="si">%.3f%%</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">))</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span>
@@ -556,7 +556,7 @@ graph to check that we get the same optimal path. The function
 <a class="reference external" href="http://en.wikipedia.org/wiki/Dijkstra%27s_algorithm">Dijkstra’s_algorithm</a>
 to compute the optimal path.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
-<span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
 <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s &quot;</span>
       <span class="s2">&quot;optimal path is </span><span class="si">%e</span><span class="s2">, or </span><span class="si">%.3f%%</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">y</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">))</span><span class="o">*</span><span class="mi">100</span><span class="p">))</span>
@@ -566,8 +566,8 @@ to compute the optimal path.</p>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="../../_images/interdiction_10_1.png"><img alt="../../_images/interdiction_10_1.png" src="../../_images/interdiction_10_1.png" style="width: 438px; height: 360px;" /></a>
-</div>
-<div class="section" id="security-s-objective">
+</section>
+<section id="security-s-objective">
 <h1>Security’s objective<a class="headerlink" href="#security-s-objective" title="Permalink to this headline">¶</a></h1>
 <p>The security team’s goal is to minimize <span class="math notranslate nohighlight">\(P^\mathrm{opt}(c)\)</span>,
 subject to some constraints (say, limits on budget or personnel), which
@@ -596,8 +596,8 @@ variables.</p>
 solving to find <span class="math notranslate nohighlight">\(c^\star\)</span>, the security team will have optimally
 allocated resources to make detection of the smuggler as likely as
 possible.</p>
-</div>
-<div class="section" id="security-example">
+</section>
+<section id="security-example">
 <h1>Security example<a class="headerlink" href="#security-example" title="Permalink to this headline">¶</a></h1>
 <p>We’ll consider security’s problem on the same network as the last
 example with the edge evasion probabilities modeled as
@@ -630,7 +630,7 @@ probability of the smuggler’s optimal path.</p>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
-           <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
+           <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
 <span class="o">-----------------------------------------------------------------</span>
@@ -691,7 +691,7 @@ that the optimal evasion probability is the same.</p>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
-           <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
+           <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
 <span class="o">-----------------------------------------------------------------</span>
@@ -728,7 +728,7 @@ again to recover an optimal path for the smuggler in the case that the
 path is not unique and plot it below. We again check that the detection
 probability is what we predicted previously.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">p</span><span class="p">)</span>
-<span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">path</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
 <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">p</span><span class="p">,</span><span class="n">path</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s optimal path is </span><span class="si">%e</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),))</span>
 </pre></div>
@@ -737,8 +737,8 @@ probability is what we predicted previously.</p>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="../../_images/interdiction_19_1.png"><img alt="../../_images/interdiction_19_1.png" src="../../_images/interdiction_19_1.png" style="width: 438px; height: 360px;" /></a>
-</div>
-<div class="section" id="guard-placement-example">
+</section>
+<section id="guard-placement-example">
 <h1>Guard placement example<a class="headerlink" href="#guard-placement-example" title="Permalink to this headline">¶</a></h1>
 <p>We can now go through a more advanced example.</p>
 <p>In the previous example, security had direct control over the evasion
@@ -756,7 +756,7 @@ region covered by the graph. The smuggler and security will have to work
 around the buildings. That is, no node is located inside a building, no
 edge crosses through a building, and guards can’t see through building
 walls, restricting their line-of-sight and effect on nearby edges.</p>
-<div class="section" id="multiple-sources-and-destinations">
+<section id="multiple-sources-and-destinations">
 <h2>Multiple sources and destinations<a class="headerlink" href="#multiple-sources-and-destinations" title="Permalink to this headline">¶</a></h2>
 <p>To allow for multiple source and destination nodes without changing the
 convex formulation, we’ll add a dummy source node and a dummy sink node.
@@ -768,15 +768,15 @@ dummy nodes or edges, but we will highlight the ‘new’ source and sink
 nodes with light green and red as before.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># show dummy source and destination node</span>
 <span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
-<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">Rnodes</span><span class="o">=</span><span class="p">[</span><span class="n">n</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">([</span><span class="o">-.</span><span class="mi">6</span><span class="p">,</span><span class="mf">1.6</span><span class="p">,</span><span class="o">-.</span><span class="mi">05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">]);</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">([</span><span class="o">-</span><span class="mf">.6</span><span class="p">,</span><span class="mf">1.6</span><span class="p">,</span><span class="o">-</span><span class="mf">.05</span><span class="p">,</span><span class="mf">1.05</span><span class="p">]);</span>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="../../_images/interdiction_21_0.png"><img alt="../../_images/interdiction_21_0.png" src="../../_images/interdiction_21_0.png" style="width: 469px; height: 350px;" /></a>
-</div>
-<div class="section" id="guards">
+</section>
+<section id="guards">
 <h2>Guards<a class="headerlink" href="#guards" title="Permalink to this headline">¶</a></h2>
 <p>The security team will select a subset of guards to place in the graph.
 Each guard will have a profile, which gives his effect on the edge
@@ -788,7 +788,7 @@ consider guards placed on node positions to make them easy to visualize.</p>
 shown below.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">k</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mf">1.2</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
 <span class="n">guardIdxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span><span class="n">k</span><span class="p">,</span><span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
@@ -804,20 +804,20 @@ shown below.</p>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="../../_images/interdiction_23_0.png"><img alt="../../_images/interdiction_23_0.png" src="../../_images/interdiction_23_0.png" style="width: 438px; height: 360px;" /></a>
-</div>
-<div class="section" id="buildings">
+</section>
+<section id="buildings">
 <h2>Buildings<a class="headerlink" href="#buildings" title="Permalink to this headline">¶</a></h2>
 <p>We’ll also add buildings, which will modify the graph topology and also
 restrict the view of the guards.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
 <span class="n">k</span> <span class="o">=</span> <span class="mi">5</span>
-<span class="n">buildings</span> <span class="o">=</span> <span class="p">[(</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span><span class="o">.</span><span class="mi">8</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
-             <span class="p">(</span><span class="o">.</span><span class="mi">35</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
-             <span class="p">(</span><span class="o">.</span><span class="mi">55</span><span class="p">,</span><span class="o">.</span><span class="mi">55</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
-             <span class="p">(</span><span class="o">.</span><span class="mi">15</span><span class="p">,</span><span class="o">.</span><span class="mi">35</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
-             <span class="p">(</span><span class="o">.</span><span class="mi">65</span><span class="p">,</span><span class="o">.</span><span class="mi">25</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">)]</span>
+<span class="n">buildings</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">.2</span><span class="p">,</span><span class="mf">.8</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
+             <span class="p">(</span><span class="mf">.35</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
+             <span class="p">(</span><span class="mf">.55</span><span class="p">,</span><span class="mf">.55</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
+             <span class="p">(</span><span class="mf">.15</span><span class="p">,</span><span class="mf">.35</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
+             <span class="p">(</span><span class="mf">.65</span><span class="p">,</span><span class="mf">.25</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">)]</span>
 
-<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="o">.</span><span class="mi">11</span><span class="p">,</span><span class="mf">1.25</span><span class="p">,</span><span class="n">buildings</span><span class="o">=</span><span class="n">buildings</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mf">.11</span><span class="p">,</span><span class="mf">1.25</span><span class="p">,</span><span class="n">buildings</span><span class="o">=</span><span class="n">buildings</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
 <span class="n">guardIdxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">)),</span><span class="n">k</span><span class="p">,</span><span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
 
@@ -832,21 +832,21 @@ restrict the view of the guards.</p>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">,</span><span class="n">visibleNodes</span><span class="o">=</span><span class="n">visibleNodes</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="n">Gnodes</span><span class="p">,</span><span class="n">Rnodes</span><span class="o">=</span><span class="n">Rnodes</span><span class="p">,</span><span class="n">guards</span><span class="o">=</span><span class="n">guardIdxs</span><span class="p">)</span>
 
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
-    <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=.</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">.3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="../../_images/interdiction_25_0.png"><img alt="../../_images/interdiction_25_0.png" src="../../_images/interdiction_25_0.png" style="width: 438px; height: 360px;" /></a>
-</div>
-</div>
-<div class="section" id="example-to-solve">
+</section>
+</section>
+<section id="example-to-solve">
 <h1>Example to solve<a class="headerlink" href="#example-to-solve" title="Permalink to this headline">¶</a></h1>
 <p>We’ll solve a larger example with buildings, guards, and multiple source
 and destination nodes. We’ll consider a guard at every interior node of
 the graph, and try to find a limited number, say 10, to secure the graph
 as well as possible.</p>
-</div>
-<div class="section" id="id1">
+</section>
+<section id="id1">
 <h1>TODO<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p>optimization formulation</p></li>
@@ -855,13 +855,13 @@ as well as possible.</p>
 <li><p>use relaxation to give bounds on distance to true optimal</p></li>
 </ul>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">17</span>
-<span class="n">buildings</span> <span class="o">=</span> <span class="p">[(</span><span class="o">.</span><span class="mi">2</span><span class="p">,</span><span class="o">.</span><span class="mi">8</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
-             <span class="p">(</span><span class="o">.</span><span class="mi">35</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
-             <span class="p">(</span><span class="o">.</span><span class="mi">55</span><span class="p">,</span><span class="o">.</span><span class="mi">55</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
-             <span class="p">(</span><span class="o">.</span><span class="mi">15</span><span class="p">,</span><span class="o">.</span><span class="mi">35</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">),</span>
-             <span class="p">(</span><span class="o">.</span><span class="mi">65</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">3</span><span class="p">,</span><span class="o">.</span><span class="mi">1</span><span class="p">)]</span>
+<span class="n">buildings</span> <span class="o">=</span> <span class="p">[(</span><span class="mf">.2</span><span class="p">,</span><span class="mf">.8</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
+             <span class="p">(</span><span class="mf">.35</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
+             <span class="p">(</span><span class="mf">.55</span><span class="p">,</span><span class="mf">.55</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
+             <span class="p">(</span><span class="mf">.15</span><span class="p">,</span><span class="mf">.35</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">),</span>
+             <span class="p">(</span><span class="mf">.65</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="mf">.1</span><span class="p">)]</span>
 
-<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="o">.</span><span class="mi">11</span><span class="p">,</span><span class="mf">1.25</span><span class="p">,</span><span class="n">buildings</span><span class="o">=</span><span class="n">buildings</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">G</span><span class="p">,</span> <span class="n">pos</span> <span class="o">=</span> <span class="n">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="mf">.11</span><span class="p">,</span><span class="mf">1.25</span><span class="p">,</span><span class="n">buildings</span><span class="o">=</span><span class="n">buildings</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">n</span> <span class="o">=</span> <span class="n">G</span><span class="o">.</span><span class="n">number_of_nodes</span><span class="p">()</span>
 <span class="n">guardIdxs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">n</span><span class="o">-</span><span class="n">N</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
 
@@ -878,7 +878,7 @@ as well as possible.</p>
 
 <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">((</span><span class="mi">16</span><span class="p">,</span><span class="mi">8</span><span class="p">))</span>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
-    <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=.</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">.3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -905,7 +905,7 @@ as well as possible.</p>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">-----------------------------------------------------------------</span>
-           <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
+           <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
 <span class="o">-----------------------------------------------------------------</span>
@@ -932,7 +932,7 @@ as well as possible.</p>
 <span class="n">optimal</span> <span class="n">rho</span> <span class="n">estimate</span><span class="p">:</span> <span class="mf">1.08e-02</span>
 
 <span class="o">-----------------------------------------------------------------</span>
-           <span class="n">OSQP</span> <span class="n">v0</span><span class="o">.</span><span class="mf">4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
+           <span class="n">OSQP</span> <span class="n">v0</span><span class="mf">.4.1</span>  <span class="o">-</span>  <span class="n">Operator</span> <span class="n">Splitting</span> <span class="n">QP</span> <span class="n">Solver</span>
               <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Bartolomeo</span> <span class="n">Stellato</span><span class="p">,</span>  <span class="n">Goran</span> <span class="n">Banjac</span>
         <span class="n">University</span> <span class="n">of</span> <span class="n">Oxford</span>  <span class="o">-</span>  <span class="n">Stanford</span> <span class="n">University</span> <span class="mi">2018</span>
 <span class="o">-----------------------------------------------------------------</span>
@@ -975,21 +975,21 @@ as well as possible.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c</span> <span class="o">=</span> <span class="n">edgeVals</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
 <span class="n">edgeProbs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
 
-<span class="n">guards</span> <span class="o">=</span> <span class="p">[</span><span class="n">guardIdxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">guardIdxs</span><span class="p">))</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">5</span><span class="p">]</span>
+<span class="n">guards</span> <span class="o">=</span> <span class="p">[</span><span class="n">guardIdxs</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">guardIdxs</span><span class="p">))</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">.5</span><span class="p">]</span>
 
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">,</span><span class="n">visibleNodes</span><span class="o">=</span><span class="n">visibleNodes</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="n">Gnodes</span><span class="p">,</span><span class="n">Rnodes</span><span class="o">=</span><span class="n">Rnodes</span><span class="p">,</span><span class="n">guards</span><span class="o">=</span><span class="n">guards</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
-    <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=.</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">.3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="../../_images/interdiction_31_0.png"><img alt="../../_images/interdiction_31_0.png" src="../../_images/interdiction_31_0.png" style="width: 438px; height: 360px;" /></a>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">)</span>
-<span class="n">path_inds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="o">.</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">path_inds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">flatnonzero</span><span class="p">(</span><span class="n">x</span> <span class="o">&gt;</span> <span class="mf">.1</span><span class="p">))</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">edgeProbs</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="n">path_inds</span><span class="p">,</span><span class="n">visibleNodes</span><span class="o">=</span><span class="n">visibleNodes</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="n">Gnodes</span><span class="p">,</span><span class="n">Rnodes</span><span class="o">=</span><span class="n">Rnodes</span><span class="p">,</span><span class="n">guards</span><span class="o">=</span><span class="n">guards</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The evasion probability of the smuggler&#39;s optimal path is </span><span class="si">%e</span><span class="s2">.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">c</span><span class="p">)),))</span>
 <span class="k">for</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">w</span><span class="p">,</span><span class="n">h</span> <span class="ow">in</span> <span class="n">buildings</span><span class="p">:</span>
-    <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=.</span><span class="mi">3</span><span class="p">)</span>
+    <span class="n">rect</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">),</span><span class="n">w</span><span class="p">,</span><span class="n">h</span><span class="p">,</span><span class="n">fc</span><span class="o">=</span><span class="s1">&#39;y&#39;</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="mf">.3</span><span class="p">)</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">rect</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -997,7 +997,7 @@ as well as possible.</p>
 </pre></div>
 </div>
 <a class="reference internal image-reference" href="../../_images/interdiction_32_1.png"><img alt="../../_images/interdiction_32_1.png" src="../../_images/interdiction_32_1.png" style="width: 438px; height: 360px;" /></a>
-</div>
+</section>
 
 
           </div>
@@ -1062,12 +1062,30 @@ as well as possible.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1076,7 +1094,7 @@ as well as possible.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

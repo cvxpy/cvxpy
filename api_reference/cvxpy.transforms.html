@@ -4,16 +4,15 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Transforms &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Transforms &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="FAQ" href="../faq/index.html" />
@@ -34,20 +33,20 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="transforms">
+  <section id="transforms">
 <span id="transforms-api"></span><h1>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h1>
 <p>Transforms provide additional ways of manipulating CVXPY objects
 beyond the atomic functions.
 While atomic functions operate only on expressions,
 transforms may also take Problem, Objective, or Constraint objects as input.</p>
-<div class="section" id="scalarize">
+<section id="scalarize">
 <h2>Scalarize<a class="headerlink" href="#scalarize" title="Permalink to this headline">¶</a></h2>
 <p>The <em>scalarize</em> transforms convert a list of objectives into a single objective,
 for example a weighted sum. All scalarizations are monotone in each objective, which means that optimizing over the scalarized objective always returns a Pareto-optimal point with respect to the original list of objectives.
 Moreover, all points on the Pareto curve except for boundary points can be attained given some weighting of the objectives.</p>
 <dl class="py method">
-<dt id="cvxpy.transforms.scalarize.weighted_sum">
-<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">weighted_sum</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><span class="p">, </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize">cvxpy.problems.objective.Maximize</a><span class="p">]</span><a class="headerlink" href="#cvxpy.transforms.scalarize.weighted_sum" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cvxpy.transforms.scalarize.weighted_sum">
+<span class="sig-prename descclassname"><span class="pre">scalarize.</span></span><span class="sig-name descname"><span class="pre">weighted_sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize"><span class="pre">cvxpy.problems.objective.Minimize</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize"><span class="pre">cvxpy.problems.objective.Maximize</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#cvxpy.transforms.scalarize.weighted_sum" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives as a weighted sum.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -63,8 +62,8 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 </dd></dl>
 
 <dl class="py method">
-<dt id="cvxpy.transforms.scalarize.max">
-<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">max</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><a class="headerlink" href="#cvxpy.transforms.scalarize.max" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cvxpy.transforms.scalarize.max">
+<span class="sig-prename descclassname"><span class="pre">scalarize.</span></span><span class="sig-name descname"><span class="pre">max</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize"><span class="pre">cvxpy.problems.objective.Minimize</span></a></span></span><a class="headerlink" href="#cvxpy.transforms.scalarize.max" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives as max of weighted terms.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -80,8 +79,8 @@ Moreover, all points on the Pareto curve except for boundary points can be attai
 </dd></dl>
 
 <dl class="py method">
-<dt id="cvxpy.transforms.scalarize.log_sum_exp">
-<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">log_sum_exp</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">weights</span></em>, <em class="sig-param"><span class="n">gamma</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1.0</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><a class="headerlink" href="#cvxpy.transforms.scalarize.log_sum_exp" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cvxpy.transforms.scalarize.log_sum_exp">
+<span class="sig-prename descclassname"><span class="pre">scalarize.</span></span><span class="sig-name descname"><span class="pre">log_sum_exp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize"><span class="pre">cvxpy.problems.objective.Minimize</span></a></span></span><a class="headerlink" href="#cvxpy.transforms.scalarize.log_sum_exp" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives as log_sum_exp of weighted terms.</p>
 <dl class="simple">
 <dt>The objective takes the form</dt><dd><p>log(sum_{i=1}^n exp(gamma*weights[i]*objectives[i]))/gamma</p>
@@ -104,8 +103,8 @@ log_sum_exp approaches max.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cvxpy.transforms.scalarize.targets_and_priorities">
-<code class="sig-prename descclassname">scalarize.</code><code class="sig-name descname">targets_and_priorities</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">priorities</span></em>, <em class="sig-param"><span class="n">targets</span></em>, <em class="sig-param"><span class="n">limits</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">off_target</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">1e-05</span></em><span class="sig-paren">)</span> &#x2192; Union<span class="p">[</span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize">cvxpy.problems.objective.Minimize</a><span class="p">, </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize">cvxpy.problems.objective.Maximize</a><span class="p">]</span><a class="headerlink" href="#cvxpy.transforms.scalarize.targets_and_priorities" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cvxpy.transforms.scalarize.targets_and_priorities">
+<span class="sig-prename descclassname"><span class="pre">scalarize.</span></span><span class="sig-name descname"><span class="pre">targets_and_priorities</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">priorities</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limits</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">off_target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1e-05</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Minimize" title="cvxpy.problems.objective.Minimize"><span class="pre">cvxpy.problems.objective.Minimize</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.objective.Maximize" title="cvxpy.problems.objective.Maximize"><span class="pre">cvxpy.problems.objective.Maximize</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#cvxpy.transforms.scalarize.targets_and_priorities" title="Permalink to this definition">¶</a></dt>
 <dd><p>Combines objectives with penalties within a range between target and limit.</p>
 <p>Each Minimize objective i has value</p>
 <blockquote>
@@ -133,13 +132,13 @@ log_sum_exp approaches max.</p>
 </dl>
 </dd></dl>
 
-</div>
-<div class="section" id="other">
+</section>
+<section id="other">
 <h2>Other<a class="headerlink" href="#other" title="Permalink to this headline">¶</a></h2>
 <p>Here we list other available transforms.</p>
 <dl class="py class">
-<dt id="cvxpy.transforms.indicator">
-<em class="property">class </em><code class="sig-prename descclassname">cvxpy.transforms.</code><code class="sig-name descname">indicator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">constraints</span><span class="p">:</span> <span class="n">List<span class="p">[</span><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint">cvxpy.constraints.constraint.Constraint</a><span class="p">]</span></span></em>, <em class="sig-param"><span class="n">err_tol</span><span class="p">:</span> <span class="n">float</span> <span class="o">=</span> <span class="default_value">0.001</span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/transforms/indicator.html#indicator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#cvxpy.transforms.indicator" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cvxpy.transforms.indicator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.transforms.</span></span><span class="sig-name descname"><span class="pre">indicator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">constraints</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="cvxpy.constraints.html#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><span class="pre">cvxpy.constraints.constraint.Constraint</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">err_tol</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.001</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/transforms/indicator.html#indicator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.transforms.indicator" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="simple">
 <dt>An expression representing the convex function I(constraints) = 0</dt><dd><p>if constraints hold, +infty otherwise.</p>
 </dd>
@@ -147,7 +146,7 @@ log_sum_exp approaches max.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>constraints</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code>) – A list of constraint objects.</p></li>
+<li><p><strong>constraints</strong> (<em>list</em>) – A list of constraint objects.</p></li>
 <li><p><strong>err_tol</strong> – A numeric tolerance for determining whether the constraints hold.</p></li>
 </ul>
 </dd>
@@ -155,8 +154,8 @@ log_sum_exp approaches max.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cvxpy.transforms.linearize">
-<code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">linearize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.linearize" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cvxpy.transforms.linearize">
+<span class="sig-prename descclassname"><span class="pre">transforms.</span></span><span class="sig-name descname"><span class="pre">linearize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.linearize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an affine approximation to the expression computed at the variable/parameter values.</p>
 <p>Gives an elementwise lower (upper) bound for convex (concave)
 expressions that is tight at the current variable/parameter values.
@@ -179,8 +178,8 @@ the implementation below of the convex-concave method:</p>
 </dd></dl>
 
 <dl class="py method">
-<dt id="cvxpy.transforms.partial_optimize">
-<code class="sig-prename descclassname">transforms.</code><code class="sig-name descname">partial_optimize</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.partial_optimize" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="cvxpy.transforms.partial_optimize">
+<span class="sig-prename descclassname"><span class="pre">transforms.</span></span><span class="sig-name descname"><span class="pre">partial_optimize</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.transforms.partial_optimize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Copyright 2013 Steven Diamond</p>
 <p>Licensed under the Apache License, Version 2.0 (the “License”);
 you may not use this file except in compliance with the License.
@@ -195,8 +194,8 @@ See the License for the specific language governing permissions and
 limitations under the License.</p>
 </dd></dl>
 
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -273,12 +272,30 @@ limitations under the License.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -287,7 +304,7 @@ limitations under the License.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Queuing design &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Queuing design &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="queuing-design">
+  <section id="queuing-design">
 <h1>Queuing design<a class="headerlink" href="#queuing-design" title="Permalink to this headline">¶</a></h1>
 <p>In this example, we consider the design of an <span class="math notranslate nohighlight">\(M/M/N\)</span> queuing
 system, and we study the sensitivity of the design with respect to
@@ -112,49 +112,49 @@ not posynomials, but they are log-log convex; log-log convexity of
 and the ratio <span class="math notranslate nohighlight">\((x, y) \mapsto x/y\)</span> is log-log affine and
 decreasing in <span class="math notranslate nohighlight">\(y\)</span>. By a similar argument, <span class="math notranslate nohighlight">\(q\)</span> is also
 log-log convex.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">time</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import cvxpy as cp
+import numpy as np
+import time
 
 
-<span class="n">mu</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mu&#39;</span><span class="p">)</span>
-<span class="n">lam</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lambda&#39;</span><span class="p">)</span>
-<span class="n">ell</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;ell&#39;</span><span class="p">)</span>
+mu = cp.Variable(pos=True, shape=(2,), name=&#39;mu&#39;)
+lam = cp.Variable(pos=True, shape=(2,), name=&#39;lambda&#39;)
+ell = cp.Variable(pos=True, shape=(2,), name=&#39;ell&#39;)
 
-<span class="n">w_max</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="n">value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;w_max&#39;</span><span class="p">)</span>
-<span class="n">d_max</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="n">value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.</span><span class="p">,</span> <span class="mf">2.</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;d_max&#39;</span><span class="p">)</span>
-<span class="n">q_max</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="n">value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">4.</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;q_max&#39;</span><span class="p">)</span>
-<span class="n">lam_min</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="n">value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.8</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;lambda_min&#39;</span><span class="p">)</span>
-<span class="n">mu_max</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">3.0</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;mu_max&#39;</span><span class="p">)</span>
-<span class="n">gamma</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Parameter</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,),</span> <span class="n">value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">]),</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;gamma&#39;</span><span class="p">)</span>
+w_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2.5, 3.0]), name=&#39;w_max&#39;)
+d_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2., 2.]), name=&#39;d_max&#39;)
+q_max = cp.Parameter(pos=True, shape=(2,), value=np.array([4., 5.0]), name=&#39;q_max&#39;)
+lam_min = cp.Parameter(pos=True, shape=(2,), value=np.array([0.5, 0.8]), name=&#39;lambda_min&#39;)
+mu_max = cp.Parameter(pos=True, value=3.0, name=&#39;mu_max&#39;)
+gamma = cp.Parameter(pos=True, shape=(2,), value=np.array([1.0, 2.0]), name=&#39;gamma&#39;)
 
-<span class="n">lq</span> <span class="o">=</span> <span class="p">(</span><span class="n">ell</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">/</span><span class="n">cp</span><span class="o">.</span><span class="n">one_minus_pos</span><span class="p">(</span><span class="n">ell</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-<span class="n">q</span> <span class="o">=</span> <span class="n">lq</span>
-<span class="n">w</span> <span class="o">=</span> <span class="n">lq</span><span class="o">/</span><span class="n">lam</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="n">mu</span>
-<span class="n">d</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">cp</span><span class="o">.</span><span class="n">diff_pos</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">lam</span><span class="p">)</span>
+lq = (ell)**(-2)/cp.one_minus_pos(ell**(-1))
+q = lq
+w = lq/lam + 1/mu
+d = 1/cp.diff_pos(mu, lam)
 
-<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">w</span> <span class="o">&lt;=</span> <span class="n">w_max</span><span class="p">,</span>
-    <span class="n">d</span> <span class="o">&lt;=</span> <span class="n">d_max</span><span class="p">,</span>
-    <span class="n">q</span> <span class="o">&lt;=</span> <span class="n">q_max</span><span class="p">,</span>
-    <span class="n">lam</span> <span class="o">&gt;=</span> <span class="n">lam_min</span><span class="p">,</span>
-    <span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">mu</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">mu_max</span><span class="p">,</span>
-    <span class="n">ell</span> <span class="o">==</span> <span class="n">mu</span><span class="o">/</span><span class="n">lam</span><span class="p">,</span>
-<span class="p">]</span>
+constraints = [
+    w &lt;= w_max,
+    d &lt;= d_max,
+    q &lt;= q_max,
+    lam &gt;= lam_min,
+    cp.sum(mu) &lt;= mu_max,
+    ell == mu/lam,
+]
 
-<span class="n">objective_fn</span> <span class="o">=</span> <span class="n">gamma</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">ell</span>
+objective_fn = gamma.T @ ell
 
-<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">)</span>
+problem = cp.Problem(cp.Minimize(objective_fn), constraints)
+problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">4.457106781186705</span>
 </pre></div>
 </div>
 <p>The solution is printed below.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mu &#39;</span><span class="p">,</span> <span class="n">mu</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;lam &#39;</span><span class="p">,</span> <span class="n">lam</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;ell &#39;</span><span class="p">,</span> <span class="n">ell</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(&#39;mu &#39;, mu.value)
+print(&#39;lam &#39;, lam.value)
+print(&#39;ell &#39;, ell.value)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mu</span>  <span class="p">[</span><span class="mf">1.32842713</span> <span class="mf">1.67157287</span><span class="p">]</span>
@@ -162,37 +162,37 @@ log-log convex.</p>
 <span class="n">ell</span>  <span class="p">[</span><span class="mf">1.60355339</span> <span class="mf">1.4267767</span> <span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="sensitvities">
+<section id="sensitvities">
 <h2>Sensitvities<a class="headerlink" href="#sensitvities" title="Permalink to this headline">¶</a></h2>
 <p>We compute the derivative of each variable with respect the parameters.
 One takeaway is that the solution is highly sensitive to the values of
 <span class="math notranslate nohighlight">\(d_{\max}\)</span> and <span class="math notranslate nohighlight">\(\mu_{\max}\)</span>, and that increasing these
 parameters would decrease the service loads, especially on the first
 queue.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
 
-<span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="p">[</span><span class="n">lam</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">ell</span><span class="p">]:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Variable &#39;</span><span class="p">,</span> <span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">())</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Gradient with respect to first component&#39;</span><span class="p">)</span>
-    <span class="n">var</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">])</span>
-    <span class="n">problem</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">: </span><span class="si">{1:.3g}</span><span class="s1">, </span><span class="si">{2:.3g}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">param</span><span class="o">.</span><span class="n">gradient</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">param</span><span class="o">.</span><span class="n">gradient</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">: </span><span class="si">{1:.3g}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">param</span><span class="o">.</span><span class="n">gradient</span><span class="p">))</span>
+for var in [lam, mu, ell]:
+    print(&#39;Variable &#39;, var.name())
+    print(&#39;Gradient with respect to first component&#39;)
+    var.gradient = np.array([1., 0.])
+    problem.backward()
+    for param in problem.parameters():
+        if np.prod(param.shape) == 2:
+            print(&#39;{0}: {1:.3g}, {2:.3g}&#39;.format(param.name(), param.gradient[0], param.gradient[1]))
+        else:
+            print(&#39;{0}: {1:.3g}&#39;.format(param.name(), param.gradient))
 
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Gradient with respect to second component&#39;</span><span class="p">)</span>
-    <span class="n">var</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">1.</span><span class="p">])</span>
-    <span class="n">problem</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">: </span><span class="si">{1:.3g}</span><span class="s1">, </span><span class="si">{2:.3g}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">param</span><span class="o">.</span><span class="n">gradient</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">param</span><span class="o">.</span><span class="n">gradient</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">: </span><span class="si">{1:.3g}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">name</span><span class="p">(),</span> <span class="n">param</span><span class="o">.</span><span class="n">gradient</span><span class="p">))</span>
+    print(&#39;Gradient with respect to second component&#39;)
+    var.gradient = np.array([0., 1.])
+    problem.backward()
+    for param in problem.parameters():
+        if np.prod(param.shape) == 2:
+            print(&#39;{0}: {1:.3g}, {2:.3g}&#39;.format(param.name(), param.gradient[0], param.gradient[1]))
+        else:
+            print(&#39;{0}: {1:.3g}&#39;.format(param.name(), param.gradient))
 
-    <span class="n">var</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+    var.gradient = np.zeros(2)
+    print(&#39;&#39;)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Variable</span>  <span class="k">lambda</span>
@@ -244,39 +244,39 @@ queue.</p>
 <span class="n">mu_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.197</span>
 </pre></div>
 </div>
-<div class="section" id="perturbation-analysis">
+<section id="perturbation-analysis">
 <h3>Perturbation analysis<a class="headerlink" href="#perturbation-analysis" title="Permalink to this headline">¶</a></h3>
 <p>Next, we perturb each parameter by a small amount, and compare the
 prediction of a first-order approximation to the solution of the
 perturbed problem to the true solution.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">requires_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;dense&#39;</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
 
-<span class="n">mu_value</span> <span class="o">=</span> <span class="n">mu</span><span class="o">.</span><span class="n">value</span>
-<span class="n">lam_value</span> <span class="o">=</span> <span class="n">lam</span><span class="o">.</span><span class="n">value</span>
+mu_value = mu.value
+lam_value = lam.value
 
-<span class="n">delta</span> <span class="o">=</span> <span class="mf">0.01</span>
-<span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-    <span class="n">param</span><span class="o">.</span><span class="n">delta</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="o">*</span> <span class="n">delta</span>
+delta = 0.01
+for param in problem.parameters():
+    param.delta = param.value * delta
 
-<span class="n">problem</span><span class="o">.</span><span class="n">derivative</span><span class="p">()</span>
+problem.derivative()
 
-<span class="n">lam_pred</span> <span class="o">=</span> <span class="p">(</span><span class="n">lam</span><span class="o">.</span><span class="n">delta</span> <span class="o">/</span> <span class="n">lam_value</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
-<span class="n">mu_pred</span> <span class="o">=</span> <span class="p">(</span><span class="n">mu</span><span class="o">.</span><span class="n">delta</span> <span class="o">/</span> <span class="n">mu_value</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+lam_pred = (lam.delta / lam_value) * 100
+mu_pred = (mu.delta / mu_value) * 100
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;lam predicted (percent change): &#39;</span><span class="p">,</span> <span class="n">lam_pred</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mu predicted (percent change): &#39;</span><span class="p">,</span> <span class="n">mu_pred</span><span class="p">)</span>
+print(&#39;lam predicted (percent change): &#39;, lam_pred)
+print(&#39;mu predicted (percent change): &#39;, mu_pred)
 
 
-<span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">():</span>
-    <span class="n">param</span><span class="o">.</span><span class="n">_old_value</span> <span class="o">=</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span>
-    <span class="n">param</span><span class="o">.</span><span class="n">value</span> <span class="o">+=</span> <span class="n">param</span><span class="o">.</span><span class="n">delta</span>
-<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eps</span><span class="o">=</span><span class="mf">1e-14</span><span class="p">,</span> <span class="n">max_iters</span><span class="o">=</span><span class="mi">10000</span><span class="p">)</span>
+for param in problem.parameters():
+    param._old_value = param.value
+    param.value += param.delta
+problem.solve(cp.SCS, gp=True, eps=1e-14, max_iters=10000)
 
-<span class="n">lam_actual</span> <span class="o">=</span> <span class="p">((</span><span class="n">lam</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">lam_value</span><span class="p">)</span> <span class="o">/</span> <span class="n">lam_value</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
-<span class="n">mu_actual</span> <span class="o">=</span> <span class="p">((</span><span class="n">mu</span><span class="o">.</span><span class="n">value</span> <span class="o">-</span> <span class="n">mu_value</span><span class="p">)</span> <span class="o">/</span> <span class="n">mu_value</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span>
+lam_actual = ((lam.value - lam_value) / lam_value) * 100
+mu_actual = ((mu.value - mu_value) / mu_value) * 100
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;lam actual (percent change): &#39;</span><span class="p">,</span> <span class="n">lam_actual</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;mu actual (percent change): &#39;</span><span class="p">,</span> <span class="n">mu_actual</span><span class="p">)</span>
+print(&#39;lam actual (percent change): &#39;, lam_actual)
+print(&#39;mu actual (percent change): &#39;, mu_actual)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lam</span> <span class="n">predicted</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">2.32203282</span> <span class="mf">1.77228841</span><span class="p">]</span>
@@ -285,9 +285,9 @@ perturbed problem to the true solution.</p>
 <span class="n">mu</span> <span class="n">actual</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">0.87148458</span> <span class="mf">1.10213353</span><span class="p">]</span>
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -352,12 +352,30 @@ perturbed problem to the true solution.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -366,7 +384,7 @@ perturbed problem to the true solution.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

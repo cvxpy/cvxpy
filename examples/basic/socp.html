@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Second-order cone program &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Second-order cone program &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="second-order-cone-program">
+  <section id="second-order-cone-program">
 <h1>Second-order cone program<a class="headerlink" href="#second-order-cone-program" title="Permalink to this headline">¶</a></h1>
 <p>A second-order cone program (SOCP) is an optimization problem of the
 form</p>
@@ -67,7 +67,7 @@ second-order cone constraint. A non-zero <span class="math notranslate nohighlig
 indicates that the constraint <span class="math notranslate nohighlight">\(\|A_ix + b_i\|_2 \leq c_i^Tx + d_i\)</span>
 holds with equality for <span class="math notranslate nohighlight">\(x^\star\)</span> and suggests that
 changing <span class="math notranslate nohighlight">\(d_i\)</span> would change the optimal value.</p>
-<div class="section" id="example">
+<section id="example">
 <h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
 <p>In the following code, we solve a SOCP with CVXPY.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
@@ -125,8 +125,8 @@ changing <span class="math notranslate nohighlight">\(d_i\)</span> would change 
 <span class="p">[</span> <span class="mf">0.86510445</span> <span class="o">-</span><span class="mf">0.114638</span>   <span class="o">-</span><span class="mf">0.449291</span>    <span class="mf">0.37810251</span> <span class="o">-</span><span class="mf">0.6144058</span>  <span class="o">-</span><span class="mf">0.11377797</span><span class="p">]</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -191,12 +191,30 @@ changing <span class="math notranslate nohighlight">\(d_i\)</span> would change 
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -205,7 +223,7 @@ changing <span class="math notranslate nohighlight">\(d_i\)</span> would change 
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Fault detection &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Fault detection &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,12 +32,12 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="fault-detection">
+  <section id="fault-detection">
 <h1>Fault detection<a class="headerlink" href="#fault-detection" title="Permalink to this headline">¶</a></h1>
 <p>We’ll consider a problem of identifying faults that have occurred in a
 system based on sensor measurements of system performance.</p>
-</div>
-<div class="section" id="topic-references">
+</section>
+<section id="topic-references">
 <h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this headline">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference external" href="http://web.stanford.edu/~boyd/papers/pdf/map_bounds.pdf">Samar, Sikandar, Dimitry Gorinevsky, and Stephen Boyd. “Likelihood
@@ -46,8 +46,8 @@ Control, 2005 and 2005 European Control Conference. CDC-ECC’05. 44th
 IEEE Conference on. IEEE,
 2005.</a></p></li>
 </ul>
-</div>
-<div class="section" id="problem-statement">
+</section>
+<section id="problem-statement">
 <h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this headline">¶</a></h1>
 <p>Each of <span class="math notranslate nohighlight">\(n\)</span> possible faults occurs independently with probability
 <span class="math notranslate nohighlight">\(p\)</span>. The vector <span class="math notranslate nohighlight">\(x \in \lbrace 0,1 \rbrace^{n}\)</span> encodes the
@@ -68,8 +68,8 @@ Gaussian with mean 0 and variance <span class="math notranslate nohighlight">\(\
 have more possible faults than measurements. In this setting, we can
 expect a good recovery when the vector <span class="math notranslate nohighlight">\(x\)</span> is sparse. This is the
 subject of compressed sensing.</p>
-</div>
-<div class="section" id="solution-approach">
+</section>
+<section id="solution-approach">
 <h1>Solution approach<a class="headerlink" href="#solution-approach" title="Permalink to this headline">¶</a></h1>
 <p>To identify the faults, one reasonable approach is to choose
 <span class="math notranslate nohighlight">\(x \in \lbrace 0,1 \rbrace^{n}\)</span> to minimize the negative
@@ -93,8 +93,8 @@ instead constrain <span class="math notranslate nohighlight">\(x_i \in [0,1]\)</
 <p>By taking the relaxed ML estimate of <span class="math notranslate nohighlight">\(x\)</span> and rounding the entries
 to the nearest of 0 or 1, we recover a Boolean estimate of the fault
 occurrences.</p>
-</div>
-<div class="section" id="example">
+</section>
+<section id="example">
 <h1>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h1>
 <p>We’ll generate an example with <span class="math notranslate nohighlight">\(n = 2000\)</span> possible faults,
 <span class="math notranslate nohighlight">\(m = 200\)</span> measurements, and fault probability <span class="math notranslate nohighlight">\(p = 0.01\)</span>.
@@ -139,8 +139,8 @@ That is,</p>
 </pre></div>
 </div>
 <img alt="../../_images/fault_detection_4_1.png" src="../../_images/fault_detection_4_1.png" />
-</div>
-<div class="section" id="recovery">
+</section>
+<section id="recovery">
 <h1>Recovery<a class="headerlink" href="#recovery" title="Permalink to this headline">¶</a></h1>
 <p>We solve the relaxed maximum likelihood problem with CVXPY and then
 round the result to get a Boolean solution.</p>
@@ -157,10 +157,10 @@ round the result to get a Boolean solution.</p>
 <span class="n">x_rml</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
 
 <span class="c1"># rounded solution</span>
-<span class="n">x_rnd</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_rml</span> <span class="o">&gt;=</span> <span class="o">.</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+<span class="n">x_rnd</span> <span class="o">=</span> <span class="p">(</span><span class="n">x_rml</span> <span class="o">&gt;=</span> <span class="mf">.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">2.0</span><span class="o">.</span><span class="mi">4</span> <span class="o">-</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="n">embotech</span> <span class="n">GmbH</span><span class="p">,</span> <span class="n">Zurich</span> <span class="n">Switzerland</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">15.</span> <span class="n">Web</span><span class="p">:</span> <span class="n">www</span><span class="o">.</span><span class="n">embotech</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ECOS</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">2.0.4</span> <span class="o">-</span> <span class="p">(</span><span class="n">C</span><span class="p">)</span> <span class="n">embotech</span> <span class="n">GmbH</span><span class="p">,</span> <span class="n">Zurich</span> <span class="n">Switzerland</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">15.</span> <span class="n">Web</span><span class="p">:</span> <span class="n">www</span><span class="o">.</span><span class="n">embotech</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">ECOS</span>
 
 <span class="n">It</span>     <span class="n">pcost</span>       <span class="n">dcost</span>      <span class="n">gap</span>   <span class="n">pres</span>   <span class="n">dres</span>    <span class="n">k</span><span class="o">/</span><span class="n">t</span>    <span class="n">mu</span>     <span class="n">step</span>   <span class="n">sigma</span>     <span class="n">IR</span>    <span class="o">|</span>   <span class="n">BT</span>
  <span class="mi">0</span>  <span class="o">+</span><span class="mf">7.343e+03</span>  <span class="o">-</span><span class="mf">3.862e+03</span>  <span class="o">+</span><span class="mf">5e+04</span>  <span class="mf">5e-01</span>  <span class="mf">5e-04</span>  <span class="mf">1e+00</span>  <span class="mf">1e+01</span>    <span class="o">---</span>    <span class="o">---</span>    <span class="mi">1</span>  <span class="mi">1</span>  <span class="o">-</span> <span class="o">|</span>  <span class="o">-</span>  <span class="o">-</span>
@@ -195,15 +195,15 @@ round the result to get a Boolean solution.</p>
 <span class="n">Wall</span> <span class="n">time</span><span class="p">:</span> <span class="mf">7.5</span> <span class="n">s</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="evaluation">
+</section>
+<section id="evaluation">
 <h1>Evaluation<a class="headerlink" href="#evaluation" title="Permalink to this headline">¶</a></h1>
 <p>We define a function for computing the estimation errors, and a function
 for plotting <span class="math notranslate nohighlight">\(x\)</span>, the relaxed ML estimate, and the rounded
 solutions.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
 
-<span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=.</span><span class="mi">5</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">errors</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="mf">.5</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Return estimation errors.</span>
 
 <span class="sd">    Return the true number of faults, the number of false positives, and the number of false negatives.</span>
@@ -233,7 +233,7 @@ solutions.</p>
     <span class="k">if</span> <span class="n">filename</span><span class="p">:</span>
         <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="s1">&#39;tight&#39;</span><span class="p">)</span>
 
-    <span class="k">return</span> <span class="n">errors</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x_rml</span><span class="p">,</span><span class="o">.</span><span class="mi">5</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">errors</span><span class="p">(</span><span class="n">x_true</span><span class="p">,</span> <span class="n">x_rml</span><span class="p">,</span><span class="mf">.5</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We see that out of 20 actual faults, the rounded solution gives perfect
@@ -245,7 +245,7 @@ recovery with 0 false negatives and 0 false positives.</p>
 </pre></div>
 </div>
 <img alt="../../_images/fault_detection_10_1.png" src="../../_images/fault_detection_10_1.png" />
-</div>
+</section>
 
 
           </div>
@@ -310,12 +310,30 @@ recovery with 0 false negatives and 0 false positives.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -324,7 +342,7 @@ recovery with 0 false negatives and 0 false positives.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,18 +4,17 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta content="An open source Python-embedded modeling language for convex optimization problems. Express your problem in a natural way that follows the math." name="description" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+<meta content="An open source Python-embedded modeling language for convex optimization problems. Express your problem in a natural way that follows the math." name="description" />
 <meta content="convex optimization, open source, software," name="keywords" />
 
-    <title>Welcome to CVXPY 1.1 &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <title>Welcome to CVXPY 1.1 &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/cvxpy_alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
     <script src="_static/jquery.js"></script>
     <script src="_static/underscore.js"></script>
     <script src="_static/doctools.js"></script>
-    <script src="_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Install" href="install/index.html" />
@@ -35,7 +34,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="welcome-to-cvxpy-1-1">
+  <section id="welcome-to-cvxpy-1-1">
 <h1>Welcome to CVXPY 1.1<a class="headerlink" href="#welcome-to-cvxpy-1-1" title="Permalink to this headline">¶</a></h1>
 <p><strong>Convex optimization, for everyone.</strong></p>
 <p><em>We are building a CVXPY community</em> <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>. <em>Join the conversation!</em></p>
@@ -90,16 +89,20 @@ engineers, and students from all over the world. We welcome you to join us!</p>
 researchers and engineers.</p>
 <p>CVXPY is developed and maintained by
 <a class="reference external" href="https://stevendiamond.me/">Steven Diamond</a>,
-<a class="reference external" href="https://akshayagrawal.com">Akshay Agrawal</a>, and
-<a class="reference external" href="https://rileyjmurray.wordpress.com/">Riley Murray</a>, with many others contributing
+<a class="reference external" href="https://akshayagrawal.com">Akshay Agrawal</a>,
+<a class="reference external" href="https://rileyjmurray.wordpress.com/">Riley Murray</a>, and
+<a class="reference external" href="https://stellato.io/">Bartolomeo Stellato</a> with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
-years includes Stephen Boyd, Eric Chu, Robin Verschueren, Bartolomeo Stellato,
+years includes Stephen Boyd, Eric Chu, Robin Verschueren,
 Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris
 Dembia, and Philipp Schiele.</p>
 <p>We appreciate all contributions. To get involved, see our <a class="reference internal" href="contributing/index.html"><span class="doc">contributing
 guide</span></a> and join us <a class="reference external" href="https://discord.gg/4urRQeGBCr">on Discord</a>.</p>
 <p><strong>News.</strong></p>
 <ul class="simple">
+<li><p>CVXPY started moving to semantic versioning in early 2022. Starting in March 2022 we will
+only update CVXPY 1.1 for bugfix purposes, and we will release minor versions (e.g., 1.2, 1.3)
+much more often.</p></li>
 <li><p>CVXPY v1.1.0 has been released. This version makes
 repeatedly canonicalizing <a class="reference internal" href="tutorial/advanced/index.html#dpp"><span class="std std-ref">parametrized problems</span></a> much faster than before,
 allows <a class="reference internal" href="tutorial/advanced/index.html#derivatives"><span class="std std-ref">differentiating the map</span></a> from parameters to optimal solutions, and introduces
@@ -127,7 +130,7 @@ some new atoms. See <a class="reference internal" href="updates/index.html#updat
 </div>
 <div class="toctree-wrapper compound">
 </div>
-</div>
+</section>
 
 
           </div>
@@ -192,12 +195,30 @@ some new atoms. See <a class="reference internal" href="updates/index.html#updat
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -206,7 +227,7 @@ some new atoms. See <a class="reference internal" href="updates/index.html#updat
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

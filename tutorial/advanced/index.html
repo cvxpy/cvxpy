@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Advanced Features &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Advanced Features &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Examples" href="../../examples/index.html" />
@@ -34,10 +34,10 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="advanced-features">
+  <section id="advanced-features">
 <span id="advanced"></span><h1>Advanced Features<a class="headerlink" href="#advanced-features" title="Permalink to this headline">¶</a></h1>
 <p>This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend <a class="reference external" href="http://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.</p>
-<div class="section" id="dual-variables">
+<section id="dual-variables">
 <h2>Dual variables<a class="headerlink" href="#dual-variables" title="Permalink to this headline">¶</a></h2>
 <p>You can use CVXPY to find the optimal dual variables for a problem. When you call <code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> each dual variable in the solution is stored in the <code class="docutils literal notranslate"><span class="pre">dual_value</span></code> field of the constraint it corresponds to.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
@@ -70,8 +70,8 @@
 </pre></div>
 </div>
 <p>The dual variable for <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code> is 2. By complementarity this implies that <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span></code> is 1, which we can see is true. The fact that the dual variable is non-zero also tells us that if we tighten <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">-</span> <span class="pre">y</span> <span class="pre">&gt;=</span> <span class="pre">1</span></code>, (i.e., increase the right-hand side), the optimal value of the problem will increase.</p>
-</div>
-<div class="section" id="attributes">
+</section>
+<section id="attributes">
 <span id="id1"></span><h2>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h2>
 <p>Variables and parameters can be created with attributes specifying additional properties.
 For example, <code class="docutils literal notranslate"><span class="pre">Variable(nonneg=True)</span></code> is a scalar variable constrained to be nonnegative.
@@ -80,8 +80,8 @@ The full constructor for <a class="reference internal" href="../../api_reference
 of <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variable</span></code></a> and
 <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>) is given below.</p>
 <dl class="py function">
-<dt id="Leaf">
-<code class="sig-name descname">Leaf</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">nonneg</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">nonpos</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">symmetric</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">diag</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">PSD</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">NSD</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">boolean</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">integer</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="Leaf">
+<span class="sig-name descname"><span class="pre">Leaf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonneg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonpos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PSD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NSD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boolean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a Leaf object (e.g., Variable or Parameter).
 Only one attribute can be active (set to True).</p>
 <dl class="field-list simple">
@@ -143,8 +143,8 @@ The main benefit is that specifying attributes enables more fine-grained DCP ana
 For example, creating a variable <code class="docutils literal notranslate"><span class="pre">x</span></code> via <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">Variable(nonpos=True)</span></code> informs the DCP analyzer that <code class="docutils literal notranslate"><span class="pre">x</span></code> is nonpositive.
 Creating the variable <code class="docutils literal notranslate"><span class="pre">x</span></code> via <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">Variable()</span></code> and adding the constraint <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&gt;=</span> <span class="pre">0</span></code> separately does not provide any information
 about the sign of <code class="docutils literal notranslate"><span class="pre">x</span></code> to the DCP analyzer.</p>
-</div>
-<div class="section" id="semidefinite-matrices">
+</section>
+<section id="semidefinite-matrices">
 <span id="semidefinite"></span><h2>Semidefinite matrices<a class="headerlink" href="#semidefinite-matrices" title="Permalink to this headline">¶</a></h2>
 <p>Many convex optimization problems involve constraining matrices to be positive or negative semidefinite (e.g., SDPs).
 You can do this in CVXPY in two ways.
@@ -181,8 +181,8 @@ semidefinite (but not necessarily symmetric).</p>
 <p>You can also use <code class="docutils literal notranslate"><span class="pre">Variable((n,</span> <span class="pre">n),</span> <span class="pre">symmetric=True)</span></code> to create an <code class="docutils literal notranslate"><span class="pre">n</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> variable constrained to be symmetric.
 The difference between specifying that a variable is symmetric via attributes and adding the constraint <code class="docutils literal notranslate"><span class="pre">X</span> <span class="pre">==</span> <span class="pre">X.T</span></code> is that
 attributes are parsed for DCP information and a symmetric variable is defined over the (lower dimensional) vector space of symmetric matrices.</p>
-</div>
-<div class="section" id="mixed-integer-programs">
+</section>
+<section id="mixed-integer-programs">
 <span id="mip"></span><h2>Mixed-integer programs<a class="headerlink" href="#mixed-integer-programs" title="Permalink to this headline">¶</a></h2>
 <p>In mixed-integer programs, certain variables are constrained to be boolean (i.e., 0 or 1) or integer valued.
 You can construct mixed-integer programs by creating variables with the attribute that they have only boolean or integer valued entries:</p>
@@ -224,8 +224,8 @@ as Apache 2.0, and you’re interested in incorporating your solver into CVXPY�
 please reach out to us at our <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">GitHub issues</a>. We are
 particularly interested in incorporating a simple mixed-integer SOCP solver.</p>
 </div>
-</div>
-<div class="section" id="complex-valued-expressions">
+</section>
+<section id="complex-valued-expressions">
 <h2>Complex valued expressions<a class="headerlink" href="#complex-valued-expressions" title="Permalink to this headline">¶</a></h2>
 <p>By default variables and parameters are real valued.
 Complex valued variables and parameters can be created by setting the attribute <code class="docutils literal notranslate"><span class="pre">complex=True</span></code>.
@@ -259,8 +259,8 @@ All constraints are defined for complex expressions.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">conj(expr)</span></code> gives the complex conjugate of <code class="docutils literal notranslate"><span class="pre">expr</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">expr.H</span></code> gives the Hermitian (conjugate) transpose of <code class="docutils literal notranslate"><span class="pre">expr</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="transforms">
+</section>
+<section id="transforms">
 <h2>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h2>
 <p>Transforms provide additional ways of manipulating CVXPY objects
 beyond the atomic functions.  For example, the <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#cvxpy.transforms.indicator" title="cvxpy.transforms.indicator"><code class="xref py py-class docutils literal notranslate"><span class="pre">indicator</span></code></a> transform converts a list of constraints into an
@@ -269,7 +269,7 @@ constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
 <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">x</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">]</span>
 <span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">transforms</span><span class="o">.</span><span class="n">indicator</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
-<span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="o">.</span><span class="mi">5</span>
+<span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mf">.5</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 <span class="n">x</span><span class="o">.</span><span class="n">value</span> <span class="o">=</span> <span class="mi">2</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;expr.value = &quot;</span><span class="p">,</span> <span class="n">expr</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
@@ -280,8 +280,8 @@ constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span
 </pre></div>
 </div>
 <p>The full set of transforms available is discussed in <a class="reference internal" href="../../api_reference/cvxpy.transforms.html#transforms-api"><span class="std std-ref">Transforms</span></a>.</p>
-</div>
-<div class="section" id="problem-arithmetic">
+</section>
+<section id="problem-arithmetic">
 <h2>Problem arithmetic<a class="headerlink" href="#problem-arithmetic" title="Permalink to this headline">¶</a></h2>
 <p>For convenience, arithmetic operations have been overloaded for
 problems and objectives.
@@ -327,14 +327,14 @@ The rules for adding, subtracting, and multiplying objectives are given below.</
 since this is the default behavior for Python lists.
 The in-place operators <code class="docutils literal notranslate"><span class="pre">+=</span></code>, <code class="docutils literal notranslate"><span class="pre">-=</span></code>, and <code class="docutils literal notranslate"><span class="pre">*=</span></code> are also supported for
 objectives and problems and follow the same rules as above.</p>
-</div>
-<div class="section" id="solve-method-options">
+</section>
+<section id="solve-method-options">
 <h2>Solve method options<a class="headerlink" href="#solve-method-options" title="Permalink to this headline">¶</a></h2>
 <p>The <code class="docutils literal notranslate"><span class="pre">solve</span></code> method takes optional arguments that let you change how CVXPY
 parses and solves the problem.</p>
 <dl class="py function">
-<dt id="solve">
-<code class="sig-name descname">solve</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">solver</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">verbose</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">gp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">qcp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">requries_grad</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">enforce_dpp</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Permalink to this definition">¶</a></dt>
+<dt class="sig sig-object py" id="solve">
+<span class="sig-name descname"><span class="pre">solve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solver</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qcp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">requries_grad</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">enforce_dpp</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#solve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solves the problem using the specified method.</p>
 <p>Populates the <code class="code docutils literal notranslate"><span class="pre">status</span></code> and <code class="code docutils literal notranslate"><span class="pre">value</span></code> attributes on the
 problem object as a side-effect.</p>
@@ -366,7 +366,7 @@ problems involving Parameters. Defaults to <code class="docutils literal notrans
 </dd></dl>
 
 <p>We will discuss the optional arguments in detail below.</p>
-<div class="section" id="choosing-a-solver">
+<section id="choosing-a-solver">
 <span id="solvers"></span><h3>Choosing a solver<a class="headerlink" href="#choosing-a-solver" title="Permalink to this headline">¶</a></h3>
 <p>CVXPY is distributed with the open source solvers <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://osqp.org/">OSQP</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a>.
 Many other solvers can be called by CVXPY if installed separately.
@@ -627,8 +627,8 @@ objects manually.</p>
  <span class="s1">&#39;SCIPY&#39;</span><span class="p">,</span> <span class="s1">&#39;GUROBI&#39;</span><span class="p">,</span> <span class="s1">&#39;OSQP&#39;</span><span class="p">,</span> <span class="s1">&#39;CPLEX&#39;</span><span class="p">,</span> <span class="s1">&#39;NAG&#39;</span><span class="p">,</span> <span class="s1">&#39;SCIP&#39;</span><span class="p">,</span> <span class="s1">&#39;XPRESS&#39;</span><span class="p">]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="viewing-solver-output">
+</section>
+<section id="viewing-solver-output">
 <h3>Viewing solver output<a class="headerlink" href="#viewing-solver-output" title="Permalink to this headline">¶</a></h3>
 <p>All the solvers can print out information about their progress while solving the problem. This information can be useful in debugging a solver error. To see the output from the solvers, set <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> in the solve method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solve with ECOS and display output.</span>
@@ -636,7 +636,7 @@ objects manually.</p>
 <span class="nb">print</span> <span class="s2">&quot;optimal value with ECOS:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">1.0</span><span class="o">.</span><span class="mi">3</span> <span class="o">-</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">A</span><span class="o">.</span> <span class="n">Domahidi</span><span class="p">,</span> <span class="n">Automatic</span> <span class="n">Control</span> <span class="n">Laboratory</span><span class="p">,</span> <span class="n">ETH</span> <span class="n">Zurich</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">2014.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ECOS</span> <span class="mf">1.0.3</span> <span class="o">-</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">A</span><span class="o">.</span> <span class="n">Domahidi</span><span class="p">,</span> <span class="n">Automatic</span> <span class="n">Control</span> <span class="n">Laboratory</span><span class="p">,</span> <span class="n">ETH</span> <span class="n">Zurich</span><span class="p">,</span> <span class="mi">2012</span><span class="o">-</span><span class="mf">2014.</span>
 
 <span class="n">It</span>     <span class="n">pcost</span>         <span class="n">dcost</span>      <span class="n">gap</span>     <span class="n">pres</span>    <span class="n">dres</span>     <span class="n">k</span><span class="o">/</span><span class="n">t</span>     <span class="n">mu</span>      <span class="n">step</span>     <span class="n">IR</span>
  <span class="mi">0</span>   <span class="o">+</span><span class="mf">0.000e+00</span>   <span class="o">+</span><span class="mf">4.000e+00</span>   <span class="o">+</span><span class="mf">2e+01</span>   <span class="mf">2e+00</span>   <span class="mf">1e+00</span>   <span class="mf">1e+00</span>   <span class="mf">3e+00</span>    <span class="n">N</span><span class="o">/</span><span class="n">A</span>     <span class="mi">1</span> <span class="mi">1</span> <span class="o">-</span>
@@ -652,15 +652,15 @@ objects manually.</p>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">ECOS</span><span class="p">:</span> <span class="mf">6.82842708233</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="solving-disciplined-geometric-programs">
+</section>
+<section id="solving-disciplined-geometric-programs">
 <h3>Solving disciplined geometric programs<a class="headerlink" href="#solving-disciplined-geometric-programs" title="Permalink to this headline">¶</a></h3>
 <p>When the <code class="docutils literal notranslate"><span class="pre">solve</span></code> method is called with <cite>gp=True</cite>, the problem is parsed
 as a disciplined geometric program instead of a disciplined convex program.
 For more information, see the <cite>DGP tutorial &lt;/tutorial/dgp/index&gt;</cite>.</p>
-</div>
-</div>
-<div class="section" id="solver-stats">
+</section>
+</section>
+<section id="solver-stats">
 <h2>Solver stats<a class="headerlink" href="#solver-stats" title="Permalink to this headline">¶</a></h2>
 <p>When the <code class="docutils literal notranslate"><span class="pre">solve</span></code> method is called on a problem object and a solver is invoked,
 the problem object records the optimal value, the values of the primal and dual variables,
@@ -669,8 +669,8 @@ We have already discussed how to view the optimal value and variable values.
 The solver statistics are accessed via the <code class="docutils literal notranslate"><span class="pre">problem.solver_stats</span></code> attribute,
 which returns a <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats" title="cvxpy.problems.problem.SolverStats"><code class="xref py py-class docutils literal notranslate"><span class="pre">SolverStats</span></code></a> object.
 For example, <code class="docutils literal notranslate"><span class="pre">problem.solver_stats.solve_time</span></code> gives the time it took the solver to solve the problem.</p>
-</div>
-<div class="section" id="warm-start">
+</section>
+<section id="warm-start">
 <h2>Warm start<a class="headerlink" href="#warm-start" title="Permalink to this headline">¶</a></h2>
 <p>When solving the same problem for multiple values of a parameter, many solvers can exploit work from previous solves (i.e., warm start).
 For example, the solver might use the previous solution as an initial point or reuse cached matrix factorizations.
@@ -707,8 +707,8 @@ The code below shows how warm start can accelerate solving a sequence of related
 <p>The speed up in this case comes from caching the KKT matrix factorization.
 If <code class="docutils literal notranslate"><span class="pre">A</span></code> were a parameter, factorization caching would not be possible and the benefit of
 warm start would only be a good initial point.</p>
-</div>
-<div class="section" id="setting-solver-options">
+</section>
+<section id="setting-solver-options">
 <span id="solveropts"></span><h2>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Permalink to this headline">¶</a></h2>
 <p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
@@ -718,7 +718,7 @@ warm start would only be a good initial point.</p>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">----------------------------------------------------------------------------</span>
-    <span class="n">SCS</span> <span class="n">v1</span><span class="o">.</span><span class="mf">0.5</span> <span class="o">-</span> <span class="n">Splitting</span> <span class="n">Conic</span> <span class="n">Solver</span>
+    <span class="n">SCS</span> <span class="n">v1</span><span class="mf">.0.5</span> <span class="o">-</span> <span class="n">Splitting</span> <span class="n">Conic</span> <span class="n">Solver</span>
     <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="n">Brendan</span> <span class="n">O</span><span class="s1">&#39;Donoghue, Stanford University, 2012</span>
 <span class="o">----------------------------------------------------------------------------</span>
 <span class="n">Lin</span><span class="o">-</span><span class="n">sys</span><span class="p">:</span> <span class="n">sparse</span><span class="o">-</span><span class="n">indirect</span><span class="p">,</span> <span class="n">nnz</span> <span class="ow">in</span> <span class="n">A</span> <span class="o">=</span> <span class="mi">13</span><span class="p">,</span> <span class="n">CG</span> <span class="n">tol</span> <span class="o">~</span> <span class="mi">1</span><span class="o">/</span><span class="nb">iter</span><span class="o">^</span><span class="p">(</span><span class="mf">2.00</span><span class="p">)</span>
@@ -836,12 +836,23 @@ code: cvxpy/reductions/solvers/kktsolver.py</p>
 </dd>
 </dl>
 <p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> options:</p>
-<dl class="simple">
+<dl>
 <dt><code class="docutils literal notranslate"><span class="pre">'max_iters'</span></code></dt><dd><p>maximum number of iterations (default: 2500).</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">'eps'</span></code></dt><dd><p>convergence tolerance (default: 1e-4).</p>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">'alpha'</span></code></dt><dd><p>relaxation parameter (default: 1.8).</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'acceleration_lookback'</span></code></dt><dd><p>Anderson Acceleration parameter for SCS 2.0 and higher. This can be any positive or negative integer;
+its default value is 10. See <a class="reference external" href="https://www.cvxgrp.org/scs/algorithm/acceleration.html#in-scs">this page of the SCS documentation</a>
+for more information.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>The value of this parameter often effects whether or not SCS 2.X will converge to an accurate solution.
+If you don’t <em>explicitly</em> set <code class="docutils literal notranslate"><span class="pre">acceleration_lookback</span></code> and SCS 2.X fails to converge, then CVXPY
+will raise a warning and try to re-solve the problem with <code class="docutils literal notranslate"><span class="pre">acceleration_lookback=0</span></code>.
+No attempt will be made to re-solve with problem if you have SCS version 3.0 or higher.</p>
+</div>
 </dd>
 <dt><code class="docutils literal notranslate"><span class="pre">'scale'</span></code></dt><dd><p>balance between minimizing primal and dual residual (default: 5.0).</p>
 </dd>
@@ -914,8 +925,8 @@ Its default value is False. If set to True, then if GUROBI produces an “infeas
 parameters are automatically changed and the problem is re-solved in order to determine its precise status.</p>
 </dd>
 </dl>
-</div>
-<div class="section" id="getting-the-standard-form">
+</section>
+<section id="getting-the-standard-form">
 <h2>Getting the standard form<a class="headerlink" href="#getting-the-standard-form" title="Permalink to this headline">¶</a></h2>
 <p>If you are interested in getting the standard form that CVXPY produces for a
 problem, you can use the <code class="docutils literal notranslate"><span class="pre">get_problem_data</span></code> method. When a problem is solved,
@@ -967,8 +978,8 @@ directly.</p>
 <p>The structure of the data dict that CVXPY returns depends on the solver. For
 details, print the dictionary, or consult the solver interfaces in
 <code class="docutils literal notranslate"><span class="pre">cvxpy/reductions/solvers</span></code>.</p>
-</div>
-<div class="section" id="reductions">
+</section>
+<section id="reductions">
 <h2>Reductions<a class="headerlink" href="#reductions" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY uses a system of <strong>reductions</strong> to rewrite problems from
 the form provided by the user into the standard form that a solver will accept.
@@ -977,8 +988,8 @@ Two problems are equivalent if a solution of one can be converted efficiently
 to a solution of the other.
 Reductions take a CVXPY Problem as input and output a CVXPY Problem.
 The full set of reductions available is discussed in <a class="reference internal" href="../../api_reference/cvxpy.reductions.html#reductions-api"><span class="std std-ref">Reductions</span></a>.</p>
-</div>
-<div class="section" id="disciplined-parametrized-programming">
+</section>
+<section id="disciplined-parametrized-programming">
 <span id="dpp"></span><h2>Disciplined Parametrized Programming<a class="headerlink" href="#disciplined-parametrized-programming" title="Permalink to this headline">¶</a></h2>
 <p><em>Note: DPP requires CVXPY version 1.1.0 or greater.</em></p>
 <p><a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a> are
@@ -991,7 +1002,7 @@ parameters can be much faster than repeatedly solving a new problem.</p>
 <a class="reference internal" href="../dgp/index.html#dgp"><span class="std std-ref">DGP</span></a> problem many times, for different values of the numerical
 data, or if you want to differentiate through the solution map of a DCP or DGP
 problem.</p>
-<div class="section" id="what-is-dpp">
+<section id="what-is-dpp">
 <h3>What is DPP?<a class="headerlink" href="#what-is-dpp" title="Permalink to this headline">¶</a></h3>
 <p>DPP is a ruleset for producing parametrized DCP or DGP compliant problems that
 CVXPY can re-canonicalize very quickly. The first time a DPP-compliant problem
@@ -999,8 +1010,8 @@ is solved, CVXPY compiles it and caches the mapping from parameters to problem
 data. As a result, subsequent rewritings of DPP problems can be substantially
 faster. CVXPY allows you to solve parametrized problems that are not DPP, but
 you won’t see a speed-up when doing so.</p>
-</div>
-<div class="section" id="the-dpp-ruleset">
+</section>
+<section id="the-dpp-ruleset">
 <h3>The DPP ruleset<a class="headerlink" href="#the-dpp-ruleset" title="Permalink to this headline">¶</a></h3>
 <p>DPP places mild restrictions on how parameters can enter expressions in
 DCP and DGP problems. First, we describe the DPP ruleset for DCP problems.
@@ -1166,8 +1177,8 @@ you could rewrite the above program as the following DPP-complaint program</p>
 <span class="n">monomial</span> <span class="o">=</span> <span class="n">x</span><span class="o">**</span><span class="n">b</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="repeatedly-solving-a-dpp-problem">
+</section>
+<section id="repeatedly-solving-a-dpp-problem">
 <h3>Repeatedly solving a DPP problem<a class="headerlink" href="#repeatedly-solving-a-dpp-problem" title="Permalink to this headline">¶</a></h3>
 <p>The following example demonstrates how parameters can speed-up repeated
 solves of a DPP-compliant DCP problem.</p>
@@ -1217,9 +1228,9 @@ solves of a DPP-compliant DCP problem.</p>
 </div>
 <img alt="../../_images/resolving_dpp.png" src="../../_images/resolving_dpp.png" />
 <p>Similar speed-ups can be obtained for DGP problems.</p>
-</div>
-</div>
-<div class="section" id="sensitivity-analysis-and-gradients">
+</section>
+</section>
+<section id="sensitivity-analysis-and-gradients">
 <span id="derivatives"></span><h2>Sensitivity analysis and gradients<a class="headerlink" href="#sensitivity-analysis-and-gradients" title="Permalink to this headline">¶</a></h2>
 <p><em>Note: This feature requires CVXPY version 1.1.0 or greater.</em></p>
 <p>An optimization problem can be viewed as a function mapping parameters
@@ -1327,8 +1338,8 @@ the entire Jacobian (which can be done by calling backward multiple times,
 once for each standard basis vector).</p>
 <p><strong>Next steps.</strong> See the <a class="reference external" href="https://www.cvxpy.org/examples/derivatives/fundamentals.html">introductory notebook</a>
 on derivatives.</p>
-</div>
-<div class="section" id="custom-solvers">
+</section>
+<section id="custom-solvers">
 <h2>Custom Solvers<a class="headerlink" href="#custom-solvers" title="Permalink to this headline">¶</a></h2>
 <p>Although <code class="docutils literal notranslate"><span class="pre">cvxpy</span></code> supports many different solvers out of the box, it is also possible to define and use custom solvers. This can be helpful in prototyping or developing custom solvers tailored to a specific application.</p>
 <p>To do so, you have to implement a solver class that is a child of <code class="docutils literal notranslate"><span class="pre">cvxpy.reductions.solvers.qp_solvers.qp_solver.QpSolver</span></code> or <code class="docutils literal notranslate"><span class="pre">cvxpy.reductions.solvers.conic_solvers.conic_solver.ConicSolver</span></code>. Then you pass an instance of this solver class to <code class="docutils literal notranslate"><span class="pre">solver.solve(.)</span></code> as following:</p>
@@ -1355,8 +1366,8 @@ on derivatives.</p>
 </div>
 <p>You might also want to override the methods <code class="docutils literal notranslate"><span class="pre">invert</span></code> and <code class="docutils literal notranslate"><span class="pre">import_solver</span></code> of the <code class="docutils literal notranslate"><span class="pre">Solver</span></code> class.</p>
 <p>Note that the string returned by the <code class="docutils literal notranslate"><span class="pre">name</span></code> property should be different to all of the officially supported solvers (a list of which can be found in <code class="docutils literal notranslate"><span class="pre">cvxpy.settings.SOLVERS</span></code>). Also, if your solver is mixed integer capable, you should set the class variable <code class="docutils literal notranslate"><span class="pre">MIP_CAPABLE</span></code> to <code class="docutils literal notranslate"><span class="pre">True</span></code>.</p>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -1447,12 +1458,30 @@ on derivatives.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -1461,7 +1490,7 @@ on derivatives.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Aerospace Design via Quasiconvex Optimization &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Aerospace Design via Quasiconvex Optimization &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="aerospace-design-via-quasiconvex-optimization">
+  <section id="aerospace-design-via-quasiconvex-optimization">
 <h1>Aerospace Design via Quasiconvex Optimization<a class="headerlink" href="#aerospace-design-via-quasiconvex-optimization" title="Permalink to this headline">¶</a></h1>
 <p>Consider a triangle, or a wedge, located within a hypersonic flow. A
 standard aerospace design optimization problem is to design the wedge to
@@ -82,30 +82,30 @@ plugging in the above into the equation for <span class="math notranslate nohigh
 \[\frac{\mathrm{D}}{\mathrm{L}} = \frac{\Delta y}{\Delta x} = \frac{\sqrt{1-\Delta x^2}}{\Delta x} = \sqrt{\frac{1}{\Delta x^2}-1}.\]</div>
 <p>This function is representable as a DQCP, quasilinear function. We plot
 it below, and then we write it using DQCP.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%matplotlib inline
 
-<span class="kn">import</span> <span class="nn">matplotlib</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">math</span>
+import matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
+import math
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="o">.</span><span class="mi">25</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="n">num</span><span class="o">=</span><span class="mi">201</span><span class="p">)</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
-    <span class="n">obj</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">**</span><span class="mi">2</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+x = np.linspace(.25,1,num=201)
+obj = []
+for i in range(len(x)):
+    obj.append(math.sqrt(1/x[i]**2-1))
 
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">obj</span><span class="p">)</span>
+plt.plot(x,obj)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7f571d7bfdd8</span><span class="o">&gt;</span><span class="p">]</span>
 </pre></div>
 </div>
 <img alt="../../_images/hypersonic_shape_design_1_1.png" src="../../_images/hypersonic_shape_design_1_1.png" />
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import cvxpy as cp
 
-<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">inv_pos</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This objective function is&quot;</span><span class="p">,</span> <span class="n">obj</span><span class="o">.</span><span class="n">curvature</span><span class="p">)</span>
+x = cp.Variable(pos=True)
+obj = cp.sqrt(cp.inv_pos(cp.square(x))-1)
+print(&quot;This objective function is&quot;, obj.curvature)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">This</span> <span class="n">objective</span> <span class="n">function</span> <span class="ow">is</span> <span class="n">QUASILINEAR</span>
@@ -116,20 +116,20 @@ payload requirements is a standard aerospace design problem. In this
 case we will consider the constraint that the wedge must be able to
 contain a rectangle of given length and width internally along its
 hypotenuse. This is representable as a convex constraint.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="o">=</span> <span class="o">.</span><span class="mi">05</span> <span class="c1"># USER INPUT: height of rectangle, should be at most b</span>
-<span class="n">b</span> <span class="o">=</span> <span class="o">.</span><span class="mi">65</span> <span class="c1"># USER INPUT: width of rectangle</span>
-<span class="n">constraint</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">inv_pos</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">cp</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">cp</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">x</span><span class="p">))</span><span class="o">&lt;=</span><span class="mi">0</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">constraint</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>a = .05 # USER INPUT: height of rectangle, should be at most b
+b = .65 # USER INPUT: width of rectangle
+constraint = [a*cp.inv_pos(x)-(1-b)*cp.sqrt(1-cp.square(x))&lt;=0]
+print(constraint)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Inequality</span><span class="p">(</span><span class="n">Expression</span><span class="p">(</span><span class="n">CONVEX</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">,</span> <span class="p">()))]</span>
 </pre></div>
 </div>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">constraint</span><span class="p">)</span>
-<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">qcp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final L/D Ratio = &#39;</span><span class="p">,</span> <span class="mi">1</span><span class="o">/</span><span class="n">obj</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final width of wedge = &#39;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Final height of wedge = &#39;</span><span class="p">,</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>prob = cp.Problem(cp.Minimize(obj), constraint)
+prob.solve(qcp=True, verbose=True)
+print(&#39;Final L/D Ratio = &#39;, 1/obj.value)
+print(&#39;Final width of wedge = &#39;, x.value)
+print(&#39;Final height of wedge = &#39;, math.sqrt(1-x.value**2))
 </pre></div>
 </div>
 <pre class="literal-block"><strong>****************************************************************************</strong>
@@ -174,26 +174,26 @@ Final width of wedge =  0.9895238539767502
 Final height of wedge =  0.14436946495363565</pre>
 <p>Once the solution has been found, we can create a plot to verify that
 the rectangle is inscribed within the wedge.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">y</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">lambda1</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">y</span>
-<span class="n">lambda2</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="n">y</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">y</span>
-<span class="n">lambda3</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">-</span><span class="n">y</span><span class="o">*</span><span class="p">(</span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">/</span><span class="n">y</span><span class="o">-</span><span class="n">b</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>y = math.sqrt(1-x.value**2)
+lambda1 = a*x.value/y
+lambda2 = a*x.value**2/y+a*y
+lambda3 = a*x.value-y*(a*x.value/y-b)
 
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">],</span><span class="s1">&#39;b.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="n">y</span><span class="p">],</span><span class="s1">&#39;b.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">],[</span><span class="mi">0</span><span class="p">,</span><span class="o">-</span><span class="n">y</span><span class="p">],</span><span class="s1">&#39;b.-&#39;</span><span class="p">)</span>
+plt.plot([0,x.value],[0,0],&#39;b.-&#39;)
+plt.plot([0,x.value],[0,-y],&#39;b.-&#39;)
+plt.plot([x.value,x.value],[0,-y],&#39;b.-&#39;)
 
-<span class="n">pt1</span> <span class="o">=</span> <span class="p">[</span><span class="n">lambda1</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="o">-</span><span class="n">lambda1</span><span class="o">*</span><span class="n">y</span><span class="p">]</span>
-<span class="n">pt2</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lambda1</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">,</span><span class="o">-</span><span class="p">(</span><span class="n">lambda1</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">y</span><span class="p">]</span>
-<span class="n">pt3</span> <span class="o">=</span> <span class="p">[(</span><span class="n">lambda1</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="o">-</span><span class="p">(</span><span class="n">lambda1</span><span class="o">+</span><span class="n">b</span><span class="p">)</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
-<span class="n">pt4</span> <span class="o">=</span> <span class="p">[</span><span class="n">lambda1</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">y</span><span class="p">,</span><span class="o">-</span><span class="n">lambda1</span><span class="o">*</span><span class="n">y</span><span class="o">+</span><span class="n">a</span><span class="o">*</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">]</span>
+pt1 = [lambda1*x.value,-lambda1*y]
+pt2 = [(lambda1+b)*x.value,-(lambda1+b)*y]
+pt3 = [(lambda1+b)*x.value+a*y,-(lambda1+b)*y+a*x.value]
+pt4 = [lambda1*x.value+a*y,-lambda1*y+a*x.value]
 
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">pt1</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt2</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="n">pt1</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pt2</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="s1">&#39;r.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">pt2</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt3</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="n">pt2</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pt3</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="s1">&#39;r.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">pt3</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt4</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="n">pt3</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pt4</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="s1">&#39;r.-&#39;</span><span class="p">)</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">pt4</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">pt1</span><span class="p">[</span><span class="mi">0</span><span class="p">]],[</span><span class="n">pt4</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span><span class="n">pt1</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span><span class="s1">&#39;r.-&#39;</span><span class="p">)</span>
+plt.plot([pt1[0],pt2[0]],[pt1[1],pt2[1]],&#39;r.-&#39;)
+plt.plot([pt2[0],pt3[0]],[pt2[1],pt3[1]],&#39;r.-&#39;)
+plt.plot([pt3[0],pt4[0]],[pt3[1],pt4[1]],&#39;r.-&#39;)
+plt.plot([pt4[0],pt1[0]],[pt4[1],pt1[1]],&#39;r.-&#39;)
 
-<span class="n">plt</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+plt.axis(&#39;equal&#39;)
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">-</span><span class="mf">0.04947620645689951</span><span class="p">,</span>
@@ -203,7 +203,7 @@ the rectangle is inscribed within the wedge.</p>
 </pre></div>
 </div>
 <img alt="../../_images/hypersonic_shape_design_7_1.png" src="../../_images/hypersonic_shape_design_7_1.png" />
-</div>
+</section>
 
 
           </div>
@@ -268,12 +268,30 @@ the rectangle is inscribed within the wedge.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -282,7 +300,7 @@ the rectangle is inscribed within the wedge.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

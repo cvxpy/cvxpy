@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Disciplined Geometric Programming &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Disciplined Geometric Programming &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Disciplined Quasiconvex Programming" href="../dqcp/index.html" />
@@ -34,7 +34,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="disciplined-geometric-programming">
+  <section id="disciplined-geometric-programming">
 <span id="dgp"></span><h1>Disciplined Geometric Programming<a class="headerlink" href="#disciplined-geometric-programming" title="Permalink to this headline">¶</a></h1>
 <p>Disciplined geometric programming (DGP) is an analog of DCP for
 <em>log-log convex</em> functions, that is, functions of positive variables that
@@ -83,7 +83,7 @@ the section on <a class="reference internal" href="../functions/index.html#funct
 For interactive code examples, check out our <a class="reference internal" href="../../examples/index.html#dgp-examples"><span class="std std-ref">notebooks</span></a>.</p>
 <p><em>Note: DGP is a recent addition to CVXPY. If you have feedback, please file an
 issue or make a pull request on</em> <a class="reference external" href="https://github.com/cvxpy/cvxpy">Github</a>.</p>
-<div class="section" id="log-log-curvature">
+<section id="log-log-curvature">
 <h2>Log-log curvature<a class="headerlink" href="#log-log-curvature" title="Permalink to this headline">¶</a></h2>
 <p>Just as every Expression in CVXPY has a curvature (constant, affine, convex, concave,
 or unknown), every Expression also has a log-log curvature.</p>
@@ -172,8 +172,8 @@ calling the methods
 <code class="code docutils literal notranslate"><span class="pre">is_log_log_constant()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_affine()</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">is_log_log_convex()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_concave()</span></code>. For example,
 <code class="code docutils literal notranslate"><span class="pre">posynomial.is_log_log_convex()</span></code> would evaluate to <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p>
-</div>
-<div class="section" id="log-log-curvature-rules">
+</section>
+<section id="log-log-curvature-rules">
 <h2>Log-log curvature rules<a class="headerlink" href="#log-log-curvature-rules" title="Permalink to this headline">¶</a></h2>
 <p>For an Expression to have known log-log curvature, all of the Constants,
 Variables, and Parameters it refers to must be elementwise positive. A
@@ -230,8 +230,8 @@ in the following code block will pass.</p>
 at least one of the methods <code class="code docutils literal notranslate"><span class="pre">is_log_log_constant()</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">is_log_log_affine()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_convex()</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">is_log_log_concave()</span></code> will return <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p>
-</div>
-<div class="section" id="dgp-problems">
+</section>
+<section id="dgp-problems">
 <h2>DGP problems<a class="headerlink" href="#dgp-problems" title="Permalink to this headline">¶</a></h2>
 <p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
 a list of constraints. If a problem follows the DGP rules, it is guaranteed to
@@ -275,15 +275,15 @@ non-DGP problems:</p>
 </div>
 <p>CVXPY will raise an exception if you call <code class="docutils literal notranslate"><span class="pre">problem.solve(gp=True)</span></code> on a
 non-DGP problem.</p>
-</div>
-<div class="section" id="dgp-atoms">
+</section>
+<section id="dgp-atoms">
 <span id="id1"></span><h2>DGP atoms<a class="headerlink" href="#dgp-atoms" title="Permalink to this headline">¶</a></h2>
 <p>This section of the tutorial describes the DGP atom library, that is,
 the atomic functions with known log-log curvature and monotonicity.
 CVXPY uses the function information in this section and the DGP rules
 to mark expressions with a log-log curvature. Note that every DGP expression
 is positive.</p>
-<div class="section" id="infix-operators">
+<section id="infix-operators">
 <h3>Infix operators<a class="headerlink" href="#infix-operators" title="Permalink to this headline">¶</a></h3>
 <p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">*,</span> <span class="pre">/</span></code> are treated as atoms. The operators
 <code class="docutils literal notranslate"><span class="pre">*</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code> are log-log affine functions. The operator <code class="docutils literal notranslate"><span class="pre">+</span></code>
@@ -295,18 +295,18 @@ Regardless of your Python version, you can also use the <a class="reference inte
 elementwise, use the <a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply atom</span></a>. Finally,
 to take the product of the entries of an Expression, use
 the <a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#prod"><span class="std std-ref">prod atom</span></a>.</p>
-</div>
-<div class="section" id="transpose">
+</section>
+<section id="transpose">
 <h3>Transpose<a class="headerlink" href="#transpose" title="Permalink to this headline">¶</a></h3>
 <p>The transpose of any expression can be obtained using the syntax
 <code class="docutils literal notranslate"><span class="pre">expr.T</span></code>. Transpose is a log-log affine function.</p>
-</div>
-<div class="section" id="power">
+</section>
+<section id="power">
 <h3>Power<a class="headerlink" href="#power" title="Permalink to this headline">¶</a></h3>
 <p>For any CVXPY expression <code class="docutils literal notranslate"><span class="pre">expr</span></code>, the power operator <code class="docutils literal notranslate"><span class="pre">expr**p</span></code> is equivalent
 to the function <code class="docutils literal notranslate"><span class="pre">power(expr,</span> <span class="pre">p)</span></code>. Taking powers is a log-log affine function.</p>
-</div>
-<div class="section" id="scalar-functions">
+</section>
+<section id="scalar-functions">
 <h3>Scalar functions<a class="headerlink" href="#scalar-functions" title="Permalink to this headline">¶</a></h3>
 <p>A scalar function takes one or more scalars, vectors, or matrices as arguments
 and returns a scalar. Note that several of these atoms may be
@@ -450,8 +450,8 @@ tutorial</span></a> for more information.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="elementwise-functions">
+</section>
+<section id="elementwise-functions">
 <h3>Elementwise functions<a class="headerlink" href="#elementwise-functions" title="Permalink to this headline">¶</a></h3>
 <p>These functions operate on each element of their arguments. For example, if
 <code class="docutils literal notranslate"><span class="pre">X</span></code> is a 5 by 4 matrix variable, then <code class="docutils literal notranslate"><span class="pre">sqrt(X)</span></code> is a 5 by 4 matrix
@@ -557,8 +557,8 @@ dimensions or be scalars, which are promoted.</p>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="vector-matrix-functions">
+</section>
+<section id="vector-matrix-functions">
 <h3>Vector/matrix functions<a class="headerlink" href="#vector-matrix-functions" title="Permalink to this headline">¶</a></h3>
 <p>A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
 and returns a vector or matrix.</p>
@@ -655,9 +655,9 @@ and returns a vector or matrix.</p>
 </tr>
 </tbody>
 </table>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -736,12 +736,30 @@ and returns a vector or matrix.</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -750,7 +768,7 @@ and returns a vector or matrix.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

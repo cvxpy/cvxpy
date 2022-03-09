@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Changes to CVXPY &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Changes to CVXPY &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="CVXPY Short Course" href="../short_course/index.html" />
@@ -34,11 +34,11 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="changes-to-cvxpy">
+  <section id="changes-to-cvxpy">
 <span id="updates"></span><h1>Changes to CVXPY<a class="headerlink" href="#changes-to-cvxpy" title="Permalink to this headline">¶</a></h1>
 <p>This page details changes made to CVXPY over time, in reverse chronological order.
 The latest release of CVXPY is version 1.1.</p>
-<div class="section" id="recent-patches">
+<section id="recent-patches">
 <h2>Recent patches<a class="headerlink" href="#recent-patches" title="Permalink to this headline">¶</a></h2>
 <dl class="simple">
 <dt>Changes in version 1.1.10</dt><dd><ul class="simple">
@@ -75,10 +75,10 @@ options in the off chance that this change made your solve times increase.</p></
 </ul>
 </dd>
 </dl>
-</div>
-<div class="section" id="cvxpy-1-1">
+</section>
+<section id="cvxpy-1-1">
 <h2>CVXPY 1.1<a class="headerlink" href="#cvxpy-1-1" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="highlights">
+<section id="highlights">
 <h3>Highlights<a class="headerlink" href="#highlights" title="Permalink to this headline">¶</a></h3>
 <p><a class="reference internal" href="../tutorial/advanced/index.html#dpp"><span class="std std-ref">Disciplined parametrized programming</span></a> or “DPP” is a ruleset for constructing parametrized problems in
 CVXPY. Taking advantage of DPP can decrease the time it takes CVXPY to repeatedly canonicalize a parametrized problem.
@@ -95,8 +95,8 @@ and the <a class="reference external" href="https://web.stanford.edu/~boyd/paper
 this behavior is officially deprecated. All matrix multiplication should now be performed with
 the python standard <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> operator. CVXPY will raise a warning if <code class="docutils literal notranslate"><span class="pre">*</span></code> is used when one of
 the operands is not a scalar.</p>
-</div>
-<div class="section" id="new-atoms-and-transforms">
+</section>
+<section id="new-atoms-and-transforms">
 <h3>New atoms and transforms<a class="headerlink" href="#new-atoms-and-transforms" title="Permalink to this headline">¶</a></h3>
 <p>CVXPY has long provided abstractions (“atoms” and “transforms”) which make it easier to specify
 optimization problems in natural ways. The release of CVXPY 1.1 is accompanied by the following
@@ -110,27 +110,27 @@ new abstractions:</p>
 <li><p>The python builtin <code class="docutils literal notranslate"><span class="pre">sum</span></code> is now allowed in DGP.</p></li>
 </ul>
 </div></blockquote>
-</div>
-<div class="section" id="breaking-changes">
+</section>
+<section id="breaking-changes">
 <h3>Breaking changes<a class="headerlink" href="#breaking-changes" title="Permalink to this headline">¶</a></h3>
 <p>We no longer support Python 2 or Python 3.4.</p>
 <p>This release drops the SuperSCS and ECOS_BB solvers.</p>
-</div>
-<div class="section" id="bugfixes">
+</section>
+<section id="bugfixes">
 <h3>Bugfixes<a class="headerlink" href="#bugfixes" title="Permalink to this headline">¶</a></h3>
 <p>CVXPY 1.1 has substantially improved support for recovering dual variables.
 Advanced users should be able to recover dual variables to any conic constraint,
 including exponential-cone and second-order-cone constraints.</p>
 <p>This release resolves bugs in detecting when a problem falls into the category of
 “disciplined quasiconvex programming” (DQCP).</p>
-</div>
-<div class="section" id="known-issues">
+</section>
+<section id="known-issues">
 <h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>
 <p>DPP problems with many CVXPY Parameters can take a long time to compile.</p>
 <p>Disciplined quasiconvex programming (DQCP) doesn’t support DPP.</p>
 <p>The XPRESS interface is currently not working.</p>
-</div>
-<div class="section" id="wishlist">
+</section>
+<section id="wishlist">
 <h3>Wishlist<a class="headerlink" href="#wishlist" title="Permalink to this headline">¶</a></h3>
 <p>The following topics are (relatively) accessible to new contributors, and have
 the potential to meaningfully improve CVXPY 1.1.</p>
@@ -148,14 +148,14 @@ currently only supports commercial mixed-integer nonlinear solvers.</p></li>
 </div></blockquote>
 <p>Anyone interested in making contributions should read the
 <a class="reference internal" href="../contributing/index.html#contributing"><span class="std std-ref">contributing guide</span></a> before writing code.</p>
-</div>
-</div>
-<div class="section" id="cvxpy-1-0">
+</section>
+</section>
+<section id="cvxpy-1-0">
 <h2>CVXPY 1.0<a class="headerlink" href="#cvxpy-1-0" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY 1.0 includes a major rewrite of the CVXPY internals, as well as a number of changes to the user interface. We first give an overview of the changes, before diving into the details.
 We only cover changes that might be of interest to users.</p>
 <p>We have created a script to convert code using CVXPY 0.4.11 into CVXPY 1.0, available <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/1.0/cvxpy/utilities/cvxpy_upgrade.py">here</a>.</p>
-<div class="section" id="overview">
+<section id="overview">
 <h3>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Disciplined geometric programming (DGP): Starting with version 1.0.11, CVXPY lets you formulate and solve log-log convex programs, which generalize both traditional geometric programs and generalized geometric programs. To get started with DGP, check out <a class="reference internal" href="../tutorial/dgp/index.html#dgp"><span class="std std-ref">the tutorial</span></a> and consult the <a class="reference external" href="https://web.stanford.edu/~boyd/papers/dgp.html">accompanying paper</a>.</p></li>
@@ -164,8 +164,8 @@ We only cover changes that might be of interest to users.</p>
 <li><p>NumPy compatibility: CVXPY’s interface has been changed to resemble NumPy as closely as possible, including support for 0D and 1D arrays.</p></li>
 <li><p>Transforms: The new transform class provides additional ways of manipulating CVXPY objects, byond the atomic functions. While atomic functions operate only on expressions, transforms may also take Problem, Objective, or Constraint objects as input.</p></li>
 </ul>
-</div>
-<div class="section" id="reductions">
+</section>
+<section id="reductions">
 <h3>Reductions<a class="headerlink" href="#reductions" title="Permalink to this headline">¶</a></h3>
 <p>A reduction is a transformation
 from one problem to an equivalent problem. Two problems are equivalent
@@ -174,8 +174,8 @@ more than a moderate amount of effort. CVXPY uses reductions to rewrite
 problems into forms that solvers will accept.
 The practical benefit of the reduction based framework is that CVXPY 1.0 supports quadratic programs as a target solver standard form in addition to cone programs, with more standard forms on the way.
 It also makes it easy to add generic problem transformations such as converting problems with complex variables into problems with only real variables.</p>
-</div>
-<div class="section" id="attributes">
+</section>
+<section id="attributes">
 <h3>Attributes<a class="headerlink" href="#attributes" title="Permalink to this headline">¶</a></h3>
 <p>Attributes describe the symbolic properties of variables and parameters and are specified as arguments to the constructor. For example, <code class="docutils literal notranslate"><span class="pre">Variable(nonneg=True)</span></code> creates a scalar variable constrained to be nonnegative.
 Attributes replace the previous syntax of special variable classes like <code class="docutils literal notranslate"><span class="pre">Bool</span></code> for boolean variables and <code class="docutils literal notranslate"><span class="pre">Semidef</span></code> for symmetric positive semidefinite variables,
@@ -191,8 +191,8 @@ Concretely, write</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">Parameter(shape,</span> <span class="pre">nonpos=True)</span></code> instead of <code class="docutils literal notranslate"><span class="pre">Parameter(shape,</span> <span class="pre">sign='negative')</span></code>.</p></li>
 </ul>
 <p>See <a class="reference internal" href="../tutorial/advanced/index.html#attributes"><span class="std std-ref">Attributes</span></a> for a complete list of supported attributes. More attributes will be added in the future.</p>
-</div>
-<div class="section" id="numpy-compatibility">
+</section>
+<section id="numpy-compatibility">
 <h3>NumPy Compatibility<a class="headerlink" href="#numpy-compatibility" title="Permalink to this headline">¶</a></h3>
 <p>The following interface changes have been made to make CVXPY more compatible with NumPy syntax:</p>
 <ul class="simple">
@@ -213,17 +213,17 @@ Concretely, write</p>
 <li><p>Due to the name changes, we now strongly recommend against importing CVXPY using the syntax <code class="docutils literal notranslate"><span class="pre">from</span> <span class="pre">cvxpy</span> <span class="pre">import</span> <span class="pre">*</span></code>.</p></li>
 <li><p>The <code class="docutils literal notranslate"><span class="pre">vstack</span></code> and <code class="docutils literal notranslate"><span class="pre">hstack</span></code> atoms now take lists as input. For example, write <code class="docutils literal notranslate"><span class="pre">vstack([x,</span> <span class="pre">y])</span></code> instead of <code class="docutils literal notranslate"><span class="pre">vstack(x,</span> <span class="pre">y)</span></code>.</p></li>
 </ul>
-</div>
-<div class="section" id="transforms">
+</section>
+<section id="transforms">
 <h3>Transforms<a class="headerlink" href="#transforms" title="Permalink to this headline">¶</a></h3>
 <p>Transforms provide additional ways of manipulating CVXPY objects
 beyond the atomic functions.
 For example, the <code class="docutils literal notranslate"><span class="pre">indicator</span></code> transform converts a list of constraints
 into an expression representing the convex function that takes value 0 when
 the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</span> when they are violated. See <a class="reference internal" href="../api_reference/cvxpy.transforms.html#transforms-api"><span class="std std-ref">Transforms</span></a> for a full list of the new transforms.</p>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
           </div>
@@ -308,12 +308,30 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -322,7 +340,7 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

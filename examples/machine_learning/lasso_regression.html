@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Machine Learning: Lasso Regression &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Machine Learning: Lasso Regression &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
    
@@ -32,7 +32,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="machine-learning-lasso-regression">
+  <section id="machine-learning-lasso-regression">
 <h1>Machine Learning: Lasso Regression<a class="headerlink" href="#machine-learning-lasso-regression" title="Permalink to this headline">¶</a></h1>
 <p>Lasso regression is, like ridge regression, a <strong>shrinkage</strong> method. It
 differs from ridge regression in its choice of penalty: lasso imposes an
@@ -52,7 +52,7 @@ evaluate the model, and how to tune the hyperparameter <span class="math notrans
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 </pre></div>
 </div>
-<div class="section" id="writing-the-objective-function">
+<section id="writing-the-objective-function">
 <h2>Writing the objective function<a class="headerlink" href="#writing-the-objective-function" title="Permalink to this headline">¶</a></h2>
 <p>We can decompose the <strong>objective function</strong> as the sum of a <strong>least
 squares loss function</strong> and an <span class="math notranslate nohighlight">\(\ell_1\)</span> <strong>regularizer</strong>.</p>
@@ -69,8 +69,8 @@ squares loss function</strong> and an <span class="math notranslate nohighlight"
     <span class="k">return</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">loss_fn</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">beta</span><span class="p">)</span><span class="o">.</span><span class="n">value</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="generating-data">
+</section>
+<section id="generating-data">
 <h2>Generating data<a class="headerlink" href="#generating-data" title="Permalink to this headline">¶</a></h2>
 <p>We generate training examples and observations that are linearly
 related; we make the relationship <em>sparse</em>, and we’ll see how lasso will
@@ -98,8 +98,8 @@ approximately recover it.</p>
 <span class="n">Y_test</span> <span class="o">=</span> <span class="n">Y</span><span class="p">[</span><span class="mi">50</span><span class="p">:]</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="fitting-the-model">
+</section>
+<section id="fitting-the-model">
 <h2>Fitting the model<a class="headerlink" href="#fitting-the-model" title="Permalink to this headline">¶</a></h2>
 <p>All we need to do to fit the model is create a CVXPY problem where the
 objective is to minimize the the objective function defined above. We
@@ -121,8 +121,8 @@ CVXPY problem to obtain estimates for many values of <span class="math notransla
     <span class="n">beta_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">beta</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="evaluating-the-model">
+</section>
+<section id="evaluating-the-model">
 <h2>Evaluating the model<a class="headerlink" href="#evaluating-the-model" title="Permalink to this headline">¶</a></h2>
 <p>Just as we saw for ridge regression, regularization improves
 generalizability.</p>
@@ -141,8 +141,8 @@ generalizability.</p>
 <span class="n">plot_train_test_errors</span><span class="p">(</span><span class="n">train_errors</span><span class="p">,</span> <span class="n">test_errors</span><span class="p">,</span> <span class="n">lambd_values</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="../../_images/lasso_regression_9_0.svg" src="../../_images/lasso_regression_9_0.svg" /></div>
-<div class="section" id="regularization-path-and-feature-selection">
+<img alt="../../_images/lasso_regression_9_0.svg" src="../../_images/lasso_regression_9_0.svg" /></section>
+<section id="regularization-path-and-feature-selection">
 <h2>Regularization path and feature selection<a class="headerlink" href="#regularization-path-and-feature-selection" title="Permalink to this headline">¶</a></h2>
 <p>As <span class="math notranslate nohighlight">\(\lambda\)</span> increases, the parameters are driven to <span class="math notranslate nohighlight">\(0\)</span>. By
 <span class="math notranslate nohighlight">\(\lambda \approx 10\)</span>, approximately 80 percent of the coefficients
@@ -166,8 +166,8 @@ models; ridge (usually) does not.</strong></p>
 <span class="n">plot_regularization_path</span><span class="p">(</span><span class="n">lambd_values</span><span class="p">,</span> <span class="n">beta_values</span><span class="p">)</span>
 </pre></div>
 </div>
-<img alt="../../_images/lasso_regression_11_0.svg" src="../../_images/lasso_regression_11_0.svg" /></div>
-</div>
+<img alt="../../_images/lasso_regression_11_0.svg" src="../../_images/lasso_regression_11_0.svg" /></section>
+</section>
 
 
           </div>
@@ -232,12 +232,30 @@ models; ridge (usually) does not.</strong></p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -246,7 +264,7 @@ models; ridge (usually) does not.</strong></p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,16 +4,15 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FAQ &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>FAQ &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
-    <script src="../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Citing CVXPY" href="../citing/index.html" />
@@ -34,7 +33,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="faq">
+  <section id="faq">
 <h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
 <div class="contents local topic" id="contents">
 <ul class="simple">
@@ -57,19 +56,19 @@
 <li><p><a class="reference internal" href="#how-do-i-cite-cvxpy" id="id19">How do I cite CVXPY?</a></p></li>
 </ul>
 </div>
-<div class="section" id="where-can-i-get-help-with-cvxpy">
+<section id="where-can-i-get-help-with-cvxpy">
 <h2>Where can I get help with CVXPY?<a class="headerlink" href="#where-can-i-get-help-with-cvxpy" title="Permalink to this headline">¶</a></h2>
 <p>You can post questions about how to use CVXPY on StackOverflow or on the <a class="reference external" href="https://groups.google.com/forum/#!forum/cvxpy">CVXPY mailing list</a>.
 If you’ve found a bug in CVXPY or have a feature request,
 create an issue on the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">CVXPY Github issue tracker</a>.</p>
-</div>
-<div class="section" id="where-can-i-learn-more-about-convex-optimization">
+</section>
+<section id="where-can-i-learn-more-about-convex-optimization">
 <h2>Where can I learn more about convex optimization?<a class="headerlink" href="#where-can-i-learn-more-about-convex-optimization" title="Permalink to this headline">¶</a></h2>
 <p>The book <a class="reference external" href="http://web.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe is available for free online and has extensive background on convex optimization.
 To learn more about disciplined convex programming,
 visit the <a class="reference external" href="http://dcp.stanford.edu/">DCP tutorial website</a>.</p>
-</div>
-<div class="section" id="how-do-i-know-which-version-of-cvxpy-i-m-using">
+</section>
+<section id="how-do-i-know-which-version-of-cvxpy-i-m-using">
 <h2>How do I know which version of CVXPY I’m using?<a class="headerlink" href="#how-do-i-know-which-version-of-cvxpy-i-m-using" title="Permalink to this headline">¶</a></h2>
 <p>To check which version of CVXPY you have installed,
 run the following code snippet in the Python prompt:</p>
@@ -77,85 +76,85 @@ run the following code snippet in the Python prompt:</p>
 <span class="nb">print</span> <span class="n">cvxpy</span><span class="o">.</span><span class="n">__version__</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="what-do-i-do-if-i-get-a-dcperror-exception">
+</section>
+<section id="what-do-i-do-if-i-get-a-dcperror-exception">
 <h2>What do I do if I get a <code class="docutils literal notranslate"><span class="pre">DCPError</span></code> exception?<a class="headerlink" href="#what-do-i-do-if-i-get-a-dcperror-exception" title="Permalink to this headline">¶</a></h2>
 <p>The problems you solve in CVXPY must follow the rules of disciplined convex programming (DCP).
 DCP is like a type system for optimization problems.
 For more about DCP, see the <a class="reference internal" href="../tutorial/dcp/index.html#dcp"><span class="std std-ref">DCP tutorial section</span></a> or the <a class="reference external" href="http://dcp.stanford.edu/">DCP tutorial website</a>.</p>
-</div>
-<div class="section" id="how-do-i-find-dcp-errors">
+</section>
+<section id="how-do-i-find-dcp-errors">
 <h2>How do I find DCP errors?<a class="headerlink" href="#how-do-i-find-dcp-errors" title="Permalink to this headline">¶</a></h2>
 <p>You can test whether a problem, objective, constraint, or expression satisfies the DCP
 rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dcp()</span></code>.
 If the function returns <code class="docutils literal notranslate"><span class="pre">False</span></code>,
 there is a DCP error in that object.</p>
-</div>
-<div class="section" id="what-do-i-do-if-i-get-a-solvererror-exception">
+</section>
+<section id="what-do-i-do-if-i-get-a-solvererror-exception">
 <h2>What do I do if I get a <code class="docutils literal notranslate"><span class="pre">SolverError</span></code> exception?<a class="headerlink" href="#what-do-i-do-if-i-get-a-solvererror-exception" title="Permalink to this headline">¶</a></h2>
 <p>Sometimes solvers encounter numerical issues and fail to solve a problem, in which case CVXPY raises a <code class="docutils literal notranslate"><span class="pre">SolverError</span></code>.
 If this happens to you,
 try using different solvers on your problem,
 as discussed in the “Choosing a solver” section of <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a>.
 If the solver CVXOPT fails, try using the solver option <code class="docutils literal notranslate"><span class="pre">kktsolver=ROBUST_KKTSOLVER</span></code>.</p>
-</div>
-<div class="section" id="what-solvers-does-cvxpy-support">
+</section>
+<section id="what-solvers-does-cvxpy-support">
 <h2>What solvers does CVXPY support?<a class="headerlink" href="#what-solvers-does-cvxpy-support" title="Permalink to this headline">¶</a></h2>
 <p>See the “Solve method options” section in <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a> for a list of the solvers CVXPY supports.
 If you would like to use a solver CVXPY does not support,
 make a feature request on the <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues">CVXPY Github issue tracker</a>.</p>
-</div>
-<div class="section" id="what-are-the-differences-between-cvxpy-s-solvers">
+</section>
+<section id="what-are-the-differences-between-cvxpy-s-solvers">
 <h2>What are the differences between CVXPY’s solvers?<a class="headerlink" href="#what-are-the-differences-between-cvxpy-s-solvers" title="Permalink to this headline">¶</a></h2>
 <p>The solvers support different classes of problems and occupy different points on the Pareto frontier of speed, accuracy, and open source vs. closed source.
 See the “Solve method options” section in <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a> for details.</p>
-</div>
-<div class="section" id="what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint">
+</section>
+<section id="what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint">
 <h2>What do I do if I get “Exception: Cannot evaluate the truth value of a constraint”?<a class="headerlink" href="#what-do-i-do-if-i-get-exception-cannot-evaluate-the-truth-value-of-a-constraint" title="Permalink to this headline">¶</a></h2>
 <p>This error likely means you are chaining constraints (e.g., writing an
 expression like <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code>) or using the built-in Python <code class="docutils literal notranslate"><span class="pre">max</span></code> and <code class="docutils literal notranslate"><span class="pre">min</span></code>
 functions on CVXPY expressions.
 It is not possible for CVXPY to correctly handle these use cases,
 so CVXPY throws an (admittedly cryptic) exception.</p>
-</div>
-<div class="section" id="can-i-use-numpy-functions-on-cvxpy-objects">
+</section>
+<section id="can-i-use-numpy-functions-on-cvxpy-objects">
 <h2>Can I use NumPy functions on CVXPY objects?<a class="headerlink" href="#can-i-use-numpy-functions-on-cvxpy-objects" title="Permalink to this headline">¶</a></h2>
 <p>No, you can only use CVXPY functions on CVXPY objects.
 If you use a NumPy function on a CVXPY object,
 it will probably fail in a confusing way.</p>
-</div>
-<div class="section" id="can-i-use-scipy-sparse-matrices-with-cvxpy">
+</section>
+<section id="can-i-use-scipy-sparse-matrices-with-cvxpy">
 <h2>Can I use SciPy sparse matrices with CVXPY?<a class="headerlink" href="#can-i-use-scipy-sparse-matrices-with-cvxpy" title="Permalink to this headline">¶</a></h2>
 <p>Yes, they are fully supported.</p>
-</div>
-<div class="section" id="how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite">
+</section>
+<section id="how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite">
 <h2>How do I constrain a CVXPY matrix expression to be positive semidefinite?<a class="headerlink" href="#how-do-i-constrain-a-cvxpy-matrix-expression-to-be-positive-semidefinite" title="Permalink to this headline">¶</a></h2>
 <p>See <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a>.</p>
-</div>
-<div class="section" id="how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables">
+</section>
+<section id="how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables">
 <h2>How do I create variables with special properties, such as boolean or symmetric variables?<a class="headerlink" href="#how-do-i-create-variables-with-special-properties-such-as-boolean-or-symmetric-variables" title="Permalink to this headline">¶</a></h2>
 <p>See <a class="reference internal" href="../tutorial/advanced/index.html#advanced"><span class="std std-ref">Advanced Features</span></a>.</p>
-</div>
-<div class="section" id="how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric">
+</section>
+<section id="how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric">
 <h2>How do I create a variable that has multiple special properties, such as boolean and symmetric?<a class="headerlink" href="#how-do-i-create-a-variable-that-has-multiple-special-properties-such-as-boolean-and-symmetric" title="Permalink to this headline">¶</a></h2>
 <p>Create one variable with each desired property, and then set them all equal by adding equality constraints.</p>
-</div>
-<div class="section" id="how-do-i-create-variables-with-more-than-2-dimensions">
+</section>
+<section id="how-do-i-create-variables-with-more-than-2-dimensions">
 <h2>How do I create variables with more than 2 dimensions?<a class="headerlink" href="#how-do-i-create-variables-with-more-than-2-dimensions" title="Permalink to this headline">¶</a></h2>
 <p>You must mimic the extra dimensions using a dict,
 as described in <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/198">this Github issue</a>.</p>
-</div>
-<div class="section" id="why-does-it-take-so-long-to-compile-my-problem">
+</section>
+<section id="why-does-it-take-so-long-to-compile-my-problem">
 <h2>Why does it take so long to compile my Problem?<a class="headerlink" href="#why-does-it-take-so-long-to-compile-my-problem" title="Permalink to this headline">¶</a></h2>
 <p>In general, you should vectorize CVXPY expressions whenever possible if you
 care about performance (e.g., write A * x == b instead of a_i  * x == b_i for
 every row a_i of A). Consult this <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/1.0/examples/notebooks/building_models_with_fast_compile_times.ipynb">IPython notebook</a> for details.</p>
-<div class="section" id="how-does-cvxpy-work">
+<section id="how-does-cvxpy-work">
 <h3>How does CVXPY work?<a class="headerlink" href="#how-does-cvxpy-work" title="Permalink to this headline">¶</a></h3>
 <p>The fundamental concepts behind CVXPY are discussed in <a class="reference external" href="https://web.stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf">this paper</a>.</p>
-</div>
-</div>
-<div class="section" id="how-do-i-cite-cvxpy">
+</section>
+</section>
+<section id="how-do-i-cite-cvxpy">
 <h2>How do I cite CVXPY?<a class="headerlink" href="#how-do-i-cite-cvxpy" title="Permalink to this headline">¶</a></h2>
 <p>If you use CVXPY for published work, we encourage you to cite the software.
 Use the following BibTeX citation:</p>
@@ -169,8 +168,8 @@ Use the following BibTeX citation:</p>
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -235,12 +234,30 @@ Use the following BibTeX citation:</p>
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -249,7 +266,7 @@ Use the following BibTeX citation:</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -4,16 +4,16 @@
 <html>
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Disciplined Quasiconvex Programming &#8212; CVXPY 1.1.18 documentation</title>
-    <link rel="stylesheet" href="../../_static/cvxpy_alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    <script id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Disciplined Quasiconvex Programming &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
     <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/language_data.js"></script>
-    <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Advanced Features" href="../advanced/index.html" />
@@ -34,7 +34,7 @@
 
           <div class="body" role="main">
             
-  <div class="section" id="disciplined-quasiconvex-programming">
+  <section id="disciplined-quasiconvex-programming">
 <span id="dqcp"></span><h1>Disciplined Quasiconvex Programming<a class="headerlink" href="#disciplined-quasiconvex-programming" title="Permalink to this headline">¶</a></h1>
 <p>Disciplined quasiconvex programming (DQCP) is a generalization of DCP for
 quasiconvex functions. Quasiconvexity generalizes convexity: a function
@@ -83,7 +83,7 @@ the section on <a class="reference internal" href="../functions/index.html#funct
 For interactive code examples, check out our <a class="reference internal" href="../../examples/index.html#dqcp-examples"><span class="std std-ref">notebooks</span></a>.</p>
 <p><em>Note: DQCP is a recent addition to CVXPY. If you have feedback, please file an
 issue or make a pull request on</em> <a class="reference external" href="https://github.com/cvxpy/cvxpy">Github</a>.</p>
-<div class="section" id="curvature">
+<section id="curvature">
 <h2>Curvature<a class="headerlink" href="#curvature" title="Permalink to this headline">¶</a></h2>
 <p>DQCP adds two new types of curvature to CVXPY: quasiconvex and quasiconcave. A
 function <span class="math notranslate nohighlight">\(f\)</span> is quasiconvex if and only if its domain is a convex set and
@@ -121,8 +121,8 @@ calling the methods <code class="code docutils literal notranslate"><span class=
 example, <code class="code docutils literal notranslate"><span class="pre">y.is_quasiconvex()</span></code> and <code class="code docutils literal notranslate"><span class="pre">z.is_quasiconcave()</span></code> would
 evaluate to <code class="code docutils literal notranslate"><span class="pre">True</span></code>. You can check if an expression is quasilinear by
 calling the <code class="code docutils literal notranslate"><span class="pre">is_quasilinear()</span></code> method.</p>
-</div>
-<div class="section" id="composition-rules">
+</section>
+<section id="composition-rules">
 <h2>Composition rules<a class="headerlink" href="#composition-rules" title="Permalink to this headline">¶</a></h2>
 <p>DQCP analysis is based on applying a general composition theorem from
 convex analysis to each expression. An expression is verifiably
@@ -176,8 +176,8 @@ at least one of the methods <code class="code docutils literal notranslate"><spa
 <code class="code docutils literal notranslate"><span class="pre">is_affine()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_convex()</span></code>,
 <code class="code docutils literal notranslate"><span class="pre">is_concave()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_quasiconvex()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_quasiconvex()</span></code> will
 return <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p>
-</div>
-<div class="section" id="dqcp-problems">
+</section>
+<section id="dqcp-problems">
 <h2>DQCP problems<a class="headerlink" href="#dqcp-problems" title="Permalink to this headline">¶</a></h2>
 <p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
 a list of constraints. If a problem follows the DQCP rules, it is guaranteed to
@@ -218,8 +218,8 @@ non-DQCP problems:</p>
 </div>
 <p>CVXPY will raise an exception if you call <code class="docutils literal notranslate"><span class="pre">problem.solve(qcp=True)</span></code> on a
 non-DQCP problem.</p>
-</div>
-<div class="section" id="dqcp-atoms">
+</section>
+<section id="dqcp-atoms">
 <span id="id2"></span><h2>DQCP atoms<a class="headerlink" href="#dqcp-atoms" title="Permalink to this headline">¶</a></h2>
 <p>Quasiconvex and quasiconcave expressions can be constructed using
 convex and concave atoms, using the curvature rules given above.
@@ -265,8 +265,8 @@ for <code class="docutils literal notranslate"><span class="pre">x</span> <span 
 <p><strong>Length of a vector.</strong>
 The atoms <code class="docutils literal notranslate"><span class="pre">cvxpy.length(x)</span></code>, which returns the index of the last nonzero
 element in <span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span>, is quasiconvex.</p>
-</div>
-<div class="section" id="solving-dqcp-problems">
+</section>
+<section id="solving-dqcp-problems">
 <h2>Solving DQCP problems<a class="headerlink" href="#solving-dqcp-problems" title="Permalink to this headline">¶</a></h2>
 <p>A DQCP problem <code class="docutils literal notranslate"><span class="pre">problem</span></code> can be solved by calling <code class="docutils literal notranslate"><span class="pre">problem.solve(qcp=True)</span></code>.
 CVXPY uses a bisection method on the optimal value of the problem to solve
@@ -284,8 +284,8 @@ example, <code class="docutils literal notranslate"><span class="pre">problem.so
 verbose output describing the bisection, supply the keyword argument
 <code class="docutils literal notranslate"><span class="pre">verbose=True</span></code> to the solve method (<code class="docutils literal notranslate"><span class="pre">problem.solve(qcp=True,</span>
 <span class="pre">verbose=True)</span></code>).</p>
-</div>
-</div>
+</section>
+</section>
 
 
           </div>
@@ -365,12 +365,30 @@ verbose output describing the bisection, supply the keyword argument
   <h3 id="searchlabel">Quick search</h3>
     <div class="searchformwrapper">
     <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" aria-labelledby="searchlabel" />
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
       <input type="submit" value="Go" />
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
         </div>
       </div>
       <div class="clearer"></div>
@@ -379,7 +397,7 @@ verbose output describing the bisection, supply the keyword argument
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 3.2.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
