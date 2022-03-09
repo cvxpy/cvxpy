@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Second-order cone program &#8212; CVXPY 1.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="second-order-cone-program">
+<h1>Second-order cone program<a class="headerlink" href="#second-order-cone-program" title="Permalink to this headline">¶</a></h1>
+<p>A second-order cone program (SOCP) is an optimization problem of the
+form</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize}   &amp; f^Tx\\
+\mbox{subject to} &amp; \|A_ix + b_i\|_2 \leq c_i^Tx + d_i, \quad i=1,\ldots,m \\
+                  &amp; Fx = g,
+\end{array}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(x \in \mathcal{R}^{n}\)</span> is the optimization variable and
+<span class="math notranslate nohighlight">\(f \in \mathcal{R}^n\)</span>, <span class="math notranslate nohighlight">\(A_i \in \mathcal{R}^{n_i \times n}\)</span>,
+<span class="math notranslate nohighlight">\(b_i \in \mathcal{R}^{n_i}\)</span>, <span class="math notranslate nohighlight">\(c_i \in \mathcal{R}^n\)</span>,
+<span class="math notranslate nohighlight">\(d_i \in \mathcal{R}\)</span>, <span class="math notranslate nohighlight">\(F \in \mathcal{R}^{p \times n}\)</span>, and
+<span class="math notranslate nohighlight">\(g \in \mathcal{R}^p\)</span> are problem data.</p>
+<p>An example of an SOCP is the robust linear program</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize}   &amp; c^Tx\\
+\mbox{subject to} &amp; (a_i + u_i)^Tx \leq b_i \textrm{ for all } \|u_i\|_2 \leq 1, \quad i=1,\ldots,m,
+\end{array}\end{split}\]</div>
+<p>where the problem data <span class="math notranslate nohighlight">\(a_i\)</span> are known within an
+<span class="math notranslate nohighlight">\(\ell_2\)</span>-norm ball of radius one. The robust linear program can be
+rewritten as the SOCP</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize}   &amp; c^Tx\\
+\mbox{subject to} &amp; a_i^Tx + \|x\|_2 \leq b_i, \quad i=1,\ldots,m,
+\end{array}\end{split}\]</div>
+<p>When we solve a SOCP, in addition to a solution <span class="math notranslate nohighlight">\(x^\star\)</span>, we
+obtain a dual solution <span class="math notranslate nohighlight">\(\lambda_i^\star\)</span> corresponding to each
+second-order cone constraint. A non-zero <span class="math notranslate nohighlight">\(\lambda_i^\star\)</span>
+indicates that the constraint <span class="math notranslate nohighlight">\(\|A_ix + b_i\|_2 \leq c_i^Tx + d_i\)</span>
+holds with equality for <span class="math notranslate nohighlight">\(x^\star\)</span> and suggests that
+changing <span class="math notranslate nohighlight">\(d_i\)</span> would change the optimal value.</p>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>In the following code, we solve a SOCP with CVXPY.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import packages.</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Generate a random feasible SOCP.</span>
+<span class="n">m</span> <span class="o">=</span> <span class="mi">3</span>
+<span class="n">n</span> <span class="o">=</span> <span class="mi">10</span>
+<span class="n">p</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">n_i</span> <span class="o">=</span> <span class="mi">5</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="n">A</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">b</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">c</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">d</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">x0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+    <span class="n">A</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n_i</span><span class="p">,</span> <span class="n">n</span><span class="p">))</span>
+    <span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n_i</span><span class="p">))</span>
+    <span class="n">c</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+    <span class="n">d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">@</span> <span class="n">x0</span> <span class="o">+</span> <span class="n">b</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">x0</span><span class="p">)</span>
+<span class="n">F</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+<span class="n">g</span> <span class="o">=</span> <span class="n">F</span> <span class="o">@</span> <span class="n">x0</span>
+
+<span class="c1"># Define and solve the CVXPY problem.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="c1"># We use cp.SOC(t, x) to create the SOC constraint ||x||_2 &lt;= t.</span>
+<span class="n">soc_constraints</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="n">cp</span><span class="o">.</span><span class="n">SOC</span><span class="p">(</span><span class="n">c</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">@</span> <span class="n">x</span> <span class="o">+</span> <span class="n">b</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">T</span><span class="nd">@x</span><span class="p">),</span>
+                  <span class="n">soc_constraints</span> <span class="o">+</span> <span class="p">[</span><span class="n">F</span> <span class="o">@</span> <span class="n">x</span> <span class="o">==</span> <span class="n">g</span><span class="p">])</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">()</span>
+
+<span class="c1"># Print result.</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;The optimal value is&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;A solution x is&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SOC constraint </span><span class="si">%i</span><span class="s2"> dual variable solution&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">soc_constraints</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dual_value</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">The</span> <span class="n">optimal</span> <span class="n">value</span> <span class="ow">is</span> <span class="o">-</span><span class="mf">9.582695716265503</span>
+<span class="n">A</span> <span class="n">solution</span> <span class="n">x</span> <span class="ow">is</span>
+<span class="p">[</span> <span class="mf">1.40303325</span>  <span class="mf">2.4194569</span>   <span class="mf">1.69146656</span> <span class="o">-</span><span class="mf">0.26922215</span>  <span class="mf">1.30825472</span> <span class="o">-</span><span class="mf">0.70834842</span>
+  <span class="mf">0.19313706</span>  <span class="mf">1.64153496</span>  <span class="mf">0.47698583</span>  <span class="mf">0.66581033</span><span class="p">]</span>
+<span class="n">SOC</span> <span class="n">constraint</span> <span class="mi">0</span> <span class="n">dual</span> <span class="n">variable</span> <span class="n">solution</span>
+<span class="p">[</span> <span class="mf">0.61662526</span>  <span class="mf">0.35370661</span> <span class="o">-</span><span class="mf">0.02327185</span>  <span class="mf">0.04253095</span>  <span class="mf">0.06243588</span>  <span class="mf">0.49886837</span><span class="p">]</span>
+<span class="n">SOC</span> <span class="n">constraint</span> <span class="mi">1</span> <span class="n">dual</span> <span class="n">variable</span> <span class="n">solution</span>
+<span class="p">[</span> <span class="mf">0.35283078</span> <span class="o">-</span><span class="mf">0.14301082</span>  <span class="mf">0.16539699</span> <span class="o">-</span><span class="mf">0.22027817</span>  <span class="mf">0.15440264</span>  <span class="mf">0.06571645</span><span class="p">]</span>
+<span class="n">SOC</span> <span class="n">constraint</span> <span class="mi">2</span> <span class="n">dual</span> <span class="n">variable</span> <span class="n">solution</span>
+<span class="p">[</span> <span class="mf">0.86510445</span> <span class="o">-</span><span class="mf">0.114638</span>   <span class="o">-</span><span class="mf">0.449291</span>    <span class="mf">0.37810251</span> <span class="o">-</span><span class="mf">0.6144058</span>  <span class="o">-</span><span class="mf">0.11377797</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/basic/socp.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

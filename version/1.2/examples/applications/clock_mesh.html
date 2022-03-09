@@ -1,0 +1,526 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Sizing of clock meshes &#8212; CVXPY 1.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="sizing-of-clock-meshes">
+<h1>Sizing of clock meshes<a class="headerlink" href="#sizing-of-clock-meshes" title="Permalink to this headline">¶</a></h1>
+<p>Original by Lieven Vanderberghe. Adapted to CVX by Argyris Zymnis,
+12/4/2005. Modified by Michael Grant, 3/8/2006. Adapted to CVXPY, with
+cosmetic modifications, by Judson Wilson, 5/26/2014.</p>
+<p>Topic References:</p>
+<ul class="simple">
+<li><p>Section 4, L. Vandenberghe, S. Boyd, and A. El Gamal “Optimal Wire
+and Transistor Sizing for Circuits with Non-Tree Topology”</p></li>
+</ul>
+<section id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>We consider the problem of sizing a clock mesh, so as to minimize the
+total dissipated power under a constraint on the dominant time constant.
+The numbers of nodes in the mesh is <span class="math notranslate nohighlight">\(N\)</span> per row or column (thus
+<span class="math notranslate nohighlight">\(n=(N+1)^2\)</span> in total). We divide the wire into m segments of width
+<span class="math notranslate nohighlight">\(x_i\)</span>, <span class="math notranslate nohighlight">\(i = 1,\dots,m\)</span> which is constrained as
+<span class="math notranslate nohighlight">\(0 \le x_i \le W_{\mbox{max}}\)</span>. We use a pi-model of each wire
+segment, with capacitance <span class="math notranslate nohighlight">\(\beta_i x_i\)</span> and conductance
+<span class="math notranslate nohighlight">\(\alpha_i x_i\)</span>. Defining
+<span class="math notranslate nohighlight">\(C(x) = C_0+x_1 C_1 + x_2 C_ 2 + \cdots + x_m C_m\)</span> we have that
+the dissipated power is equal to <span class="math notranslate nohighlight">\(\mathbf{1}^T C(x) \mathbf{1}\)</span>.
+Thus to minimize the dissipated power subject to a constraint in the
+widths and a constraint in the dominant time constant, we solve the SDP</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+    \mbox{minimize}   &amp; \mathbf{1}^T C(x) \mathbf{1}   \\
+    \mbox{subject to} &amp;  T_{\mbox{max}} G(x) - C(x) \succeq 0 \\
+                      &amp; 0 \le x_i \le W_{\mbox{max}}.
+    \end{array}\end{split}\]</div>
+</section>
+<section id="import-and-setup-packages">
+<h2>Import and setup packages<a class="headerlink" href="#import-and-setup-packages" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">scipy</span> <span class="k">as</span> <span class="nn">scipy</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="c1"># Show plots inline in ipython.</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="c1"># Plot properties.</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;text&#39;</span><span class="p">,</span> <span class="n">usetex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="n">family</span><span class="o">=</span><span class="s1">&#39;serif&#39;</span><span class="p">)</span>
+<span class="n">font</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;weight&#39;</span> <span class="p">:</span> <span class="s1">&#39;normal&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;size&#39;</span>   <span class="p">:</span> <span class="mi">16</span><span class="p">}</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">rc</span><span class="p">(</span><span class="s1">&#39;font&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">font</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="helper-functions">
+<h2>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Computes the step response of a linear system.</span>
+<span class="k">def</span> <span class="nf">simple_step</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">DT</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+    <span class="n">n</span>  <span class="o">=</span> <span class="n">A</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">Ad</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">expm</span><span class="p">((</span><span class="n">A</span> <span class="o">*</span> <span class="n">DT</span><span class="p">))</span>
+    <span class="n">Bd</span> <span class="o">=</span> <span class="p">(</span><span class="n">Ad</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">))</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">B</span><span class="p">)</span>
+    <span class="n">Bd</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">Bd</span><span class="p">)</span>
+    <span class="n">X</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N</span><span class="p">):</span>
+        <span class="n">X</span><span class="p">[:,</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">Ad</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">X</span><span class="p">[:,</span> <span class="n">k</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">Bd</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">X</span>
+</pre></div>
+</div>
+</section>
+<section id="generate-problem-data">
+<h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1">#</span>
+<span class="c1"># Circuit parameters.</span>
+<span class="c1">#</span>
+
+<span class="n">dim</span><span class="o">=</span><span class="mi">4</span>            <span class="c1"># Grid is dimxdim (assume dim is even).</span>
+<span class="n">n</span><span class="o">=</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>     <span class="c1"># Number of nodes.</span>
+<span class="n">m</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">dim</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Number of wires.</span>
+                 <span class="c1">#   0 ... dim(dim+1)-1 are horizontal segments</span>
+                 <span class="c1">#     (numbered rowwise);</span>
+                 <span class="c1">#   dim(dim+1) ... 2*dim(dim+1)-1 are vertical</span>
+                 <span class="c1">#     (numbered columnwise)</span>
+<span class="n">beta</span> <span class="o">=</span> <span class="mf">0.5</span>       <span class="c1"># Capacitance per segment is twice beta times xi.</span>
+<span class="n">alpha</span> <span class="o">=</span> <span class="mi">1</span>        <span class="c1"># Conductance per segment is alpha times xi.</span>
+<span class="n">G0</span> <span class="o">=</span> <span class="mi">1</span>           <span class="c1"># Source conductance.</span>
+<span class="n">C0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span> <span class="p">(</span>      <span class="mi">10</span><span class="p">,</span>     <span class="mi">2</span><span class="p">,</span>     <span class="mi">7</span><span class="p">,</span>     <span class="mi">5</span><span class="p">,</span>     <span class="mi">3</span><span class="p">),</span>
+                <span class="p">(</span>       <span class="mi">8</span><span class="p">,</span>     <span class="mi">3</span><span class="p">,</span>     <span class="mi">9</span><span class="p">,</span>     <span class="mi">5</span><span class="p">,</span>     <span class="mi">5</span><span class="p">),</span>
+                <span class="p">(</span>       <span class="mi">1</span><span class="p">,</span>     <span class="mi">8</span><span class="p">,</span>     <span class="mi">4</span><span class="p">,</span>     <span class="mi">9</span><span class="p">,</span>     <span class="mi">3</span><span class="p">),</span>
+                <span class="p">(</span>       <span class="mi">7</span><span class="p">,</span>     <span class="mi">3</span><span class="p">,</span>     <span class="mi">6</span><span class="p">,</span>     <span class="mi">8</span><span class="p">,</span>     <span class="mi">2</span><span class="p">),</span>
+                <span class="p">(</span>       <span class="mi">5</span><span class="p">,</span>     <span class="mi">2</span><span class="p">,</span>     <span class="mi">1</span><span class="p">,</span>     <span class="mi">9</span><span class="p">,</span>    <span class="mi">10</span><span class="p">)</span> <span class="p">])</span>
+<span class="n">wmax</span> <span class="o">=</span> <span class="mi">1</span>        <span class="c1"># Upper bound on x.</span>
+
+<span class="c1">#</span>
+<span class="c1"># Build capacitance and conductance matrices.</span>
+<span class="c1">#</span>
+
+<span class="n">CC</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">GG</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+<span class="c1"># Constant terms.</span>
+<span class="c1"># - Reshape order=&#39;F&#39; is fortran order to match original</span>
+<span class="c1">#   version in MATLAB code.</span>
+<span class="n">CC</span><span class="p">[:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">C0</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                                                           <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">zo13</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">zo13</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)])</span>
+<span class="n">zo24</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">zo24</span><span class="p">[</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">0</span><span class="p">,:]</span> <span class="o">=</span> <span class="n">zo13</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+<span class="n">pn13</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">pn13</span><span class="p">[:,</span><span class="mi">0</span><span class="p">,:,</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+<span class="n">pn24</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+<span class="n">pn24</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">pn13</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">):</span>
+    <span class="c1"># Source conductance.</span>
+    <span class="c1"># First driver in the middle of row 1.</span>
+    <span class="n">GG</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="n">i</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">dim</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span> <span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">G0</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">dim</span><span class="p">):</span>
+        <span class="c1"># Horizontal segments.</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="n">i</span> <span class="o">*</span> <span class="n">dim</span>
+        <span class="n">CC</span><span class="p">[</span><span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">zo13</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">GG</span><span class="p">[</span><span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">pn13</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="c1"># Vertical segments.</span>
+        <span class="n">node</span> <span class="o">=</span> <span class="n">node</span> <span class="o">+</span> <span class="n">dim</span> <span class="o">*</span> <span class="p">(</span> <span class="n">dim</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">)</span>
+        <span class="n">CC</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">beta</span> <span class="o">*</span> <span class="n">zo24</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">GG</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span><span class="n">j</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span> <span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">alpha</span> <span class="o">*</span> <span class="n">pn24</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>
+
+<span class="c1"># Reshape for ease of use.</span>
+<span class="n">CC</span> <span class="o">=</span> <span class="n">CC</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="o">*</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+<span class="n">GG</span> <span class="o">=</span> <span class="n">GG</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">n</span><span class="o">*</span><span class="n">n</span><span class="p">,</span> <span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Compute points the tradeoff curve, and the three sample points.</span>
+<span class="c1">#</span>
+
+<span class="n">npts</span>    <span class="o">=</span> <span class="mi">50</span>
+<span class="n">delays</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">150</span><span class="p">,</span> <span class="n">npts</span><span class="p">)</span>
+<span class="n">xdelays</span> <span class="o">=</span> <span class="p">[</span><span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">]</span>
+<span class="n">xnpts</span>   <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">xdelays</span><span class="p">)</span>
+<span class="n">areas</span>   <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">npts</span><span class="p">)</span>
+<span class="n">xareas</span>  <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="solve-problem-and-display-results">
+<h2>Solve problem and display results<a class="headerlink" href="#solve-problem-and-display-results" title="Permalink to this headline">¶</a></h2>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Iterate over all points, and revisit specific points</span>
+<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">npts</span> <span class="o">+</span> <span class="n">xnpts</span><span class="p">):</span>
+    <span class="c1"># First pass, only gather minimal data from all cases.</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">npts</span><span class="p">:</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="n">delays</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="p">(</span><span class="s1">&#39;Point </span><span class="si">{}</span><span class="s1"> of </span><span class="si">{}</span><span class="s1"> on the tradeoff curve &#39;</span> \
+              <span class="o">+</span> <span class="s1">&#39;(Tmax = </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">npts</span><span class="p">,</span> <span class="n">delay</span><span class="p">))</span>
+    <span class="c1"># Second pass, gather more data for specific cases,</span>
+    <span class="c1"># and make plots (later).</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xi</span> <span class="o">=</span> <span class="n">i</span> <span class="o">-</span> <span class="n">npts</span>
+        <span class="n">delay</span> <span class="o">=</span> <span class="n">xdelays</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span> <span class="p">(</span><span class="s1">&#39;Particular solution </span><span class="si">{}</span><span class="s1"> of </span><span class="si">{}</span><span class="s1"> &#39;</span> \
+              <span class="o">+</span> <span class="s1">&#39;(Tmax = </span><span class="si">{}</span><span class="s1">)&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">xnpts</span><span class="p">,</span> <span class="n">delay</span><span class="p">))</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Construct and solve the convex model.</span>
+    <span class="c1">#</span>
+
+    <span class="c1"># Variables.</span>
+    <span class="n">xt</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">m</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span> <span class="c1"># Element 1 of xt == 1 below.</span>
+    <span class="n">G</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Symmetric constraint below.</span>
+    <span class="n">C</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">((</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Symmetric constraint below.</span>
+
+    <span class="c1"># Objective.</span>
+    <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">C</span><span class="p">))</span>
+
+    <span class="c1"># Constraints.</span>
+    <span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span> <span class="n">xt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+                    <span class="n">G</span> <span class="o">==</span> <span class="n">G</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                    <span class="n">C</span> <span class="o">==</span> <span class="n">C</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+                    <span class="n">G</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">GG</span><span class="o">*</span><span class="n">xt</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">)),</span>
+                    <span class="n">C</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">CC</span><span class="o">*</span><span class="n">xt</span><span class="p">,</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">)),</span>
+                    <span class="n">delay</span> <span class="o">*</span> <span class="n">G</span> <span class="o">-</span> <span class="n">C</span> <span class="o">==</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">n</span><span class="p">),</span> <span class="n">PSD</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+                    <span class="mi">0</span> <span class="o">&lt;=</span> <span class="n">xt</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span>
+                    <span class="n">xt</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">&lt;=</span> <span class="n">wmax</span><span class="p">,</span>
+                  <span class="p">]</span>
+
+    <span class="c1"># Solve problem (use CVXOPT instead of SCS to match original results;</span>
+    <span class="c1"># cvxopt produces lower objective values as well, but is much slower)</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">cp</span><span class="o">.</span><span class="n">SolverError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CVXOPT failed, trying robust KKT&quot;</span><span class="p">)</span>
+        <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">CVXOPT</span><span class="p">,</span> <span class="n">kktsolver</span><span class="o">=</span><span class="s1">&#39;robust&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL</span><span class="p">,</span> <span class="n">cp</span><span class="o">.</span><span class="n">OPTIMAL_INACCURATE</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;CVXPY Error&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Chop off the first element of x, which is</span>
+    <span class="c1"># constrainted to be 1</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">xt</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+    <span class="c1"># First pass, only gather minimal data from all cases.</span>
+    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">npts</span><span class="p">:</span>
+        <span class="n">areas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="c1"># Second pass, gather more data for specific cases,</span>
+    <span class="c1"># and make plots.</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">xareas</span><span class="p">[</span><span class="n">xi</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Print display sizes.</span>
+        <span class="c1">#</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Solution </span><span class="si">{}</span><span class="s1">:&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Vertical segments:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">dim</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">)]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Horizontal segments:&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">dim</span><span class="o">*</span><span class="p">(</span><span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">):]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">())</span>
+
+        <span class="c1">#</span>
+        <span class="c1"># Determine and plot the step responses.</span>
+        <span class="c1">#</span>
+
+        <span class="n">A</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">C</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">B</span> <span class="o">=</span> <span class="o">-</span><span class="n">A</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">500</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">simple_step</span><span class="p">(</span><span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">T</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
+        <span class="n">indmax</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">indmin</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">Y</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">inds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="n">j</span><span class="p">,</span> <span class="p">:]</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="n">inds</span> <span class="o">&gt;</span> <span class="n">indmax</span> <span class="p">):</span>
+                <span class="n">indmax</span> <span class="o">=</span> <span class="n">inds</span>
+                <span class="n">jmax</span> <span class="o">=</span> <span class="n">j</span>
+            <span class="k">if</span> <span class="p">(</span> <span class="n">inds</span> <span class="o">&lt;</span> <span class="n">indmin</span> <span class="p">):</span>
+                <span class="n">indmin</span> <span class="o">=</span> <span class="n">inds</span>
+                <span class="n">jmin</span> <span class="o">=</span> <span class="n">j</span>
+
+        <span class="n">tthres</span> <span class="o">=</span> <span class="n">T</span><span class="p">[</span><span class="n">indmax</span><span class="p">]</span>
+        <span class="n">GinvC</span>  <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">G</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">C</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">tdom</span>   <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">eig</span><span class="p">(</span><span class="n">GinvC</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">elmore</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">GinvC</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">T</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="n">jmax</span><span class="p">,:])</span><span class="o">.</span><span class="n">flatten</span><span class="p">(),</span> <span class="s1">&#39;-&#39;</span><span class="p">,</span>
+                  <span class="n">T</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">Y</span><span class="p">[</span><span class="n">jmin</span><span class="p">,:])</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span> <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">tdom</span>   <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span>
+                  <span class="n">elmore</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;--&#39;</span><span class="p">,</span>
+                  <span class="n">tthres</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="s1">&#39;--&#39;</span> <span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">500</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">tdom</span><span class="p">,</span> <span class="mf">0.92</span><span class="p">,</span> <span class="s1">&#39;d&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">elmore</span><span class="p">,</span> <span class="mf">0.88</span><span class="p">,</span> <span class="s1">&#39;e&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">tthres</span><span class="p">,</span> <span class="mf">0.96</span><span class="p">,</span> <span class="s1">&#39;t&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span> <span class="n">T</span><span class="p">[</span><span class="mi">600</span><span class="p">],</span> <span class="n">Y</span><span class="p">[</span><span class="n">jmax</span><span class="p">,</span> <span class="mi">600</span><span class="p">],</span> <span class="s1">&#39;v</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jmax</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span> <span class="n">T</span><span class="p">[</span><span class="mi">600</span><span class="p">],</span> <span class="n">Y</span><span class="p">[</span><span class="n">jmin</span><span class="p">,</span> <span class="mi">600</span><span class="p">],</span> <span class="s1">&#39;v</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">jmin</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">((</span><span class="s1">&#39;Solution </span><span class="si">{}</span><span class="s1"> (Tmax=</span><span class="si">{}</span><span class="s1">), fastest &#39;</span> \
+                    <span class="o">+</span> <span class="s1">&#39;and slowest step responses&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">xi</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">delay</span><span class="p">),</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1">#</span>
+<span class="c1"># Plot the tradeoff curve.</span>
+<span class="c1">#</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">ind</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">areas</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">areas</span><span class="p">[</span><span class="n">ind</span><span class="p">],</span> <span class="n">delays</span><span class="p">[</span><span class="n">ind</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;Area&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;Tdom&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Area-delay tradeoff curve&#39;</span><span class="p">)</span>
+<span class="c1"># Label the specific cases.</span>
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">xnpts</span><span class="p">):</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">xareas</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">xdelays</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">k</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Point</span> <span class="mi">1</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">50.0</span><span class="p">)</span>
+<span class="n">CVXOPT</span> <span class="n">failed</span><span class="p">,</span> <span class="n">trying</span> <span class="n">robust</span> <span class="n">KKT</span>
+<span class="n">Point</span> <span class="mi">2</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">52.04081632653061</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">3</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">54.08163265306123</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">4</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">56.12244897959184</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">5</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">58.16326530612245</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">6</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">60.20408163265306</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">7</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">62.244897959183675</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">8</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">64.28571428571429</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">9</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">66.3265306122449</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">10</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">68.36734693877551</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">11</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">70.40816326530611</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">12</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">72.44897959183673</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">13</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">74.48979591836735</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">14</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">76.53061224489795</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">15</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">78.57142857142857</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">16</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">80.61224489795919</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">17</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">82.65306122448979</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">18</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">84.6938775510204</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">19</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">86.73469387755102</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">20</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">88.77551020408163</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">21</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">90.81632653061224</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">22</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">92.85714285714286</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">23</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">94.89795918367346</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">24</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">96.93877551020408</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">25</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">98.9795918367347</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">26</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">101.0204081632653</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">27</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">103.06122448979592</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">28</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">105.10204081632654</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">29</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">107.14285714285714</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">30</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">109.18367346938776</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">31</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">111.22448979591837</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">32</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">113.26530612244898</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">33</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">115.3061224489796</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">34</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">117.34693877551021</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">35</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">119.38775510204081</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">36</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">121.42857142857143</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">37</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">123.46938775510205</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">38</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">125.51020408163265</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">39</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">127.55102040816327</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">40</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">129.59183673469389</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">41</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">131.6326530612245</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">42</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">133.67346938775512</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">43</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">135.71428571428572</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">44</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">137.75510204081633</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">45</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">139.79591836734693</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">46</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">141.83673469387756</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">47</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">143.87755102040816</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">48</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">145.9183673469388</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">49</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">147.9591836734694</span><span class="p">)</span>
+<span class="n">Point</span> <span class="mi">50</span> <span class="n">of</span> <span class="mi">50</span> <span class="n">on</span> <span class="n">the</span> <span class="n">tradeoff</span> <span class="n">curve</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mf">150.0</span><span class="p">)</span>
+<span class="n">Particular</span> <span class="n">solution</span> <span class="mi">1</span> <span class="n">of</span> <span class="mi">2</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span>
+<span class="n">CVXOPT</span> <span class="n">failed</span><span class="p">,</span> <span class="n">trying</span> <span class="n">robust</span> <span class="n">KKT</span>
+<span class="n">Solution</span> <span class="mi">1</span><span class="p">:</span>
+<span class="n">Vertical</span> <span class="n">segments</span><span class="p">:</span>
+<span class="p">[[</span><span class="mf">0.65284441</span> <span class="mf">0.4391586</span>  <span class="mf">0.52378143</span> <span class="mf">0.47092764</span> <span class="mf">0.2363529</span> <span class="p">]</span>
+ <span class="p">[</span><span class="mf">0.99999993</span> <span class="mf">0.85353862</span> <span class="mf">0.99999992</span> <span class="mf">0.93601078</span> <span class="mf">0.56994586</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">0.92325575</span> <span class="mf">0.29557654</span> <span class="mf">0.80041338</span> <span class="mf">0.99999998</span> <span class="mf">0.99999997</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">0.41300012</span> <span class="mf">0.13553757</span> <span class="mf">0.26699524</span> <span class="mf">0.67049218</span> <span class="mf">0.88916807</span><span class="p">]]</span>
+<span class="n">Horizontal</span> <span class="n">segments</span><span class="p">:</span>
+<span class="p">[[</span><span class="mf">1.96487539e-01</span> <span class="mf">1.40591789e-01</span> <span class="mf">9.70591442e-08</span> <span class="mf">7.79376843e-08</span>
+  <span class="mf">5.27429285e-08</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">7.07446433e-02</span> <span class="mf">6.38430105e-02</span> <span class="mf">1.02136471e-07</span> <span class="mf">8.59913722e-08</span>
+  <span class="mf">6.28906472e-08</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">6.05807467e-09</span> <span class="mf">1.16285450e-08</span> <span class="mf">3.91561390e-08</span> <span class="mf">9.48052913e-02</span>
+  <span class="mf">1.58096913e-01</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">3.82528741e-07</span> <span class="mf">4.85708568e-07</span> <span class="mf">5.75578696e-07</span> <span class="mf">8.39862772e-02</span>
+  <span class="mf">5.38639181e-02</span><span class="p">]]</span>
+</pre></div>
+</div>
+<img alt="../../_images/clock_mesh_7_1.png" src="../../_images/clock_mesh_7_1.png" />
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Particular</span> <span class="n">solution</span> <span class="mi">2</span> <span class="n">of</span> <span class="mi">2</span> <span class="p">(</span><span class="n">Tmax</span> <span class="o">=</span> <span class="mi">100</span><span class="p">)</span>
+<span class="n">Solution</span> <span class="mi">2</span><span class="p">:</span>
+<span class="n">Vertical</span> <span class="n">segments</span><span class="p">:</span>
+<span class="p">[[</span><span class="mf">0.2687881</span>  <span class="mf">0.04368684</span> <span class="mf">0.17122095</span> <span class="mf">0.133796</span>   <span class="mf">0.07360396</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">0.41346231</span> <span class="mf">0.08016135</span> <span class="mf">0.30642705</span> <span class="mf">0.2224136</span>  <span class="mf">0.1484946</span> <span class="p">]</span>
+ <span class="p">[</span><span class="mf">0.25755998</span> <span class="mf">0.08016077</span> <span class="mf">0.11200259</span> <span class="mf">0.38352317</span> <span class="mf">0.28159768</span><span class="p">]</span>
+ <span class="p">[</span><span class="mf">0.13439419</span> <span class="mf">0.04368697</span> <span class="mf">0.02445701</span> <span class="mf">0.24083502</span> <span class="mf">0.24534599</span><span class="p">]]</span>
+<span class="n">Horizontal</span> <span class="n">segments</span><span class="p">:</span>
+<span class="p">[[</span> <span class="mf">1.53896782e-09</span> <span class="o">-</span><span class="mf">5.18600578e-10</span> <span class="o">-</span><span class="mf">9.75218556e-10</span> <span class="o">-</span><span class="mf">5.19196383e-10</span>
+   <span class="mf">1.57176577e-09</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">9.30752726e-10</span> <span class="o">-</span><span class="mf">9.56673760e-10</span> <span class="o">-</span><span class="mf">1.35065528e-09</span> <span class="o">-</span><span class="mf">9.96797753e-10</span>
+   <span class="mf">1.03852376e-09</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">9.35404466e-10</span> <span class="o">-</span><span class="mf">9.12219313e-10</span> <span class="o">-</span><span class="mf">2.22938358e-10</span> <span class="o">-</span><span class="mf">7.91865186e-10</span>
+   <span class="mf">1.51304362e-09</span><span class="p">]</span>
+ <span class="p">[</span> <span class="mf">1.31975762e-09</span> <span class="o">-</span><span class="mf">8.50790152e-10</span> <span class="o">-</span><span class="mf">1.39421076e-09</span> <span class="o">-</span><span class="mf">8.33247519e-10</span>
+   <span class="mf">1.27680128e-09</span><span class="p">]]</span>
+</pre></div>
+</div>
+<img alt="../../_images/clock_mesh_7_3.png" src="../../_images/clock_mesh_7_3.png" />
+<img alt="../../_images/clock_mesh_7_4.png" src="../../_images/clock_mesh_7_4.png" />
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/applications/clock_mesh.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

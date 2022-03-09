@@ -1,0 +1,686 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Affine Atoms &#8212; CVXPY 1.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="cvxpy.atoms.elementwise package" href="cvxpy.atoms.elementwise.html" />
+    <link rel="prev" title="Atoms" href="cvxpy.atoms.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="affine-atoms">
+<h1>Affine Atoms<a class="headerlink" href="#affine-atoms" title="Permalink to this headline">¶</a></h1>
+<p>All of the atoms listed here are affine in their arguments.</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><p><a class="reference internal" href="#addexpression" id="id21">AddExpression</a></p></li>
+<li><p><a class="reference internal" href="#mulexpression" id="id22">MulExpression</a></p></li>
+<li><p><a class="reference internal" href="#divexpression" id="id23">DivExpression</a></p></li>
+<li><p><a class="reference internal" href="#bmat" id="id24">bmat</a></p></li>
+<li><p><a class="reference internal" href="#conv" id="id25">conv</a></p></li>
+<li><p><a class="reference internal" href="#cumsum" id="id26">cumsum</a></p></li>
+<li><p><a class="reference internal" href="#diag" id="id27">diag</a></p></li>
+<li><p><a class="reference internal" href="#diff" id="id28">diff</a></p></li>
+<li><p><a class="reference internal" href="#hstack" id="id29">hstack</a></p></li>
+<li><p><a class="reference internal" href="#index" id="id30">index</a></p></li>
+<li><p><a class="reference internal" href="#kron" id="id31">kron</a></p></li>
+<li><p><a class="reference internal" href="#matmul" id="id32">matmul</a></p></li>
+<li><p><a class="reference internal" href="#multiply" id="id33">multiply</a></p></li>
+<li><p><a class="reference internal" href="#promote" id="id34">promote</a></p></li>
+<li><p><a class="reference internal" href="#reshape" id="id35">reshape</a></p></li>
+<li><p><a class="reference internal" href="#scalar-product" id="id36">scalar_product</a></p></li>
+<li><p><a class="reference internal" href="#sum" id="id37">sum</a></p></li>
+<li><p><a class="reference internal" href="#trace" id="id38">trace</a></p></li>
+<li><p><a class="reference internal" href="#transpose" id="id39">transpose</a></p></li>
+<li><p><a class="reference internal" href="#negexpression" id="id40">NegExpression</a></p></li>
+<li><p><a class="reference internal" href="#upper-tri" id="id41">upper_tri</a></p></li>
+<li><p><a class="reference internal" href="#partial-trace" id="id42">partial_trace</a></p></li>
+<li><p><a class="reference internal" href="#partial-transpose" id="id43">partial_transpose</a></p></li>
+<li><p><a class="reference internal" href="#vec" id="id44">vec</a></p></li>
+<li><p><a class="reference internal" href="#vstack" id="id45">vstack</a></p></li>
+</ul>
+</div>
+<section id="addexpression">
+<span id="add-expression"></span><h2><a class="toc-backref" href="#id21">AddExpression</a><a class="headerlink" href="#addexpression" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.atoms.affine.add_expr.AddExpression">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.add_expr.</span></span><span class="sig-name descname"><span class="pre">AddExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg_groups</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/add_expr.html#AddExpression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.add_expr.AddExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
+<p>The sum of any number of expressions.</p>
+</dd></dl>
+
+</section>
+<section id="mulexpression">
+<span id="mul-expression"></span><h2><a class="toc-backref" href="#id22">MulExpression</a><a class="headerlink" href="#mulexpression" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.atoms.affine.binary_operators.MulExpression">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.binary_operators.</span></span><span class="sig-name descname"><span class="pre">MulExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lh_exp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rh_exp</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#MulExpression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.MulExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.binary_operators.BinaryOperator</span></code></p>
+<p>Matrix multiplication.</p>
+<p>The semantics of multiplication are exactly as those of NumPy’s
+matmul function, except here multiplication by a scalar is permitted.
+MulExpression objects can be created by using the ‘*’ operator of
+the Expression class.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lh_exp</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The left-hand side of the multiplication.</p></li>
+<li><p><strong>rh_exp</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The right-hand side of the multiplication.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="divexpression">
+<span id="div-expression"></span><h2><a class="toc-backref" href="#id23">DivExpression</a><a class="headerlink" href="#divexpression" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.atoms.affine.binary_operators.DivExpression">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.binary_operators.</span></span><span class="sig-name descname"><span class="pre">DivExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lh_expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rh_expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#DivExpression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.binary_operators.DivExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.binary_operators.BinaryOperator</span></code></p>
+<p>Division by scalar.</p>
+<p>Can be created by using the / operator of expression.</p>
+</dd></dl>
+
+</section>
+<section id="bmat">
+<span id="id1"></span><h2><a class="toc-backref" href="#id24">bmat</a><a class="headerlink" href="#bmat" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.bmat">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">bmat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">block_lists</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/bmat.html#bmat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.bmat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructs a block matrix.</p>
+<p>Takes a list of lists. Each internal list is stacked horizontally.
+The internal lists are stacked vertically.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>block_lists</strong> (<em>list of lists</em>) – The blocks of the block matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>The CVXPY expression representing the block matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>CVXPY expression</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="conv">
+<span id="id2"></span><h2><a class="toc-backref" href="#id25">conv</a><a class="headerlink" href="#conv" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.conv">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">conv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lh_expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rh_expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/conv.html#conv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.conv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
+<p>1D discrete convolution of two vectors.</p>
+<p>The discrete convolution <span class="math notranslate nohighlight">\(c\)</span> of vectors <span class="math notranslate nohighlight">\(a\)</span> and <span class="math notranslate nohighlight">\(b\)</span> of
+lengths <span class="math notranslate nohighlight">\(n\)</span> and <span class="math notranslate nohighlight">\(m\)</span>, respectively, is a length-<span class="math notranslate nohighlight">\((n+m-1)\)</span>
+vector where</p>
+<div class="math notranslate nohighlight">
+\[c_k = \sum_{i+j=k} a_ib_j, \quad k=0, \ldots, n+m-2.\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>lh_expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.constants.Constant" title="cvxpy.expressions.constants.Constant"><em>Constant</em></a>) – A constant 1D vector or a 2D column vector.</p></li>
+<li><p><strong>rh_expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – A 1D vector or a 2D column vector.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="cumsum">
+<span id="id3"></span><h2><a class="toc-backref" href="#id26">cumsum</a><a class="headerlink" href="#cumsum" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.cumsum">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">cumsum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/cumsum.html#cumsum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.cumsum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.axis_atom.AxisAtom</span></code></p>
+<p>Cumulative sum.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.cumsum.expr">
+<span class="sig-name descname"><span class="pre">expr</span></span><a class="headerlink" href="#cvxpy.cumsum.expr" title="Permalink to this definition">¶</a></dt>
+<dd><p>The expression being summed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>CVXPY expression</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="cvxpy.cumsum.axis">
+<span class="sig-name descname"><span class="pre">axis</span></span><a class="headerlink" href="#cvxpy.cumsum.axis" title="Permalink to this definition">¶</a></dt>
+<dd><p>The axis to sum across if 2D.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="diag">
+<span id="id4"></span><h2><a class="toc-backref" href="#id27">diag</a><a class="headerlink" href="#diag" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.diag">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">diag</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">cvxpy.atoms.affine.diag.diag_mat</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">cvxpy.atoms.affine.diag.diag_vec</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/diag.html#diag"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.diag" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts the diagonal from a matrix or makes a vector a diagonal matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric constant</em>) – A vector or square matrix.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An Expression representing the diagonal vector/matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="diff">
+<span id="id5"></span><h2><a class="toc-backref" href="#id28">diff</a><a class="headerlink" href="#diff" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.diff">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">diff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/diff.html#diff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.diff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Vector of kth order differences.</p>
+<p>Takes in a vector of length n and returns a vector
+of length n-k of the kth order differences.</p>
+<p>diff(x) returns the vector of differences between
+adjacent elements in the vector, that is</p>
+<p>[x[2] - x[1], x[3] - x[2], …]</p>
+<p>diff(x, 2) is the second-order differences vector,
+equivalently diff(diff(x))</p>
+<p>diff(x, 0) returns the vector x unchanged</p>
+</dd></dl>
+
+</section>
+<section id="hstack">
+<span id="id6"></span><h2><a class="toc-backref" href="#id29">hstack</a><a class="headerlink" href="#hstack" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.hstack">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">hstack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg_list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">cvxpy.atoms.affine.hstack.Hstack</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/hstack.html#hstack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.hstack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Horizontal concatenation of an arbitrary number of Expressions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>arg_list</strong> (<em>list of Expression</em>) – The Expressions to concatenate.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="index">
+<span id="id7"></span><h2><a class="toc-backref" href="#id30">index</a><a class="headerlink" href="#index" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.atoms.affine.index.index">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.index.</span></span><span class="sig-name descname"><span class="pre">index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">orig_key</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/index.html#index"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.index.index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
+<p>Indexing/slicing into an Expression.</p>
+<p>CVXPY supports NumPy-like indexing semantics via the Expression
+class’ overloading of the <code class="docutils literal notranslate"><span class="pre">[]</span></code> operator. This is a low-level class
+constructed by that operator, and it should not be instantiated directly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression indexed/sliced into.</p></li>
+<li><p><strong>key</strong> – The index/slicing key (i.e. expr[key[0],key[1]]).</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="kron">
+<span id="id8"></span><h2><a class="toc-backref" href="#id31">kron</a><a class="headerlink" href="#kron" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.kron">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">kron</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lh_expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rh_expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/kron.html#kron"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.kron" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
+<p>Kronecker product.</p>
+</dd></dl>
+
+</section>
+<section id="matmul">
+<span id="id9"></span><h2><a class="toc-backref" href="#id32">matmul</a><a class="headerlink" href="#matmul" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.matmul">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">matmul</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lh_exp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rh_exp</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.atoms.affine.binary_operators.MulExpression" title="cvxpy.atoms.affine.binary_operators.MulExpression"><span class="pre">cvxpy.atoms.affine.binary_operators.MulExpression</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#matmul"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.matmul" title="Permalink to this definition">¶</a></dt>
+<dd><p>Matrix multiplication.</p>
+</dd></dl>
+
+</section>
+<section id="multiply">
+<span id="id10"></span><h2><a class="toc-backref" href="#id33">multiply</a><a class="headerlink" href="#multiply" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.multiply">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">multiply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lh_expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rh_expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#multiply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.multiply" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.atoms.affine.binary_operators.MulExpression" title="cvxpy.atoms.affine.binary_operators.MulExpression"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.binary_operators.MulExpression</span></code></a></p>
+<p>Multiplies two expressions elementwise.</p>
+</dd></dl>
+
+</section>
+<section id="promote">
+<span id="id11"></span><h2><a class="toc-backref" href="#id34">promote</a><a class="headerlink" href="#promote" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.atoms.affine.promote.promote">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.promote.</span></span><span class="sig-name descname"><span class="pre">promote</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><span class="pre">cvxpy.expressions.expression.Expression</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/promote.html#promote"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.promote.promote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Promote a scalar expression to a vector/matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to promote.</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em>) – The shape to promote to.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If <code class="docutils literal notranslate"><span class="pre">expr</span></code> is not a scalar.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="reshape">
+<span id="id12"></span><h2><a class="toc-backref" href="#id35">reshape</a><a class="headerlink" href="#reshape" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.reshape">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">reshape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">order</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'F'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/reshape.html#reshape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reshape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
+<p>Reshapes the expression.</p>
+<p>Vectorizes the expression then unvectorizes it into the new shape.
+The entries are reshaped and stored in column-major order, also known
+as Fortran order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to promote.</p></li>
+<li><p><strong>shape</strong> (<em>tuple</em><em> or </em><em>int</em>) – The shape to promote to.</p></li>
+<li><p><strong>order</strong> (<em>F</em><em>(</em><em>ortran</em><em>) or </em><em>C</em>) – </p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="scalar-product">
+<span id="id13"></span><h2><a class="toc-backref" href="#id36">scalar_product</a><a class="headerlink" href="#scalar-product" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.scalar_product">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">scalar_product</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/binary_operators.html#scalar_product"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.scalar_product" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases:</p>
+<p>Return the standard inner product (or “scalar product”) of (x,y).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em>, </em><em>int</em><em>, </em><em>float</em><em>, </em><em>NumPy ndarray</em><em>, or </em><em>nested list thereof.</em>) – The conjugate-linear argument to the inner product.</p></li>
+<li><p><strong>y</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em>, </em><em>int</em><em>, </em><em>float</em><em>, </em><em>NumPy ndarray</em><em>, or </em><em>nested list thereof.</em>) – The linear argument to the inner product.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>expr</strong> – The standard inner product of (x,y), conjugate-linear in x.
+We always have <code class="docutils literal notranslate"><span class="pre">expr.shape</span> <span class="pre">==</span> <span class="pre">()</span></code>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The arguments <code class="docutils literal notranslate"><span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">y</span></code> can be nested lists; these lists
+will be flattened independently of one another.</p>
+<p>For example, if <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">[[a],[b]]</span></code> and  <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">[c,</span> <span class="pre">d]</span></code> (with <code class="docutils literal notranslate"><span class="pre">a,b,c,d</span></code>
+real scalars), then this function returns an Expression representing
+<code class="docutils literal notranslate"><span class="pre">a</span> <span class="pre">*</span> <span class="pre">c</span> <span class="pre">+</span> <span class="pre">b</span> <span class="pre">*</span> <span class="pre">d</span></code>.</p>
+</dd></dl>
+
+</section>
+<section id="sum">
+<span id="id14"></span><h2><a class="toc-backref" href="#id37">sum</a><a class="headerlink" href="#sum" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.sum">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">sum</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">keepdims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/sum.html#sum"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sum the entries of an expression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to sum the entries of.</p></li>
+<li><p><strong>axis</strong> (<em>int</em>) – The axis along which to sum.</p></li>
+<li><p><strong>keepdims</strong> (<em>bool</em>) – Whether to drop dimensions after summing.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="trace">
+<span id="id15"></span><h2><a class="toc-backref" href="#id38">trace</a><a class="headerlink" href="#trace" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.trace">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/trace.html#trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
+<p>The sum of the diagonal entries of a matrix.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The expression to sum the diagonal of.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="transpose">
+<span id="id16"></span><h2><a class="toc-backref" href="#id39">transpose</a><a class="headerlink" href="#transpose" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.transpose">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">transpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/transpose.html#transpose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.transpose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
+<p>Transpose an expression.</p>
+</dd></dl>
+
+</section>
+<section id="negexpression">
+<span id="id17"></span><h2><a class="toc-backref" href="#id40">NegExpression</a><a class="headerlink" href="#negexpression" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.atoms.affine.unary_operators.NegExpression">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.atoms.affine.unary_operators.</span></span><span class="sig-name descname"><span class="pre">NegExpression</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/unary_operators.html#NegExpression"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.atoms.affine.unary_operators.NegExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.unary_operators.UnaryOperator</span></code></p>
+<p>Negation of an expression.</p>
+</dd></dl>
+
+</section>
+<section id="upper-tri">
+<span id="id18"></span><h2><a class="toc-backref" href="#id41">upper_tri</a><a class="headerlink" href="#upper-tri" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.upper_tri">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">upper_tri</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/upper_tri.html#upper_tri"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.upper_tri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.atoms.affine.affine_atom.AffAtom</span></code></p>
+<p>The vectorized strictly upper-triagonal entries.</p>
+<p>The vectorization is performed by concatenating (partial) rows.
+For example, if</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">],</span>
+              <span class="p">[</span><span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">17</span><span class="p">],</span>
+              <span class="p">[</span><span class="mi">18</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span>
+              <span class="p">[</span><span class="mi">22</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">25</span><span class="p">]])</span>
+</pre></div>
+</div>
+<p>then we have</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">upper_tri</span><span class="p">(</span><span class="n">A</span><span class="p">)</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">21</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+<section id="partial-trace">
+<span id="ptrace"></span><h2><a class="toc-backref" href="#id42">partial_trace</a><a class="headerlink" href="#partial-trace" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.partial_trace">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">partial_trace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/partial_trace.html#partial_trace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.partial_trace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assumes <span class="math notranslate nohighlight">\(\texttt{expr} = X_1 \otimes \cdots \otimes X_n\)</span> is a 2D Kronecker
+product composed of <span class="math notranslate nohighlight">\(n = \texttt{len(dims)}\)</span> implicit subsystems.
+Letting <span class="math notranslate nohighlight">\(k = \texttt{axis}\)</span>, the returned expression represents
+the <em>partial trace</em> of <span class="math notranslate nohighlight">\(\texttt{expr}\)</span> along its <span class="math notranslate nohighlight">\(k^{\text{th}}\)</span> implicit subsystem:</p>
+<div class="math notranslate nohighlight">
+\[\text{tr}(X_k) (X_1 \otimes \cdots \otimes X_{k-1} \otimes X_{k+1} \otimes \cdots \otimes X_n).\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a>) – The 2D expression to take the partial trace of.</p></li>
+<li><p><strong>dims</strong> (<em>tuple of ints.</em>) – A tuple of integers encoding the dimensions of each subsystem.</p></li>
+<li><p><strong>axis</strong> (<em>int</em>) – The index of the subsystem to be traced out
+from the tensor product that defines expr.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="partial-transpose">
+<span id="ptrans"></span><h2><a class="toc-backref" href="#id43">partial_transpose</a><a class="headerlink" href="#partial-transpose" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.partial_transpose">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">partial_transpose</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dims</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/partial_transpose.html#partial_transpose"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.partial_transpose" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assumes <span class="math notranslate nohighlight">\(\texttt{expr} = X_1 \otimes ... \otimes X_n\)</span> is a 2D Kronecker
+product composed of <span class="math notranslate nohighlight">\(n = \texttt{len(dims)}\)</span> implicit subsystems.
+Letting <span class="math notranslate nohighlight">\(k = \texttt{axis}\)</span>, the returned expression is a
+<em>partial transpose</em> of <span class="math notranslate nohighlight">\(\texttt{expr}\)</span>, with the transpose applied to its
+<span class="math notranslate nohighlight">\(k^{\text{th}}\)</span> implicit subsystem:</p>
+<div class="math notranslate nohighlight">
+\[X_1 \otimes ... \otimes X_k^T \otimes ... \otimes X_n.\]</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a>) – The 2D expression to take the partial transpose of.</p></li>
+<li><p><strong>dims</strong> (<em>tuple of ints.</em>) – A tuple of integers encoding the dimensions of each subsystem.</p></li>
+<li><p><strong>axis</strong> (<em>int</em>) – The index of the subsystem to be transposed
+from the tensor product that defines expr.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="vec">
+<span id="id19"></span><h2><a class="toc-backref" href="#id44">vec</a><a class="headerlink" href="#vec" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.vec">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">vec</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vec.html#vec"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.vec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Flattens the matrix X into a vector in column-major order.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>X</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em> or </em><em>numeric constant</em>) – The matrix to flatten.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>An Expression representing the flattened matrix.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression">Expression</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="vstack">
+<span id="id20"></span><h2><a class="toc-backref" href="#id45">vstack</a><a class="headerlink" href="#vstack" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="cvxpy.vstack">
+<span class="sig-prename descclassname"><span class="pre">cvxpy.</span></span><span class="sig-name descname"><span class="pre">vstack</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">arg_list</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">cvxpy.atoms.affine.vstack.Vstack</span></span></span><a class="reference internal" href="../_modules/cvxpy/atoms/affine/vstack.html#vstack"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.vstack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper on vstack to ensure list argument.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="cvxpy.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="cvxpy.atoms.html">Atoms</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Affine Atoms</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#addexpression">AddExpression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mulexpression">MulExpression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#divexpression">DivExpression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bmat">bmat</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#conv">conv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cumsum">cumsum</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diag">diag</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#diff">diff</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#hstack">hstack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#index">index</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#kron">kron</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#matmul">matmul</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#multiply">multiply</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#promote">promote</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#reshape">reshape</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#scalar-product">scalar_product</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#sum">sum</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#trace">trace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#transpose">transpose</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#negexpression">NegExpression</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#upper-tri">upper_tri</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#partial-trace">partial_trace</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#partial-transpose">partial_transpose</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#vec">vec</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#vstack">vstack</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html">Elementwise Atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html">Other Atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.html#atom">Atom</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/api_reference/cvxpy.atoms.affine.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

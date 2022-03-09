@@ -1,0 +1,607 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>TODO &#8212; CVXPY 1.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="todo">
+<h1>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><p>how to post data? small data file?</p></li>
+</ul>
+</section>
+<section id="predicting-nba-game-wins">
+<h1>Predicting NBA game wins<a class="headerlink" href="#predicting-nba-game-wins" title="Permalink to this headline">¶</a></h1>
+<p>In this notebook, we’ll form a simple model to predict NBA game winners
+based on which teams are playing, whether they are playing at home or
+away, and which players are playing in the game and for how long.</p>
+<p>The goal is to demonstrate implementing a simple (but non-standard)
+regression model with CVXPY.</p>
+</section>
+<section id="imports-and-helper-functions">
+<h1>Imports and helper functions<a class="headerlink" href="#imports-and-helper-functions" title="Permalink to this headline">¶</a></h1>
+<p>In the cell below, we define some helper functions to load the data,
+manipulate it, format it, and plot the results.</p>
+<p>The actual optimization code will be given in-line later in the
+notebook.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cvx</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="mi">14</span><span class="p">})</span>
+
+<span class="k">class</span> <span class="nc">PlayerAppearance</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="vm">__slots__</span><span class="o">=</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;minutes&quot;</span><span class="p">,</span> <span class="s1">&#39;team&#39;</span>
+
+<span class="k">class</span> <span class="nc">TeamAppearance</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;score&#39;</span><span class="p">,</span> <span class="s1">&#39;players&#39;</span><span class="p">,</span> <span class="s1">&#39;home&#39;</span><span class="p">,</span> <span class="s1">&#39;gameid&#39;</span>
+
+<span class="k">class</span> <span class="nc">Game</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="s1">&#39;winner&#39;</span><span class="p">,</span> <span class="s1">&#39;loser&#39;</span><span class="p">,</span> <span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;season&#39;</span>
+
+
+<span class="k">def</span> <span class="nf">get_game_data</span><span class="p">():</span>
+    <span class="sd">&#39;&#39;&#39;Return a list of game objects from `gamestats` directory.&#39;&#39;&#39;</span>
+    <span class="n">games</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s1">&#39;gamestats&#39;</span><span class="p">):</span>
+         <span class="k">if</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.json&#39;</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;gamestats/&#39;</span><span class="o">+</span><span class="n">fn</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+                <span class="n">hometeamid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;resultSets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;rowSet&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">6</span><span class="p">])</span>
+                <span class="n">game</span> <span class="o">=</span> <span class="n">Game</span><span class="p">()</span>
+                <span class="n">game</span><span class="o">.</span><span class="n">season</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;resultSets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;rowSet&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">])</span>
+                <span class="n">game</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;resultSets&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;rowSet&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+
+                <span class="n">teams</span> <span class="o">=</span> <span class="p">[</span><span class="n">TeamAppearance</span><span class="p">(),</span> <span class="n">TeamAppearance</span><span class="p">()]</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">jteam</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="s1">&#39;resultSets&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">&#39;rowSet&#39;</span><span class="p">]):</span>
+                    <span class="n">teams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">jteam</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+                    <span class="n">teams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">=</span> <span class="n">jteam</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span>
+                    <span class="n">teams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">home</span> <span class="o">=</span> <span class="n">jteam</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="n">hometeamid</span>
+                    <span class="n">teams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">gameid</span> <span class="o">=</span> <span class="n">game</span><span class="o">.</span><span class="n">id</span>
+                    <span class="n">teams</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">players</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="k">for</span> <span class="n">jplayer</span> <span class="ow">in</span> <span class="n">a</span><span class="p">[</span><span class="s1">&#39;resultSets&#39;</span><span class="p">][</span><span class="mi">4</span><span class="p">][</span><span class="s1">&#39;rowSet&#39;</span><span class="p">]:</span>
+                    <span class="k">if</span> <span class="n">jplayer</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">jplayer</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="mf">0.0</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                    <span class="n">player</span> <span class="o">=</span> <span class="n">PlayerAppearance</span><span class="p">()</span>
+                    <span class="n">player</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">jplayer</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+                    <span class="n">player</span><span class="o">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">jplayer</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+                    <span class="n">minutes</span> <span class="o">=</span> <span class="n">jplayer</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+                    <span class="n">minutes</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">minutes</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span><span class="n">minutes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mf">60.0</span>
+                    <span class="n">player</span><span class="o">.</span><span class="n">minutes</span> <span class="o">=</span> <span class="n">minutes</span>
+                    <span class="n">player</span><span class="o">.</span><span class="n">team</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">jplayer</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+                    <span class="k">for</span> <span class="n">team</span> <span class="ow">in</span> <span class="n">teams</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">player</span><span class="o">.</span><span class="n">team</span> <span class="o">==</span> <span class="n">team</span><span class="o">.</span><span class="n">id</span><span class="p">:</span>
+                            <span class="n">team</span><span class="o">.</span><span class="n">players</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">player</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">teams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">score</span> <span class="o">&gt;</span> <span class="n">teams</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">score</span><span class="p">:</span>
+                    <span class="n">game</span><span class="o">.</span><span class="n">winner</span><span class="p">,</span> <span class="n">game</span><span class="o">.</span><span class="n">loser</span> <span class="o">=</span> <span class="n">teams</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">teams</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">game</span><span class="o">.</span><span class="n">winner</span><span class="p">,</span> <span class="n">game</span><span class="o">.</span><span class="n">loser</span> <span class="o">=</span> <span class="n">teams</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">teams</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="n">games</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">game</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">games</span>
+
+<span class="k">def</span> <span class="nf">index_mappings</span><span class="p">(</span><span class="n">games</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Return mappings between player and game identifiers and an indexed ordering.</span>
+
+<span class="sd">    Puts teams and players appearing in `games` in an arbitrary order.</span>
+<span class="sd">    This is the ordering which will be used to determine the relationship between</span>
+<span class="sd">    matrix rows in the matrix-stuffing step.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    teams    --  ordered list of teams</span>
+<span class="sd">                 (index -&gt; team)</span>
+<span class="sd">    players  --  ordered list of player pairs: (player name, unique player ID)</span>
+<span class="sd">                 (index -&gt; player)</span>
+<span class="sd">    team2idx --  mapping team to index</span>
+<span class="sd">                 (team -&gt; index)</span>
+<span class="sd">    pid2idx  --  mapping from unique player id to index</span>
+<span class="sd">                 (player -&gt; index)</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">teams</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="n">players</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">game</span> <span class="ow">in</span> <span class="n">games</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">team</span> <span class="ow">in</span> <span class="n">game</span><span class="o">.</span><span class="n">winner</span><span class="p">,</span> <span class="n">game</span><span class="o">.</span><span class="n">loser</span><span class="p">:</span>
+            <span class="n">teams</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">team</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+                <span class="n">players</span><span class="o">.</span><span class="n">add</span><span class="p">((</span><span class="n">player</span><span class="o">.</span><span class="n">name</span><span class="p">,</span><span class="n">player</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>
+
+
+    <span class="n">teams</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">teams</span><span class="p">)</span>
+    <span class="n">players</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">players</span><span class="p">)</span>
+
+    <span class="n">team2idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">teams</span><span class="p">)}</span>
+    <span class="n">pid2idx</span> <span class="o">=</span> <span class="p">{</span><span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">players</span><span class="p">)}</span>
+
+    <span class="k">return</span> <span class="n">teams</span><span class="p">,</span> <span class="n">players</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="n">pid2idx</span>
+
+<span class="k">def</span> <span class="nf">split_games</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Return games split into disjoint training and hold-out sets.&#39;&#39;&#39;</span>
+
+    <span class="n">games_holdout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">games</span><span class="p">),</span><span class="n">size</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">games</span><span class="p">)</span><span class="o">*</span><span class="n">p</span><span class="p">),</span><span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># training set</span>
+    <span class="n">games_t</span> <span class="o">=</span> <span class="p">[</span><span class="n">games</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">games</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">games_holdout</span><span class="p">]</span>
+
+    <span class="c1"># hold-out set</span>
+    <span class="n">games_h</span> <span class="o">=</span> <span class="p">[</span><span class="n">games</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">games_holdout</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">games_t</span><span class="p">,</span> <span class="n">games_h</span><span class="p">,</span>
+
+<span class="k">def</span> <span class="nf">data_mats</span><span class="p">(</span><span class="n">games</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span><span class="n">home</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">pid2idx</span><span class="o">=</span><span class="p">[]):</span>
+    <span class="sd">&#39;&#39;&#39;Stuff feature matrices for fitting model.</span>
+
+<span class="sd">    Features included in the matrices depend on the function inputs.</span>
+
+<span class="sd">    data_mats(games, team2idx) -- Team identities are the only features.</span>
+<span class="sd">        That is, W_ij = 1 if team j won game i. 0 otherwise.</span>
+
+<span class="sd">    data_mats(games, team2idx, home=True) -- Appends a column to W and L corresponding to</span>
+<span class="sd">        whether the team was the home team.</span>
+
+<span class="sd">    data_mats(games, team2idx,home=True,pid2idx=pid2idx) -- Appends columns</span>
+<span class="sd">        to W and L corresponding to which players played and what fraction</span>
+<span class="sd">        of 48 minutes they played in the game. That is, *if* j corresponds</span>
+<span class="sd">        to a player column, then W_ij = t/48, where t is how many minutes</span>
+<span class="sd">        player j (from the winning team) played in game i.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">games</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">team2idx</span><span class="p">)</span>
+    <span class="n">W</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span><span class="p">,</span><span class="n">n</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span><span class="p">,</span><span class="n">n</span><span class="p">))</span>
+
+    <span class="n">Wh</span><span class="p">,</span> <span class="n">Lh</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span><span class="p">,</span><span class="mi">1</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid2idx</span><span class="p">)</span>
+    <span class="n">Wp</span><span class="p">,</span> <span class="n">Lp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span><span class="p">,</span><span class="n">n</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">m</span><span class="p">,</span><span class="n">n</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">game</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">games</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">A</span><span class="p">,</span> <span class="n">Ah</span><span class="p">,</span> <span class="n">Ap</span><span class="p">,</span> <span class="n">team</span> <span class="ow">in</span> <span class="p">[(</span><span class="n">W</span><span class="p">,</span> <span class="n">Wh</span><span class="p">,</span> <span class="n">Wp</span><span class="p">,</span> <span class="n">game</span><span class="o">.</span><span class="n">winner</span><span class="p">),(</span><span class="n">L</span><span class="p">,</span> <span class="n">Lh</span><span class="p">,</span> <span class="n">Lp</span><span class="p">,</span> <span class="n">game</span><span class="o">.</span><span class="n">loser</span><span class="p">)]:</span>
+            <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">team2idx</span><span class="p">[</span><span class="n">team</span><span class="o">.</span><span class="n">id</span><span class="p">]]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="n">team</span><span class="o">.</span><span class="n">home</span><span class="p">:</span>
+                <span class="n">Ah</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid2idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">player</span> <span class="ow">in</span> <span class="n">team</span><span class="o">.</span><span class="n">players</span><span class="p">:</span>
+                    <span class="n">Ap</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="n">pid2idx</span><span class="p">[</span><span class="n">player</span><span class="o">.</span><span class="n">id</span><span class="p">]]</span> <span class="o">=</span> <span class="n">player</span><span class="o">.</span><span class="n">minutes</span><span class="o">/</span><span class="mi">48</span>
+
+    <span class="k">if</span> <span class="n">home</span><span class="p">:</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">W</span><span class="p">,</span> <span class="n">Wh</span><span class="p">])</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">L</span><span class="p">,</span> <span class="n">Lh</span><span class="p">])</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pid2idx</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">W</span><span class="p">,</span> <span class="n">Wp</span><span class="p">])</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">L</span><span class="p">,</span> <span class="n">Lp</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">W</span><span class="p">,</span> <span class="n">L</span>
+
+<span class="k">def</span> <span class="nf">percent_correct</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">w</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Return percentage correctly predicted for games (W,L) and model parameters w.</span>
+
+<span class="sd">    W and L can be from training or hold-out data.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">m</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">((</span><span class="n">W</span><span class="o">-</span><span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">/</span><span class="n">m</span>
+
+<span class="k">def</span> <span class="nf">reg_path</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="n">holdout</span><span class="p">,</span><span class="n">gammas</span><span class="p">,</span><span class="n">N</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">playertime</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Plot a regularization path.</span>
+
+<span class="sd">    For each of N times, partition games into a training</span>
+<span class="sd">    and hold-out set, with `holdout` giving the hold-out proportion.</span>
+<span class="sd">    For each gamma in gammas, train the model on the training set</span>
+<span class="sd">    and evaluate it on both the training and hold out sets.</span>
+
+<span class="sd">    Plot a data point for each instance with gamma on the x-axis</span>
+<span class="sd">    and the percent correct on the y-axis. Also plot a line showing</span>
+<span class="sd">    the average for each gamma.</span>
+
+<span class="sd">    Optional arguments:</span>
+<span class="sd">    home -- include home team feature</span>
+<span class="sd">    playertime -- include player minutes played features</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+    <span class="n">v_t</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">v_h</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">teams</span><span class="p">,</span> <span class="n">players</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="n">pid2idx</span> <span class="o">=</span> <span class="n">index_mappings</span><span class="p">(</span><span class="n">games</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">playertime</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="n">pid2idx</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N</span><span class="p">):</span>
+        <span class="nb">print</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Partition </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">),</span>
+        <span class="n">games_t</span><span class="p">,</span> <span class="n">games_h</span> <span class="o">=</span> <span class="n">split_games</span><span class="p">(</span><span class="n">games</span><span class="p">,</span> <span class="n">holdout</span><span class="p">)</span>
+        <span class="n">W</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">data_mats</span><span class="p">(</span><span class="n">games_t</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="n">home</span><span class="p">,</span> <span class="n">pid2idx</span><span class="p">)</span>
+        <span class="n">Wh</span><span class="p">,</span> <span class="n">Lh</span> <span class="o">=</span> <span class="n">data_mats</span><span class="p">(</span><span class="n">games_h</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="n">home</span><span class="p">,</span> <span class="n">pid2idx</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">gammas</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s1">&#39;.&#39;</span><span class="p">,</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">)</span>
+            <span class="n">v_t</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">gamma</span><span class="p">,</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
+            <span class="n">v_h</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">gamma</span><span class="p">,</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">Wh</span><span class="p">,</span><span class="n">Lh</span><span class="p">,</span><span class="n">x</span><span class="p">)))</span>
+
+    <span class="n">alpha</span> <span class="o">=</span> <span class="mf">.3</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">set_size_inches</span><span class="p">((</span><span class="mi">10</span><span class="p">,</span><span class="mi">10</span><span class="p">))</span>
+    <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">v_t</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Training set </span><span class="si">% c</span><span class="s1">orrect&#39;</span><span class="p">)</span>
+    <span class="n">a</span><span class="p">,</span><span class="n">b</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">v_h</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">,</span><span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Test set </span><span class="si">% c</span><span class="s1">orrect&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Regularization $\gamma$&#39;</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">path</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">v_t</span><span class="p">,</span><span class="n">v_h</span><span class="p">]):</span>
+        <span class="n">avg</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">tot</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">gamma</span><span class="p">,</span> <span class="n">pred</span> <span class="ow">in</span> <span class="n">path</span><span class="p">:</span>
+            <span class="n">avg</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">+=</span> <span class="n">pred</span>
+            <span class="n">tot</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span>
+
+        <span class="k">for</span> <span class="n">gamma</span> <span class="ow">in</span> <span class="n">avg</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">avg</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span> <span class="o">/=</span> <span class="n">tot</span><span class="p">[</span><span class="n">gamma</span><span class="p">]</span>
+
+        <span class="n">gammas</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avg</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">avg</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">gammas</span><span class="p">]</span>
+        <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">gammas</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span> <span class="p">)</span>
+
+    <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">((</span><span class="s1">&#39;average&#39;</span><span class="p">,</span><span class="s1">&#39;data partition instance&#39;</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">v_t</span><span class="p">,</span> <span class="n">v_h</span>
+</pre></div>
+</div>
+</section>
+<section id="raw-data">
+<h1>Raw data<a class="headerlink" href="#raw-data" title="Permalink to this headline">¶</a></h1>
+<p>Below, we load the NBA game data from the ‘gamestats’ folder. We have
+games from NBA seasons 2010-2013. For each game, we identify the winning
+and losing team and the NBA season in which the game was played. For
+each team appearance in a game, we have the score, a list of player
+appearances, and whether the team played at home or away. For each
+player appearance in a game, we have the player’s name, a unique player
+ID, and the number of minutes they played in the game.</p>
+</section>
+<section id="model">
+<h1>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h1>
+<p>We will train our model on a set of <span class="math notranslate nohighlight">\(m\)</span> games. The data point for
+game <span class="math notranslate nohighlight">\(i\)</span> consists of an ordered pair of feature vectors,
+<span class="math notranslate nohighlight">\((x^w_i, x^l_i) \in \mathbf{R}^n \times \mathbf{R}^n\)</span>. The first
+vector in the pair represents the winning team. Feature vectors consist
+of <span class="math notranslate nohighlight">\(n\)</span> features which may include which team is playing, if they
+are the home team, and how many minutes each player on the team played.</p>
+<p>We want to find model parameters <span class="math notranslate nohighlight">\(w\)</span> for the classifier function
+<span class="math notranslate nohighlight">\(f_w(x,y) = (x-y)^T w\)</span>. The model predicts that a team with
+features <span class="math notranslate nohighlight">\(x\)</span> will beat a team with features <span class="math notranslate nohighlight">\(y\)</span> if
+<span class="math notranslate nohighlight">\(f_w(x,y) &gt; 0\)</span>. Note that the classification inequality is
+homogenous in <span class="math notranslate nohighlight">\(w\)</span>. That is, the classifier is invariant to
+scalings of <span class="math notranslate nohighlight">\(w\)</span>.</p>
+<p>To properly predict all games, we would need
+<span class="math notranslate nohighlight">\(f_w(x^w_i, x^l_i) &gt; 0\)</span> for all games <span class="math notranslate nohighlight">\(i\)</span>. This set of
+homogenous strict inequalities in <span class="math notranslate nohighlight">\(w\)</span> is feasible if and only if
+there is some scaling <span class="math notranslate nohighlight">\(\tilde{w} = \alpha w\)</span> such that
+<span class="math notranslate nohighlight">\(f_{\tilde{w}}(x^w_i, x^l_i) \geq 1\)</span> for all <span class="math notranslate nohighlight">\(i\)</span>. This
+motivates the loss function which we’ll use:</p>
+<div class="math notranslate nohighlight">
+\[\begin{equation}
+L(w) = \frac{1}{m}\sum_{i=1}^m \max \lbrace 1 - (x^w_i - x^l_i)^T w, 0 \rbrace.
+\end{equation}\]</div>
+<p>The function <span class="math notranslate nohighlight">\(L(w)\)</span> assigns a positive loss whenever the
+classification inequality <span class="math notranslate nohighlight">\(f_w(x^w_i, x^l_i) \geq 1\)</span> is violated.</p>
+<p>We’ll choose <span class="math notranslate nohighlight">\(w\)</span> by minimizing the loss <span class="math notranslate nohighlight">\(L(w)\)</span>, plus a
+regularization term <span class="math notranslate nohighlight">\(\gamma \| w \|_2\)</span>. The regularization term is
+used to prevent over-fitting.</p>
+<p>We use the <code class="docutils literal notranslate"><span class="pre">fit(W,L,gamma)</span></code> function defined below to solve the
+optimization problem</p>
+<div class="math notranslate nohighlight">
+\[\begin{array}{ll}
+\mbox{minimize} &amp; L(w) + \gamma \| w \|_2,
+\end{array}\]</div>
+<p>where <span class="math notranslate nohighlight">\(W,L \in \mathbf{R}^{m \times n}\)</span> are data matrices, with
+row <span class="math notranslate nohighlight">\(i\)</span> of <span class="math notranslate nohighlight">\(W\)</span> (<span class="math notranslate nohighlight">\(L\)</span>) corresponding to <span class="math notranslate nohighlight">\(x^w_i\)</span>
+(<span class="math notranslate nohighlight">\(x^l_i\)</span>).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Return model parameters w trained on data (W,L) with regularization gamma.&#39;&#39;&#39;</span>
+    <span class="n">m</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="n">objective</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cvx</span><span class="o">.</span><span class="n">pos</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="n">W</span><span class="o">-</span><span class="n">L</span><span class="p">)</span><span class="o">*</span><span class="n">w</span><span class="p">))</span><span class="o">/</span><span class="n">m</span> <span class="o">+</span> <span class="n">gamma</span><span class="o">*</span><span class="n">cvx</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">w</span><span class="p">)</span>
+    <span class="n">objective</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Minimize</span><span class="p">(</span> <span class="n">objective</span> <span class="p">)</span>
+    <span class="n">prob</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">objective</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cvx</span><span class="o">.</span><span class="n">ECOS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">prob</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="s1">&#39;optimal&#39;</span><span class="p">:</span>
+        <span class="nb">print</span> <span class="s2">&quot;ERROR!&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">w</span><span class="o">.</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="example">
+<h1>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h1>
+<p>Load the list of games from the <code class="docutils literal notranslate"><span class="pre">gamestats</span></code> directory and select only
+the games from a single season.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">games</span> <span class="o">=</span> <span class="n">get_game_data</span><span class="p">()</span>
+
+<span class="c1"># select just games in a single season</span>
+<span class="n">games</span> <span class="o">=</span> <span class="p">[</span><span class="n">game</span> <span class="k">for</span> <span class="n">game</span> <span class="ow">in</span> <span class="n">games</span> <span class="k">if</span> <span class="n">game</span><span class="o">.</span><span class="n">season</span> <span class="o">==</span> <span class="mi">2010</span><span class="p">]</span>
+<span class="nb">len</span><span class="p">(</span><span class="n">games</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mi">1230</span>
+</pre></div>
+</div>
+<p>Choose some ordering of the teams and players for indexing purposes, and
+get a mapping between the index and unique identifiers.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">teams</span><span class="p">,</span> <span class="n">players</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="n">pid2idx</span> <span class="o">=</span> <span class="n">index_mappings</span><span class="p">(</span><span class="n">games</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Randomly split the games so that 70% are in a training set and 30% are
+in a hold-out set. Produce the data matrices <span class="math notranslate nohighlight">\(W\)</span> and <span class="math notranslate nohighlight">\(L\)</span> for
+the training and hold-out sets. Use features giving the team id, if they
+are the home team, and the time played for each player.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">games_t</span><span class="p">,</span> <span class="n">games_h</span> <span class="o">=</span> <span class="n">split_games</span><span class="p">(</span><span class="n">games</span><span class="p">,</span> <span class="mf">.3</span><span class="p">)</span>
+
+<span class="n">W</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">data_mats</span><span class="p">(</span><span class="n">games_t</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">pid2idx</span><span class="p">)</span>
+<span class="n">Wh</span><span class="p">,</span> <span class="n">Lh</span> <span class="o">=</span> <span class="n">data_mats</span><span class="p">(</span><span class="n">games_h</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">pid2idx</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Train the model with <strong>no</strong> regularization on the training set and
+evaluate the classification performance on both the training and
+hold-out set.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">)</span>
+
+<span class="nb">print</span> <span class="s2">&quot;Training set </span><span class="si">%%</span><span class="s2"> correct: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;Hold-out set </span><span class="si">%%</span><span class="s2"> correct: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">Wh</span><span class="p">,</span><span class="n">Lh</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Training</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">1.000000</span>
+<span class="n">Hold</span><span class="o">-</span><span class="n">out</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">0.582656</span>
+</pre></div>
+</div>
+<p>We can see that we’ve over fit the model because the classification is
+perfect on the training set, but low on the hold-out set. Adding some
+regularization should improve the predictive performance on the hold-out
+set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">gamma</span> <span class="o">=</span> <span class="mf">.03</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">)</span>
+
+<span class="nb">print</span> <span class="s2">&quot;Training set </span><span class="si">%%</span><span class="s2"> correct: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
+<span class="nb">print</span> <span class="s2">&quot;Hold-out set </span><span class="si">%%</span><span class="s2"> correct: </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">percent_correct</span><span class="p">(</span><span class="n">Wh</span><span class="p">,</span><span class="n">Lh</span><span class="p">,</span><span class="n">w</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Training</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">0.786295</span>
+<span class="n">Hold</span><span class="o">-</span><span class="n">out</span> <span class="nb">set</span> <span class="o">%</span> <span class="n">correct</span><span class="p">:</span> <span class="mf">0.682927</span>
+</pre></div>
+</div>
+</section>
+<section id="regularization-paths">
+<h1>Regularization paths<a class="headerlink" href="#regularization-paths" title="Permalink to this headline">¶</a></h1>
+<p>We’ll find good choices for the regularization hyper-parameter
+<span class="math notranslate nohighlight">\(\gamma\)</span> by plotting a regularization path. We’ll randomly
+partition the data into training and hold-out sets and plot the
+percentage of games predicted correctly over a range of choices of
+<span class="math notranslate nohighlight">\(\gamma\)</span>. We’ll do this several times for each choice of
+<span class="math notranslate nohighlight">\(\gamma\)</span> and plot the average result.</p>
+<p>We’ll plot the regularization path over different sets of features.
+First, we’ll just use team identities, then we’ll add whether the team
+played at home, and then we’ll add the times played of each player.</p>
+<p>We should see an increase in predictive power as we add features.</p>
+<p>Note that some of these examples may take a few minutes to run.</p>
+<section id="team-identities">
+<h2>Team identities<a class="headerlink" href="#team-identities" title="Permalink to this headline">¶</a></h2>
+<p>When the features include just the team identities, the model reduces to
+just assigning a ranking to each team. This model is so simple that it
+is hard to over-fit it on our data, so regularization has little effect.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">v_t</span><span class="p">,</span> <span class="n">v_h</span> <span class="o">=</span> <span class="n">reg_path</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="n">gammas</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">1</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">2</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">3</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">4</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+</pre></div>
+</div>
+<img alt="../../_images/nba_ranking_15_1.png" src="../../_images/nba_ranking_15_1.png" />
+</section>
+<section id="identities-home-away">
+<h2>Identities + home/away<a class="headerlink" href="#identities-home-away" title="Permalink to this headline">¶</a></h2>
+<p>We add a single feature denoting whether the teams played at home. This
+doesn’t add much to our model complexity, so it is still difficult to
+over-fit. The predictive power is about the same as the previous model.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">.1</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+<span class="n">v_t</span><span class="p">,</span> <span class="n">v_h</span> <span class="o">=</span> <span class="n">reg_path</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="n">gammas</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">1</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">2</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">3</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">4</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+</pre></div>
+</div>
+<img alt="../../_images/nba_ranking_17_1.png" src="../../_images/nba_ranking_17_1.png" />
+</section>
+<section id="identities-home-away-player-minutes">
+<h2>Identities + home/away + player minutes<a class="headerlink" href="#identities-home-away-player-minutes" title="Permalink to this headline">¶</a></h2>
+<p>We add in the number of minutes each player played in each game. This
+adds many variables to the model and thus makes it much easier to
+over-fit. We can see that the classification is perfect on the training
+set, which suggests over fitting. We find that we get better performance
+on the hold-out set with some added regularization.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">gammas</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mf">.2</span><span class="p">,</span><span class="mi">40</span><span class="p">)</span>
+<span class="n">v_t</span><span class="p">,</span> <span class="n">v_h</span> <span class="o">=</span> <span class="n">reg_path</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="mf">.3</span><span class="p">,</span><span class="n">gammas</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="kc">True</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Partition</span> <span class="mi">0</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">1</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">2</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">3</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+<span class="n">Partition</span> <span class="mi">4</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span> <span class="o">.</span>
+</pre></div>
+</div>
+<img alt="../../_images/nba_ranking_19_1.png" src="../../_images/nba_ranking_19_1.png" />
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/applications/nba_ranking.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

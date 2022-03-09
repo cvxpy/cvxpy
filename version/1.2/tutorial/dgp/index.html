@@ -1,0 +1,809 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Disciplined Geometric Programming &#8212; CVXPY 1.2.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="Disciplined Quasiconvex Programming" href="../dqcp/index.html" />
+    <link rel="prev" title="Atomic Functions" href="../functions/index.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="disciplined-geometric-programming">
+<span id="dgp"></span><h1>Disciplined Geometric Programming<a class="headerlink" href="#disciplined-geometric-programming" title="Permalink to this headline">¶</a></h1>
+<p>Disciplined geometric programming (DGP) is an analog of DCP for
+<em>log-log convex</em> functions, that is, functions of positive variables that
+are convex with respect to the geometric mean instead of the arithmetic mean.</p>
+<p>While DCP is a ruleset for constructing convex programs, DGP
+is a ruleset for log-log convex programs (LLCPs), which are problems that are
+convex after the variables, objective functions, and constraint functions are
+replaced with their logs, an operation that we refer to as a <em>log-log</em>
+transformation. Every geometric program (GP) and generalized geometric program
+(GGP) is an LLCP, but there are LLCPs that are neither GPs nor GGPs.</p>
+<p>CVXPY lets you form and solve DGP problems, just as it does for DCP
+problems. For example, the following code solves a simple geometric program,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="c1"># DGP requires Variables to be declared positive via `pos=True`.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">objective_fn</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="mi">4</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">problem</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">gp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Optimal value: &quot;</span><span class="p">,</span> <span class="n">problem</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;x: &quot;</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;y: &quot;</span><span class="p">,</span> <span class="n">y</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;z: &quot;</span><span class="p">,</span> <span class="n">z</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>and it prints the below output.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Optimal</span> <span class="n">value</span><span class="p">:</span> <span class="mf">1.9999999938309496</span>
+<span class="n">x</span><span class="p">:</span> <span class="mf">0.9999999989682057</span>
+<span class="n">y</span><span class="p">:</span> <span class="mf">1.999999974180587</span>
+<span class="n">z</span><span class="p">:</span> <span class="mf">1.0000000108569758</span>
+</pre></div>
+</div>
+<p>Note that to solve DGP problems, you must pass the option
+<code class="docutils literal notranslate"><span class="pre">gp=True</span></code> to the <code class="docutils literal notranslate"><span class="pre">solve()</span></code> method.</p>
+<p>This section explains what DGP is, and it shows how to construct and solve DGP
+problems using CVXPY. At the end of the section are tables listing all the
+atoms that can be used in DGP problems, similar to the tables presented in
+the section on <a class="reference internal" href="../functions/index.html#functions"><span class="std std-ref">DCP atoms</span></a>.</p>
+<p>For an in-depth reference on DGP, see our
+<a class="reference external" href="https://web.stanford.edu/~boyd/papers/dgp.html">accompanying paper</a>.
+For interactive code examples, check out our <a class="reference internal" href="../../examples/index.html#dgp-examples"><span class="std std-ref">notebooks</span></a>.</p>
+<p><em>Note: DGP is a recent addition to CVXPY. If you have feedback, please file an
+issue or make a pull request on</em> <a class="reference external" href="https://github.com/cvxpy/cvxpy">Github</a>.</p>
+<section id="log-log-curvature">
+<h2>Log-log curvature<a class="headerlink" href="#log-log-curvature" title="Permalink to this headline">¶</a></h2>
+<p>Just as every Expression in CVXPY has a curvature (constant, affine, convex, concave,
+or unknown), every Expression also has a log-log curvature.</p>
+<p>A function <span class="math notranslate nohighlight">\(f : D \subseteq \mathbf{R}^n_{++} \to \mathbf{R}\)</span> is said to
+be log-log convex if the function <span class="math notranslate nohighlight">\(F(u) = \log f(e^u)\)</span>, with domain
+<span class="math notranslate nohighlight">\(\{u \in \mathbf{R}^n : e^u \in D\}\)</span>, is convex (where
+<span class="math notranslate nohighlight">\(\mathbf{R}^n_{++}\)</span> denotes the set of positive reals and the logarithm
+and exponential are meant elementwise); the function <span class="math notranslate nohighlight">\(F\)</span> is called the
+log-log transformation of <cite>f</cite>. The function <span class="math notranslate nohighlight">\(f\)</span> is log-log concave if
+<span class="math notranslate nohighlight">\(F\)</span> is concave, and it is log-log affine if <span class="math notranslate nohighlight">\(F\)</span> is affine.</p>
+<p>Every log-log affine function has the form</p>
+<div class="math notranslate nohighlight">
+\[f(x) = cx_1^{a_1}x_2^{a_2} \ldots x_n^{a_n}\]</div>
+<p>where <span class="math notranslate nohighlight">\(x\)</span> is in <span class="math notranslate nohighlight">\(\mathbf{R}^n_{++}\)</span>, the <span class="math notranslate nohighlight">\(a_i\)</span> are
+real numbers, and <span class="math notranslate nohighlight">\(c\)</span> is a positive scalar. In the context of
+geometric programming, such a function is called a monomial function.
+A sum of monomials, known as a posynomial function in geometric programming, is
+a log-log convex function;  A table of all the <a class="reference external" href="dgp-atoms">atoms with known log-log
+curvature</a> is presented at the end of this page.</p>
+<p>In the below table, <span class="math notranslate nohighlight">\(F\)</span> is the log-log transformation of <span class="math notranslate nohighlight">\(f\)</span>,
+<span class="math notranslate nohighlight">\(u=\log x\)</span>, and <span class="math notranslate nohighlight">\(v=\log y\)</span>,
+where <span class="math notranslate nohighlight">\(x\)</span> and <span class="math notranslate nohighlight">\(y\)</span> are in the domain of <span class="math notranslate nohighlight">\(f\)</span></p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 86%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Log-Log Curvature</p></th>
+<th class="head"><p>Meaning</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>log-log constant</p></td>
+<td><p><span class="math notranslate nohighlight">\(F\)</span> is a constant (so <cite>f</cite> is a positive constant)</p></td>
+</tr>
+<tr class="row-odd"><td><p>log-log affine</p></td>
+<td><p><span class="math notranslate nohighlight">\(F(\theta u + (1-\theta)v) = \theta F(u) + (1-\theta)F(v), \; \forall u, \; v,\; \theta \in [0,1]\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>log-log convex</p></td>
+<td><p><span class="math notranslate nohighlight">\(F(\theta u + (1-\theta)v) \leq \theta F(u) + (1-\theta)F(v), \; \forall u, \; v,\; \theta \in [0,1]\)</span></p></td>
+</tr>
+<tr class="row-odd"><td><p>log-log concave</p></td>
+<td><p><span class="math notranslate nohighlight">\(F(\theta u + (1-\theta)v) \geq \theta F(u) + (1-\theta)F(v), \; \forall u, \; v,\; \theta \in [0,1]\)</span></p></td>
+</tr>
+<tr class="row-even"><td><p>unknown</p></td>
+<td><p>DGP analysis cannot determine the curvature</p></td>
+</tr>
+</tbody>
+</table>
+<p>CVXPY’s log-log curvature analysis can flag
+Expressions as unknown even when they are log-log convex or log-log concave.
+Note that any log-log constant expression is also log-log affine, and any
+log-log affine expression is log-log convex and log-log concave.</p>
+<p>The log-log curvature of an Expression is stored in its
+<code class="code docutils literal notranslate"><span class="pre">.log_log_curvature</span></code> attribute. For example, running the following
+script</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">constant</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Constant</span><span class="p">(</span><span class="mf">2.0</span><span class="p">)</span>
+<span class="n">monomial</span> <span class="o">=</span> <span class="n">constant</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+<span class="n">posynomial</span> <span class="o">=</span> <span class="n">monomial</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">reciprocal</span> <span class="o">=</span> <span class="n">posynomial</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span>
+<span class="n">unknown</span> <span class="o">=</span> <span class="n">reciprocal</span> <span class="o">+</span> <span class="n">posynomial</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">constant</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">monomial</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">posynomial</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">reciprocal</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">unknown</span><span class="o">.</span><span class="n">log_log_curvature</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>prints the following output.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONSTANT</span>
+<span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">AFFINE</span>
+<span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONVEX</span>
+<span class="n">LOG</span><span class="o">-</span><span class="n">LOG</span> <span class="n">CONCAVE</span>
+<span class="n">UNKNOWN</span>
+</pre></div>
+</div>
+<p>You can also check the log-log curvature of an Expression by
+calling the methods
+<code class="code docutils literal notranslate"><span class="pre">is_log_log_constant()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_affine()</span></code>,
+<code class="code docutils literal notranslate"><span class="pre">is_log_log_convex()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_concave()</span></code>. For example,
+<code class="code docutils literal notranslate"><span class="pre">posynomial.is_log_log_convex()</span></code> would evaluate to <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</section>
+<section id="log-log-curvature-rules">
+<h2>Log-log curvature rules<a class="headerlink" href="#log-log-curvature-rules" title="Permalink to this headline">¶</a></h2>
+<p>For an Expression to have known log-log curvature, all of the Constants,
+Variables, and Parameters it refers to must be elementwise positive. A
+Constant is positive if its numerical value is positive. Variables
+and Parameters are positive only if the keyword argument <code class="code docutils literal notranslate"><span class="pre">pos=True</span></code>
+is supplied to their constructors (e.g.,
+<code class="code docutils literal notranslate"><span class="pre">x</span> <span class="pre">=</span> <span class="pre">cvxpy.Variable(shape=(),</span> <span class="pre">pos=True)</span></code>). To summarize,
+when formulating a DGP problem, <em>all Constants should be elementwise positive,
+and all Variables and Parameters must be constructed with the attribute</em>
+<code class="code docutils literal notranslate"><span class="pre">pos=True</span></code>.</p>
+<p>DGP analysis is exactly analogous to DCP analysis. It is based on a library
+of atoms (functions) with known monotonicity and log-log curvature and a
+a single composition rule. The <a class="reference external" href="dgp-atoms">library of atoms</a> is presented
+at the end of this page; the composition rule is stated below.</p>
+<p>A function <span class="math notranslate nohighlight">\(f(expr_1, expr_2, ..., expr_n)\)</span> is log-log convex if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is a log-log convex function and for each <span class="math notranslate nohighlight">\(expr_{i}\)</span> one of the following
+conditions holds:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_{i}\)</span> is log-log convex.</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_{i}\)</span> is
+log-log concave.</p></li>
+<li><p><span class="math notranslate nohighlight">\(expr_{i}\)</span> is log-log affine.</p></li>
+</ul>
+<p>A function <span class="math notranslate nohighlight">\(f(expr_1, expr_2, ..., expr_n)\)</span> is log-log concave if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is a log-log concave function and for each <span class="math notranslate nohighlight">\(expr_{i}\)</span> one of the following
+conditions holds:</p>
+<ul class="simple">
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is increasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_{i}\)</span> is
+log-log concave.</p></li>
+<li><p><span class="math notranslate nohighlight">\(f\)</span> is decreasing in argument <span class="math notranslate nohighlight">\(i\)</span> and <span class="math notranslate nohighlight">\(expr_{i}\)</span> is log-log convex.</p></li>
+<li><p><span class="math notranslate nohighlight">\(expr_{i}\)</span> is log-log affine.</p></li>
+</ul>
+<p>A function <span class="math notranslate nohighlight">\(f(expr_1, expr_2, ..., expr_n)\)</span> is log-log affine if <span class="math notranslate nohighlight">\(\text{ } f\)</span>
+is an log-log affine function and each <span class="math notranslate nohighlight">\(expr_{i}\)</span> is log-log affine.</p>
+<p>If none of the three rules apply, the expression <span class="math notranslate nohighlight">\(f(expr_1, expr_2, ...,
+expr_n)\)</span> is marked as having unknown curvature.</p>
+<p>If an Expression satisfies the composition rule, we colloquially say that
+the Expression “is DGP.” You can check whether an Expression is DGP
+by calling the method <code class="code docutils literal notranslate"><span class="pre">is_dgp()</span></code>. For example, the assertions
+in the following code block will pass.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">monomial</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">constant</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+<span class="n">posynomial</span> <span class="o">=</span> <span class="n">monomial</span> <span class="o">+</span> <span class="p">(</span><span class="n">x</span> <span class="o">**</span> <span class="mf">1.5</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">y</span> <span class="o">**</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="k">assert</span> <span class="n">monomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
+<span class="k">assert</span> <span class="n">posynomial</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>An Expression is DGP precisely when it has known log-log curvature, which means
+at least one of the methods <code class="code docutils literal notranslate"><span class="pre">is_log_log_constant()</span></code>,
+<code class="code docutils literal notranslate"><span class="pre">is_log_log_affine()</span></code>, <code class="code docutils literal notranslate"><span class="pre">is_log_log_convex()</span></code>,
+<code class="code docutils literal notranslate"><span class="pre">is_log_log_concave()</span></code> will return <code class="code docutils literal notranslate"><span class="pre">True</span></code>.</p>
+</section>
+<section id="dgp-problems">
+<h2>DGP problems<a class="headerlink" href="#dgp-problems" title="Permalink to this headline">¶</a></h2>
+<p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
+a list of constraints. If a problem follows the DGP rules, it is guaranteed to
+be an LLCP and solvable by CVXPY. The DGP rules require that the problem
+objective have one of two forms:</p>
+<ul class="simple">
+<li><p>Minimize(log-log convex)</p></li>
+<li><p>Maximize(log-log concave)</p></li>
+</ul>
+<p>The only valid constraints under the DGP rules are</p>
+<ul class="simple">
+<li><p>log-log affine == log-log affine</p></li>
+<li><p>log-log convex &lt;= log-log concave</p></li>
+<li><p>log-log concave &gt;= log-log convex</p></li>
+</ul>
+<p>You can check that a problem, constraint, or objective satisfies the DGP
+rules by calling <code class="docutils literal notranslate"><span class="pre">object.is_dgp()</span></code>. Here are some examples of DGP and
+non-DGP problems:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+
+<span class="c1"># DGP requires Variables to be declared positive via `pos=True`.</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">z</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">pos</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">objective_fn</span> <span class="o">=</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span>
+<span class="n">constraints</span> <span class="o">=</span> <span class="p">[</span>
+  <span class="mi">4</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span> <span class="o">*</span> <span class="n">z</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">z</span> <span class="o">&lt;=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">,</span> <span class="n">z</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">]</span>
+<span class="k">assert</span> <span class="n">objective_fn</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()</span>
+<span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">constraint</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span> <span class="k">for</span> <span class="n">constraint</span> <span class="ow">in</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="k">assert</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
+
+<span class="c1"># All Variables must be declared as positive for an Expression to be DGP.</span>
+<span class="n">w</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">()</span>
+<span class="n">objective_fn</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">objective_fn</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
+<span class="n">problem</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Problem</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">objective_fn</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
+<span class="k">assert</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>CVXPY will raise an exception if you call <code class="docutils literal notranslate"><span class="pre">problem.solve(gp=True)</span></code> on a
+non-DGP problem.</p>
+</section>
+<section id="dgp-atoms">
+<span id="id1"></span><h2>DGP atoms<a class="headerlink" href="#dgp-atoms" title="Permalink to this headline">¶</a></h2>
+<p>This section of the tutorial describes the DGP atom library, that is,
+the atomic functions with known log-log curvature and monotonicity.
+CVXPY uses the function information in this section and the DGP rules
+to mark expressions with a log-log curvature. Note that every DGP expression
+is positive.</p>
+<section id="infix-operators">
+<h3>Infix operators<a class="headerlink" href="#infix-operators" title="Permalink to this headline">¶</a></h3>
+<p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">*,</span> <span class="pre">/</span></code> are treated as atoms. The operators
+<code class="docutils literal notranslate"><span class="pre">*</span></code> and <code class="docutils literal notranslate"><span class="pre">/</span></code> are log-log affine functions. The operator <code class="docutils literal notranslate"><span class="pre">+</span></code>
+is log-log convex in both its arguments.</p>
+<p>Note that in CVXPY, <code class="docutils literal notranslate"><span class="pre">expr1</span> <span class="pre">*</span> <span class="pre">expr2</span></code> denotes matrix multiplication
+when <code class="docutils literal notranslate"><span class="pre">expr1</span></code> and <code class="docutils literal notranslate"><span class="pre">expr2</span></code> are matrices; if you’re running Python 3,
+you can alternatively use the <code class="docutils literal notranslate"><span class="pre">&#64;</span></code> operator for matrix multiplication.
+Regardless of your Python version, you can also use the <a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul atom</span></a> to multiply two matrices. To multiply two arrays or matrices
+elementwise, use the <a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply atom</span></a>. Finally,
+to take the product of the entries of an Expression, use
+the <a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#prod"><span class="std std-ref">prod atom</span></a>.</p>
+</section>
+<section id="transpose">
+<h3>Transpose<a class="headerlink" href="#transpose" title="Permalink to this headline">¶</a></h3>
+<p>The transpose of any expression can be obtained using the syntax
+<code class="docutils literal notranslate"><span class="pre">expr.T</span></code>. Transpose is a log-log affine function.</p>
+</section>
+<section id="power">
+<h3>Power<a class="headerlink" href="#power" title="Permalink to this headline">¶</a></h3>
+<p>For any CVXPY expression <code class="docutils literal notranslate"><span class="pre">expr</span></code>, the power operator <code class="docutils literal notranslate"><span class="pre">expr**p</span></code> is equivalent
+to the function <code class="docutils literal notranslate"><span class="pre">power(expr,</span> <span class="pre">p)</span></code>. Taking powers is a log-log affine function.</p>
+</section>
+<section id="scalar-functions">
+<h3>Scalar functions<a class="headerlink" href="#scalar-functions" title="Permalink to this headline">¶</a></h3>
+<p>A scalar function takes one or more scalars, vectors, or matrices as arguments
+and returns a scalar. Note that several of these atoms may be
+applied along an axis; see the API reference or the <a class="reference internal" href="../functions/index.html#functions"><span class="std std-ref">DCP atoms
+tutorial</span></a> for more information.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Domain</p></th>
+<th class="head"><p>Log-log curvature </p></th>
+<th class="head"><p>Monotonicity</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#geo-mean"><span class="std std-ref">geo_mean(x)</span></a></p>
+<p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#geo-mean"><span class="std std-ref">geo_mean(x, p)</span></a></p>
+<p><span class="math notranslate nohighlight">\(p \in \mathbf{R}^n_{+}\)</span></p>
+<p><span class="math notranslate nohighlight">\(p \neq 0\)</span></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(x_1^{1/n} \cdots x_n^{1/n}\)</span></p>
+<p><span class="math notranslate nohighlight">\(\left(x_1^{p_1} \cdots x_n^{p_n}\right)^{\frac{1}{\mathbf{1}^T p}}\)</span></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{+}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#harmonic-mean"><span class="std std-ref">harmonic_mean(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\frac{n}{\frac{1}{x_1} + \cdots + \frac{1}{x_n}}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{+}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#max"><span class="std std-ref">max(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\max_{ij}\left\{ X_{ij}\right\}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#min"><span class="std std-ref">min(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\min_{ij}\left\{ X_{ij}\right\}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(x)</span></a></p>
+<p>norm(x, 2)</p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(\sqrt{\sum_{i} \lvert x_{i} \rvert^2 }\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “fro”)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\sqrt{\sum_{ij}X_{ij}^2 }\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, 1)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\sum_{ij}\lvert X_{ij} \rvert\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#norm"><span class="std std-ref">norm(X, “inf”)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\max_{ij} \{\lvert X_{ij} \rvert\}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
+<p><span class="math notranslate nohighlight">\(p \geq 1\)</span></p>
+<p>or <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">'inf'</span></code></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(\|X\|_p = \left(\sum_{ij} |X_{ij}|^p \right)^{1/p}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pnorm-func"><span class="std std-ref">pnorm(X, p)</span></a></p>
+<p><span class="math notranslate nohighlight">\(0 &lt; p &lt; 1\)</span></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(\|X\|_p = \left(\sum_{ij} X_{ij}^p \right)^{1/p}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in \mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#prod"><span class="std std-ref">prod(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\prod_{ij}X_{ij}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#quad-form"><span class="std std-ref">quad_form(x, P)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x^T P x\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n\)</span>, <span class="math notranslate nohighlight">\(P \in \mathbf{R}^{n \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#quad-over-lin"><span class="std std-ref">quad_over_lin(X, y)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\left(\sum_{ij}X_{ij}^2\right)/y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{++}\)</span></p>
+<p><span class="math notranslate nohighlight">\(y &gt; 0\)</span></p>
+</td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> in <span class="math notranslate nohighlight">\(X_{ij}\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> decr. in <span class="math notranslate nohighlight">\(y\)</span></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#sum"><span class="std std-ref">sum(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\sum_{ij}X_{ij}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#sum-squares"><span class="std std-ref">sum_squares(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\sum_{ij}X_{ij}^2\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#trace"><span class="std std-ref">trace(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\mathrm{tr}\left(X \right)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#pf-eigenvalue"><span class="std std-ref">pf_eigenvalue(X)</span></a></p></td>
+<td><p>spectral radius of <span class="math notranslate nohighlight">\(X\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="elementwise-functions">
+<h3>Elementwise functions<a class="headerlink" href="#elementwise-functions" title="Permalink to this headline">¶</a></h3>
+<p>These functions operate on each element of their arguments. For example, if
+<code class="docutils literal notranslate"><span class="pre">X</span></code> is a 5 by 4 matrix variable, then <code class="docutils literal notranslate"><span class="pre">sqrt(X)</span></code> is a 5 by 4 matrix
+expression. <code class="docutils literal notranslate"><span class="pre">sqrt(X)[1,</span> <span class="pre">2]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">sqrt(X[1,</span> <span class="pre">2])</span></code>.</p>
+<p>Elementwise functions that take multiple arguments, such as <code class="docutils literal notranslate"><span class="pre">maximum</span></code> and
+<code class="docutils literal notranslate"><span class="pre">multiply</span></code>, operate on the corresponding elements of each argument.  For
+example, if <code class="docutils literal notranslate"><span class="pre">X</span></code> and <code class="docutils literal notranslate"><span class="pre">Y</span></code> are both 3 by 3 matrix variables, then <code class="docutils literal notranslate"><span class="pre">maximum(X,</span>
+<span class="pre">Y)</span></code> is a 3 by 3 matrix expression.  <code class="docutils literal notranslate"><span class="pre">maximum(X,</span> <span class="pre">Y)[2,</span> <span class="pre">0]</span></code> is equivalent to
+<code class="docutils literal notranslate"><span class="pre">maximum(X[2,</span> <span class="pre">0],</span> <span class="pre">Y[2,</span> <span class="pre">0])</span></code>. This means all arguments must have the same
+dimensions or be scalars, which are promoted.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Domain</p></th>
+<th class="head"><p>Curvature </p></th>
+<th class="head"><p>Monotonicity</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#diff-pos"><span class="std std-ref">diff_pos(x, y)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x - y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 &lt; y &lt; x\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.  in <span class="math notranslate nohighlight">\(x\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> decr. in <span class="math notranslate nohighlight">\(y\)</span></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#entr"><span class="std std-ref">entr(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(-x \log (x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 &lt; x &lt; 1\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
+<td><p>None</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#exp"><span class="std std-ref">exp(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(e^x\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#log"><span class="std std-ref">log(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\log(x)\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 1\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#maximum"><span class="std std-ref">maximum(x, y)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\max \left\{x, y\right\}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x,y &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#minimum"><span class="std std-ref">minimum(x, y)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\min \left\{x, y\right\}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x, y &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply(x, y)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x*y\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x, y &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#one-minus-pos"><span class="std std-ref">one_minus_pos(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(1 - x\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(0 &lt; x &lt; 1\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> log-log concave</p></td>
+<td><p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> decr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#power"><span class="std std-ref">power(x, 0)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(1\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
+<td><p>constant</p></td>
+<td><p>constant</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#power"><span class="std std-ref">power(x, p)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(p &gt; 0\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(p &lt; 0\)</span></p>
+</td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#sqrt"><span class="std std-ref">sqrt(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\sqrt x\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#square"><span class="std std-ref">square(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x^2\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#xexp"><span class="std std-ref">xexp(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x e^x\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="vector-matrix-functions">
+<h3>Vector/matrix functions<a class="headerlink" href="#vector-matrix-functions" title="Permalink to this headline">¶</a></h3>
+<p>A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
+and returns a vector or matrix.</p>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>Meaning</p></th>
+<th class="head"><p>Domain</p></th>
+<th class="head"><p>Curvature </p></th>
+<th class="head"><p>Monotonicity</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#bmat"><span class="std std-ref">bmat([[X11,…,X1q],
+…,
+[Xp1,…,Xpq]])</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix} X^{(1,1)} &amp;  \cdots &amp;  X^{(1,q)} \\ \vdots &amp;   &amp; \vdots \\ X^{(p,1)} &amp; \cdots &amp;   X^{(p,q)} \end{matrix}\right]\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#diag"><span class="std std-ref">diag(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}x_1  &amp; &amp;  \\&amp; \ddots &amp; \\&amp; &amp; x_n\end{matrix}\right]\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in\mathbf{R}^{n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#diag"><span class="std std-ref">diag(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X_{11}  \\\vdots \\X_{nn}\end{matrix}\right]\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#eye-minus-inv"><span class="std std-ref">eye_minus_inv(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\((I - X)^{-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) &lt; 1\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#gmatmul"><span class="std std-ref">gmatmul(A, x)</span></a></p>
+<p><span class="math notranslate nohighlight">\(A \in \mathbf{R}^{m \times n}\)</span></p>
+</td>
+<td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}\prod_{j=1}^n x_j^{A_{1j}} \\\vdots \\\prod_{j=1}^n x_j^{A_{mj}}\end{matrix}\right]\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}^n_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(A_{ij} \geq 0\)</span></p>
+<p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(A_{ij} \leq 0\)</span></p>
+</td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#hstack"><span class="std std-ref">hstack([X1, …, Xk])</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m \times n_i}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#matmul"><span class="std std-ref">matmul(X, Y)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(XY\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}, Y \in\mathbf{R}^{n \times p}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.other_atoms.html#resolvent"><span class="std std-ref">resolvent(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\((sI - X)^{-1}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}_{++}, \lambda_{\text{pf}}(X) &lt; s\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> log-log convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’))</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(X' \in\mathbf{R}^{m' \times n'}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p>
+<p><span class="math notranslate nohighlight">\(m'n' = mn\)</span></p>
+</td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vec"><span class="std std-ref">vec(X)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x' \in\mathbf{R}^{mn}\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#vstack"><span class="std std-ref">vstack([X1, …, Xk])</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(X^{(i)} \in\mathbf{R}^{m_i \times n}_{++}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> log-log affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../intro/index.html">What is CVXPY?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../dcp/index.html">Disciplined Convex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../functions/index.html">Atomic Functions</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Disciplined Geometric Programming</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#log-log-curvature">Log-log curvature</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#log-log-curvature-rules">Log-log curvature rules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dgp-problems">DGP problems</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dgp-atoms">DGP atoms</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../dqcp/index.html">Disciplined Quasiconvex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../advanced/index.html">Advanced Features</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/tutorial/dgp/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
