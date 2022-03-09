@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CVXPY 1.1
-====================
+Welcome to CVXPY
+================
 
 .. meta::
    :description: An open source Python-embedded modeling language for convex optimization problems.
@@ -84,17 +84,19 @@ CVXPY is developed and maintained by
 `Bartolomeo Stellato <https://stellato.io/>`_ with many others contributing
 significantly. A non-exhaustive list of people who have shaped CVXPY over the
 years includes Stephen Boyd, Eric Chu, Robin Verschueren,
-Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris
-Dembia, and Philipp Schiele.
+Jaehyun Park, Enzo Busseti, AJ Friend, Judson Wilson, Chris Dembia, and
+Philipp Schiele.
 
 We appreciate all contributions. To get involved, see our :doc:`contributing
 guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeGBCr>`_.
 
 **News.**
 
-* CVXPY started moving to semantic versioning in early 2022. Starting in March 2022 we will
-  only update CVXPY 1.1 for bugfix purposes, and we will release minor versions (e.g., 1.2, 1.3)
-  much more often.
+* In early 2022 we started moving CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
+  assign version numbers following the specification at `semver.org <https://semver.org/>`_.
+  This will result in us incrementing CVXPY's minor version number (the "x" in "CVXPY 1.x.y")
+  much more often than before. Moving forward we will also make it a priority to differentiate
+  between what is and is-not part of CVXPY's public API.
 * CVXPY v1.1.0 has been released. This version makes
   repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
   allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
@@ -114,7 +116,7 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
     :maxdepth: 3
     :hidden:
 
-    tutorial/index
+    User Guide <tutorial/index>
 
 .. toctree::
    :hidden:

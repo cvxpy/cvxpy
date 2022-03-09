@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Changes to CVXPY &#8212; CVXPY 1.1.19 documentation</title>
+    <title>Changes to CVXPY &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -37,44 +37,65 @@
   <section id="changes-to-cvxpy">
 <span id="updates"></span><h1>Changes to CVXPY<a class="headerlink" href="#changes-to-cvxpy" title="Permalink to this headline">¶</a></h1>
 <p>This page details changes made to CVXPY over time, in reverse chronological order.
-The latest release of CVXPY is version 1.1.</p>
-<section id="recent-patches">
-<h2>Recent patches<a class="headerlink" href="#recent-patches" title="Permalink to this headline">¶</a></h2>
-<dl class="simple">
-<dt>Changes in version 1.1.10</dt><dd><ul class="simple">
-<li><p>When NumPy 1.20 was released many users encountered errors in installing or importing
-CVXPY. Users would see errors like <code class="docutils literal notranslate"><span class="pre">RuntimeError:</span> <span class="pre">module</span> <span class="pre">compiled</span>
-<span class="pre">against</span> <span class="pre">API</span> <span class="pre">version</span> <span class="pre">0xe</span> <span class="pre">but</span> <span class="pre">this</span> <span class="pre">version</span> <span class="pre">of</span> <span class="pre">numpy</span> <span class="pre">is</span> <span class="pre">0xd</span></code>. We changed our build files
-to avoid this problem, and it should be fixed as of CVXPY 1.1.10. For more information
-you can refer to this <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1229">GitHub issue</a>.</p></li>
+CVXPY’s project maintainers currently provide support for CVXPY 1.2 and 1.1.</p>
+<section id="cvxpy-1-2">
+<h2>CVXPY 1.2<a class="headerlink" href="#cvxpy-1-2" title="Permalink to this headline">¶</a></h2>
+<p>We’re taking a big step toward <a class="reference external" href="https://semver.org/">semantic versioning</a>!
+Our new versioning policy will be to increment the minor version number (the “x” in “CVXPY 1.x.y”)
+whenever we introduce new features.
+The patch number (the “y” in “CVXPY 1.x.y”) will only be incremented for bugfixes.
+We’ll support multiple minor releases of CVXPY at any given time.
+API-breaking changes will require incrementing the major version number (i.e., moving to CVXPY 2.x.y).</p>
+<p>This versioning policy is very different from what we’ve done in the past.
+Many new features were added <em>after</em> CVXPY 1.1.0 but <em>before</em> CVXPY 1.2.0.
+These features accumulated over the course of CVXPY 1.1.1 and 1.1.18.
+We review those features and the new features in CVXPY 1.2.0 below.</p>
+<section id="constraints-and-atoms">
+<h3>Constraints and atoms<a class="headerlink" href="#constraints-and-atoms" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>1.2.0: added atoms for <a class="reference external" href="https://en.wikipedia.org/wiki/Partial_trace">partial trace</a> and partial transpose,
+which are important linear operators in quantum information</p></li>
+<li><p>1.2.0: updated <code class="docutils literal notranslate"><span class="pre">kron</span></code> so that either argument in <code class="docutils literal notranslate"><span class="pre">kron(A,</span> <span class="pre">B)</span></code> can be a non-constant affine Expression,
+provided the other argument is constant. We previously required that <code class="docutils literal notranslate"><span class="pre">A</span></code> was constant.</p></li>
+<li><p>1.2.0: added <code class="docutils literal notranslate"><span class="pre">xexp</span></code>: an atom that implements <span class="math notranslate nohighlight">\(\\texttt{xexp}(x) = x e^{x}\)</span>.</p></li>
+<li><p>1.1.14: added <code class="docutils literal notranslate"><span class="pre">loggamma</span></code>: an atom which approximates the log of the gamma function</p></li>
+<li><p>1.1.14: added <code class="docutils literal notranslate"><span class="pre">rel_entr</span></code>: an atom with the same semantics as the SciPy’s “rel_entr”</p></li>
+<li><p>1.1.8: added <code class="docutils literal notranslate"><span class="pre">log_normcdf</span></code>: an atom that approximates the log of the Gaussian distribution’s CDF</p></li>
+<li><p>1.1.8: added power cone constraints</p></li>
 </ul>
-</dd>
-</dl>
-<dl class="simple" id="changes118">
-<dt>Changes in version 1.1.8</dt><dd><ul class="simple">
-<li><p>We have added support for 3-dimensional and N-dimensional power cone constraints. Although,
-we currently do not have any atoms that take advantage of this constraint. If you want
-you want to use this type of constraint in your model, you will need to instantiate
-<code class="docutils literal notranslate"><span class="pre">PowCone3D</span></code> and/or <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code> objects manually. Dual variables are not yet implemented
-for <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code> objects. At present, only SCS and MOSEK support power cone constraints.</p></li>
-<li><p>We fixed a bug in our MOSEK interface that was introduced in version 1.1.6. The “unknown”
-status code was not being handled correctly, resulting in ValueErrors rather than SolverErrors.
-Users can now expect a SolverError when MOSEK returns an “unknown” status code (as was
-standard before).</p></li>
+</div></blockquote>
+</section>
+<section id="solver-interfaces">
+<h3>Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>1.2.0: support PDLP and GLOP, via OR-Tools</p></li>
+<li><p>1.1.17: support for SCS 3.0</p></li>
+<li><p>1.1.14: support for HiGHS (and other LP solvers that come with SciPy)</p></li>
+<li><p>1.1.12: ECOS, ECOS_BB, and SCS report solver statistics</p></li>
+<li><p>1.1.12: support warm-start with GUROBI</p></li>
+<li><p>1.1.8: added a mechanism for users to create solver interfaces without modifying CVXPY source code</p></li>
+<li><p>1.1.6: rewrote the MOSEK interface; it now dualizes all continuous problems</p></li>
+<li><p>1.1.4: support for FICO XPRESS</p></li>
+<li><p>1.1.2: support for SCIP</p></li>
+<li><p>1.1.2: users can provide their own implementation of a KKT solver for use with CVXOPT</p></li>
 </ul>
-</dd>
-</dl>
-<dl class="simple" id="changes116">
-<dt>Changes in version 1.1.6</dt><dd><ul class="simple">
-<li><p>The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not
-be called automatically; you must explicitly call <code class="docutils literal notranslate"><span class="pre">prob.solve(solver='ECOS_BB')</span></code> if you want to
-use this solver. Refer to our documentation on <a class="reference internal" href="../tutorial/advanced/index.html#mip"><span class="std std-ref">mixed-integer models</span></a> for more information.</p></li>
-<li><p>The MOSEK interface has been rewritten and now dualizes all continuous problems. Refer to <a class="reference internal" href="../tutorial/advanced/index.html#solveropts"><span class="std std-ref">solver
-documentation</span></a> for technical reasons of why we do this, and how to manage MOSEK solver
-options in the off chance that this change made your solve times increase.</p></li>
+</div></blockquote>
+</section>
+<section id="general-system-improvements">
+<h3>General system improvements<a class="headerlink" href="#general-system-improvements" title="Permalink to this headline">¶</a></h3>
+<blockquote>
+<div><ul class="simple">
+<li><p>1.1.18: A problem status “infeasible or unbounded”, for use by specific solvers in rare situations</p></li>
+<li><p>1.1.11: verbose logging</p></li>
+<li><p>1.1.11: several improvements to CVXPY’s  C++ backend rewriting system, “cvxcore.”
+In particular, CVXPY can now be compiled from source with openmp enabled, which allows
+canonicalization to take advantage of multithreading.</p></li>
+<li><p>1.1.6: a “Dualize” reduction</p></li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
+</section>
 </section>
 <section id="cvxpy-1-1">
 <h2>CVXPY 1.1<a class="headerlink" href="#cvxpy-1-1" title="Permalink to this headline">¶</a></h2>
@@ -114,7 +135,14 @@ new abstractions:</p>
 <section id="breaking-changes">
 <h3>Breaking changes<a class="headerlink" href="#breaking-changes" title="Permalink to this headline">¶</a></h3>
 <p>We no longer support Python 2 or Python 3.4.</p>
-<p>This release drops the SuperSCS and ECOS_BB solvers.</p>
+<p>CVXPY 1.1.0 drops the SuperSCS and ECOS_BB solvers.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>We added ECOS_BB back in version 1.1.6. Starting with
+CVXPY 1.2.0, any backwards-incompatible change like removing a
+solver interface will require incrementing CVXPY’s major version
+number (e.g., moving from series 1.X to 2.X).</p>
+</div>
 </section>
 <section id="bugfixes">
 <h3>Bugfixes<a class="headerlink" href="#bugfixes" title="Permalink to this headline">¶</a></h3>
@@ -128,26 +156,45 @@ including exponential-cone and second-order-cone constraints.</p>
 <h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>
 <p>DPP problems with many CVXPY Parameters can take a long time to compile.</p>
 <p>Disciplined quasiconvex programming (DQCP) doesn’t support DPP.</p>
-<p>The XPRESS interface is currently not working.</p>
+<p>The XPRESS interface is currently not working. (Fixed in CVXPY 1.1.4.)</p>
 </section>
-<section id="wishlist">
-<h3>Wishlist<a class="headerlink" href="#wishlist" title="Permalink to this headline">¶</a></h3>
-<p>The following topics are (relatively) accessible to new contributors, and have
-the potential to meaningfully improve CVXPY 1.1.</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>Extend more solver interfaces to allow differentiating the map from problem
-parameters to optimal solutions. In particular, extending the ECOS or CVXOPT
-interfaces. This may involve contributions to diffcp (see diffcp <a class="reference external" href="https://github.com/cvxgrp/diffcp/issues/31">GitHub issue
-31</a>).</p></li>
-<li><p>Add <a class="reference internal" href="../contributing/index.html#contrib-solver"><span class="std std-ref">an interface</span></a> to an open-source mixed-integer nonlinear solver. CVXPY
-currently only supports commercial mixed-integer nonlinear solvers.</p></li>
-<li><p>Help resolve any CVXPY GitHub issue with the label
-“<a class="reference external" href="https://github.com/cvxpy/cvxpy/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22">help wanted</a>.”</p></li>
+<section id="notable-patches-since-cvxpy-1-1-0">
+<h3>Notable patches since CVXPY 1.1.0<a class="headerlink" href="#notable-patches-since-cvxpy-1-1-0" title="Permalink to this headline">¶</a></h3>
+<dl class="simple">
+<dt>Version 1.1.10</dt><dd><ul class="simple">
+<li><p>When NumPy 1.20 was released many users encountered errors in installing or importing
+CVXPY. Users would see errors like <code class="docutils literal notranslate"><span class="pre">RuntimeError:</span> <span class="pre">module</span> <span class="pre">compiled</span>
+<span class="pre">against</span> <span class="pre">API</span> <span class="pre">version</span> <span class="pre">0xe</span> <span class="pre">but</span> <span class="pre">this</span> <span class="pre">version</span> <span class="pre">of</span> <span class="pre">numpy</span> <span class="pre">is</span> <span class="pre">0xd</span></code>. We changed our build files
+to avoid this problem, and it should be fixed as of CVXPY 1.1.10. For more information
+you can refer to this <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/1229">GitHub issue</a>.</p></li>
 </ul>
-</div></blockquote>
-<p>Anyone interested in making contributions should read the
-<a class="reference internal" href="../contributing/index.html#contributing"><span class="std std-ref">contributing guide</span></a> before writing code.</p>
+</dd>
+</dl>
+<dl class="simple" id="changes118">
+<dt>Version 1.1.8</dt><dd><ul class="simple">
+<li><p>We have added support for 3-dimensional and N-dimensional power cone constraints. Although,
+we currently do not have any atoms that take advantage of this constraint. If you want
+you want to use this type of constraint in your model, you will need to instantiate
+<code class="docutils literal notranslate"><span class="pre">PowCone3D</span></code> and/or <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code> objects manually. Dual variables are not yet implemented
+for <code class="docutils literal notranslate"><span class="pre">PowConeND</span></code> objects. At present, only SCS and MOSEK support power cone constraints.</p></li>
+<li><p>We fixed a bug in our MOSEK interface that was introduced in version 1.1.6. The “unknown”
+status code was not being handled correctly, resulting in ValueErrors rather than SolverErrors.
+Users can now expect a SolverError when MOSEK returns an “unknown” status code (as was
+standard before).</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="simple" id="changes116">
+<dt>Version 1.1.6</dt><dd><ul class="simple">
+<li><p>The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not
+be called automatically; you must explicitly call <code class="docutils literal notranslate"><span class="pre">prob.solve(solver='ECOS_BB')</span></code> if you want to
+use this solver. Refer to our documentation on <a class="reference internal" href="../tutorial/advanced/index.html#mip"><span class="std std-ref">mixed-integer models</span></a> for more information.</p></li>
+<li><p>The MOSEK interface has been rewritten and now dualizes all continuous problems. Refer to <a class="reference internal" href="../tutorial/advanced/index.html#solveropts"><span class="std std-ref">solver
+documentation</span></a> for technical reasons of why we do this, and how to manage MOSEK solver
+options in the off chance that this change made your solve times increase.</p></li>
+</ul>
+</dd>
+</dl>
 </section>
 </section>
 <section id="cvxpy-1-0">
@@ -253,7 +300,7 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
@@ -275,14 +322,19 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
 </ul>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changes to CVXPY</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#recent-patches">Recent patches</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-2">CVXPY 1.2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#constraints-and-atoms">Constraints and atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#solver-interfaces">Solver interfaces</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#general-system-improvements">General system improvements</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-1">CVXPY 1.1</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#highlights">Highlights</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#new-atoms-and-transforms">New atoms and transforms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#breaking-changes">Breaking changes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#bugfixes">Bugfixes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#known-issues">Known issues</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#wishlist">Wishlist</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#notable-patches-since-cvxpy-1-1-0">Notable patches since CVXPY 1.1.0</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#cvxpy-1-0">CVXPY 1.0</a><ul>

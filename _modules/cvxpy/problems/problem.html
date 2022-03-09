@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.1.19 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
@@ -61,6 +61,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy.atoms.atom</span> <span class="kn">import</span> <span class="n">Atom</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span> <span class="n">NonPos</span><span class="p">,</span> <span class="n">Zero</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints.constraint</span> <span class="kn">import</span> <span class="n">Constraint</span>
+<span class="kn">from</span> <span class="nn">cvxpy.error</span> <span class="kn">import</span> <span class="n">DPPError</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
 <span class="kn">from</span> <span class="nn">cvxpy.expressions.variable</span> <span class="kn">import</span> <span class="n">Variable</span>
 <span class="kn">from</span> <span class="nn">cvxpy.interface.matrix_utilities</span> <span class="kn">import</span> <span class="n">scalar_value</span>
@@ -134,8 +135,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">param_prog</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">inverse_data</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="k">def</span> <span class="nf">make_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">make_key</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">gp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
@@ -458,6 +459,9 @@
 <span class="sd">            When True, a DPPError will be thrown when trying to solve a non-DPP</span>
 <span class="sd">            problem (instead of just a warning). Only relevant for problems</span>
 <span class="sd">            involving Parameters. Defaults to False.</span>
+<span class="sd">        ignore_dpp : bool, optional</span>
+<span class="sd">            When True, DPP problems will be treated as non-DPP,</span>
+<span class="sd">            which may speed up compilation. Defaults to False.</span>
 <span class="sd">        method : function, optional</span>
 <span class="sd">            A custom solve method to use.</span>
 <span class="sd">        kwargs : keywords, optional</span>
@@ -471,6 +475,8 @@
 <span class="sd">        There is no one choice of arguments which is perfect for every problem. If you are not</span>
 <span class="sd">        getting satisfactory results from a solver, you can try changing its arguments. The</span>
 <span class="sd">        exact way this is done depends on the specific solver. Here are some examples:</span>
+
+<span class="sd">        ::</span>
 
 <span class="sd">            prob.solve(solver=&#39;ECOS&#39;, abstol=1e-6)</span>
 <span class="sd">            prob.solve(solver=&#39;OSQP&#39;, max_iter=10000).</span>
@@ -494,6 +500,8 @@
 <span class="sd">            Raised if the problem is not DCP and `gp` is False.</span>
 <span class="sd">        cvxpy.error.DGPError</span>
 <span class="sd">            Raised if the problem is not DGP and `gp` is True.</span>
+<span class="sd">        cvxpy.error.DPPError</span>
+<span class="sd">            Raised if DPP settings are invalid.</span>
 <span class="sd">        cvxpy.error.SolverError</span>
 <span class="sd">            Raised if no suitable solver exists among the installed solvers,</span>
 <span class="sd">            or if an unanticipated error is encountered.</span>
@@ -520,7 +528,11 @@
         <span class="bp">cls</span><span class="o">.</span><span class="n">REGISTERED_SOLVE_METHODS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span></div>
 
 <div class="viewcode-block" id="Problem.get_problem_data"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.get_problem_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_problem_data</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span>
+        <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the problem data used in the call to the solver.</span>
 
@@ -574,7 +586,7 @@
 <span class="sd">            cone_dims = data[&#39;dims&#39;]</span>
 <span class="sd">            cones = {</span>
 <span class="sd">                &quot;f&quot;: cone_dims.zero,</span>
-<span class="sd">                &quot;l&quot;: cone_dims.nonpos,</span>
+<span class="sd">                &quot;l&quot;: cone_dims.nonneg,</span>
 <span class="sd">                &quot;q&quot;: cone_dims.soc,</span>
 <span class="sd">                &quot;ep&quot;: cone_dims.exp,</span>
 <span class="sd">                &quot;s&quot;: cone_dims.psd,</span>
@@ -595,6 +607,9 @@
 <span class="sd">        enforce_dpp : bool, optional</span>
 <span class="sd">            When True, a DPPError will be thrown when trying to parse a non-DPP</span>
 <span class="sd">            problem (instead of just a warning). Defaults to False.</span>
+<span class="sd">        ignore_dpp : bool, optional</span>
+<span class="sd">            When True, DPP problems will be treated as non-DPP,</span>
+<span class="sd">            which may speed up compilation. Defaults to False.</span>
 <span class="sd">        verbose : bool, optional</span>
 <span class="sd">            If True, print verbose output related to problem compilation.</span>
 
@@ -606,13 +621,26 @@
 <span class="sd">            The solving chain that created the data.</span>
 <span class="sd">        list</span>
 <span class="sd">            The inverse data generated by the chain.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        cvxpy.error.DPPError</span>
+<span class="sd">            Raised if DPP settings are invalid.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Invalid DPP setting.</span>
+        <span class="c1"># Must be checked here to avoid cache issues.</span>
+        <span class="k">if</span> <span class="n">enforce_dpp</span> <span class="ow">and</span> <span class="n">ignore_dpp</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DPPError</span><span class="p">(</span><span class="s2">&quot;Cannot set enforce_dpp = True and ignore_dpp = True.&quot;</span><span class="p">)</span>
+
         <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
-        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">make_key</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">)</span>
+        <span class="c1"># Cache includes ignore_dpp because it alters compilation.</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">make_key</span><span class="p">(</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">key</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">key</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">invalidate</span><span class="p">()</span>
             <span class="n">solving_chain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_construct_chain</span><span class="p">(</span>
-                <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">,</span> <span class="n">enforce_dpp</span><span class="o">=</span><span class="n">enforce_dpp</span><span class="p">)</span>
+                <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">,</span>
+                <span class="n">enforce_dpp</span><span class="o">=</span><span class="n">enforce_dpp</span><span class="p">,</span>
+                <span class="n">ignore_dpp</span><span class="o">=</span><span class="n">ignore_dpp</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_cache</span><span class="o">.</span><span class="n">solving_chain</span> <span class="o">=</span> <span class="n">solving_chain</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_solver_cache</span> <span class="o">=</span> <span class="p">{}</span>
@@ -812,7 +840,8 @@
         <span class="k">return</span> <span class="n">candidates</span>
 
     <span class="k">def</span> <span class="nf">_construct_chain</span><span class="p">(</span>
-        <span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">SolvingChain</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Construct the chains required to reformulate and solve the problem.</span>
@@ -832,6 +861,9 @@
 <span class="sd">            instead of as a Disciplined Convex Program.</span>
 <span class="sd">        enforce_dpp : bool, optional</span>
 <span class="sd">            Whether to error on DPP violations.</span>
+<span class="sd">        ignore_dpp : bool, optional</span>
+<span class="sd">            When True, DPP problems will be treated as non-DPP,</span>
+<span class="sd">            which may speed up compilation. Defaults to False.</span>
 
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
@@ -840,7 +872,8 @@
         <span class="n">candidate_solvers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_candidate_solvers</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_sort_candidate_solvers</span><span class="p">(</span><span class="n">candidate_solvers</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">construct_solving_chain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">candidate_solvers</span><span class="p">,</span> <span class="n">gp</span><span class="o">=</span><span class="n">gp</span><span class="p">,</span>
-                                       <span class="n">enforce_dpp</span><span class="o">=</span><span class="n">enforce_dpp</span><span class="p">)</span>
+                                       <span class="n">enforce_dpp</span><span class="o">=</span><span class="n">enforce_dpp</span><span class="p">,</span>
+                                       <span class="n">ignore_dpp</span><span class="o">=</span><span class="n">ignore_dpp</span><span class="p">)</span>
 
     <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">_sort_candidate_solvers</span><span class="p">(</span><span class="n">solvers</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -878,6 +911,7 @@
                <span class="n">qcp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                <span class="n">requires_grad</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+               <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Solves a DCP compliant optimization problem.</span>
 
@@ -905,6 +939,9 @@
 <span class="sd">        enforce_dpp : bool, optional</span>
 <span class="sd">            When True, a DPPError will be thrown when trying to solve a non-DPP</span>
 <span class="sd">            problem (instead of just a warning). Defaults to False.</span>
+<span class="sd">        ignore_dpp : bool, optional</span>
+<span class="sd">            When True, DPP problems will be treated as non-DPP,</span>
+<span class="sd">            which may speed up compilation. Defaults to False.</span>
 <span class="sd">        kwargs : dict, optional</span>
 <span class="sd">            A dict of options that will be passed to the specific solver.</span>
 <span class="sd">            In general, these options will override any default settings</span>
@@ -997,7 +1034,7 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
 
         <span class="n">data</span><span class="p">,</span> <span class="n">solving_chain</span><span class="p">,</span> <span class="n">inverse_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_problem_data</span><span class="p">(</span>
-            <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">enforce_dpp</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
+            <span class="n">solver</span><span class="p">,</span> <span class="n">gp</span><span class="p">,</span> <span class="n">enforce_dpp</span><span class="p">,</span> <span class="n">ignore_dpp</span><span class="p">,</span> <span class="n">verbose</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">_NUM_SOLVER_STR</span><span class="p">)</span>
@@ -1534,7 +1571,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../install/index.html">Install</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>

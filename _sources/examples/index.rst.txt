@@ -102,6 +102,12 @@ Finance
 
 - `Cryptocurrency trading <https://nbviewer.org/github/rcroessmann/sharing_public/blob/master/arbitrage_identification.ipynb>`_
 
+- `Entropic Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Entropic%20Portfolio.ipynb>`_
+
+- `Portfolio Optimization using SOC constraints <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/SOC%20Portfolio.ipynb>`_
+
+- `Gini Mean Difference Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Gini%20Portfolio.ipynb>`_
+
 .. _advanced-python:
 
 Advanced
@@ -136,6 +142,4 @@ Advanced Applications
 - :doc:`Sizing of clock meshes <applications/clock_mesh>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/clock_mesh.ipynb>`_
 - :doc:`Sparse covariance estimation for Gaussian variables <applications/sparse_covariance_est>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/sparse_covariance_est.ipynb>`_
 - :doc:`Water filling <applications/water_filling_BVex5.2>` `[.ipynb] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/water_filling_BVex5.2.ipynb>`_
-- `Entropic Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Entropic%20Portfolio.ipynb>`_
-- `Portfolio Optimization using SOC constraints <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/SOC%20Portfolio.ipynb>`_
 - `Multiple Traveling Salesman Problem <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/mTSP_en.ipynb>`_

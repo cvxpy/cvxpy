@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.atoms.elementwise.power &#8212; CVXPY 1.1.19 documentation</title>
+    <title>cvxpy.atoms.elementwise.power &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
@@ -61,7 +61,7 @@
     <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">constant</span><span class="p">())</span>
 
 
-<div class="viewcode-block" id="power"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.atoms.elementwise.power.power">[docs]</a><span class="k">class</span> <span class="nc">power</span><span class="p">(</span><span class="n">Elementwise</span><span class="p">):</span>
+<div class="viewcode-block" id="power"><a class="viewcode-back" href="../../../../api_reference/cvxpy.atoms.elementwise.html#cvxpy.power">[docs]</a><span class="k">class</span> <span class="nc">power</span><span class="p">(</span><span class="n">Elementwise</span><span class="p">):</span>
     <span class="sa">r</span><span class="sd">&quot;&quot;&quot; Elementwise power function :math:`f(x) = x^p`.</span>
 
 <span class="sd">    If ``expr`` is a CVXPY expression, then ``expr**p``</span>
@@ -90,16 +90,22 @@
 
 <span class="sd">    .. note::</span>
 
-<span class="sd">        For DCP problems, ``p`` cannot be represented exactly, so a rational,</span>
-<span class="sd">        i.e., fractional, **approximation** must be made. (No such approximation</span>
-<span class="sd">        is made for DGP problems.)</span>
-
-<span class="sd">        Internally, ``power`` computes a rational approximation</span>
+<span class="sd">        For DCP problems, ``power`` assumes ``p`` has a rational representation</span>
+<span class="sd">        with a small denominator. **Approximations** are employed when this is not</span>
+<span class="sd">        the case. Specifically, ``power`` computes a rational approximation</span>
 <span class="sd">        to ``p`` with a denominator up to ``max_denom``.</span>
 <span class="sd">        Increasing ``max_denom`` can give better approximations.</span>
-
 <span class="sd">        When ``p`` is an ``int`` or ``Fraction`` object, the approximation</span>
-<span class="sd">        is usually **exact**.</span>
+<span class="sd">        is usually *exact*. No such approximation</span>
+<span class="sd">        is used for DGP problems.</span>
+
+<span class="sd">        CVXPY supports exponential cone and power cone constraints.</span>
+<span class="sd">        Such constraints could be used to handle the ``power`` atom in DCP problems</span>
+<span class="sd">        without relying on approximations. Such an approach would also result in</span>
+<span class="sd">        fewer variables than the current method, even when the current method is</span>
+<span class="sd">        an exact reformulation. If you&#39;re interested in helping enhance CVXPY with</span>
+<span class="sd">        this ability, please get in touch with us and check out</span>
+<span class="sd">        `GitHub Issue 1222 &lt;https://github.com/cvxpy/cvxpy/issues/1222&gt;`_!</span>
 
 <span class="sd">    .. note::</span>
 
@@ -453,7 +459,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../install/index.html">Install</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples</a></li>

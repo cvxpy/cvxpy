@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Middle-End Reductions &#8212; CVXPY 1.1.19 documentation</title>
+    <title>Middle-End Reductions &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -36,9 +36,11 @@
             
   <section id="middle-end-reductions">
 <h1>Middle-End Reductions<a class="headerlink" href="#middle-end-reductions" title="Permalink to this headline">¶</a></h1>
-<p>The reductions listed here are not specific to a back end (solver);
-they can be applied regardless of whether you wish to target, for example,
+<p>The reductions listed here are not specific to a type of solver.
+They can be applied regardless of whether you wish to target, for example,
 a quadratic program solver or a conic solver.</p>
+<p>Please see <a class="reference internal" href="cvxpy.reductions.html#reductions-disclaimer"><span class="std std-ref">our disclaimer</span></a> about the
+Reductions API before using these directly in your code.</p>
 <div class="contents local topic" id="contents">
 <ul class="simple">
 <li><p><a class="reference internal" href="#complex2real" id="id1">Complex2Real</a></p></li>
@@ -405,7 +407,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
@@ -416,23 +418,24 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
-<li class="toctree-l2 current"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">Middle-End Reductions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#complex2real">Complex2Real</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#cvxattr2constr">CvxAttr2Constr</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#dgp2dcp">Dgp2Dcp</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#evalparams">EvalParams</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#flipobjective">FlipObjective</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End Reductions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.html#solution">Solution</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.html#reduction">Reduction</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.html#chain">Chain</a></li>
-<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.html#solvingchain">SolvingChain</a></li>
-</ul>
-</li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.html#disclaimer">Disclaimer</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="cvxpy.reductions.html#types-of-reductions">Types of Reductions</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">Middle-End</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#complex2real">Complex2Real</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxattr2constr">CvxAttr2Constr</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#dgp2dcp">Dgp2Dcp</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#evalparams">EvalParams</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#flipobjective">FlipObjective</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.html#core-classes">Core classes</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>

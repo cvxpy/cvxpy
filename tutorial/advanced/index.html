@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Advanced Features &#8212; CVXPY 1.1.19 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
@@ -81,30 +81,32 @@ of <a class="reference internal" href="../../api_reference/cvxpy.expressions.htm
 <a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameter</span></code></a>) is given below.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="Leaf">
-<span class="sig-name descname"><span class="pre">Leaf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonneg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonpos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PSD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NSD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boolean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">Leaf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonneg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nonpos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">complex</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">imag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">symmetric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">diag</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">PSD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">NSD</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">hermitian</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boolean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integer</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sparsity</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pos</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neg</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#Leaf" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates a Leaf object (e.g., Variable or Parameter).
 Only one attribute can be active (set to True).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>shape</strong> (<em>tuple</em><em> or </em><em>int</em>) – The variable dimensions (0D by default). Cannot be more than 2D.</p></li>
-<li><p><strong>name</strong> (<em>str</em>) – The variable name.</p></li>
 <li><p><strong>value</strong> (<em>numeric type</em>) – A value to assign to the variable.</p></li>
 <li><p><strong>nonneg</strong> (<em>bool</em>) – Is the variable constrained to be nonnegative?</p></li>
 <li><p><strong>nonpos</strong> (<em>bool</em>) – Is the variable constrained to be nonpositive?</p></li>
+<li><p><strong>complex</strong> (<em>bool</em>) – Is the variable constrained to be complex-valued?</p></li>
+<li><p><strong>imag</strong> (<em>bool</em>) – Is the variable constrained to be imaginary?</p></li>
 <li><p><strong>symmetric</strong> (<em>bool</em>) – Is the variable constrained to be symmetric?</p></li>
-<li><p><strong>hermitian</strong> (<em>bool</em>) – Is the variable constrained to be Hermitian?</p></li>
 <li><p><strong>diag</strong> (<em>bool</em>) – Is the variable constrained to be diagonal?</p></li>
-<li><p><strong>complex</strong> (<em>bool</em>) – Is the variable complex valued?</p></li>
-<li><p><strong>imag</strong> (<em>bool</em>) – Is the variable purely imaginary?</p></li>
 <li><p><strong>PSD</strong> (<em>bool</em>) – Is the variable constrained to be symmetric positive semidefinite?</p></li>
 <li><p><strong>NSD</strong> (<em>bool</em>) – Is the variable constrained to be symmetric negative semidefinite?</p></li>
+<li><p><strong>hermitian</strong> (<em>bool</em>) – Is the variable constrained to be Hermitian?</p></li>
 <li><p><strong>boolean</strong> (<em>bool</em><em> or </em><em>list of tuple</em>) – Is the variable boolean (i.e., 0 or 1)? True, which constrains
 the entire variable to be boolean, False, or a list of
 indices which should be constrained as boolean, where each
 index is a tuple of length exactly equal to the
 length of shape.</p></li>
 <li><p><strong>integer</strong> (<em>bool</em><em> or </em><em>list of tuple</em>) – Is the variable integer? The semantics are the same as the boolean argument.</p></li>
+<li><p><strong>sparsity</strong> (<em>list of tuplewith</em>) – Fixed sparsity pattern for the variable.</p></li>
+<li><p><strong>pos</strong> (<em>bool</em>) – Is the variable constrained to be positive?</p></li>
+<li><p><strong>neg</strong> (<em>bool</em>) – Is the variable constrained to be negative?</p></li>
 </ul>
 </dd>
 </dl>
@@ -203,15 +205,18 @@ You can construct mixed-integer programs by creating variables with the attribut
 For licensing reasons, CVXPY does not install any of the preferred solvers by default.</p>
 <p>The preferred open source mixed-integer solvers in CVXPY are <a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a> and <a class="reference external" href="https://scip.zib.de/">SCIP</a>. The <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>
 python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running
-<cite>pip install cvxopt`</cite> in your command line or terminal. Neither GLPK_MI nor CBC allow nonlinear models.</p>
+<cite>pip install cvxopt`</cite> in your command line or terminal. SCIP supports nonlinear models, but
+GLPK_MI and CBC do not.</p>
 <p>CVXPY comes with ECOS_BB – an open source mixed-integer nonlinear solver – by default. However
 ECOS_BB will not be called automatically; you must explicitly call <code class="docutils literal notranslate"><span class="pre">prob.solve(solver='ECOS_BB')</span></code>
 if you want to use it (<a class="reference internal" href="../../updates/index.html#changes116"><span class="std std-ref">changed in CVXPY 1.1.6</span></a>). This policy stems from the fact
 that there are recurring correctness issues with ECOS_BB. If you rely on this solver for some
-application then you need to be aware of the increased risks that come with using it.</p>
+application then you need to be aware of the increased risks that come with using it.
+If you need to use an open-source mixed-integer nonlinear solver from CVXPY, then we recommend you install SCIP.</p>
 <p>If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
-model, then you will need to use a commercial solver such as <a class="reference external" href="https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/">CPLEX</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a>, or <a class="reference external" href="https://www.mosek.com/">MOSEK</a>.
-Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK provide free licenses to those
+model that is challenging for SCIP, then you will need to use a commercial solver such as <a class="reference external" href="https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/">CPLEX</a>,
+<a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a>, or <a class="reference external" href="https://www.mosek.com/">MOSEK</a>. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
+provide free licenses to those
 in academia (both students and faculty), as well as trial versions to those outside academia.
 CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
 online registration, and it’s limited to problems at with most 1000 variables and 1000 constraints.
@@ -356,8 +361,16 @@ this argument is True), the problem must satisfy the DPP rules.</p>
 <li><p><strong>enforce_dpp</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, a <code class="docutils literal notranslate"><span class="pre">DPPError</span></code> will be thrown when trying to solve
 a non-DPP problem (instead of just a warning). Only relevant for
 problems involving Parameters. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
-<li><p><strong>kwargs</strong> – Additional keyword arguments specifying solver specific options.</p></li>
 </ul>
+</dd>
+</dl>
+<dl class="simple">
+<dt>:param ignore_dpp<span class="classifier">When True, DPP problems will be treated as non-DPP,</span></dt><dd><p>which may speed up compilation. Defaults to False.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> – Additional keyword arguments specifying solver specific options.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>The optimal value for the problem, or a string indicating why the problem could not be solved.</p>
@@ -403,7 +416,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://developers.google.com/optimization">GLOP</a></p></td>
 <td><p>X</p></td>
 <td></td>
 <td></td>
@@ -412,7 +425,16 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK</a></p></td>
+<td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.gnu.org/software/glpk/">GLPK_MI</a></p></td>
 <td><p>X</p></td>
 <td></td>
 <td></td>
@@ -421,9 +443,18 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td><p>X</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="https://osqp.org/">OSQP</a></p></td>
+<tr class="row-even"><td><p><a class="reference external" href="https://osqp.org/">OSQP</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference external" href="https://developers.google.com/optimization">PDLP</a></p></td>
+<td><p>X</p></td>
+<td></td>
 <td></td>
 <td></td>
 <td></td>
@@ -566,6 +597,10 @@ objects manually.</p>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCIPY</span><span class="p">,</span> <span class="n">scipy_options</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;method&quot;</span><span class="p">:</span> <span class="s2">&quot;highs&quot;</span><span class="p">})</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with SciPy/HiGHS:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
+<span class="c1"># Solve with GLOP.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">GLOP</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with GLOP:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
 <span class="c1"># Solve with GLPK.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">GLPK</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with GLPK:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
@@ -594,6 +629,10 @@ objects manually.</p>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">NAG</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with NAG:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
+<span class="c1"># Solve with PDLP.</span>
+<span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">PDLP</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with PDLP:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
 <span class="c1"># Solve with SCIP.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCIP</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;optimal value with SCIP:&quot;</span><span class="p">,</span> <span class="n">prob</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
@@ -608,6 +647,7 @@ objects manually.</p>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CVXOPT</span><span class="p">:</span> <span class="mf">6.00000000512</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SCS</span><span class="p">:</span> <span class="mf">6.00046055789</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SciPy</span><span class="o">/</span><span class="n">HiGHS</span><span class="p">:</span> <span class="mf">6.0</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GLOP</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GLPK</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GLPK_MI</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">GUROBI</span><span class="p">:</span> <span class="mf">6.0</span>
@@ -615,6 +655,7 @@ objects manually.</p>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CBC</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">CPLEX</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">NAG</span><span class="p">:</span> <span class="mf">6.000000003182365</span>
+<span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">PDLP</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">SCIP</span><span class="p">:</span> <span class="mf">6.0</span>
 <span class="n">optimal</span> <span class="n">value</span> <span class="k">with</span> <span class="n">XPRESS</span><span class="p">:</span> <span class="mf">6.0</span>
 </pre></div>
@@ -710,7 +751,7 @@ warm start would only be a good initial point.</p>
 </section>
 <section id="setting-solver-options">
 <span id="solveropts"></span><h2>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://developers.google.com/optimization">GLOP</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, <a class="reference external" href="https://developers.google.com/optimization">PDLP</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -777,6 +818,15 @@ warm start would only be a good initial point.</p>
 <dt><code class="docutils literal notranslate"><span class="pre">'feastol_inacc'</span></code></dt><dd><p>tolerance for feasibility condition for inaccurate solution (default: 1e-4).</p>
 </dd>
 </dl>
+<p><a class="reference external" href="https://developers.google.com/optimization">GLOP</a> options:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'time_limit_sec'</span></code></dt><dd><p>Time limit for the solve, in seconds.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'parameters_proto'</span></code></dt><dd><p>A <cite>ortools.glop.parameters_pb2.GlopParameters</cite> protocol buffer message.
+For the definition of GlopParameters, see
+<a class="reference external" href="https://github.com/google/or-tools/blob/2cb85b4eead4c38e1c54b48044f92087cf165bce/ortools/glop/parameters.proto#L26">here</a>.</p>
+</dd>
+</dl>
 <p><a class="reference external" href="https://www.mosek.com/">MOSEK</a> options:</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">'mosek_params'</span></code></dt><dd><p>A dictionary of MOSEK parameters. Refer to MOSEK’s Python or C API for
@@ -832,7 +882,7 @@ Passing a KKT solver based on a function handle allows you to take complete cont
 solving the linear systems encountered in CVXOPT’s interior-point algorithm. The API for
 KKT solvers of this form is a small wrapper around CVXOPT’s API for function-handle KKT
 solvers. The precise API that CVXPY users are held to is described in the CVXPY source
-code: cvxpy/reductions/solvers/kktsolver.py</p>
+code: <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py">cvxpy/reductions/solvers/kktsolver.py</a>.</p>
 </dd>
 </dl>
 <p><a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> options:</p>
@@ -914,6 +964,15 @@ parameters are automatically changed and the problem is re-solved in order to de
 <li><p><strong>Please note</strong>: All options should be listed as key-value pairs within the <code class="docutils literal notranslate"><span class="pre">'scipy_options'</span></code> dictionary and there should not be a nested dictionary called options. Some of the methods have different parameters so please check the parameters for the method you wish to use e.g. for method = ‘highs-ipm’.</p></li>
 <li><p>The main advantage of this solver is its ability to use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> LP solvers which are coded in C++, however these require a version of SciPy larger than 1.6.1. To use the <a class="reference external" href="https://www.maths.ed.ac.uk/hall/HiGHS/#guide">HiGHS</a> solvers simply set the method parameter to ‘highs-ds’ (for dual-simplex), ‘highs-ipm’ (for interior-point method) or ‘highs’ (which will choose either ‘highs-ds’ or ‘highs-ipm’ for you).</p></li>
 </ul>
+<p><a class="reference external" href="https://developers.google.com/optimization">PDLP</a> options:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">'time_limit_sec'</span></code></dt><dd><p>Time limit for the solve, in seconds.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">'parameters_proto'</span></code></dt><dd><p>A <cite>ortools.pdlp.solvers_pb2.PrimalDualHybridGradientParams</cite> protocol buffer message.
+For the definition of PrimalDualHybridGradientParams, see
+<a class="reference external" href="https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150">here</a>.</p>
+</dd>
+</dl>
 <p><a class="reference external" href="http://www.gurobi.com/">GUROBI</a> options:</p>
 <p>Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed <a class="reference external" href="https://www.gurobi.com/documentation/9.1/refman/parameters.html">here</a>.</p>
 <p>In addition to Gurobi’s parameters, the following options are available:</p>
@@ -1018,8 +1077,8 @@ DCP and DGP problems. First, we describe the DPP ruleset for DCP problems.
 Then, we describe the DPP ruleset for DGP problems.</p>
 <p><strong>DCP problems.</strong>
 In DPP, an expression is said to be parameter-affine if it does
-not involve variables and is affine in its parameters, and it is variable-free
-if it does not have variables. DPP introduces two restrictions to DCP:</p>
+not involve variables and is affine in its parameters, and it is parameter-free
+if it does not have parameters. DPP introduces two restrictions to DCP:</p>
 <ol class="arabic simple">
 <li><p>Under DPP, all parameters are classified as affine, just like variables.</p></li>
 <li><p>Under DPP, the product of two expressions is affine when
@@ -1046,13 +1105,12 @@ default, this keyword argument is <code class="docutils literal notranslate"><sp
 </div>
 <p>prints <code class="docutils literal notranslate"><span class="pre">True</span></code>. We can walk through the DPP analysis to understand why
 <code class="docutils literal notranslate"><span class="pre">objective</span></code> is DPP-compliant. The product <code class="docutils literal notranslate"><span class="pre">(F</span> <span class="pre">+</span> <span class="pre">G)</span> <span class="pre">&#64;</span> <span class="pre">x</span></code> is affine under DPP,
-because <code class="docutils literal notranslate"><span class="pre">F</span> <span class="pre">+</span> <span class="pre">G</span></code> is parameter-affine and <code class="docutils literal notranslate"><span class="pre">x</span></code> is variable-free. The difference
+because <code class="docutils literal notranslate"><span class="pre">F</span> <span class="pre">+</span> <span class="pre">G</span></code> is parameter-affine and <code class="docutils literal notranslate"><span class="pre">x</span></code> is parameter-free. The difference
 <code class="docutils literal notranslate"><span class="pre">(F</span> <span class="pre">+</span> <span class="pre">G)</span> <span class="pre">&#64;</span> <span class="pre">x</span> <span class="pre">-</span> <span class="pre">g</span></code> is affine because the addition atom is affine and both
-<code class="docutils literal notranslate"><span class="pre">(F</span> <span class="pre">+</span> <span class="pre">G)</span> <span class="pre">&#64;</span> <span class="pre">x</span></code> and  <code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">g</span></code> are affine. The product <code class="docutils literal notranslate"><span class="pre">gamma</span> <span class="pre">*</span> <span class="pre">cp.norm(x)</span></code> is convex because
-<code class="docutils literal notranslate"><span class="pre">cp.norm(x)</span></code> is convex, the product is affine because <code class="docutils literal notranslate"><span class="pre">gamma</span></code> is
-parameter-affine and <code class="docutils literal notranslate"><span class="pre">cp.norm(x)</span></code> is variable-free, and the expression
-<code class="docutils literal notranslate"><span class="pre">gamma</span> <span class="pre">*</span> <span class="pre">cp.norm(x)</span></code> is convex because the product is increasing in its second
-argument (since <code class="docutils literal notranslate"><span class="pre">gamma</span></code> is nonnegative).</p>
+<code class="docutils literal notranslate"><span class="pre">(F</span> <span class="pre">+</span> <span class="pre">G)</span> <span class="pre">&#64;</span> <span class="pre">x</span></code> and  <code class="docutils literal notranslate"><span class="pre">-</span> <span class="pre">g</span></code> are affine. Likewise <code class="docutils literal notranslate"><span class="pre">gamma</span> <span class="pre">*</span> <span class="pre">cp.norm(x)</span></code> is affine
+under DPP because <code class="docutils literal notranslate"><span class="pre">gamma</span></code> is parameter-affine and <code class="docutils literal notranslate"><span class="pre">cp.norm(x)</span></code> is
+parameter-free. The final objective is then affine under DPP because addition is
+affine.</p>
 <p>Some expressions are DCP-compliant but not DPP-compliant. For example,
 DPP forbids taking the product of two parametrized expressions:</p>
 <div class="highlight-python3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
@@ -1397,7 +1455,7 @@ on derivatives.</p>
 <li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Tutorial</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../intro/index.html">What is CVXPY?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../dcp/index.html">Disciplined Convex Programming</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../functions/index.html">Atomic Functions</a></li>

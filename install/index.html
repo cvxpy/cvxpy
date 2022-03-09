@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Install &#8212; CVXPY 1.1.19 documentation</title>
+    <title>Install &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -15,8 +15,8 @@
     <script src="../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Tutorial" href="../tutorial/index.html" />
-    <link rel="prev" title="Welcome to CVXPY 1.1" href="../index.html" />
+    <link rel="next" title="User Guide" href="../tutorial/index.html" />
+    <link rel="prev" title="Welcome to CVXPY" href="../index.html" />
    
   <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
   
@@ -84,7 +84,7 @@ or a conda environment.</p>
 <p>CVXPY has the following dependencies:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>Python &gt;= 3.6</p></li>
+<li><p>Python &gt;= 3.7</p></li>
 <li><p><a class="reference external" href="https://osqp.org/">OSQP</a> &gt;= 0.4.1</p></li>
 <li><p><a class="reference external" href="https://github.com/ifa-ethz/ecos">ECOS</a> &gt;= 2</p></li>
 <li><p><a class="reference external" href="https://github.com/cvxgrp/scs">SCS</a> &gt;= 1.1.6</p></li>
@@ -207,6 +207,13 @@ See the <a class="reference external" href="https://www.ibm.com/support/knowledg
 Simply install NAG such that you can <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">naginterfaces</span></code> in Python.
 See the <a class="reference external" href="https://www.nag.co.uk/nag-library-python">NAG</a> website for installation instructions.</p>
 </section>
+<section id="install-with-glop-and-pdlp-support">
+<h2>Install with GLOP and PDLP support<a class="headerlink" href="#install-with-glop-and-pdlp-support" title="Permalink to this headline">¶</a></h2>
+<p>CVXPY supports the GLOP and PDLP solvers. Both solvers are provided by
+the open source <a class="reference external" href="https://github.com/google/or-tools">OR-Tools</a> package.
+Install OR-Tools such that you can run <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">ortools</span></code> in Python. OR-Tools
+version 9.3 or greater is required.</p>
+</section>
 <section id="install-with-scip-support">
 <h2>Install with SCIP support<a class="headerlink" href="#install-with-scip-support" title="Permalink to this headline">¶</a></h2>
 <p>CVXPY supports the SCIP solver.
@@ -280,6 +287,7 @@ This can be useful if the intention is to only use non-default solvers.</p>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-cplex-support">Install with CPLEX support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-sdpt3-support">Install with SDPT3 support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-nag-support">Install with NAG support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#install-with-glop-and-pdlp-support">Install with GLOP and PDLP support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-scip-support">Install with SCIP support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-with-scipy-support">Install with SCIPY support</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#install-without-default-solvers">Install without default solvers</a></li>
@@ -287,7 +295,7 @@ This can be useful if the intention is to only use non-default solvers.</p>
 </li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>

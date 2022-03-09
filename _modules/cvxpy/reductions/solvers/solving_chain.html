@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.solvers.solving_chain &#8212; CVXPY 1.1.19 documentation</title>
+    <title>cvxpy.reductions.solvers.solving_chain &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
@@ -34,6 +34,8 @@
 <span></span><span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">List</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
 <span class="kn">from</span> <span class="nn">cvxpy.atoms</span> <span class="kn">import</span> <span class="n">EXP_ATOMS</span><span class="p">,</span> <span class="n">NONPOS_ATOMS</span><span class="p">,</span> <span class="n">PSD_ATOMS</span><span class="p">,</span> <span class="n">SOC_ATOMS</span>
 <span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PSD</span><span class="p">,</span> <span class="n">SOC</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">ExpCone</span><span class="p">,</span> <span class="n">Inequality</span><span class="p">,</span> <span class="n">NonNeg</span><span class="p">,</span>
                                <span class="n">NonPos</span><span class="p">,</span> <span class="n">PowCone3D</span><span class="p">,</span> <span class="n">Zero</span><span class="p">,)</span>
@@ -54,6 +56,7 @@
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers</span> <span class="kn">import</span> <span class="n">defines</span> <span class="k">as</span> <span class="n">slv_def</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.constant_solver</span> <span class="kn">import</span> <span class="n">ConstantSolver</span>
 <span class="kn">from</span> <span class="nn">cvxpy.reductions.solvers.solver</span> <span class="kn">import</span> <span class="n">Solver</span>
+<span class="kn">from</span> <span class="nn">cvxpy.settings</span> <span class="kn">import</span> <span class="n">PARAM_THRESHOLD</span>
 <span class="kn">from</span> <span class="nn">cvxpy.utilities.debug_tools</span> <span class="kn">import</span> <span class="n">build_non_disciplined_error_msg</span>
 
 
@@ -152,7 +155,8 @@
 
 <span class="k">def</span> <span class="nf">construct_solving_chain</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span>
                             <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
-                            <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
+                            <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+                            <span class="n">ignore_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;SolvingChain&quot;</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Build a reduction chain from a problem to an installed solver.</span>
 
 <span class="sd">    Note that if the supplied problem has 0 variables, then the solver</span>
@@ -171,6 +175,9 @@
 <span class="sd">    enforce_dpp : bool, optional</span>
 <span class="sd">        When True, a DPPError will be thrown when trying to parse a non-DPP</span>
 <span class="sd">        problem (instead of just a warning). Defaults to False.</span>
+<span class="sd">    ignore_dpp : bool, optional</span>
+<span class="sd">        When True, DPP problems will be treated as non-DPP,</span>
+<span class="sd">        which may speed up compilation. Defaults to False.</span>
 
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
@@ -187,6 +194,7 @@
         <span class="k">return</span> <span class="n">SolvingChain</span><span class="p">(</span><span class="n">reductions</span><span class="o">=</span><span class="p">[</span><span class="n">ConstantSolver</span><span class="p">()])</span>
     <span class="n">reductions</span> <span class="o">=</span> <span class="n">_reductions_for_problem_class</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">candidates</span><span class="p">,</span> <span class="n">gp</span><span class="p">)</span>
 
+    <span class="c1"># Process DPP status of the problem.</span>
     <span class="n">dpp_context</span> <span class="o">=</span> <span class="s1">&#39;dcp&#39;</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">gp</span> <span class="k">else</span> <span class="s1">&#39;dgp&#39;</span>
     <span class="n">dpp_error_msg</span> <span class="o">=</span> <span class="p">(</span>
             <span class="s2">&quot;You are solving a parameterized problem that is not DPP. &quot;</span>
@@ -195,14 +203,24 @@
             <span class="s2">&quot;documentation on Discplined Parametrized Programming, at</span><span class="se">\n</span><span class="s2">&quot;</span>
             <span class="s2">&quot;</span><span class="se">\t</span><span class="s2">https://www.cvxpy.org/tutorial/advanced/index.html#&quot;</span>
             <span class="s2">&quot;disciplined-parametrized-programming&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">(</span><span class="n">dpp_context</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">enforce_dpp</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">ignore_dpp</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dpp</span><span class="p">(</span><span class="n">dpp_context</span><span class="p">):</span>
+        <span class="c1"># No warning for ignore_dpp.</span>
+        <span class="k">if</span> <span class="n">ignore_dpp</span><span class="p">:</span>
+            <span class="n">reductions</span> <span class="o">=</span> <span class="p">[</span><span class="n">EvalParams</span><span class="p">()]</span> <span class="o">+</span> <span class="n">reductions</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">enforce_dpp</span><span class="p">:</span>
             <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">dpp_error_msg</span><span class="p">)</span>
             <span class="n">reductions</span> <span class="o">=</span> <span class="p">[</span><span class="n">EvalParams</span><span class="p">()]</span> <span class="o">+</span> <span class="n">reductions</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">DPPError</span><span class="p">(</span><span class="n">dpp_error_msg</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">is_complex</span><span class="p">()</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">()):</span>
         <span class="n">reductions</span> <span class="o">=</span> <span class="p">[</span><span class="n">EvalParams</span><span class="p">()]</span> <span class="o">+</span> <span class="n">reductions</span>
+    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Compilation with DPP.</span>
+        <span class="n">n_parameters</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">param</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">problem</span><span class="o">.</span><span class="n">parameters</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">n_parameters</span> <span class="o">&gt;=</span> <span class="n">PARAM_THRESHOLD</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;Your problem has too many parameters for efficient DPP &quot;</span>
+                <span class="s2">&quot;compilation. We suggest setting &#39;ignore_dpp = True&#39;.&quot;</span>
+            <span class="p">)</span>
 
     <span class="c1"># Conclude with matrix stuffing; choose one of the following paths:</span>
     <span class="c1">#   (1) QpMatrixStuffing --&gt; [a QpSolver],</span>
@@ -404,7 +422,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../../install/index.html">Install</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples</a></li>

@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Overview: module code &#8212; CVXPY 1.1.19 documentation</title>
+    <title>Overview: module code &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -41,6 +41,8 @@
 <li><a href="cvxpy/atoms/affine/hstack.html">cvxpy.atoms.affine.hstack</a></li>
 <li><a href="cvxpy/atoms/affine/index.html">cvxpy.atoms.affine.index</a></li>
 <li><a href="cvxpy/atoms/affine/kron.html">cvxpy.atoms.affine.kron</a></li>
+<li><a href="cvxpy/atoms/affine/partial_trace.html">cvxpy.atoms.affine.partial_trace</a></li>
+<li><a href="cvxpy/atoms/affine/partial_transpose.html">cvxpy.atoms.affine.partial_transpose</a></li>
 <li><a href="cvxpy/atoms/affine/promote.html">cvxpy.atoms.affine.promote</a></li>
 <li><a href="cvxpy/atoms/affine/reshape.html">cvxpy.atoms.affine.reshape</a></li>
 <li><a href="cvxpy/atoms/affine/sum.html">cvxpy.atoms.affine.sum</a></li>
@@ -60,6 +62,8 @@
 <li><a href="cvxpy/atoms/elementwise/kl_div.html">cvxpy.atoms.elementwise.kl_div</a></li>
 <li><a href="cvxpy/atoms/elementwise/log.html">cvxpy.atoms.elementwise.log</a></li>
 <li><a href="cvxpy/atoms/elementwise/log1p.html">cvxpy.atoms.elementwise.log1p</a></li>
+<li><a href="cvxpy/atoms/elementwise/log_normcdf.html">cvxpy.atoms.elementwise.log_normcdf</a></li>
+<li><a href="cvxpy/atoms/elementwise/loggamma.html">cvxpy.atoms.elementwise.loggamma</a></li>
 <li><a href="cvxpy/atoms/elementwise/logistic.html">cvxpy.atoms.elementwise.logistic</a></li>
 <li><a href="cvxpy/atoms/elementwise/maximum.html">cvxpy.atoms.elementwise.maximum</a></li>
 <li><a href="cvxpy/atoms/elementwise/minimum.html">cvxpy.atoms.elementwise.minimum</a></li>
@@ -70,6 +74,7 @@
 <li><a href="cvxpy/atoms/elementwise/scalene.html">cvxpy.atoms.elementwise.scalene</a></li>
 <li><a href="cvxpy/atoms/elementwise/sqrt.html">cvxpy.atoms.elementwise.sqrt</a></li>
 <li><a href="cvxpy/atoms/elementwise/square.html">cvxpy.atoms.elementwise.square</a></li>
+<li><a href="cvxpy/atoms/elementwise/xexp.html">cvxpy.atoms.elementwise.xexp</a></li>
 <li><a href="cvxpy/atoms/eye_minus_inv.html">cvxpy.atoms.eye_minus_inv</a></li>
 <li><a href="cvxpy/atoms/geo_mean.html">cvxpy.atoms.geo_mean</a></li>
 <li><a href="cvxpy/atoms/gmatmul.html">cvxpy.atoms.gmatmul</a></li>
@@ -99,6 +104,7 @@
 <li><a href="cvxpy/atoms/sum_largest.html">cvxpy.atoms.sum_largest</a></li>
 <li><a href="cvxpy/atoms/sum_smallest.html">cvxpy.atoms.sum_smallest</a></li>
 <li><a href="cvxpy/atoms/sum_squares.html">cvxpy.atoms.sum_squares</a></li>
+<li><a href="cvxpy/atoms/suppfunc.html">cvxpy.atoms.suppfunc</a></li>
 <li><a href="cvxpy/atoms/total_variation.html">cvxpy.atoms.total_variation</a></li>
 <li><a href="cvxpy/constraints/constraint.html">cvxpy.constraints.constraint</a></li>
 <li><a href="cvxpy/constraints/exponential.html">cvxpy.constraints.exponential</a></li>
@@ -116,6 +122,7 @@
 <li><a href="cvxpy/problems/problem.html">cvxpy.problems.problem</a></li>
 <li><a href="cvxpy/reductions/chain.html">cvxpy.reductions.chain</a></li>
 <li><a href="cvxpy/reductions/complex2real/complex2real.html">cvxpy.reductions.complex2real.complex2real</a></li>
+<li><a href="cvxpy/reductions/cone2cone/affine2direct.html">cvxpy.reductions.cone2cone.affine2direct</a></li>
 <li><a href="cvxpy/reductions/cvx_attr2constr.html">cvxpy.reductions.cvx_attr2constr</a></li>
 <li><a href="cvxpy/reductions/dcp2cone/cone_matrix_stuffing.html">cvxpy.reductions.dcp2cone.cone_matrix_stuffing</a></li>
 <li><a href="cvxpy/reductions/dcp2cone/dcp2cone.html">cvxpy.reductions.dcp2cone.dcp2cone</a></li>
@@ -128,6 +135,7 @@
 <li><a href="cvxpy/reductions/solution.html">cvxpy.reductions.solution</a></li>
 <li><a href="cvxpy/reductions/solvers/solving_chain.html">cvxpy.reductions.solvers.solving_chain</a></li>
 <li><a href="cvxpy/transforms/indicator.html">cvxpy.transforms.indicator</a></li>
+<li><a href="cvxpy/transforms/suppfunc.html">cvxpy.transforms.suppfunc</a></li>
 </ul>
 
           </div>
@@ -157,7 +165,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
 </ul>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorial/index.html">User Guide</a></li>
 </ul>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>

@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Atomic Functions &#8212; CVXPY 1.1.19 documentation</title>
+    <title>Atomic Functions &#8212; CVXPY 1.2.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
@@ -412,8 +412,8 @@ and returns a scalar.</p>
 </tr>
 </tbody>
 </table>
-<section id="clarifications">
-<h3>Clarifications<a class="headerlink" href="#clarifications" title="Permalink to this headline">¶</a></h3>
+<section id="clarifications-for-scalar-functions">
+<h3>Clarifications for scalar functions<a class="headerlink" href="#clarifications-for-scalar-functions" title="Permalink to this headline">¶</a></h3>
 <p>The domain <span class="math notranslate nohighlight">\(\mathbf{S}^n\)</span> refers to the set of symmetric matrices. The domains <span class="math notranslate nohighlight">\(\mathbf{S}^n_+\)</span> and <span class="math notranslate nohighlight">\(\mathbf{S}^n_-\)</span> refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, <span class="math notranslate nohighlight">\(\mathbf{S}^n_{++}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{S}^n_{--}\)</span> refer to the set of positive definite and negative definite matrices, respectively.</p>
 <p>For a vector expression <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">norm(x)</span></code> and <code class="docutils literal notranslate"><span class="pre">norm(x,</span> <span class="pre">2)</span></code> give the Euclidean norm. For a matrix expression <code class="docutils literal notranslate"><span class="pre">X</span></code>, however, <code class="docutils literal notranslate"><span class="pre">norm(X)</span></code> and <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">2)</span></code> give the spectral norm.</p>
 <p>The function <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">&quot;fro&quot;)</span></code> is called the <a class="reference external" href="http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm">Frobenius norm</a>
@@ -528,12 +528,26 @@ scalars, which are promoted.</p>
 <td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> concave</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#log1p"><span class="std std-ref">log1p(x)</span></a></p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#log-normcdf"><span class="std std-ref">log_normcdf(x)</span></a></p></td>
+<td><p><a class="reference internal" href="#clarifyelementwise"><span class="std std-ref">approximate</span></a> log of the standard normal CDF</p></td>
+<td><p><span class="math notranslate nohighlight">\(x \in \mathbf{R}\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/negative.svg"><img alt="negative" height="15px" src="../../_images/negative.svg" width="15px" /></a> negative</p></td>
+<td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> concave</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#log1p"><span class="std std-ref">log1p(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\log(x+1)\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(x &gt; -1\)</span></p></td>
 <td><p>same as x</p></td>
 <td><p><a class="reference internal" href="../../_images/concave.svg"><img alt="concave" height="15px" src="../../_images/concave.svg" width="15px" /></a> concave</p></td>
 <td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#loggamma"><span class="std std-ref">loggamma(x)</span></a></p></td>
+<td><p><a class="reference internal" href="#clarifyelementwise"><span class="std std-ref">approximate</span></a> <a class="reference external" href="https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.loggamma.html">log of the Gamma function</a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x &gt; 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/unknown.svg"><img alt="unknown" height="15px" src="../../_images/unknown.svg" width="15px" /></a> unknown</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
+<td><p>None</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#logistic"><span class="std std-ref">logistic(x)</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(\log(1 + e^{x})\)</span></p></td>
@@ -670,8 +684,23 @@ scalars, which are promoted.</p>
 <p><a class="reference internal" href="../../_images/decreasing.svg"><img alt="decr" height="15px" src="../../_images/decreasing.svg" width="15px" /></a> for <span class="math notranslate nohighlight">\(x \leq 0\)</span></p>
 </td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.elementwise.html#xexp"><span class="std std-ref">xexp(x)</span></a></p></td>
+<td><p><span class="math notranslate nohighlight">\(x e^x\)</span></p></td>
+<td><p><span class="math notranslate nohighlight">\(x \geq 0\)</span></p></td>
+<td><p><a class="reference internal" href="../../_images/positive.svg"><img alt="positive" height="15px" src="../../_images/positive.svg" width="15px" /></a> positive</p></td>
+<td><p><a class="reference internal" href="../../_images/convex.svg"><img alt="convex" height="15px" src="../../_images/convex.svg" width="15px" /></a> convex</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
 </tbody>
 </table>
+<section id="clarifications-on-elementwise-functions">
+<span id="clarifyelementwise"></span><h3>Clarifications on elementwise functions<a class="headerlink" href="#clarifications-on-elementwise-functions" title="Permalink to this headline">¶</a></h3>
+<p>The functions <code class="docutils literal notranslate"><span class="pre">log_normcdf</span></code> and <code class="docutils literal notranslate"><span class="pre">loggamma</span></code> are defined via approximations. <code class="docutils literal notranslate"><span class="pre">log_normcdf</span></code> has highest accuracy
+over the range -4 to 4, while <code class="docutils literal notranslate"><span class="pre">loggamma</span></code> has similar accuracy over all positive reals.
+See <a class="reference external" href="https://github.com/cvxpy/cvxpy/pull/1224#issue-793221374">CVXPY GitHub PR #1224</a>
+and <a class="reference external" href="https://github.com/cvxpy/cvxpy/issues/228#issuecomment-544281906">CVXPY GitHub Issue #228</a>
+for details on the approximations.</p>
+</section>
 </section>
 <section id="vector-matrix-functions">
 <h2>Vector/matrix functions<a class="headerlink" href="#vector-matrix-functions" title="Permalink to this headline">¶</a></h2>
@@ -760,6 +789,20 @@ and returns a vector or matrix.</p>
 <td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
 <td><p>depends on C</p></td>
 </tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#ptrace"><span class="std std-ref">partial_trace(X, dims, axis=0)</span></a></p></td>
+<td><p>partial trace</p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
+<td><p>same as X</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#ptrans"><span class="std std-ref">partial_transpose(X, dims, axis=0)</span></a></p></td>
+<td><p>partial transpose</p></td>
+<td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{n \times n}\)</span></p></td>
+<td><p>same as X</p></td>
+<td><p><a class="reference internal" href="../../_images/affine.svg"><img alt="affine" height="15px" src="../../_images/affine.svg" width="15px" /></a> affine</p></td>
+<td><p><a class="reference internal" href="../../_images/increasing.svg"><img alt="incr" height="15px" src="../../_images/increasing.svg" width="15px" /></a> incr.</p></td>
+</tr>
 <tr class="row-even"><td><p><a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#reshape"><span class="std std-ref">reshape(X, (m’, n’))</span></a></p></td>
 <td><p><span class="math notranslate nohighlight">\(X' \in\mathbf{R}^{m' \times n'}\)</span></p></td>
 <td><p><span class="math notranslate nohighlight">\(X \in\mathbf{R}^{m \times n}\)</span></p>
@@ -785,8 +828,8 @@ and returns a vector or matrix.</p>
 </tr>
 </tbody>
 </table>
-<section id="id1">
-<h3>Clarifications<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<section id="clarifications-on-vector-and-matrix-functions">
+<h3>Clarifications on vector and matrix functions<a class="headerlink" href="#clarifications-on-vector-and-matrix-functions" title="Permalink to this headline">¶</a></h3>
 <p>The input to <code class="docutils literal notranslate"><span class="pre">bmat</span></code> is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.</p>
@@ -829,7 +872,7 @@ Formally, <span class="math notranslate nohighlight">\(X'_{ij} = \mathbf{vec}(X)
 <li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
 </ul>
 <ul class="current">
-<li class="toctree-l1 current"><a class="reference internal" href="../index.html">Tutorial</a><ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="../index.html">User Guide</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="../intro/index.html">What is CVXPY?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../dcp/index.html">Disciplined Convex Programming</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Atomic Functions</a><ul>

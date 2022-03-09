@@ -4,42 +4,55 @@ Changes to CVXPY
 ================
 
 This page details changes made to CVXPY over time, in reverse chronological order.
-The latest release of CVXPY is version 1.1.
+CVXPY's project maintainers currently provide support for CVXPY 1.2 and 1.1.
 
-Recent patches
---------------
+CVXPY 1.2
+---------
+We're taking a big step toward `semantic versioning <https://semver.org/>`_!
+Our new versioning policy will be to increment the minor version number (the "x" in "CVXPY 1.x.y")
+whenever we introduce new features.
+The patch number (the "y" in "CVXPY 1.x.y") will only be incremented for bugfixes.
+We'll support multiple minor releases of CVXPY at any given time.
+API-breaking changes will require incrementing the major version number (i.e., moving to CVXPY 2.x.y).
 
-Changes in version 1.1.10
- - When NumPy 1.20 was released many users encountered errors in installing or importing
-   CVXPY. Users would see errors like ``RuntimeError: module compiled
-   against API version 0xe but this version of numpy is 0xd``. We changed our build files
-   to avoid this problem, and it should be fixed as of CVXPY 1.1.10. For more information
-   you can refer to this `GitHub issue <https://github.com/cvxpy/cvxpy/issues/1229>`_.
+This versioning policy is very different from what we've done in the past.
+Many new features were added *after* CVXPY 1.1.0 but *before* CVXPY 1.2.0.
+These features accumulated over the course of CVXPY 1.1.1 and 1.1.18.
+We review those features and the new features in CVXPY 1.2.0 below.
 
-.. _changes118:
+Constraints and atoms
+~~~~~~~~~~~~~~~~~~~~~
+ * 1.2.0: added atoms for `partial trace <https://en.wikipedia.org/wiki/Partial_trace>`_ and partial transpose,
+   which are important linear operators in quantum information
+ * 1.2.0: updated ``kron`` so that either argument in ``kron(A, B)`` can be a non-constant affine Expression,
+   provided the other argument is constant. We previously required that ``A`` was constant.
+ * 1.2.0: added ``xexp``: an atom that implements :math:`\\texttt{xexp}(x) = x e^{x}`.
+ * 1.1.14: added ``loggamma``: an atom which approximates the log of the gamma function
+ * 1.1.14: added ``rel_entr``: an atom with the same semantics as the SciPy's "rel_entr"
+ * 1.1.8: added ``log_normcdf``: an atom that approximates the log of the Gaussian distribution's CDF
+ * 1.1.8: added power cone constraints
 
-Changes in version 1.1.8
- - We have added support for 3-dimensional and N-dimensional power cone constraints. Although,
-   we currently do not have any atoms that take advantage of this constraint. If you want
-   you want to use this type of constraint in your model, you will need to instantiate
-   ``PowCone3D`` and/or ``PowConeND`` objects manually. Dual variables are not yet implemented
-   for ``PowConeND`` objects. At present, only SCS and MOSEK support power cone constraints.
- - We fixed a bug in our MOSEK interface that was introduced in version 1.1.6. The "unknown"
-   status code was not being handled correctly, resulting in ValueErrors rather than SolverErrors.
-   Users can now expect a SolverError when MOSEK returns an "unknown" status code (as was
-   standard before).
+Solver interfaces
+~~~~~~~~~~~~~~~~~
+ * 1.2.0: support PDLP and GLOP, via OR-Tools
+ * 1.1.17: support for SCS 3.0
+ * 1.1.14: support for HiGHS (and other LP solvers that come with SciPy)
+ * 1.1.12: ECOS, ECOS_BB, and SCS report solver statistics
+ * 1.1.12: support warm-start with GUROBI
+ * 1.1.8: added a mechanism for users to create solver interfaces without modifying CVXPY source code
+ * 1.1.6: rewrote the MOSEK interface; it now dualizes all continuous problems
+ * 1.1.4: support for FICO XPRESS
+ * 1.1.2: support for SCIP
+ * 1.1.2: users can provide their own implementation of a KKT solver for use with CVXOPT
 
-.. _changes116:
-
-Changes in version 1.1.6
- - The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not
-   be called automatically; you must explicitly call ``prob.solve(solver='ECOS_BB')`` if you want to
-   use this solver. Refer to our documentation on :ref:`mixed-integer models <mip>` for more information.
- - The MOSEK interface has been rewritten and now dualizes all continuous problems. Refer to :ref:`solver
-   documentation <solveropts>` for technical reasons of why we do this, and how to manage MOSEK solver
-   options in the off chance that this change made your solve times increase.
-
-
+General system improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ * 1.1.18: A problem status "infeasible or unbounded", for use by specific solvers in rare situations
+ * 1.1.11: verbose logging
+ * 1.1.11: several improvements to CVXPY's  C++ backend rewriting system, "cvxcore."
+   In particular, CVXPY can now be compiled from source with openmp enabled, which allows
+   canonicalization to take advantage of multithreading.
+ * 1.1.6: a "Dualize" reduction
 
 CVXPY 1.1
 ---------
@@ -83,7 +96,14 @@ Breaking changes
 
 We no longer support Python 2 or Python 3.4.
 
-This release drops the SuperSCS and ECOS_BB solvers.
+CVXPY 1.1.0 drops the SuperSCS and ECOS_BB solvers.
+
+.. note::
+
+	We added ECOS_BB back in version 1.1.6. Starting with
+	CVXPY 1.2.0, any backwards-incompatible change like removing a
+	solver interface will require incrementing CVXPY's major version
+	number (e.g., moving from series 1.X to 2.X).
 
 Bugfixes
 ~~~~~~~~
@@ -102,25 +122,42 @@ DPP problems with many CVXPY Parameters can take a long time to compile.
 
 Disciplined quasiconvex programming (DQCP) doesn't support DPP.
 
-The XPRESS interface is currently not working.
+The XPRESS interface is currently not working. (Fixed in CVXPY 1.1.4.)
 
-Wishlist
-~~~~~~~~
 
-The following topics are (relatively) accessible to new contributors, and have
-the potential to meaningfully improve CVXPY 1.1.
+Notable patches since CVXPY 1.1.0
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
- - Extend more solver interfaces to allow differentiating the map from problem
-   parameters to optimal solutions. In particular, extending the ECOS or CVXOPT
-   interfaces. This may involve contributions to diffcp (see diffcp `GitHub issue
-   31 <https://github.com/cvxgrp/diffcp/issues/31>`_).
- - Add :ref:`an interface <contrib_solver>` to an open-source mixed-integer nonlinear solver. CVXPY
-   currently only supports commercial mixed-integer nonlinear solvers.
- - Help resolve any CVXPY GitHub issue with the label
-   "`help wanted <https://github.com/cvxpy/cvxpy/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22>`_."
+Version 1.1.10
+ - When NumPy 1.20 was released many users encountered errors in installing or importing
+   CVXPY. Users would see errors like ``RuntimeError: module compiled
+   against API version 0xe but this version of numpy is 0xd``. We changed our build files
+   to avoid this problem, and it should be fixed as of CVXPY 1.1.10. For more information
+   you can refer to this `GitHub issue <https://github.com/cvxpy/cvxpy/issues/1229>`_.
 
-Anyone interested in making contributions should read the
-:ref:`contributing guide<contributing>` before writing code.
+.. _changes118:
+
+Version 1.1.8
+ - We have added support for 3-dimensional and N-dimensional power cone constraints. Although,
+   we currently do not have any atoms that take advantage of this constraint. If you want
+   you want to use this type of constraint in your model, you will need to instantiate
+   ``PowCone3D`` and/or ``PowConeND`` objects manually. Dual variables are not yet implemented
+   for ``PowConeND`` objects. At present, only SCS and MOSEK support power cone constraints.
+ - We fixed a bug in our MOSEK interface that was introduced in version 1.1.6. The "unknown"
+   status code was not being handled correctly, resulting in ValueErrors rather than SolverErrors.
+   Users can now expect a SolverError when MOSEK returns an "unknown" status code (as was
+   standard before).
+
+.. _changes116:
+
+Version 1.1.6
+ - The ECOS_BB solver (removed in 1.1.0) has been added back as an option. However ECOS_BB will not
+   be called automatically; you must explicitly call ``prob.solve(solver='ECOS_BB')`` if you want to
+   use this solver. Refer to our documentation on :ref:`mixed-integer models <mip>` for more information.
+ - The MOSEK interface has been rewritten and now dualizes all continuous problems. Refer to :ref:`solver
+   documentation <solveropts>` for technical reasons of why we do this, and how to manage MOSEK solver
+   options in the off chance that this change made your solve times increase.
+
 
 CVXPY 1.0
 ---------

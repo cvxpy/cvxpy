@@ -402,8 +402,8 @@ and returns a scalar.
      - |convex| convex
      - None
 
-Clarifications
-^^^^^^^^^^^^^^
+Clarifications for scalar functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The domain :math:`\mathbf{S}^n` refers to the set of symmetric matrices. The domains :math:`\mathbf{S}^n_+` and :math:`\mathbf{S}^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, :math:`\mathbf{S}^n_{++}` and :math:`\mathbf{S}^n_{--}` refer to the set of positive definite and negative definite matrices, respectively.
 
@@ -529,6 +529,14 @@ scalars, which are promoted.
      - |concave| concave
      - |incr| incr.
 
+   * - :ref:`log_normcdf(x) <log-normcdf>`
+
+     - :ref:`approximate <clarifyelementwise>` log of the standard normal CDF
+     - :math:`x \in \mathbf{R}`
+     - |negative| negative
+     - |concave| concave
+     - |incr| incr.
+
    * - :ref:`log1p(x) <log1p>`
 
      - :math:`\log(x+1)`
@@ -536,6 +544,14 @@ scalars, which are promoted.
      - same as x
      - |concave| concave
      - |incr| incr.
+
+   * - :ref:`loggamma(x) <loggamma>`
+
+     - :ref:`approximate <clarifyelementwise>` `log of the Gamma function <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.loggamma.html>`_
+     - :math:`x > 0`
+     - |unknown| unknown
+     - |convex| convex
+     - None
 
    * - :ref:`logistic(x) <logistic>`
 
@@ -678,7 +694,25 @@ scalars, which are promoted.
      - |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
+    
+   * - :ref:`xexp(x) <xexp>`
 
+     - :math:`x e^x`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+
+.. _clarifyelementwise:
+
+Clarifications on elementwise functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The functions ``log_normcdf`` and ``loggamma`` are defined via approximations. ``log_normcdf`` has highest accuracy
+over the range -4 to 4, while ``loggamma`` has similar accuracy over all positive reals.
+See `CVXPY GitHub PR #1224 <https://github.com/cvxpy/cvxpy/pull/1224#issue-793221374>`_
+and `CVXPY GitHub Issue #228 <https://github.com/cvxpy/cvxpy/issues/228#issuecomment-544281906>`_
+for details on the approximations.
 
 Vector/matrix functions
 -----------------------
@@ -764,6 +798,22 @@ and returns a vector or matrix.
      - |affine| affine
      - depends |_| on C
 
+   * - :ref:`partial_trace(X, dims, axis=0) <ptrace>`
+
+     - partial trace
+     - :math:`X \in\mathbf{R}^{n \times n}`
+     - same as X
+     - |affine| affine
+     - |incr| incr.
+
+   * - :ref:`partial_transpose(X, dims, axis=0) <ptrans>`
+
+     - partial transpose
+     - :math:`X \in\mathbf{R}^{n \times n}`
+     - same as X
+     - |affine| affine
+     - |incr| incr.
+
    * - :ref:`reshape(X, (m', n')) <reshape>`
 
      - :math:`X' \in\mathbf{R}^{m' \times n'}`
@@ -791,8 +841,8 @@ and returns a vector or matrix.
      - |incr| incr.
 
 
-Clarifications
-^^^^^^^^^^^^^^
+Clarifications on vector and matrix functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 The input to ``bmat`` is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
