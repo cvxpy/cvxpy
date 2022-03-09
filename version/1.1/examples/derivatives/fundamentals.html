@@ -1,0 +1,360 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Derivatives fundamentals &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="derivatives-fundamentals">
+<h1>Derivatives fundamentals<a class="headerlink" href="#derivatives-fundamentals" title="Permalink to this headline">¶</a></h1>
+<p>This notebook will introduce you to the fundamentals of computing the
+derivative of the solution map to optimization problems. The derivative
+can be used for <strong>sensitvity analysis</strong>, to see how a solution would
+change given small changes to the parameters, and to compute
+<strong>gradients</strong> of scalar-valued functions of the solution.</p>
+<p>In this notebook, we will consider a simple disciplined geometric
+program. The geometric program under consideration is</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{equation}
+\begin{array}{ll}
+\mbox{minimize} &amp; 1/(xyz) \\
+\mbox{subject to} &amp; a(xy + xz + yz) \leq b\\
+&amp; x \geq y^c,
+\end{array}
+\end{equation}\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(x \in \mathbf{R}_{++}\)</span>, <span class="math notranslate nohighlight">\(y \in \mathbf{R}_{++}\)</span>, and
+<span class="math notranslate nohighlight">\(z \in \mathbf{R}_{++}\)</span> are the variables, and
+<span class="math notranslate nohighlight">\(a \in \mathbf{R}_{++}\)</span>, <span class="math notranslate nohighlight">\(b \in \mathbf{R}_{++}\)</span> and
+<span class="math notranslate nohighlight">\(c \in \mathbf{R}\)</span> are the parameters. The vector</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\alpha = \begin{bmatrix} a \\ b \\ c \end{bmatrix}\end{split}\]</div>
+<p>is the vector of parameters.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import cvxpy as cp
+
+
+x = cp.Variable(pos=True)
+y = cp.Variable(pos=True)
+z = cp.Variable(pos=True)
+
+a = cp.Parameter(pos=True)
+b = cp.Parameter(pos=True)
+c = cp.Parameter()
+
+objective_fn = 1/(x*y*z)
+objective = cp.Minimize(objective_fn)
+constraints = [a*(x*y + x*z + y*z) &lt;= b, x &gt;= y**c]
+problem = cp.Problem(objective, constraints)
+
+problem.is_dgp(dpp=True)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kc">True</span>
+</pre></div>
+</div>
+<p>Notice the keyword argument <code class="docutils literal notranslate"><span class="pre">dpp=True</span></code>. The parameters must enter in
+the DGP problem acording to special rules, which we refer to as <code class="docutils literal notranslate"><span class="pre">dpp</span></code>.
+The DPP rules are described in an <a class="reference external" href="https://www.cvxpy.org/tutorial/advanced/index.html#disciplined-parametrized-programming">online
+tutorial</a>.</p>
+<p>Next, we solve the problem, setting the parameters <span class="math notranslate nohighlight">\(a\)</span>, <span class="math notranslate nohighlight">\(b\)</span>
+and <span class="math notranslate nohighlight">\(c\)</span> to <span class="math notranslate nohighlight">\(2\)</span>, <span class="math notranslate nohighlight">\(1\)</span>, and <span class="math notranslate nohighlight">\(0.5\)</span>.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>a.value = 2.0
+b.value = 1.0
+c.value = 0.5
+problem.solve(gp=True, requires_grad=True)
+
+print(x.value)
+print(y.value)
+print(z.value)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">0.5612147353889386</span>
+<span class="mf">0.31496200373359456</span>
+<span class="mf">0.36892055859991446</span>
+</pre></div>
+</div>
+<p>Notice the keyword argument <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code>; this is necessary to
+subsequently compute derivatives.</p>
+<section id="solution-map">
+<h2>Solution map<a class="headerlink" href="#solution-map" title="Permalink to this headline">¶</a></h2>
+<p>The <strong>solution map</strong> of the above problem is a function</p>
+<div class="math notranslate nohighlight">
+\[\mathcal{S} : \mathbf{R}^2_{++} \times \mathbf{R} \to \mathbf{R}^3_{++}\]</div>
+<p>which maps the parameter vector to the vector of optimal solutions</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathcal S(\alpha) = \begin{bmatrix} x(\alpha) \\ y(\alpha) \\ z(\alpha)\end{bmatrix}.\end{split}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(x(\alpha)\)</span>, <span class="math notranslate nohighlight">\(y(\alpha)\)</span>, and <span class="math notranslate nohighlight">\(z(\alpha)\)</span> are
+the optimal values of the variables corresponding to the parameter
+vector.</p>
+<p>As an example, we just saw that</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathcal S((2.0, 1.0, 0.5)) = \begin{bmatrix} 0.5612 \\ 0.3150 \\ 0.3690 \end{bmatrix}.\end{split}\]</div>
+</section>
+<section id="sensitivity-analysis">
+<h2>Sensitivity analysis<a class="headerlink" href="#sensitivity-analysis" title="Permalink to this headline">¶</a></h2>
+<p>When the solution map is differentiable, we can use its derivative</p>
+<div class="math notranslate nohighlight">
+\[\mathsf{D}\mathcal{S}(\alpha) \in \mathbf{R}^{3 \times 3}\]</div>
+<p>to perform a <strong>sensitivity analysis</strong>, which studies how the solution
+would change given small changes to the parameters.</p>
+<p>Suppose we perturb the parameters by a vector of small magnitude
+<span class="math notranslate nohighlight">\(\mathsf{d}\alpha \in \mathbf{R}^3\)</span>. We can approximate the change
+<span class="math notranslate nohighlight">\(\Delta\)</span> in the solution due to the perturbation using the
+derivative, as</p>
+<div class="math notranslate nohighlight">
+\[\Delta = \mathcal{S}(\alpha + \mathsf{d}\alpha) - \mathcal{S}(\alpha) \approx \mathsf{D}\mathcal{S}(\alpha) \mathsf{d}\alpha.\]</div>
+<p>We can compute this in CVXPY, as follows.</p>
+<p>Partition the perturbation as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\mathsf{d}\alpha = \begin{bmatrix} \mathsf{d}a \\ \mathsf{d}b \\ \mathsf{d}c\end{bmatrix}.\end{split}\]</div>
+<p>We set the <code class="docutils literal notranslate"><span class="pre">delta</span></code> attributes of the parameters to their
+perturbations, and then call the <code class="docutils literal notranslate"><span class="pre">derivative</span></code> method.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>da, db, dc = 1e-2, 1e-2, 1e-2
+
+a.delta = da
+b.delta = db
+c.delta = dc
+problem.derivative()
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">derivative</span></code> method populates the <code class="docutils literal notranslate"><span class="pre">delta</span></code> attributes of the
+variables as a side-effect, with the predicted change in the variable.
+We can compare the predictions to the actual solution of the perturbed
+problem.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>x_hat = x.value + x.delta
+y_hat = y.value + y.delta
+z_hat = z.value + z.delta
+
+a.value += da
+b.value += db
+c.value += dc
+
+problem.solve(gp=True)
+print(&#39;x: predicted {0:.5f} actual {1:.5f}&#39;.format(x_hat, x.value))
+print(&#39;y: predicted {0:.5f} actual {1:.5f}&#39;.format(y_hat, y.value))
+print(&#39;z: predicted {0:.5f} actual {1:.5f}&#39;.format(z_hat, z.value))
+
+a.value -= da
+b.value -= db
+c.value -= dc
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span><span class="p">:</span> <span class="n">predicted</span> <span class="mf">0.55729</span> <span class="n">actual</span> <span class="mf">0.55734</span>
+<span class="n">y</span><span class="p">:</span> <span class="n">predicted</span> <span class="mf">0.31783</span> <span class="n">actual</span> <span class="mf">0.31783</span>
+<span class="n">z</span><span class="p">:</span> <span class="n">predicted</span> <span class="mf">0.37179</span> <span class="n">actual</span> <span class="mf">0.37175</span>
+</pre></div>
+</div>
+<p>In this case, the predictions and the actual solutions are fairly close.</p>
+</section>
+<section id="gradient">
+<h2>Gradient<a class="headerlink" href="#gradient" title="Permalink to this headline">¶</a></h2>
+<p>We can compute gradient of a scalar-valued function of the solution with
+respect to the parameters. Let
+<span class="math notranslate nohighlight">\(f : \mathbf{R}^{3} \to \mathbf{R}\)</span>, and suppose we want to
+compute the gradient of the composition <span class="math notranslate nohighlight">\(f \circ \mathcal S\)</span>. By
+the chain rule,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\nabla f(S(\alpha)) = \mathsf{D}^T\mathcal{S}(\alpha) \begin{bmatrix}\mathsf{d}x \\ \mathsf{d}y \\ \mathsf{d}z\end{bmatrix},\end{split}\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathsf{D}^T\mathcal{S}\)</span> is the adjoint (or transpose) of
+the derivative operator, and <span class="math notranslate nohighlight">\(\mathsf{d}x\)</span>, <span class="math notranslate nohighlight">\(\mathsf{d}y\)</span>,
+and <span class="math notranslate nohighlight">\(\mathsf{d}z\)</span> are the partial derivatives of <span class="math notranslate nohighlight">\(f\)</span> with
+respect to its arguments.</p>
+<p>We can compute the gradient in CVXPY, using the <code class="docutils literal notranslate"><span class="pre">backward</span></code> method. As
+an example, suppose</p>
+<div class="math notranslate nohighlight">
+\[f(x, y, z) = \frac{1}{2}(x^2 + y^2 + z^2),\]</div>
+<p>so that <span class="math notranslate nohighlight">\(\mathsf{d}x = x\)</span>, <span class="math notranslate nohighlight">\(\mathsf{d}y = y\)</span>, and
+<span class="math notranslate nohighlight">\(\mathsf{d}z = z\)</span>. Let
+<span class="math notranslate nohighlight">\(\mathsf{d}\alpha = \nabla f(S(\alpha))\)</span>, and suppose we subtract
+<span class="math notranslate nohighlight">\(\eta \mathsf{d}\alpha\)</span> from the parameter, where <span class="math notranslate nohighlight">\(\eta\)</span> is
+a positive constant. Using the following code, we can compare
+<span class="math notranslate nohighlight">\(f(\mathcal S(\alpha - \eta \mathsf{d}\alpha))\)</span> with the value
+predicted by the gradient,</p>
+<div class="math notranslate nohighlight">
+\[f(\mathcal S(\alpha - \eta \mathsf{d}\alpha)) \approx f(\mathcal S(\alpha)) - \eta \mathsf{d}\alpha^T\mathsf{d}\alpha.\]</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>problem.solve(gp=True, requires_grad=True)
+
+def f(x, y, z):
+    return 1/2*(x**2 + y**2 + z**2)
+
+original = f(x, y, z).value
+
+x.gradient = x.value
+y.gradient = y.value
+z.gradient = z.value
+problem.backward()
+
+eta = 0.5
+dalpha = cp.vstack([a.gradient, b.gradient, c.gradient])
+predicted = float((original - eta*dalpha.T @ dalpha).value)
+
+a.value -= eta*a.gradient
+b.value -= eta*b.gradient
+c.value -= eta*c.gradient
+problem.solve(gp=True)
+actual = f(x, y, z).value
+
+print(&#39;original {0:.5f} predicted {1:.5f} actual {2:.5f}&#39;.format(
+       original, predicted, actual))
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">original</span> <span class="mf">0.27513</span> <span class="n">predicted</span> <span class="mf">0.22709</span> <span class="n">actual</span> <span class="mf">0.22942</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">Tutorial</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/derivatives/fundamentals.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

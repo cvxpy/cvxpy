@@ -1,0 +1,241 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Tutorial &#8212; CVXPY 1.1.19 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="What is CVXPY?" href="intro/index.html" />
+    <link rel="prev" title="Install" href="../install/index.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="tutorial">
+<span id="id1"></span><h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="intro/index.html">What is CVXPY?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro/index.html#changing-the-problem">Changing the problem</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro/index.html#infeasible-and-unbounded-problems">Infeasible and unbounded problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro/index.html#other-problem-statuses">Other problem statuses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro/index.html#vectors-and-matrices">Vectors and matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro/index.html#constraints">Constraints</a></li>
+<li class="toctree-l2"><a class="reference internal" href="intro/index.html#parameters">Parameters</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dcp/index.html">Disciplined Convex Programming</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html#expressions">Expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html#sign">Sign</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html#curvature">Curvature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html#curvature-rules">Curvature rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html#infix-operators">Infix operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html#example-1">Example 1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html#example-2">Example 2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html#dcp-problems">DCP problems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="functions/index.html">Atomic Functions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="functions/index.html#operators">Operators</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions/index.html#scalar-functions">Scalar functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions/index.html#functions-along-an-axis">Functions along an axis</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions/index.html#elementwise-functions">Elementwise functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions/index.html#vector-matrix-functions">Vector/matrix functions</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dgp/index.html">Disciplined Geometric Programming</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dgp/index.html#log-log-curvature">Log-log curvature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dgp/index.html#log-log-curvature-rules">Log-log curvature rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dgp/index.html#dgp-problems">DGP problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dgp/index.html#dgp-atoms">DGP atoms</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="dqcp/index.html">Disciplined Quasiconvex Programming</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="dqcp/index.html#curvature">Curvature</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqcp/index.html#composition-rules">Composition rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqcp/index.html#dqcp-problems">DQCP problems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqcp/index.html#dqcp-atoms">DQCP atoms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqcp/index.html#solving-dqcp-problems">Solving DQCP problems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="advanced/index.html">Advanced Features</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#dual-variables">Dual variables</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#attributes">Attributes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#semidefinite-matrices">Semidefinite matrices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#mixed-integer-programs">Mixed-integer programs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#complex-valued-expressions">Complex valued expressions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#transforms">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#problem-arithmetic">Problem arithmetic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#solve-method-options">Solve method options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#solver-stats">Solver stats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#warm-start">Warm start</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#setting-solver-options">Setting solver options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#getting-the-standard-form">Getting the standard form</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#reductions">Reductions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#disciplined-parametrized-programming">Disciplined Parametrized Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#sensitivity-analysis-and-gradients">Sensitivity analysis and gradients</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html#custom-solvers">Custom Solvers</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install/index.html">Install</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="intro/index.html">What is CVXPY?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dcp/index.html">Disciplined Convex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="functions/index.html">Atomic Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dgp/index.html">Disciplined Geometric Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="dqcp/index.html">Disciplined Quasiconvex Programming</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced/index.html">Advanced Features</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../_sources/tutorial/index.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
