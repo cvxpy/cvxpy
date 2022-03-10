@@ -427,7 +427,7 @@ Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
 Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == VSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().size());
+  assert(static_cast<size_t>(arg_idx) <= lin.get_args().size());
   std::vector<Triplet> tripletList;
   const LinOp &arg = *lin.get_args()[arg_idx];
   tripletList.reserve(vecprod(arg.get_shape()));
@@ -467,7 +467,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == HSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().size());
+  assert(static_cast<size_t>(arg_idx) <= lin.get_args().size());
   std::vector<Triplet> tripletList;
   tripletList.reserve(vecprod(lin.get_shape()));
   const LinOp &arg = *lin.get_args()[arg_idx];
