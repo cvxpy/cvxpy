@@ -1305,3 +1305,18 @@ class TestAtoms(BaseTest):
             cp.partial_transpose(X, dims=[2, 4], axis=0)
         self.assertEqual(str(cm.exception),
                          "Dimension of system doesn't correspond to dimension of subsystems.")
+
+    def test_log_sum_exp(self) -> None:
+        """Test log_sum_exp.
+        """
+        # Test for positive x
+        x = Variable(nonneg=True)
+        atom = cp.log_sum_exp(x)
+        self.assertEqual(atom.curvature, s.CONVEX)
+        self.assertEqual(atom.sign, s.NONNEG)
+
+        # Test for negative x
+        x = Variable(nonpos=True)
+        atom = cp.log_sum_exp(x)
+        self.assertEqual(atom.curvature, s.CONVEX)
+        self.assertEqual(atom.sign, s.UNKNOWN)
