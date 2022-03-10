@@ -1307,15 +1307,15 @@ class TestAtoms(BaseTest):
                          "Dimension of system doesn't correspond to dimension of subsystems.")
 
     def test_log_sum_exp(self) -> None:
-        """Test log_sum_exp.
+        """Test log_sum_exp sign.
         """
-        # Test for positive x
+        # Test for non-negative x
         x = Variable(nonneg=True)
         atom = cp.log_sum_exp(x)
         self.assertEqual(atom.curvature, s.CONVEX)
         self.assertEqual(atom.sign, s.NONNEG)
 
-        # Test for negative x
+        # Test for non-positive x
         x = Variable(nonpos=True)
         atom = cp.log_sum_exp(x)
         self.assertEqual(atom.curvature, s.CONVEX)

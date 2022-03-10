@@ -69,7 +69,7 @@ class log_sum_exp(AxisAtom):
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        # Positive when arg is positve.
+        # Non-negative when arg is non-negative.
         return (self.args[0].is_nonneg(), False)
 
     def is_atom_convex(self) -> bool:
