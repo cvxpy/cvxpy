@@ -1167,3 +1167,18 @@ class TestAtoms(BaseTest):
                           [X == A])
         result = prob.solve(solver=cp.SCS)
         assert np.isclose(result, true_val.sum(), atol=1e0)
+
+    def test_log_sum_exp(self) -> None:
+        """Test log_sum_exp sign.
+        """
+        # Test for non-negative x
+        x = Variable(nonneg=True)
+        atom = cp.log_sum_exp(x)
+        self.assertEqual(atom.curvature, s.CONVEX)
+        self.assertEqual(atom.sign, s.NONNEG)
+
+        # Test for non-positive x
+        x = Variable(nonpos=True)
+        atom = cp.log_sum_exp(x)
+        self.assertEqual(atom.curvature, s.CONVEX)
+        self.assertEqual(atom.sign, s.UNKNOWN)
