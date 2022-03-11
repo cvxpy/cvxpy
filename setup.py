@@ -201,6 +201,7 @@ canon = Extension(
         not_on_windows('-Wno-unused-parameter'),
     ],
     extra_link_args=['-O3'],
+    undef_macros = [ "NDEBUG" ]  #### ATTENTION!
 )
 
 setup(
