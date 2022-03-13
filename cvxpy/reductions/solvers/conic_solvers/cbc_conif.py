@@ -32,6 +32,7 @@ class CBC(ConicSolver):
 
     # Map of CBC status to CVXPY status.
     STATUS_MAP_MIP = {'solution': s.OPTIMAL,
+                      'proven infeasible': s.INFEASIBLE,
                       'relaxation infeasible': s.INFEASIBLE,
                       'stopped on user event': s.SOLVER_ERROR,
                       'stopped on nodes': s.OPTIMAL_INACCURATE,
@@ -173,6 +174,15 @@ class CBC(ConicSolver):
             # using cbc's binary.
             cbcModel.solve()
             status = cbcModel.status
+            if status == 'solution':
+                # integer infeasibility detection is broken since at least 2019
+                # in CyLP - it fails to check CbcModel::status and
+                # does not even provide wrappers for methods such as
+                # isProvenInfeasible.
+                # https://github.com/coin-or/CyLP/issues/81
+                # Workaround using solutionCount
+                if cbcModel.solutionCount == 0:
+                    status = 'proven infeasible'
         else:
             # cylp: /cylp/cy/CyClpSimplex.pyx
             # Run CLP's initialSolve. It does a presolve and uses primal or dual
