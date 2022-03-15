@@ -637,6 +637,9 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
+    def test_cbc_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CBC')
+
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
