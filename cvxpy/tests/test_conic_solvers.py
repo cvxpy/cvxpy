@@ -592,7 +592,7 @@ class TestCBC(BaseTest):
     @staticmethod
     def _cylp_has_isProvenInfeasible():
         try:
-            from cylp.cy.CyCBCModel import CyCbcModel
+            from cylp.cy.CyCbcModel import CyCbcModel
             return hasattr(CyCbcModel, 'isProvenInfeasible')
         except ImportError:
             return False
