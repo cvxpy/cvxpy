@@ -573,14 +573,6 @@ class TestCVXOPT(BaseTest):
         StandardTestSDPs.test_sdp_2(solver='CVXOPT')
 
 
-def _cylp_has_isProvenInfeasible():
-    try:
-        from cylp.cy.CyCBCModel import CyCbcModel
-        return hasattr(CyCbcModel, 'isProvenInfeasible')
-    except ImportError:
-        return False
-
-
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 class TestCBC(BaseTest):
 
@@ -596,6 +588,14 @@ class TestCBC(BaseTest):
         self.A = cp.Variable((2, 2), name='A')
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
+
+    @staticmethod
+    def _cylp_has_isProvenInfeasible():
+        try:
+            from cylp.cy.CyCBCModel import CyCbcModel
+            return hasattr(CyCbcModel, 'isProvenInfeasible')
+        except ImportError:
+            return False
 
     def test_options(self) -> None:
         """Test that all the cvx.CBC solver options work.
