@@ -589,7 +589,6 @@ class TestCBC(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    @staticmethod
     def _cylp_has_isProvenInfeasible():
         try:
             from cylp.cy.CyCbcModel import CyCbcModel
