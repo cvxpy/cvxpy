@@ -435,6 +435,9 @@ class TestMosek(unittest.TestCase):
     def test_mosek_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='MOSEK')
 
+    def test_mosek_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='MOSEK')
+
     def test_mosek_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='MOSEK')
 
@@ -586,6 +589,14 @@ class TestCBC(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
+    def _cylp_checks_isProvenInfeasible():
+        try:
+            # https://github.com/coin-or/CyLP/pull/150
+            from cylp.cy.CyCbcModel import problemStatus
+            return problemStatus[0] == 'search completed'
+        except ImportError:
+            return False
+
     def test_options(self) -> None:
         """Test that all the cvx.CBC solver options work.
         """
@@ -637,6 +648,11 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
+    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(),
+                         'CyLP <= 0.91.4 has no working integer infeasibility detection')
+    def test_cbc_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CBC')
+
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
@@ -676,6 +692,9 @@ class TestGLPK(unittest.TestCase):
 
     def test_glpk_mi_lp_4(self) -> None:
         StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
+
+    def test_glpk_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='GLPK_MI')
 
     def test_glpk_options(self) -> None:
         sth = sths.lp_1()
@@ -980,6 +999,9 @@ class TestCPLEX(BaseTest):
     def test_cplex_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CPLEX')
 
+    def test_cplex_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CPLEX')
+
     def test_cplex_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='CPLEX', places=3)
 
@@ -1198,6 +1220,9 @@ class TestGUROBI(BaseTest):
     def test_gurobi_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='GUROBI')
 
+    def test_gurobi_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='GUROBI')
+
     def test_gurobi_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='GUROBI', places=2)
 
@@ -1345,6 +1370,9 @@ class TestXPRESS(BaseTest):
     def test_xpress_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='XPRESS')
 
+    def test_xpress_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='XPRESS')
+
     def test_xpress_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='XPRESS')
 
@@ -1433,6 +1461,9 @@ class TestSCIP(unittest.TestCase):
 
     def test_scip_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver="SCIP")
+
+    def test_scip_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver="SCIP")
 
     def get_simple_problem(self):
         """Example problem that can be used within additional tests."""
@@ -1605,6 +1636,9 @@ class TestECOS_BB(unittest.TestCase):
 
     def test_ecos_bb_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='ECOS_BB')
+
+    def test_ecos_bb_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='ECOS_BB')
 
     @pytest.mark.skip(reason="Known bug in ECOS BB")
     def test_ecos_bb_mi_socp_1(self) -> None:
