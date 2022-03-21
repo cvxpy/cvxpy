@@ -212,6 +212,11 @@ class GUROBI(ConicSolver):
             variables += new_vars
             soc_start += constr_len
 
+        # Save file (*.mst, *.sol, ect.)
+        if 'save_file' in solver_opts:
+            model.write(solver_opts['save_file'])
+            del solver_opts['save_file']
+
         # Set parameters
         # TODO user option to not compute duals.
         model.setParam("QCPDual", True)
