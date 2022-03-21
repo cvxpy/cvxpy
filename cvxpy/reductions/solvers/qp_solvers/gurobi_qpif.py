@@ -229,6 +229,9 @@ class GUROBI(QpSolver):
         # Update model
         model.update()
 
+        if 'save_file' in solver_opts:
+            model.write(solver_opts['save_file'])
+
         # Solve problem
         results_dict = {}
         try:
