@@ -25,6 +25,14 @@ Install CVXPY using `pip`_:
 
       pip install cvxpy
 
+You can add solver names as "extras"; `pip` will then install the necessary
+additional Python packages.
+
+  ::
+
+      pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,SDPT3,XPRESS]
+
+
 .. _conda-installation:
 
 conda
