@@ -30,7 +30,7 @@ additional Python packages.
 
   ::
 
-      pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,SDPT3,XPRESS]
+      pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]
 
 
 .. _conda-installation:
