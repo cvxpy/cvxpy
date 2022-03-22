@@ -27,7 +27,9 @@ class TestGurobiWrite(BaseTest):
     def test_write(self) -> None:
         """Test the Gurobi model.write().
         """
-        if os.path.exists('./resources/gurobi_model.lp'):
+        if not os.path.exists('./resources/'):
+            os.makedirs('./resources/')
+        elif os.path.exists('./resources/gurobi_model.lp'):
             os.remove('./resources/gurobi_model.lp')
 
         m = 20
@@ -39,6 +41,8 @@ class TestGurobiWrite(BaseTest):
         x = cp.Variable(n)
         cost = cp.sum_squares(A @ x - b)
         prob = cp.Problem(cp.Minimize(cost))
-        prob.solve(solver=cp.GUROBI, verbose=True, save_file='./resources/gurobi_model.lp')
+        prob.solve(solver=cp.GUROBI,
+                   verbose=True,
+                   save_file='./resources/gurobi_model.lp')
 
         assert os.path.exists('./resources/gurobi_model.lp')
