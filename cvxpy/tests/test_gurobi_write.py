@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+
 import numpy as np
 
 import cvxpy as cp
@@ -26,8 +27,8 @@ class TestGurobiWrite(BaseTest):
     def test_write(self) -> None:
         """Test the Gurobi model.write().
         """
-        if os.path.exists('./out.lp'):
-            os.remove('./out.lp')
+        if os.path.exists('./resources/gurobi_model.lp'):
+            os.remove('./resources/gurobi_model.lp')
 
         m = 20
         n = 15
@@ -38,6 +39,6 @@ class TestGurobiWrite(BaseTest):
         x = cp.Variable(n)
         cost = cp.sum_squares(A @ x - b)
         prob = cp.Problem(cp.Minimize(cost))
-        prob.solve(solver=cp.GUROBI, verbose=True, save_file='./out.lp')
+        prob.solve(solver=cp.GUROBI, verbose=True, save_file='./resources/gurobi_model.lp')
 
-        assert os.path.exists('./out.lp')
+        assert os.path.exists('./resources/gurobi_model.lp')
