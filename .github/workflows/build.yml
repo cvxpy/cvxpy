@@ -126,11 +126,12 @@ jobs:
           echo "DEPLOY=$( [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/tags'* ]] && echo 'True' || echo 'False' )" >> $GITHUB_ENV
 
       - name: Build wheels
-        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
+        if: ${{'True' == 'True' && env.USE_OPENMP != 'True'}}
         env:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+          CIBW_ARCHS_MACOS: x86_64 universal2
         uses: joerick/cibuildwheel@v2.3.1
 
       - name: Build source
@@ -147,7 +148,7 @@ jobs:
           twine upload --repository-url $PYPI_SERVER wheelhouse/* -u $PYPI_USER -p $PYPI_PASSWORD
 
       - name: Upload artifacts to github
-        if: ${{env.DEPLOY == 'True' && env.USE_OPENMP != 'True'}}
+        if: ${{'True'== 'True' && env.USE_OPENMP != 'True'}}
         uses: actions/upload-artifact@v1
         with:
           name: wheels
@@ -215,6 +216,7 @@ jobs:
           CIBW_BUILD: "cp3${{env.PYTHON_SUBVERSION}}-*"
           CIBW_SKIP: "*-win32 *-manylinux_i686 *-musllinux*"
           CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_24
+          CIBW_ARCHS_MACOS: x86_64 universal2
         uses: joerick/cibuildwheel@v2.3.1
 
       - name: Build source
