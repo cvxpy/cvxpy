@@ -1,5 +1,5 @@
 """
-Copyright 2022 Jiaxin Wang
+Copyright 2022, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ from cvxpy.tests.base_test import BaseTest
 
 
 class TestGurobiWrite(BaseTest):
-    """ Unit tests for the expression/expression module. """
+    """ Gurobi model tests for write gurobi model files. """
 
     def test_write(self) -> None:
         """Test the Gurobi model.write().
