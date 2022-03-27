@@ -34,7 +34,6 @@ class CBC(ConicSolver):
     STATUS_MAP_MIP = {'solution': s.OPTIMAL,
                       'relaxation infeasible': s.INFEASIBLE,
                       'problem proven infeasible': s.INFEASIBLE,
-                      'relaxation abondoned': s.SOLVER_ERROR,  # sic
                       'relaxation abandoned': s.SOLVER_ERROR,
                       'stopped on user event': s.SOLVER_ERROR,
                       'stopped on nodes': s.OPTIMAL_INACCURATE,
