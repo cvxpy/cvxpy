@@ -29,7 +29,7 @@ Elementwise multiplication can be applied with the :ref:`multiply` function.
 Indexing and slicing
 ^^^^^^^^^^^^^^^^^^^^
 
-Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
+Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
 For example, if ``expr`` has shape ``(5,)`` then ``expr[1]`` gives the second entry.
 More generally, ``expr[i:j:k]`` selects every kth
 element of ``expr``, starting at ``i`` and ending at ``j-1``.
@@ -409,8 +409,8 @@ The domain :math:`\mathbf{S}^n` refers to the set of symmetric matrices. The dom
 
 For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
 
-The function ``norm(X, "fro")`` is called the `Frobenius norm <http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm>`__
-and ``norm(X, "nuc")`` the `nuclear norm <http://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms>`__. The nuclear norm can also be defined as the sum of ``X``'s singular values.
+The function ``norm(X, "fro")`` is called the `Frobenius norm <https://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm>`__
+and ``norm(X, "nuc")`` the `nuclear norm <https://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms>`__. The nuclear norm can also be defined as the sum of ``X``'s singular values.
 
 The functions ``max`` and ``min`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``maximum`` and ``minimum`` (see :ref:`elementwise`). Use ``maximum`` and ``minimum`` to find the max or min of a list of scalar expressions.
 

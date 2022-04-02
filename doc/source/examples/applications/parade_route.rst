@@ -6,7 +6,7 @@ Topic references
 ================
 
 -  Iterated weighted :math:`\ell_1`
-   heuristic: `slides <http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf>`__
+   heuristic: `slides <https://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf>`__
 
 Problem statement
 =================
@@ -67,7 +67,7 @@ objective, picking the weight vector :math:`w \in \mathbf{R}^n_+` at
 each iteration to try and induce a sparse solution vector
 :math:`x^\star`. The details can be found in the `Stanford EE364B
 lecture
-notes <http://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf>`__.
+notes <https://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf>`__.
 
 The algorithm consists of initializing :math:`w = 0` and repeating the
 two steps

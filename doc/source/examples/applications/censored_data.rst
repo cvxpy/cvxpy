@@ -14,7 +14,7 @@ well known distributions.
 
 We can overcome this challenge by converting the MLE into a convex
 optimization problem and solving it using
-`CVXPY <http://www.cvxpy.org/en/latest/>`__.
+`CVXPY <https://www.cvxpy.org/en/latest/>`__.
 
 This example is adapted from a homework problem from Boyd's `CVX 101:
 Convex Optimization

@@ -35,6 +35,13 @@ bmat
 
 .. autofunction:: cvxpy.bmat
 
+.. _cong:
+
+conj
+----
+
+.. autoclass:: cvxpy.conj
+
 .. _conv:
 
 conv
@@ -72,6 +79,13 @@ hstack
 
 .. autofunction:: cvxpy.hstack
 
+.. _imag
+
+imag
+----
+
+.. autoclass:: cvxpy.imag
+
 .. _index:
 
 index
@@ -103,12 +117,40 @@ multiply
 .. autoclass:: cvxpy.multiply
     :show-inheritance:
 
+.. _ptrace:
+
+partial_trace
+--------------------------------
+
+.. autofunction:: cvxpy.partial_trace
+
+.. _ptrans:
+
+partial_transpose
+--------------------------------
+
+.. autofunction:: cvxpy.partial_transpose
+
 .. _promote:
 
 promote
 ------------------------------------
 
 .. autofunction:: cvxpy.atoms.affine.promote.promote
+
+.. _psd_wrap:
+
+psd_wrap
+--------
+
+.. autoclass:: cvxpy.atoms.affine.wraps.psd_wrap
+
+.. _real:
+
+real
+----
+
+.. autofunction:: cvxpy.real
 
 .. _reshape:
 
@@ -165,23 +207,6 @@ upper_tri
 
 .. autoclass:: cvxpy.upper_tri
     :show-inheritance:
-
-
-.. _ptrace:
-
-partial_trace
---------------------------------
-
-.. autofunction:: cvxpy.partial_trace
-
-
-.. _ptrans:
-
-partial_transpose
---------------------------------
-
-.. autofunction:: cvxpy.partial_transpose
-
 
 .. _vec:
 
