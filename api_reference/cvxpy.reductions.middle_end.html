@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Middle-End Reductions &#8212; CVXPY 1.2.0 documentation</title>
+    <title>Middle-End Reductions &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -63,7 +63,7 @@ Reductions API before using these directly in your code.</p>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to check.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
@@ -80,7 +80,7 @@ Reductions API before using these directly in your code.</p>
 <dd><p>Applies the reduction to a problem and returns an equivalent problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to which the reduction will be applied.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to which the reduction will be applied.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
@@ -129,7 +129,7 @@ application.</p></li>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to check.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
@@ -146,7 +146,7 @@ application.</p></li>
 <dd><p>Applies the reduction to a problem and returns an equivalent problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to which the reduction will be applied.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to which the reduction will be applied.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
@@ -271,7 +271,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to check.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
@@ -288,13 +288,13 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <dd><p>Replace parameters with constant values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem whose parameters should be evaluated.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem whose parameters should be evaluated.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>A new problem where the parameters have been converted to constants.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem">Problem</a></p>
+<dd class="field-odd"><p><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem">Problem</a></p>
 </dd>
 <dt class="field-even">Raises</dt>
 <dd class="field-even"><p><strong>ParameterError</strong> – If the <code class="docutils literal notranslate"><span class="pre">problem</span></code> has unspecified parameters (i.e., a parameter
@@ -325,7 +325,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to check.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
@@ -342,7 +342,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <dd><p><span class="math notranslate nohighlight">\(\max(f(x)) = -\min(-f(x))\)</span></p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem whose objective is to be flipped.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem whose objective is to be flipped.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
@@ -498,7 +498,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

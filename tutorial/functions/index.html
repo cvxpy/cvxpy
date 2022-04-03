@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Atomic Functions &#8212; CVXPY 1.2.0 documentation</title>
+    <title>Atomic Functions &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
@@ -56,7 +56,7 @@ As of CVXPY version 1.1, we are adopting a new standard:</p>
 <p>Elementwise multiplication can be applied with the <a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply</span></a> function.</p>
 <section id="indexing-and-slicing">
 <h3>Indexing and slicing<a class="headerlink" href="#indexing-and-slicing" title="Permalink to this headline">¶</a></h3>
-<p>Indexing in CVXPY follows exactly the same semantics as <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html">NumPy ndarrays</a>.
+<p>Indexing in CVXPY follows exactly the same semantics as <a class="reference external" href="https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html">NumPy ndarrays</a>.
 For example, if <code class="docutils literal notranslate"><span class="pre">expr</span></code> has shape <code class="docutils literal notranslate"><span class="pre">(5,)</span></code> then <code class="docutils literal notranslate"><span class="pre">expr[1]</span></code> gives the second entry.
 More generally, <code class="docutils literal notranslate"><span class="pre">expr[i:j:k]</span></code> selects every kth
 element of <code class="docutils literal notranslate"><span class="pre">expr</span></code>, starting at <code class="docutils literal notranslate"><span class="pre">i</span></code> and ending at <code class="docutils literal notranslate"><span class="pre">j-1</span></code>.
@@ -416,8 +416,8 @@ and returns a scalar.</p>
 <h3>Clarifications for scalar functions<a class="headerlink" href="#clarifications-for-scalar-functions" title="Permalink to this headline">¶</a></h3>
 <p>The domain <span class="math notranslate nohighlight">\(\mathbf{S}^n\)</span> refers to the set of symmetric matrices. The domains <span class="math notranslate nohighlight">\(\mathbf{S}^n_+\)</span> and <span class="math notranslate nohighlight">\(\mathbf{S}^n_-\)</span> refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, <span class="math notranslate nohighlight">\(\mathbf{S}^n_{++}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{S}^n_{--}\)</span> refer to the set of positive definite and negative definite matrices, respectively.</p>
 <p>For a vector expression <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">norm(x)</span></code> and <code class="docutils literal notranslate"><span class="pre">norm(x,</span> <span class="pre">2)</span></code> give the Euclidean norm. For a matrix expression <code class="docutils literal notranslate"><span class="pre">X</span></code>, however, <code class="docutils literal notranslate"><span class="pre">norm(X)</span></code> and <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">2)</span></code> give the spectral norm.</p>
-<p>The function <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">&quot;fro&quot;)</span></code> is called the <a class="reference external" href="http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm">Frobenius norm</a>
-and <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">&quot;nuc&quot;)</span></code> the <a class="reference external" href="http://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms">nuclear norm</a>. The nuclear norm can also be defined as the sum of <code class="docutils literal notranslate"><span class="pre">X</span></code>’s singular values.</p>
+<p>The function <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">&quot;fro&quot;)</span></code> is called the <a class="reference external" href="https://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm">Frobenius norm</a>
+and <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">&quot;nuc&quot;)</span></code> the <a class="reference external" href="https://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms">nuclear norm</a>. The nuclear norm can also be defined as the sum of <code class="docutils literal notranslate"><span class="pre">X</span></code>’s singular values.</p>
 <p>The functions <code class="docutils literal notranslate"><span class="pre">max</span></code> and <code class="docutils literal notranslate"><span class="pre">min</span></code> give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with <code class="docutils literal notranslate"><span class="pre">maximum</span></code> and <code class="docutils literal notranslate"><span class="pre">minimum</span></code> (see <a class="reference internal" href="#elementwise"><span class="std std-ref">Elementwise functions</span></a>). Use <code class="docutils literal notranslate"><span class="pre">maximum</span></code> and <code class="docutils literal notranslate"><span class="pre">minimum</span></code> to find the max or min of a list of scalar expressions.</p>
 <p>The CVXPY function <code class="docutils literal notranslate"><span class="pre">sum</span></code> sums all the entries in a single expression. The built-in Python <code class="docutils literal notranslate"><span class="pre">sum</span></code> should be used to add together a list of expressions. For example, the following code sums a list of three expressions:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">expr_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">expr1</span><span class="p">,</span> <span class="n">expr2</span><span class="p">,</span> <span class="n">expr3</span><span class="p">]</span>
@@ -954,7 +954,7 @@ Formally, <span class="math notranslate nohighlight">\(X'_{ij} = \mathbf{vec}(X)
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -23,13 +23,13 @@ Modeling frameworks
 
 - `CVX <http://cvxr.com/cvx/>`_ is a MATLAB-embedded modeling language for convex optimization problems. CVXPY is based on CVX.
 
-- `Convex.jl <http://convexjl.readthedocs.org/en/latest/>`_ is a Julia-embedded modeling language for convex optimization problems. Convex.jl is based on CVXPY and CVX.
+- `Convex.jl <https://convexjl.readthedocs.org/en/latest/>`_ is a Julia-embedded modeling language for convex optimization problems. Convex.jl is based on CVXPY and CVX.
 
 - `CVXR <https://cvxr.rbind.io/>`_ is a R-embedded modeling language for convex optimization problems. CVXR is based on CVXPY and CVX.
 
 - `GPkit <https://gpkit.readthedocs.org/en/latest/>`_ is a Python package for defining and manipulating geometric programming (GP) models.
 
-- `PICOS <http://picos.zib.de/>`_ is a user-friendly python interface to many linear and conic optimization solvers.
+- `PICOS <https://picos.zib.de/>`_ is a user-friendly python interface to many linear and conic optimization solvers.
 
 Solvers
 -------
@@ -44,7 +44,7 @@ Solvers
 
 - `GLPK <https://www.gnu.org/software/glpk/>`_ is an open-source C library for solving linear programs and mixed integer linear programs.
 
-- `GUROBI <http://www.gurobi.com/>`_ is a commercial solver for mixed integer second-order cone programs.
+- `GUROBI <https://www.gurobi.com/>`_ is a commercial solver for mixed integer second-order cone programs.
 
 - `MOSEK <https://www.mosek.com/>`_ is a commercial solver for mixed integer second-order cone programs and semidefinite programs.
 

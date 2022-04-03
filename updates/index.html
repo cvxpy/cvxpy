@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Changes to CVXPY &#8212; CVXPY 1.2.0 documentation</title>
+    <title>Changes to CVXPY &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -58,7 +58,7 @@ We review those features and the new features in CVXPY 1.2.0 below.</p>
 which are important linear operators in quantum information</p></li>
 <li><p>1.2.0: updated <code class="docutils literal notranslate"><span class="pre">kron</span></code> so that either argument in <code class="docutils literal notranslate"><span class="pre">kron(A,</span> <span class="pre">B)</span></code> can be a non-constant affine Expression,
 provided the other argument is constant. We previously required that <code class="docutils literal notranslate"><span class="pre">A</span></code> was constant.</p></li>
-<li><p>1.2.0: added <code class="docutils literal notranslate"><span class="pre">xexp</span></code>: an atom that implements <span class="math notranslate nohighlight">\(\\texttt{xexp}(x) = x e^{x}\)</span>.</p></li>
+<li><p>1.2.0: added <code class="docutils literal notranslate"><span class="pre">xexp</span></code>: an atom that implements <span class="math notranslate nohighlight">\(\texttt{xexp}(x) = x e^{x}\)</span>.</p></li>
 <li><p>1.1.14: added <code class="docutils literal notranslate"><span class="pre">loggamma</span></code>: an atom which approximates the log of the gamma function</p></li>
 <li><p>1.1.14: added <code class="docutils literal notranslate"><span class="pre">rel_entr</span></code>: an atom with the same semantics as the SciPy’s “rel_entr”</p></li>
 <li><p>1.1.8: added <code class="docutils literal notranslate"><span class="pre">log_normcdf</span></code>: an atom that approximates the log of the Gaussian distribution’s CDF</p></li>
@@ -206,7 +206,7 @@ We only cover changes that might be of interest to users.</p>
 <h3>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h3>
 <ul class="simple">
 <li><p>Disciplined geometric programming (DGP): Starting with version 1.0.11, CVXPY lets you formulate and solve log-log convex programs, which generalize both traditional geometric programs and generalized geometric programs. To get started with DGP, check out <a class="reference internal" href="../tutorial/dgp/index.html#dgp"><span class="std std-ref">the tutorial</span></a> and consult the <a class="reference external" href="https://web.stanford.edu/~boyd/papers/dgp.html">accompanying paper</a>.</p></li>
-<li><p>Reductions: CVXPY 1.0 uses a modular system of <em>reductions</em> to convert problems input by the user into the format required by the solver, which makes it easy to support new standard forms, such as quadratic programs, and more advanced user inputs, such as problems with complex variables. See <a class="reference internal" href="../api_reference/cvxpy.reductions.html#reductions-api"><span class="std std-ref">Reductions</span></a> and the <a class="reference external" href="http://stanford.edu/~boyd/papers/cvxpy_rewriting.html">accompanying paper</a> for further details.</p></li>
+<li><p>Reductions: CVXPY 1.0 uses a modular system of <em>reductions</em> to convert problems input by the user into the format required by the solver, which makes it easy to support new standard forms, such as quadratic programs, and more advanced user inputs, such as problems with complex variables. See <a class="reference internal" href="../api_reference/cvxpy.reductions.html#reductions-api"><span class="std std-ref">Reductions</span></a> and the <a class="reference external" href="https://stanford.edu/~boyd/papers/cvxpy_rewriting.html">accompanying paper</a> for further details.</p></li>
 <li><p>Attributes: Variables and parameters now support a variety of attributes that describe their symbolic properties, such as nonnegative or symmetric. This unifies the treatment of symbolic properties for variables and parameters and replaces specialized variable classes such as <code class="docutils literal notranslate"><span class="pre">Bool</span></code> and <code class="docutils literal notranslate"><span class="pre">Semidef</span></code>.</p></li>
 <li><p>NumPy compatibility: CVXPY’s interface has been changed to resemble NumPy as closely as possible, including support for 0D and 1D arrays.</p></li>
 <li><p>Transforms: The new transform class provides additional ways of manipulating CVXPY objects, byond the atomic functions. While atomic functions operate only on expressions, transforms may also take Problem, Objective, or Constraint objects as input.</p></li>
@@ -392,7 +392,7 @@ the constraints hold and <span class="math notranslate nohighlight">\(\infty\)</
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

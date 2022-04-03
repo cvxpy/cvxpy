@@ -1,8 +1,9 @@
 Atoms
 ====================
-Atoms are mathematical functions that can be applied to
-:class:`~cvxpy.expressions.expression.Expression` instances.
-Applying an atom to an expression yields another expression.
+
+An atom (with a lower-case "a") is a mathematical function that can be applied to
+:class:`~cvxpy.Expression` objects and returns an :class:`~cvxpy.Expression` object.
+
 Atoms and compositions thereof are precisely the mechanisms that allow you to
 build up mathematical expression trees in CVXPY.
 
@@ -16,6 +17,41 @@ for a compact, accessible summary of each atom's attributes.
     Affine Atoms <cvxpy.atoms.affine>
     Elementwise Atoms <cvxpy.atoms.elementwise>
     Other Atoms <cvxpy.atoms.other_atoms>
+
+Representation of atoms
+-----------------------
+
+From an implementation perspective, an atom might be the constructor for some class.
+For example, the atom :math:`X \mapsto \lambda_{\max}(X)` is applied by constructing
+an instance of the :class:`~cvxpy.atoms.lambda_max.lambda_max` class, which inherits
+directly from :class:`~cvxpy.atoms.atom.Atom` and indirectly from :class:`~cvxpy.expressions.expression.Expression`.
+Most atoms are implemented this way.
+
+Alternatively, an atom be a wrapper that initializes and returns
+an Atom of some other class. For example, running
+
+.. code:: python
+
+	import cvxpy as cp
+	X = cp.Variable(shape=(2,2), symmetric=True)
+	expr = cp.lambda_min(X)
+	print(type(expr))
+
+shows
+
+.. parsed-literal::
+
+	<class 'cvxpy.atoms.affine.unary_operators.NegExpression'>
+
+This happens because *(1)* CVXPY implements :func:`~cvxpy.atoms.lambda_min.lambda_min` as
+
+.. math::
+
+	\lambda_{\min}(X) = -\lambda_{\max}(-X),
+
+*(2)* the negation operator is a class-based atom, and *(3)* the precise type of an Expression is based
+on the last class-based atom applied to it (if any such atom has been applied).
+
 
 Atom
 ----

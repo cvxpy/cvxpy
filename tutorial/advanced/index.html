@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Advanced Features &#8212; CVXPY 1.2.0 documentation</title>
+    <title>Advanced Features &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
@@ -36,7 +36,7 @@
             
   <section id="advanced-features">
 <span id="advanced"></span><h1>Advanced Features<a class="headerlink" href="#advanced-features" title="Permalink to this headline">¶</a></h1>
-<p>This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend <a class="reference external" href="http://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.</p>
+<p>This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend <a class="reference external" href="https://www.stanford.edu/~boyd/cvxbook/">Convex Optimization</a> by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.</p>
 <section id="dual-variables">
 <h2>Dual variables<a class="headerlink" href="#dual-variables" title="Permalink to this headline">¶</a></h2>
 <p>You can use CVXPY to find the optimal dual variables for a problem. When you call <code class="docutils literal notranslate"><span class="pre">prob.solve()</span></code> each dual variable in the solution is stored in the <code class="docutils literal notranslate"><span class="pre">dual_value</span></code> field of the constraint it corresponds to.</p>
@@ -215,7 +215,7 @@ application then you need to be aware of the increased risks that come with usin
 If you need to use an open-source mixed-integer nonlinear solver from CVXPY, then we recommend you install SCIP.</p>
 <p>If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
 model that is challenging for SCIP, then you will need to use a commercial solver such as <a class="reference external" href="https://www-01.ibm.com/software/commerce/optimization/cplex-optimizer/">CPLEX</a>,
-<a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a>, or <a class="reference external" href="https://www.mosek.com/">MOSEK</a>. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
+<a class="reference external" href="https://www.gurobi.com/">GUROBI</a>, <a class="reference external" href="https://www.fico.com/en/products/fico-xpress-optimization">XPRESS</a>, or <a class="reference external" href="https://www.mosek.com/">MOSEK</a>. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
 provide free licenses to those
 in academia (both students and faculty), as well as trial versions to those outside academia.
 CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
@@ -488,7 +488,7 @@ The table below shows the types of problems the supported solvers can handle.</p
 <td></td>
 <td></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference external" href="http://www.gurobi.com/">GUROBI</a></p></td>
+<tr class="row-odd"><td><p><a class="reference external" href="https://www.gurobi.com/">GUROBI</a></p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
 <td><p>X</p></td>
@@ -751,7 +751,7 @@ warm start would only be a good initial point.</p>
 </section>
 <section id="setting-solver-options">
 <span id="solveropts"></span><h2>Setting solver options<a class="headerlink" href="#setting-solver-options" title="Permalink to this headline">¶</a></h2>
-<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://developers.google.com/optimization">GLOP</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, <a class="reference external" href="https://developers.google.com/optimization">PDLP</a>, <a class="reference external" href="http://www.gurobi.com/">GUROBI</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
+<p>The <a class="reference external" href="https://osqp.org/">OSQP</a>, <a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a>, <a class="reference external" href="https://developers.google.com/optimization">GLOP</a>, <a class="reference external" href="https://www.mosek.com/">MOSEK</a>, <a class="reference external" href="https://projects.coin-or.org/Cbc">CBC</a>, <a class="reference external" href="http://cvxopt.org/">CVXOPT</a>, <a class="reference external" href="https://www.nag.co.uk/nag-library-python/">NAG</a>, <a class="reference external" href="https://developers.google.com/optimization">PDLP</a>, <a class="reference external" href="https://www.gurobi.com/">GUROBI</a>, and <a class="reference external" href="http://github.com/cvxgrp/scs">SCS</a> Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.</p>
 <p>For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Solve with SCS, use sparse-indirect method.</span>
 <span class="n">prob</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">solver</span><span class="o">=</span><span class="n">cp</span><span class="o">.</span><span class="n">SCS</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">use_indirect</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -800,7 +800,7 @@ warm start would only be a good initial point.</p>
 <dt><code class="docutils literal notranslate"><span class="pre">'eps_rel'</span></code></dt><dd><p>relative accuracy (default: 1e-5).</p>
 </dd>
 </dl>
-<p>For others see <a class="reference external" href="http://osqp.org/docs/interfaces/solver_settings.html">OSQP documentation</a>.</p>
+<p>For others see <a class="reference external" href="https://osqp.org/docs/interfaces/solver_settings.html">OSQP documentation</a>.</p>
 <p><a class="reference external" href="https://www.embotech.com/ECOS">ECOS</a> options:</p>
 <dl class="simple">
 <dt><code class="docutils literal notranslate"><span class="pre">'max_iters'</span></code></dt><dd><p>maximum number of iterations (default: 100).</p>
@@ -973,7 +973,7 @@ For the definition of PrimalDualHybridGradientParams, see
 <a class="reference external" href="https://github.com/google/or-tools/blob/a3ef28e824ee84a948796dffbb8254e67714cb56/ortools/pdlp/solvers.proto#L150">here</a>.</p>
 </dd>
 </dl>
-<p><a class="reference external" href="http://www.gurobi.com/">GUROBI</a> options:</p>
+<p><a class="reference external" href="https://www.gurobi.com/">GUROBI</a> options:</p>
 <p>Gurobi solver options are specified in CVXPY as keyword arguments. The full list of Gurobi parameters with defaults is listed <a class="reference external" href="https://www.gurobi.com/documentation/9.1/refman/parameters.html">here</a>.</p>
 <p>In addition to Gurobi’s parameters, the following options are available:</p>
 <dl class="simple">
@@ -1297,11 +1297,11 @@ has built-in support for computing the derivative of the optimal variable
 values of a problem with respect to small perturbations of the parameters
 (i.e., the <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> instances appearing in a problem).</p>
 <p>The problem class exposes two methods related to computing the derivative.
-The <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.derivative" title="cvxpy.problems.problem.Problem.derivative"><code class="xref py py-func docutils literal notranslate"><span class="pre">derivative</span></code></a> evaluates
+The <code class="xref py py-func docutils literal notranslate"><span class="pre">derivative</span></code> evaluates
 the derivative given perturbations to the parameters. This
 lets you calculate how the solution to a problem would change
 given small changes to the parameters, without re-solving the problem.
-The <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.backward" title="cvxpy.problems.problem.Problem.backward"><code class="xref py py-func docutils literal notranslate"><span class="pre">backward</span></code></a> method
+The <code class="xref py py-func docutils literal notranslate"><span class="pre">backward</span></code> method
 evaluates the adjoint of the derivative, computing the gradient of the solution
 with respect to the parameters. This can be useful when combined with
 automatic differentiation software.</p>
@@ -1548,7 +1548,7 @@ on derivatives.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
