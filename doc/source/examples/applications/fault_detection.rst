@@ -12,7 +12,7 @@ Topic references
    Bounds for Constrained Estimation with Uncertainty." Decision and
    Control, 2005 and 2005 European Control Conference. CDC-ECC'05. 44th
    IEEE Conference on. IEEE,
-   2005. <http://web.stanford.edu/~boyd/papers/pdf/map_bounds.pdf>`__
+   2005. <https://web.stanford.edu/~boyd/papers/pdf/map_bounds.pdf>`__
 
 Problem statement
 =================
