@@ -516,7 +516,7 @@ scalars, which are promoted.
 
      - imaginary part of a complex number
      - :math:`x \in \mathbf{C}`
-     - unknown
+     - |unknown| unknown
      - |affine| affine
      - none
 
@@ -673,7 +673,7 @@ scalars, which are promoted.
 
      - real part of a complex number
      - :math:`x \in \mathbf{C}`
-     - unknown
+     - |unknown| unknown
      - |affine| affine
      - |incr| incr.
 
@@ -843,7 +843,7 @@ Expression and a negative Expression) then the returned Expression will have unk
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`reshape(X, (m', n')) <reshape>`
+   * - :ref:`reshape(X, (m', n'), order='F') <reshape>`
 
      - :math:`X' \in\mathbf{R}^{m' \times n'}`
      - :math:`X \in\mathbf{R}^{m \times n}`
@@ -886,9 +886,10 @@ The output :math:`y = \mathbf{conv}(c, x)` has size :math:`n+m-1` and is defined
 The output :math:`y = \mathbf{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.
 Formally, :math:`y_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
 
-The output :math:`Y = \mathbf{reshape}(X, (m', n'))` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
+The output :math:`Y = \mathbf{reshape}(X, (m', n'), \text{order='F'})` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
 The entries are taken from :math:`X` in column-major order and stored in :math:`Y` in column-major order.
 Formally, :math:`Y_{ij} = \mathbf{vec}(X)_{m'j + i}`.
+If order='C' then :math:`X` will be read in row-major order and :math:`Y` will be written to in row-major order.
 
 The output :math:`y = \mathbf{upper\_tri}(X)` is formed by concatenating partial rows of :math:`X`.
 I.e., :math:`y = (X[0,1{:}],\, X[1, 2{:}],\, \ldots, X[n-1, n])`.
