@@ -33,7 +33,7 @@ difference matrix, with rows
 .. math:: \begin{bmatrix}0 & \cdots & 0 & -1 & 2 & -1 & 0 & \cdots & 0 \end{bmatrix}.
 
 CVXPY is not optimized for the :math:`\ell_1` trend filtering problem.
-For large problems, use l1\_tf (http://www.stanford.edu/~boyd/l1\_tf/).
+For large problems, use l1\_tf (https://www.stanford.edu/~boyd/l1\_tf/).
 
 Formulate and solve problem
 ---------------------------

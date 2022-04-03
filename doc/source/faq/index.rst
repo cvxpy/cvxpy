@@ -15,7 +15,7 @@ create an issue on the `CVXPY Github issue tracker <https://github.com/cvxpy/cvx
 
 Where can I learn more about convex optimization?
 -------------------------------------------------
-The book `Convex Optimization <http://web.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe is available for free online and has extensive background on convex optimization.
+The book `Convex Optimization <https://web.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe is available for free online and has extensive background on convex optimization.
 To learn more about disciplined convex programming,
 visit the `DCP tutorial website <http://dcp.stanford.edu/>`_.
 
@@ -119,6 +119,6 @@ Use the following BibTeX citation:
       title        = {{CVXPY}: A {P}ython-Embedded Modeling Language for Convex Optimization},
       journal      = {Journal of Machine Learning Research},
       note         = {To appear},
-      url          = {http://stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf},
+      url          = {https://stanford.edu/~boyd/papers/pdf/cvxpy_paper.pdf},
       year         = {2016},
     }
