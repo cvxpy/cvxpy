@@ -154,7 +154,7 @@ Please add the following license to new files:
 
 Code style
 ~~~~~~~~~~~~~~~~~~~~~~~~~
-We use `flake8 <http://flake8.pycqa.org/en/latest/>`_ and
+We use `flake8 <https://flake8.pycqa.org/en/latest/>`_ and
 `isort <https://pycqa.github.io/isort/>`_ to enforce our Python coding
 style. Before sending us a pull request, navigate to the project root
 and run
@@ -548,6 +548,6 @@ call modified versions of a test with different solver parameters, for example
 
 
 .. _Anaconda: https://store.continuum.io/cshop/anaconda/
-.. _CVXOPT: http://cvxopt.org/
-.. _NumPy: http://www.numpy.org/
-.. _SciPy: http://www.scipy.org/
+.. _CVXOPT: https://cvxopt.org/
+.. _NumPy: https://www.numpy.org/
+.. _SciPy: https://www.scipy.org/

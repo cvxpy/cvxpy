@@ -6,13 +6,14 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Atoms &#8212; CVXPY 1.2.0 documentation</title>
+    <title>Atoms &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Affine Atoms" href="cvxpy.atoms.affine.html" />
@@ -35,10 +36,9 @@
             
   <section id="atoms">
 <h1>Atoms<a class="headerlink" href="#atoms" title="Permalink to this headline">¶</a></h1>
-<p>Atoms are mathematical functions that can be applied to
-<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a> instances.
-Applying an atom to an expression yields another expression.
-Atoms and compositions thereof are precisely the mechanisms that allow you to
+<p>An atom (with a lower-case “a”) is a mathematical function that can be applied to
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code> objects and returns an <code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code> object.</p>
+<p>Atoms and compositions thereof are precisely the mechanisms that allow you to
 build up mathematical expression trees in CVXPY.</p>
 <p>Every atom is tagged with information about its domain, sign, curvature,
 log-log curvature, and monotonicity; this information lets atom instances
@@ -51,16 +51,22 @@ for a compact, accessible summary of each atom’s attributes.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#mulexpression">MulExpression</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#divexpression">DivExpression</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#bmat">bmat</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#conj">conj</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#conv">conv</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#cumsum">cumsum</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#diag">diag</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#diff">diff</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#hstack">hstack</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#imag">imag</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#index">index</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#kron">kron</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#matmul">matmul</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#multiply">multiply</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#partial-trace">partial_trace</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#partial-transpose">partial_transpose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#promote">promote</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#psd-wrap">psd_wrap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#real">real</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#reshape">reshape</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#scalar-product">scalar_product</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#sum">sum</a></li>
@@ -68,8 +74,6 @@ for a compact, accessible summary of each atom’s attributes.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#transpose">transpose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#negexpression">NegExpression</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#upper-tri">upper_tri</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#partial-trace">partial_trace</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#partial-transpose">partial_transpose</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#vec">vec</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.affine.html#vstack">vstack</a></li>
 </ul>
@@ -139,6 +143,31 @@ for a compact, accessible summary of each atom’s attributes.</p>
 </li>
 </ul>
 </div>
+<section id="representation-of-atoms">
+<h2>Representation of atoms<a class="headerlink" href="#representation-of-atoms" title="Permalink to this headline">¶</a></h2>
+<p>From an implementation perspective, an atom might be the constructor for some class.
+For example, the atom <span class="math notranslate nohighlight">\(X \mapsto \lambda_{\max}(X)\)</span> is applied by constructing
+an instance of the <a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_max.lambda_max" title="cvxpy.atoms.lambda_max.lambda_max"><code class="xref py py-class docutils literal notranslate"><span class="pre">lambda_max</span></code></a> class, which inherits
+directly from <a class="reference internal" href="#cvxpy.atoms.atom.Atom" title="cvxpy.atoms.atom.Atom"><code class="xref py py-class docutils literal notranslate"><span class="pre">Atom</span></code></a> and indirectly from <a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a>.
+Most atoms are implemented this way.</p>
+<p>Alternatively, an atom be a wrapper that initializes and returns
+an Atom of some other class. For example, running</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">),</span> <span class="n">symmetric</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">expr</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">lambda_min</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>shows</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>&lt;class &#39;cvxpy.atoms.affine.unary_operators.NegExpression&#39;&gt;
+</pre></div>
+</div>
+<p>This happens because <em>(1)</em> CVXPY implements <a class="reference internal" href="cvxpy.atoms.other_atoms.html#cvxpy.atoms.lambda_min.lambda_min" title="cvxpy.atoms.lambda_min.lambda_min"><code class="xref py py-func docutils literal notranslate"><span class="pre">lambda_min()</span></code></a> as</p>
+<div class="math notranslate nohighlight">
+\[\lambda_{\min}(X) = -\lambda_{\max}(-X),\]</div>
+<p><em>(2)</em> the negation operator is a class-based atom, and <em>(3)</em> the precise type of an Expression is based
+on the last class-based atom applied to it (if any such atom has been applied).</p>
+</section>
 <section id="atom">
 <h2>Atom<a class="headerlink" href="#atom" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -258,6 +287,7 @@ None indicates variable values unknown or outside domain.</p>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html">Affine Atoms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html">Elementwise Atoms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html">Other Atoms</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#representation-of-atoms">Representation of atoms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#atom">Atom</a></li>
 </ul>
 </li>
@@ -328,7 +358,7 @@ None indicates variable values unknown or outside domain.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

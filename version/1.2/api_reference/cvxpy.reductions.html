@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Reductions &#8212; CVXPY 1.2.0 documentation</title>
+    <title>Reductions &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -184,7 +184,7 @@ it to an equivalent form, and the invert method maps solutions
 from reduced-to problems to their problems of provenance.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – A problem owned by this reduction; possibly None.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – A problem owned by this reduction; possibly None.</p>
 </dd>
 </dl>
 <dl class="py method">
@@ -201,7 +201,7 @@ will reduce <cite>problem</cite> and return an equivalent one.</p>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to check.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
@@ -218,7 +218,7 @@ will reduce <cite>problem</cite> and return an equivalent one.</p>
 <dd><p>Applies the reduction to a problem and returns an equivalent problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to which the reduction will be applied.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to which the reduction will be applied.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p><ul class="simple">
@@ -260,7 +260,7 @@ application.</p></li>
 <dd class="field-odd"><p>An equivalent problem, encoded either as a Problem or a dict.</p>
 </dd>
 <dt class="field-even">Return type</dt>
-<dd class="field-even"><p><a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem">Problem</a> or dict</p>
+<dd class="field-even"><p><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem">Problem</a> or dict</p>
 </dd>
 <dt class="field-odd">Raises</dt>
 <dd class="field-odd"><p><strong>ValueError</strong> – If this Reduction was constructed without a Problem.</p>
@@ -319,7 +319,7 @@ reduction, with the first reduction (self.reductions[0])
 in the sequence taking as input the supplied problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to check.</p>
+<dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
 </dd>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><p>True if the chain can be applied, False otherwise.</p>
@@ -337,7 +337,7 @@ in the sequence taking as input the supplied problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to which the chain will be applied.</p></li>
+<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to which the chain will be applied.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whehter to print verbose output.</p></li>
 </ul>
 </dd>
@@ -413,7 +413,7 @@ problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to solve.</p></li>
+<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to solve.</p></li>
 <li><p><strong>warm_start</strong> (<em>bool</em>) – Whether to warm start the solver.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – Whether to enable solver verbosity.</p></li>
 <li><p><strong>solver_opts</strong> (<em>dict</em>) – Solver specific options.</p></li>
@@ -444,7 +444,7 @@ problem.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><em>Problem</em></a>) – The problem to solve.</p></li>
+<li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to solve.</p></li>
 <li><p><strong>data</strong> (<em>map</em>) – Data for the solver.</p></li>
 <li><p><strong>warm_start</strong> (<em>bool</em>) – Whether to warm start the solver.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em>) – Whether to enable solver verbosity.</p></li>
@@ -585,7 +585,7 @@ a Solution object.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

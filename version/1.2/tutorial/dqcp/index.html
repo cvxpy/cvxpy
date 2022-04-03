@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Disciplined Quasiconvex Programming &#8212; CVXPY 1.2.0 documentation</title>
+    <title>Disciplined Quasiconvex Programming &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
@@ -40,7 +40,7 @@
 quasiconvex functions. Quasiconvexity generalizes convexity: a function
 <span class="math notranslate nohighlight">\(f\)</span> is quasiconvex if and only if its domain is a convex set and its
 sublevel sets <span class="math notranslate nohighlight">\(\{x : f(x) \leq t\}\)</span> are convex, for all <span class="math notranslate nohighlight">\(t\)</span>. For a
-thorough overview of quasiconvexity, see the paper <a class="reference external" href="http://web.stanford.edu/~boyd/papers/dqcp.html">Disciplined quasiconvex programming</a>.</p>
+thorough overview of quasiconvexity, see the paper <a class="reference external" href="https://web.stanford.edu/~boyd/papers/dqcp.html">Disciplined quasiconvex programming</a>.</p>
 <p>While DCP is a ruleset for constructing convex programs, DQCP
 is a ruleset for quasiconvex programs (QCPs), which are optimization problems
 in which the objective is to minimize a quasiconvex function over a convex
@@ -179,7 +179,7 @@ return <code class="code docutils literal notranslate"><span class="pre">True</s
 </section>
 <section id="dqcp-problems">
 <h2>DQCP problems<a class="headerlink" href="#dqcp-problems" title="Permalink to this headline">¶</a></h2>
-<p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
+<p>A <a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problem</span></code></a> is constructed from an objective and
 a list of constraints. If a problem follows the DQCP rules, it is guaranteed to
 be a DQCP and solvable by CVXPY (if a solution to the problem exists). The DQCP
 rules require that the problem objective have one of two forms:</p>
@@ -397,7 +397,7 @@ verbose output describing the bisection, supply the keyword argument
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

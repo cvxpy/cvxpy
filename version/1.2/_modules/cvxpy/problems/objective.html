@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.objective &#8212; CVXPY 1.2.0 documentation</title>
+    <title>cvxpy.problems.objective &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
@@ -144,7 +144,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_qpwa</span><span class="p">()</span>
 
 
-<div class="viewcode-block" id="Minimize"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.objective.Minimize">[docs]</a><span class="k">class</span> <span class="nc">Minimize</span><span class="p">(</span><span class="n">Objective</span><span class="p">):</span>
+<div class="viewcode-block" id="Minimize"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Minimize">[docs]</a><span class="k">class</span> <span class="nc">Minimize</span><span class="p">(</span><span class="n">Objective</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;An optimization objective for minimization.</span>
 
 <span class="sd">    Parameters</span>
@@ -177,7 +177,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
 
-<div class="viewcode-block" id="Minimize.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.objective.Minimize.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="Minimize.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Minimize.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The objective must be convex.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
@@ -185,7 +185,7 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Minimize.is_dgp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.objective.Minimize.is_dgp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="Minimize.is_dgp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Minimize.is_dgp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The objective must be log-log convex.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
@@ -214,7 +214,7 @@
         <span class="k">return</span> <span class="n">result</span></div>
 
 
-<div class="viewcode-block" id="Maximize"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.objective.Maximize">[docs]</a><span class="k">class</span> <span class="nc">Maximize</span><span class="p">(</span><span class="n">Objective</span><span class="p">):</span>
+<div class="viewcode-block" id="Maximize"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Maximize">[docs]</a><span class="k">class</span> <span class="nc">Maximize</span><span class="p">(</span><span class="n">Objective</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;An optimization objective for maximization.</span>
 
 <span class="sd">    Parameters</span>
@@ -248,7 +248,7 @@
         <span class="n">obj</span><span class="p">,</span> <span class="n">constraints</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">canonical_form</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">lu</span><span class="o">.</span><span class="n">neg_expr</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="n">constraints</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Maximize.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.objective.Maximize.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="Maximize.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Maximize.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The objective must be concave.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
@@ -256,7 +256,7 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Maximize.is_dgp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.objective.Maximize.is_dgp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<div class="viewcode-block" id="Maximize.is_dgp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Maximize.is_dgp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;The objective must be log-log concave.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
@@ -379,7 +379,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

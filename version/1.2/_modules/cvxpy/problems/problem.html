@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.problems.problem &#8212; CVXPY 1.2.0 documentation</title>
+    <title>cvxpy.problems.problem &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
@@ -154,7 +154,7 @@
                          <span class="nb">type</span><span class="p">(</span><span class="n">constraint</span><span class="p">))</span>
 
 
-<div class="viewcode-block" id="Problem"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem">[docs]</a><span class="k">class</span> <span class="nc">Problem</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Canonical</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem">[docs]</a><span class="k">class</span> <span class="nc">Problem</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Canonical</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A convex optimization problem.</span>
 
 <span class="sd">    Problems are immutable, save for modification through the specification</span>
@@ -252,7 +252,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">{</span><span class="n">variable</span><span class="o">.</span><span class="n">name</span><span class="p">():</span> <span class="n">variable</span> <span class="k">for</span> <span class="n">variable</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">()}</span>
 
-<div class="viewcode-block" id="Problem.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.is_dcp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+<div class="viewcode-block" id="Problem.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.is_dcp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Does the problem satisfy DCP rules?</span>
 
@@ -275,7 +275,7 @@
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span>
           <span class="n">expr</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">(</span><span class="n">dpp</span><span class="p">)</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="Problem.is_dgp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.is_dgp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+<div class="viewcode-block" id="Problem.is_dgp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.is_dgp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Does the problem satisfy DGP rules?</span>
 
@@ -298,14 +298,14 @@
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span>
           <span class="n">expr</span><span class="o">.</span><span class="n">is_dgp</span><span class="p">(</span><span class="n">dpp</span><span class="p">)</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="Problem.is_dqcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.is_dqcp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+<div class="viewcode-block" id="Problem.is_dqcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.is_dqcp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Does the problem satisfy the DQCP rules?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span>
           <span class="n">expr</span><span class="o">.</span><span class="n">is_dqcp</span><span class="p">()</span> <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">constraints</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">objective</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="Problem.is_dpp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.is_dpp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+<div class="viewcode-block" id="Problem.is_dpp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.is_dpp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;dcp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Does the problem satisfy DPP rules?</span>
 
@@ -336,7 +336,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unsupported context &quot;</span><span class="p">,</span> <span class="n">context</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Problem.is_qp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.is_qp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+<div class="viewcode-block" id="Problem.is_qp"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.is_qp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">is_qp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Is problem a quadratic program?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -353,7 +353,7 @@
         <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;boolean&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">v</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span>
                    <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span><span class="p">())</span>
 
-<div class="viewcode-block" id="Problem.variables"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.variables">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+<div class="viewcode-block" id="Problem.variables"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.variables">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Variable</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Accessor method for variables.</span>
 
@@ -367,7 +367,7 @@
             <span class="n">vars_</span> <span class="o">+=</span> <span class="n">constr</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">unique_list</span><span class="p">(</span><span class="n">vars_</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Problem.parameters"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.parameters">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+<div class="viewcode-block" id="Problem.parameters"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.parameters">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Accessor method for parameters.</span>
 
@@ -381,7 +381,7 @@
             <span class="n">params</span> <span class="o">+=</span> <span class="n">constr</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">unique_list</span><span class="p">(</span><span class="n">params</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Problem.constants"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.constants">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+<div class="viewcode-block" id="Problem.constants"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.constants">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
     <span class="k">def</span> <span class="nf">constants</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Constant</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Accessor method for constants.</span>
 
@@ -399,7 +399,7 @@
         <span class="n">const_dict</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">(</span><span class="n">constant</span><span class="p">):</span> <span class="n">constant</span> <span class="k">for</span> <span class="n">constant</span> <span class="ow">in</span> <span class="n">constants_</span><span class="p">}</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">const_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="Problem.atoms"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.atoms">[docs]</a>    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Atom</span><span class="p">]:</span>
+<div class="viewcode-block" id="Problem.atoms"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.atoms">[docs]</a>    <span class="k">def</span> <span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Atom</span><span class="p">]:</span>
         <span class="sd">&quot;&quot;&quot;Accessor method for atoms.</span>
 
 <span class="sd">        Returns</span>
@@ -427,7 +427,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solver_stats</span>
 
-<div class="viewcode-block" id="Problem.solve"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Problem.solve"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compiles and solves the problem using the specified method.</span>
 
 <span class="sd">        Populates the :code:`status` and :code:`value` attributes on the</span>
@@ -513,7 +513,7 @@
             <span class="n">solve_func</span> <span class="o">=</span> <span class="n">Problem</span><span class="o">.</span><span class="n">_solve</span>
         <span class="k">return</span> <span class="n">solve_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Problem.register_solve"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.register_solve">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Problem.register_solve"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.register_solve">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">register_solve</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Adds a solve method to the Problem class.</span>
 
@@ -527,7 +527,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">REGISTERED_SOLVE_METHODS</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span></div>
 
-<div class="viewcode-block" id="Problem.get_problem_data"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.get_problem_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_problem_data</span><span class="p">(</span>
+<div class="viewcode-block" id="Problem.get_problem_data"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.get_problem_data">[docs]</a>    <span class="k">def</span> <span class="nf">get_problem_data</span><span class="p">(</span>
         <span class="bp">self</span><span class="p">,</span> <span class="n">solver</span><span class="p">,</span>
         <span class="n">gp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
         <span class="n">enforce_dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
@@ -1058,7 +1058,7 @@
                     <span class="s1">&#39;</span><span class="si">%.3e</span><span class="s1"> seconds&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_solve_time</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
 
-<div class="viewcode-block" id="Problem.backward"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.backward">[docs]</a>    <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Problem.backward"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.backward">[docs]</a>    <span class="k">def</span> <span class="nf">backward</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Compute the gradient of a solution with respect to Parameters.</span>
 
 <span class="sd">        This method differentiates through the solution map of the problem,</span>
@@ -1193,7 +1193,7 @@
                     <span class="n">grad</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">/</span> <span class="n">param</span><span class="o">.</span><span class="n">value</span><span class="p">)</span> <span class="o">*</span> <span class="n">dparams</span><span class="p">[</span><span class="n">new_param</span><span class="o">.</span><span class="n">id</span><span class="p">]</span>
                 <span class="n">param</span><span class="o">.</span><span class="n">gradient</span> <span class="o">=</span> <span class="n">grad</span></div>
 
-<div class="viewcode-block" id="Problem.derivative"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.derivative">[docs]</a>    <span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Problem.derivative"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.derivative">[docs]</a>    <span class="k">def</span> <span class="nf">derivative</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Apply the derivative of the solution map to perturbations in the Parameters</span>
 
 <span class="sd">        This method applies the derivative of the solution map to perturbations</span>
@@ -1339,7 +1339,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_status</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">status</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_solution</span> <span class="o">=</span> <span class="n">solution</span>
 
-<div class="viewcode-block" id="Problem.unpack_results"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.Problem.unpack_results">[docs]</a>    <span class="k">def</span> <span class="nf">unpack_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="n">SolvingChain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<div class="viewcode-block" id="Problem.unpack_results"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.Problem.unpack_results">[docs]</a>    <span class="k">def</span> <span class="nf">unpack_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">chain</span><span class="p">:</span> <span class="n">SolvingChain</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Updates the problem state given the solver results.</span>
 
 <span class="sd">        Updates problem.status, problem.value and value of</span>
@@ -1442,7 +1442,7 @@
     <span class="fm">__truediv__</span> <span class="o">=</span> <span class="n">__div__</span></div>
 
 
-<div class="viewcode-block" id="SolverStats"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SolverStats">[docs]</a><span class="k">class</span> <span class="nc">SolverStats</span><span class="p">:</span>
+<div class="viewcode-block" id="SolverStats"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.SolverStats">[docs]</a><span class="k">class</span> <span class="nc">SolverStats</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Reports some of the miscellaneous information that is returned</span>
 <span class="sd">    by the solver after solving but that is not captured directly by</span>
 <span class="sd">    the Problem instance.</span>
@@ -1479,7 +1479,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">extra_stats</span> <span class="o">=</span> <span class="n">results_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">EXTRA_STATS</span><span class="p">]</span></div>
 
 
-<div class="viewcode-block" id="SizeMetrics"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.problems.problem.SizeMetrics">[docs]</a><span class="k">class</span> <span class="nc">SizeMetrics</span><span class="p">:</span>
+<div class="viewcode-block" id="SizeMetrics"><a class="viewcode-back" href="../../../api_reference/cvxpy.problems.html#cvxpy.SizeMetrics">[docs]</a><span class="k">class</span> <span class="nc">SizeMetrics</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot;Reports various metrics regarding the problem.</span>
 
 <span class="sd">    Attributes</span>
@@ -1638,7 +1638,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
