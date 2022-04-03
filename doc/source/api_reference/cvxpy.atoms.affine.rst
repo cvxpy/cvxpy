@@ -79,7 +79,7 @@ hstack
 
 .. autofunction:: cvxpy.hstack
 
-.. _imag
+.. _imag-atom:
 
 imag
 ----
@@ -145,7 +145,7 @@ psd_wrap
 
 .. autoclass:: cvxpy.atoms.affine.wraps.psd_wrap
 
-.. _real:
+.. _real-atom:
 
 real
 ----
