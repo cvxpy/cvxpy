@@ -35,7 +35,7 @@ bmat
 
 .. autofunction:: cvxpy.bmat
 
-.. _cong:
+.. _conj:
 
 conj
 ----
