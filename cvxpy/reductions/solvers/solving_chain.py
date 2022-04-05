@@ -5,13 +5,14 @@ import numpy as np
 
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonNeg,
-                               NonPos, PowCone3D, Zero,)
+                               NonPos, PowCone3D, Zero, finiteSet)
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
                                                       Exotic2Common,)
+from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import Valinvec2mixedint
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
@@ -160,6 +161,12 @@ def construct_solving_chain(problem, candidates,
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp)
+
+    constr_types = set()
+    for c in problem.constraints:
+        constr_types.add(type(c))
+    if finiteSet in constr_types:
+        reductions += [Valinvec2mixedint()]
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
