@@ -70,8 +70,8 @@ def finite_set_canon2(con, args):
         expr = args[0]
         cons = exprval_in_vec2(expr, vec)
     main_con = cons[0]
-    aux_cons = cons[1]
-    return main_con, [aux_cons]
+    aux_cons = cons[1:]
+    return main_con, aux_cons
 
 
 def finite_set_canon(con, args):

@@ -272,3 +272,36 @@ class TestFiniteSet(BaseTest):
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         pass
+
+    @staticmethod
+    def make_test_9():
+        """For testing vectorization of FiniteSet class + new constraining method"""
+        x = cp.Variable(shape=(4,))
+        expect_x = np.array([0., 7., 3., 0.])
+        vec = np.arange(10)
+        objective = cp.Maximize(x[0] + x[1] + 2 * x[2] - 2 * x[3])
+        constr1 = FiniteSet(x, vec, flag=True)
+        constr2 = x[0] + 2 * x[2] <= 700
+        constr3 = 2 * x[1] - 8 * x[2] <= 0
+        constr4 = x[1] - 2 * x[2] + x[3] >= 1
+        constr5 = x[0] + x[1] + x[2] + x[3] == 10
+        obj_pair = (objective, 13.0)
+        con_pairs = [
+            (constr1, None),
+            (constr2, None),
+            (constr3, None),
+            (constr4, None),
+            (constr5, None)
+        ]
+        var_pairs = [
+            (x, expect_x)
+        ]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_9(self):
+        sth = TestFiniteSet.make_test_9()
+        sth.solve(solver='GLPK_MI')
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        pass
