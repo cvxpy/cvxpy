@@ -15,12 +15,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
-from cvxpy.constraints import finiteSet
+
+import cvxpy as cp
+from cvxpy.constraints import FiniteSet
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 
 
-def exprval_in_vec(expr, vec):
+def exprval_in_vec1(expr, vec):
     assert expr.is_affine()
     assert expr.size == 1
     if vec.size == 1:
@@ -30,23 +32,58 @@ def exprval_in_vec(expr, vec):
     vec = np.sort(vec)
     d = np.diff(vec)
     z = Variable(shape=(d.size,), boolean=True)
-    cons = [z[i+1] <= z[i] for i in range(d.size-1)]
+    cons = [z[1:] <= z[:-1]]
     cons.append(expr == vec[0] + d @ z)
     return cons
 
 
-def finite_set_canon(con, args):
+def exprval_in_vec2(expr, vec):
+    z = Variable(len(vec), boolean=True)
+    constraints = [
+        cp.sum(cp.multiply(vec, z)) == expr,
+        cp.sum(z) == 1
+    ]
+    return constraints
+
+
+def finite_set_canon1(con, args):
+    cons = []
     vec = con.vec.value
-    expr = args[0]
-    cons = exprval_in_vec(expr, vec)
+    if con.expre.shape != tuple():
+        for i in range(con.expre.shape[0]):
+            cons += exprval_in_vec1(con.expre[i], vec)
+    else:
+        expr = args[0]
+        cons = exprval_in_vec1(expr, vec)
     main_con = cons[-1]
     aux_cons = cons[:-1]
     return main_con, aux_cons
 
 
+def finite_set_canon2(con, args):
+    cons = []
+    vec = con.vec.value
+    if con.expre.shape != tuple():
+        for i in range(con.expre.shape[0]):
+            cons += exprval_in_vec2(con.expre[i], vec)
+    else:
+        expr = args[0]
+        cons = exprval_in_vec2(expr, vec)
+    main_con = cons[0]
+    aux_cons = cons[1]
+    return main_con, [aux_cons]
+
+
+def finite_set_canon(con, args):
+    if con.flag.value != 0.0:
+        return finite_set_canon2(con, args)
+    else:
+        return finite_set_canon1(con, args)
+
+
 class Valinvec2mixedint(Canonicalization):
     CANON_METHODS = {
-        finiteSet: finite_set_canon
+        FiniteSet: finite_set_canon
     }
 
     def __init__(self, problem=None) -> None:

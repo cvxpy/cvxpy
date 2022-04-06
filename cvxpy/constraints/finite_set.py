@@ -14,27 +14,28 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import numpy as np
+
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
-import numpy as np
 
 
-class finiteSet(Constraint):
-    def __init__(self, expre, vec, constr_id=None) -> None:
+class FiniteSet(Constraint):
+    def __init__(self, expre, vec, flag: bool = False, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         vec = Expression.cast_to_const(vec)
+        flag = Expression.cast_to_const(flag)
         self.expre = expre
         self.vec = vec
-        super(finiteSet, self).__init__([expre, vec], constr_id)
+        self.flag = flag
+        super(FiniteSet, self).__init__([expre, vec, flag], constr_id)
 
     def name(self) -> str:
         return "%s FS 0" % self.args[0]
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """
-        A finiteSet constraint imposed by exprval_in_vec makes the MICP problem DCP
-        """
+        """A FiniteSet constraint imposed by exprval_in_vec makes the MICP problem DCP"""
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_affine()
@@ -56,11 +57,11 @@ class finiteSet(Constraint):
 
     @property
     def residual(self):
-        """The residual of the constraint.
-
+        """
+        The residual of the constraint.
         Returns
         -------
-        NumPy.ndarray
+        float
         """
         val = self.expre.value
         res = np.min(np.abs(val - self.vec.value))

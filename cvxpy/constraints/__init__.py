@@ -15,9 +15,9 @@ limitations under the License.
 """
 
 from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.finite_set import FiniteSet
 from cvxpy.constraints.nonpos import Inequality, NonNeg, NonPos
 from cvxpy.constraints.power import PowCone3D, PowConeND
-from cvxpy.constraints.MI_FS import finiteSet
 from cvxpy.constraints.psd import PSD
 from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.zero import Equality, Zero
