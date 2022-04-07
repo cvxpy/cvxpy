@@ -7,7 +7,7 @@ Disciplined quasiconvex programming (DQCP) is a generalization of DCP for
 quasiconvex functions. Quasiconvexity generalizes convexity: a function
 :math:`f` is quasiconvex if and only if its domain is a convex set and its
 sublevel sets :math:`\{x : f(x) \leq t\}` are convex, for all :math:`t`. For a
-thorough overview of quasiconvexity, see the paper `Disciplined quasiconvex programming <http://web.stanford.edu/~boyd/papers/dqcp.html>`_.
+thorough overview of quasiconvexity, see the paper `Disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_.
 
 
 While DCP is a ruleset for constructing convex programs, DQCP

@@ -3,7 +3,7 @@
 Advanced Features
 =================
 
-This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend `Convex Optimization <http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.
+This section of the tutorial covers features of CVXPY intended for users with advanced knowledge of convex optimization. We recommend `Convex Optimization <https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe as a reference for any terms you are unfamiliar with.
 
 Dual variables
 --------------
@@ -731,7 +731,7 @@ Here is the complete list of solver options.
 ``'eps_rel'``
     relative accuracy (default: 1e-5).
 
-For others see `OSQP documentation <http://osqp.org/docs/interfaces/solver_settings.html>`_.
+For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_settings.html>`_.
 
 `ECOS`_ options:
 
@@ -1444,7 +1444,7 @@ on derivatives.
 .. _GLOP: https://developers.google.com/optimization
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
-.. _GUROBI: http://www.gurobi.com/
+.. _GUROBI: https://www.gurobi.com/
 .. _MOSEK: https://www.mosek.com/
 .. _CBC: https://projects.coin-or.org/Cbc
 .. _CGL: https://projects.coin-or.org/Cgl

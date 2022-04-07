@@ -750,12 +750,16 @@ class Problem(u.Canonical):
                     for discussion on this topic.
 
                     Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),
-                    then CVXPY can use the open-source mixed-integer solver `GLPK`.
+                    then CVXPY can use the open-source mixed-integer linear programming
+                    solver `GLPK`. If your problem is nonlinear then you can install SCIP
+                    (pip install pyscipopt).
 
                     Quick fix 2: you can explicitly specify solver='ECOS_BB'. This may result
                     in incorrect solutions and is not recommended.
                 """
                 raise error.SolverError(msg)
+            # TODO: provide a useful error message when the problem is nonlinear but
+            #  the only installed mixed-integer solvers are MILP solvers (e.g., GLPK_MI).
             candidates['qp_solvers'] = [
                 s for s in candidates['qp_solvers']
                 if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
