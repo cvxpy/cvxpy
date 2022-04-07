@@ -75,7 +75,7 @@ def finite_set_canon2(con, args):
 
 
 def finite_set_canon(con, args):
-    if con.flag.value != 0.0:
+    if con.ineq_form:
         return finite_set_canon2(con, args)
     else:
         return finite_set_canon1(con, args)

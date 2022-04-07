@@ -120,9 +120,7 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
         else:
             reductions += [Dcp2Cone(), CvxAttr2Constr()]
 
-    constr_types = set()
-    for c in problem.constraints:
-        constr_types.add(type(c))
+    constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
         reductions += [Valinvec2mixedint()]
 

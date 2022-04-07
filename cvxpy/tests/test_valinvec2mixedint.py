@@ -218,7 +218,7 @@ class TestFiniteSet(BaseTest):
         expect_x = np.array([0., 7., 3., 0.])
         vec = np.arange(10)
         objective = cp.Maximize(x[0] + x[1] + 2 * x[2] - 2 * x[3])
-        constr1 = FiniteSet(x, vec, flag=False)
+        constr1 = FiniteSet(x, vec, ineq_form=False)
         constr2 = x[0] + 2 * x[2] <= 700
         constr3 = 2 * x[1] - 8 * x[2] <= 0
         constr4 = x[1] - 2 * x[2] + x[3] >= 1
@@ -253,7 +253,7 @@ class TestFiniteSet(BaseTest):
         vec = [-1.125, 1, 2]
         constr1 = x >= -1.25
         constr2 = x <= 10
-        constr3 = FiniteSet(x, vec, flag=True)
+        constr3 = FiniteSet(x, vec, ineq_form=True)
         obj_pairs = (objective, -1.125)
         var_pairs = [
             (x, expect_x)
@@ -280,7 +280,7 @@ class TestFiniteSet(BaseTest):
         expect_x = np.array([0., 7., 3., 0.])
         vec = np.arange(10)
         objective = cp.Maximize(x[0] + x[1] + 2 * x[2] - 2 * x[3])
-        constr1 = FiniteSet(x, vec, flag=True)
+        constr1 = FiniteSet(x, vec, ineq_form=True)
         constr2 = x[0] + 2 * x[2] <= 700
         constr3 = 2 * x[1] - 8 * x[2] <= 0
         constr4 = x[1] - 2 * x[2] + x[3] >= 1
