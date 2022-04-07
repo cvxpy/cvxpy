@@ -22,16 +22,20 @@ from cvxpy.utilities import scopes
 
 
 class FiniteSet(Constraint):
-    def __init__(self, expre, vec, ineq_form: bool=True, constr_id=None) -> None:
+
+    def __init__(self, expre, vec, ineq_form: bool = True, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         vec = Expression.cast_to_const(vec)
         self.expre = expre
         self.vec = vec
-        self.ineq_form = ineq_form
+        self._ineq_form = ineq_form
         super(FiniteSet, self).__init__([expre, vec], constr_id)
 
     def name(self) -> str:
         return "%s FS 0" % self.args[0]
+
+    def get_data(self):
+        return [self._ineq_form]
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """A FiniteSet constraint imposed by exprval_in_vec makes the MICP problem DCP"""
@@ -52,7 +56,7 @@ class FiniteSet(Constraint):
 
     @property
     def ineq_form(self) -> bool:
-        return self.ineq_form
+        return self._ineq_form
 
     @property
     def shape(self):

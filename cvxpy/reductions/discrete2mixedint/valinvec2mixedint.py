@@ -76,9 +76,9 @@ def finite_set_canon2(con, args):
 
 def finite_set_canon(con, args):
     if con.ineq_form:
-        return finite_set_canon2(con, args)
-    else:
         return finite_set_canon1(con, args)
+    else:
+        return finite_set_canon2(con, args)
 
 
 class Valinvec2mixedint(Canonicalization):
