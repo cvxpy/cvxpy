@@ -51,7 +51,7 @@ def finite_set_canon1(con, args):
     vec = con.vec.value
     expre = con.expre.flatten()
     for i in range(expre.size):
-        cons += exprval_in_vec2(expre[i], vec)
+        cons += exprval_in_vec1(expre[i], vec)
     main_con = cons[-1]
     aux_cons = cons[:-1]
     return main_con, aux_cons

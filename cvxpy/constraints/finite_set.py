@@ -22,8 +22,23 @@ from cvxpy.utilities import scopes
 
 
 class FiniteSet(Constraint):
+    """A class for constraining given expressions to a set of finite size composed of real numbers.
 
-    def __init__(self, expre, vec, ineq_form: bool = True, constr_id=None) -> None:
+    Parameters
+    ----------
+    expre : Expression
+        The given expression to be constrained. Note that, ``expre`` can have multiple features, and the
+        constraint is applied element-wise to each feature of the ``Expression`` i.e.:
+
+        .. code-block:: python
+
+            for i in range(expre.size):
+                print(expre[i] in vec) # => True
+
+    vec : NumPy.ndarray/set
+        The finite set of values to which the given (affine) expression is to be constrained.
+    """
+    def __init__(self, expre, vec, ineq_form: bool = False, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         if isinstance(vec, set):
             vec = list(vec)
@@ -40,7 +55,9 @@ class FiniteSet(Constraint):
         return [self._ineq_form]
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """A FiniteSet constraint imposed by exprval_in_vec makes the MICP problem DCP"""
+        """
+        A ``FiniteSet`` constraint is DCP, if the constrained expression is affine
+        """
         if dpp:
             with scopes.dpp_scope():
                 return self.args[0].is_affine()
@@ -58,6 +75,10 @@ class FiniteSet(Constraint):
 
     @property
     def ineq_form(self) -> bool:
+        """
+        Choose between two constraining methodologies, use ``ineq_form=False`` while working with
+        ``Parameter`` types
+        """
         return self._ineq_form
 
     @property
@@ -68,6 +89,7 @@ class FiniteSet(Constraint):
     def residual(self):
         """
         The residual of the constraint.
+
         Returns
         -------
         float
