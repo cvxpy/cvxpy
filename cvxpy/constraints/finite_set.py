@@ -27,8 +27,8 @@ class FiniteSet(Constraint):
     Parameters
     ----------
     expre : Expression
-        The given expression to be constrained. Note that, ``expre`` can have multiple features, and the
-        constraint is applied element-wise to each feature of the ``Expression`` i.e.:
+        The given expression to be constrained. Note that, ``expre`` can have multiple features,
+        and the constraint is applied element-wise to each feature of the ``Expression`` i.e.:
 
         .. code-block:: python
 
