@@ -25,6 +25,8 @@ class FiniteSet(Constraint):
 
     def __init__(self, expre, vec, ineq_form: bool = True, constr_id=None) -> None:
         Expression = cvxtypes.expression()
+        if isinstance(vec, set):
+            vec = list(vec)
         vec = Expression.cast_to_const(vec)
         self.expre = expre
         self.vec = vec
