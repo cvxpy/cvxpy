@@ -49,12 +49,9 @@ def exprval_in_vec2(expr, vec):
 def finite_set_canon1(con, args):
     cons = []
     vec = con.vec.value
-    if con.expre.shape != tuple():
-        for i in range(con.expre.shape[0]):
-            cons += exprval_in_vec1(con.expre[i], vec)
-    else:
-        expr = args[0]
-        cons = exprval_in_vec1(expr, vec)
+    expre = con.expre.flatten()
+    for i in range(expre.size):
+        cons += exprval_in_vec2(expre[i], vec)
     main_con = cons[-1]
     aux_cons = cons[:-1]
     return main_con, aux_cons
@@ -63,12 +60,9 @@ def finite_set_canon1(con, args):
 def finite_set_canon2(con, args):
     cons = []
     vec = con.vec.value
-    if con.expre.shape != tuple():
-        for i in range(con.expre.shape[0]):
-            cons += exprval_in_vec2(con.expre[i], vec)
-    else:
-        expr = args[0]
-        cons = exprval_in_vec2(expr, vec)
+    expre = con.expre.flatten()
+    for i in range(expre.size):
+        cons += exprval_in_vec2(expre[i], vec)
     main_con = cons[0]
     aux_cons = cons[1:]
     return main_con, aux_cons
