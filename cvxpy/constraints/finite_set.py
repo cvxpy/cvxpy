@@ -27,36 +27,50 @@ class FiniteSet(Constraint):
     Parameters
     ----------
     expre : Expression
-        The given expression to be constrained. Note that, ``expre`` can have multiple features,
-        and the constraint is applied element-wise to each feature of the ``Expression`` i.e.:
+        The given expression to be constrained. If ``expre`` has multiple elements, then
+        the constraint is applied separtely to each element. I.e., after solving a problem
+        with this constraint, we should have:
 
         .. code-block:: python
 
-            for i in range(expre.size):
-                print(expre[i] in vec) # => True
+            for e in expre.flatten():
+                print(e.value in vec) # => True
 
-    vec : NumPy.ndarray/set
+    vec : Union[Expression, np.ndarray, set]
         The finite set of values to which the given (affine) expression is to be constrained.
+        
+    ineq_form : bool
+        Controls how this contraint is canonicalized into mixed integer linear constraints.
+        
+        If True, then we use a formulation with ``vec.size - 1`` inequality constraints, one 
+        equality constraint, and ``vec.size - 1`` binary variables for each element of ``expre``.
+        
+        If False, then we use a formuation with ``vec.size`` binary variables and two equality
+        constraints for each element of ``expre``.
+
+        Defaults to False. The case ``ineq_form=True`` is provided in the hopes that it may 
+        speed up some mixed-integer solvers that use simple branch and bound methods.
     """
+
     def __init__(self, expre, vec, ineq_form: bool = False, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         if isinstance(vec, set):
             vec = list(vec)
-        vec = Expression.cast_to_const(vec)
+        vec = Expression.cast_to_const(vec).flatten()
         self.expre = expre
         self.vec = vec
         self._ineq_form = ineq_form
         super(FiniteSet, self).__init__([expre, vec], constr_id)
 
     def name(self) -> str:
-        return "%s FS 0" % self.args[0]
+        return "FiniteSet(%s, %s)" % (self.args[0], self.args[1])
 
     def get_data(self):
         return [self._ineq_form]
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """
-        A ``FiniteSet`` constraint is DCP, if the constrained expression is affine
+        A ``FiniteSet`` constraint is DCP if the constrained expression is affine
         """
         if dpp:
             with scopes.dpp_scope():
@@ -94,6 +108,8 @@ class FiniteSet(Constraint):
         -------
         float
         """
-        val = self.expre.value
-        res = np.min(np.abs(val - self.vec.value))
+        expre_val = np.array(self.expre.value).flatten()
+        vec_val = self.vec.value
+        resids = [np.min(np.abs(val - vec_val)) for val in expre_val]
+        res = max(resids)
         return res
