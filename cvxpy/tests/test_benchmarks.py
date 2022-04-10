@@ -316,5 +316,6 @@ class TestBenchmarks(BaseTest):
 
     @classmethod
     def tearDownClass(cls):
+        print("")
         for msg in cls.msgs:
             print(msg)
