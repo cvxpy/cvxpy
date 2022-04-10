@@ -19,11 +19,18 @@ def benchmark(func, iters: int = 1, name=None) -> None:
         func()
         vals.append(time.time() - start)
     name = func.__name__ if name is None else name
-    print(f"{name:s}: avg={np.mean(vals):.{PRECISION}{TYPE}} s ,",
-          f"std={np.std(vals):.{PRECISION}{TYPE}} s ({iters:d} iterations)")
+
+    msg = "".join((f"{name:s}: avg={np.mean(vals):.{PRECISION}{TYPE}} s ,",
+                   f"std={np.std(vals):.{PRECISION}{TYPE}} s ",
+                   f"({iters:d} iterations)"))
+    return msg
 
 
 class TestBenchmarks(BaseTest):
+    @classmethod
+    def setUpClass(cls):
+        cls.msgs = []
+
     def test_diffcp_sdp_example(self) -> None:
 
         def randn_symm(n):
@@ -47,7 +54,8 @@ class TestBenchmarks(BaseTest):
                 cp.trace(cp.matmul(As[i], X)) == Bs[i] for i in range(p)]
             problem = cp.Problem(cp.Minimize(objective), constraints)
             problem.get_problem_data(cp.SCS)
-        benchmark(diffcp_sdp, iters=1)
+
+        self.msgs.append(benchmark(diffcp_sdp, iters=1))
 
     def test_tv_inpainting(self) -> None:
         if os.name == "nt":
@@ -73,7 +81,8 @@ class TestBenchmarks(BaseTest):
                     known[:, :, i], Ucorr[:, :, i]))
             problem = cp.Problem(cp.Minimize(cp.tv(*variables)), constraints)
             problem.get_problem_data(cp.SCS)
-        benchmark(tv_inpainting, iters=1)
+
+        self.msgs.append(benchmark(tv_inpainting, iters=1))
 
     def test_least_squares(self) -> None:
         m = 20
@@ -85,7 +94,8 @@ class TestBenchmarks(BaseTest):
             x = cp.Variable(n)
             cost = cp.sum_squares(A @ x - b)
             cp.Problem(cp.Minimize(cost)).get_problem_data(cp.OSQP)
-        benchmark(least_squares, iters=1)
+
+        self.msgs.append(benchmark(least_squares, iters=1))
 
     def test_qp(self) -> None:
         m = 15
@@ -104,7 +114,8 @@ class TestBenchmarks(BaseTest):
             cp.Problem(cp.Minimize((1/2)*cp.quad_form(x, P) + cp.matmul(q.T, x)),
                        [cp.matmul(G, x) <= h,
                        cp.matmul(A, x) == b]).get_problem_data(cp.OSQP)
-        benchmark(qp, iters=1)
+
+        self.msgs.append(benchmark(qp, iters=1))
 
     def test_cone_matrix_stuffing_with_many_constraints(self) -> None:
         m = 2000
@@ -124,7 +135,7 @@ class TestBenchmarks(BaseTest):
         def cone_matrix_stuffing_with_many_constraints():
             ConeMatrixStuffing().apply(problem)
 
-        benchmark(cone_matrix_stuffing_with_many_constraints, iters=1)
+        self.msgs.append(benchmark(cone_matrix_stuffing_with_many_constraints, iters=1))
 
     def test_parameterized_cone_matrix_stuffing_with_many_constraints(self) -> None:
         self.skipTest("This benchmark takes too long.")
@@ -148,7 +159,7 @@ class TestBenchmarks(BaseTest):
         def parameterized_cone_matrix_stuffing():
             ConeMatrixStuffing().apply(problem)
 
-        benchmark(parameterized_cone_matrix_stuffing, iters=1)
+        self.msgs.append(benchmark(parameterized_cone_matrix_stuffing, iters=1))
 
     def test_small_cone_matrix_stuffing(self) -> None:
         m = 200
@@ -168,7 +179,7 @@ class TestBenchmarks(BaseTest):
         def small_cone_matrix_stuffing():
             ConeMatrixStuffing().apply(problem)
 
-        benchmark(small_cone_matrix_stuffing, iters=10)
+        self.msgs.append(benchmark(small_cone_matrix_stuffing, iters=10))
 
     @pytest.mark.skip(reason="Failing in Windows CI - potentially memory leak")
     def test_small_parameterized_cone_matrix_stuffing(self) -> None:
@@ -192,7 +203,7 @@ class TestBenchmarks(BaseTest):
         def small_parameterized_cone_matrix_stuffing():
             ConeMatrixStuffing().apply(problem)
 
-        benchmark(small_parameterized_cone_matrix_stuffing, iters=1)
+        self.msgs.append(benchmark(small_parameterized_cone_matrix_stuffing, iters=1))
 
     def test_small_lp(self) -> None:
         m = 200
@@ -209,8 +220,8 @@ class TestBenchmarks(BaseTest):
         def small_lp():
             problem.get_problem_data(cp.SCS)
 
-        benchmark(small_lp, iters=1)
-        benchmark(small_lp, iters=1, name="small_lp_second_time")
+        self.msgs.append(benchmark(small_lp, iters=1))
+        self.msgs.append(benchmark(small_lp, iters=1, name="small_lp_second_time"))
 
     @pytest.mark.skip(reason="Failing in Windows CI - potentially memory leak")
     def test_small_parameterized_lp(self) -> None:
@@ -231,9 +242,9 @@ class TestBenchmarks(BaseTest):
         def small_parameterized_lp():
             problem.get_problem_data(cp.SCS)
 
-        benchmark(small_parameterized_lp, iters=1)
-        benchmark(small_parameterized_lp, iters=1,
-                  name="small_parameterized_lp_second_time")
+        self.msgs.append(benchmark(small_parameterized_lp, iters=1))
+        self.msgs.append(benchmark(small_parameterized_lp, iters=1,
+                         name="small_parameterized_lp_second_time"))
 
     def test_parameterized_qp(self) -> None:
         """Test speed of first solve with QP codepath and SOCP codepath.
@@ -302,3 +313,8 @@ class TestBenchmarks(BaseTest):
 
         print("Issue #1668 regression test")
         print(f"Compilation time: {end - start}")
+
+    @classmethod
+    def tearDownClass(cls):
+        for msg in cls.msgs:
+            print(msg)
