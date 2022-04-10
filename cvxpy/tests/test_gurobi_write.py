@@ -19,8 +19,8 @@ import unittest
 import numpy as np
 
 import cvxpy as cp
-from cvxpy.tests.base_test import BaseTest
 from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+from cvxpy.tests.base_test import BaseTest
 
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
