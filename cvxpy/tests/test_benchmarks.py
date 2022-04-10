@@ -27,6 +27,15 @@ def benchmark(func, iters: int = 1, name=None) -> None:
 
 
 class TestBenchmarks(BaseTest):
+    """Test benchmark to check PR impacts on computation time.
+
+    Run using:
+
+    ```
+    pytest -s --disable-warnings cvxpy/tests/test_benchmarks.py
+    ```
+
+    """
     # ? Is self.msgs.append() safe in unittest?
     # TODO: tabulate
     # TODO: save on CI
