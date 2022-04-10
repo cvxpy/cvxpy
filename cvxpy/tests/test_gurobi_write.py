@@ -20,8 +20,8 @@ import numpy as np
 
 import cvxpy as cp
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
-                                              INSTALLED_SOLVERS)
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
+
 
 @unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
 class TestGurobiWrite(BaseTest):
