@@ -27,6 +27,8 @@ def benchmark(func, iters: int = 1, name=None) -> None:
 
 
 class TestBenchmarks(BaseTest):
+    # ? Is self.msgs.append() safe in unittest?
+
     @classmethod
     def setUpClass(cls):
         cls.msgs = []
