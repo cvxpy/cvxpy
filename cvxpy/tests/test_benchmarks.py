@@ -266,9 +266,9 @@ class TestBenchmarks(BaseTest):
         prob.solve(solver=cp.ECOS)
         end = time.time()
 
-        self.msgs.append(['Conic canonicalization'])
-        self.msgs.append([f'(ECOS) solver time: {prob.solver_stats.solve_time}'])
-        self.msgs.append([f'cvxpy time: {(end - start) - prob.solver_stats.solve_time}'])
+        self.msgs.append('Conic canonicalization')
+        self.msgs.append(f'(ECOS) solver time: {prob.solver_stats.solve_time}')
+        self.msgs.append(f'cvxpy time: {(end - start) - prob.solver_stats.solve_time}')
 
         np.random.seed(1)
         A = cp.Parameter((m, n))
@@ -285,9 +285,9 @@ class TestBenchmarks(BaseTest):
         prob.solve(solver=cp.OSQP)
         end = time.time()
 
-        self.msgs.append(['Quadratic canonicalization'])
-        self.msgs.append([f'(OSQP) solver time: {prob.solver_stats.solve_time}'])
-        self.msgs.append([f'cvxpy time: {(end - start) - prob.solver_stats.solve_time}'])
+        self.msgs.append('Quadratic canonicalization')
+        self.msgs.append(f'(OSQP) solver time: {prob.solver_stats.solve_time}')
+        self.msgs.append(f'cvxpy time: {(end - start) - prob.solver_stats.solve_time}')
 
     def test_issue_1668_slow_pruning(self) -> None:
         """Regression test for https://github.com/cvxpy/cvxpy/issues/1668
@@ -311,8 +311,8 @@ class TestBenchmarks(BaseTest):
         problem.get_problem_data(cp.ECOS, verbose=True)
         end = time.time()
 
-        self.msgs.append(["Issue #1668 regression test"])
-        self.msgs.append([f"Compilation time: {end - start}"])
+        self.msgs.append("Issue #1668 regression test")
+        self.msgs.append(f"Compilation time: {end - start}")
 
     @classmethod
     def tearDownClass(cls):
