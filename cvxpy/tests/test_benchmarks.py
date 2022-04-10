@@ -8,6 +8,9 @@ import cvxpy as cp
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.tests.base_test import BaseTest
 
+PRECISION = 3
+TYPE = "e"
+
 
 def benchmark(func, iters: int = 1, name=None) -> None:
     vals = []
@@ -16,8 +19,8 @@ def benchmark(func, iters: int = 1, name=None) -> None:
         func()
         vals.append(time.time() - start)
     name = func.__name__ if name is None else name
-    print("{:s}: avg={:.3e} s , std={:.3e} s ({:d} iterations)".format(
-        name, np.mean(vals), np.std(vals), iters))
+    print(f"{name:s}: avg={np.mean(vals):.{PRECISION}{TYPE}} s ,",
+          f"std={np.std(vals):.{PRECISION}{TYPE}} s ({iters:d} iterations)")
 
 
 class TestBenchmarks(BaseTest):
