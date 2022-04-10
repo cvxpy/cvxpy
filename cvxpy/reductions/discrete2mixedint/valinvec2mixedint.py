@@ -27,13 +27,15 @@ def exprval_in_vec1(expr, vec):
     assert expr.size == 1
     if vec.size == 1:
         # handling for when vec only has a single element
-        cons = expr == vec[0]
-        return [cons]
+        cons = [expr == vec[0]]
+        return cons
     vec = np.sort(vec)
     d = np.diff(vec)
     z = Variable(shape=(d.size,), boolean=True)
-    cons = [z[1:] <= z[:-1]]
-    cons.append(expr == vec[0] + d @ z)
+    cons = [
+        z[1:] <= z[:-1],
+        expr == vec[0] + d @ z
+    ]
     return cons
 
 

@@ -22,14 +22,15 @@ from cvxpy.utilities import scopes
 
 
 class FiniteSet(Constraint):
-    """A class for constraining given expressions to a set of finite size composed of real numbers.
+    """
+    Constrain each entry of an Expression to take a value in a given set of real numbers.
 
     Parameters
     ----------
     expre : Expression
-        The given expression to be constrained. If ``expre`` has multiple elements, then
-        the constraint is applied separtely to each element. I.e., after solving a problem
-        with this constraint, we should have:
+        The given expression to be constrained. This Expression must be affine.
+        If ``expre`` has multiple elements, then the constraint is applied separately to
+        each element. I.e., after solving a problem with this constraint, we should have:
 
         .. code-block:: python
 
@@ -37,19 +38,22 @@ class FiniteSet(Constraint):
                 print(e.value in vec) # => True
 
     vec : Union[Expression, np.ndarray, set]
-        The finite set of values to which the given (affine) expression is to be constrained.
-        
-    ineq_form : bool
-        Controls how this contraint is canonicalized into mixed integer linear constraints.
-        
-        If True, then we use a formulation with ``vec.size - 1`` inequality constraints, one 
-        equality constraint, and ``vec.size - 1`` binary variables for each element of ``expre``.
-        
-        If False, then we use a formuation with ``vec.size`` binary variables and two equality
-        constraints for each element of ``expre``.
+        The finite collection of values to which each entry of ``expre``
+        is to be constrained.
 
-        Defaults to False. The case ``ineq_form=True`` is provided in the hopes that it may 
-        speed up some mixed-integer solvers that use simple branch and bound methods.
+    ineq_form : bool
+        Controls how this constraint is canonicalized into mixed integer linear
+        constraints.
+
+        If True, then we use a formulation with ``vec.size - 1`` inequality constraints,
+        one equality constraint, and ``vec.size - 1`` binary variables for each element
+        of ``expre``.
+
+        If False, then we use a formulation with ``vec.size`` binary variables and two
+        equality constraints for each element of ``expre``.
+
+        Defaults to False. The case ``ineq_form=True`` may speed up some mixed-integer
+        solvers that use simple branch and bound methods.
     """
 
     def __init__(self, expre, vec, ineq_form: bool = False, constr_id=None) -> None:
@@ -57,6 +61,13 @@ class FiniteSet(Constraint):
         if isinstance(vec, set):
             vec = list(vec)
         vec = Expression.cast_to_const(vec).flatten()
+        if not expre.is_affine():
+            msg = """
+            Provided Expression must be affine, but had curvature %s.
+            """ % expre.curvature
+            raise ValueError(msg)
+        # Note: we use the term "expre" rather than "expr" since
+        # "expr" is already a property used by all Constraint classes.
         self.expre = expre
         self.vec = vec
         self._ineq_form = ineq_form
@@ -70,7 +81,7 @@ class FiniteSet(Constraint):
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """
-        A ``FiniteSet`` constraint is DCP if the constrained expression is affine
+        A FiniteSet constraint is DCP if the constrained expression is affine.
         """
         if dpp:
             with scopes.dpp_scope():
@@ -90,8 +101,8 @@ class FiniteSet(Constraint):
     @property
     def ineq_form(self) -> bool:
         """
-        Choose between two constraining methodologies, use ``ineq_form=False`` while working with
-        ``Parameter`` types
+        Choose between two constraining methodologies, use ``ineq_form=False`` while
+        working with ``Parameter`` types.
         """
         return self._ineq_form
 
@@ -108,8 +119,8 @@ class FiniteSet(Constraint):
         -------
         float
         """
-        expre_val = np.array(self.expre.value).flatten()
+        expr_val = np.array(self.expre.value).flatten()
         vec_val = self.vec.value
-        resids = [np.min(np.abs(val - vec_val)) for val in expre_val]
+        resids = [np.min(np.abs(val - vec_val)) for val in expr_val]
         res = max(resids)
         return res
