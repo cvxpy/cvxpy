@@ -56,7 +56,7 @@ class FiniteSet(Constraint):
         solvers that use simple branch and bound methods.
     """
 
-    def __init__(self, expre, vec, ineq_form: bool = True, constr_id=None) -> None:
+    def __init__(self, expre, vec, ineq_form: bool = False, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         if isinstance(vec, set):
             vec = list(vec)
