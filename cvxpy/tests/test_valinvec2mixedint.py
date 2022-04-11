@@ -313,7 +313,6 @@ class TestFiniteSet:
 
 @solver_installed
 def test_default_argument():
-    # Test passing a Python set
     x = cp.Variable()
     objective = cp.Maximize(x)
     set_vals = set(range(5))
