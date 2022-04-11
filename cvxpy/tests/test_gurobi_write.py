@@ -14,16 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
+import unittest
 
 import numpy as np
 
 import cvxpy as cp
+from cvxpy.reductions.solvers.defines import INSTALLED_SOLVERS
 from cvxpy.tests.base_test import BaseTest
 
 
+@unittest.skipUnless('GUROBI' in INSTALLED_SOLVERS, 'GUROBI is not installed.')
 class TestGurobiWrite(BaseTest):
-    """ Gurobi model tests for write gurobi model files. """
-
     def test_write(self) -> None:
         """Test the Gurobi model.write().
         """
