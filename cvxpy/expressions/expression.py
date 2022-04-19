@@ -420,10 +420,11 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
-    def flatten(self):
+    def flatten(self, order: str = 'F'):
         """Vectorizes the expression.
         """
-        return cvxtypes.vec()(self)
+        assert order in ['F','C']
+        return cvxtypes.vec()(self, order)
 
     def is_scalar(self) -> bool:
         """Is the expression a scalar?
