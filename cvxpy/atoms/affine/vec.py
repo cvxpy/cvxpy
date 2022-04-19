@@ -31,6 +31,6 @@ def vec(X, order: str = 'F'):
     Expression
         An Expression representing the flattened matrix.
     """
-    assert order in ['F','C']
+    assert order in ['F', 'C']
     X = Expression.cast_to_const(X)
-    return reshape(X, (X.size,),order)
+    return reshape(X, (X.size,), order)
