@@ -179,7 +179,6 @@ class Leaf(expression.Expression):
     def get_data(self) -> None:
         """Leaves are not copied.
         """
-        pass
 
     @property
     def shape(self) -> Tuple[int, ...]:

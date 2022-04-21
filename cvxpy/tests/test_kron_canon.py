@@ -137,7 +137,6 @@ class TestKronLeftVar(TestKron):
         prob = cp.Problem(objective, constraints)
         prob.solve()
         self.assertItemsAlmostEqual(X.value, np.array([[10, 11], [11, 13]]) / 1.5)
-        pass
 
     def test_symvar_kronl_param(self):
         self.symvar_kronl(param=True)
@@ -167,7 +166,6 @@ class TestKronLeftVar(TestKron):
         prob = cp.Problem(objective, constraints)
         prob.solve()
         self.assertItemsAlmostEqual(y.value, np.array([[np.min(U / A_val)]]))
-        pass
 
     def test_scalar_kronl_param(self):
         self.scalar_kronl(param=True)
