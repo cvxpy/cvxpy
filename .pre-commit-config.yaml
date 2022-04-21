@@ -1,4 +1,17 @@
 repos:
+  # remove unused import and variable using autoflake
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v1.4
+    hooks:
+      - id: autoflake
+        args: [
+          '--in-place',
+          '--remove-all-unused-imports',
+          '--ignore-init-module-imports',
+          '--remove-unused-variables',
+          '--'
+        ]
+
   # import sorting with isort
   - repo: https://github.com/pycqa/isort
     rev: 5.8.0
