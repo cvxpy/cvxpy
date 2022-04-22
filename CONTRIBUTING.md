@@ -133,7 +133,7 @@ CVXPY has a few benchmarks in `cvxpy/tests/test_benchmarks.py`, which test
 the time to canonicalize problems. Please run
 
 ```
-pytest -s test_benchmarks.py
+pytest -s cvxpy/tests/test_benchmarks.py
 ```
 
 with and without your change, to make sure no performance regressions are
