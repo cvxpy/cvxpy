@@ -383,6 +383,22 @@ class TestDqcp(base_test.BaseTest):
         self.assertEqual(problem.objective.value, 2)
         np.testing.assert_almost_equal(x.value, np.array([2, 1, 0, 0, 0]))
 
+    def test_length_example(self) -> None:
+        """Fix #1760."""
+        n = 10
+        np.random.seed(1)
+        A = np.random.randn(n, n)
+        x_star = np.random.randn(n)
+        b = A @ x_star
+        epsilon = 1e-2
+        x = cp.Variable(n)
+        mse = cp.sum_squares(A @ x - b)/n
+        problem = cp.Problem(cp.Minimize(cp.length(x)), [mse <= epsilon])
+        assert problem.is_dqcp()
+
+        problem.solve(qcp=True)
+        assert np.isclose(problem.value, 8)
+
     def test_infeasible(self) -> None:
         x = cp.Variable(2)
         problem = cp.Problem(
