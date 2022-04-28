@@ -49,6 +49,7 @@ from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.solving_chain import (SolvingChain,
                                                     construct_solving_chain,)
 from cvxpy.settings import SOLVERS
+from cvxpy.utilities import debug_tools
 from cvxpy.utilities.deterministic import unique_list
 
 SolveResult = namedtuple(
@@ -148,7 +149,17 @@ class Problem(u.Canonical):
             raise error.DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
+        # Raise warning if objective has too many subexpressions.
+        if debug_tools.node_count(self._objective) >= debug_tools.MAX_NODES:
+            warnings.warn("Objective contains too many subexpressions. "
+                          "Consider vectorizing your CVXPY code to speed up compilation.")
         self._constraints = [_validate_constraint(c) for c in constraints]
+        # Raise warning if constraint has too many subexpressions.
+        for i, constraint in enumerate(self._constraints):
+            if debug_tools.node_count(constraint) >= debug_tools.MAX_NODES:
+                warnings.warn(f"Constraint #{i} contains too many subexpressions. "
+                              "Consider vectorizing your CVXPY code to speed up compilation.")
+
         self._value = None
         self._status: Optional[str] = None
         self._solution = None
