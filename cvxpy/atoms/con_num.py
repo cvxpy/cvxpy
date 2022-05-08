@@ -14,20 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from typing import List, Tuple
-from unittest import result
 
 import numpy as np
 from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
-from cvxpy.atoms.lambda_max import lambda_max
-from cvxpy.atoms.lambda_min import lambda_min
 from cvxpy.constraints.constraint import Constraint
+
 
 class con_num(Atom):
     """ Condition Number; :math:`\\lambda_{\\max}(A) / \\lambda_{\\min}(A)`.
     """
-
     def __init__(self, A) -> None:
         super(con_num, self).__init__(A)
 
@@ -39,7 +36,7 @@ class con_num(Atom):
         lo = hi = self.args[0].shape[0]-1
         max_eigen = LA.eigvalsh(values[0], eigvals=(lo, hi))[0]
         min_eigen = -LA.eigvalsh(-values[0], eigvals=(lo, hi))[0]
-        return max_eigen /  min_eigen
+        return max_eigen / min_eigen
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
@@ -85,7 +82,7 @@ class con_num(Atom):
         """Is the atom concave?
         """
         return False
-    
+
     def is_atom_quasiconvex(self) -> bool:
         """Is the atom quasiconvex?
         """

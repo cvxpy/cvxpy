@@ -17,7 +17,6 @@ from cvxpy.atoms.affine.diag import diag_vec
 from cvxpy.atoms.affine.promote import promote
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.psd import PSD
-from cvxpy.expressions.constants.parameter import Parameter
 from cvxpy.expressions.variable import Variable
 
 
@@ -39,5 +38,5 @@ def con_num_canon(expr, args):
         lt = upper_tri(A.T)
         constr.append(ut == lt)
         constr.append(A >> 0)
-    
+
     return t, constr
