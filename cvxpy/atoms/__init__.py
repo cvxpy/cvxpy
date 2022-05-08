@@ -70,6 +70,7 @@ from cvxpy.atoms.lambda_max import lambda_max
 from cvxpy.atoms.lambda_min import lambda_min
 from cvxpy.atoms.lambda_sum_largest import lambda_sum_largest
 from cvxpy.atoms.lambda_sum_smallest import lambda_sum_smallest
+from cvxpy.atoms.con_num import con_num
 from cvxpy.atoms.length import length
 from cvxpy.atoms.log_det import log_det
 from cvxpy.atoms.log_sum_exp import log_sum_exp
@@ -122,6 +123,7 @@ EXP_ATOMS = [
 PSD_ATOMS = [
     lambda_max,
     lambda_sum_largest,
+    con_num,
     log_det,
     MatrixFrac,
     normNuc,
