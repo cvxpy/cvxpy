@@ -593,7 +593,7 @@ class TestSDPA(BaseTest):
 
     def test_sdpa_lp_5(self) -> None:
         # this also tests the ability to pass solver options
-        StandardTestLPs.test_lp_5(solver='SDPA', verbose=True, gammaStar=0.85, epsilonDash=1.0E-5)
+        StandardTestLPs.test_lp_5(solver='SDPA', gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
 
     def test_sdpa_sdp_1(self) -> None:
         # minimization
