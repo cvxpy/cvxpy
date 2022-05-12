@@ -93,7 +93,7 @@ from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.sum_smallest import sum_smallest
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
-from cvxpy.atoms.vn_ent import vn_entr
+from cvxpy.atoms.vn_entr import vn_entr
 
 # TODO(akshayka): Perhaps couple this information with the atom classes
 # themselves.

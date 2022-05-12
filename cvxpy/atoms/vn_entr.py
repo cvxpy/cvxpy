@@ -16,19 +16,19 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-from numpy.linalg import cholesky
-import scipy.sparse as sp
+# from numpy.linalg import cholesky
 from scipy import linalg as LA
+# from scipy.linalg import logm
 from scipy.special import entr
-from scipy.linalg import logm
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.utilities.eigvals import is_psd_within_tol
+
 
 class vn_entr(Atom):
+
     def __init__(self, N) -> None:
-        #TODO: add a check that N is symmetric/Hermitian.
+        # TODO: add a check that N is symmetric/Hermitian.
         super(vn_entr, self).__init__(N)
 
     def numeric(self, values):
@@ -43,15 +43,14 @@ class vn_entr(Atom):
         """Verify that the argument A is PSD.
         """
         N = self.args[0]
-        tol = 1e-10
-        if not is_psd_within_tol(N, tol):
-            raise ValueError("""The input matrix to the Vonn
-                Neumann Entropy needs to be Positive SemiDefinite""")
+        if N.size > 1:
+            if N.ndim != 2 or N.shape[0] != N.shape[1]:
+                raise ValueError('Argument must be a square matrix.')
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        return (True, False)
+        return (False, False)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
@@ -89,11 +88,12 @@ class vn_entr(Atom):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        N = values[0]
-        L = cholesky(N)
-        derivative = 2*(L+L*logm(np.dot(L.T,L)))
-        #TODO: have to wrap derivative around scipy CSC sparse matrices
-
+        # N = values[0]
+        # L = cholesky(N)
+        # derivative = 2*(L + L * logm(np.dot(L.T, L)))
+        # TODO: have to wrap derivative around scipy CSC sparse matrices
+        #  compare to log_det atom.
+        raise ValueError()
 
     def _domain(self) -> List[Constraint]:
         """Returns constraints describing the domain of the node.
