@@ -20,7 +20,7 @@ from cvxpy.constraints.psd import PSD
 from cvxpy.expressions.variable import Variable
 
 
-def con_num_canon(expr, args):
+def condition_number_canon(expr, args):
     A = args[0]
     n = A.shape[0]
     t = Variable()
@@ -31,7 +31,7 @@ def con_num_canon(expr, args):
     tmp_expr1 = A - diag_vec(prom_u)
     tmp_expr2 = diag_vec(prom_ut) - A
     constr = [PSD(tmp_expr1)]
-    constr.append(tmp_expr2)
+    constr.append(PSD(tmp_expr2))
 
     if not A.is_symmetric():
         ut = upper_tri(A)

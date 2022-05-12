@@ -22,11 +22,11 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
 
 
-class con_num(Atom):
+class condition_number(Atom):
     """ Condition Number; :math:`\\lambda_{\\max}(A) / \\lambda_{\\min}(A)`.
     """
     def __init__(self, A) -> None:
-        super(con_num, self).__init__(A)
+        super(condition_number, self).__init__(A)
 
     def numeric(self, values):
         """Returns the condition number of A.
@@ -76,7 +76,7 @@ class con_num(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return True
+        return False
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
