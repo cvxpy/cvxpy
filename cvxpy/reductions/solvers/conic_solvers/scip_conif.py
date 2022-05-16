@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import logging
+from distutils.version import StrictVersion as Version
 from typing import Any, Dict, Generic, Iterator, List, Optional, Tuple, Union
 
 from numpy import array, ndarray
@@ -87,8 +88,12 @@ class SCIP(ConicSolver):
 
     def import_solver(self) -> None:
         """Imports the solver."""
-        from pyscipopt import scip
-        scip  # For flake8
+        import pyscipopt
+        v = pyscipopt.__version__
+        if Version(v) >= Version('4.0.0'):
+            msg = 'PySCIPOpt (SCIP\'s Python wrapper) is installed and its' \
+                  'version is %s. CVXPY only supports PySCIPOpt < 4.0.0.' % v
+            raise NotImplementedError(msg)
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""
@@ -309,10 +314,14 @@ class SCIP(ConicSolver):
     ) -> Dict[str, Any]:
         """Solve and return a solution if one exists."""
 
-        solution = {}
         try:
             model.optimize()
+        except Exception as e:
+            log.warning("Error encountered when optimising %s: %s", model, e)
 
+        solution = {}
+
+        if max(model.getNSols(), model.getNCountedSols()) > 0:
             solution["value"] = model.getObjVal()
             sol = model.getBestSol()
             solution["primal"] = array([sol[v] for v in variables])
@@ -337,9 +346,6 @@ class SCIP(ConicSolver):
                 solution["y"] = -array(vals)
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
-
-        except Exception as e:
-            log.warning("Error encountered when optimising %s: %s", model, e)
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
         solution['status'] = STATUS_MAP[model.getStatus()]
