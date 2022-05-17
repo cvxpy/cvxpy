@@ -1108,16 +1108,6 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Input matrix was not Hermitian/symmetric.")
 
-    def test_condition_number(self) -> None:
-        with self.assertRaises(ValueError) as cm:
-            cp.condition_number([[1, 2], [3, 4]]).value
-        self.assertEqual(str(cm.exception),
-                         "Input matrix was not Hermitian/symmetric.")
-
-        x = cp.Variable((3, 3))
-        atom = cp.condition_number(x)
-        self.assertEqual(atom.curvature, s.QUASICONVEX)
-
     def test_diff(self) -> None:
         """Test the diff atom.
         """

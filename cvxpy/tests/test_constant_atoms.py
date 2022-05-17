@@ -114,7 +114,6 @@ atoms_minimize = [
     (cp.lambda_max, tuple(), [[[2, 0], [0, 1]]], Constant([2])),
     (cp.lambda_max, tuple(), [[[2, 0, 0], [0, 3, 0], [0, 0, 1]]], Constant([3])),
     (cp.lambda_max, tuple(), [[[5, 7], [7, -3]]], Constant([9.06225775])),
-    (cp.condition_number, tuple(), [[[2, 0, 0], [0, 4, 0], [0, 0, 1]]], Constant([4])),
     (lambda x: cp.lambda_sum_largest(x, 2), tuple(),
      [[[1, 2, 3], [2, 4, 5], [3, 5, 6]]], Constant([11.51572947])),
     (cp.log_sum_exp, tuple(), [[[5, 7], [0, -3]]], Constant([7.1277708268])),

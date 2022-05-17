@@ -494,6 +494,20 @@ class TestDqcp(base_test.BaseTest):
         # smoke test
         problem.solve(cp.SCS, qcp=True)
 
+    def test_condition_number(self) -> None:
+        A = cp.Variable((2, 2), PSD=True)
+        con_num = cp.condition_number(A)
+        constr = [
+            A[0][0] == 2.0,
+            A[1][1] == 3.0,
+            A[0][1] <= 2, A[0][1] >= 0,
+            A[1][0] <= 2, A[1][0] >= 0,
+        ]
+        prob = cp.Problem(cp.Minimize(con_num), constr)
+        self.assertTrue(prob.is_dqcp())
+        # smoke test
+        prob.solve(cp.SCS, qcp=True)
+
     def test_card_ls(self) -> None:
         n = 10
         np.random.seed(0)

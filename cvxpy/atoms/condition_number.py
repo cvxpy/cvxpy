@@ -15,7 +15,6 @@ limitations under the License.
 """
 from typing import List, Tuple
 
-import numpy as np
 from scipy import linalg as LA
 
 from cvxpy.atoms.atom import Atom
@@ -97,11 +96,3 @@ class condition_number(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return False
-
-    @property
-    def value(self):
-        if not np.allclose(self.args[0].value, self.args[0].value.T.conj()):
-            raise ValueError("Input matrix was not Hermitian/symmetric.")
-        if any([p.value is None for p in self.parameters()]):
-            return None
-        return self._value_impl()
