@@ -59,8 +59,9 @@ class condition_number(Atom):
         """Verify that the argument A is square.
         """
         if not self.args[0].ndim == 2 or self.args[0].shape[0] != self.args[0].shape[1]:
-            raise ValueError("The argument '%s' to con_num must resolve to a square matrix."
-                             % self.args[0].name())
+            raise ValueError(
+                f"The argument {self.args[0].name()} to condition_number must be a square matrix."
+            )
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
@@ -70,7 +71,7 @@ class condition_number(Atom):
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
         """
-        return (False, False)
+        return (True, False)
 
     def is_atom_convex(self) -> bool:
         """Is the atom convex?

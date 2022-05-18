@@ -261,8 +261,8 @@ symmetric and ``B`` is positive definite.
 
 
 **Condition Number.**
-The atom ``cvxpy.condition_number`` computes the condition number of ``A``, defined as the
-:math:`\\lambda_{\\max}(A) / \\lambda_{\\min}(A)`.
+The atom ``cvxpy.condition_number(A)`` computes the condition number of ``A``, defined as the
+:math:`\lambda_{\max}(A) / \lambda_{\min}(A)`.
 This atom is quasiconvex, and it enforces the constraint that ``A`` is
 symmetric and positive definite.
 

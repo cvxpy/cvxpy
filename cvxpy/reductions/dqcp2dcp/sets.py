@@ -139,7 +139,7 @@ def condition_number_sub(expr, t):
     tmp_expr2 = diag_vec(prom_ut) - A
 
     return [A == A.T,
-            A >> 0,
+            PSD(A),
             PSD(tmp_expr1),
             PSD(tmp_expr2)]
 
