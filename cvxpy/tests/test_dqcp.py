@@ -500,16 +500,16 @@ class TestDqcp(base_test.BaseTest):
         constr = [
             A[0][0] == 2.0,
             A[1][1] == 3.0,
-            A[0][1] <= 2, A[0][1] >= 0,
-            A[1][0] <= 2, A[1][0] >= 0,
+            A[0][1] <= 2, A[0][1] >= 1,
+            A[1][0] <= 2, A[1][0] >= 1,
         ]
         prob = cp.Problem(cp.Minimize(con_num), constr)
         self.assertTrue(prob.is_dqcp())
         # smoke test
         prob.solve(cp.SCS, qcp=True)
-        ans = np.asarray([[2.0, 0.0],
-                          [0.0, 3.0]])
-        self.assertItemsAlmostEqual(A.value, ans, places=3)
+        ans = np.asarray([[2.0, 1.0],
+                          [1.0, 3.0]])
+        self.assertItemsAlmostEqual(A.value, ans, places=1)
 
     def test_card_ls(self) -> None:
         n = 10
