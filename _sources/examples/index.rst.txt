@@ -89,9 +89,9 @@ Machine learning
 
 - :doc:`SVM classifier <machine_learning/svm>` `\[.ipynb\] <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/machine_learning/svm.ipynb>`_
 
-- `Huber regression <https://colab.research.google.com/github/cvxpy/cvx_short_course/blob/master/applications/huber_regression.ipynb>`_
+- `Huber regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/huber_regression.ipynb>`_
 
-- `Quantile regression <https://colab.research.google.com/github/cvxpy/cvx_short_course/blob/master/applications/quantile_regression.ipynb>`_
+- `Quantile regression <https://colab.research.google.com/github/cvxgrp/cvx_short_course/blob/master/applications/quantile_regression.ipynb>`_
 
 .. _finance
 

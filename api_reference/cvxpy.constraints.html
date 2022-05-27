@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
 
-    <title>Constraints &#8212; CVXPY 1.2 documentation</title>
+    <title>Constraints &#8212; CVXPY 1.3 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -55,6 +55,7 @@ inspect dual variable values and residuals.</p>
 <li><p><a class="reference internal" href="#expcone" id="id13">ExpCone</a></p></li>
 <li><p><a class="reference internal" href="#powcone3d" id="id14">PowCone3D</a></p></li>
 <li><p><a class="reference internal" href="#powconend" id="id15">PowConeND</a></p></li>
+<li><p><a class="reference internal" href="#finiteset" id="id16">FiniteSet</a></p></li>
 </ul>
 </div>
 <section id="constraint">
@@ -723,6 +724,102 @@ constraint:</p>
 </dd></dl>
 
 </section>
+<section id="finiteset">
+<h2><a class="toc-backref" href="#id16">FiniteSet</a><a class="headerlink" href="#finiteset" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="cvxpy.constraints.finite_set.FiniteSet">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.constraints.finite_set.</span></span><span class="sig-name descname"><span class="pre">FiniteSet</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">expre</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ineq_form</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">constr_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/constraints/finite_set.html#FiniteSet"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.finite_set.FiniteSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.constraints.constraint.Constraint" title="cvxpy.constraints.constraint.Constraint"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.constraints.constraint.Constraint</span></code></a></p>
+<p>Constrain each entry of an Expression to take a value in a given set of real numbers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expre</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – <p>The given expression to be constrained. This Expression must be affine.
+If <code class="docutils literal notranslate"><span class="pre">expre</span></code> has multiple elements, then the constraint is applied separately to
+each element. I.e., after solving a problem with this constraint, we should have:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">expre</span><span class="o">.</span><span class="n">flatten</span><span class="p">():</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">value</span> <span class="ow">in</span> <span class="n">vec</span><span class="p">)</span> <span class="c1"># =&gt; True</span>
+</pre></div>
+</div>
+</p></li>
+<li><p><strong>vec</strong> (<em>Union</em><em>[</em><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a><em>, </em><em>np.ndarray</em><em>, </em><em>set</em><em>]</em>) – The finite collection of values to which each entry of <code class="docutils literal notranslate"><span class="pre">expre</span></code>
+is to be constrained.</p></li>
+<li><p><strong>ineq_form</strong> (<em>bool</em>) – <p>Controls how this constraint is canonicalized into mixed integer linear
+constraints.</p>
+<p>If True, then we use a formulation with <code class="docutils literal notranslate"><span class="pre">vec.size</span> <span class="pre">-</span> <span class="pre">1</span></code> inequality constraints,
+one equality constraint, and <code class="docutils literal notranslate"><span class="pre">vec.size</span> <span class="pre">-</span> <span class="pre">1</span></code> binary variables for each element
+of <code class="docutils literal notranslate"><span class="pre">expre</span></code>.</p>
+<p>If False, then we use a formulation with <code class="docutils literal notranslate"><span class="pre">vec.size</span></code> binary variables and two
+equality constraints for each element of <code class="docutils literal notranslate"><span class="pre">expre</span></code>.</p>
+<p>Defaults to False. The case <code class="docutils literal notranslate"><span class="pre">ineq_form=True</span></code> may speed up some mixed-integer
+solvers that use simple branch and bound methods.</p>
+</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="cvxpy.constraints.finite_set.FiniteSet.ineq_form">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ineq_form</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#cvxpy.constraints.finite_set.FiniteSet.ineq_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Choose between two constraining methodologies, use <code class="docutils literal notranslate"><span class="pre">ineq_form=False</span></code> while
+working with <code class="docutils literal notranslate"><span class="pre">Parameter</span></code> types.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.constraints.finite_set.FiniteSet.is_dcp">
+<span class="sig-name descname"><span class="pre">is_dcp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dpp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="../_modules/cvxpy/constraints/finite_set.html#FiniteSet.is_dcp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.constraints.finite_set.FiniteSet.is_dcp" title="Permalink to this definition">¶</a></dt>
+<dd><p>A FiniteSet constraint is DCP if the constrained expression is affine.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cvxpy.constraints.finite_set.FiniteSet.shape">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#cvxpy.constraints.finite_set.FiniteSet.shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>The shape of the constrained expression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="cvxpy.constraints.finite_set.FiniteSet.size">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">size</span></span><a class="headerlink" href="#cvxpy.constraints.finite_set.FiniteSet.size" title="Permalink to this definition">¶</a></dt>
+<dd><p>The size of the constrained expression.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="cvxpy.constraints.finite_set.FiniteSet.violation">
+<span class="sig-name descname"><span class="pre">violation</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#cvxpy.constraints.finite_set.FiniteSet.violation" title="Permalink to this definition">¶</a></dt>
+<dd><p>The numeric residual of the constraint.</p>
+<p>The violation is defined as the distance between the constrained
+expression’s value and its projection onto the domain of the
+constraint:</p>
+<div class="math notranslate nohighlight">
+\[||\Pi(v) - v||_2^2\]</div>
+<p>where <span class="math notranslate nohighlight">\(v\)</span> is the value of the constrained expression and
+<span class="math notranslate nohighlight">\(\Pi\)</span> is the projection operator onto the constraint’s domain .</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p>The residual value.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>NumPy.ndarray</p>
+</dd>
+<dt class="field-odd">Raises</dt>
+<dd class="field-odd"><p><strong>ValueError</strong> – If the constrained expression does not have a value associated
+    with it.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
 </section>
 
 
@@ -770,6 +867,7 @@ constraint:</p>
 <li class="toctree-l3"><a class="reference internal" href="#expcone">ExpCone</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#powcone3d">PowCone3D</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#powconend">PowConeND</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#finiteset">FiniteSet</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
