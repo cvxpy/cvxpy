@@ -1,0 +1,419 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Queuing design &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="queuing-design">
+<h1>Queuing design<a class="headerlink" href="#queuing-design" title="Permalink to this headline">¶</a></h1>
+<p>In this example, we consider the design of an <span class="math notranslate nohighlight">\(M/M/N\)</span> queuing
+system, and we study the sensitivity of the design with respect to
+various parameters, such as the maximum total delay and total service
+rate.</p>
+<p>This example was described in the paper <a class="reference external" href="http://web.stanford.edu/~boyd/papers/pdf/diff_llcvx.pdf">Differentiating through Log-Log
+Convex
+Programs</a>.</p>
+<p>We consider the optimization of a (Markovian) queuing system, with
+<span class="math notranslate nohighlight">\(N\)</span> queues. A queuing system is a collection of queues, in which
+queued items wait to be served; the queued items might be threads in an
+operating system, or packets in an input or output buffer of a
+networking system. A natural goal to minimize the service load of the
+system, given constraints on various properties of the queuing system,
+such as limits on the maximum delay or latency. In this example, we
+formulate this design problem as a log-log convex program (LLCP), and
+compute the sensitivity of the design variables with respect to the
+parameters. The queuing system under consideration here is known as an
+<span class="math notranslate nohighlight">\(M/M/N\)</span> queue.</p>
+<p>We assume that items arriving at the <span class="math notranslate nohighlight">\(i\)</span>th queue are generated
+by a Poisson process with rate <span class="math notranslate nohighlight">\(\lambda_i\)</span>, and that the service
+times for the <span class="math notranslate nohighlight">\(i\)</span>th queue follow an exponential distribution
+with parameter <span class="math notranslate nohighlight">\(\mu_i\)</span>, for <span class="math notranslate nohighlight">\(i=1, \ldots, N\)</span>. The of the
+queuing system is a function
+<span class="math notranslate nohighlight">\(\ell : \mathbf{R}^{N}_{++} \times \mathbf{R}^{N}_{++} \to \mathbf{R}^{N}_{++}\)</span>
+of the arrival rate vector <span class="math notranslate nohighlight">\(\lambda\)</span> and the service rate vector
+<span class="math notranslate nohighlight">\(\mu\)</span>, with components</p>
+<div class="math notranslate nohighlight">
+\[\ell_i(\lambda, \mu) = \frac{\mu_i}{\lambda_i}, \quad i=1, \ldots, N.\]</div>
+<p>(This is the reciprocal of the traffic load, which is usually denoted by
+<span class="math notranslate nohighlight">\(\rho\)</span>.) Similarly, the queue occupancy, the average delay, and
+the total delay of the system are (respectively) functions <span class="math notranslate nohighlight">\(q\)</span>,
+<span class="math notranslate nohighlight">\(w\)</span>, and <span class="math notranslate nohighlight">\(d\)</span> of <span class="math notranslate nohighlight">\(\lambda\)</span> and <span class="math notranslate nohighlight">\(\mu\)</span>, with
+components</p>
+<div class="math notranslate nohighlight">
+\[q_i(\lambda, \mu) =
+\frac{\ell_i(\lambda, \mu)^{-2}}{1 - \ell_i(\lambda, \mu)^{-1}}, \quad
+w_i(\lambda, \mu) = \frac{q_i(\lambda, \mu)}{\lambda_i} + \frac{1}{\mu_i}, \quad
+d_i(\lambda, \mu) = \frac{1}{\mu_i - \lambda_i}\]</div>
+<p>These functions have domain
+<span class="math notranslate nohighlight">\(\{(\lambda, \mu) \in \mathbf{R}^{N}_{++} \times \mathbf{R}^{N}_{++} \mid \lambda &lt; \mu \}\)</span>,
+where the inequality is meant elementwise. The queuing system has limits
+on the queue occupancy, average queuing delay, and total delay, which
+must satisfy</p>
+<div class="math notranslate nohighlight">
+\[q(\lambda, \mu) \leq q_{\max}, \quad w(\lambda, \mu) \leq w_{\max}, \quad d(\lambda, \mu) \leq d_{\max},\]</div>
+<p>where <span class="math notranslate nohighlight">\(q_{\max}\)</span>, <span class="math notranslate nohighlight">\(w_{\max}\)</span>, and
+<span class="math notranslate nohighlight">\(d_{\max} \in \mathbf{R}^{N}_{++}\)</span> are parameters and the
+inequalities are meant elementwise. Additionally, the arrival rate
+vector <span class="math notranslate nohighlight">\(\lambda\)</span> must be at least
+<span class="math notranslate nohighlight">\(\lambda_{\mathrm{min}} \in \mathbf{R}^{N}_{++}\)</span>, and the sum of
+the service rates must be no greater than
+<span class="math notranslate nohighlight">\(\mu_{\max} \in \mathbf{R}_{++}\)</span>.</p>
+<p>Our design problem is to choose the arrival rates and service times to
+minimize a weighted sum of the service loads,
+<span class="math notranslate nohighlight">\(\gamma^T \ell(\lambda, \mu)\)</span>, where
+<span class="math notranslate nohighlight">\(\gamma \in \mathbf{R}^{N}_{++}\)</span> is the weight vector, while
+satisfying the constraints. The problem is</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{array}{ll}
+\mbox{minimize} &amp; \gamma^T \ell(\lambda, \mu) \\
+\mbox{subject to}
+&amp; q(\lambda, \mu) \leq q_{\max} \\
+&amp; w(\lambda, \mu) \leq w_{\max} \\
+&amp; d(\lambda, \mu) \leq d_{\max} \\
+&amp; \lambda \geq \lambda_{\mathrm{min}}, \quad
+\sum_{i=1}^{N} \mu_i \leq \mu_{\max}.
+\end{array}\end{split}\]</div>
+<p>Here, <span class="math notranslate nohighlight">\(\lambda, \mu \in \mathbf{R}^{N}_{++}\)</span> are the variables and
+<span class="math notranslate nohighlight">\(\gamma, q_{\max}, w_{\max}, d_{\max}, \lambda_{\mathrm{min}} \in \mathbf{R}^{N}_{++}\)</span>
+and <span class="math notranslate nohighlight">\(\mu_{\max} \in \mathbf{R}_{++}\)</span> are the parameters. This
+problem is an LLCP. The objective function is a posynomial, as is the
+constraint function <span class="math notranslate nohighlight">\(w\)</span>. The functions <span class="math notranslate nohighlight">\(d\)</span> and <span class="math notranslate nohighlight">\(q\)</span> are
+not posynomials, but they are log-log convex; log-log convexity of
+<span class="math notranslate nohighlight">\(d\)</span> follows from the composition rule, since the function
+<span class="math notranslate nohighlight">\((x, y) \mapsto y - x\)</span> is log-log concave (for <span class="math notranslate nohighlight">\(0 &lt; x &lt; y\)</span>),
+and the ratio <span class="math notranslate nohighlight">\((x, y) \mapsto x/y\)</span> is log-log affine and
+decreasing in <span class="math notranslate nohighlight">\(y\)</span>. By a similar argument, <span class="math notranslate nohighlight">\(q\)</span> is also
+log-log convex.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import cvxpy as cp
+import numpy as np
+import time
+
+
+mu = cp.Variable(pos=True, shape=(2,), name=&#39;mu&#39;)
+lam = cp.Variable(pos=True, shape=(2,), name=&#39;lambda&#39;)
+ell = cp.Variable(pos=True, shape=(2,), name=&#39;ell&#39;)
+
+w_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2.5, 3.0]), name=&#39;w_max&#39;)
+d_max = cp.Parameter(pos=True, shape=(2,), value=np.array([2., 2.]), name=&#39;d_max&#39;)
+q_max = cp.Parameter(pos=True, shape=(2,), value=np.array([4., 5.0]), name=&#39;q_max&#39;)
+lam_min = cp.Parameter(pos=True, shape=(2,), value=np.array([0.5, 0.8]), name=&#39;lambda_min&#39;)
+mu_max = cp.Parameter(pos=True, value=3.0, name=&#39;mu_max&#39;)
+gamma = cp.Parameter(pos=True, shape=(2,), value=np.array([1.0, 2.0]), name=&#39;gamma&#39;)
+
+lq = (ell)**(-2)/cp.one_minus_pos(ell**(-1))
+q = lq
+w = lq/lam + 1/mu
+d = 1/cp.diff_pos(mu, lam)
+
+constraints = [
+    w &lt;= w_max,
+    d &lt;= d_max,
+    q &lt;= q_max,
+    lam &gt;= lam_min,
+    cp.sum(mu) &lt;= mu_max,
+    ell == mu/lam,
+]
+
+objective_fn = gamma.T @ ell
+
+problem = cp.Problem(cp.Minimize(objective_fn), constraints)
+problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">4.457106781186705</span>
+</pre></div>
+</div>
+<p>The solution is printed below.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>print(&#39;mu &#39;, mu.value)
+print(&#39;lam &#39;, lam.value)
+print(&#39;ell &#39;, ell.value)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mu</span>  <span class="p">[</span><span class="mf">1.32842713</span> <span class="mf">1.67157287</span><span class="p">]</span>
+<span class="n">lam</span>  <span class="p">[</span><span class="mf">0.82842712</span> <span class="mf">1.17157287</span><span class="p">]</span>
+<span class="n">ell</span>  <span class="p">[</span><span class="mf">1.60355339</span> <span class="mf">1.4267767</span> <span class="p">]</span>
+</pre></div>
+</div>
+<section id="sensitvities">
+<h2>Sensitvities<a class="headerlink" href="#sensitvities" title="Permalink to this headline">¶</a></h2>
+<p>We compute the derivative of each variable with respect the parameters.
+One takeaway is that the solution is highly sensitive to the values of
+<span class="math notranslate nohighlight">\(d_{\max}\)</span> and <span class="math notranslate nohighlight">\(\mu_{\max}\)</span>, and that increasing these
+parameters would decrease the service loads, especially on the first
+queue.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+
+for var in [lam, mu, ell]:
+    print(&#39;Variable &#39;, var.name())
+    print(&#39;Gradient with respect to first component&#39;)
+    var.gradient = np.array([1., 0.])
+    problem.backward()
+    for param in problem.parameters():
+        if np.prod(param.shape) == 2:
+            print(&#39;{0}: {1:.3g}, {2:.3g}&#39;.format(param.name(), param.gradient[0], param.gradient[1]))
+        else:
+            print(&#39;{0}: {1:.3g}&#39;.format(param.name(), param.gradient))
+
+    print(&#39;Gradient with respect to second component&#39;)
+    var.gradient = np.array([0., 1.])
+    problem.backward()
+    for param in problem.parameters():
+        if np.prod(param.shape) == 2:
+            print(&#39;{0}: {1:.3g}, {2:.3g}&#39;.format(param.name(), param.gradient[0], param.gradient[1]))
+        else:
+            print(&#39;{0}: {1:.3g}&#39;.format(param.name(), param.gradient))
+
+    var.gradient = np.zeros(2)
+    print(&#39;&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Variable</span>  <span class="k">lambda</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">first</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="mf">0.213</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.107</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">5.43e-12</span><span class="p">,</span> <span class="mf">5.64e-12</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.411</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.113</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">5.99e-12</span><span class="p">,</span> <span class="mf">4.77e-12</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.56e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">7.35e-12</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="mf">0.927</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">second</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.458</span><span class="p">,</span> <span class="mf">0.229</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">2.08e-11</span><span class="p">,</span> <span class="mf">2.16e-11</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.105</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.466</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">2.29e-11</span><span class="p">,</span> <span class="mf">1.83e-11</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.97e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.82e-11</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="mf">1.01</span>
+
+<span class="n">Variable</span>  <span class="n">mu</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">first</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="mf">0.213</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.107</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">1.55e-11</span><span class="p">,</span> <span class="mf">1.6e-11</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.661</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.113</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">1.7e-11</span><span class="p">,</span> <span class="mf">1.36e-11</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">4.43e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.09e-11</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.0727</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">second</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.458</span><span class="p">,</span> <span class="mf">0.229</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">2.3e-11</span><span class="p">,</span> <span class="mf">2.39e-11</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.105</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.716</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">2.53e-11</span><span class="p">,</span> <span class="mf">2.02e-11</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">6.59e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">3.11e-11</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="mf">0.00996</span>
+
+<span class="n">Variable</span>  <span class="n">ell</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">first</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.245</span><span class="p">,</span> <span class="mf">0.122</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="mf">2e-11</span><span class="p">,</span> <span class="mf">2.08e-11</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.282</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.22</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="mf">2.21e-11</span><span class="p">,</span> <span class="mf">1.76e-11</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="o">-</span><span class="mf">5.74e-11</span><span class="p">,</span> <span class="o">-</span><span class="mf">2.71e-11</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.334</span>
+<span class="n">Gradient</span> <span class="k">with</span> <span class="n">respect</span> <span class="n">to</span> <span class="n">second</span> <span class="n">component</span>
+<span class="n">gamma</span><span class="p">:</span> <span class="mf">0.122</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.0611</span>
+<span class="n">w_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.24e-13</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.29e-13</span>
+<span class="n">d_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.101</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.195</span>
+<span class="n">q_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">1.37e-13</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.09e-13</span>
+<span class="n">lambda_min</span><span class="p">:</span> <span class="mf">3.58e-13</span><span class="p">,</span> <span class="mf">1.66e-13</span>
+<span class="n">mu_max</span><span class="p">:</span> <span class="o">-</span><span class="mf">0.197</span>
+</pre></div>
+</div>
+<section id="perturbation-analysis">
+<h3>Perturbation analysis<a class="headerlink" href="#perturbation-analysis" title="Permalink to this headline">¶</a></h3>
+<p>Next, we perturb each parameter by a small amount, and compare the
+prediction of a first-order approximation to the solution of the
+perturbed problem to the true solution.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>problem.solve(requires_grad=True, gp=True, eps=1e-14, max_iters=10000, mode=&#39;dense&#39;)
+
+mu_value = mu.value
+lam_value = lam.value
+
+delta = 0.01
+for param in problem.parameters():
+    param.delta = param.value * delta
+
+problem.derivative()
+
+lam_pred = (lam.delta / lam_value) * 100
+mu_pred = (mu.delta / mu_value) * 100
+
+print(&#39;lam predicted (percent change): &#39;, lam_pred)
+print(&#39;mu predicted (percent change): &#39;, mu_pred)
+
+
+for param in problem.parameters():
+    param._old_value = param.value
+    param.value += param.delta
+problem.solve(cp.SCS, gp=True, eps=1e-14, max_iters=10000)
+
+lam_actual = ((lam.value - lam_value) / lam_value) * 100
+mu_actual = ((mu.value - mu_value) / mu_value) * 100
+
+print(&#39;lam actual (percent change): &#39;, lam_actual)
+print(&#39;mu actual (percent change): &#39;, mu_actual)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">lam</span> <span class="n">predicted</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">2.32203282</span> <span class="mf">1.77228841</span><span class="p">]</span>
+<span class="n">mu</span> <span class="n">predicted</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">1.07166961</span> <span class="mf">0.94304296</span><span class="p">]</span>
+<span class="n">lam</span> <span class="n">actual</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">1.99504983</span> <span class="mf">1.99504965</span><span class="p">]</span>
+<span class="n">mu</span> <span class="n">actual</span> <span class="p">(</span><span class="n">percent</span> <span class="n">change</span><span class="p">):</span>  <span class="p">[</span><span class="mf">0.87148458</span> <span class="mf">1.10213353</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/derivatives/queuing_design.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

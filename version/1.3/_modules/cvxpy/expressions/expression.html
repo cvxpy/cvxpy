@@ -1,0 +1,880 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cvxpy.expressions.expression &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+    <script src="../../../_static/jquery.js"></script>
+    <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/doctools.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" />
+   
+  <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for cvxpy.expressions.expression</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copyright 2013 Steven Diamond</span>
+
+<span class="sd">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="sd">you may not use this file except in compliance with the License.</span>
+<span class="sd">You may obtain a copy of the License at</span>
+
+<span class="sd">    http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="sd">Unless required by applicable law or agreed to in writing, software</span>
+<span class="sd">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="sd">WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="sd">See the License for the specific language governing permissions and</span>
+<span class="sd">limitations under the License.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">cvxpy.settings</span> <span class="k">as</span> <span class="nn">s</span>
+<span class="kn">import</span> <span class="nn">cvxpy.utilities</span> <span class="k">as</span> <span class="nn">u</span>
+<span class="kn">import</span> <span class="nn">cvxpy.utilities.key_utils</span> <span class="k">as</span> <span class="nn">ku</span>
+<span class="kn">import</span> <span class="nn">cvxpy.utilities.performance_utils</span> <span class="k">as</span> <span class="nn">perf</span>
+<span class="kn">from</span> <span class="nn">cvxpy</span> <span class="kn">import</span> <span class="n">error</span>
+<span class="kn">from</span> <span class="nn">cvxpy.constraints</span> <span class="kn">import</span> <span class="n">PSD</span><span class="p">,</span> <span class="n">Equality</span><span class="p">,</span> <span class="n">Inequality</span>
+<span class="kn">from</span> <span class="nn">cvxpy.expressions</span> <span class="kn">import</span> <span class="n">cvxtypes</span>
+<span class="kn">from</span> <span class="nn">cvxpy.utilities</span> <span class="kn">import</span> <span class="n">scopes</span>
+
+
+<span class="k">def</span> <span class="nf">_cast_other</span><span class="p">(</span><span class="n">binary_op</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Casts the second argument of a binary operator as an Expression.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        binary_op: A binary operator in the Expression class.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        A wrapped binary operator that can handle non-Expression arguments.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@wraps</span><span class="p">(</span><span class="n">binary_op</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">cast_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A wrapped binary operator that can handle non-Expression arguments.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">binary_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">cast_op</span>
+
+
+<span class="n">__STAR_MATMUL_COUNT__</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">__STAR_MATMUL_WARNING__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">This use of ``*`` has resulted in matrix multiplication.</span>
+<span class="s2">Using ``*`` for matrix multiplication has been deprecated since CVXPY 1.1.</span>
+<span class="s2">    Use ``*`` for matrix-scalar and vector-scalar multiplication.</span>
+<span class="s2">    Use ``@`` for matrix-matrix and matrix-vector multiplication.</span>
+<span class="s2">    Use ``multiply`` for elementwise multiplication.</span>
+<span class="s2">This code path has been hit </span><span class="si">%s</span><span class="s2"> times so far.</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">__NUMPY_UFUNC_ERROR__</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">You&#39;re calling a NumPy function on a CVXPY expression. This is prone to causing</span>
+<span class="s2">errors or code that doesn&#39;t behave as expected. Consider using one of the</span>
+<span class="s2">functions documented here: https://www.cvxpy.org/tutorial/functions/index.html</span>
+<span class="s2">&quot;&quot;&quot;</span>
+<span class="n">__BINARY_EXPRESSION_UFUNCS__</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">add</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__radd__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__rsub__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__rmul__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">__rdiv__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__rmatmul__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__rpow__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">left_shift</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__rlshift__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">right_shift</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__rrshift__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">equal</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="c1"># &lt;= and &gt;= are backwards because this is only called for code of the</span>
+        <span class="c1"># form ndarray &lt;= Expression</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">less_equal</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">less</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">greater</span><span class="p">:</span> <span class="k">lambda</span> <span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="n">a</span><span class="p">),</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Expression"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression">[docs]</a><span class="k">class</span> <span class="nc">Expression</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">Canonical</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A mathematical expression in a convex optimization problem.</span>
+
+<span class="sd">    Overloads many operators to allow for convenient creation of compound</span>
+<span class="sd">    expressions (e.g., the sum of two expressions) and constraints.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__metaclass__</span> <span class="o">=</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span>
+
+    <span class="c1"># Handles arithmetic operator overloading with Numpy.</span>
+    <span class="n">__array_priority__</span> <span class="o">=</span> <span class="mi">100</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
+    <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;NumPy.ndarray or None : The numeric value of the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_value_impl</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Implementation of .value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
+    <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
+
+<span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            A map of variable to SciPy CSC sparse matrix; None if a variable</span>
+<span class="sd">            value is missing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
+    <span class="k">def</span> <span class="nf">domain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;list : The constraints describing the closure of the region</span>
+<span class="sd">           where the expression is finite.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns a string showing the mathematical expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Returns a string with information about the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;Expression(</span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">curvature</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">sign</span><span class="p">,</span>
+                                           <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Expression.name"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.name">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;str : The string representation of the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">expr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Expression : returns itself.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="c1"># Curvature properties.</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">curvature</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;str : The curvature of the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">CONSTANT</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_affine</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">AFFINE</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">CONVEX</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">CONCAVE</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_affine</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_AFFINE</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_CONVEX</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_CONCAVE</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_quasilinear</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">QUASILINEAR</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_quasiconvex</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">QUASICONVEX</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_quasiconcave</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">QUASICONCAVE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="k">return</span> <span class="n">curvature_str</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">log_log_curvature</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;str : The log-log curvature of the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_constant</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_CONSTANT</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_affine</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_AFFINE</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_CONVEX</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">():</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">LOG_LOG_CONCAVE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">curvature_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="k">return</span> <span class="n">curvature_str</span>
+
+<div class="viewcode-block" id="Expression.is_constant"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_constant">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+    <span class="k">def</span> <span class="nf">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression constant?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="mi">0</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="ow">or</span> <span class="nb">all</span><span class="p">(</span>
+            <span class="n">arg</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Expression.is_affine"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_affine">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+    <span class="k">def</span> <span class="nf">is_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression affine?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Expression.is_convex"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_convex">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression convex?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Expression.is_concave"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_concave">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression concave?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Expression.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_dcp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Checks whether the Expression is DCP.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dpp : bool, optional</span>
+<span class="sd">            If True, enforce the disciplined parametrized programming (DPP)</span>
+<span class="sd">            ruleset; only relevant when the problem involves Parameters.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the Expression is DCP, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">is_log_log_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression log-log constant, ie, elementwise positive?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">(</span><span class="n">cvxtypes</span><span class="o">.</span><span class="n">constant</span><span class="p">(),</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">parameter</span><span class="p">())):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_pos</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Expression.is_log_log_affine"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_log_log_affine">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+    <span class="k">def</span> <span class="nf">is_log_log_affine</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression affine?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_constant</span><span class="p">()</span>
+                <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="Expression.is_log_log_convex"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_log_log_convex">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_log_log_convex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression log-log convex?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Expression.is_log_log_concave"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_log_log_concave">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_log_log_concave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression log-log concave?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Expression.is_dgp"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_dgp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dgp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Checks whether the Expression is log-log DCP.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the Expression is log-log DCP, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_convex</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_log_log_concave</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Expression.is_dpp"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_dpp">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_dpp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">context</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;dcp&#39;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;The expression is a disciplined parameterized expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">is_quasiconvex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_convex</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">is_quasiconcave</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_concave</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">is_quasilinear</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_quasiconvex</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_quasiconcave</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Expression.is_dqcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_dqcp">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+    <span class="k">def</span> <span class="nf">is_dqcp</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Checks whether the Expression is DQCP.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        bool</span>
+<span class="sd">            True if the Expression is DQCP, False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_quasiconvex</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_quasiconcave</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">is_hermitian</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression a Hermitian matrix?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_real</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_symmetric</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">is_psd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression a positive semidefinite matrix?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Default to False.</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">is_nsd</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression a negative semidefinite matrix?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Default to False.</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">is_quadratic</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression quadratic?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Defaults to is constant.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">is_symmetric</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression symmetric?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Defaults to false unless scalar.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">is_pwl</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression piecewise linear?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Defaults to constant.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">is_qpwa</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression quadratic of piecewise affine?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_quadratic</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_pwl</span><span class="p">()</span>
+
+    <span class="c1"># Sign properties.</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">sign</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;str: The sign of the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_zero</span><span class="p">():</span>
+            <span class="n">sign_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">ZERO</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">():</span>
+            <span class="n">sign_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NONNEG</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">():</span>
+            <span class="n">sign_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">NONPOS</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sign_str</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">UNKNOWN</span>
+        <span class="k">return</span> <span class="n">sign_str</span>
+
+<div class="viewcode-block" id="Expression.is_zero"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_zero">[docs]</a>    <span class="nd">@perf</span><span class="o">.</span><span class="n">compute_once</span>
+    <span class="k">def</span> <span class="nf">is_zero</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression all zero?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonneg</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_nonpos</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Expression.is_nonneg"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_nonneg">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_nonneg</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression positive?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Expression.is_nonpos"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.is_nonpos">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_nonpos</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression negative?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
+    <span class="k">def</span> <span class="nf">shape</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="o">...</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;tuple : The expression dimensions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">is_real</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the Leaf real valued?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_complex</span><span class="p">()</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractproperty</span>
+    <span class="k">def</span> <span class="nf">is_imag</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the Leaf imaginary?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span> <span class="nf">is_complex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the Leaf complex valued?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">size</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;int : The number of entries in the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">ndim</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;int : The number of dimensions in the expression&#39;s shape.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Vectorizes the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">vec</span><span class="p">()(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_scalar</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression a scalar?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">d</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_vector</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression a column or row vector?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="mi">1</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">min</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">is_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Is the expression a matrix?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a slice/index into the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Returning self for scalars causes</span>
+        <span class="c1"># the built-in sum to hang.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">elif</span> <span class="n">ku</span><span class="o">.</span><span class="n">is_special_slice</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">special_index</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">index</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">T</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Expression : The transpose of the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Transpose of a scalar is that scalar.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">transpose</span><span class="p">()(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">H</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Expression : The transpose of the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_real</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">conj</span><span class="p">()(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+<div class="viewcode-block" id="Expression.__pow__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__pow__">[docs]</a>    <span class="k">def</span> <span class="fm">__pow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Raise expression to a power.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        power : float</span>
+<span class="sd">            The power to which to raise the expression.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Expression</span>
+<span class="sd">            The expression raised to ``power``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">power</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">power</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__rpow__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">base</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;CVXPY currently does not support variables &quot;</span>
+                                  <span class="s2">&quot;on the right side of **. Consider using the&quot;</span>
+                                  <span class="s2">&quot; identity that a**x = cp.exp(cp.multiply(np&quot;</span>
+                                  <span class="s2">&quot;.log(a), x)).&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Arithmetic operators.</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">cast_to_const</span><span class="p">(</span><span class="n">expr</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Converts a non-Expression to a Constant.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">elem</span> <span class="ow">in</span> <span class="n">expr</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">elem</span><span class="p">,</span> <span class="n">Expression</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="s2">&quot;The input must be a single CVXPY Expression, not a list. &quot;</span>
+                        <span class="s2">&quot;Combine Expressions using atoms such as bmat, hstack, and vstack.&quot;</span>
+                    <span class="p">)</span>
+        <span class="k">return</span> <span class="n">expr</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Expression</span><span class="p">)</span> <span class="k">else</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">constant</span><span class="p">()(</span><span class="n">expr</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">broadcast</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">,</span> <span class="n">rh_expr</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Broacast the binary operator.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">lh_expr</span><span class="p">)</span>
+        <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">Expression</span><span class="o">.</span><span class="n">cast_to_const</span><span class="p">(</span><span class="n">rh_expr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
+            <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">promote</span><span class="p">()(</span><span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">():</span>
+            <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">promote</span><span class="p">()(</span><span class="n">rh_expr</span><span class="p">,</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="c1"># Broadcasting.</span>
+        <span class="k">if</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># Replicate dimensions of size 1.</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)]</span>
+            <span class="c1"># Broadcast along dim 0.</span>
+            <span class="k">if</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span> <span class="o">@</span> <span class="n">lh_expr</span>
+            <span class="k">if</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span> <span class="o">@</span> <span class="n">rh_expr</span>
+            <span class="c1"># Broadcast along dim 1.</span>
+            <span class="k">if</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">lh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">lh_expr</span> <span class="o">=</span> <span class="n">lh_expr</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">rh_expr</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+                <span class="n">rh_expr</span> <span class="o">=</span> <span class="n">rh_expr</span> <span class="o">@</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">lh_expr</span><span class="p">,</span> <span class="n">rh_expr</span>
+
+<div class="viewcode-block" id="Expression.__add__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__add__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__add__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : Sum two expressions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">constant</span><span class="p">())</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_zero</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">add_expr</span><span class="p">()([</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Expression.__radd__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__radd__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__radd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : Sum two expressions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">constant</span><span class="p">())</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_zero</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span>
+        <span class="k">return</span> <span class="n">other</span> <span class="o">+</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Expression.__sub__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__sub__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__sub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : The difference of two expressions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span> <span class="o">+</span> <span class="o">-</span><span class="n">other</span></div>
+
+<div class="viewcode-block" id="Expression.__rsub__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__rsub__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__rsub__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : The difference of two expressions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">other</span> <span class="o">-</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Expression.__mul__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__mul__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__mul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : The product of two expressions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">()</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">():</span>
+            <span class="c1"># Use one argument to apply a scaling to the remaining argument.</span>
+            <span class="c1"># We accomplish this with elementwise multiplication, which</span>
+            <span class="c1"># casts the scalar argument to match the size of the remaining</span>
+            <span class="c1"># argument.</span>
+            <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">elmul_expr</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> \
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()):</span>
+            <span class="c1"># If matmul was intended, this gives a dimension mismatch. We</span>
+            <span class="c1"># interpret the ``is_scalar`` results as implying that the user</span>
+            <span class="c1"># simply wants to apply a scaling.</span>
+            <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">elmul_expr</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># The only reasonable interpretation is that the user intends</span>
+            <span class="c1"># to apply matmul. There might be a dimension mismatch, but we</span>
+            <span class="c1"># don&#39;t check for that here.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">is_constant</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="n">error</span><span class="o">.</span><span class="n">warnings_enabled</span><span class="p">():</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Forming a nonconvex expression.&quot;</span><span class="p">)</span>
+            <span class="c1"># Because we want to discourage using ``*`` to call matmul, we</span>
+            <span class="c1"># raise a warning to the user.</span>
+            <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+                <span class="k">global</span> <span class="n">__STAR_MATMUL_COUNT__</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;always&quot;</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">,</span> <span class="n">append</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">__STAR_MATMUL_WARNING__</span> <span class="o">%</span> <span class="n">__STAR_MATMUL_COUNT__</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">UserWarning</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="ne">DeprecationWarning</span><span class="p">)</span>
+                <span class="n">__STAR_MATMUL_COUNT__</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">matmul_expr</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Expression.__matmul__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__matmul__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__matmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : Matrix multiplication of two expressions.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">()</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Scalar operands are not allowed, use &#39;*&#39; instead&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">matmul_expr</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Expression.__truediv__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__truediv__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__truediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : One expression divided by another.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__div__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Expression.__div__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__div__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="nf">__div__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : One expression divided by another.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">other</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">broadcast</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">()</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">is_scalar</span><span class="p">())</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">div_expr</span><span class="p">()(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Incompatible shapes for division (</span><span class="si">%s</span><span class="s2"> / </span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Expression.__rdiv__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__rdiv__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="nf">__rdiv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : Called for Number / Expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">other</span> <span class="o">/</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Expression.__rtruediv__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__rtruediv__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__rtruediv__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : Called for Number / Expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">other</span> <span class="o">/</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Expression.__rmul__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__rmul__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__rmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : Called for Number * Expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">other</span> <span class="o">*</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="Expression.__rmatmul__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__rmatmul__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__rmatmul__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Expression&quot;</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Expression : Called for matrix @ Expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">()</span> <span class="ow">or</span> <span class="n">other</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Scalar operands are not allowed, use &#39;*&#39; instead&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">matmul_expr</span><span class="p">()(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__neg__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Expression : The negation of the expression.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cvxtypes</span><span class="o">.</span><span class="n">neg_expr</span><span class="p">()(</span><span class="bp">self</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Expression.__rshift__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__rshift__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__rshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PSD</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;PSD : Creates a positive semidefinite inequality.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">PSD</span><span class="p">(</span><span class="bp">self</span> <span class="o">-</span> <span class="n">other</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Expression.__rrshift__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__rrshift__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__rrshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PSD</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;PSD : Creates a positive semidefinite inequality.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">PSD</span><span class="p">(</span><span class="n">other</span> <span class="o">-</span> <span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Expression.__lshift__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__lshift__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__lshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PSD</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;PSD : Creates a negative semidefinite inequality.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">PSD</span><span class="p">(</span><span class="n">other</span> <span class="o">-</span> <span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Expression.__rlshift__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__rlshift__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__rlshift__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PSD</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;PSD : Creates a negative semidefinite inequality.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">PSD</span><span class="p">(</span><span class="bp">self</span> <span class="o">-</span> <span class="n">other</span><span class="p">)</span></div>
+
+    <span class="c1"># Needed for Python3:</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="c1"># Comparison operators.</span>
+<div class="viewcode-block" id="Expression.__eq__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__eq__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Equality : Creates a constraint ``self == other``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Equality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Expression.__le__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__le__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Inequality : Creates an inequality constraint ``self &lt;= other``.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Inequality</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unsupported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Strict inequalities are not allowed.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Expression.__ge__"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.expression.Expression.__ge__">[docs]</a>    <span class="nd">@_cast_other</span>
+    <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;NonPos : Creates an inequality constraint.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">:</span> <span class="s2">&quot;Expression&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Unsupported.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Strict inequalities are not allowed.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__array_ufunc__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ufunc</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ufunc_handler</span> <span class="o">=</span> <span class="n">__BINARY_EXPRESSION_UFUNCS__</span><span class="p">[</span><span class="n">ufunc</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">kwargs</span> <span class="o">==</span> <span class="p">{}</span> <span class="ow">and</span> \
+                    <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> \
+                    <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">self</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">ufunc_handler</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="n">__NUMPY_UFUNC_ERROR__</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

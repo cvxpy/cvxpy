@@ -1,0 +1,285 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Capacity of a Communication Channel &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="capacity-of-a-communication-channel">
+<h1>Capacity of a Communication Channel<a class="headerlink" href="#capacity-of-a-communication-channel" title="Permalink to this headline">¶</a></h1>
+<p>by Robert Gowers, Roger Hill, Sami Al-Izzi, Timothy Pollington and Keith
+Briggs</p>
+<p>from Boyd and Vandenberghe, Convex Optimization, exercise 4.57 pages
+207-8</p>
+<p>Convex optimization can be used to find the channel capacity <span class="math notranslate nohighlight">\(C\)</span>
+of a discrete memoryless channel. Consider a communication channel with
+input <span class="math notranslate nohighlight">\(X(t) \in \{1,2,...,n\}\)</span> and output
+<span class="math notranslate nohighlight">\(Y(t) \in \{1,2,...m\}\)</span>. This means that the random variables
+<span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span> can take <span class="math notranslate nohighlight">\(n\)</span> and <span class="math notranslate nohighlight">\(m\)</span> different
+values, respectively.</p>
+<p>In a discrete memoryless channel, the relation between the input and the
+output is given by the transition probability:</p>
+<p><span class="math notranslate nohighlight">\(p_{ij} = \mathbb{P}(Y(t)=i | X(t)=j)\)</span></p>
+<p>These transition probabilities form the channel transition matrix
+<span class="math notranslate nohighlight">\(P\)</span>, with <span class="math notranslate nohighlight">\(P \in \mathbb{R}^{m\times n}\)</span>.</p>
+<p>Assume that <span class="math notranslate nohighlight">\(X\)</span> has a probability distribution denoted by
+<span class="math notranslate nohighlight">\(x \in \mathbb{R}^n\)</span>, meaning that:</p>
+<p><span class="math notranslate nohighlight">\(x_j = \mathbb{P}(X(t) = j) \quad j \in \{1,...,n\}\)</span>.</p>
+<p>From Shannon, the channel capacity is given by the maximum possible
+mutual information <span class="math notranslate nohighlight">\(I\)</span> between <span class="math notranslate nohighlight">\(X\)</span> and <span class="math notranslate nohighlight">\(Y\)</span>:</p>
+<p><span class="math notranslate nohighlight">\(C = \sup_x I(X;Y)\)</span></p>
+<p>where,</p>
+<p><span class="math notranslate nohighlight">\(I(X;Y) = -\sum_{i=1}^{m} y_i \log_2y_i + \sum_{j=1}^{n}\sum_{i=1}^{m}x_j p_{ij}\log_2p_{ij}\)</span></p>
+<p>Given that <span class="math notranslate nohighlight">\(x\log x\)</span> is convex for <span class="math notranslate nohighlight">\(x \geq 0\)</span>, we can
+formulate this as a convex optimization problem:</p>
+<p>minimise <span class="math notranslate nohighlight">\(-I(X;Y)\)</span></p>
+<p>subject to <span class="math notranslate nohighlight">\(\sum_{i=1}^{n}x_i = 1 \quad x \succeq 0 \quad\)</span> since
+<span class="math notranslate nohighlight">\(x\)</span> describes a probability</p>
+<p>Due to the entropy function in CVXPY, this can be written quite easily
+in DCP.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>#!/usr/bin/env python3
+# @author: R. Gowers, S. Al-Izzi, T. Pollington, R. Hill &amp; K. Briggs
+
+import cvxpy as cp
+import numpy as np
+import math
+from scipy.special import xlogy
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def channel_capacity(n, m, P, sum_x=1):
+    &#39;&#39;&#39;
+    Boyd and Vandenberghe, Convex Optimization, exercise 4.57 page 207
+    Capacity of a communication channel.
+
+    We consider a communication channel, with input X(t)∈{1,..,n} and
+    output Y(t)∈{1,...,m}, for t=1,2,... .The relation between the
+    input and output is given statistically:
+    p_(i,j) = ℙ(Y(t)=i|X(t)=j), i=1,..,m  j=1,...,n
+
+    The matrix P ∈ ℝ^(m*n) is called the channel transition matrix, and
+    the channel is called a discrete memoryless channel. Assuming X has a
+    probability distribution denoted x ∈ ℝ^n, i.e.,
+    x_j = ℙ(X=j), j=1,...,n
+
+    The mutual information between X and Y is given by
+    ∑(∑(x_j p_(i,j)log_2(p_(i,j)/∑(x_k p_(i,k)))))
+    Then channel capacity C is given by
+    C = sup I(X;Y).
+    With a variable change of y = Px this becomes
+    I(X;Y)=  c^T x - ∑(y_i log_2 y_i)
+    where c_j = ∑(p_(i,j)log_2(p_(i,j)))
+    &#39;&#39;&#39;
+
+    # n is the number of different input values
+    # m is the number of different output values
+    if n*m == 0:
+        print(&#39;The range of both input and output values must be greater than zero&#39;)
+        return &#39;failed&#39;, np.nan, np.nan
+
+    # x is probability distribution of the input signal X(t)
+    x = cp.Variable(shape=n)
+
+    # y is the probability distribution of the output signal Y(t)
+    # P is the channel transition matrix
+    y = P@x
+
+    # I is the mutual information between x and y
+    c = np.sum(np.array((xlogy(P, P) / math.log(2))), axis=0)
+    I = c@x + cp.sum(cp.entr(y) / math.log(2))
+
+    # Channel capacity maximised by maximising the mutual information
+    obj = cp.Maximize(I)
+    constraints = [cp.sum(x) == sum_x,x &gt;= 0]
+
+    # Form and solve problem
+    prob = cp.Problem(obj,constraints)
+    prob.solve()
+    if prob.status==&#39;optimal&#39;:
+        return prob.status, prob.value, x.value
+    else:
+        return prob.status, np.nan, np.nan
+</pre></div>
+</div>
+<section id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>In this example we consider a communication channel with two possible
+inputs and outputs, so <span class="math notranslate nohighlight">\(n = m = 2\)</span>. The channel transition matrix
+we use in this case is:</p>
+<p><span class="math notranslate nohighlight">\(P = \pmatrix{0.75,0.25\\0.25,0.75}\)</span></p>
+<p>Note that the columns of <span class="math notranslate nohighlight">\(P\)</span> must sum to 1 and all elements of
+<span class="math notranslate nohighlight">\(P\)</span> must be positive.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>np.set_printoptions(precision=3)
+n = 2
+m = 2
+P = np.array([[0.75,0.25],
+             [0.25,0.75]])
+stat, C, x = channel_capacity(n, m, P)
+print(&#39;Problem status: &#39;,stat)
+print(&#39;Optimal value of C = {:.4g}&#39;.format(C))
+print(&#39;Optimal variable x = \n&#39;, x)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Problem</span> <span class="n">status</span><span class="p">:</span>  <span class="n">optimal</span>
+<span class="n">Optimal</span> <span class="n">value</span> <span class="n">of</span> <span class="n">C</span> <span class="o">=</span> <span class="mf">0.1887</span>
+<span class="n">Optimal</span> <span class="n">variable</span> <span class="n">x</span> <span class="o">=</span>
+ <span class="p">[</span><span class="mf">0.5</span> <span class="mf">0.5</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/applications/Channel_capacity_BV4.57.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>

@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Aerospace Design via Quasiconvex Optimization &#8212; CVXPY 1.3 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="aerospace-design-via-quasiconvex-optimization">
+<h1>Aerospace Design via Quasiconvex Optimization<a class="headerlink" href="#aerospace-design-via-quasiconvex-optimization" title="Permalink to this headline">¶</a></h1>
+<p>Consider a triangle, or a wedge, located within a hypersonic flow. A
+standard aerospace design optimization problem is to design the wedge to
+maximize the lift-to-drag ratio (L/D) (or conversely minimize the D/L
+ratio), subject to certain geometric constraints. In this example, the
+wedge is known to have a constant hypotenuse, and our job is to choose
+its width and height.</p>
+<p>The drag-to-lift ratio is given by</p>
+<div class="math notranslate nohighlight">
+\[\frac{\mathrm{D}}{\mathrm{L}} = \frac{\mathrm{c_d}}{\mathrm{c_l}},\]</div>
+<p>where <span class="math notranslate nohighlight">\(\mathrm{c_d}\)</span> and <span class="math notranslate nohighlight">\(\mathrm{c_l}\)</span> are drag and lift
+coefficients, respectively, that are obtained by integrating the
+projection of the pressure coefficient in directions parallel to, and
+perpendicular to, the body.</p>
+<p>It turns out that the the drag-to-lift ratio is a quasilinear function,
+as we’ll now show. We will assume the pressure coefficient is given by
+the Newtonian sine-squared law for whetted areas of the body,</p>
+<div class="math notranslate nohighlight">
+\[\mathrm{c_p} = 2(\hat{v}\cdot\hat{n})^2\]</div>
+<p>and elsewhere <span class="math notranslate nohighlight">\(\mathrm{c_p} = 0\)</span>. Here, <span class="math notranslate nohighlight">\(\hat{v}\)</span> is the
+free stream direction, which for simplicity we will assume is parallel
+to the body so that, <span class="math notranslate nohighlight">\(\hat{v} = \langle 1, 0 \rangle\)</span>, and
+<span class="math notranslate nohighlight">\(\hat{n}\)</span> is the local unit normal. For a wedge defined by width
+<span class="math notranslate nohighlight">\(\Delta x\)</span>, and height <span class="math notranslate nohighlight">\(\Delta y\)</span>,</p>
+<div class="math notranslate nohighlight">
+\[\hat{n} = \langle -\Delta y/s,-\Delta x/s \rangle\]</div>
+<p>where <span class="math notranslate nohighlight">\(s\)</span> is the hypotenuse length. Therefore,</p>
+<div class="math notranslate nohighlight">
+\[\mathrm{c_p} = 2((1)(-\Delta y/s)+(0)(-\Delta x/s))^2 = \frac{2 \Delta y^2}{s^2}\]</div>
+<p>The lift and drag coefficients are given by</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align*}
+\mathrm{c_d} &amp;= \frac{1}{c}\int_0^s -\mathrm{c_p}\hat{n}_x \mathrm{d}s \\
+\mathrm{c_l} &amp;= \frac{1}{c}\int_0^s -\mathrm{c_p}\hat{n}_y \mathrm{d}s
+\end{align*}\end{split}\]</div>
+<p>Where <span class="math notranslate nohighlight">\(c\)</span> is the reference chord length of the body. Given that
+<span class="math notranslate nohighlight">\(\hat{n}\)</span>, and therefore <span class="math notranslate nohighlight">\(\mathrm{c_p}\)</span> are constant over
+the whetted surface of the body,</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}\begin{align*}
+\mathrm{c_d} &amp;= -\frac{s}{c}\mathrm{c_p}\hat{n}_x = \frac{s}{c}\frac{2 \Delta y^2}{s^2}\frac{\Delta y}{s} \\
+\mathrm{c_l} &amp;= -\frac{s}{c}\mathrm{c_p}\hat{n}_y = \frac{s}{c}\frac{2 \Delta y^2}{s^2}\frac{\Delta x}{s}
+\end{align*}\end{split}\]</div>
+<p>Assuming <span class="math notranslate nohighlight">\(s=1\)</span>, so that <span class="math notranslate nohighlight">\(\Delta y = \sqrt{1-\Delta x^2}\)</span>,
+plugging in the above into the equation for <span class="math notranslate nohighlight">\(D/L\)</span>, we obtain</p>
+<div class="math notranslate nohighlight">
+\[\frac{\mathrm{D}}{\mathrm{L}} = \frac{\Delta y}{\Delta x} = \frac{\sqrt{1-\Delta x^2}}{\Delta x} = \sqrt{\frac{1}{\Delta x^2}-1}.\]</div>
+<p>This function is representable as a DQCP, quasilinear function. We plot
+it below, and then we write it using DQCP.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>%matplotlib inline
+
+import matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
+import math
+
+x = np.linspace(.25,1,num=201)
+obj = []
+for i in range(len(x)):
+    obj.append(math.sqrt(1/x[i]**2-1))
+
+plt.plot(x,obj)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">lines</span><span class="o">.</span><span class="n">Line2D</span> <span class="n">at</span> <span class="mh">0x7f571d7bfdd8</span><span class="o">&gt;</span><span class="p">]</span>
+</pre></div>
+</div>
+<img alt="../../_images/hypersonic_shape_design_1_1.png" src="../../_images/hypersonic_shape_design_1_1.png" />
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import cvxpy as cp
+
+x = cp.Variable(pos=True)
+obj = cp.sqrt(cp.inv_pos(cp.square(x))-1)
+print(&quot;This objective function is&quot;, obj.curvature)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">This</span> <span class="n">objective</span> <span class="n">function</span> <span class="ow">is</span> <span class="n">QUASILINEAR</span>
+</pre></div>
+</div>
+<p>Minimizing this objective function subject to constraints representing
+payload requirements is a standard aerospace design problem. In this
+case we will consider the constraint that the wedge must be able to
+contain a rectangle of given length and width internally along its
+hypotenuse. This is representable as a convex constraint.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>a = .05 # USER INPUT: height of rectangle, should be at most b
+b = .65 # USER INPUT: width of rectangle
+constraint = [a*cp.inv_pos(x)-(1-b)*cp.sqrt(1-cp.square(x))&lt;=0]
+print(constraint)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">Inequality</span><span class="p">(</span><span class="n">Expression</span><span class="p">(</span><span class="n">CONVEX</span><span class="p">,</span> <span class="n">UNKNOWN</span><span class="p">,</span> <span class="p">()))]</span>
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>prob = cp.Problem(cp.Minimize(obj), constraint)
+prob.solve(qcp=True, verbose=True)
+print(&#39;Final L/D Ratio = &#39;, 1/obj.value)
+print(&#39;Final width of wedge = &#39;, x.value)
+print(&#39;Final height of wedge = &#39;, math.sqrt(1-x.value**2))
+</pre></div>
+</div>
+<pre class="literal-block"><strong>****************************************************************************</strong>
+Preparing to bisect problem
+
+minimize 0.0
+subject to 0.05 * var30766 + -0.35 * var30793 &lt;= 0.0
+           SOC(reshape(var30747 + var30766, (1,)), Vstack(reshape(var30747 + -var30766, (1, 1)), reshape(2.0 * 1.0, (1, 1))))
+           SOC(reshape(var30779 + 1.0, (1,)), Vstack(reshape(var30779 + -1.0, (1, 1)), reshape(2.0 * var30747, (1, 1))))
+           SOC(reshape(1.0 + -var30779 + 1.0, (1,)), Vstack(reshape(1.0 + -var30779 + -1.0, (1, 1)), reshape(2.0 * var30793, (1, 1))))
+           power(power(power(param30811, 2) + --1.0, -1), 1/2) &lt;= var30747
+
+Finding interval for bisection ...
+initial lower bound: 0.000000
+initial upper bound: 1.000000
+
+(iteration 0) lower bound: 0.000000
+(iteration 0) upper bound: 1.000000
+(iteration 0) query point: 0.500000
+(iteration 0) query was feasible. Solution(status=optimal, opt_val=0.0, primal_vars={30766: array(1.28425055), 30793: array(0.32048066), 30747: 0.9203698369509382, 30779: array(0.86287821)}, dual_vars={30764: 1.184352986830617e-10, 30775: array([ 7.68139086e-12, -9.11799720e-13, -6.85059567e-12]), 30788: array([ 6.73308751e-11,  7.50722737e-12, -6.55220021e-11]), 30802: array([ 4.04979217e-11,  3.43109122e-11, -1.68754271e-11]), 30835: 1.4165742899966837e-10}, attr={'solve_time': 6.0109e-05, 'setup_time': 4.4997e-05, 'num_iters': 7}))
+
+(iteration 5) lower bound: 0.125000
+(iteration 5) upper bound: 0.156250
+(iteration 5) query point: 0.140625
+(iteration 5) query was infeasible.
+
+(iteration 10) lower bound: 0.145508
+(iteration 10) upper bound: 0.146484
+(iteration 10) query point: 0.145996
+(iteration 10) query was feasible. Solution(status=optimal, opt_val=0.0, primal_vars={30766: array(1.01067238), 30793: array(0.14440604), 30747: 0.9895144829793, 30779: array(0.97914383)}, dual_vars={30764: 1.2610785752467482e-05, 30775: array([ 6.37367039e-07,  6.73702792e-09, -6.37322961e-07]), 30788: array([ 1.50627898e-05,  1.58286953e-07, -1.50619494e-05]), 30802: array([ 7.77053008e-06,  7.45051237e-06, -2.20683981e-06]), 30835: 2.948014872712083e-05}, attr={'solve_time': 0.000114922, 'setup_time': 3.6457e-05, 'num_iters': 10}))
+
+(iteration 15) lower bound: 0.145874
+(iteration 15) upper bound: 0.145905
+(iteration 15) query point: 0.145889
+(iteration 15) query was infeasible.
+
+Bisection completed, with lower bound 0.145897 and upper bound 0.1458979
+<strong>****************************************************************************</strong>
+
+Final L/D Ratio =  6.854107648695203
+Final width of wedge =  0.9895238539767502
+Final height of wedge =  0.14436946495363565</pre>
+<p>Once the solution has been found, we can create a plot to verify that
+the rectangle is inscribed within the wedge.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>y = math.sqrt(1-x.value**2)
+lambda1 = a*x.value/y
+lambda2 = a*x.value**2/y+a*y
+lambda3 = a*x.value-y*(a*x.value/y-b)
+
+plt.plot([0,x.value],[0,0],&#39;b.-&#39;)
+plt.plot([0,x.value],[0,-y],&#39;b.-&#39;)
+plt.plot([x.value,x.value],[0,-y],&#39;b.-&#39;)
+
+pt1 = [lambda1*x.value,-lambda1*y]
+pt2 = [(lambda1+b)*x.value,-(lambda1+b)*y]
+pt3 = [(lambda1+b)*x.value+a*y,-(lambda1+b)*y+a*x.value]
+pt4 = [lambda1*x.value+a*y,-lambda1*y+a*x.value]
+
+plt.plot([pt1[0],pt2[0]],[pt1[1],pt2[1]],&#39;r.-&#39;)
+plt.plot([pt2[0],pt3[0]],[pt2[1],pt3[1]],&#39;r.-&#39;)
+plt.plot([pt3[0],pt4[0]],[pt3[1],pt4[1]],&#39;r.-&#39;)
+plt.plot([pt4[0],pt1[0]],[pt4[1],pt1[1]],&#39;r.-&#39;)
+
+plt.axis(&#39;equal&#39;)
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="o">-</span><span class="mf">0.04947620645689951</span><span class="p">,</span>
+ <span class="mf">1.0390003355948896</span><span class="p">,</span>
+ <span class="o">-</span><span class="mf">0.15158793820131744</span><span class="p">,</span>
+ <span class="mf">0.0072184732476817896</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="../../_images/hypersonic_shape_design_7_1.png" src="../../_images/hypersonic_shape_design_7_1.png" />
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">CVXPY</a></h1>
+
+
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=cvxpy&repo=cvxpy&type=star&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../install/index.html">Install</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../tutorial/index.html">User Guide</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Examples</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../api_reference/cvxpy.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../faq/index.html">FAQ</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../citing/index.html">Citing CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../contributing/index.html">Contributing</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../related_projects/index.html">Related Projects</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../updates/index.html">Changes to CVXPY</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../short_course/index.html">CVXPY Short Course</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../license/index.html">License</a></li>
+</ul>
+
+
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script><div>
+    <h3>
+        Version selector
+    </h3>
+    <select id="dynamic_selector" name="versions" onchange="if (this.value) window.location.href=this.value">
+    </select>
+    <script>
+        obj = $.getJSON("https://raw.githubusercontent.com/cvxpy/cvxpy/gh-pages/versions.json")
+            .done(function (data) {
+                const base_url = "https://www.cvxpy.org/"
+                let html = "<option value='' selected>Choose version here</option>";
+                html += "<option value=" + base_url + ">latest" + ""
+                for (let i = 0; i < data.length; i++) {
+                    html += "<option value=" + base_url + "version/"  + data[i] + ">" + data[i] + ""
+                }
+                document.getElementById("dynamic_selector").innerHTML = html;
+            });
+    </script>
+</div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;The CVXPY authors.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="../../_sources/examples/dqcp/hypersonic_shape_design.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/cvxpy/cvxpy" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+    <script type="text/javascript">
+
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-50248335-1']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', true]);
+      _gaq.push(['_trackPageview']);
+
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+
+    </script>
+    
+  </body>
+</html>
