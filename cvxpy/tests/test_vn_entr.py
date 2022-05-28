@@ -22,6 +22,10 @@ from cvxpy.tests import solver_test_helpers as STH
 
 
 class Test_vn_entr:
+
+    SCS_ARGS = {'solver': 'SCS', 'eps': 1e-6, 'max_iters': 500_000,
+                'verbose': True}
+
     @staticmethod
     def make_test_1():
         """(2,2) matrix, 100 largest ev, 1e-3 off-diagonal element"""
@@ -48,7 +52,7 @@ class Test_vn_entr:
 
     def test_1(self):
         sth = Test_vn_entr.make_test_1()
-        sth.solve(solver='SCS')
+        sth.solve(**self.SCS_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -79,7 +83,7 @@ class Test_vn_entr:
 
     def test_2(self):
         sth = Test_vn_entr.make_test_2()
-        sth.solve(solver='SCS')
+        sth.solve(**self.SCS_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -113,7 +117,7 @@ class Test_vn_entr:
 
     def test_3(self):
         sth = Test_vn_entr.make_test_3()
-        sth.solve(solver='SCS')
+        sth.solve(**self.SCS_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -145,6 +149,6 @@ class Test_vn_entr:
 
     def test_4(self):
         sth = Test_vn_entr.make_test_4()
-        sth.solve(solver='SCS')
+        sth.solve(**self.SCS_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
