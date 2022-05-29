@@ -43,8 +43,9 @@ def vn_entr_canon(expr, args):
     con = Zero(trace(N) - sum(x))
     constrs.append(con)
 
-    # x[1:] >= x[:(n-1)]
-    con = NonPos(x[:(n-1)] - x[1:])
+    # x[:(n-1)] >= x[1:]
+    #   x[0] >= x[1],  x[1] >= x[2], ...
+    con = NonPos(x[1:] - x[:(n - 1)])
     constrs.append(con)
 
     # END code that applies to all spectral functions #
