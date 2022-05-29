@@ -22,6 +22,13 @@ from cvxpy.tests import solver_test_helpers as STH
 
 
 class Test_vn_entr:
+
+    if 'MOSEK' in cp.installed_solvers():
+        SOLVE_ARGS = {'solver': 'MOSEK', 'verbose': True}
+    else:
+        SOLVE_ARGS = {'solver': 'SCS', 'eps': 1e-6, 'max_iters': 500_000,
+                      'verbose': True}
+
     @staticmethod
     def make_test_1():
         """(2,2) matrix, 100 largest ev, 1e-3 off-diagonal element"""
@@ -30,13 +37,11 @@ class Test_vn_entr:
         expect_N = np.array([[0.36787973, 0.00099987],
                              [0.00099987, 0.36787973]])
         eps = 1e2
-        cons1 = N >> 0
         cons2 = N << eps*np.eye(N.shape[0])
-        cons3 = N[1][0] == 1e-3
+        cons3 = N[1, 0] == 1e-3
         objective = cp.Maximize(vn_entr(N))
         obj_pair = (objective, 0.735756164739688)
         con_pairs = [
-            (cons1, None),
             (cons2, None),
             (cons3, None)
         ]
@@ -48,7 +53,7 @@ class Test_vn_entr:
 
     def test_1(self):
         sth = Test_vn_entr.make_test_1()
-        sth.solve(solver='SCS')
+        sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -60,15 +65,13 @@ class Test_vn_entr:
         expect_N = np.array([[3.66497984e-01, -9.66999473e-14, 9.99852746e-03],
                              [-9.66999473e-14, 3.70615053e-01, -3.41058370e-13],
                              [9.99852746e-03, -3.41058370e-13, 3.66497984e-01]])
-        eps = 1e3
-        cons1 = N >> 0
-        cons2 = N << eps*np.eye(N.shape[0])
-        cons3 = N[2][0] == 1e-2
+        # eps = 1e2
+        # cons2 = N << eps*np.eye(N.shape[0])
+        cons3 = N[2, 0] == 1e-2
         objective = cp.Maximize(vn_entr(N))
         obj_pair = (objective, 1.103350176968849)
         con_pairs = [
-            (cons1, None),
-            (cons2, None),
+            # (cons2, None),
             (cons3, None)
         ]
         var_pairs = [
@@ -79,7 +82,7 @@ class Test_vn_entr:
 
     def test_2(self):
         sth = Test_vn_entr.make_test_2()
-        sth.solve(solver='SCS')
+        sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -94,26 +97,24 @@ class Test_vn_entr:
                                   [1, 0, 0],
                                   [0, 0, 1]]))
         eps = 1e3
-        cons1 = N >> 0
         cons2 = N << eps*np.eye(N.shape[0])
-        cons3 = N[2][0] == 1e-2
-        N = U.T@N@U
-        objective = cp.Maximize(vn_entr(N))
+        cons3 = N[2, 0] == 1e-2
+        N_conj = U.T @ N @ U
+        objective = cp.Maximize(vn_entr(N_conj))
         obj_pair = (objective, 1.1033501770078251)
         con_pairs = [
-            (cons1, None),
             (cons2, None),
             (cons3, None)
         ]
         var_pairs = [
-            (N, expect_N)
+            (N_conj, expect_N)
         ]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
     def test_3(self):
         sth = Test_vn_entr.make_test_3()
-        sth.solve(solver='SCS')
+        sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
@@ -125,7 +126,6 @@ class Test_vn_entr:
         expect_N = np.array([[2.99999997e+00, -1.59980927e-15, 1.81681520e-08],
                              [-1.59980927e-15, 2.99990732e+00, 1.61179597e-15],
                              [1.81681520e-08, 1.61179597e-15, 2.99999997e+00]])
-        cons1 = N >> 0
         v = cp.Constant(np.array([1, 0, 1]))
         mu = 3
         cons2 = N @ v == mu * v
@@ -133,7 +133,6 @@ class Test_vn_entr:
         objective = cp.Maximize(vn_entr(N))
         obj_pair = (objective, -9.887315950231013)
         con_pairs = [
-            (cons1, None),
             (cons2, None),
             (cons3, None)
         ]
@@ -145,6 +144,6 @@ class Test_vn_entr:
 
     def test_4(self):
         sth = Test_vn_entr.make_test_4()
-        sth.solve(solver='SCS')
+        sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
