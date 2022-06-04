@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Contributing &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -35,7 +36,7 @@
           <div class="body" role="main">
             
   <section id="contributing">
-<span id="id1"></span><h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this headline">¶</a></h1>
+<span id="id1"></span><h1>Contributing<a class="headerlink" href="#contributing" title="Permalink to this heading">¶</a></h1>
 <p>We welcome all contributors to CVXPY. You don’t need to be an expert in convex
 optimization to help out. Here are simple ways to start contributing immediately:</p>
 <blockquote>
@@ -57,7 +58,7 @@ We’ve identified some specific development opportunities in the next section.<
 Overall development is guided by <a class="reference external" href="https://github.com/cvxpy/org/blob/main/governance.md">our governance structure</a>.</p>
 <p>The rest of this page goes into more detail on how to contribute to CVXPY.</p>
 <section id="wishlist">
-<span id="contrib-roadmap"></span><h2>Wishlist<a class="headerlink" href="#wishlist" title="Permalink to this headline">¶</a></h2>
+<span id="contrib-roadmap"></span><h2>Wishlist<a class="headerlink" href="#wishlist" title="Permalink to this heading">¶</a></h2>
 <p>Here is a non-exhaustive list of opportunities to make prominent contributions to CVXPY.
 We’ve roughly categorized the opportunities as whether they amount to small-, medium-, or large-scope projects.
 New contributors are encouraged to focus on the projects with small or medium scope.
@@ -92,9 +93,9 @@ Please contact a project maintainer if you’re interested in working on a proje
 </dl>
 </section>
 <section id="general-principles">
-<h2>General principles<a class="headerlink" href="#general-principles" title="Permalink to this headline">¶</a></h2>
+<h2>General principles<a class="headerlink" href="#general-principles" title="Permalink to this heading">¶</a></h2>
 <section id="development-environment">
-<h3>Development environment<a class="headerlink" href="#development-environment" title="Permalink to this headline">¶</a></h3>
+<h3>Development environment<a class="headerlink" href="#development-environment" title="Permalink to this heading">¶</a></h3>
 <p>Start by forking the CVXPY repository and installing CVXPY
 <a class="reference internal" href="../install/index.html#install-from-source"><span class="std std-ref">from source</span></a>.
 You should configure git on your local machine before changing any code.
@@ -137,7 +138,7 @@ encountered in a pull request. For simple contributions, you might never use thi
 </div></blockquote>
 </section>
 <section id="contribution-checklist">
-<h3>Contribution checklist<a class="headerlink" href="#contribution-checklist" title="Permalink to this headline">¶</a></h3>
+<h3>Contribution checklist<a class="headerlink" href="#contribution-checklist" title="Permalink to this heading">¶</a></h3>
 <p>Contributions are made through
 <a class="reference external" href="https://help.github.com/articles/using-pull-requests/">pull requests</a>.
 Before sending a pull request, make sure you do the following:</p>
@@ -158,7 +159,7 @@ Python versions and different platforms. If these tests start failing, please
 fix your code and send another commit, which will re-trigger the tests.</p>
 </section>
 <section id="license">
-<span id="contrib-license"></span><h3>License<a class="headerlink" href="#license" title="Permalink to this headline">¶</a></h3>
+<span id="contrib-license"></span><h3>License<a class="headerlink" href="#license" title="Permalink to this heading">¶</a></h3>
 <p>Please add the following license to new files:</p>
 <blockquote>
 <div><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="sd">&quot;&quot;&quot;</span>
@@ -181,7 +182,7 @@ fix your code and send another commit, which will re-trigger the tests.</p>
 </div></blockquote>
 </section>
 <section id="code-style">
-<span id="contrib-style"></span><h3>Code style<a class="headerlink" href="#code-style" title="Permalink to this headline">¶</a></h3>
+<span id="contrib-style"></span><h3>Code style<a class="headerlink" href="#code-style" title="Permalink to this heading">¶</a></h3>
 <p>We use <a class="reference external" href="https://flake8.pycqa.org/en/latest/">flake8</a> and
 <a class="reference external" href="https://pycqa.github.io/isort/">isort</a> to enforce our Python coding
 style. Before sending us a pull request, navigate to the project root
@@ -204,7 +205,7 @@ to check these conventions automatically before every commit.</p>
 </div></blockquote>
 </section>
 <section id="writing-unit-tests">
-<span id="contrib-unittests"></span><h3>Writing unit tests<a class="headerlink" href="#writing-unit-tests" title="Permalink to this headline">¶</a></h3>
+<span id="contrib-unittests"></span><h3>Writing unit tests<a class="headerlink" href="#writing-unit-tests" title="Permalink to this heading">¶</a></h3>
 <p>Most code changes will require new unit tests. (Even bug fixes require unit tests,
 since the presence of bugs usually indicates insufficient tests.) CVXPY tests
 live in the directory <cite>cvxpy/tests</cite>, which contains many files, each of which
@@ -217,7 +218,7 @@ framework for our tests. Tests are organized into classes, which inherit from
 test.</p>
 </section>
 <section id="running-unit-tests">
-<span id="contrib-run-tests"></span><h3>Running unit tests<a class="headerlink" href="#running-unit-tests" title="Permalink to this headline">¶</a></h3>
+<span id="contrib-run-tests"></span><h3>Running unit tests<a class="headerlink" href="#running-unit-tests" title="Permalink to this heading">¶</a></h3>
 <p>We use <code class="docutils literal notranslate"><span class="pre">pytest</span></code> to run our unit tests, which you can install with <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pytest</span></code>.
 To run all unit tests, <code class="docutils literal notranslate"><span class="pre">cd</span></code> into <code class="docutils literal notranslate"><span class="pre">cvxpy/tests</span></code> and run the following command:</p>
 <blockquote>
@@ -242,7 +243,7 @@ To run all unit tests, <code class="docutils literal notranslate"><span class="p
 to <code class="docutils literal notranslate"><span class="pre">pytest</span></code>.</p>
 </section>
 <section id="benchmarks">
-<span id="contrib-run-benchmarks"></span><h3>Benchmarks<a class="headerlink" href="#benchmarks" title="Permalink to this headline">¶</a></h3>
+<span id="contrib-run-benchmarks"></span><h3>Benchmarks<a class="headerlink" href="#benchmarks" title="Permalink to this heading">¶</a></h3>
 <p>CVXPY has a few benchmarks in <code class="docutils literal notranslate"><span class="pre">cvxpy/tests/test_benchmarks.py</span></code>, which test
 the time to canonicalize problems. Please run</p>
 <blockquote>
@@ -256,7 +257,7 @@ the above command (with and without your change) in your pull request.</p>
 </section>
 </section>
 <section id="solver-interfaces">
-<span id="contrib-solver"></span><h2>Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Permalink to this headline">¶</a></h2>
+<span id="contrib-solver"></span><h2>Solver interfaces<a class="headerlink" href="#solver-interfaces" title="Permalink to this heading">¶</a></h2>
 <p>Third-party numerical optimization solvers are the lifeblood of CVXPY.
 We are very grateful to anyone who would be willing to volunteer their time to
 improve our existing solver interfaces, or create interfaces to new solvers.
@@ -280,7 +281,7 @@ CVXPY developers before writing a solver interface, if for no other reason than 
 prompt us to double-check the accuracy of this guide.</p>
 </div>
 <section id="conic-solvers">
-<h3>Conic solvers<a class="headerlink" href="#conic-solvers" title="Permalink to this headline">¶</a></h3>
+<h3>Conic solvers<a class="headerlink" href="#conic-solvers" title="Permalink to this heading">¶</a></h3>
 <p>Conic solvers require that the objective is a linear function of the
 optimization variable; constraints must be expressed using convex cones and
 affine functions of the optimization variable.
@@ -319,7 +320,7 @@ then you’re looking at something closer to the MOSEK, GUROBI, or NAG interface
 Writing the <code class="docutils literal notranslate"><span class="pre">invert</span></code> function may require nontrivial effort to properly recover dual variables.</p>
 </section>
 <section id="cvxpy-s-conic-form">
-<h3>CVXPY’s conic form<a class="headerlink" href="#cvxpy-s-conic-form" title="Permalink to this headline">¶</a></h3>
+<h3>CVXPY’s conic form<a class="headerlink" href="#cvxpy-s-conic-form" title="Permalink to this heading">¶</a></h3>
 <p>CVXPY converts an optimization problem to an explicit form at the last possible moment.
 When CVXPY presents a problem in a concrete form, it’s over a single vectorized
 optimization variable, and a flattened representation of the feasible set.
@@ -430,7 +431,7 @@ or when it parametrizes <span class="math notranslate nohighlight">\(K_e \subset
 what we defined earlier.</p>
 </section>
 <section id="an-alternative-conic-form">
-<h3>An alternative conic form<a class="headerlink" href="#an-alternative-conic-form" title="Permalink to this headline">¶</a></h3>
+<h3>An alternative conic form<a class="headerlink" href="#an-alternative-conic-form" title="Permalink to this heading">¶</a></h3>
 <p>Some conic solvers do not natively support problem formats like (P) described in
 the previous section. Instead, the solver requires problem statements like</p>
 <div class="math notranslate nohighlight">
@@ -445,7 +446,7 @@ Therefore if your solver supports integer constraints, make sure to also use the
 <p>The MOSEK interface uses both of the reductions mentioned above.</p>
 </section>
 <section id="dual-variables">
-<h3>Dual variables<a class="headerlink" href="#dual-variables" title="Permalink to this headline">¶</a></h3>
+<h3>Dual variables<a class="headerlink" href="#dual-variables" title="Permalink to this heading">¶</a></h3>
 <p>Dual variable extraction should be handled in <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver).invert</span></code>.
 To perform this step correctly, it’s necessary to consider how CVXPY forms
 a Lagrangian for the primal problem <span class="math notranslate nohighlight">\((P)\)</span>.
@@ -466,7 +467,7 @@ functions for dual variable recovery, found in
 <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/utilities.py">reductions/solvers/utilities.py</a>.</p>
 </section>
 <section id="registering-a-solver">
-<h3>Registering a solver<a class="headerlink" href="#registering-a-solver" title="Permalink to this headline">¶</a></h3>
+<h3>Registering a solver<a class="headerlink" href="#registering-a-solver" title="Permalink to this heading">¶</a></h3>
 <p>Correctly implementing <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code> isn’t enough to call <em>Awesome</em> from CVXPY.
 You need to make edits in a handful of other places, namely</p>
 <blockquote>
@@ -480,7 +481,7 @@ You need to make edits in a handful of other places, namely</p>
 to add <em>Awesome</em> to CVXPY.</p>
 </section>
 <section id="writing-tests">
-<h3>Writing tests<a class="headerlink" href="#writing-tests" title="Permalink to this headline">¶</a></h3>
+<h3>Writing tests<a class="headerlink" href="#writing-tests" title="Permalink to this heading">¶</a></h3>
 <p>Tests for  <code class="docutils literal notranslate"><span class="pre">Awesome(ConicSolver)</span></code> should be placed in <a class="reference external" href="https://github.com/cvxpy/cvxpy/blob/master/cvxpy/tests/test_conic_solvers.py">cvxpy/tests/test_conic_solvers.py</a>.
 The overwhelming majority of tests in that file only take a single line, because
 we make consistent use of a general testing framework defined in
@@ -637,7 +638,7 @@ call modified versions of a test with different solver parameters, for example</
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -664,7 +665,7 @@ call modified versions of a test with different solver parameters, for example</
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

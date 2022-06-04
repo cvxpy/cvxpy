@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Optimal parade route &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,17 +34,17 @@
           <div class="body" role="main">
             
   <section id="optimal-parade-route">
-<h1>Optimal parade route<a class="headerlink" href="#optimal-parade-route" title="Permalink to this headline">¶</a></h1>
+<h1>Optimal parade route<a class="headerlink" href="#optimal-parade-route" title="Permalink to this heading">¶</a></h1>
 </section>
 <section id="topic-references">
-<h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this headline">¶</a></h1>
+<h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this heading">¶</a></h1>
 <ul class="simple">
 <li><p>Iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span>
 heuristic: <a class="reference external" href="https://stanford.edu/class/ee364b/lectures/l1_ext_slides.pdf">slides</a></p></li>
 </ul>
 </section>
 <section id="problem-statement">
-<h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this headline">¶</a></h1>
+<h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this heading">¶</a></h1>
 <p>In this notebook, we’ll tackle the problem of trying to protect a parade
 route by placing a limited number of guards.</p>
 <p>The parade route is discritized into <span class="math notranslate nohighlight">\(m\)</span> points. There are
@@ -62,7 +63,7 @@ goal is to place <span class="math notranslate nohighlight">\(k\)</span> guards 
 the points in the route.</p>
 </section>
 <section id="optimization-formulation">
-<h1>Optimization formulation<a class="headerlink" href="#optimization-formulation" title="Permalink to this headline">¶</a></h1>
+<h1>Optimization formulation<a class="headerlink" href="#optimization-formulation" title="Permalink to this heading">¶</a></h1>
 <p>We can formulate this as the optimization problem</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll} \mbox{maximize} &amp; t \\ \mbox{subject to} &amp; t \leq Ax\\ &amp; 0 \leq x \leq 1 \\ &amp; \mathbf{1}^Tx = k, \end{array}\end{split}\]</div>
@@ -70,7 +71,7 @@ the points in the route.</p>
 decision variable.</p>
 </section>
 <section id="relaxation">
-<h1>Relaxation<a class="headerlink" href="#relaxation" title="Permalink to this headline">¶</a></h1>
+<h1>Relaxation<a class="headerlink" href="#relaxation" title="Permalink to this heading">¶</a></h1>
 <p>We can try to approach the problem with convex optimization by first
 forming the convex relaxation</p>
 <div class="math notranslate nohighlight">
@@ -81,7 +82,7 @@ fractional values. As we want a Boolean allocation, we can use an
 iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span> heuristic to try to recover a Boolean solution.</p>
 </section>
 <section id="iterated-weighted-ell-1-heuristic">
-<h1>Iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span> heuristic<a class="headerlink" href="#iterated-weighted-ell-1-heuristic" title="Permalink to this headline">¶</a></h1>
+<h1>Iterated weighted <span class="math notranslate nohighlight">\(\ell_1\)</span> heuristic<a class="headerlink" href="#iterated-weighted-ell-1-heuristic" title="Permalink to this heading">¶</a></h1>
 <p>To try and recover a Boolean solution, we will solve a sequence of
 convex problems where we add a linear term <span class="math notranslate nohighlight">\(-w^Tx\)</span> to the
 objective, picking the weight vector <span class="math notranslate nohighlight">\(w \in \mathbf{R}^n_+\)</span> at
@@ -112,7 +113,7 @@ are adjusted to promote a sparse solution. Typical choices would be
 the next iteration.</p>
 </section>
 <section id="example">
-<h1>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h1>
+<h1>Example<a class="headerlink" href="#example" title="Permalink to this heading">¶</a></h1>
 <p>We create a parade route in the unit square <span class="math notranslate nohighlight">\([0,1] \times [0,1]\)</span>
 by generating points along a connected sequence of line segments.
 Possible guard locations are a set of randomly placed points in the unit
@@ -402,7 +403,7 @@ rectangles are buildings which obstruct the guards’ view.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -429,7 +430,7 @@ rectangles are buildings which obstruct the guards’ view.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

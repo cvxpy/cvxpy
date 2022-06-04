@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Reductions &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
     <script src="../_static/jquery.js"></script>
     <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
@@ -35,14 +36,14 @@
           <div class="body" role="main">
             
   <section id="reductions">
-<span id="reductions-api"></span><h1>Reductions<a class="headerlink" href="#reductions" title="Permalink to this headline">¶</a></h1>
+<span id="reductions-api"></span><h1>Reductions<a class="headerlink" href="#reductions" title="Permalink to this heading">¶</a></h1>
 <p>A <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reduction</span></code></a> is a transformation
 from one problem to an equivalent problem. Two problems are equivalent
 if a solution of one can be converted to a solution of the other with no
 more than a moderate amount of effort. CVXPY uses reductions to rewrite
 problems into forms that solvers will accept.</p>
 <section id="disclaimer">
-<span id="reductions-disclaimer"></span><h2>Disclaimer<a class="headerlink" href="#disclaimer" title="Permalink to this headline">¶</a></h2>
+<span id="reductions-disclaimer"></span><h2>Disclaimer<a class="headerlink" href="#disclaimer" title="Permalink to this heading">¶</a></h2>
 <p>The majority of users do not need to know anything about CVXPY’s reduction system.
 Indeed, most users need not even know that reductions exist!</p>
 <p>In order to make sure that we have flexibility to improve CVXPY’s speed
@@ -57,7 +58,7 @@ access to the Reduction system and if you care about forward compatibility with
 future versions of CVXPY.</p>
 </section>
 <section id="types-of-reductions">
-<h2>Types of Reductions<a class="headerlink" href="#types-of-reductions" title="Permalink to this headline">¶</a></h2>
+<h2>Types of Reductions<a class="headerlink" href="#types-of-reductions" title="Permalink to this heading">¶</a></h2>
 <p>Reductions allow CVXPY to support different problem classes such as convex
 and log-log convex programming. They also help CVXPY target different categories
 of solvers, such as quadratic programming solvers and conic solvers.</p>
@@ -91,12 +92,12 @@ or <em>target</em>.</p>
 </div>
 </section>
 <section id="core-classes">
-<h2>Core classes<a class="headerlink" href="#core-classes" title="Permalink to this headline">¶</a></h2>
+<h2>Core classes<a class="headerlink" href="#core-classes" title="Permalink to this heading">¶</a></h2>
 <p>Reductions exchange data and operate by way of the following classes.
 Other data structures can be used, such as dicts keyed by strings, but
 these are the main classes which define the Reduction system.</p>
 <section id="solution">
-<h3>Solution<a class="headerlink" href="#solution" title="Permalink to this headline">¶</a></h3>
+<h3>Solution<a class="headerlink" href="#solution" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.solution.Solution">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.solution.</span></span><span class="sig-name descname"><span class="pre">Solution</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">status</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">opt_val</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">primal_vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dual_vars</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">attr</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solution.html#Solution"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solution.Solution" title="Permalink to this definition">¶</a></dt>
@@ -106,7 +107,7 @@ these are the main classes which define the Reduction system.</p>
 <span class="sig-name descname"><span class="pre">status</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.status" title="Permalink to this definition">¶</a></dt>
 <dd><p>The status code.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
 </dd>
 </dl>
@@ -117,7 +118,7 @@ these are the main classes which define the Reduction system.</p>
 <span class="sig-name descname"><span class="pre">opt_val</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.opt_val" title="Permalink to this definition">¶</a></dt>
 <dd><p>The optimal value.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>float</p>
 </dd>
 </dl>
@@ -128,7 +129,7 @@ these are the main classes which define the Reduction system.</p>
 <span class="sig-name descname"><span class="pre">primal_vars</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.primal_vars" title="Permalink to this definition">¶</a></dt>
 <dd><p>A map from variable ids to optimal values.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict of id to NumPy ndarray</p>
 </dd>
 </dl>
@@ -139,7 +140,7 @@ these are the main classes which define the Reduction system.</p>
 <span class="sig-name descname"><span class="pre">dual_vars</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.dual_vars" title="Permalink to this definition">¶</a></dt>
 <dd><p>A map from constraint ids to dual values.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict of id to NumPy ndarray</p>
 </dd>
 </dl>
@@ -150,7 +151,7 @@ these are the main classes which define the Reduction system.</p>
 <span class="sig-name descname"><span class="pre">attr</span></span><a class="headerlink" href="#cvxpy.reductions.solution.Solution.attr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Miscelleneous information propagated up from a solver.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
@@ -160,7 +161,7 @@ these are the main classes which define the Reduction system.</p>
 
 </section>
 <section id="reduction">
-<h3>Reduction<a class="headerlink" href="#reduction" title="Permalink to this headline">¶</a></h3>
+<h3>Reduction<a class="headerlink" href="#reduction" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.reduction.Reduction">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.reduction.</span></span><span class="sig-name descname"><span class="pre">Reduction</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction" title="Permalink to this definition">¶</a></dt>
@@ -183,7 +184,7 @@ that it is applicable to; the apply method takes a problem and reduces
 it to an equivalent form, and the invert method maps solutions
 from reduced-to problems to their problems of provenance.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – A problem owned by this reduction; possibly None.</p>
 </dd>
 </dl>
@@ -200,13 +201,13 @@ will reduce <cite>problem</cite> and return an equivalent one.</p>
 <span class="sig-name descname"><span class="pre">accepts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.accepts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.accepts" title="Permalink to this definition">¶</a></dt>
 <dd><p>States whether the reduction accepts a problem.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the reduction can be applied, False otherwise.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -217,10 +218,10 @@ will reduce <cite>problem</cite> and return an equivalent one.</p>
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies the reduction to a problem and returns an equivalent problem.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to which the reduction will be applied.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><em>Problem or dict</em> – An equivalent problem, encoded either as a Problem or a dict.</p></li>
 <li><p><em>InverseData, list or dict</em> – Data needed by the reduction in order to invert this particular
@@ -236,16 +237,16 @@ application.</p></li>
 <em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">invert</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inverse_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.invert"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.invert" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a solution to the original problem given the inverse_data.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>solution</strong> (<a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution"><em>Solution</em></a>) – A solution to a problem that generated the inverse_data.</p></li>
 <li><p><strong>inverse_data</strong> – The data encoding the original problem.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A solution to the original problem.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution">Solution</a></p>
 </dd>
 </dl>
@@ -256,13 +257,13 @@ application.</p></li>
 <span class="sig-name descname"><span class="pre">reduce</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.reduce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.reduce" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reduces the owned problem to an equivalent problem.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Returns</dt>
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
 <dd class="field-odd"><p>An equivalent problem, encoded either as a Problem or a dict.</p>
 </dd>
-<dt class="field-even">Return type</dt>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem">Problem</a> or dict</p>
 </dd>
-<dt class="field-odd">Raises</dt>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>ValueError</strong> – If this Reduction was constructed without a Problem.</p>
 </dd>
 </dl>
@@ -273,16 +274,16 @@ application.</p></li>
 <span class="sig-name descname"><span class="pre">retrieve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">solution</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/reduction.html#Reduction.retrieve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.reduction.Reduction.retrieve" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves a solution to the owned problem.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>solution</strong> (<a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution"><em>Solution</em></a>) – A solution to the problem emitted by <cite>reduce()</cite>.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>A solution to the owned problem.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution">Solution</a></p>
 </dd>
-<dt class="field-even">Raises</dt>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>ValueError</strong> – If <cite>self.problem</cite> is None, or if <cite>reduce()</cite> was not previously
     called.</p>
 </dd>
@@ -293,18 +294,18 @@ application.</p></li>
 
 </section>
 <section id="chain">
-<h3>Chain<a class="headerlink" href="#chain" title="Permalink to this headline">¶</a></h3>
+<h3>Chain<a class="headerlink" href="#chain" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.chain.Chain">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.chain.</span></span><span class="sig-name descname"><span class="pre">Chain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reductions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.reduction.Reduction</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><code class="xref py py-class docutils literal notranslate"><span class="pre">Reduction</span></code></a></p>
 <p>A logical grouping of multiple reductions into a single reduction.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="cvxpy.reductions.chain.Chain.reductions">
 <span class="sig-name descname"><span class="pre">reductions</span></span><a class="headerlink" href="#cvxpy.reductions.chain.Chain.reductions" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of reductions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction">Reduction</a>]</p>
 </dd>
 </dl>
@@ -318,13 +319,13 @@ application.</p></li>
 reduction, with the first reduction (self.reductions[0])
 in the sequence taking as input the supplied problem.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to check.</p>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>True if the chain can be applied, False otherwise.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>bool</p>
 </dd>
 </dl>
@@ -335,13 +336,13 @@ in the sequence taking as input the supplied problem.</p>
 <span class="sig-name descname"><span class="pre">apply</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/chain.html#Chain.apply"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.chain.Chain.apply" title="Permalink to this definition">¶</a></dt>
 <dd><p>Applies the chain to a problem and returns an equivalent problem.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to which the chain will be applied.</p></li>
 <li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Whehter to print verbose output.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><ul class="simple">
 <li><p><em>Problem or dict</em> – The problem yielded by applying the reductions in sequence,
 starting at self.reductions[0].</p></li>
@@ -362,14 +363,14 @@ starting at self.reductions[0].</p></li>
 
 </section>
 <section id="solvingchain">
-<h3>SolvingChain<a class="headerlink" href="#solvingchain" title="Permalink to this headline">¶</a></h3>
+<h3>SolvingChain<a class="headerlink" href="#solvingchain" title="Permalink to this heading">¶</a></h3>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.solvers.solving_chain.</span></span><span class="sig-name descname"><span class="pre">SolvingChain</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reductions</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.chain.Chain" title="cvxpy.reductions.chain.Chain"><code class="xref py py-class docutils literal notranslate"><span class="pre">cvxpy.reductions.chain.Chain</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#cvxpy.reductions.chain.Chain" title="cvxpy.reductions.chain.Chain"><code class="xref py py-class docutils literal notranslate"><span class="pre">Chain</span></code></a></p>
 <p>A reduction chain that ends with a solver.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>reductions</strong> (<em>list</em><em>[</em><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction"><em>Reduction</em></a><em>]</em>) – A list of reductions. The last reduction in the list must be a solver
 instance.</p>
 </dd>
@@ -379,7 +380,7 @@ instance.</p>
 <span class="sig-name descname"><span class="pre">reductions</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions" title="Permalink to this definition">¶</a></dt>
 <dd><p>A list of reductions.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[<a class="reference internal" href="#cvxpy.reductions.reduction.Reduction" title="cvxpy.reductions.reduction.Reduction">Reduction</a>]</p>
 </dd>
 </dl>
@@ -390,7 +391,7 @@ instance.</p>
 <span class="sig-name descname"><span class="pre">solver</span></span><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver" title="Permalink to this definition">¶</a></dt>
 <dd><p>The solver, i.e., reductions[-1].</p>
 <dl class="field-list simple">
-<dt class="field-odd">Type</dt>
+<dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>Solver</p>
 </dd>
 </dl>
@@ -398,7 +399,7 @@ instance.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend">
-<span class="sig-name descname"><span class="pre">prepend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chain</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><span class="pre">cvxpy.reductions.solvers.solving_chain.SolvingChain</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.prepend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend" title="Permalink to this definition">¶</a></dt>
+<span class="sig-name descname"><span class="pre">prepend</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">chain</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain" title="cvxpy.reductions.solvers.solving_chain.SolvingChain"><span class="pre">SolvingChain</span></a></span></span><a class="reference internal" href="../_modules/cvxpy/reductions/solvers/solving_chain.html#SolvingChain.prepend"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create and return a new SolvingChain by concatenating
 chain with this instance.</p>
 </dd></dl>
@@ -411,7 +412,7 @@ chain with this instance.</p>
 and then inverts the chain to return a solution of the supplied
 problem.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to solve.</p></li>
 <li><p><strong>warm_start</strong> (<em>bool</em>) – Whether to warm start the solver.</p></li>
@@ -419,10 +420,10 @@ problem.</p>
 <li><p><strong>solver_opts</strong> (<em>dict</em>) – Solver specific options.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p><strong>solution</strong> – A solution to the problem.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p><a class="reference internal" href="#cvxpy.reductions.solution.Solution" title="cvxpy.reductions.solution.Solution">Solution</a></p>
 </dd>
 </dl>
@@ -442,7 +443,7 @@ problem.</p>
 </pre></div>
 </div>
 <dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>problem</strong> (<a class="reference internal" href="cvxpy.problems.html#cvxpy.Problem" title="cvxpy.Problem"><em>Problem</em></a>) – The problem to solve.</p></li>
 <li><p><strong>data</strong> (<em>map</em>) – Data for the solver.</p></li>
@@ -451,11 +452,11 @@ problem.</p>
 <li><p><strong>solver_opts</strong> (<em>dict</em>) – Solver specific options.</p></li>
 </ul>
 </dd>
-<dt class="field-even">Returns</dt>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The information returned by the solver; this is not necessarily
 a Solution object.</p>
 </dd>
-<dt class="field-odd">Return type</dt>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>raw solver solution</p>
 </dd>
 </dl>
@@ -558,7 +559,7 @@ a Solution object.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -585,7 +586,7 @@ a Solution object.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

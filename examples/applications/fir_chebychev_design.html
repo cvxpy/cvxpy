@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Chebychev design of an FIR filter given a desired \(H(\omega)\) &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="chebychev-design-of-an-fir-filter-given-a-desired-h-omega">
-<h1>Chebychev design of an FIR filter given a desired <span class="math notranslate nohighlight">\(H(\omega)\)</span><a class="headerlink" href="#chebychev-design-of-an-fir-filter-given-a-desired-h-omega" title="Permalink to this headline">¶</a></h1>
+<h1>Chebychev design of an FIR filter given a desired <span class="math notranslate nohighlight">\(H(\omega)\)</span><a class="headerlink" href="#chebychev-design-of-an-fir-filter-given-a-desired-h-omega" title="Permalink to this heading">¶</a></h1>
 <p>A derivative work by Judson Wilson, 5/27/2014. Adapted from the CVX
 example of the same name, by Almir Mutapcic, 2/2/2006.</p>
 <p>Topic References:</p>
@@ -41,7 +42,7 @@ example of the same name, by Almir Mutapcic, 2/2/2006.</p>
 <li><p>“Filter design” lecture notes (EE364) by S. Boyd</p></li>
 </ul>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
 <p>This program designs an FIR filter, given a desired frequency response
 <span class="math notranslate nohighlight">\(H_\mbox{des}(\omega)\)</span>. The design is judged by the maximum
 absolute error (Chebychev norm). This is a convex problem (after
@@ -56,7 +57,7 @@ form:</p>
 corresponding to an impulse response <span class="math notranslate nohighlight">\(h\)</span>.</p>
 </section>
 <section id="initialize-problem-data">
-<h2>Initialize problem data<a class="headerlink" href="#initialize-problem-data" title="Permalink to this headline">¶</a></h2>
+<h2>Initialize problem data<a class="headerlink" href="#initialize-problem-data" title="Permalink to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 
@@ -84,7 +85,7 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 </div>
 </section>
 <section id="solve-the-minimax-chebychev-design-problem">
-<h2>Solve the minimax (Chebychev) design problem<a class="headerlink" href="#solve-the-minimax-chebychev-design-problem" title="Permalink to this headline">¶</a></h2>
+<h2>Solve the minimax (Chebychev) design problem<a class="headerlink" href="#solve-the-minimax-chebychev-design-problem" title="Permalink to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A is the matrix used to compute the frequency response</span>
 <span class="c1"># from a vector of filter coefficients:</span>
 <span class="c1">#     A[w,:] = [1 exp(-j*w) exp(-j*2*w) ... exp(-j*n*w)]</span>
@@ -133,7 +134,7 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
 </div>
 </section>
 <section id="result-plots">
-<h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this headline">¶</a></h2>
+<h2>Result plots<a class="headerlink" href="#result-plots" title="Permalink to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="c1"># Show plot inline in ipython.</span>
@@ -254,7 +255,7 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -281,7 +282,7 @@ corresponding to an impulse response <span class="math notranslate nohighlight">
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

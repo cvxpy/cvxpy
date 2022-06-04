@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>What is CVXPY? &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -35,7 +36,7 @@
           <div class="body" role="main">
             
   <section id="what-is-cvxpy">
-<span id="intro"></span><h1>What is CVXPY?<a class="headerlink" href="#what-is-cvxpy" title="Permalink to this headline">¶</a></h1>
+<span id="intro"></span><h1>What is CVXPY?<a class="headerlink" href="#what-is-cvxpy" title="Permalink to this heading">¶</a></h1>
 <p>CVXPY is a Python-embedded modeling language for convex optimization
 problems. It
 automatically transforms the problem into standard form, calls a solver,
@@ -77,7 +78,7 @@ achieve the optimal objective.</p>
 <code class="docutils literal notranslate"><span class="pre">prob.value</span></code>, and the <code class="docutils literal notranslate"><span class="pre">value</span></code> field of all the variables in the
 problem.</p>
 <section id="changing-the-problem">
-<h2>Changing the problem<a class="headerlink" href="#changing-the-problem" title="Permalink to this headline">¶</a></h2>
+<h2>Changing the problem<a class="headerlink" href="#changing-the-problem" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference internal" href="../../api_reference/cvxpy.problems.html#cvxpy.Problem" title="cvxpy.problems.problem.Problem"><code class="xref py py-class docutils literal notranslate"><span class="pre">Problems</span></code></a> are immutable, meaning they
 cannot be changed after they are created.  To change the objective or
 constraints, create a new problem.</p>
@@ -97,7 +98,7 @@ constraints, create a new problem.</p>
 </div>
 </section>
 <section id="infeasible-and-unbounded-problems">
-<h2>Infeasible and unbounded problems<a class="headerlink" href="#infeasible-and-unbounded-problems" title="Permalink to this headline">¶</a></h2>
+<h2>Infeasible and unbounded problems<a class="headerlink" href="#infeasible-and-unbounded-problems" title="Permalink to this heading">¶</a></h2>
 <p>If a problem is infeasible or unbounded, the status field will be set to
 “infeasible” or “unbounded”, respectively. The value fields of the
 problem variables are not updated.</p>
@@ -129,7 +130,7 @@ infeasible and <code class="docutils literal notranslate"><span class="pre">-inf
 opposite is true.</p>
 </section>
 <section id="other-problem-statuses">
-<h2>Other problem statuses<a class="headerlink" href="#other-problem-statuses" title="Permalink to this headline">¶</a></h2>
+<h2>Other problem statuses<a class="headerlink" href="#other-problem-statuses" title="Permalink to this heading">¶</a></h2>
 <p>If the solver called by CVXPY solves the problem but to a lower accuracy than desired, the
 problem status indicates the lower accuracy achieved. The
 statuses indicating lower accuracy are</p>
@@ -166,7 +167,7 @@ original problem was infeasible. If the new problem is solved with status <code 
 then the original problem was unbounded.</p>
 </section>
 <section id="vectors-and-matrices">
-<h2>Vectors and matrices<a class="headerlink" href="#vectors-and-matrices" title="Permalink to this headline">¶</a></h2>
+<h2>Vectors and matrices<a class="headerlink" href="#vectors-and-matrices" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable" title="cvxpy.expressions.variable.Variable"><code class="xref py py-class docutils literal notranslate"><span class="pre">Variables</span></code></a> can be scalars,
 vectors, or matrices, meaning they are 0, 1, or 2 dimensional.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># A scalar variable.</span>
@@ -224,13 +225,13 @@ sparse matrices, etc. <code class="docutils literal notranslate"><span class="pr
 </div>
 </section>
 <section id="constraints">
-<h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this headline">¶</a></h2>
+<h2>Constraints<a class="headerlink" href="#constraints" title="Permalink to this heading">¶</a></h2>
 <p>As shown in the example code, you can use <code class="docutils literal notranslate"><span class="pre">==</span></code>, <code class="docutils literal notranslate"><span class="pre">&lt;=</span></code>, and <code class="docutils literal notranslate"><span class="pre">&gt;=</span></code> to construct constraints in CVXPY. Equality and inequality constraints are elementwise, whether they involve scalars, vectors, or matrices. For example, together the constraints <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span></code> and <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code> mean that every entry of <code class="docutils literal notranslate"><span class="pre">x</span></code> is between 0 and 1.</p>
 <p>If you want matrix inequalities that represent semi-definite cone constraints, see <a class="reference internal" href="../advanced/index.html#semidefinite"><span class="std std-ref">Semidefinite matrices</span></a>. The section explains how to express a semi-definite cone inequality.</p>
 <p>You cannot construct inequalities with <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>. Strict inequalities don’t make sense in a real world setting. Also, you cannot chain constraints together, e.g., <code class="docutils literal notranslate"><span class="pre">0</span> <span class="pre">&lt;=</span> <span class="pre">x</span> <span class="pre">&lt;=</span> <span class="pre">1</span></code> or <code class="docutils literal notranslate"><span class="pre">x</span> <span class="pre">==</span> <span class="pre">y</span> <span class="pre">==</span> <span class="pre">2</span></code>. The Python interpreter treats chained constraints in such a way that CVXPY cannot capture them. CVXPY will raise an exception if you write a chained constraint.</p>
 </section>
 <section id="parameters">
-<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this headline">¶</a></h2>
+<h2>Parameters<a class="headerlink" href="#parameters" title="Permalink to this heading">¶</a></h2>
 <p><a class="reference internal" href="../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter" title="cvxpy.expressions.constants.parameter.Parameter"><code class="xref py py-class docutils literal notranslate"><span class="pre">Parameters</span></code></a> are symbolic
 representations of constants. The purpose of parameters is to change the value
 of a constant in a problem without reconstructing the entire problem. In many
@@ -429,7 +430,7 @@ problem above.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -456,7 +457,7 @@ problem above.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

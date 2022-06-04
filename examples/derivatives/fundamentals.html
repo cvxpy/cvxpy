@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Derivatives fundamentals &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="derivatives-fundamentals">
-<h1>Derivatives fundamentals<a class="headerlink" href="#derivatives-fundamentals" title="Permalink to this headline">¶</a></h1>
+<h1>Derivatives fundamentals<a class="headerlink" href="#derivatives-fundamentals" title="Permalink to this heading">¶</a></h1>
 <p>This notebook will introduce you to the fundamentals of computing the
 derivative of the solution map to optimization problems. The derivative
 can be used for <strong>sensitvity analysis</strong>, to see how a solution would
@@ -102,7 +103,7 @@ print(z.value)
 <p>Notice the keyword argument <code class="docutils literal notranslate"><span class="pre">requires_grad=True</span></code>; this is necessary to
 subsequently compute derivatives.</p>
 <section id="solution-map">
-<h2>Solution map<a class="headerlink" href="#solution-map" title="Permalink to this headline">¶</a></h2>
+<h2>Solution map<a class="headerlink" href="#solution-map" title="Permalink to this heading">¶</a></h2>
 <p>The <strong>solution map</strong> of the above problem is a function</p>
 <div class="math notranslate nohighlight">
 \[\mathcal{S} : \mathbf{R}^2_{++} \times \mathbf{R} \to \mathbf{R}^3_{++}\]</div>
@@ -117,7 +118,7 @@ vector.</p>
 \[\begin{split}\mathcal S((2.0, 1.0, 0.5)) = \begin{bmatrix} 0.5612 \\ 0.3150 \\ 0.3690 \end{bmatrix}.\end{split}\]</div>
 </section>
 <section id="sensitivity-analysis">
-<h2>Sensitivity analysis<a class="headerlink" href="#sensitivity-analysis" title="Permalink to this headline">¶</a></h2>
+<h2>Sensitivity analysis<a class="headerlink" href="#sensitivity-analysis" title="Permalink to this heading">¶</a></h2>
 <p>When the solution map is differentiable, we can use its derivative</p>
 <div class="math notranslate nohighlight">
 \[\mathsf{D}\mathcal{S}(\alpha) \in \mathbf{R}^{3 \times 3}\]</div>
@@ -173,7 +174,7 @@ c.value -= dc
 <p>In this case, the predictions and the actual solutions are fairly close.</p>
 </section>
 <section id="gradient">
-<h2>Gradient<a class="headerlink" href="#gradient" title="Permalink to this headline">¶</a></h2>
+<h2>Gradient<a class="headerlink" href="#gradient" title="Permalink to this heading">¶</a></h2>
 <p>We can compute gradient of a scalar-valued function of the solution with
 respect to the parameters. Let
 <span class="math notranslate nohighlight">\(f : \mathbf{R}^{3} \to \mathbf{R}\)</span>, and suppose we want to
@@ -298,7 +299,7 @@ print(&#39;original {0:.5f} predicted {1:.5f} actual {2:.5f}&#39;.format(
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -325,7 +326,7 @@ print(&#39;original {0:.5f} predicted {1:.5f} actual {2:.5f}&#39;.format(
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

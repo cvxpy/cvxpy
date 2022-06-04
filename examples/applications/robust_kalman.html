@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Robust Kalman filtering for vehicle tracking &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="robust-kalman-filtering-for-vehicle-tracking">
-<h1>Robust Kalman filtering for vehicle tracking<a class="headerlink" href="#robust-kalman-filtering-for-vehicle-tracking" title="Permalink to this headline">¶</a></h1>
+<h1>Robust Kalman filtering for vehicle tracking<a class="headerlink" href="#robust-kalman-filtering-for-vehicle-tracking" title="Permalink to this heading">¶</a></h1>
 <p>We will try to pinpoint the location of a moving vehicle with high
 accuracy from noisy sensor data. We’ll do this by modeling the vehicle
 state as a discrete-time linear dynamical system. Standard <strong>Kalman
@@ -43,7 +44,7 @@ a more accurate estimate of the vehicle state for a non-Gaussian case
 with outliers.</p>
 </section>
 <section id="problem-statement">
-<h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this headline">¶</a></h1>
+<h1>Problem statement<a class="headerlink" href="#problem-statement" title="Permalink to this heading">¶</a></h1>
 <p>A discrete-time linear dynamical system consists of a sequence of state
 vectors <span class="math notranslate nohighlight">\(x_t \in \mathbf{R}^n\)</span>, indexed by time
 <span class="math notranslate nohighlight">\(t \in \lbrace 0, \ldots, N-1 \rbrace\)</span> and dynamics equations</p>
@@ -62,7 +63,7 @@ observation matrix.</p>
 <span class="math notranslate nohighlight">\(t = 0, \ldots, N-1\)</span>.</p>
 </section>
 <section id="kalman-filtering">
-<h1>Kalman filtering<a class="headerlink" href="#kalman-filtering" title="Permalink to this headline">¶</a></h1>
+<h1>Kalman filtering<a class="headerlink" href="#kalman-filtering" title="Permalink to this heading">¶</a></h1>
 <p>A Kalman filter estimates <span class="math notranslate nohighlight">\(x_t\)</span> by solving the optimization
 problem</p>
 <div class="math notranslate nohighlight">
@@ -85,7 +86,7 @@ which degrades the accuracy of the recovery. To improve estimation in
 the presence of outliers, we can use <strong>robust Kalman filtering</strong>.</p>
 </section>
 <section id="robust-kalman-filtering">
-<h1>Robust Kalman filtering<a class="headerlink" href="#robust-kalman-filtering" title="Permalink to this headline">¶</a></h1>
+<h1>Robust Kalman filtering<a class="headerlink" href="#robust-kalman-filtering" title="Permalink to this heading">¶</a></h1>
 <p>To handle outliers in <span class="math notranslate nohighlight">\(v_t\)</span>, robust Kalman filtering replaces the
 quadratic cost with a Huber cost, which results in the convex
 optimization problem</p>
@@ -106,7 +107,7 @@ all errors are penalized quadratically. Thus, large errors are penalized
 less harshly, making this model more robust to outliers.</p>
 </section>
 <section id="vehicle-tracking-example">
-<h1>Vehicle tracking example<a class="headerlink" href="#vehicle-tracking-example" title="Permalink to this headline">¶</a></h1>
+<h1>Vehicle tracking example<a class="headerlink" href="#vehicle-tracking-example" title="Permalink to this heading">¶</a></h1>
 <p>We’ll apply standard and robust Kalman filtering to a vehicle tracking
 problem with state <span class="math notranslate nohighlight">\(x_t \in \mathbf{R}^4\)</span>, where
 <span class="math notranslate nohighlight">\((x_{t,0}, x_{t,1})\)</span> is the position of the vehicle in two
@@ -136,7 +137,7 @@ measurements of the vehicle’s position, <span class="math notranslate nohighli
 <p>where <span class="math notranslate nohighlight">\(\gamma\)</span> is a velocity damping parameter.</p>
 </section>
 <section id="d-model">
-<h1>1D Model<a class="headerlink" href="#d-model" title="Permalink to this headline">¶</a></h1>
+<h1>1D Model<a class="headerlink" href="#d-model" title="Permalink to this heading">¶</a></h1>
 <p>The recurrence is derived from the following relations in a single
 dimension. For this subsection, let <span class="math notranslate nohighlight">\(x_t, v_t, w_t\)</span> be the vehicle
 position, velocity, and input drive force. The resulting acceleration of
@@ -151,7 +152,7 @@ v_{t+1} &amp;= \left(1-\gamma\right)v_t + w_t \Delta t.
 <p>Extending these relations to two dimensions gives us the dynamics
 matrices <span class="math notranslate nohighlight">\(A\)</span> and <span class="math notranslate nohighlight">\(B\)</span>.</p>
 <section id="helper-functions">
-<h2>Helper Functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h2>
+<h2>Helper Functions<a class="headerlink" href="#helper-functions" title="Permalink to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -216,7 +217,7 @@ matrices <span class="math notranslate nohighlight">\(A\)</span> and <span class
 </div>
 </section>
 <section id="problem-data">
-<h2>Problem Data<a class="headerlink" href="#problem-data" title="Permalink to this headline">¶</a></h2>
+<h2>Problem Data<a class="headerlink" href="#problem-data" title="Permalink to this heading">¶</a></h2>
 <p>We generate the data for the vehicle tracking problem. We’ll have
 <span class="math notranslate nohighlight">\(N=1000\)</span>, <span class="math notranslate nohighlight">\(w_t\)</span> a standard Gaussian, and <span class="math notranslate nohighlight">\(v_t\)</span> a
 standard Gaussian, except <span class="math notranslate nohighlight">\(20\%\)</span> of the points will be outliers
@@ -251,7 +252,7 @@ with <span class="math notranslate nohighlight">\(\sigma = 20\)</span>.</p>
 </section>
 </section>
 <section id="simulation">
-<h1>Simulation<a class="headerlink" href="#simulation" title="Permalink to this headline">¶</a></h1>
+<h1>Simulation<a class="headerlink" href="#simulation" title="Permalink to this heading">¶</a></h1>
 <p>We seed <span class="math notranslate nohighlight">\(x_0 = 0\)</span> (starting at the origin with zero velocity) and
 simulate the system forward in time. The results are the true vehicle
 positions <code class="docutils literal notranslate"><span class="pre">x_true</span></code> (which we will use to judge our recovery) and the
@@ -292,7 +293,7 @@ observed vehicle positions.</p>
 <img alt="../../_images/robust_kalman_6_1.png" src="../../_images/robust_kalman_6_1.png" />
 </section>
 <section id="kalman-filtering-recovery">
-<h1>Kalman filtering recovery<a class="headerlink" href="#kalman-filtering-recovery" title="Permalink to this headline">¶</a></h1>
+<h1>Kalman filtering recovery<a class="headerlink" href="#kalman-filtering-recovery" title="Permalink to this heading">¶</a></h1>
 <p>The code below solves the standard Kalman filtering problem using CVXPY.
 We plot and compare the true and recovered vehicle states. Note that the
 recovery is distorted by outliers in the measurements.</p>
@@ -363,7 +364,7 @@ recovery is distorted by outliers in the measurements.</p>
 <img alt="../../_images/robust_kalman_8_3.png" src="../../_images/robust_kalman_8_3.png" />
 </section>
 <section id="robust-kalman-filtering-recovery">
-<h1>Robust Kalman filtering recovery<a class="headerlink" href="#robust-kalman-filtering-recovery" title="Permalink to this headline">¶</a></h1>
+<h1>Robust Kalman filtering recovery<a class="headerlink" href="#robust-kalman-filtering-recovery" title="Permalink to this heading">¶</a></h1>
 <p>Here we implement robust Kalman filtering with CVXPY. We get a better
 recovery than the standard Kalman filtering, which can be seen in the
 plots below.</p>
@@ -513,7 +514,7 @@ plots below.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -540,7 +541,7 @@ plots below.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
