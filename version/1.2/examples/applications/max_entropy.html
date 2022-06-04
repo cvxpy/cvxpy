@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Entropy maximization &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,11 +34,11 @@
           <div class="body" role="main">
             
   <section id="entropy-maximization">
-<h1>Entropy maximization<a class="headerlink" href="#entropy-maximization" title="Permalink to this headline">¶</a></h1>
+<h1>Entropy maximization<a class="headerlink" href="#entropy-maximization" title="Permalink to this heading">¶</a></h1>
 <p>A derivative work by Judson Wilson, 6/2/2014. Adapted from the CVX
 example of the same name, by Joëlle Skaf, 4/24/2008.</p>
 <section id="introduction">
-<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this heading">¶</a></h2>
 <p>Consider the linear inequality constrained entropy maximization problem:</p>
 <div class="math notranslate nohighlight">
 \[\begin{split}\begin{array}{ll}
@@ -49,7 +50,7 @@ example of the same name, by Joëlle Skaf, 4/24/2008.</p>
 <p>This problem can be formulated in CVXPY using the <code class="docutils literal notranslate"><span class="pre">entr</span></code> atom.</p>
 </section>
 <section id="generate-problem-data">
-<h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this headline">¶</a></h2>
+<h2>Generate problem data<a class="headerlink" href="#generate-problem-data" title="Permalink to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">cvxpy</span> <span class="k">as</span> <span class="nn">cp</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -71,7 +72,7 @@ example of the same name, by Joëlle Skaf, 4/24/2008.</p>
 </div>
 </section>
 <section id="formulate-and-solve-problem">
-<h2>Formulate and solve problem<a class="headerlink" href="#formulate-and-solve-problem" title="Permalink to this headline">¶</a></h2>
+<h2>Formulate and solve problem<a class="headerlink" href="#formulate-and-solve-problem" title="Permalink to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Entropy maximization.</span>
 <span class="n">x</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
 <span class="n">obj</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">Maximize</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cp</span><span class="o">.</span><span class="n">entr</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
@@ -179,7 +180,7 @@ example of the same name, by Joëlle Skaf, 4/24/2008.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -206,7 +207,7 @@ example of the same name, by Joëlle Skaf, 4/24/2008.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

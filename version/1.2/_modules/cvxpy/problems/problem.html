@@ -1,7 +1,7 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,6 +11,7 @@
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
     <script src="../../../_static/jquery.js"></script>
     <script src="../../../_static/underscore.js"></script>
+    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" />
@@ -783,12 +784,16 @@
 <span class="s2">                    for discussion on this topic.</span>
 
 <span class="s2">                    Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),</span>
-<span class="s2">                    then CVXPY can use the open-source mixed-integer solver `GLPK`.</span>
+<span class="s2">                    then CVXPY can use the open-source mixed-integer linear programming</span>
+<span class="s2">                    solver `GLPK`. If your problem is nonlinear then you can install SCIP</span>
+<span class="s2">                    (pip install pyscipopt).</span>
 
 <span class="s2">                    Quick fix 2: you can explicitly specify solver=&#39;ECOS_BB&#39;. This may result</span>
 <span class="s2">                    in incorrect solutions and is not recommended.</span>
 <span class="s2">                &quot;&quot;&quot;</span>
                 <span class="k">raise</span> <span class="n">error</span><span class="o">.</span><span class="n">SolverError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="c1"># TODO: provide a useful error message when the problem is nonlinear but</span>
+            <span class="c1">#  the only installed mixed-integer solvers are MILP solvers (e.g., GLPK_MI).</span>
             <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
                 <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">candidates</span><span class="p">[</span><span class="s1">&#39;qp_solvers&#39;</span><span class="p">]</span>
                 <span class="k">if</span> <span class="n">slv_def</span><span class="o">.</span><span class="n">SOLVER_MAP_QP</span><span class="p">[</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">MIP_CAPABLE</span><span class="p">]</span>
@@ -1611,7 +1616,7 @@
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -1638,7 +1643,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

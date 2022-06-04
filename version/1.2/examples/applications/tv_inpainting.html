@@ -1,10 +1,10 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
     <title>Total variation in-painting &#8212; CVXPY 1.2 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
@@ -12,6 +12,7 @@
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,9 +34,9 @@
           <div class="body" role="main">
             
   <section id="total-variation-in-painting">
-<h1>Total variation in-painting<a class="headerlink" href="#total-variation-in-painting" title="Permalink to this headline">¶</a></h1>
+<h1>Total variation in-painting<a class="headerlink" href="#total-variation-in-painting" title="Permalink to this heading">¶</a></h1>
 <section id="grayscale-images">
-<h2>Grayscale Images<a class="headerlink" href="#grayscale-images" title="Permalink to this headline">¶</a></h2>
+<h2>Grayscale Images<a class="headerlink" href="#grayscale-images" title="Permalink to this heading">¶</a></h2>
 <p>A grayscale image is represented as an <span class="math notranslate nohighlight">\(m \times n\)</span> matrix of
 intensities <span class="math notranslate nohighlight">\(U^\mathrm{orig}\)</span> (typically between the values
 <span class="math notranslate nohighlight">\(0\)</span> and <span class="math notranslate nohighlight">\(255\)</span>). We are given the values
@@ -164,7 +165,7 @@ difference is magnified by a factor of 10 so it is more visible.</p>
 </section>
 </section>
 <section id="color-images">
-<h1>Color Images<a class="headerlink" href="#color-images" title="Permalink to this headline">¶</a></h1>
+<h1>Color Images<a class="headerlink" href="#color-images" title="Permalink to this heading">¶</a></h1>
 <p>For color images, the in-painting problem is similar to the grayscale
 case. A color image is represented as an <span class="math notranslate nohighlight">\(m \times n \times 3\)</span>
 matrix of RGB values <span class="math notranslate nohighlight">\(U^\mathrm{orig}\)</span> (typically between the
@@ -389,7 +390,7 @@ differ.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -416,7 +417,7 @@ differ.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.5.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
