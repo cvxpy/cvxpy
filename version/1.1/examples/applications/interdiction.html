@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>TODO &#8212; CVXPY 1.1.19 documentation</title>
+    <title>TODO &#8212; CVXPY 1.1.20 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="todo">
-<h1>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h1>
+<h1>TODO<a class="headerlink" href="#todo" title="Permalink to this heading">¶</a></h1>
 <ul class="simple">
 <li><p>time-varying graphs</p></li>
 <li><p>table of results</p></li>
@@ -43,7 +44,7 @@ the start?</p></li>
 </ul>
 </section>
 <section id="topic-references">
-<h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this headline">¶</a></h1>
+<h1>Topic references<a class="headerlink" href="#topic-references" title="Permalink to this heading">¶</a></h1>
 <ul class="simple">
 <li><p><a class="reference external" href="http://web.stanford.edu/~boyd/cvxbook/">Convex Optimization book</a></p></li>
 <li><p><a class="reference external" href="http://web.stanford.edu/~boyd/cvxbook/bv_cvxbook_extra_exercises.pdf">Additional Exercise 15.4: Allocation of interdiction
@@ -56,7 +57,7 @@ heuristic &lt;<a class="reference external" href="http://stanford.edu/class/ee36
 </ul>
 </section>
 <section id="allocating-interdiction-effort-to-catch-a-smuggler">
-<h1>Allocating interdiction effort to catch a smuggler<a class="headerlink" href="#allocating-interdiction-effort-to-catch-a-smuggler" title="Permalink to this headline">¶</a></h1>
+<h1>Allocating interdiction effort to catch a smuggler<a class="headerlink" href="#allocating-interdiction-effort-to-catch-a-smuggler" title="Permalink to this heading">¶</a></h1>
 <p>We’ll explore a game between a smuggler moving through a graph and a
 security team trying to catch him.</p>
 <p>The smuggler moves along a directed graph (cycles are allowed) with
@@ -79,7 +80,7 @@ goal is to choose evasion probabilities to minimize the chance that the
 smuggler gets through undetected.</p>
 </section>
 <section id="transformations-and-mathematical-formulation">
-<h1>Transformations and mathematical formulation<a class="headerlink" href="#transformations-and-mathematical-formulation" title="Permalink to this headline">¶</a></h1>
+<h1>Transformations and mathematical formulation<a class="headerlink" href="#transformations-and-mathematical-formulation" title="Permalink to this heading">¶</a></h1>
 <p>We’ll take the logarithm of all probabilities to make the problem
 amenable to convex optimization and simplify the remaining discussion.
 This transforms products of variables (generally not convex) into sums
@@ -98,7 +99,7 @@ a valid path from source to sink. We do this to implicitly encode the
 constraint that the smuggler’s path must be valid.</p>
 </section>
 <section id="min-max-game">
-<h1>Min/max game<a class="headerlink" href="#min-max-game" title="Permalink to this headline">¶</a></h1>
+<h1>Min/max game<a class="headerlink" href="#min-max-game" title="Permalink to this heading">¶</a></h1>
 <p>We can now interpret this problem as a min/max game. The smuggler is
 trying to maximize his chance of getting through undetected by choosing
 <span class="math notranslate nohighlight">\(\mathcal{P}\)</span>, and security is trying to minimize the smuggler’s
@@ -126,7 +127,7 @@ obtain a convex formulation of <span class="math notranslate nohighlight">\(P^\m
 then use to analyze and optimize the security team’s objective.</p>
 </section>
 <section id="helper-functions">
-<h1>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this headline">¶</a></h1>
+<h1>Helper functions<a class="headerlink" href="#helper-functions" title="Permalink to this heading">¶</a></h1>
 <p>The next cell contains some helper functions for generating the examples
 and plotting the results. This is the majority of the code. The actual
 CVXPY optimization code is only a few lines. We’ll go over the
@@ -407,7 +408,7 @@ optimization code later in the notebook.</p>
 </div>
 </section>
 <section id="smuggler-s-objective">
-<h1>Smuggler’s objective<a class="headerlink" href="#smuggler-s-objective" title="Permalink to this headline">¶</a></h1>
+<h1>Smuggler’s objective<a class="headerlink" href="#smuggler-s-objective" title="Permalink to this heading">¶</a></h1>
 <p>The smuggler chooses a path <span class="math notranslate nohighlight">\(\mathcal{P}\)</span> only after <span class="math notranslate nohighlight">\(c\)</span> is
 fixed. His goal is to find a valid path in the graph which maximizes
 <span class="math notranslate nohighlight">\(\sum_{j \in \mathcal{P}} c_j\)</span>. Note that this problem can be cast
@@ -452,7 +453,7 @@ perspective, we’ll look at an example of the smuggler choosing an
 optimal path in a given graph.</p>
 </section>
 <section id="smuggler-s-path-example">
-<h1>Smuggler’s path example<a class="headerlink" href="#smuggler-s-path-example" title="Permalink to this headline">¶</a></h1>
+<h1>Smuggler’s path example<a class="headerlink" href="#smuggler-s-path-example" title="Permalink to this heading">¶</a></h1>
 <p>We’ll solve the smuggler’s problem on an example network to see an
 example of an optimal path.</p>
 <p>We’ll create an <span class="math notranslate nohighlight">\(N \times N\)</span> grid of points with small
@@ -568,7 +569,7 @@ to compute the optimal path.</p>
 <a class="reference internal image-reference" href="../../_images/interdiction_10_1.png"><img alt="../../_images/interdiction_10_1.png" src="../../_images/interdiction_10_1.png" style="width: 438px; height: 360px;" /></a>
 </section>
 <section id="security-s-objective">
-<h1>Security’s objective<a class="headerlink" href="#security-s-objective" title="Permalink to this headline">¶</a></h1>
+<h1>Security’s objective<a class="headerlink" href="#security-s-objective" title="Permalink to this heading">¶</a></h1>
 <p>The security team’s goal is to minimize <span class="math notranslate nohighlight">\(P^\mathrm{opt}(c)\)</span>,
 subject to some constraints (say, limits on budget or personnel), which
 we’ll denote by <span class="math notranslate nohighlight">\(c \in \mathcal{C}\)</span>:</p>
@@ -598,7 +599,7 @@ allocated resources to make detection of the smuggler as likely as
 possible.</p>
 </section>
 <section id="security-example">
-<h1>Security example<a class="headerlink" href="#security-example" title="Permalink to this headline">¶</a></h1>
+<h1>Security example<a class="headerlink" href="#security-example" title="Permalink to this heading">¶</a></h1>
 <p>We’ll consider security’s problem on the same network as the last
 example with the edge evasion probabilities modeled as
 <span class="math notranslate nohighlight">\(p_j = e^{-a_j r_j}\)</span>, where <span class="math notranslate nohighlight">\(r_j \in \mathbf{R}_+\)</span> denotes
@@ -739,7 +740,7 @@ probability is what we predicted previously.</p>
 <a class="reference internal image-reference" href="../../_images/interdiction_19_1.png"><img alt="../../_images/interdiction_19_1.png" src="../../_images/interdiction_19_1.png" style="width: 438px; height: 360px;" /></a>
 </section>
 <section id="guard-placement-example">
-<h1>Guard placement example<a class="headerlink" href="#guard-placement-example" title="Permalink to this headline">¶</a></h1>
+<h1>Guard placement example<a class="headerlink" href="#guard-placement-example" title="Permalink to this heading">¶</a></h1>
 <p>We can now go through a more advanced example.</p>
 <p>In the previous example, security had direct control over the evasion
 probability on each edge. In this section, we’ll consider an example
@@ -757,7 +758,7 @@ around the buildings. That is, no node is located inside a building, no
 edge crosses through a building, and guards can’t see through building
 walls, restricting their line-of-sight and effect on nearby edges.</p>
 <section id="multiple-sources-and-destinations">
-<h2>Multiple sources and destinations<a class="headerlink" href="#multiple-sources-and-destinations" title="Permalink to this headline">¶</a></h2>
+<h2>Multiple sources and destinations<a class="headerlink" href="#multiple-sources-and-destinations" title="Permalink to this heading">¶</a></h2>
 <p>To allow for multiple source and destination nodes without changing the
 convex formulation, we’ll add a dummy source node and a dummy sink node.
 The source node will have edges going to each node in the graph on the
@@ -777,7 +778,7 @@ nodes with light green and red as before.</p>
 <a class="reference internal image-reference" href="../../_images/interdiction_21_0.png"><img alt="../../_images/interdiction_21_0.png" src="../../_images/interdiction_21_0.png" style="width: 469px; height: 350px;" /></a>
 </section>
 <section id="guards">
-<h2>Guards<a class="headerlink" href="#guards" title="Permalink to this headline">¶</a></h2>
+<h2>Guards<a class="headerlink" href="#guards" title="Permalink to this heading">¶</a></h2>
 <p>The security team will select a subset of guards to place in the graph.
 Each guard will have a profile, which gives his effect on the edge
 evasion probabilities. The guard’s effect will be a function of his
@@ -806,7 +807,7 @@ shown below.</p>
 <a class="reference internal image-reference" href="../../_images/interdiction_23_0.png"><img alt="../../_images/interdiction_23_0.png" src="../../_images/interdiction_23_0.png" style="width: 438px; height: 360px;" /></a>
 </section>
 <section id="buildings">
-<h2>Buildings<a class="headerlink" href="#buildings" title="Permalink to this headline">¶</a></h2>
+<h2>Buildings<a class="headerlink" href="#buildings" title="Permalink to this heading">¶</a></h2>
 <p>We’ll also add buildings, which will modify the graph topology and also
 restrict the view of the guards.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">N</span> <span class="o">=</span> <span class="mi">10</span>
@@ -840,14 +841,14 @@ restrict the view of the guards.</p>
 </section>
 </section>
 <section id="example-to-solve">
-<h1>Example to solve<a class="headerlink" href="#example-to-solve" title="Permalink to this headline">¶</a></h1>
+<h1>Example to solve<a class="headerlink" href="#example-to-solve" title="Permalink to this heading">¶</a></h1>
 <p>We’ll solve a larger example with buildings, guards, and multiple source
 and destination nodes. We’ll consider a guard at every interior node of
 the graph, and try to find a limited number, say 10, to secure the graph
 as well as possible.</p>
 </section>
 <section id="id1">
-<h1>TODO<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h1>
+<h1>TODO<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h1>
 <ul class="simple">
 <li><p>optimization formulation</p></li>
 <li><p>this one turns out to be a ‘true’ integer program, unlike the last</p></li>
@@ -1067,7 +1068,7 @@ as well as possible.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -1094,7 +1095,7 @@ as well as possible.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

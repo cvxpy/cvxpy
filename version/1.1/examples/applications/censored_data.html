@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Fitting censored data &#8212; CVXPY 1.1.19 documentation</title>
+    <title>Fitting censored data &#8212; CVXPY 1.1.20 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,7 +34,7 @@
           <div class="body" role="main">
             
   <section id="fitting-censored-data">
-<h1>Fitting censored data<a class="headerlink" href="#fitting-censored-data" title="Permalink to this headline">¶</a></h1>
+<h1>Fitting censored data<a class="headerlink" href="#fitting-censored-data" title="Permalink to this heading">¶</a></h1>
 <p>Experimental measurements are sometimes censored such that we only know
 partial information about a particular data point. For example, in
 measuring the lifespan of mice, a portion of them might live through the
@@ -49,7 +50,7 @@ optimization problem and solving it using
 Convex Optimization
 Course</a>.</p>
 <section id="setup">
-<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this heading">¶</a></h2>
 <p>We will use similar notation here. Suppose we have a linear model:</p>
 <div class="math notranslate nohighlight">
 \[y^{(i)} = c^Tx^{(i)} +\epsilon^{(i)}\]</div>
@@ -70,7 +71,7 @@ constant <span class="math notranslate nohighlight">\(D\)</span>.</p>
 <p>Now let’s see how this would work in practice.</p>
 </section>
 <section id="data-generation">
-<h2>Data Generation<a class="headerlink" href="#data-generation" title="Permalink to this headline">¶</a></h2>
+<h2>Data Generation<a class="headerlink" href="#data-generation" title="Permalink to this heading">¶</a></h2>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="n">n</span> <span class="o">=</span> <span class="mi">30</span> <span class="c1"># number of variables</span>
 <span class="n">M</span> <span class="o">=</span> <span class="mi">50</span> <span class="c1"># number of censored observations</span>
@@ -112,7 +113,7 @@ constant <span class="math notranslate nohighlight">\(D\)</span>.</p>
 </div>
 </section>
 <section id="regular-ols">
-<h2>Regular OLS<a class="headerlink" href="#regular-ols" title="Permalink to this headline">¶</a></h2>
+<h2>Regular OLS<a class="headerlink" href="#regular-ols" title="Permalink to this heading">¶</a></h2>
 <p>Let’s see what the OLS result looks like. We’ll use the
 <code class="docutils literal notranslate"><span class="pre">np.linalg.lstsq</span></code> function to solve for our coefficients.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">c_ols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_ordered</span><span class="p">,</span> <span class="n">y_censored</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
@@ -128,7 +129,7 @@ pulling down the trendline to reduce the error between the red and blue
 points.</p>
 </section>
 <section id="ols-using-uncensored-data">
-<h2>OLS using uncensored data<a class="headerlink" href="#ols-using-uncensored-data" title="Permalink to this headline">¶</a></h2>
+<h2>OLS using uncensored data<a class="headerlink" href="#ols-using-uncensored-data" title="Permalink to this heading">¶</a></h2>
 <p>A simple way to deal with this while maintaining analytical tractability
 is to simply ignore all censored observations.</p>
 <div class="math notranslate nohighlight">
@@ -157,7 +158,7 @@ though we are well aware that this is not the case. Let’s try to fix
 this.</p>
 </section>
 <section id="using-constraints-to-take-into-account-of-censored-data">
-<h2>Using constraints to take into account of censored data<a class="headerlink" href="#using-constraints-to-take-into-account-of-censored-data" title="Permalink to this headline">¶</a></h2>
+<h2>Using constraints to take into account of censored data<a class="headerlink" href="#using-constraints-to-take-into-account-of-censored-data" title="Permalink to this heading">¶</a></h2>
 <p>Instead of throwing away all censored observations, lets leverage these
 observations to enforce the additional information that we know, namely
 that <span class="math notranslate nohighlight">\(y\)</span> is bounded from below. We can do this by setting
@@ -198,7 +199,7 @@ compare:</p>
 </div>
 </section>
 <section id="conclusion">
-<h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this headline">¶</a></h2>
+<h2>Conclusion<a class="headerlink" href="#conclusion" title="Permalink to this heading">¶</a></h2>
 <p>Fitting censored data to a parametric distribution can be challenging as
 the MLE solution is often not analytically tractable. However, many MLEs
 can be converted into a convex optimization problems as show above. With
@@ -277,7 +278,7 @@ portions of the data.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -304,7 +305,7 @@ portions of the data.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

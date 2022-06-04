@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>TODO &#8212; CVXPY 1.1.19 documentation</title>
+    <title>TODO &#8212; CVXPY 1.1.20 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -33,13 +34,13 @@
           <div class="body" role="main">
             
   <section id="todo">
-<h1>TODO<a class="headerlink" href="#todo" title="Permalink to this headline">¶</a></h1>
+<h1>TODO<a class="headerlink" href="#todo" title="Permalink to this heading">¶</a></h1>
 <ul class="simple">
 <li><p>how to post data? small data file?</p></li>
 </ul>
 </section>
 <section id="predicting-nba-game-wins">
-<h1>Predicting NBA game wins<a class="headerlink" href="#predicting-nba-game-wins" title="Permalink to this headline">¶</a></h1>
+<h1>Predicting NBA game wins<a class="headerlink" href="#predicting-nba-game-wins" title="Permalink to this heading">¶</a></h1>
 <p>In this notebook, we’ll form a simple model to predict NBA game winners
 based on which teams are playing, whether they are playing at home or
 away, and which players are playing in the game and for how long.</p>
@@ -47,7 +48,7 @@ away, and which players are playing in the game and for how long.</p>
 regression model with CVXPY.</p>
 </section>
 <section id="imports-and-helper-functions">
-<h1>Imports and helper functions<a class="headerlink" href="#imports-and-helper-functions" title="Permalink to this headline">¶</a></h1>
+<h1>Imports and helper functions<a class="headerlink" href="#imports-and-helper-functions" title="Permalink to this heading">¶</a></h1>
 <p>In the cell below, we define some helper functions to load the data,
 manipulate it, format it, and plot the results.</p>
 <p>The actual optimization code will be given in-line later in the
@@ -281,7 +282,7 @@ notebook.</p>
 </div>
 </section>
 <section id="raw-data">
-<h1>Raw data<a class="headerlink" href="#raw-data" title="Permalink to this headline">¶</a></h1>
+<h1>Raw data<a class="headerlink" href="#raw-data" title="Permalink to this heading">¶</a></h1>
 <p>Below, we load the NBA game data from the ‘gamestats’ folder. We have
 games from NBA seasons 2010-2013. For each game, we identify the winning
 and losing team and the NBA season in which the game was played. For
@@ -291,7 +292,7 @@ player appearance in a game, we have the player’s name, a unique player
 ID, and the number of minutes they played in the game.</p>
 </section>
 <section id="model">
-<h1>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h1>
+<h1>Model<a class="headerlink" href="#model" title="Permalink to this heading">¶</a></h1>
 <p>We will train our model on a set of <span class="math notranslate nohighlight">\(m\)</span> games. The data point for
 game <span class="math notranslate nohighlight">\(i\)</span> consists of an ordered pair of feature vectors,
 <span class="math notranslate nohighlight">\((x^w_i, x^l_i) \in \mathbf{R}^n \times \mathbf{R}^n\)</span>. The first
@@ -344,7 +345,7 @@ row <span class="math notranslate nohighlight">\(i\)</span> of <span class="math
 </div>
 </section>
 <section id="example">
-<h1>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h1>
+<h1>Example<a class="headerlink" href="#example" title="Permalink to this heading">¶</a></h1>
 <p>Load the list of games from the <code class="docutils literal notranslate"><span class="pre">gamestats</span></code> directory and select only
 the games from a single season.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">games</span> <span class="o">=</span> <span class="n">get_game_data</span><span class="p">()</span>
@@ -404,7 +405,7 @@ set:</p>
 </div>
 </section>
 <section id="regularization-paths">
-<h1>Regularization paths<a class="headerlink" href="#regularization-paths" title="Permalink to this headline">¶</a></h1>
+<h1>Regularization paths<a class="headerlink" href="#regularization-paths" title="Permalink to this heading">¶</a></h1>
 <p>We’ll find good choices for the regularization hyper-parameter
 <span class="math notranslate nohighlight">\(\gamma\)</span> by plotting a regularization path. We’ll randomly
 partition the data into training and hold-out sets and plot the
@@ -417,7 +418,7 @@ played at home, and then we’ll add the times played of each player.</p>
 <p>We should see an increase in predictive power as we add features.</p>
 <p>Note that some of these examples may take a few minutes to run.</p>
 <section id="team-identities">
-<h2>Team identities<a class="headerlink" href="#team-identities" title="Permalink to this headline">¶</a></h2>
+<h2>Team identities<a class="headerlink" href="#team-identities" title="Permalink to this heading">¶</a></h2>
 <p>When the features include just the team identities, the model reduces to
 just assigning a ranking to each team. This model is so simple that it
 is hard to over-fit it on our data, so regularization has little effect.</p>
@@ -436,7 +437,7 @@ is hard to over-fit it on our data, so regularization has little effect.</p>
 <img alt="../../_images/nba_ranking_15_1.png" src="../../_images/nba_ranking_15_1.png" />
 </section>
 <section id="identities-home-away">
-<h2>Identities + home/away<a class="headerlink" href="#identities-home-away" title="Permalink to this headline">¶</a></h2>
+<h2>Identities + home/away<a class="headerlink" href="#identities-home-away" title="Permalink to this heading">¶</a></h2>
 <p>We add a single feature denoting whether the teams played at home. This
 doesn’t add much to our model complexity, so it is still difficult to
 over-fit. The predictive power is about the same as the previous model.</p>
@@ -455,7 +456,7 @@ over-fit. The predictive power is about the same as the previous model.</p>
 <img alt="../../_images/nba_ranking_17_1.png" src="../../_images/nba_ranking_17_1.png" />
 </section>
 <section id="identities-home-away-player-minutes">
-<h2>Identities + home/away + player minutes<a class="headerlink" href="#identities-home-away-player-minutes" title="Permalink to this headline">¶</a></h2>
+<h2>Identities + home/away + player minutes<a class="headerlink" href="#identities-home-away-player-minutes" title="Permalink to this heading">¶</a></h2>
 <p>We add in the number of minutes each player played in each game. This
 adds many variables to the model and thus makes it much easier to
 over-fit. We can see that the classification is perfect on the training
@@ -545,7 +546,7 @@ on the hold-out set with some added regularization.</p>
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -572,7 +573,7 @@ on the hold-out set with some added regularization.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

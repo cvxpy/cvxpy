@@ -1,17 +1,18 @@
 
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
 
-    <title>Atomic Functions &#8212; CVXPY 1.1.19 documentation</title>
+    <title>Atomic Functions &#8212; CVXPY 1.1.20 documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
     <script src="../../_static/jquery.js"></script>
     <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
@@ -35,12 +36,12 @@
           <div class="body" role="main">
             
   <section id="atomic-functions">
-<span id="functions"></span><h1>Atomic Functions<a class="headerlink" href="#atomic-functions" title="Permalink to this headline">¶</a></h1>
+<span id="functions"></span><h1>Atomic Functions<a class="headerlink" href="#atomic-functions" title="Permalink to this heading">¶</a></h1>
 <p>This section of the tutorial describes the atomic functions that can be applied
 to CVXPY expressions. CVXPY uses the function information in this section and
 the <a class="reference internal" href="../dcp/index.html#dcp"><span class="std std-ref">DCP rules</span></a> to mark expressions with a sign and curvature.</p>
 <section id="operators">
-<h2>Operators<a class="headerlink" href="#operators" title="Permalink to this headline">¶</a></h2>
+<h2>Operators<a class="headerlink" href="#operators" title="Permalink to this heading">¶</a></h2>
 <p>The infix operators <code class="docutils literal notranslate"><span class="pre">+,</span> <span class="pre">-,</span> <span class="pre">*,</span> <span class="pre">/,</span> <span class="pre">&#64;</span></code> are treated as functions. The operators <code class="docutils literal notranslate"><span class="pre">+</span></code> and
 <code class="docutils literal notranslate"><span class="pre">-</span></code> are always affine functions. The expression <code class="docutils literal notranslate"><span class="pre">expr1*expr2</span></code> is affine in
 CVXPY when one of the expressions is constant, and <code class="docutils literal notranslate"><span class="pre">expr1/expr2</span></code> is affine
@@ -55,7 +56,7 @@ As of CVXPY version 1.1, we are adopting a new standard:</p>
 </ul>
 <p>Elementwise multiplication can be applied with the <a class="reference internal" href="../../api_reference/cvxpy.atoms.affine.html#multiply"><span class="std std-ref">multiply</span></a> function.</p>
 <section id="indexing-and-slicing">
-<h3>Indexing and slicing<a class="headerlink" href="#indexing-and-slicing" title="Permalink to this headline">¶</a></h3>
+<h3>Indexing and slicing<a class="headerlink" href="#indexing-and-slicing" title="Permalink to this heading">¶</a></h3>
 <p>Indexing in CVXPY follows exactly the same semantics as <a class="reference external" href="http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html">NumPy ndarrays</a>.
 For example, if <code class="docutils literal notranslate"><span class="pre">expr</span></code> has shape <code class="docutils literal notranslate"><span class="pre">(5,)</span></code> then <code class="docutils literal notranslate"><span class="pre">expr[1]</span></code> gives the second entry.
 More generally, <code class="docutils literal notranslate"><span class="pre">expr[i:j:k]</span></code> selects every kth
@@ -75,30 +76,22 @@ For example,</p>
 </div>
 </section>
 <section id="transpose">
-<h3>Transpose<a class="headerlink" href="#transpose" title="Permalink to this headline">¶</a></h3>
+<h3>Transpose<a class="headerlink" href="#transpose" title="Permalink to this heading">¶</a></h3>
 <p>The transpose of any expression can be obtained using the syntax
 <code class="docutils literal notranslate"><span class="pre">expr.T</span></code>. Transpose is an affine function.</p>
 </section>
 <section id="power">
-<h3>Power<a class="headerlink" href="#power" title="Permalink to this headline">¶</a></h3>
+<h3>Power<a class="headerlink" href="#power" title="Permalink to this heading">¶</a></h3>
 <p>For any CVXPY expression <code class="docutils literal notranslate"><span class="pre">expr</span></code>,
 the power operator <code class="docutils literal notranslate"><span class="pre">expr**p</span></code> is equivalent to
 the function <code class="docutils literal notranslate"><span class="pre">power(expr,</span> <span class="pre">p)</span></code>.</p>
 </section>
 </section>
 <section id="scalar-functions">
-<h2>Scalar functions<a class="headerlink" href="#scalar-functions" title="Permalink to this headline">¶</a></h2>
+<h2>Scalar functions<a class="headerlink" href="#scalar-functions" title="Permalink to this heading">¶</a></h2>
 <p>A scalar function takes one or more scalars, vectors, or matrices as arguments
 and returns a scalar.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Function</p></th>
 <th class="head"><p>Meaning</p></th>
@@ -413,7 +406,7 @@ and returns a scalar.</p>
 </tbody>
 </table>
 <section id="clarifications">
-<h3>Clarifications<a class="headerlink" href="#clarifications" title="Permalink to this headline">¶</a></h3>
+<h3>Clarifications<a class="headerlink" href="#clarifications" title="Permalink to this heading">¶</a></h3>
 <p>The domain <span class="math notranslate nohighlight">\(\mathbf{S}^n\)</span> refers to the set of symmetric matrices. The domains <span class="math notranslate nohighlight">\(\mathbf{S}^n_+\)</span> and <span class="math notranslate nohighlight">\(\mathbf{S}^n_-\)</span> refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, <span class="math notranslate nohighlight">\(\mathbf{S}^n_{++}\)</span> and <span class="math notranslate nohighlight">\(\mathbf{S}^n_{--}\)</span> refer to the set of positive definite and negative definite matrices, respectively.</p>
 <p>For a vector expression <code class="docutils literal notranslate"><span class="pre">x</span></code>, <code class="docutils literal notranslate"><span class="pre">norm(x)</span></code> and <code class="docutils literal notranslate"><span class="pre">norm(x,</span> <span class="pre">2)</span></code> give the Euclidean norm. For a matrix expression <code class="docutils literal notranslate"><span class="pre">X</span></code>, however, <code class="docutils literal notranslate"><span class="pre">norm(X)</span></code> and <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">2)</span></code> give the spectral norm.</p>
 <p>The function <code class="docutils literal notranslate"><span class="pre">norm(X,</span> <span class="pre">&quot;fro&quot;)</span></code> is called the <a class="reference external" href="http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm">Frobenius norm</a>
@@ -427,7 +420,7 @@ and <code class="docutils literal notranslate"><span class="pre">norm(X,</span> 
 </section>
 </section>
 <section id="functions-along-an-axis">
-<h2>Functions along an axis<a class="headerlink" href="#functions-along-an-axis" title="Permalink to this headline">¶</a></h2>
+<h2>Functions along an axis<a class="headerlink" href="#functions-along-an-axis" title="Permalink to this heading">¶</a></h2>
 <p>The functions <code class="docutils literal notranslate"><span class="pre">sum</span></code>, <code class="docutils literal notranslate"><span class="pre">norm</span></code>, <code class="docutils literal notranslate"><span class="pre">max</span></code>, and <code class="docutils literal notranslate"><span class="pre">min</span></code> can be
 applied along an axis.
 Given an <code class="docutils literal notranslate"><span class="pre">m</span></code> by <code class="docutils literal notranslate"><span class="pre">n</span></code> expression <code class="docutils literal notranslate"><span class="pre">expr</span></code>, the syntax <code class="docutils literal notranslate"><span class="pre">func(expr,</span> <span class="pre">axis=0,</span> <span class="pre">keepdims=True)</span></code>
@@ -445,7 +438,7 @@ along the columns and rows of a matrix variable:</p>
 </div>
 </section>
 <section id="elementwise-functions">
-<span id="elementwise"></span><h2>Elementwise functions<a class="headerlink" href="#elementwise-functions" title="Permalink to this headline">¶</a></h2>
+<span id="elementwise"></span><h2>Elementwise functions<a class="headerlink" href="#elementwise-functions" title="Permalink to this heading">¶</a></h2>
 <p>These functions operate on each element of their arguments. For example, if <code class="docutils literal notranslate"><span class="pre">X</span></code> is a 5 by 4 matrix variable,
 then <code class="docutils literal notranslate"><span class="pre">abs(X)</span></code> is a 5 by 4 matrix expression. <code class="docutils literal notranslate"><span class="pre">abs(X)[1,</span> <span class="pre">2]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">abs(X[1,</span> <span class="pre">2])</span></code>.</p>
 <p>Elementwise functions that take multiple arguments, such as <code class="docutils literal notranslate"><span class="pre">maximum</span></code> and <code class="docutils literal notranslate"><span class="pre">multiply</span></code>, operate on the corresponding elements of each argument.
@@ -453,14 +446,6 @@ For example, if <code class="docutils literal notranslate"><span class="pre">X</
 <code class="docutils literal notranslate"><span class="pre">maximum(X,</span> <span class="pre">Y)[2,</span> <span class="pre">0]</span></code> is equivalent to <code class="docutils literal notranslate"><span class="pre">maximum(X[2,</span> <span class="pre">0],</span> <span class="pre">Y[2,</span> <span class="pre">0])</span></code>. This means all arguments must have the same dimensions or be
 scalars, which are promoted.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Function</p></th>
 <th class="head"><p>Meaning</p></th>
@@ -674,18 +659,10 @@ scalars, which are promoted.</p>
 </table>
 </section>
 <section id="vector-matrix-functions">
-<h2>Vector/matrix functions<a class="headerlink" href="#vector-matrix-functions" title="Permalink to this headline">¶</a></h2>
+<h2>Vector/matrix functions<a class="headerlink" href="#vector-matrix-functions" title="Permalink to this heading">¶</a></h2>
 <p>A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
 and returns a vector or matrix.</p>
 <table class="docutils align-default">
-<colgroup>
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-<col style="width: 17%" />
-</colgroup>
 <thead>
 <tr class="row-odd"><th class="head"><p>Function</p></th>
 <th class="head"><p>Meaning</p></th>
@@ -786,7 +763,7 @@ and returns a vector or matrix.</p>
 </tbody>
 </table>
 <section id="id1">
-<h3>Clarifications<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<h3>Clarifications<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <p>The input to <code class="docutils literal notranslate"><span class="pre">bmat</span></code> is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.</p>
@@ -884,7 +861,7 @@ Formally, <span class="math notranslate nohighlight">\(X'_{ij} = \mathbf{vec}(X)
     </form>
     </div>
 </div>
-<script>$('#searchbox').show(0);</script><div>
+<script>document.getElementById('searchbox').style.display = "block"</script><div>
     <h3>
         Version selector
     </h3>
@@ -911,7 +888,7 @@ Formally, <span class="math notranslate nohighlight">\(X'_{ij} = \mathbf{vec}(X)
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.4.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.0.1</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
