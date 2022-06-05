@@ -22,7 +22,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_sum_largest_canon impo
     lambda_sum_largest_canon,)
 
 
-def vn_entr_canon(expr, args):
+def von_neumann_entr_canon(expr, args):
     N = args[0]
     n = N.shape[0]
     x = Variable(shape=(n,))

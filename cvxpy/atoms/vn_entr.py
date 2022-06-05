@@ -25,11 +25,11 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
 
 
-class vn_entr(Atom):
+class von_neumann_entr(Atom):
 
     def __init__(self, N) -> None:
         # TODO: add a check that N is symmetric/Hermitian.
-        super(vn_entr, self).__init__(N)
+        super(von_neumann_entr, self).__init__(N)
 
     def numeric(self, values):
         N = values[0]
