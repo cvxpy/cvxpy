@@ -181,6 +181,13 @@ CVXPY supports the CPLEX solver.
 Simply install CPLEX such that you can ``import cplex`` in Python.
 See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
 
+Install with SDPA support
+--------------------------
+
+CVXPY supports the SDPA solver.
+Simply install SDPA for Python such that you can ``import sdpap`` in Python.
+See the `SDPA for Python <https://sdpa-python.github.io/docs/installation>`_ website for installation instructions.
+
 Install with SDPT3 support
 --------------------------
 
