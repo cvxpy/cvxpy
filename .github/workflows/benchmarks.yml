@@ -35,13 +35,14 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          asv run
-          asv publish
+          asv machine --machine GitHubActions
+          asv --config asv.conf.json -m GitHubActions
+          asv --config asv.conf.json publish
 
       - name: Deploy HTML Artifacts
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
           folder: html/
-          repository-name: cvxpy/benchmarks
+          repository-name: parthb83/benchmarks
           branch: gh-pages
 
