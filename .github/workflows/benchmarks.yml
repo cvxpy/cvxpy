@@ -36,7 +36,7 @@ jobs:
       - name: Run benchmarks
         run: |
           asv machine --yes
-          asv run
+          asv run --quick
           asv publish
 
       - name: Deploy HTML Artifacts
@@ -45,4 +45,5 @@ jobs:
           folder: html/
           repository-name: parthb83/benchmarks
           branch: gh-pages
+          token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
 
