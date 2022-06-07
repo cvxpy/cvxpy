@@ -24,10 +24,12 @@ jobs:
         with:
           python-version: 3.8
 
-      - name: Checkout and install benchmark
+      - name: Checkout benchmark
         uses: actions/checkout@v2
         with:
           repository: cvxpy/benchmarks
+        
+      - name: Install dependencies
         run: |
           pip install .
 
