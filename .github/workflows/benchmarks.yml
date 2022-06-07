@@ -36,8 +36,8 @@ jobs:
       - name: Run benchmarks
         run: |
           asv machine --yes
-          asv --config asv.conf.json -m GitHubActions
-          asv --config asv.conf.json publish
+          asv run
+          asv publish
 
       - name: Deploy HTML Artifacts
         uses: JamesIves/github-pages-deploy-action@v4.2.2
