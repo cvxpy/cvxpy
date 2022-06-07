@@ -35,7 +35,7 @@ jobs:
 
       - name: Run benchmarks
         run: |
-          asv machine --machine GitHubActions
+          asv machine --yes
           asv --config asv.conf.json -m GitHubActions
           asv --config asv.conf.json publish
 
