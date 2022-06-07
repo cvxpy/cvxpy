@@ -19,26 +19,27 @@ jobs:
 
   benchmark:
     runs-on: ubuntu-latest
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
-    - name: Checkout and install benchmark
-      uses: actions/checkout@v2
-      with:
-        repository: cvxpy/benchmarks
-      run: |
-        pip install .
+      - name: Checkout and install benchmark
+        uses: actions/checkout@v2
+        with:
+          repository: cvxpy/benchmarks
+        run: |
+          pip install .
 
-    - name: Run benchmarks
-      run: |
-        asv run
-        asv publish
+      - name: Run benchmarks
+        run: |
+          asv run
+          asv publish
 
-    - name: Deploy HTML Artifacts
-      uses: JamesIves/github-pages-deploy-action@v4.2.2
-      with:
-        folder: html/
-        repository-name: cvxpy/benchmarks
-        branch: gh-pages
+      - name: Deploy HTML Artifacts
+        uses: JamesIves/github-pages-deploy-action@v4.2.2
+        with:
+          folder: html/
+          repository-name: cvxpy/benchmarks
+          branch: gh-pages
 
