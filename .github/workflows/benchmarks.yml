@@ -29,7 +29,6 @@ jobs:
         with:
           repository: cvxpy/benchmarks
           ref: main
-          path: /
         
       - name: Install dependencies
         run: |
@@ -40,7 +39,7 @@ jobs:
         with:
           repository: parthb83/benchmarks
           ref: gh-pages
-          path: /deployed/
+          path: deployed/
       
       - name: Copy contents to html
         run: |
