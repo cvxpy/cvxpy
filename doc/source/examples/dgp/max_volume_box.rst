@@ -7,7 +7,7 @@ Tutorial on Geometric
 Programming <https://web.stanford.edu/~boyd/papers/pdf/gp_tutorial.pdf>`__\ ".
 
 In this example, we maximize the shape of a box with height :math:`h`,
-width :math:`w`, and depth :math:`w`, with limits on the wall area
+width :math:`w`, and depth :math:`d`, with limits on the wall area
 :math:`2(hw + hd)` and the floor area :math:`wd`, subject to bounds on
 the aspect ratios :math:`h/w` and :math:`w/d`. The optimization problem
 is
