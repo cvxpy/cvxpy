@@ -20,6 +20,14 @@ entr
 .. autoclass:: cvxpy.entr
     :show-inheritance:
 
+.. _von_neumann_entr:
+
+von_neumann_entr
+--------------------------------------
+
+.. autoclass:: cvxpy.von_neumann_entr
+    :show-inheritance:
+
 .. _exp:
 
 exp

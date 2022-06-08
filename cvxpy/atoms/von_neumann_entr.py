@@ -16,9 +16,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-# from numpy.linalg import cholesky
 from scipy import linalg as LA
-# from scipy.linalg import logm
 from scipy.special import entr
 
 from cvxpy.atoms.atom import Atom
@@ -26,10 +24,31 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class von_neumann_entr(Atom):
+    """
+    | Computes the Von Neumann Entropy of the positive-definite matrix :math:`X\\in\\mathbb{S}^n_{+}`
 
-    def __init__(self, N) -> None:
+        .. math::
+            -\\operatorname{tr}(X \\operatorname{logm}(X))
+
+    | where :math:`\\operatorname{tr}` is the trace and :math:`\\operatorname{logm}` is the matrix logarithm
+
+    | May alternatively be expressed as:
+
+        .. math::
+            \\texttt{von_neumann_entr}(X) = -\\textstyle\\sum_{i=1}^n \\lambda_i \\log \\lambda_i
+
+    | where :math:`\\lambda_{i}` are the eigenvalues of :math:`X`
+    This atom does not enforce :math:`\\operatorname{tr}(X) = 1` as is expected in applications from quantum mechanics.
+
+    Parameters
+    ----------
+    X : Expression or numeric
+        A PSD matrix
+    """
+
+    def __init__(self, X) -> None:
         # TODO: add a check that N is symmetric/Hermitian.
-        super(von_neumann_entr, self).__init__(N)
+        super(von_neumann_entr, self).__init__(X)
 
     def numeric(self, values):
         N = values[0]

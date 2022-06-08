@@ -85,10 +85,10 @@ class Test_von_neumann_entr:
                        [-0.30151134]])
         lambda1 = 0.3
         lambda2 = 0.2
-        trMax = 0.9
+        trMin = 0.9
         cons1 = N @ v1 == lambda1 * v1
         cons2 = N @ v2 == lambda2 * v2
-        cons3 = trace(N) >= trMax
+        cons3 = trace(N) >= trMin
         objective = cp.Maximize(von_neumann_entr(N))
         obj_pair = (objective, 1.049595673951)
         con_pairs = [
@@ -169,11 +169,20 @@ class Test_von_neumann_entr:
         b = np.array([19.16342, 17.62551])
 
         N = cp.Variable(shape=(3, 3), PSD=True)
-        expect_N = np.array([[0.82564479, 0., 0.],
-                             [0., 1.27395299, 0.],
-                             [0., 0., 0.64292239]])
+
+        # The below problem generates the reference values:
+        ref_X = cp.Variable(shape=(3, 3), diag=True)
+        ref_objective = cp.Minimize(-cp.sum(cp.entr(cp.diag(ref_X))))
+        ref_cons1 = trace(A1 @ ref_X) == b[0]
+        ref_cons2 = trace(A2 @ ref_X) == b[1]
+        ref_cons3 = ref_X >> 0
+        ref_prob = cp.Problem(ref_objective, [ref_cons1, ref_cons2, ref_cons3])
+        ref_obj_val = ref_prob.solve()
+        ref_X_val = ref_X.value.A
+
+        expect_N = ref_X_val
         objective = cp.Minimize(-von_neumann_entr(N))
-        obj_pair = (objective, -0.13372929515039528)
+        obj_pair = (objective, ref_obj_val)
         cons1 = trace(A1 @ N) == b[0]
         cons2 = trace(A2 @ N) == b[1]
         cons3 = N - cp.diag(cp.diag(N)) == 0
