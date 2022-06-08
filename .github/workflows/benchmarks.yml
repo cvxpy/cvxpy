@@ -32,6 +32,18 @@ jobs:
       - name: Install dependencies
         run: |
           pip install .
+      
+      - name: Checkout deployed branch
+        uses: actions/checkout@v2
+        with:
+          repository: parthb83/benchmarks
+          ref: gh-pages
+          path: deployed/
+      
+      - name: Copy contents to html
+        run: |
+          mkdir html
+          cp -a deployed/. html/
 
       - name: Run benchmarks
         run: |
@@ -46,4 +58,3 @@ jobs:
           repository-name: parthb83/benchmarks
           branch: gh-pages
           token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
-
