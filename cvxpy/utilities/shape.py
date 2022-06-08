@@ -145,3 +145,25 @@ def mul_shapes(lh_shape: Tuple[int, ...], rh_shape: Tuple[int, ...]) -> Tuple[in
     if rh_shape != rh_old:
         shape = shape[:-1]
     return shape
+
+
+def size_from_shape(shape) -> int:
+    """ Compute the size of a given shape by multiplying the size of its dimensions.
+
+    This is a replacement for np.prod(shape, dtype=int) which is much slower for
+    small arrays than the implementation below.
+
+    Parameters
+    ----------
+    shape : tuple
+        a tuple of integers describing the shape of an object
+
+    Returns
+    -------
+    int
+        The size of an object corresponding to shape.
+    """
+    if shape:
+        return reduce(mul, shape)
+    else:
+        return 1
