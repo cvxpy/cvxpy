@@ -25,12 +25,14 @@ from cvxpy.constraints.constraint import Constraint
 
 class von_neumann_entr(Atom):
     """
-    | Computes the Von Neumann Entropy of the positive-definite matrix :math:`X\\in\\mathbb{S}^n_{+}`
+    Computes the Von Neumann Entropy of the positive-definite matrix
+    :math:`X\\in\\mathbb{S}^n_{+}`
 
         .. math::
             -\\operatorname{tr}(X \\operatorname{logm}(X))
 
-    | where :math:`\\operatorname{tr}` is the trace and :math:`\\operatorname{logm}` is the matrix logarithm
+    where :math:`\\operatorname{tr}` is the trace and
+    :math:`\\operatorname{logm}` is the matrix logarithm
 
     | May alternatively be expressed as:
 
@@ -38,7 +40,8 @@ class von_neumann_entr(Atom):
             \\texttt{von_neumann_entr}(X) = -\\textstyle\\sum_{i=1}^n \\lambda_i \\log \\lambda_i
 
     | where :math:`\\lambda_{i}` are the eigenvalues of :math:`X`
-    This atom does not enforce :math:`\\operatorname{tr}(X) = 1` as is expected in applications from quantum mechanics.
+    This atom does not enforce :math:`\\operatorname{tr}(X) = 1`
+    as is expected in applications from quantum mechanics.
 
     Parameters
     ----------
