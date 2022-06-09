@@ -53,12 +53,13 @@ jobs:
           asv publish
       
       - name: Commit results Artifacts
-        uses: stefanzweifel/git-auto-commit-action@v4
+        uses: actions-js/push@master
         with:
-          commit_message: New Results published
-          file_pattern: results/*
+          message: New results published
           branch: results
-          create_branch: true
+          directory: results/
+          repository: parthb83/benchmarks
+          github_token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
 
       - name: Deploy HTML Artifacts
         uses: JamesIves/github-pages-deploy-action@v4.2.2
