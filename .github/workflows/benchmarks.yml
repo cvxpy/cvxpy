@@ -27,7 +27,7 @@ jobs:
       - name: Checkout benchmark
         uses: actions/checkout@v2
         with:
-          repository: cvxpy/benchmarks
+          repository: parthb83/benchmarks
           ref: main
         
       - name: Install dependencies
@@ -43,8 +43,10 @@ jobs:
       
       - name: Copy contents to html
         run: |
-          mkdir html
-          cp -a deployed/. html/
+          mkdir docs
+          mkdir results
+          cp -a deployed/results/. results/
+          cp -a deployed/html/. docs/
 
       - name: Run benchmarks
         run: |
@@ -56,7 +58,7 @@ jobs:
         run: |
           mkdir pages
           mv results pages/
-          mv html pages/
+          mv docs pages/
 
       - name: Deploy HTML and Results Artifacts
         uses: JamesIves/github-pages-deploy-action@v4.2.2
