@@ -51,6 +51,15 @@ jobs:
           asv machine --yes
           asv run --quick
           asv publish
+      
+      - name: Commit results Artifacts
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: New Results published
+          branch: results
+          repository: parthb83/benchmarks
+          token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
+
 
       - name: Deploy HTML Artifacts
         uses: JamesIves/github-pages-deploy-action@v4.2.2
