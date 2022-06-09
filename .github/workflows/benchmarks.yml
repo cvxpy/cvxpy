@@ -58,9 +58,6 @@ jobs:
           commit_message: New Results published
           file_pattern: results/
           branch: results
-          repository: parthb83/benchmarks
-          token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
-
 
       - name: Deploy HTML Artifacts
         uses: JamesIves/github-pages-deploy-action@v4.2.2
