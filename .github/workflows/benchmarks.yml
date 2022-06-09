@@ -52,19 +52,16 @@ jobs:
           asv run --quick
           asv publish
       
-      - name: Commit results Artifacts
-        uses: actions-js/push@master
-        with:
-          message: New results published
-          branch: results
-          directory: results/
-          repository: parthb83/benchmarks
-          github_token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
+      - name: Make pages folder
+        run: |
+          mkdir pages
+          mv results pages/
+          mv html pages/
 
-      - name: Deploy HTML Artifacts
+      - name: Deploy HTML and Results Artifacts
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
-          folder: html/
+          folder: pages/
           repository-name: parthb83/benchmarks
           branch: gh-pages
           token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
