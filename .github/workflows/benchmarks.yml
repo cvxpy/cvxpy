@@ -9,14 +9,6 @@ on:
           - '*'
 
 jobs:
-  cleanup-runs:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: rokroskar/workflow-run-cleanup-action@master
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
-
   benchmark:
     runs-on: ubuntu-latest
     steps:
@@ -27,23 +19,43 @@ jobs:
       - name: Checkout benchmark
         uses: actions/checkout@v2
         with:
-          repository: cvxpy/benchmarks
+          repository: parthb83/benchmarks
+          ref: main
         
       - name: Install dependencies
         run: |
           pip install .
+      
+      - name: Checkout deployed branch
+        uses: actions/checkout@v2
+        with:
+          repository: parthb83/benchmarks
+          ref: gh-pages
+          path: deployed/
+      
+      - name: Copy contents to docs and results
+        run: |
+          mkdir docs
+          mkdir results
+          cp -a deployed/results/. results/
+          cp -a deployed/docs/. docs/
 
       - name: Run benchmarks
         run: |
           asv machine --yes
           asv run --quick
           asv publish
+      
+      - name: Make pages folder
+        run: |
+          mkdir pages
+          mv results pages/
+          mv docs pages/
 
-      - name: Deploy HTML Artifacts
+      - name: Deploy HTML and Results Artifacts
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
-          folder: html/
+          folder: pages/
           repository-name: parthb83/benchmarks
           branch: gh-pages
           token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
-
