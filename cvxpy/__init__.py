@@ -31,7 +31,7 @@ from cvxpy.reductions.solvers.defines import installed_solvers
 from cvxpy.settings import (CBC, COPT, CPLEX, CVXOPT, DIFFCP, ECOS, ECOS_BB, GLPK,
                             GLPK_MI, GUROBI, INFEASIBLE, INFEASIBLE_INACCURATE,
                             MOSEK, NAG, PDLP, OPTIMAL, OPTIMAL_INACCURATE, OSQP,
-                            ROBUST_KKTSOLVER, GLOP, SCIP, SCIPY, SCS,
+                            ROBUST_KKTSOLVER, GLOP, SCIP, SCIPY, SCS, SDPA,
                             SOLVER_ERROR, UNBOUNDED, UNBOUNDED_INACCURATE,
                             USER_LIMIT, XPRESS, get_num_threads,
                             set_num_threads,)

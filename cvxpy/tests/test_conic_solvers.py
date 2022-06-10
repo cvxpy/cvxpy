@@ -573,6 +573,40 @@ class TestCVXOPT(BaseTest):
         StandardTestSDPs.test_sdp_2(solver='CVXOPT')
 
 
+@unittest.skipUnless('SDPA' in INSTALLED_SOLVERS, 'SDPA is not installed.')
+class TestSDPA(BaseTest):
+
+    def test_sdpa_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='SDPA')
+
+    def test_sdpa_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='SDPA')
+
+    def test_sdpa_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='SDPA')
+
+    def test_sdpa_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='SDPA')
+
+    def test_sdpa_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='SDPA')
+
+    @unittest.skip('Known limitation of SDPA for degenerate LPs.')
+    def test_sdpa_lp_5(self) -> None:
+        # this also tests the ability to pass solver options
+        StandardTestLPs.test_lp_5(solver='SDPA',
+                                  gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
+
+    def test_sdpa_sdp_1(self) -> None:
+        # minimization
+        StandardTestSDPs.test_sdp_1min(solver='SDPA')
+        # maximization
+        StandardTestSDPs.test_sdp_1max(solver='SDPA')
+
+    def test_sdpa_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver='SDPA')
+
+
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 class TestCBC(BaseTest):
 

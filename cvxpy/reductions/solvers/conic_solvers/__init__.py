@@ -30,4 +30,5 @@ from .pdlp_conif import PDLP
 from .scip_conif import SCIP
 from .scipy_conif import SCIPY
 from .scs_conif import SCS
+from .sdpa_conif import SDPA
 from .xpress_conif import XPRESS
