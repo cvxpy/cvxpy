@@ -73,6 +73,7 @@ GLPK = "GLPK"
 GLPK_MI = "GLPK_MI"
 GLOP = "GLOP"
 CBC = "CBC"
+COPT = "COPT"
 ECOS = "ECOS"
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
@@ -88,7 +89,8 @@ SCIP = "SCIP"
 SCIPY = "SCIPY"
 SOLVERS = [ECOS, CVXOPT, GLOP, GLPK,
            GLPK_MI, SCS, GUROBI, OSQP, CPLEX,
-           MOSEK, CBC, XPRESS, NAG, PDLP, SCIP, SCIPY]
+           MOSEK, CBC, XPRESS, NAG, PDLP,
+           SCIP, SCIPY, COPT]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
