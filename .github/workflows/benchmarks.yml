@@ -19,7 +19,7 @@ jobs:
       - name: Checkout benchmark
         uses: actions/checkout@v2
         with:
-          repository: parthb83/benchmarks
+          repository: cvxpy/benchmarks
           ref: main
         
       - name: Install dependencies
@@ -29,7 +29,7 @@ jobs:
       - name: Checkout deployed branch
         uses: actions/checkout@v2
         with:
-          repository: parthb83/benchmarks
+          repository: cvxpy/benchmarks
           ref: gh-pages
           path: deployed/
       
@@ -56,6 +56,6 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@v4.2.2
         with:
           folder: pages/
-          repository-name: parthb83/benchmarks
+          repository-name: cvxpy/benchmarks
           branch: gh-pages
           token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
