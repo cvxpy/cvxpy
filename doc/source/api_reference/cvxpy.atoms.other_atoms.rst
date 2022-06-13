@@ -29,7 +29,6 @@ dotsort
 .. autoclass:: cvxpy.atoms.dotsort.dotsort
     :show-inheritance:
 
-
 eye_minus_inv
 --------------
 
