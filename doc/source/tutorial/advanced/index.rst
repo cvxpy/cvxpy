@@ -449,6 +449,8 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `SDPA`_        | X  |    |      | X   |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `SCS`_         | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SCIP`_        | X  | X  | X    |     |     |     | X   |
@@ -499,6 +501,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with CVXOPT.
     prob.solve(solver=cp.CVXOPT)
     print("optimal value with CVXOPT:", prob.value)
+
+    # Solve with SDPA.
+    prob.solve(solver=cp.SDPA)
+    print("optimal value with SDPA:", prob.value)
 
     # Solve with SCS.
     prob.solve(solver=cp.SCS)
@@ -557,6 +563,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     optimal value with OSQP: 6.0
     optimal value with ECOS: 5.99999999551
     optimal value with CVXOPT: 6.00000000512
+    optimal value with SDPA: 6.000000038517417
     optimal value with SCS: 6.00046055789
     optimal value with SciPy/HiGHS: 6.0
     optimal value with GLOP: 6.0
@@ -579,7 +586,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS',
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
      'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
 
 Viewing solver output
@@ -833,6 +840,62 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
     solvers. The precise API that CVXPY users are held to is described in the CVXPY source
     code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
+    
+`SDPA`_ options:
+
+``'maxIteration'``
+    The maximum number of iterations. (default: 100).
+
+``'epsilonStar'``
+    The accuracy of an approximate optimal solution for primal and dual SDP. (default: 1.0E-7).
+
+``'lambdaStar'``
+    An initial point. (default: 1.0E2).
+
+``'omegaStar'``
+    The search region for an optimal solution. (default: 2.0).
+
+``'lowerBound'``
+    Lower bound of the minimum objective value of the primal SDP. (default: -1.0E5).
+
+``'upperBound'``
+    Upper bound of the maximum objective value of the dual SDP. (default: 1.0E5).
+
+``'betaStar'``
+    The parameter for controlling the search direction if the current point is feasible. (default: 0.1).
+
+``'betaBar'``
+    The parameter for controlling the search direction if the current point is infeasible. (default: 0.2).
+
+``'gammaStar'``
+    A reduction factor for the primal and dual step lengths. (default: 0.9).
+
+``'epsilonDash'``
+    The relative accuracy of an approximate optimal solution between primal and dual SDP. (default: 1.0E-7).
+
+``'isSymmetric'``
+    Specify whether to check the symmetricity of input matrices. (default: False).
+
+``'isDimacs'``
+    Specify whether to compute DIMACS ERROR. (default: False).
+
+``'numThreads'``
+    numThreads (default: ``'multiprocessing.cpu_count()'``).
+
+``'domainMethod'``
+    Algorithm option for exploiting sparsity in the domain space. Can be ``'none'`` (exploiting no sparsity in the domain space) or ``'basis'`` (using basis representation) (default: ``'none'``).
+
+``'rangeMethod'``
+    Algorithm option for exploiting sparsity in the range space. Can be ``'none'`` (exploiting no sparsity in the range space) or ``'decomp'`` (using matrix decomposition) (default: ``'none'``).
+
+``'frvMethod'``
+    The method to eliminate free variables. Can be ``'split'`` or ``'elimination'`` (default: ``'split'``).
+
+``'rho'``
+    The parameter of range in split method or pivoting in elimination method. (default: 0.0).
+
+``'zeroPoint'``
+    The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).
 
 `SCS`_ options:
 
@@ -1441,6 +1504,7 @@ on derivatives.
 .. _CVXOPT: http://cvxopt.org/
 .. _ECOS: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
+.. _SDPA: https://sdpa-python.github.io
 .. _GLOP: https://developers.google.com/optimization
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
