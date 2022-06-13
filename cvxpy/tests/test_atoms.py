@@ -782,6 +782,156 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Second argument must be a positive integer.")
 
+    def test_dotsort(self) -> None:
+        """Test the dotsort atom
+        """
+
+        # sum k largest
+        x = cp.Variable(5)
+        x_val = np.array([1, 3, 2, -5, 0])
+        w = np.array([1, 1, 1, 0])
+        expr = cp.dotsort(x, w)
+        assert expr.is_convex()
+        assert expr.is_incr(0)
+        prob = cp.Problem(cp.Minimize(expr), [x == x_val])
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value, np.sum(np.sort(x_val)[-3:]))
+
+        # sum k smallest
+        w = np.array([-1, -1, -1, 0])
+        expr = -cp.dotsort(x, w)
+        assert expr.is_concave()
+        assert expr.is_decr(0)
+        prob = cp.Problem(cp.Maximize(expr), [x == x_val])
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value, np.sum(np.sort(x_val)[:3]))
+
+        # sorting
+        w = np.array([-1, 5, 2, 0, 5])
+        expr = cp.dotsort(x, w)
+        assert expr.is_convex()
+        assert not expr.is_incr(0)
+        assert not expr.is_decr(0)
+
+        prob = cp.Problem(cp.Minimize(expr), [x == x_val])
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value, np.sort(x_val) @ np.sort(w))
+
+        # matrix valued
+        x = cp.Variable((5, 5))
+        x_val = np.arange(25).reshape((5, 5))
+        w = np.arange(4).reshape((2, 2))
+        w_padded = np.zeros_like(x_val)
+        w_padded[:w.shape[0], :w.shape[1]] = w
+        expr = cp.dotsort(x, w)
+        assert expr.is_convex()
+        assert expr.is_incr(0)
+
+        prob = cp.Problem(cp.Minimize(expr), [x == x_val])
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value,
+                               np.sort(x_val.flatten()) @ np.sort(w_padded.flatten()))
+
+        # Test constant
+        x = np.arange(25)
+        w = np.arange(4).reshape((2, 2))
+        w_padded = np.zeros_like(x_val)
+        w_padded[:w.shape[0], :w.shape[1]] = w
+        expr = cp.dotsort(x, w)
+        assert expr.is_convex()
+        assert expr.is_incr(0)
+
+        prob = cp.Problem(cp.Minimize(expr), [])
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value,
+                               np.sort(x_val.flatten()) @ np.sort(w_padded.flatten()))
+
+        # Test scalar w
+        x = cp.Variable(5)
+        x_val = np.array([1, 3, 2, -5, 0])
+        w = 1
+        expr = cp.dotsort(x, w)
+        assert expr.is_convex()
+        assert expr.is_incr(0)
+        prob = cp.Problem(cp.Minimize(expr), [x == x_val])
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value, np.sum(np.sort(x_val)[-1:]))
+
+        # Test scalar x, w
+        x = cp.Variable()
+        x_val = np.array([1])
+        w = 1
+        expr = cp.dotsort(x, w)
+        assert expr.is_convex()
+        assert expr.is_incr(0)
+        prob = cp.Problem(cp.Minimize(expr), [x == x_val])
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value, np.sum(np.sort(x_val)[-1:]))
+
+        # Test non-fixed x
+        r = np.array([2, 1, 0, -1, -1])
+        x = cp.Variable(5)
+        w = np.array([1.2, 1.1])
+        expr = cp.dotsort(x, w)
+        prob = cp.Problem(cp.Maximize(r @ x), [0 <= x, expr <= 1, cp.sum(x) == 1])
+        prob.solve()
+        self.assertAlmostEqual(expr.value, 1)
+        self.assertAlmostEqual(x.value[:2] @ w, 1)
+
+        # Test non-fixed x - unordered w
+        r = np.array([2, 1, 0, -1, -1])
+        x = cp.Variable(5)
+        w = np.array([1.2, 1.1, 1.3])
+        expr = cp.dotsort(x, w)
+        prob = cp.Problem(cp.Maximize(r @ x), [0 <= x, expr <= 1, cp.sum(x) == 1])
+        prob.solve()
+        self.assertAlmostEqual(expr.value, 1)
+        self.assertAlmostEqual(np.sort(x.value)[-3:] @ np.sort(w), 1)
+
+        # Test list
+        r = np.array([2, 1, 0, -1, -1])
+        x = cp.Variable(5)
+        w = [1.2, 1.1]
+        expr = cp.dotsort(x, w)
+        prob = cp.Problem(cp.Maximize(r @ x), [0 <= x, expr <= 1, cp.sum(x) == 1])
+        prob.solve()
+        self.assertAlmostEqual(expr.value, 1)
+        self.assertAlmostEqual(x.value[:2] @ w, 1)
+
+        # Test composition
+        r = np.array([2, 1, 0, -1, -1])
+        x = cp.Variable(5)
+        w = [0.7, 0.8]
+        expr = cp.dotsort(cp.exp(x), w)
+        prob = cp.Problem(cp.Maximize(r @ x), [0 <= x, expr <= 2, cp.sum(x) == 1])
+        prob.solve()
+        self.assertAlmostEqual(expr.value, 2)
+        self.assertAlmostEqual(np.sort(np.exp(x.value))[-2:] @ np.sort(w), 2)
+
+        # Exceptions
+
+        # len(w) > len(x)
+        with self.assertRaises(Exception) as cm:
+            cp.dotsort(self.x, [1, 2, 3])
+        self.assertEqual(str(cm.exception),
+                         "The size of of W must be less or equal to the size of X.")
+
+        # two variable expressions
+        with self.assertRaises(Exception) as cm:
+            cp.dotsort(self.x, self.y)
+        self.assertEqual(str(cm.exception),
+                         "The W argument must be constant.")
+
+        # swapped arguments
+        with self.assertRaises(Exception) as cm:
+            cp.dotsort([1, 2, 3], self.x)
+        self.assertEqual(str(cm.exception),
+                         "The W argument must be constant.")
+
+        with self.assertRaises(Exception) as cm:
+            cp.Problem(cp.Minimize(cp.dotsort(cp.abs(self.x), [-1, 1]))).solve()
+        assert "Problem does not follow DCP rules" in str(cm.exception)
+
     def test_index(self) -> None:
         """Test the copy function for index.
         """
