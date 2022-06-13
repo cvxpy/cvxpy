@@ -88,9 +88,9 @@ and returns a scalar.
      - :math:`X \in \mathbf{R}^{m \times n}`
      - depends on :math:`X`, :math:`W`
      - |convex| convex
-     - |incr| for :math:`W_{ij} \geq 0`
+     - |incr| for :math:`\min(W) \geq 0`
 
-       |decr| for :math:`W_{ij} \leq 0`
+       |decr| for :math:`\max(W) \leq 0`
 
    * - :ref:`geo_mean(x) <geo-mean>`
 
