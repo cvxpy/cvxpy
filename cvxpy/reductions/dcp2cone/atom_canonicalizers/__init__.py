@@ -43,7 +43,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.suppfunc_canon import (
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.xexp_canon import *
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
     abs_canon, cummax_canon, cumsum_canon, max_canon, maximum_canon, min_canon,
-    minimum_canon, norm1_canon, norm_inf_canon, sum_largest_canon,)
+    minimum_canon, norm1_canon, norm_inf_canon, sum_largest_canon, dotsort_canon,)
 from cvxpy.reductions.utilities import special_index_canon
 from cvxpy.transforms.indicator import indicator
 
@@ -83,4 +83,5 @@ CANON_METHODS = {
     special_index : special_index_canon,
     SuppFuncAtom : suppfunc_canon,
     xexp : xexp_canon,
+    dotsort : dotsort_canon
 }
