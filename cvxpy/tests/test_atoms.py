@@ -908,6 +908,24 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(expr.value, 2)
         self.assertAlmostEqual(np.sort(np.exp(x.value))[-2:] @ np.sort(w), 2)
 
+        # Test copy
+        w = np.array([1, 2])
+        atom = cp.dotsort(self.x, w)
+        copy = atom.copy()
+        self.assertTrue(type(copy) is type(atom))
+        # A new object is constructed, so copy.args == atom.args but copy.args
+        # is not atom.args.
+        self.assertEqual(copy.args, atom.args)
+        self.assertFalse(copy.args is atom.args)
+        self.assertTrue(copy.args[0] is atom.args[0])
+        self.assertTrue(copy.args[1] is atom.args[1])
+
+        # Test copy with new args
+        copy = atom.copy(args=[self.x, w])
+        self.assertFalse(copy.args is atom.args)
+        self.assertTrue(copy.args[0] is atom.args[0])
+        self.assertFalse(copy.args[1] is atom.args[1])
+
         # Exceptions
 
         # len(w) > len(x)
