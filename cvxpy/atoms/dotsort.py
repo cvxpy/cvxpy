@@ -14,9 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Tuple
+from typing import List, Tuple
 
 import numpy as np
+import scipy.sparse as sp
 
 from cvxpy.atoms.atom import Atom
 
@@ -56,13 +57,27 @@ class dotsort(Atom):
         """Returns the inner product of the sorted values of vec(X) and the sorted (and potentially padded)
         values of vec(W).
         """
-        x = values[0].flatten()
-        w = values[1].flatten()
-
-        w_padded = np.zeros_like(x)  # pad in case size(W) < size(X)
-        w_padded[:len(w)] = w
-
+        x, w_padded = self._get_args_from_values(values)
         return np.sort(x) @ np.sort(w_padded)
+
+    def _grad(self, values):
+        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
+
+        Matrix expressions are vectorized, so the gradient is a matrix.
+
+        Args:
+            values: A list of numeric values for the arguments.
+
+        Returns:
+            A list of SciPy CSC sparse matrices or None.
+        """
+        # Grad: jth largest element of w is placed at the index of the jth largest element of x
+
+        x, w_padded = self._get_args_from_values(values)
+        indices = np.argsort(x)
+        n = len(x)
+        sorted_w = np.sort(w_padded)
+        return [sp.csc_matrix((sorted_w, (indices, np.zeros(n))), shape=(n, 1))]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
@@ -108,3 +123,13 @@ class dotsort(Atom):
         """Returns None, W is stored as an argument.
         """
         return None
+
+    @staticmethod
+    def _get_args_from_values(values: List[np.ndarray]) \
+            -> Tuple[np.ndarray, np.ndarray]:
+        x = values[0].flatten()
+        w = values[1].flatten()
+
+        w_padded = np.zeros_like(x)  # pad in case size(W) < size(X)
+        w_padded[:len(w)] = w
+        return x, w_padded
