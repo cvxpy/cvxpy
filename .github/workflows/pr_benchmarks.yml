@@ -1,0 +1,40 @@
+name: pr_benchmarks
+
+on:
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      
+      - name: Checkout cvxpy
+        uses: actions/checkout@v2
+
+      - name: Install cvxpy dependencies
+        run: |
+          pip install .
+
+      - name: Checkout benchmark
+        uses: actions/checkout@v2
+        with:
+          repository: parthb83/benchmarks
+          ref: main
+          path: benchmark/
+        
+      - name: Install benchmark dependencies
+        run: |
+          pip install .
+      
+      - name: Run benchmarks
+        run: |
+          asv machine --yes
+          asv run --config asv2.conf.json master..HEAD --quick
