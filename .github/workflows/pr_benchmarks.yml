@@ -32,10 +32,10 @@ jobs:
         
       - name: Install benchmark dependencies
         run: |
+          cd benchmark/
           pip install .
       
       - name: Run benchmarks
         run: |
-          cd benchmark
           asv machine --config asv2.conf.json --yes
           asv run --config asv2.conf.json master..HEAD --quick
