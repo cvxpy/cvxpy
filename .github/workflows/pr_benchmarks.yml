@@ -39,4 +39,4 @@ jobs:
         run: |
           cd benchmark/
           asv machine --config asv2.conf.json --yes
-          asv run --config asv2.conf.json master..HEAD --quick
+          asv run --config asv2.conf.json --quick
