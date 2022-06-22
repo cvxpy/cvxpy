@@ -46,6 +46,7 @@ jobs:
       
       - id: get-comment-body
         run: |
+          cd benchmark/
           body="$(cat asv_continuous.log)"
 
       - name: Find Comment
