@@ -9,7 +9,7 @@ on:
           - '*'
 
 jobs:
-  benchmark:
+  pr_benchmark:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v2
@@ -38,9 +38,36 @@ jobs:
           cd benchmark/
           pip install .
       
-      - name: Run benchmarks on the latest PR commit
+      - name: Run benchmarks
         run: |
           cd benchmark/
           asv machine --config asv2.conf.json --yes
-          asv continuous origin/master HEAD --config asv2.conf.json --quick
+          asv continuous --split origin/master HEAD --config asv2.conf.json --quick | | tee -a asv_continuous.log
+      
+      - id: get-comment-body
+        run: |
+          body="$(cat asv_continuous.log)"
 
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+
+      - name: Create comment
+        if: steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ${{ steps.get-comment-body.outputs.body }}
+
+      - name: Update comment
+        if: steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          body: |
+            ${{ steps.get-comment-body.outputs.body }}
+          edit-mode: replace
