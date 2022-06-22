@@ -18,10 +18,12 @@ jobs:
       
       - name: Checkout cvxpy
         uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
 
       - name: Install cvxpy dependencies
         run: |
-          git log -5
+          echo $(git log -5 --oneline)
           pip install .
 
       - name: Checkout benchmark
