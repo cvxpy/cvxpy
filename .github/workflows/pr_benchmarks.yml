@@ -42,12 +42,16 @@ jobs:
         run: |
           cd benchmark/
           asv machine --config asv2.conf.json --yes
-          asv continuous --split origin/master HEAD --config asv2.conf.json | tee -a asv_continuous.log
+          asv continuous --split origin/master HEAD --config asv2.conf.json --quick | tee -a asv_continuous.log
       
       - id: get-comment-body
         run: |
           cd benchmark/
           body="$(cat asv_continuous.log)"
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}" 
+          echo "::set-output name=body::$body"
 
       - name: Find Comment
         uses: peter-evans/find-comment@v2
