@@ -41,14 +41,8 @@ jobs:
           cd benchmark/
           asv machine --config asv2.conf.json --yes
           asv run --config asv2.conf.json --quick
-      
-      - name: Checkout cvxpy master
-        uses: actions/checkout@v2
-        with:
-          ref: master
-
-      - name: Run benchmarks on the latest master commit
-        run: |
+          cd ..
+          git checkout master
           cd benchmark/
           asv run --config asv2.conf.json --quick
           
