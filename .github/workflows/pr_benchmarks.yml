@@ -42,8 +42,5 @@ jobs:
         run: |
           cd benchmark/
           asv machine --config asv2.conf.json --yes
-          asv run --config asv2.conf.json --quick
-          cd ..
-          git checkout master
-          cd benchmark/
-          asv run --config asv2.conf.json --quick
+          asv continuous --config asv2.conf.json --quick
+
