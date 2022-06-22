@@ -23,7 +23,6 @@ jobs:
 
       - name: Install cvxpy dependencies
         run: |
-          echo $(git log -5 --oneline)
           pip install .
 
       - name: Checkout benchmark
