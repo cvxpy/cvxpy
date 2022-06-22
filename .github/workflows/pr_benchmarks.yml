@@ -42,7 +42,7 @@ jobs:
         run: |
           cd benchmark/
           asv machine --config asv2.conf.json --yes
-          asv continuous --split origin/master HEAD --config asv2.conf.json --quick | tee -a asv_continuous.log
+          asv continuous --split origin/master HEAD --config asv2.conf.json | tee -a asv_continuous.log
       
       - id: get-comment-body
         run: |
