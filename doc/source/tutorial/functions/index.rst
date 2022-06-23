@@ -402,6 +402,13 @@ and returns a scalar.
      - |convex| convex
      - None
 
+   * - :ref:`von_neumann_entr(X) <von-neumann-entr>`
+     - :math:`-\operatorname{tr}(X\operatorname{logm}(X))`
+     - :math:`X \in \mathbf{S}^{n}_+`
+     - |unknown| unknown
+     - |concave| concave
+     - None
+
 Clarifications for scalar functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
