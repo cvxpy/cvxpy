@@ -31,13 +31,17 @@ def von_neumann_entr_canon(expr, args):
     # START code that applies to all spectral functions #
 
     constrs = []
-    for r in range(1, n+1):
+    for r in range(1, n):
         # lambda_sum_largest(N, r) <= sum(x[:r])
         expr_r = lambda_sum_largest(N, r)
         epi, cons = lambda_sum_largest_canon(expr_r, expr_r.args)
         constrs.extend(cons)
         con = NonPos(epi - sum(x[:r]))
         constrs.append(con)
+
+    # trace(N) \leq sum(x)
+    con = trace(N) == sum(x)
+    constrs.append(con)
 
     # trace(N) == sum(x)
     con = Zero(trace(N) - sum(x))
