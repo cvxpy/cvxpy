@@ -969,6 +969,7 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "The W argument must be constant.")
 
+        # non-dcp composition
         with self.assertRaises(Exception) as cm:
             cp.Problem(cp.Minimize(cp.dotsort(cp.abs(self.x), [-1, 1]))).solve()
         assert "Problem does not follow DCP rules" in str(cm.exception)
