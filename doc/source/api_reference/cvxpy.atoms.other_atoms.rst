@@ -281,3 +281,11 @@ tv
 -------------------------------------
 
 .. autofunction:: cvxpy.atoms.total_variation.tv
+
+.. _von-neumann-entr:
+
+von_neumann_entr
+--------------------------------------
+
+.. autoclass:: cvxpy.von_neumann_entr
+    :show-inheritance:

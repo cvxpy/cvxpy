@@ -94,6 +94,7 @@ from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.sum_smallest import sum_smallest
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
+from cvxpy.atoms.von_neumann_entr import von_neumann_entr
 
 # TODO(akshayka): Perhaps couple this information with the atom classes
 # themselves.
@@ -114,6 +115,7 @@ EXP_ATOMS = [
     exp,
     kl_div,
     rel_entr,
+    von_neumann_entr,
     log,
     log1p,
     logistic,
