@@ -41,12 +41,13 @@ jobs:
         run: |
           cd benchmark/
           asv machine --config asv2.conf.json --yes
-          asv continuous --split origin/master HEAD --config asv2.conf.json | tee -a asv_continuous.log
+          asv continuous origin/master HEAD --config asv2.conf.json --split | tee -a asv_continuous.log
+          asv compare origin/master HEAD --config asv2.conf.json --split | tee -a asv_continuous2.log
       
       - id: get-comment-body
         run: |
           cd benchmark/
-          body="$(cat asv_continuous.log)"
+          body="$(cat asv_continuous2.log)"
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}" 
