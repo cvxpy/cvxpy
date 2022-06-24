@@ -974,6 +974,13 @@ class TestAtoms(BaseTest):
             cp.Problem(cp.Minimize(cp.dotsort(cp.abs(self.x), [-1, 1]))).solve()
         assert "Problem does not follow DCP rules" in str(cm.exception)
 
+        # non-dpp composition
+        p = cp.Parameter(value=2)
+        p_squared = p ** 2
+        with self.assertRaises(Exception) as cm:
+            cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve()
+        assert "When W is parametrized, it must be an instance of Parameter" in str(cm.exception)
+
     def test_index(self) -> None:
         """Test the copy function for index.
         """

@@ -20,6 +20,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.constants import Parameter
 
 
 class dotsort(Atom):
@@ -50,6 +51,10 @@ class dotsort(Atom):
             raise ValueError("The W argument must be constant.")
         if self.args[0].size < self.args[1].size:
             raise ValueError("The size of of W must be less or equal to the size of X.")
+        if any(self.args[1].parameters()):
+            assert isinstance(self.args[1], Parameter), \
+                "When W is parametrized, it must be an instance of Parameter" \
+                " to ensure correct canonicalization."
 
         super(dotsort, self).validate_arguments()
 
