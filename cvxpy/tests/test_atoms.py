@@ -908,6 +908,29 @@ class TestAtoms(BaseTest):
         self.assertAlmostEqual(expr.value, 2)
         self.assertAlmostEqual(np.sort(np.exp(x.value))[-2:] @ np.sort(w), 2)
 
+        # Test parameter
+        x = cp.Variable(5)
+        x_val = np.array([1, 3, 2, -5, 0])
+
+        assert cp.dotsort(x, cp.Parameter(2, pos=True)).is_incr(0)
+        assert cp.dotsort(x, cp.Parameter(2, nonneg=True)).is_incr(0)
+        assert not cp.dotsort(x, cp.Parameter(2, neg=True)).is_incr(0)
+        assert cp.dotsort(x, cp.Parameter(2, neg=True)).is_decr(0)
+
+        w_p = cp.Parameter(2, value=[1, 0])
+        expr = cp.dotsort(x, w_p)
+        assert not expr.is_incr(0)
+        assert not expr.is_decr(0)
+
+        prob = cp.Problem(cp.Minimize(expr), [x == x_val])
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value,
+                               np.sort(x_val) @ np.sort(np.array([1, 0, 0, 0, 0])))
+        w_p.value = [-1, -1]
+        prob.solve()
+        self.assertAlmostEqual(prob.objective.value,
+                               np.sort(x_val) @ np.sort(np.array([-1, -1, 0, 0, 0])))
+
         # Test copy
         w = np.array([1, 2])
         atom = cp.dotsort(self.x, w)

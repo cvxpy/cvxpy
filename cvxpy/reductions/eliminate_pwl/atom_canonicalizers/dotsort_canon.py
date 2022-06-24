@@ -15,7 +15,7 @@ limitations under the License.
 """
 import numpy as np
 
-from cvxpy import reshape
+from cvxpy import Parameter, reshape
 from cvxpy.atoms.affine.sum import sum
 from cvxpy.expressions.variable import Variable
 
@@ -24,16 +24,19 @@ def dotsort_canon(expr, args):
     x = args[0]
     w = args[1]
 
-    w_unique, w_counts = np.unique(w.value, return_counts=True)
+    if isinstance(w, Parameter):
+        w_unique, w_counts = w, np.ones(w.size)  # Can't group by unique elements for parameters
+    else:
+        w_unique, w_counts = np.unique(w.value, return_counts=True)
 
     # minimize    sum(t) + q @ w_counts
-    # subject to  x @ w.T <= t + q.T
+    # subject to  x @ w_unique.T <= t + q.T
     #             0 <= t
 
     t = Variable((x.size, 1), nonneg=True)
-    q = Variable((1, len(w_unique)))
+    q = Variable((1, w_unique.size))
 
     obj = sum(t) + q @ w_counts
-    x_w_unique_outer_product = reshape(x, (x.size, 1)) @ w_unique.reshape((1, -1))
+    x_w_unique_outer_product = reshape(x, (x.size, 1)) @ reshape(w_unique, (1, w_unique.size))
     constraints = [x_w_unique_outer_product <= t + q]
     return obj, constraints

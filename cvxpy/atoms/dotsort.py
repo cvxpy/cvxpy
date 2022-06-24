@@ -112,12 +112,12 @@ class dotsort(Atom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        return np.all(self.args[1].value >= 0)
+        return self.args[1].is_nonneg()
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        return np.all(self.args[1].value <= 0)
+        return self.args[1].is_nonpos()
 
     def get_data(self):
         """Returns None, W is stored as an argument.
