@@ -19,8 +19,9 @@ from typing import List, Tuple
 import numpy as np
 import scipy.sparse as sp
 
+import cvxpy.utilities as u
 from cvxpy.atoms.atom import Atom
-from cvxpy.expressions.constants import Parameter
+from cvxpy.expressions.constants.parameter import is_param_affine
 
 
 class dotsort(Atom):
@@ -51,10 +52,6 @@ class dotsort(Atom):
             raise ValueError("The W argument must be constant.")
         if self.args[0].size < self.args[1].size:
             raise ValueError("The size of of W must be less or equal to the size of X.")
-        if any(self.args[1].parameters()):
-            assert isinstance(self.args[1], Parameter), \
-                "When W is parametrized, it must be an instance of Parameter" \
-                " to ensure correct canonicalization."
 
         super(dotsort, self).validate_arguments()
 
@@ -107,7 +104,13 @@ class dotsort(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return True
+        if u.scopes.dpp_scope_active():
+            # dotsort is convex under DPP if W is parameter affine
+            X = self.args[0]
+            W = self.args[1]
+            return X.is_constant() or is_param_affine(W)
+        else:
+            return True
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?

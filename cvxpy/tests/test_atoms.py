@@ -923,13 +923,52 @@ class TestAtoms(BaseTest):
         assert not expr.is_decr(0)
 
         prob = cp.Problem(cp.Minimize(expr), [x == x_val])
-        prob.solve()
+        prob.solve(enforce_dpp=True)
         self.assertAlmostEqual(prob.objective.value,
                                np.sort(x_val) @ np.sort(np.array([1, 0, 0, 0, 0])))
         w_p.value = [-1, -1]
-        prob.solve()
+        prob.solve(enforce_dpp=True)
         self.assertAlmostEqual(prob.objective.value,
                                np.sort(x_val) @ np.sort(np.array([-1, -1, 0, 0, 0])))
+
+        # Test parameter affine
+        w_p = cp.Parameter(2, value=[1, 0])
+        parameter_affine_expression = 2 * w_p
+        expr = cp.dotsort(x, parameter_affine_expression)
+        prob = cp.Problem(cp.Minimize(expr), [x == x_val])
+        prob.solve(enforce_dpp=True)
+        self.assertAlmostEqual(prob.objective.value,
+                               np.sort(x_val) @ np.sort(np.array([2, 0, 0, 0, 0])))
+        w_p.value = [-1, -1]
+        prob.solve(enforce_dpp=True)
+        self.assertAlmostEqual(prob.objective.value,
+                               np.sort(x_val) @ np.sort(np.array([-2, -2, 0, 0, 0])))
+
+        # Test constant + non-parameter affine
+        x = np.array([1, 2, 3])
+        p = cp.Parameter(value=2)
+        p_squared = p ** 2
+        expr = cp.dotsort(x, p_squared)
+        problem = cp.Problem(cp.Minimize(expr))
+        problem.solve(enforce_dpp=True)
+        self.assertAlmostEqual(expr.value, 2**2 * 3)
+        p.value = -1
+        problem.solve(enforce_dpp=True)
+        self.assertAlmostEqual(expr.value, (-1) ** 2 * 3)
+
+        # Test non-parameter affine w/ with implicit casting to constant
+        # This issues a warning message
+        x = cp.Variable(3)
+        x_val = np.array([1, 2, 3])
+        p = cp.Parameter(value=2)
+        p_squared = p ** 2
+        expr = cp.dotsort(x, p_squared)
+        problem = cp.Problem(cp.Minimize(expr), [x == x_val])
+        problem.solve()
+        self.assertAlmostEqual(expr.value, 2**2 * 3)
+        p.value = -1
+        problem.solve()
+        self.assertAlmostEqual(expr.value, (-1) ** 2 * 3)
 
         # Test copy
         w = np.array([1, 2])
@@ -974,12 +1013,12 @@ class TestAtoms(BaseTest):
             cp.Problem(cp.Minimize(cp.dotsort(cp.abs(self.x), [-1, 1]))).solve()
         assert "Problem does not follow DCP rules" in str(cm.exception)
 
-        # non-dpp composition
+        # # non-dpp composition
         p = cp.Parameter(value=2)
         p_squared = p ** 2
         with self.assertRaises(Exception) as cm:
-            cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve()
-        assert "When W is parametrized, it must be an instance of Parameter" in str(cm.exception)
+            cp.Problem(cp.Minimize(cp.dotsort(self.x, p_squared))).solve(enforce_dpp=True)
+        assert "You are solving a parameterized problem that is not DPP" in str(cm.exception)
 
     def test_index(self) -> None:
         """Test the copy function for index.
