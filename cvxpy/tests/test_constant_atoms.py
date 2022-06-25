@@ -165,6 +165,8 @@ atoms_minimize = [
     (lambda x: cp.norm(x, "nuc"), tuple(), [[[3, 4, 5], [6, 7, 8]]],
      Constant([14.618376738088918])),
     (lambda x: cp.sum_largest(cp.abs(x), 3), tuple(), [[1, 2, 3, -4, -5]], Constant([5 + 4 + 3])),
+    (lambda x: cp.dotsort(cp.abs(x), np.array([2, 1, 0.1])), tuple(), [[1, 2, 3, -4, -5]],
+     Constant([10 + 4 + .3])),
     (lambda x: cp.mixed_norm(x, 1, 1), tuple(), [[[1, 2], [3, 4], [5, 6]]],
      Constant([21])),
     (lambda x: cp.mixed_norm(x, 1, 1), tuple(), [[[1, 2, 3], [4, 5, 6]]],

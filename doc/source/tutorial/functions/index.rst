@@ -81,6 +81,17 @@ and returns a scalar.
      - Curvature |_|
      - Monotonicity
 
+   * - :ref:`dotsort(X,W) <dotsort>`
+
+       constant :math:`W \in \mathbf{R}^{o \times p}`
+     - :math:`\langle sort\left(vec(X)\right), sort\left(vec(W)\right) \rangle`
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - depends on :math:`X`, :math:`W`
+     - |convex| convex
+     - |incr| for :math:`\min(W) \geq 0`
+
+       |decr| for :math:`\max(W) \leq 0`
+
    * - :ref:`geo_mean(x) <geo-mean>`
 
        :ref:`geo_mean(x, p) <geo-mean>`

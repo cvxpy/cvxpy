@@ -21,6 +21,14 @@ diff_pos
 
 .. _eye-minus-inv:
 
+.. _dotsort:
+
+dotsort
+---------------------------------
+
+.. autoclass:: cvxpy.atoms.dotsort.dotsort
+    :show-inheritance:
+
 eye_minus_inv
 --------------
 
