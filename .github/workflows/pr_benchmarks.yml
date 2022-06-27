@@ -1,7 +1,6 @@
 name: pr_benchmarks
 
-on:
-    pull_request:
+on: [ pull_request_target ]
 
 jobs:
   pr_benchmark:
@@ -10,10 +9,18 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.8
+    
+      - name: PR head repo
+        id: head_repo_name
+        run: |
+          HEAD_REPO_NAME=$(jq -r '.pull_request.head.repo.full_name' "$GITHUB_EVENT_PATH")
+          echo "PR head repo: $HEAD_REPO_NAME"
+          echo "::set-output name=repo::$HEAD_REPO_NAME"
       
-      - name: Checkout cvxpy
+      - name: Checkout git repo
         uses: actions/checkout@v2
         with:
+          repository: ${{ steps.head_repo_name.outputs.repo }}
           fetch-depth: 0
 
       - name: Install cvxpy dependencies
