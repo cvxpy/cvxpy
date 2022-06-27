@@ -28,7 +28,7 @@ jobs:
       - name: Checkout benchmark
         uses: actions/checkout@v2
         with:
-          repository: parthb83/benchmarks
+          repository: cvxpy/benchmarks
           ref: main
           path: benchmark/
         
@@ -40,14 +40,14 @@ jobs:
       - name: Run benchmarks
         run: |
           cd benchmark/
-          asv machine --config asv2.conf.json --yes
-          asv continuous origin/master HEAD --config asv2.conf.json --quick
-          asv compare origin/master HEAD --config asv2.conf.json --split --sort ratio | tee -a asv_continuous.log
+          asv machine --config asv_pr.conf.json --yes
+          asv continuous origin/master HEAD --config asv_pr.conf.json --quick
+          asv compare origin/master HEAD --config asv_pr.conf.json --split --sort ratio | tee -a asv_compare.log
       
       - id: get-comment-body
         run: |
           cd benchmark/
-          body="$(cat asv_continuous.log)"
+          body="$(cat asv_compare.log)"
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}" 
