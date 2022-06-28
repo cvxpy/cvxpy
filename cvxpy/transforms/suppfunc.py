@@ -171,7 +171,6 @@ class SuppFunc:
         self._b = None
         self._K_sels = None
         self._compute_conic_repr_of_set()
-        pass
 
     def __call__(self, y) -> SuppFuncAtom:
         """
@@ -195,7 +194,6 @@ class SuppFunc:
         self._A = A
         self._b = b
         self._K_sels = K_sels
-        pass
 
     def conic_repr_of_set(self):
         return self._A, self._b, self._K_sels
