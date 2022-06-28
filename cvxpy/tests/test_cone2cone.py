@@ -427,6 +427,7 @@ class TestPowND(BaseTest):
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_complementarity(places=3)
+        pass
 
     def test_pcp_3b(self):
         sth = TestPowND.pcp_3(axis=1)
@@ -434,6 +435,7 @@ class TestPowND(BaseTest):
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_complementarity(places=3)
+        pass
 
     @staticmethod
     def pcp_4(ceei: bool = True):
@@ -472,6 +474,7 @@ class TestPowND(BaseTest):
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_complementarity(places=3)
+        pass
 
     def test_pcp_4b(self):
         sth = TestPowND.pcp_4(ceei=False)
@@ -479,3 +482,4 @@ class TestPowND(BaseTest):
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_complementarity(places=3)
+        pass

@@ -6,9 +6,12 @@ repos:
       - id: autoflake
         args: [
           '--in-place',
+          '--recursive',
           '--remove-all-unused-imports',
           '--ignore-init-module-imports',
           '--remove-unused-variables',
+          '--exclude',
+          'test_*',
           '--'
         ]
 

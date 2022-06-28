@@ -287,6 +287,7 @@ class TestAtoms(BaseTest):
                 self.assertEqual(atom.sign, s.NONNEG)
                 var.value = np.random.randn(*var.shape)
                 self.assertAlmostEqual(atom.value, np.linalg.norm(var.value, ord=p))
+        pass
 
     def test_quad_over_lin(self) -> None:
         # Test quad_over_lin DCP.
