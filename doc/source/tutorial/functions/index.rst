@@ -81,6 +81,17 @@ and returns a scalar.
      - Curvature |_|
      - Monotonicity
 
+   * - :ref:`dotsort(X,W) <dotsort>`
+
+       constant :math:`W \in \mathbf{R}^{o \times p}`
+     - :math:`\langle sort\left(vec(X)\right), sort\left(vec(W)\right) \rangle`
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - depends on :math:`X`, :math:`W`
+     - |convex| convex
+     - |incr| for :math:`\min(W) \geq 0`
+
+       |decr| for :math:`\max(W) \leq 0`
+
    * - :ref:`geo_mean(x) <geo-mean>`
 
        :ref:`geo_mean(x, p) <geo-mean>`
@@ -400,6 +411,13 @@ and returns a scalar.
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n}`
      - |positive| positive
      - |convex| convex
+     - None
+
+   * - :ref:`von_neumann_entr(X) <von-neumann-entr>`
+     - :math:`-\operatorname{tr}(X\operatorname{logm}(X))`
+     - :math:`X \in \mathbf{S}^{n}_+`
+     - |unknown| unknown
+     - |concave| concave
      - None
 
 Clarifications for scalar functions

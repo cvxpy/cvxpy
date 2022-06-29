@@ -309,6 +309,31 @@ class TestGrad(BaseTest):
         self.A.value = [[1, 2], [3, 0.5]]
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 1, 0])
 
+    def test_dotsort(self) -> None:
+        """Test dotsort.
+        """
+        expr = cp.dotsort(self.A, [0.1, -2])
+
+        self.A.value = [[4, 3], [2, 1]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0.1, 0, 0, -2])
+
+        self.A.value = [[1, 2], [3, 0.5]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0.1, 0, -2])
+
+        # sum_largest tests:
+        expr = cp.dotsort(self.A, [1, 1])
+        self.A.value = [[4, 3], [2, 1]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 1, 0])
+        self.A.value = [[1, 2], [3, 0.5]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 1, 0])
+
+        # sum_smallest tests:
+        expr = -cp.dotsort(self.A, [-1, -1])
+        self.A.value = [[4, 3], [2, 1]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 0, 1])
+        self.A.value = [[1, 2], [3, 0.5]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
+
     def test_abs(self) -> None:
         """Test abs.
         """
