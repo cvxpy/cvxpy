@@ -21,6 +21,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           repository: ${{ steps.head_repo_name.outputs.repo }}
+          ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
 
       - name: Install cvxpy dependencies
@@ -43,8 +44,8 @@ jobs:
         run: |
           cd benchmark/
           asv machine --config asv_pr.conf.json --yes
-          asv continuous origin/master HEAD --config asv_pr.conf.json --quick
-          asv compare origin/master HEAD --config asv_pr.conf.json --split --sort ratio | tee -a asv_compare.log
+          asv continuous upstream/master HEAD --config asv_pr.conf.json --quick
+          asv compare upstream/master HEAD --config asv_pr.conf.json --split --sort ratio | tee -a asv_compare.log
       
       - id: get-comment-body
         run: |
