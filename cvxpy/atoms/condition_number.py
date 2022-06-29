@@ -23,6 +23,7 @@ from cvxpy.constraints.constraint import Constraint
 
 class condition_number(Atom):
     """ Condition Number; :math:`\\lambda_{\\max}(A) / \\lambda_{\\min}(A)`.
+        Requires that A be a Positive Semidefinite Matrix.
     """
     def __init__(self, A) -> None:
         super(condition_number, self).__init__(A)
