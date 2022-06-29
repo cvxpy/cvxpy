@@ -23,6 +23,12 @@ jobs:
           repository: ${{ steps.head_repo_name.outputs.repo }}
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+      
+      - name: Set upstream commit
+        id: upstream_commit
+        run: |
+          UPSTREAM_COMMIT_HASH=$(:: git ls-remote git://github.com/cvxpy/cvxpy.git refs/heads/master | \ cut -f 1)
+          echo "::set-output name=commit::$UPSTREAM_COMMIT_HASH"
 
       - name: Install cvxpy dependencies
         run: |
@@ -44,8 +50,8 @@ jobs:
         run: |
           cd benchmark/
           asv machine --config asv_pr.conf.json --yes
-          asv continuous upstream/master HEAD --config asv_pr.conf.json --quick
-          asv compare upstream/master HEAD --config asv_pr.conf.json --split --sort ratio | tee -a asv_compare.log
+          asv continuous ${{ steps.upstream_commit.outputs.commit }} HEAD --config asv_pr.conf.json --quick
+          asv compare ${{ steps.upstream_commit.outputs.commit }} HEAD --config asv_pr.conf.json --split --sort ratio | tee -a asv_compare.log
       
       - id: get-comment-body
         run: |
