@@ -984,7 +984,7 @@ COPT solver options are specified in CVXPY as keyword arguments. The full list o
 ``'nag_params'``
     a dictionary of NAG option parameters. Refer to NAG's Python or Fortran API for details. For example, to set the maximum number of iterations for a linear programming problem to 20, use "LPIPM Iteration Limit" for the key name and 20 for its value . 
 
-SCIP_ options:
+`SCIP`_ options:
 ``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
 `SCIPY`_ options:
