@@ -27,7 +27,7 @@ jobs:
       - name: Set upstream commit
         id: upstream_commit
         run: |
-          UPSTREAM_COMMIT_HASH=$(:: git ls-remote git://github.com/cvxpy/cvxpy.git refs/heads/master | \ cut -f 1)
+          UPSTREAM_COMMIT_HASH=$(git ls-remote https://github.com/cvxpy/cvxpy.git refs/heads/master | head -n1 | sed -e 's/\s.*$//')
           echo "::set-output name=commit::$UPSTREAM_COMMIT_HASH"
 
       - name: Install cvxpy dependencies
