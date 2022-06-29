@@ -961,7 +961,7 @@ The following cut-generators are available:
 ``'allowablePercentageGap'``
     returns if the gap between the best known solution and the best possible solution is less than this percentage.
 
-COPT_ options:
+`COPT`_ options:
 
 COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
 
