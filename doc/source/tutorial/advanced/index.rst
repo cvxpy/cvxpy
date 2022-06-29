@@ -427,6 +427,8 @@ The table below shows the types of problems the supported solvers can handle.
 +================+====+====+======+=====+=====+=====+=====+
 | `CBC`_         | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `COPT`_        | X  | X  | X    |     |     |     | X*  |
++----------------+----+----+------+-----+-----+-----+-----+
 | `GLOP`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GLPK`_        | X  |    |      |     |     |     |     |
@@ -445,7 +447,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GUROBI`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `MOSEK`_       | X  | X  | X    | X   | X   | X   | X*  |
+| `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -460,7 +462,9 @@ The table below shows the types of problems the supported solvers can handle.
 | `SCIPY`_       | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 
-(*) Except mixed-integer SDP.
+(*) Mixed-integer LP only.
+
+(**) Except mixed-integer SDP.
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -497,6 +501,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with ECOS.
     prob.solve(solver=cp.ECOS)
     print("optimal value with ECOS:", prob.value)
+
+    # Solve with COPT.
+    prob.solve(solver=cp.COPT)
+    print("optimal value with COPT:", prob.value)
 
     # Solve with CVXOPT.
     prob.solve(solver=cp.CVXOPT)
@@ -561,21 +569,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 ::
 
     optimal value with OSQP: 6.0
-    optimal value with ECOS: 5.99999999551
-    optimal value with CVXOPT: 6.00000000512
-    optimal value with SDPA: 6.000000038517417
-    optimal value with SCS: 6.00046055789
-    optimal value with SciPy/HiGHS: 6.0
-    optimal value with GLOP: 6.0
-    optimal value with GLPK: 6.0
-    optimal value with GLPK_MI: 6.0
-    optimal value with GUROBI: 6.0
-    optimal value with MOSEK: 6.0
-    optimal value with CBC: 6.0
-    optimal value with CPLEX: 6.0
-    optimal value with NAG: 6.000000003182365
-    optimal value with PDLP: 6.0
-    optimal value with SCIP: 6.0
+    ...
     optimal value with XPRESS: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
@@ -966,6 +960,10 @@ The following cut-generators are available:
 
 ``'allowablePercentageGap'``
     returns if the gap between the best known solution and the best possible solution is less than this percentage.
+
+COPT_ options:
+
+COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
 
 `CPLEX`_ options:
 
@@ -1502,6 +1500,7 @@ once for each standard basis vector).
 on derivatives.
 
 .. _CVXOPT: http://cvxopt.org/
+.. _COPT: https://github.com/COPT-Public/COPT-Release
 .. _ECOS: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
 .. _SDPA: https://sdpa-python.github.io
