@@ -38,9 +38,17 @@ jobs:
           asv machine --config asv_pr.conf.json --yes
           asv continuous origin/master HEAD --config asv_pr.conf.json --quick
           asv compare origin/master HEAD --config asv_pr.conf.json --split --sort ratio | tee -a asv_compare.log
+          mkdir artifact
+          mv asv_compare.log artifact/
       
-      - name: Upload the compare file
+      - name: Save PR Number
+        env:
+          PR_NUMBER: ${{github.event.pull_request.number}}
+        run: |
+          echo $PR_NUMBER > ./benchmark/artifact/pr_number
+
+      - name: Upload the artifact folder
         uses: actions/upload-artifact@v3
         with:
-          name: asv_compare
-          path: benchmark/asv_compare.log
+          name: artifact
+          path: benchmark/artifact/

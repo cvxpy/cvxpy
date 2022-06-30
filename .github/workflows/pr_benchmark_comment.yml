@@ -15,30 +15,35 @@ jobs:
         with:
           workflow: pr_benchmarks.yml
           workflow_conclusion: success
-          pr: ${{github.event.pull_request.number}}
-          commit: ${{github.event.pull_request.head.sha}}
-          name: asv_compare
+          name: artifact
 
       - id: get-comment-body
         run: |
+          cd artifact/
           body="$(cat asv_compare.log)"
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
           body="${body//$'\r'/'%0D'}" 
           echo "::set-output name=body::$body"
 
+      - id: get-pr-number
+        run: |
+          cd artifact/
+          number="$(cat pr_number)"
+          echo "::set-output name=number::$number"
+
       - name: Find Comment
         uses: peter-evans/find-comment@v2
         id: fc
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.get-pr-number.outputs.number }}
           comment-author: 'github-actions[bot]'
 
       - name: Create comment
         if: steps.fc.outputs.comment-id == ''
         uses: peter-evans/create-or-update-comment@v2
         with:
-          issue-number: ${{ github.event.pull_request.number }}
+          issue-number: ${{ steps.get-pr-number.outputs.number }}
           body: |
             ${{ steps.get-comment-body.outputs.body }}
 
