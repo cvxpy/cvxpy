@@ -15,7 +15,8 @@ jobs:
         with:
           workflow: pr_benchmarks.yml
           workflow_conclusion: success
-          name: artifact
+          name: comment_log
+          run_id: ${{ context.payload.workflow_run.id }}
 
       - id: get-comment-body
         run: |
