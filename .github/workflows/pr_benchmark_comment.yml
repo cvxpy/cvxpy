@@ -1,0 +1,52 @@
+name: pr_benchmark_comment
+
+on:
+  workflow_run:
+    workflows: [pr_benchmarks]
+    types:
+      - completed
+
+jobs:
+  comment_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          workflow: pr_benchmarks.yml
+          workflow_conclusion: success
+          pr: ${{github.event.pull_request.number}}
+          commit: ${{github.event.pull_request.head.sha}}
+          name: asv_compare
+
+      - id: get-comment-body
+        run: |
+          body="$(cat asv_compare.log)"
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}" 
+          echo "::set-output name=body::$body"
+
+      - name: Find Comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+
+      - name: Create comment
+        if: steps.fc.outputs.comment-id == ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ${{ steps.get-comment-body.outputs.body }}
+
+      - name: Update comment
+        if: steps.fc.outputs.comment-id != ''
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          body: |
+            ${{ steps.get-comment-body.outputs.body }}
+          edit-mode: replace
