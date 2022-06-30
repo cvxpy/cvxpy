@@ -19,7 +19,6 @@ jobs:
 
       - id: get-comment-body
         run: |
-          cd artifact/
           body="$(cat asv_compare.log)"
           body="${body//'%'/'%25'}"
           body="${body//$'\n'/'%0A'}"
@@ -28,7 +27,6 @@ jobs:
 
       - id: get-pr-number
         run: |
-          cd artifact/
           number="$(cat pr_number)"
           echo "::set-output name=number::$number"
 
