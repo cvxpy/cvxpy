@@ -36,6 +36,7 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.condition_number import condition_number
 from cvxpy.atoms.cummax import cummax
 from cvxpy.atoms.dist_ratio import dist_ratio
 from cvxpy.atoms.dotsort import dotsort
@@ -125,6 +126,7 @@ EXP_ATOMS = [
 PSD_ATOMS = [
     lambda_max,
     lambda_sum_largest,
+    condition_number,
     log_det,
     MatrixFrac,
     normNuc,

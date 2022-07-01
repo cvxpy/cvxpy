@@ -259,6 +259,14 @@ generalized eigenvalue of ``A`` and ``B``, defined as the maximum
 This atom is quasiconvex, and it enforces the constraint that ``A`` is
 symmetric and ``B`` is positive definite.
 
+
+**Condition Number.**
+The atom ``cvxpy.condition_number(A)`` computes the condition number of ``A``, defined as the
+:math:`\lambda_{\max}(A) / \lambda_{\min}(A)`.
+This atom is quasiconvex, and it enforces the constraint that ``A`` is
+symmetric and positive definite.
+
+
 **Ceiling and floor.**
 The atoms ``cvxpy.ceil(x)`` and ``cvxpy.floor(x)`` are quasilinear, and
 increasing in their arguments.
