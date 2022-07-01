@@ -139,7 +139,7 @@ class ExpCone(Constraint):
 
 
 
-class sREC(Constraint):
+class ExpConeQuad(Constraint):
     """A reformulated exponential cone constraint.
 
     Operates elementwise on :math:`x, y, z`.
@@ -198,7 +198,7 @@ class sREC(Constraint):
         x = Variable(self.x.shape)
         y = Variable(self.y.shape)
         z = Variable(self.z.shape)
-        constr = [sREC(x, y, z, m, k)]
+        constr = [ExpConeQuad(x, y, z, m, k)]
         obj = Minimize(norm2(hstack([x, y, z]) -
                              hstack([self.x.value, self.y.value, self.z.value])))
         problem = Problem(obj, constr)

@@ -22,14 +22,14 @@ from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.exponential import sREC
+from cvxpy.constraints.exponential import ExpConeQuad
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 from scipy.integrate import fixed_quad
 import scipy
 
 COMMON_CONES = {
-    sREC: {quad_over_lin}
+    ExpConeQuad: {quad_over_lin}
 }
 
 def gauss_legendre(n) -> Tuple[np.array, np.array]:
@@ -42,9 +42,9 @@ def gauss_legendre(n) -> Tuple[np.array, np.array]:
     #TODO: Finish this implementation
 
 
-def sREC_canon(con: sREC, args) -> Tuple[List[Constraint], List]:
+def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[List[Constraint], List]:
     """
-    con: sREC
+    con: ExpConeQuad
     args:
     """
     vars = dict()
@@ -67,7 +67,7 @@ def sREC_canon(con: sREC, args) -> Tuple[List[Constraint], List]:
 class Common2Common(Canonicalization):
 
     CANON_METHODS = {
-        sREC: sREC_canon
+        ExpConeQuad: ExpConeQuad_canon
     }
 
     def __init__(self, problem=None) -> None:
