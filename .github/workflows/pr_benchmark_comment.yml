@@ -9,10 +9,13 @@ on:
 jobs:
   comment_pr:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Download artifact
         uses: actions/github-script@v6
         with:
+        # Script taken from official github documentation. 
+        # Link: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#using-data-from-the-triggering-workflow
           script: |
             let allArtifacts = await github.rest.actions.listWorkflowRunArtifacts({
                owner: context.repo.owner,
