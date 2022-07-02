@@ -212,7 +212,7 @@ For licensing reasons, CVXPY does not install any of the preferred solvers by de
 
 The preferred open source mixed-integer solvers in CVXPY are GLPK_MI_, CBC_ and SCIP_. The CVXOPT_
 python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running
-`pip install cvxopt`` in your command line or terminal. SCIP supports nonlinear models, but
+``pip install cvxopt`` in your command line or terminal. SCIP supports nonlinear models, but
 GLPK_MI and CBC do not.
 
 CVXPY comes with ECOS_BB -- an open source mixed-integer nonlinear solver -- by default. However
@@ -224,13 +224,15 @@ If you need to use an open-source mixed-integer nonlinear solver from CVXPY, the
 
 If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
 model that is challenging for SCIP, then you will need to use a commercial solver such as CPLEX_,
-GUROBI_, XPRESS_, or MOSEK_. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
+GUROBI_, XPRESS_, MOSEK_, or COPT_. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
 provide free licenses to those
 in academia (both students and faculty), as well as trial versions to those outside academia.
 CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
-online registration, and it's limited to problems at with most 1000 variables and 1000 constraints.
+online registration, and it's limited to problems with at most 1000 variables and 1000 constraints.
 XPRESS has a free community edition which does not require registration, however it is limited
-to problems where sum of variables count and constraint count does not exceed 5000.
+to problems where the sum of variables count and constraint count does not exceed 5000.
+COPT also has a free community edition that is limited to problems with at most 2000 variables 
+and 2000 constraints.
 
 .. note::
    If you develop an open-source mixed-integer solver with a permissive license such
