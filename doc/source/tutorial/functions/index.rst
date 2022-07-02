@@ -487,7 +487,7 @@ scalars, which are promoted.
    * - :ref:`abs(x) <abs>`
 
      - :math:`\lvert x \rvert`
-     - :math:`x \in \mathbf{R}`
+     - :math:`x \in \mathbf{C}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`x \geq 0`
