@@ -13,7 +13,7 @@ pip
 
 (Windows only) Download the Visual Studio build tools for Python 3
 (`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
-`install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
+`install instructions <https://docs.google.com/presentation/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/edit?usp=sharing&ouid=117107708911390632479&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&rtpof=true&sd=true>`_).
 
 (macOS only) Install the Xcode command line tools.
 
@@ -174,12 +174,26 @@ Install with Cbc (Clp, Cgl) support
 CVXPY supports the `Cbc <https://github.com/coin-or/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
 Simply install cylp and the corresponding prerequisites according to the `instructions <https://github.com/coin-or/CyLP#cylp>`_, such you can import this library in Python.
 
+Install with COPT support
+--------------------------
+
+CVXPY supports the COPT solver.
+Simply install COPT such that you can ``import coptpy`` in Python.
+See the `COPT <https://github.com/COPT-Public/COPT-Release>`_ release page for installation instructions.
+
 Install with CPLEX support
 --------------------------
 
 CVXPY supports the CPLEX solver.
 Simply install CPLEX such that you can ``import cplex`` in Python.
 See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
+
+Install with SDPA support
+--------------------------
+
+CVXPY supports the SDPA solver.
+Simply install SDPA for Python such that you can ``import sdpap`` in Python.
+See the `SDPA for Python <https://sdpa-python.github.io/docs/installation>`_ website for installation instructions.
 
 Install with SDPT3 support
 --------------------------

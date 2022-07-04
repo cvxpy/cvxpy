@@ -978,7 +978,7 @@ class TestExpressions(BaseTest):
         self.assertEqual(str(cm.exception), "Index -100 is out of bounds for axis 0 with size 2.")
 
         exp = self.x[:-100]
-        self.assertEqual(exp.size, (0,))
+        self.assertEqual(exp.size, 0)
         self.assertItemsAlmostEqual(exp.value, np.array([]))
 
         exp = self.C[100:2]

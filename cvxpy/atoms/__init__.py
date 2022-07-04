@@ -36,8 +36,10 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.condition_number import condition_number
 from cvxpy.atoms.cummax import cummax
 from cvxpy.atoms.dist_ratio import dist_ratio
+from cvxpy.atoms.dotsort import dotsort
 from cvxpy.atoms.elementwise.abs import abs
 from cvxpy.atoms.elementwise.ceil import ceil, floor
 from cvxpy.atoms.elementwise.entr import entr
@@ -93,6 +95,7 @@ from cvxpy.atoms.sum_largest import sum_largest
 from cvxpy.atoms.sum_smallest import sum_smallest
 from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
+from cvxpy.atoms.von_neumann_entr import von_neumann_entr
 
 # TODO(akshayka): Perhaps couple this information with the atom classes
 # themselves.
@@ -113,6 +116,7 @@ EXP_ATOMS = [
     exp,
     kl_div,
     rel_entr,
+    von_neumann_entr,
     log,
     log1p,
     logistic,
@@ -122,6 +126,7 @@ EXP_ATOMS = [
 PSD_ATOMS = [
     lambda_max,
     lambda_sum_largest,
+    condition_number,
     log_det,
     MatrixFrac,
     normNuc,

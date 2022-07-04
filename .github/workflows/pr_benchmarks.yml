@@ -1,0 +1,54 @@
+name: pr_benchmarks
+
+on:
+  pull_request:
+
+jobs:
+  pr_benchmarks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+    
+      - name: Checkout cvxpy
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install cvxpy dependencies
+        run: |
+          pip install .
+
+      - name: Checkout benchmark
+        uses: actions/checkout@v2
+        with:
+          repository: cvxpy/benchmarks
+          ref: main
+          path: benchmark/
+        
+      - name: Install benchmark dependencies
+        run: |
+          cd benchmark/
+          pip install .
+      
+      - name: Run benchmarks
+        run: |
+          cd benchmark/
+          asv machine --config asv_pr.conf.json --yes
+          asv continuous origin/master HEAD --config asv_pr.conf.json --quick
+          asv compare origin/master HEAD --config asv_pr.conf.json --split --sort ratio | tee -a asv_compare.log
+          mkdir comment_log
+          mv asv_compare.log comment_log/
+      
+      - name: Save PR Number
+        env:
+          PR_NUMBER: ${{github.event.pull_request.number}}
+        run: |
+          echo $PR_NUMBER > ./benchmark/comment_log/pr_number
+
+      - name: Upload the artifact folder
+        uses: actions/upload-artifact@v3
+        with:
+          name: comment_log
+          path: benchmark/comment_log/

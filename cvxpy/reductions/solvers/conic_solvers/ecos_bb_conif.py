@@ -31,6 +31,7 @@ class ECOS_BB(ECOS):
 
     # Solver capabilities.
     MIP_CAPABLE = True
+    MI_SUPPORTED_CONSTRAINTS = ECOS.SUPPORTED_CONSTRAINTS
 
     # Exit flags from ECOS_BB
     # ECOS_BB found optimal solution.

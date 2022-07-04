@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 from .cbc_conif import CBC
+from .copt_conif import COPT
 from .cplex_conif import CPLEX
 from .cvxopt_conif import CVXOPT
 from .diffcp_conif import DIFFCP
@@ -29,4 +30,5 @@ from .pdlp_conif import PDLP
 from .scip_conif import SCIP
 from .scipy_conif import SCIPY
 from .scs_conif import SCS
+from .sdpa_conif import SDPA
 from .xpress_conif import XPRESS

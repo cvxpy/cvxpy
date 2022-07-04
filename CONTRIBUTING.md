@@ -90,6 +90,8 @@ pip install pre-commit
 pre-commit install
 ```
 
+Note on isort: if you see files changed by isort that you did not actively make changes to as part of your PR, it is an indication that the config was not picked up correctly. See [issue 1653](https://github.com/cvxpy/cvxpy/issues/1653) for details.
+
 ## Writing unit tests
 Most code changes will require new unit tests. (Even bug fixes require unit tests,
 since the presence of bugs usually indicates insufficient tests.) CVXPY tests
@@ -133,7 +135,7 @@ CVXPY has a few benchmarks in `cvxpy/tests/test_benchmarks.py`, which test
 the time to canonicalize problems. Please run
 
 ```
-pytest -s test_benchmarks.py
+pytest -s cvxpy/tests/test_benchmarks.py
 ```
 
 with and without your change, to make sure no performance regressions are

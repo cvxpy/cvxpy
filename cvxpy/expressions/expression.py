@@ -29,6 +29,7 @@ from cvxpy import error
 from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+from cvxpy.utilities.shape import size_from_shape
 
 
 def _cast_other(binary_op):
@@ -412,7 +413,7 @@ class Expression(u.Canonical):
     def size(self) -> int:
         """int : The number of entries in the expression.
         """
-        return np.prod(self.shape, dtype=int)
+        return size_from_shape(self.shape)
 
     @property
     def ndim(self) -> int:
