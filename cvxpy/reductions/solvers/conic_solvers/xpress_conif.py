@@ -42,6 +42,7 @@ class XPRESS(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     def __init__(self) -> None:
         # Main member of this class: an Xpress problem. Marked with a

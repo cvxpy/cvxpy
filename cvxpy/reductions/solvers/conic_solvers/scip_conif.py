@@ -81,6 +81,7 @@ class SCIP(ConicSolver):
 
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     def name(self) -> str:
         """The name of the solver."""

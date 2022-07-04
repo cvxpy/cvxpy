@@ -61,6 +61,8 @@ class MOSEK(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC, PSD]
     EXP_CONE_ORDER = [2, 1, 0]
     DUAL_EXP_CONE_ORDER = [0, 1, 2]
+    # Does not support MISDP.
+    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
 
     """
     Note that MOSEK.SUPPORTED_CONSTRAINTS does not include the exponential cone

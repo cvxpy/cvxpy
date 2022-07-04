@@ -20,6 +20,8 @@ class COPT(ConicSolver):
     # Solver capabilities
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    # Only supports MI LPs.
+    MI_SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     # Map between COPT status and CVXPY status
     STATUS_MAP = {

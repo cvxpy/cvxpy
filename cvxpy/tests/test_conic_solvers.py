@@ -1755,6 +1755,11 @@ class TestCOPT(unittest.TestCase):
     def test_copt_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='COPT')
 
+    def test_copt_mi_socp_1(self) -> None:
+        # COPT does not support MISOCP.
+        with pytest.raises(cp.error.SolverError, match="do not support"):
+            StandardTestSOCPs.test_mi_socp_1(solver='COPT')
+
     def test_copt_params(self) -> None:
         n = 10
         m = 4

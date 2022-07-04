@@ -1552,6 +1552,9 @@ To do so, you have to implement a solver class that is a child of ``cvxpy.reduct
 
 You might also want to override the methods ``invert`` and ``import_solver`` of the ``Solver`` class.
 
-Note that the string returned by the ``name`` property should be different to all of the officially supported solvers (a list of which can be found in ``cvxpy.settings.SOLVERS``). Also, if your solver is mixed integer capable, you should set the class variable ``MIP_CAPABLE`` to ``True``.
+Note that the string returned by the ``name`` property should be different to all of the officially supported solvers 
+(a list of which can be found in ``cvxpy.settings.SOLVERS``). Also, if your solver is mixed integer capable, 
+you should set the class variable ``MIP_CAPABLE`` to ``True`` and set the class variable ``MI_SUPPORTED_CONSTRAINTS`` 
+to the list of cones supported when solving mixed integer problems (usually the same as ``SUPPORTED_CONSTRAINTS``).
 
 
