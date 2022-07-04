@@ -86,6 +86,8 @@ class MOSEK(ConicSolver):
         if hasattr(mosek.conetype, 'pexp') and ExpCone not in MOSEK.SUPPORTED_CONSTRAINTS:
             MOSEK.SUPPORTED_CONSTRAINTS.append(ExpCone)
             MOSEK.SUPPORTED_CONSTRAINTS.append(PowCone3D)
+            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(ExpCone)
+            MOSEK.MI_SUPPORTED_CONSTRAINTS.append(PowCone3D)
 
     def name(self):
         """The name of the solver.
