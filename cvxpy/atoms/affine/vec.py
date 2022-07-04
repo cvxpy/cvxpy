@@ -19,12 +19,13 @@ from cvxpy.expressions.expression import Expression
 
 
 def vec(X, order: str = 'F'):
-    """Flattens the matrix X into a vector in column-major order.
+    """Flattens the matrix X into a vector.
 
     Parameters
     ----------
     X : Expression or numeric constant
         The matrix to flatten.
+    order: column-major ('F') or row-major ('C') order.
 
     Returns
     -------

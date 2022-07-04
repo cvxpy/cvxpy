@@ -422,8 +422,10 @@ class Expression(u.Canonical):
 
     def flatten(self, order: str = 'F'):
         """Vectorizes the expression.
+
+        order: column-major ('F') or row-major ('C') order.
         """
-        assert order in ['F','C']
+        assert order in ['F', 'C']
         return cvxtypes.vec()(self, order)
 
     def is_scalar(self) -> bool:
