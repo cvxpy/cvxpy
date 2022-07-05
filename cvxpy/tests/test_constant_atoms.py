@@ -113,7 +113,6 @@ atoms_minimize = [
      Constant(np.kron(np.array([[5, 6], [7, 8], [9, 10]]), np.array([[1, 2], [3, 4]])))),
     (cp.lambda_max, tuple(), [[[2, 0], [0, 1]]], Constant([2])),
     (cp.lambda_max, tuple(), [[[2, 0, 0], [0, 3, 0], [0, 0, 1]]], Constant([3])),
-
     (cp.lambda_max, tuple(), [[[5, 7], [7, -3]]], Constant([9.06225775])),
     (lambda x: cp.lambda_sum_largest(x, 2), tuple(),
      [[[1, 2, 3], [2, 4, 5], [3, 5, 6]]], Constant([11.51572947])),
@@ -165,6 +164,8 @@ atoms_minimize = [
     (lambda x: cp.norm(x, "nuc"), tuple(), [[[3, 4, 5], [6, 7, 8]]],
      Constant([14.618376738088918])),
     (lambda x: cp.sum_largest(cp.abs(x), 3), tuple(), [[1, 2, 3, -4, -5]], Constant([5 + 4 + 3])),
+    (lambda x: cp.dotsort(cp.abs(x), np.array([2, 1, 0.1])), tuple(), [[1, 2, 3, -4, -5]],
+     Constant([10 + 4 + .3])),
     (lambda x: cp.mixed_norm(x, 1, 1), tuple(), [[[1, 2], [3, 4], [5, 6]]],
      Constant([21])),
     (lambda x: cp.mixed_norm(x, 1, 1), tuple(), [[[1, 2, 3], [4, 5, 6]]],

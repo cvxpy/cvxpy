@@ -256,7 +256,12 @@ def construct_solving_chain(problem, candidates,
 
     for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
-        if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
+        # Cones supported for MI problems may differ from non MI.
+        if problem.is_mixed_integer():
+            supported_constraints = solver_instance.MI_SUPPORTED_CONSTRAINTS
+        else:
+            supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
+        if (all(c in supported_constraints for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())

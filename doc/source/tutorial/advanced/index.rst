@@ -212,7 +212,7 @@ For licensing reasons, CVXPY does not install any of the preferred solvers by de
 
 The preferred open source mixed-integer solvers in CVXPY are GLPK_MI_, CBC_ and SCIP_. The CVXOPT_
 python package provides CVXPY with access to GLPK_MI; CVXOPT can be installed by running
-`pip install cvxopt`` in your command line or terminal. SCIP supports nonlinear models, but
+``pip install cvxopt`` in your command line or terminal. SCIP supports nonlinear models, but
 GLPK_MI and CBC do not.
 
 CVXPY comes with ECOS_BB -- an open source mixed-integer nonlinear solver -- by default. However
@@ -224,13 +224,15 @@ If you need to use an open-source mixed-integer nonlinear solver from CVXPY, the
 
 If you need to solve a large mixed-integer problem quickly, or if you have a nonlinear mixed-integer
 model that is challenging for SCIP, then you will need to use a commercial solver such as CPLEX_,
-GUROBI_, XPRESS_, or MOSEK_. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
+GUROBI_, XPRESS_, MOSEK_, or COPT_. Commercial solvers require licenses to run. CPLEX, GUROBI, and MOSEK
 provide free licenses to those
 in academia (both students and faculty), as well as trial versions to those outside academia.
 CPLEX Free Edition is available at no cost regardless of academic status, however it still requires
-online registration, and it's limited to problems at with most 1000 variables and 1000 constraints.
+online registration, and it's limited to problems with at most 1000 variables and 1000 constraints.
 XPRESS has a free community edition which does not require registration, however it is limited
-to problems where sum of variables count and constraint count does not exceed 5000.
+to problems where the sum of variables count and constraint count does not exceed 5000.
+COPT also has a free community edition that is limited to problems with at most 2000 variables 
+and 2000 constraints.
 
 .. note::
    If you develop an open-source mixed-integer solver with a permissive license such
@@ -427,6 +429,8 @@ The table below shows the types of problems the supported solvers can handle.
 +================+====+====+======+=====+=====+=====+=====+
 | `CBC`_         | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `COPT`_        | X  | X  | X    |     |     |     | X*  |
++----------------+----+----+------+-----+-----+-----+-----+
 | `GLOP`_        | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GLPK`_        | X  |    |      |     |     |     |     |
@@ -445,9 +449,11 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GUROBI`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `MOSEK`_       | X  | X  | X    | X   | X   | X   | X*  |
+| `MOSEK`_       | X  | X  | X    | X   | X   | X   | X** |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `CVXOPT`_      | X  | X  | X    | X   |     |     |     |
++----------------+----+----+------+-----+-----+-----+-----+
+| `SDPA`_        | X  |    |      | X   |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `SCS`_         | X  | X  | X    | X   | X   | X   |     |
 +----------------+----+----+------+-----+-----+-----+-----+
@@ -458,7 +464,9 @@ The table below shows the types of problems the supported solvers can handle.
 | `SCIPY`_       | X  |    |      |     |     |     |     |
 +----------------+----+----+------+-----+-----+-----+-----+
 
-(*) Except mixed-integer SDP.
+(*) Mixed-integer LP only.
+
+(**) Except mixed-integer SDP.
 
 Here EXP refers to problems with exponential cone constraints. The exponential cone is defined as
 
@@ -496,9 +504,17 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     prob.solve(solver=cp.ECOS)
     print("optimal value with ECOS:", prob.value)
 
+    # Solve with COPT.
+    prob.solve(solver=cp.COPT)
+    print("optimal value with COPT:", prob.value)
+
     # Solve with CVXOPT.
     prob.solve(solver=cp.CVXOPT)
     print("optimal value with CVXOPT:", prob.value)
+
+    # Solve with SDPA.
+    prob.solve(solver=cp.SDPA)
+    print("optimal value with SDPA:", prob.value)
 
     # Solve with SCS.
     prob.solve(solver=cp.SCS)
@@ -555,20 +571,7 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
 ::
 
     optimal value with OSQP: 6.0
-    optimal value with ECOS: 5.99999999551
-    optimal value with CVXOPT: 6.00000000512
-    optimal value with SCS: 6.00046055789
-    optimal value with SciPy/HiGHS: 6.0
-    optimal value with GLOP: 6.0
-    optimal value with GLPK: 6.0
-    optimal value with GLPK_MI: 6.0
-    optimal value with GUROBI: 6.0
-    optimal value with MOSEK: 6.0
-    optimal value with CBC: 6.0
-    optimal value with CPLEX: 6.0
-    optimal value with NAG: 6.000000003182365
-    optimal value with PDLP: 6.0
-    optimal value with SCIP: 6.0
+    ...
     optimal value with XPRESS: 6.0
 
 Use the ``installed_solvers`` utility function to get a list of the solvers your installation of CVXPY supports.
@@ -579,7 +582,7 @@ Use the ``installed_solvers`` utility function to get a list of the solvers your
 
 ::
 
-    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS',
+    ['CBC', 'CVXOPT', 'MOSEK', 'GLPK', 'GLPK_MI', 'ECOS', 'SCS', 'SDPA'
      'SCIPY', 'GUROBI', 'OSQP', 'CPLEX', 'NAG', 'SCIP', 'XPRESS']
 
 Viewing solver output
@@ -833,6 +836,62 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
     KKT solvers of this form is a small wrapper around CVXOPT's API for function-handle KKT
     solvers. The precise API that CVXPY users are held to is described in the CVXPY source
     code: `cvxpy/reductions/solvers/kktsolver.py <https://github.com/cvxpy/cvxpy/blob/master/cvxpy/reductions/solvers/kktsolver.py>`_.
+    
+`SDPA`_ options:
+
+``'maxIteration'``
+    The maximum number of iterations. (default: 100).
+
+``'epsilonStar'``
+    The accuracy of an approximate optimal solution for primal and dual SDP. (default: 1.0E-7).
+
+``'lambdaStar'``
+    An initial point. (default: 1.0E2).
+
+``'omegaStar'``
+    The search region for an optimal solution. (default: 2.0).
+
+``'lowerBound'``
+    Lower bound of the minimum objective value of the primal SDP. (default: -1.0E5).
+
+``'upperBound'``
+    Upper bound of the maximum objective value of the dual SDP. (default: 1.0E5).
+
+``'betaStar'``
+    The parameter for controlling the search direction if the current point is feasible. (default: 0.1).
+
+``'betaBar'``
+    The parameter for controlling the search direction if the current point is infeasible. (default: 0.2).
+
+``'gammaStar'``
+    A reduction factor for the primal and dual step lengths. (default: 0.9).
+
+``'epsilonDash'``
+    The relative accuracy of an approximate optimal solution between primal and dual SDP. (default: 1.0E-7).
+
+``'isSymmetric'``
+    Specify whether to check the symmetricity of input matrices. (default: False).
+
+``'isDimacs'``
+    Specify whether to compute DIMACS ERROR. (default: False).
+
+``'numThreads'``
+    numThreads (default: ``'multiprocessing.cpu_count()'``).
+
+``'domainMethod'``
+    Algorithm option for exploiting sparsity in the domain space. Can be ``'none'`` (exploiting no sparsity in the domain space) or ``'basis'`` (using basis representation) (default: ``'none'``).
+
+``'rangeMethod'``
+    Algorithm option for exploiting sparsity in the range space. Can be ``'none'`` (exploiting no sparsity in the range space) or ``'decomp'`` (using matrix decomposition) (default: ``'none'``).
+
+``'frvMethod'``
+    The method to eliminate free variables. Can be ``'split'`` or ``'elimination'`` (default: ``'split'``).
+
+``'rho'``
+    The parameter of range in split method or pivoting in elimination method. (default: 0.0).
+
+``'zeroPoint'``
+    The zero point of matrix operation, determine unboundness, or LU decomposition. (default: 1.0E-12).
 
 `SCS`_ options:
 
@@ -903,6 +962,10 @@ The following cut-generators are available:
 
 ``'allowablePercentageGap'``
     returns if the gap between the best known solution and the best possible solution is less than this percentage.
+
+`COPT`_ options:
+
+COPT solver options are specified in CVXPY as keyword arguments. The full list of COPT parameters with defaults is listed `here <https://guide.coap.online/copt/en-doc/index.html#parameters>`_.
 
 `CPLEX`_ options:
 
@@ -1439,8 +1502,10 @@ once for each standard basis vector).
 on derivatives.
 
 .. _CVXOPT: http://cvxopt.org/
+.. _COPT: https://github.com/COPT-Public/COPT-Release
 .. _ECOS: https://www.embotech.com/ECOS
 .. _SCS: http://github.com/cvxgrp/scs
+.. _SDPA: https://sdpa-python.github.io
 .. _GLOP: https://developers.google.com/optimization
 .. _GLPK: https://www.gnu.org/software/glpk/
 .. _GLPK_MI: https://www.gnu.org/software/glpk/
@@ -1487,6 +1552,9 @@ To do so, you have to implement a solver class that is a child of ``cvxpy.reduct
 
 You might also want to override the methods ``invert`` and ``import_solver`` of the ``Solver`` class.
 
-Note that the string returned by the ``name`` property should be different to all of the officially supported solvers (a list of which can be found in ``cvxpy.settings.SOLVERS``). Also, if your solver is mixed integer capable, you should set the class variable ``MIP_CAPABLE`` to ``True``.
-
-
+Note that the string returned by the ``name`` property should be different to all of the officially supported solvers 
+(a list of which can be found in ``cvxpy.settings.SOLVERS``). Also, if your solver is mixed integer capable, 
+you should set the class variable ``MIP_CAPABLE`` to ``True``. If your solver is both mixed integer capable 
+and a conic solver (as opposed to a QP solver), you should set the class variable ``MI_SUPPORTED_CONSTRAINTS`` 
+to the list of cones supported when solving mixed integer problems. Usually ``MI_SUPPORTED_CONSTRAINTS`` 
+will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
