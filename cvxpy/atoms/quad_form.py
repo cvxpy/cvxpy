@@ -35,7 +35,16 @@ class CvxPyDomainError(Exception):
 class QuadForm(Atom):
     _allow_complex = True
 
-    def __init__(self, x, P) -> None:
+    def __init__(self, x, P, assume_PSD: bool = False) -> None:
+        """Atom representing :math:`x^T P x`.
+
+        Parameters
+        ----------
+        x : vector argument.
+        P : matrix argument.
+        assume_PSD : P is assumed to be PSD without checking.
+        """
+        self.assume_PSD = assume_PSD
         super(QuadForm, self).__init__(x, P)
 
     def numeric(self, values):
@@ -63,13 +72,19 @@ class QuadForm(Atom):
         """Is the atom convex?
         """
         P = self.args[1]
-        return P.is_constant() and P.is_psd()
+        if self.assume_PSD:
+            return P.is_constant()
+        else:
+            return P.is_constant() and P.is_psd()
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
         P = self.args[1]
-        return P.is_constant() and P.is_nsd()
+        if self.assume_PSD:
+            return False
+        else:
+            return P.is_constant() and P.is_nsd()
 
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
@@ -215,9 +230,14 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     return scale, M1, M2
 
 
-def quad_form(x, P):
+def quad_form(x, P, assume_PSD: bool = False):
     """ Alias for :math:`x^T P x`.
 
+    Parameters
+    ----------
+    x : vector argument.
+    P : matrix argument.
+    assume_PSD : P is assumed to be PSD without checking.
     """
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
@@ -226,7 +246,7 @@ def quad_form(x, P):
     if x.is_constant():
         return x.H @ P @ x
     elif P.is_constant():
-        return QuadForm(x, P)
+        return QuadForm(x, P, assume_PSD)
     else:
         raise Exception(
             "At least one argument to quad_form must be non-variable."
