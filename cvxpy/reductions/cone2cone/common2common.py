@@ -38,8 +38,14 @@ def gauss_legendre(n) -> Tuple[np.array, np.array]:
     n-point Gauss-Legendre quadrature
     """
     I = fixed_quad(scipy.log, a=0, b=1, n=n)
-    beta = 0.5
-    #TODO: Finish this implementation
+    beta = 0.5/np.sqrt(1-2*np.arange(1, n+1)**(-2))
+    T = np.diag(beta, 1) + np.diag(beta, -1)
+    V, D = np.linalg.eig(T)
+    x = np.diag(D)
+    x, i = np.sort(x), np.argsort(x)
+    w = 2*np.array([V[0][k] for k in i])**2
+    I = w*eval(scipy.log, x)
+    return (w, x)
 
 
 def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[List[Constraint], List]:

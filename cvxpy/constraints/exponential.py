@@ -98,6 +98,10 @@ class ExpCone(Constraint):
         """
         return self.x.size
 
+
+    def ExpCone2ExpConeQuad(self, m: int, k: int) -> ExpConeQuad:
+        return ExpConeQuad(self.x, self.y, -self.z, m, k)
+
     def cone_sizes(self) -> List[int]:
         """The dimensions of the exponential cones.
 
