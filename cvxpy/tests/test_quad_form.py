@@ -200,3 +200,15 @@ class TestNonOptimal(BaseTest):
         prob = cvxpy.Problem(cvxpy.Minimize(expr),
                              [A @ x <= b])
         prob.solve(solver=cvxpy.SCS)
+
+    def test_assume_psd(self) -> None:
+        """Test assume_PSD argument.
+        """
+        x = cvxpy.Variable(3)
+        A = np.eye(3)
+        expr = cvxpy.quad_form(x, A, assume_PSD=True)
+        assert expr.is_convex()
+
+        A = np.eye(3)
+        expr = cvxpy.quad_form(x, A, assume_PSD=True)
+        assert expr.is_convex()
