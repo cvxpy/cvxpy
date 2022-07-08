@@ -209,6 +209,6 @@ class TestNonOptimal(BaseTest):
         expr = cvxpy.quad_form(x, A, assume_PSD=True)
         assert expr.is_convex()
 
-        A = np.eye(3)
+        A = -np.eye(3)
         expr = cvxpy.quad_form(x, A, assume_PSD=True)
         assert expr.is_convex()
