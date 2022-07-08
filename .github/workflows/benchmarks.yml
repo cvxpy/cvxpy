@@ -1,12 +1,9 @@
 name: benchmarks
 
 on:
-    pull_request:
-    push:
-        branches:
-            - master
-        tags:
-          - '*'
+  push:
+      branches:
+          - master
 
 jobs:
   benchmark:
@@ -44,7 +41,7 @@ jobs:
       - name: Run benchmarks
         run: |
           asv machine --yes
-          asv run "master -n 2" --quick
+          asv run "master -n 2"
           asv publish
       
       - name: Make pages folder
@@ -59,4 +56,4 @@ jobs:
           folder: pages/
           repository-name: cvxpy/benchmarks
           branch: gh-pages
-          token: "${{ secrets.BENCHMARK_DEPLOY_TOKEN }}"
+          ssh-key: "${{ secrets.BENCHMARK_DEPLOY_KEY }}"
