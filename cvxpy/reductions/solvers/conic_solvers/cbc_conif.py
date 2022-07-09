@@ -160,10 +160,18 @@ class CBC(ConicSolver):
 
         # Build model & solve
         status = None
+        clp_model_options = {"dualTolerance", "primalTolerance", "maxNumIteration", "logLevel", "automaticScaling", "scaling", "infeasibilityCost", "optimizationDirection"}
+        clp_solve_options = {"presolve"}
+        non_cbc_options = clp_model_options | clp_solve_options
+        for key in solver_opts:
+            if key in clp_model_options:
+                setattr(model, key, solver_opts[key])
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
             # Convert model
             cbcModel = model.getCbcModel()
             for key, value in solver_opts.items():
+                if key in non_cbc_options:
+                    continue
                 setattr(cbcModel, key, value)
 
             # Verbosity Cbc
@@ -180,7 +188,12 @@ class CBC(ConicSolver):
             # cylp: /cylp/cy/CyClpSimplex.pyx
             # Run CLP's initialSolve. It does a presolve and uses primal or dual
             # Simplex to solve a problem.
-            status = model.initialSolve()
+            solve_args = {}
+            for key in clp_solve_options:
+                if key in solver_opts:
+                    solve_args[key] = solver_opts[key]
+            status = model.initialSolve(**solve_args)
+
 
         solution = {}
         if data[s.BOOL_IDX] or data[s.INT_IDX]:
