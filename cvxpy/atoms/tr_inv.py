@@ -25,6 +25,12 @@ from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
 
 
+#############################################
+# File Name: tr_inv.py
+# Author: Cai Jianping
+# Mail: jpingcai@163.com
+# Created Time:  2022-7-9 11:25:34 AM
+#############################################
 class tr_inv(Atom):
     """:math:`\\trace\\inv A`
 
@@ -34,10 +40,9 @@ class tr_inv(Atom):
         super(tr_inv, self).__init__(A)
 
     def numeric(self, values):
-        """Returns the logdet of PSD matrix A.
+        """Returns the trinv of PSD matrix A.
 
-        For PSD matrix A, this is the sum of logs of eigenvalues of A
-        and is equivalent to the nuclear norm of the matrix logarithm of A.
+        For PSD matrix A, this is the trace of inverse of A.
         """
         # take symmetric part of the input.
         symm = (values[0] + values[0].T)/2
