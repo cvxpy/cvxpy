@@ -18,18 +18,20 @@ from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.expressions.expression import Expression
 
 
-def vec(X):
-    """Flattens the matrix X into a vector in column-major order.
+def vec(X, order: str = 'F'):
+    """Flattens the matrix X into a vector.
 
     Parameters
     ----------
     X : Expression or numeric constant
         The matrix to flatten.
+    order: column-major ('F') or row-major ('C') order.
 
     Returns
     -------
     Expression
         An Expression representing the flattened matrix.
     """
+    assert order in ['F', 'C']
     X = Expression.cast_to_const(X)
-    return reshape(X, (X.size,))
+    return reshape(X, (X.size,), order)
