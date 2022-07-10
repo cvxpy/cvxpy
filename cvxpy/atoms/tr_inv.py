@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2022, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,13 +24,6 @@ import cvxpy.settings as s
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
 
-
-#############################################
-# File Name: tr_inv.py
-# Author: Cai Jianping
-# Mail: jpingcai@163.com
-# Created Time:  2022-7-9 11:25:34 AM
-#############################################
 class tr_inv(Atom):
     """:math:`\\trace\\inv A`
 

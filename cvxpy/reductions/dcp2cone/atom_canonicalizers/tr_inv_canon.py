@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2022, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,12 +18,6 @@ from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.expressions.variable import Variable
 import numpy as np
 
-#############################################
-# File Name: tr_inv_canon.py
-# Author: Cai Jianping
-# Mail: jpingcai@163.com
-# Created Time:  2022-7-9 11:25:34 AM
-#############################################
 def tr_inv_canon(expr, args):
     """Reduces the atom to an affine expression and list of constraints.
 

@@ -1322,6 +1322,25 @@ class TestAtoms(BaseTest):
         self.assertEqual(atom.sign, s.UNKNOWN)
 
 
+    def test_tr_inv(self) -> None:
+        """Test tr_inv atom. """
+        T = 5
+        # Define and solve the CVXPY problem.
+        # Create a symmetric matrix variable.0
+        # X should be a PSD
+        X = cp.Variable((T, T), symmetric=True)
+        # The operator >> denotes matrix inequality.
+        constraints = [X >> 0]
+        constraints += [
+            cp.trace(X) == 1
+        ]
+        prob = cp.Problem(cp.Minimize(cp.tr_inv(X)), constraints)
+        prob.solve(verbose=True)
+        # Print result.
+        print("The optimal value is", prob.value)
+        print("A solution X is")
+        print(X.value)
+
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
 
