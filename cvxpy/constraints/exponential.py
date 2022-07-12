@@ -14,6 +14,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 from typing import List, Tuple
 
@@ -21,6 +22,7 @@ import numpy as np
 
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
+# from cvxpy.expressions.constants.constant import Constant
 from cvxpy.utilities import scopes
 
 
@@ -144,47 +146,19 @@ class ExpCone(Constraint):
 
 
 class ExpConeQuad(Constraint):
-    """A reformulated exponential cone constraint.
-
-    Operates elementwise on :math:`x, y, z`.
-
-    Original cone:
-
-    .. math::
-
-        K = \\{(x,y,z) \\mid y > 0, ye^{x/y} <= z\\}
-            \\cup \\{(x,y,z) \\mid x \\leq 0, y = 0, z \\geq 0\\}
-
-    Reformulated cone:
-
-    .. math::
-
-        K = \\{(x,y,z) \\mid y, z > 0, y\\log(y) + x \\geq y\\log(z)\\}
-             \\cup \\{(x,y,z) \\mid x \\leq 0, y = 0, z \\geq 0\\}
-
-    Parameters
-    ----------
-    x : Variable
-        x in the exponential cone.
-    y : Variable
-        y in the exponential cone.
-    z : Variable
-        z in the exponential cone.
-    """
-
     def __init__(self, x, y, z, m, k, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
         self.z = Expression.cast_to_const(z)
-        self.m = int(m)
-        self.k = int(k)
+        self.m = Expression.cast_to_const(m)
+        self.k = Expression.cast_to_const(k)
         xs, ys, zs = self.x.shape, self.y.shape, self.z.shape
         if xs != ys or xs != zs:
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str((xs, ys, zs)))
             raise ValueError(msg)
-        super(ExpCone, self).__init__([self.x, self.y, self.z],
+        super(ExpConeQuad, self).__init__([self.x, self.y, self.z],
                                       constr_id)
 
     def __str__(self) -> str:
@@ -199,10 +173,11 @@ class ExpConeQuad(Constraint):
         from cvxpy import Minimize, Problem, Variable, hstack, norm2
         if self.x.value is None or self.y.value is None or self.z.value is None:
             return None
+        Expression = cvxtypes.expression()
         x = Variable(self.x.shape)
         y = Variable(self.y.shape)
         z = Variable(self.z.shape)
-        constr = [ExpConeQuad(x, y, z, m, k)]
+        constr = [ExpConeQuad(x, y, z, self.m, self.k)]
         obj = Minimize(norm2(hstack([x, y, z]) -
                              hstack([self.x.value, self.y.value, self.z.value])))
         problem = Problem(obj, constr)
@@ -250,6 +225,8 @@ class ExpConeQuad(Constraint):
 
     def save_dual_value(self, value) -> None:
         # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
+        pass
+        print(value)
         value = np.reshape(value, newshape=(-1, 3))
         dv0 = np.reshape(value[:, 0], newshape=self.x.shape)
         dv1 = np.reshape(value[:, 1], newshape=self.y.shape)

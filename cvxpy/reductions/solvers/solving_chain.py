@@ -231,7 +231,7 @@ def construct_solving_chain(problem, candidates,
 
     for co in com_cos:
         #TODO: Think about how to structure this better
-        sim_cos = EXOTIC_CONES[co]  # get the set of required simple cones
+        sim_cos = COMMON_CONES[co]  # get the set of required simple cones
         constr_types.update(sim_cos)
         constr_types.remove(co)
     # We now go over individual elementary cones support by CVXPY (
@@ -269,6 +269,8 @@ def construct_solving_chain(problem, candidates,
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())
+            if com_cos:
+                reductions.append(Common2Common())
             reductions += [ConeMatrixStuffing(), solver_instance]
             return SolvingChain(reductions=reductions)
 
