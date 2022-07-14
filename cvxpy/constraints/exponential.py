@@ -100,7 +100,6 @@ class ExpCone(Constraint):
         """
         return self.x.size
 
-
     def ExpCone2ExpConeQuad(self, m: int, k: int) -> ExpConeQuad:
         return ExpConeQuad(self.x, self.y, -self.z, m, k)
 
@@ -144,28 +143,31 @@ class ExpCone(Constraint):
         self.dual_variables[2].save_value(dv2)
 
 
-
 class ExpConeQuad(Constraint):
+
     def __init__(self, x, y, z, m, k, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
         self.z = Expression.cast_to_const(z)
-        self.m = Expression.cast_to_const(m)
-        self.k = Expression.cast_to_const(k)
+        self.m = m
+        self.k = k
         xs, ys, zs = self.x.shape, self.y.shape, self.z.shape
         if xs != ys or xs != zs:
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str((xs, ys, zs)))
             raise ValueError(msg)
-        super(ExpConeQuad, self).__init__([self.x, self.y, self.z],
-                                      constr_id)
+        super(ExpConeQuad, self).__init__([self.x, self.y, self.z], constr_id)
+
+    def get_data(self):
+        return [self.m, self.k]
 
     def __str__(self) -> str:
-        return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
+        tup = (self.x, self.y, self.z, self.m, self.k)
+        return "ExpConeQuad(%s, %s, %s, %s, %s)" % tup
 
     def __repr__(self) -> str:
-        return "ExpCone(%s, %s, %s)" % (self.x, self.y, self.z)
+        return self.__str__()
 
     @property
     def residual(self):
@@ -173,7 +175,7 @@ class ExpConeQuad(Constraint):
         from cvxpy import Minimize, Problem, Variable, hstack, norm2
         if self.x.value is None or self.y.value is None or self.z.value is None:
             return None
-        Expression = cvxtypes.expression()
+        cvxtypes.expression()
         x = Variable(self.x.shape)
         y = Variable(self.y.shape)
         z = Variable(self.z.shape)
@@ -224,13 +226,5 @@ class ExpConeQuad(Constraint):
         return s
 
     def save_dual_value(self, value) -> None:
-        # TODO(akshaya,SteveDiamond): verify that reshaping below works correctly
-        pass
-        print(value)
-        value = np.reshape(value, newshape=(-1, 3))
-        dv0 = np.reshape(value[:, 0], newshape=self.x.shape)
-        dv1 = np.reshape(value[:, 1], newshape=self.y.shape)
-        dv2 = np.reshape(value[:, 2], newshape=self.z.shape)
-        self.dual_variables[0].save_value(dv0)
-        self.dual_variables[1].save_value(dv1)
-        self.dual_variables[2].save_value(dv2)
+        # TODO: implement me.
+        return
