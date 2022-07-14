@@ -33,8 +33,9 @@ class SCIPY(ConicSolver):
     """
 
     # Solver capabilities.
-    MIP_CAPABLE = False
+    MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Map of SciPy linprog status
     STATUS_MAP = {0: s.OPTIMAL,  # Optimal
@@ -55,6 +56,20 @@ class SCIPY(ConicSolver):
         """
         return s.SCIPY
 
+    def accepts(self, problem) -> bool:
+        """Can HiGHS solve the problem?
+        """
+        # TODO check if is matrix stuffed.
+        if not problem.objective.args[0].is_affine():
+            return False
+        for constr in problem.constraints:
+            if type(constr) not in self.SUPPORTED_CONSTRAINTS:
+                return False
+            for arg in constr.args:
+                if not arg.is_affine():
+                    return False
+        return True
+
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -71,6 +86,11 @@ class SCIPY(ConicSolver):
         data[s.PARAM_PROB] = problem
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
+
+        variables = problem.x
+        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
+        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
@@ -145,10 +165,28 @@ class SCIPY(ConicSolver):
             # callback = solver_opts['scipy_options'].pop("callback", None)
             # x0 = solver_opts['scipy_options'].pop("x0", None)
 
+            # Track variable type (integrality) and bounds.
+            integrality, bounds = [], []
+
+            for i in range(data[s.C].shape[0]):
+                if i in data[s.BOOL_IDX]:
+                    # Set the variable type to "integer," within binary bounds.
+                    integrality.append(1)
+                    bounds.append((0, 1))
+                elif i in data[s.INT_IDX]:
+                    # Set the variable type to "integer."
+                    integrality.append(1)
+                    bounds.append((None, None))
+                else:
+                    # Set the variable type to continuous.
+                    integrality.append(0)
+                    bounds.append((None, None))
+
             # Run the optimisation using scipy.optimize.linprog
             solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                   bounds=(None, None), options=solver_opts['scipy_options'])
+                                   bounds=bounds, options=solver_opts['scipy_options'],
+                                   integrality=integrality)
         else:
 
             warnings.warn("It is best to specify the 'method' parameter "
@@ -183,7 +221,7 @@ class SCIPY(ConicSolver):
 
             # SciPy linprog only returns duals for version >= 1.7.0
             # and method is one of 'highs', 'highs-ds' or 'highs-ipm'
-            if ('ineqlin' in solution.keys()):
+            if 'ineqlin' in solution and not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
                     -solution['eqlin']['marginals'],
                     utilities.extract_dual_value,
