@@ -31,11 +31,14 @@ class SCIPY(ConicSolver):
     """An interface for the SciPy linprog function.
     Note: This requires a version of SciPy which is >= 1.6.1
     """
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     # Solver capabilities.
-    MIP_CAPABLE = True
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
-    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
+    if (Version(scipy.__version__) < Version('1.9.0')):
+        MIP_CAPABLE = False
+    else:
+        MIP_CAPABLE = True
+        MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Map of SciPy linprog status
     STATUS_MAP = {0: s.OPTIMAL,  # Optimal
