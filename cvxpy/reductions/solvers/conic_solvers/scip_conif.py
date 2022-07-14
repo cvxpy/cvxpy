@@ -81,6 +81,7 @@ class SCIP(ConicSolver):
 
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     def name(self) -> str:
         """The name of the solver."""
@@ -91,9 +92,9 @@ class SCIP(ConicSolver):
         import pyscipopt
         v = pyscipopt.__version__
         if Version(v) >= Version('4.0.0'):
-            msg = 'PySCIPOpt (SCIP\'s Python wrapper) is installed and its' \
+            msg = 'PySCIPOpt (SCIP\'s Python wrapper) is installed and its ' \
                   'version is %s. CVXPY only supports PySCIPOpt < 4.0.0.' % v
-            raise NotImplementedError(msg)
+            raise ModuleNotFoundError(msg)
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""

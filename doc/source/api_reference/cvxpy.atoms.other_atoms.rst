@@ -21,6 +21,14 @@ diff_pos
 
 .. _eye-minus-inv:
 
+.. _dotsort:
+
+dotsort
+---------------------------------
+
+.. autoclass:: cvxpy.atoms.dotsort.dotsort
+    :show-inheritance:
+
 eye_minus_inv
 --------------
 
@@ -273,3 +281,11 @@ tv
 -------------------------------------
 
 .. autofunction:: cvxpy.atoms.total_variation.tv
+
+.. _von-neumann-entr:
+
+von_neumann_entr
+--------------------------------------
+
+.. autoclass:: cvxpy.von_neumann_entr
+    :show-inheritance:

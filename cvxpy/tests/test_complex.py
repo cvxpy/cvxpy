@@ -523,6 +523,14 @@ class TestComplex(BaseTest):
             cp.sum_largest(x, 2)
         self.assertEqual(str(cm.exception), "Arguments to sum_largest cannot be complex.")
 
+        with self.assertRaises(Exception) as cm:
+            cp.dotsort(x, 2)
+        self.assertEqual(str(cm.exception), "Arguments to dotsort cannot be complex.")
+
+        with self.assertRaises(Exception) as cm:
+            cp.dotsort(cp.Variable(2), np.array([1+2j]))
+        self.assertEqual(str(cm.exception), "Arguments to dotsort cannot be complex.")
+
         x = Variable(2, complex=True)
         for atom in [cp.geo_mean, cp.log_sum_exp, cp.max,
                      cp.entr, cp.exp, cp.huber,

@@ -446,7 +446,7 @@ def set_linC_data(linC, linPy) -> None:
     """Sets numerical data fields in linC."""
     assert linPy.data is not None
     if isinstance(linPy.data, tuple) and isinstance(linPy.data[0], slice):
-        slice_data = set_slice_data(linC, linPy)
+        set_slice_data(linC, linPy)
     elif isinstance(linPy.data, float) or isinstance(linPy.data,
                                                    numbers.Integral):
         linC.set_dense_data(format_matrix(linPy.data, format='scalar'))

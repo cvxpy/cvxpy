@@ -14,22 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import math
 from typing import List, Tuple
+
 import numpy as np
 
-from cvxpy.atoms.affine.hstack import hstack
-from cvxpy.atoms.affine.reshape import reshape
 from cvxpy.atoms.quad_over_lin import quad_over_lin
-from cvxpy.constraints.nonpos import NonPos
-from cvxpy.constraints.zero import Zero
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import quad_over_lin_canon
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import ExpConeQuad
+from cvxpy.constraints.nonpos import NonPos
+from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
-from scipy.integrate import fixed_quad
-import scipy
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_over_lin_canon import (
+    quad_over_lin_canon,)
 
 COMMON_CONES = {
     ExpConeQuad: {quad_over_lin}
@@ -46,7 +43,7 @@ COMMON_CONES = {
 #     V, D = np.linalg.eig(T)
 #     x = np.diag(D)
 #     x, i = np.sort(x), np.argsort(x)
-    # w = 2*np.array([V[k] for k in i])**2
+#     w = 2*np.array([V[k] for k in i])**2
 
 
 def gauss_legendre(n) -> Tuple[np.array, np.array]:
@@ -57,9 +54,10 @@ def gauss_legendre(n) -> Tuple[np.array, np.array]:
     beta = 0.5/np.sqrt(np.ones(n)-(2*np.arange(1, n+1, dtype=float))**(-2))
     T = np.diag(beta, 1) + np.diag(beta, -1)
     D, V = np.linalg.eigh(T)
-    print("shape", V.shape)
+    # print("shape", V.shape)
     s = np.diag(V)
-    s, i = np.sort(s), np.argsort(s)
+    # s, i = np.sort(s), np.argsort(s)
+    s = np.sort(s)   # Riley Q: why aren't we using "i"?
     # w = 2*D[0,i]**2
     w = 2*D**2
     # translate and scale to [0, 1]
@@ -86,7 +84,7 @@ def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constrai
     used in dual variable recovery and con_list consists of extra
     Constraint objects as needed.
     """
-    k, m = int(con.k.value), int(con.m.value)
+    k, m = con.k, con.m
     x, y = con.x, con.y
     Z = Variable(shape=(k+1,))
     w, t = gauss_legendre(m-1)
@@ -104,7 +102,7 @@ def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constrai
         constrs.append(NonPos(epi-Z[i]))
 
     for i in range(m):
-        print("see here:", t[i])
+        # print("see here:", t[i])
         off_diag = -(t[i]**0.5) * T[i]
         # The following matrix needs to be PSD.
         #     [ Z[k] - x - T[i] , off_diag      ]
