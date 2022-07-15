@@ -1325,21 +1325,52 @@ class TestAtoms(BaseTest):
     def test_tr_inv(self) -> None:
         """Test tr_inv atom. """
         T = 5
-        # Define and solve the CVXPY problem.
-        # Create a symmetric matrix variable.0
-        # X should be a PSD
+        # Solves the following SDP problem:
+        #           minimize    trace(inv(X))
+        #               s.t.    X is PSD
+        #                       trace(X)==1
+
+        # Create a symmetric matrix variable.
         X = cp.Variable((T, T), symmetric=True)
-        # The operator >> denotes matrix inequality.
+
+        # Define and solve the CVXPY problem.
+        # X should be a PSD
         constraints = [X >> 0]
         constraints += [
             cp.trace(X) == 1
         ]
         prob = cp.Problem(cp.Minimize(cp.tr_inv(X)), constraints)
         prob.solve(verbose=True)
-        # Print result.
-        print("The optimal value is", prob.value)
-        print("A solution X is")
-        print(X.value)
+        # Check result.
+        self.assertAlmostEqual(prob.value, T**2) # the best value is T^2
+        bestX=X.value;
+        for i in range(T):
+            for j in range(T):
+                if i==j:
+                    self.assertAlmostEqual(bestX[i][j], 1.0/T) # Diagonal elements are 1/T
+                else:
+                    self.assertAlmostEqual(bestX[i][j], 0.0) # Others are 0
+
+        # Second SDP problem, given a row full-rank matrix M:
+        #           minimize    trace(inv(M * X * M.T))
+        #               s.t.    X is PSD
+        #                       -1 <= X[i][j] <= 1 for all i,j
+        constraints = [X >> 0]
+        n = 4 # n should not be greater than T, because the input should be positive definite.
+        M = np.random.randn(n, T)
+        constraints += [
+            X >= -1
+        ]
+        constraints += [
+            X <= 1
+        ]
+        prob = cp.Problem(cp.Minimize(cp.tr_inv(M @ X @ M.T)), constraints)
+        MM = M @ M.T
+        from numpy import linalg as LA
+        naiveRes = np.sum(LA.eigvalsh(MM) ** -1)
+        prob.solve(verbose=True)
+        self.assertTrue(prob.value<naiveRes) # The optimized result should be smaller than the naive result, where X of the naive result is I.
+
 
 class TestDotsort(BaseTest):
     """ Unit tests for the dotsort atom. """
