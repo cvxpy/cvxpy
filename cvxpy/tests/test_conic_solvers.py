@@ -1703,6 +1703,26 @@ class TestSCIPY(unittest.TestCase):
     def test_scipy_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
 
+    def test_scipy_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='SCIPY')
+
+    def test_scipy_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='SCIPY')
+
+    def test_scipy_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='SCIPY')
+
+    def test_scipy_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver='SCIPY')
+
+    def test_scipy_mi_lp_4(self) -> None:
+        StandardTestLPs.test_mi_lp_4(solver='SCIPY')
+
+    # TODO: Remove the below "skip" once SciPy HiGHS is updated.
+    @pytest.mark.skip(reason="Known bug in SCIPY")
+    def test_scipy_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='SCIPY')
+
 
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
 class TestCOPT(unittest.TestCase):
