@@ -429,6 +429,14 @@ class TestDqcp(base_test.BaseTest):
         cp.sign(variable).value
         self.assertItemsAlmostEqual(value, variable.value)
 
+        # sign is only QCP for univariate input.
+        # See issue #1828
+        x = cp.Variable(2)
+        obj = cp.sum_squares(np.ones(2) - x)
+        constr = [cp.sum(cp.sign(x)) <= 1]
+        prob = cp.Problem(cp.Minimize(obj), constr)
+        assert not prob.is_dqcp()
+
     def test_dist_ratio(self) -> None:
         x = cp.Variable(2)
         a = np.ones(2)
