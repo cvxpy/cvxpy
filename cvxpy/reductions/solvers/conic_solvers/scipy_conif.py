@@ -120,11 +120,35 @@ class SCIPY(ConicSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from scipy import optimize as opt
 
+        # Check if the problem is a MIP and for SciPy version support.
+        problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
+        scipy_supports_mip = not (Version(scipy.__version__) < Version('1.9.0'))
+
+        if problem_is_a_mip and not scipy_supports_mip:
+            raise ValueError("Solving MIPs requires SciPy version >= 1.9")
+
         # Set default method which can be overriden by user inputs
         if (Version(scipy.__version__) < Version('1.6.1')):
             meth = "interior-point"
         else:
             meth = "highs"
+
+        # Track variable integrality options. An entry of zero implies that
+        # the variable is continuous. An entry of one implies that the
+        # variable is either binary or an integer with bounds.
+        if problem_is_a_mip:
+            integrality = [0] * data[s.C].shape[0]
+
+            for index in data[s.BOOL_IDX] + data[s.INT_IDX]:
+                integrality[index] = 1
+
+            bounds = [(None, None)] * data[s.C].shape[0]
+
+            for index in data[s.BOOL_IDX]:
+                bounds[index] = (0, 1)
+        else:
+            integrality = None
+            bounds = (None, None)
 
         # Extract solver options which are not part of the options dictionary
         if solver_opts:
@@ -133,7 +157,7 @@ class SCIPY(ConicSolver):
             # a dictionary called 'scipy_options'.
             if "scipy_options" not in solver_opts:
                 raise ValueError("All parameters for the SCIPY solver should "
-                                 "be incased within a dictionary called "
+                                 "be encased within a dictionary called "
                                  "scipy_options e.g. \n"
                                  "prob.solve(solver='SCIPY', verbose=True,"
                                  " scipy_options={'method':'highs-ds', 'maxiter':10000})")
@@ -164,46 +188,50 @@ class SCIPY(ConicSolver):
                                  "scipy_options. Please specify bounds "
                                  "through CVXPY.")
 
+            # Check that the 'integrality' parameter isn't specified.
+            if "integrality" in solver_opts['scipy_options']:
+                raise ValueError("Please do not specify variable integrality through "
+                                 "scipy_options. Please specify variable types "
+                                 "through CVXPY.")
+
+            # Check for SciPy method support (i.e., only 'highs' supports MIP models).
+            method_supports_mip = scipy_supports_mip & (meth == 'highs')
+
+            if problem_is_a_mip and not method_supports_mip:
+                raise ValueError("Only the 'highs' SciPy method can solve MIP models.")
+
             # Not supported by HiGHS solvers:
             # callback = solver_opts['scipy_options'].pop("callback", None)
             # x0 = solver_opts['scipy_options'].pop("x0", None)
 
-            # Track variable type (integrality) and bounds.
-            integrality, bounds = [], []
-
-            for i in range(data[s.C].shape[0]):
-                if i in data[s.BOOL_IDX]:
-                    # Set the variable type to "integer," within binary bounds.
-                    integrality.append(1)
-                    bounds.append((0, 1))
-                elif i in data[s.INT_IDX]:
-                    # Set the variable type to "integer."
-                    integrality.append(1)
-                    bounds.append((None, None))
-                else:
-                    # Set the variable type to continuous.
-                    integrality.append(0)
-                    bounds.append((None, None))
-
-            # Run the optimisation using scipy.optimize.linprog
-            solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                   A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                   bounds=bounds, options=solver_opts['scipy_options'],
-                                   integrality=integrality)
+            if problem_is_a_mip:
+                solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
+                                       A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                       options=solver_opts['scipy_options'],
+                                       integrality=integrality, bounds=bounds)
+            else:
+                solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
+                                       A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                       options=solver_opts['scipy_options'],
+                                       bounds=bounds)
         else:
 
             warnings.warn("It is best to specify the 'method' parameter "
                           "within scipy_options. The main advantage "
-                          "of this solver, is its ability to use the "
+                          "of this solver is its ability to use the "
                           "HiGHS LP solvers via scipy.optimize.linprog() "
                           "which require a SciPy version >= 1.6.1 ."
                           "\n\nThe default method '{}' will be"
                           " used in this case.\n".format(meth))
 
-            # Run the optimisation using scipy.optimize.linprog
-            solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                   A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                   bounds=(None, None))
+            if problem_is_a_mip:
+                solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
+                                       A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                       integrality=integrality, bounds=bounds)
+            else:
+                solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
+                                       A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                       bounds=bounds)
 
         if verbose is True:
             print("Solver terminated with message: " + solution.message)
@@ -224,6 +252,7 @@ class SCIPY(ConicSolver):
 
             # SciPy linprog only returns duals for version >= 1.7.0
             # and method is one of 'highs', 'highs-ds' or 'highs-ipm'
+            # MIP problems don't have duals and thus are not updated.
             if 'ineqlin' in solution and not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
                     -solution['eqlin']['marginals'],

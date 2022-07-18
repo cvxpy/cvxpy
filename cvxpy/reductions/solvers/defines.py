@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import numpy as np
+import scipy  # For version checks
 
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.cbc_conif import CBC as CBC_con
@@ -51,6 +52,7 @@ from cvxpy.reductions.solvers.qp_solvers.gurobi_qpif import GUROBI as GUROBI_qp
 # QP interfaces
 from cvxpy.reductions.solvers.qp_solvers.osqp_qpif import OSQP as OSQP_qp
 from cvxpy.reductions.solvers.qp_solvers.xpress_qpif import XPRESS as XPRESS_qp
+from cvxpy.utilities.versioning import Version
 
 solver_conic_intf = [DIFFCP_con(), ECOS_con(),
                      CVXOPT_con(), GLPK_con(), COPT_con(),
@@ -82,6 +84,10 @@ MI_SOLVERS = [s.GLPK_MI, s.MOSEK, s.GUROBI, s.CPLEX,
               s.XPRESS, s.CBC, s.SCIP, s.COPT, s.ECOS_BB]
 MI_SOCP_SOLVERS = [s.MOSEK, s.GUROBI, s.CPLEX, s.XPRESS,
                    s.SCIP, s.ECOS_BB]
+
+# Acknowledge MI solver support for SciPy >= 1.9.
+if not (Version(scipy.__version__) < Version('1.9.0')):
+    MI_SOLVERS.append(s.SCIPY)
 
 
 def installed_solvers():
