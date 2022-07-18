@@ -56,12 +56,12 @@ class sign(Atom):
     def is_atom_quasiconvex(self) -> bool:
         """Is the atom quasiconvex?
         """
-        return True
+        return self.args[0].is_scalar()
 
     def is_atom_quasiconcave(self) -> bool:
         """Is the atom quasiconvex?
         """
-        return True
+        return self.args[0].is_scalar()
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
