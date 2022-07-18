@@ -38,7 +38,7 @@ class tr_inv(Atom):
         For positive definite matrix A, this is the trace of inverse of A.
         """
         # if values[0] isn't Hermitian then return np.inf
-        if (LA.norm(values[0] - values[0].T)>=1e-8):
+        if (LA.norm(values[0] - values[0].T.conj())>=1e-8):
             return np.inf
         # take symmetric part of the input to enhance numerical stability
         symm = (values[0] + values[0].T)/2
@@ -47,7 +47,7 @@ class tr_inv(Atom):
             return np.inf;
         return np.sum(eigVal**-1)
 
-    # Any argument shape is valid.
+    # The shape of argument must be square.
     def validate_arguments(self) -> None:
         X = self.args[0]
         if len(X.shape) == 1 or X.shape[0] != X.shape[1]:

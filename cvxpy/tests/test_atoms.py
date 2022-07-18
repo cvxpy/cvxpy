@@ -1343,14 +1343,9 @@ class TestAtoms(BaseTest):
         prob.solve(verbose=True)
         # Check result.
         self.assertAlmostEqual(prob.value, T**2) # the best value is T^2
-        bestX=X.value;
-        for i in range(T):
-            for j in range(T):
-                if i==j:
-                    self.assertAlmostEqual(bestX[i][j], 1.0/T) # Diagonal elements are 1/T
-                else:
-                    self.assertAlmostEqual(bestX[i][j], 0.0) # Others are 0
-
+        X_actual = X.value
+        X_expect = np.eye(T) / T
+        self.assertItemsAlmostEqual(X_actual, X_expect, places=4)
         # Second SDP problem, given a row full-rank matrix M:
         #           minimize    trace(inv(M * X * M.T))
         #               s.t.    X is PSD
