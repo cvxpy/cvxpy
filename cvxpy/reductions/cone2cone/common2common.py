@@ -72,7 +72,7 @@ def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constrai
     Z = Variable(shape=(k+1,))
     w, t = gauss_legendre(m)
     T = Variable(m)
-    lead_con = Zero(w @ T + T/2**k)
+    lead_con = Zero(w @ T + con.z/2**k)
     constrs = [Zero(Z[0] - y)]
 
     for i in range(k):

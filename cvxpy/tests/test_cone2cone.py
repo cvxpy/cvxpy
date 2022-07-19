@@ -492,10 +492,15 @@ class TestExpConeQuad(BaseTest):
         min   3 * x[0] + 2 * x[1] + x[2]
         s.t.  0.1 <= x[0] + x[1] + x[2] <= 1
               x >= 0
-              x[0] >= x[1] * exp(x[2] / x[1])
+              and ...
+                x[0] >= x[1] * exp(x[2] / x[1])
+              equivalently ...
+                x[0] / x[1] >= exp(x[2] / x[1])
+                log(x[0] / x[1]) >= x[2] / x[1]
+                x[1] log(x[1] / x[0]) <= -x[2]
         """
         x = cp.Variable(shape=(3, 1))
-        cone_con = cp.constraints.ExpConeQuad(x[2], x[1], x[0], 5, 5)
+        cone_con = ExpCone(x[2], x[1], x[0]).as_expconequad(5, 5)
         constraints = [cp.sum(x) <= 1.0,
                        cp.sum(x) >= 0.1,
                        x >= 0,
