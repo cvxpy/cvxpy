@@ -32,38 +32,21 @@ COMMON_CONES = {
     ExpConeQuad: {quad_over_lin}
 }
 
-# def gauss_legendre(n) -> Tuple[np.array, np.array]:
-#     """
-#     Helper function for returning the weights and nodes for an
-#     n+1-point Gauss-Legendre quadrature
-#     """
-#     I = fixed_quad(scipy.log, a=0, b=1, n=n)
-#     beta = 0.5/np.sqrt(np.ones(n)-(2*np.arange(1, n+1, dtype=float))**(-2))
-#     T = np.diag(beta, 1) + np.diag(beta, -1)
-#     V, D = np.linalg.eig(T)
-#     x = np.diag(D)
-#     x, i = np.sort(x), np.argsort(x)
-#     w = 2*np.array([V[k] for k in i])**2
 
-
-def gauss_legendre(n) -> Tuple[np.array, np.array]:
+def gauss_legendre(n):
     """
     Helper function for returning the weights and nodes for an
     n-point Gauss-Legendre quadrature on [0, 1]
     """
-    beta = 0.5/np.sqrt(np.ones(n)-(2*np.arange(1, n+1, dtype=float))**(-2))
+    beta = 0.5/np.sqrt(np.ones(n-1)-(2*np.arange(1, n, dtype=float))**(-2))
     T = np.diag(beta, 1) + np.diag(beta, -1)
     D, V = np.linalg.eigh(T)
-    # print("shape", V.shape)
-    s = np.diag(V)
-    # s, i = np.sort(s), np.argsort(s)
-    s = np.sort(s)   # Riley Q: why aren't we using "i"?
-    # w = 2*D[0,i]**2
-    w = 2*D**2
-    # translate and scale to [0, 1]
-    s = (s + 1)/2
+    x = D
+    x, i = np.sort(x), np.argsort(x)
+    w = 2 * (np.array([V[0][k] for k in i]))**2
+    x = (x + 1)/2
     w = w/2
-    return w, s
+    return w, x
 
 
 def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
@@ -87,9 +70,9 @@ def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constrai
     k, m = con.k, con.m
     x, y = con.x, con.y
     Z = Variable(shape=(k+1,))
-    w, t = gauss_legendre(m-1)
+    w, t = gauss_legendre(m)
     T = Variable(m)
-    lead_con = Zero(w @ T + con.z / 2**k)
+    lead_con = Zero(w @ T + T/2**k)
     constrs = [Zero(Z[0] - y)]
 
     for i in range(k):
@@ -102,7 +85,6 @@ def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constrai
         constrs.append(NonPos(epi-Z[i]))
 
     for i in range(m):
-        # print("see here:", t[i])
         off_diag = -(t[i]**0.5) * T[i]
         # The following matrix needs to be PSD.
         #     [ Z[k] - x - T[i] , off_diag      ]
