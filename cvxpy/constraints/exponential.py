@@ -144,7 +144,29 @@ class ExpCone(Constraint):
 
 
 class ExpConeQuad(Constraint):
-    """
+    """An approximate construction of the scalar relative entropy cone
+
+    Definition:
+    .. math::
+        K_{re}=\text{cl}\\{(x,y,\\tau)\\in\\mathbb{R}_{++}\\times
+                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq\\tau\\}
+
+    Since the above definition is very similar to the ExpCone, we provide a conversion method
+
+    More details on the approximation can be found in Theorem-3 on page-10 in the paper:
+    Semidefinite Approximations of the Matrix Logarithm.
+
+    Parameters
+    ----------
+    x : Variable
+        x in the exponential cone.
+    y : Variable
+        y in the exponential cone.
+    $\\tau$ : Variable
+        $\\tau$ in the exponential cone.
+    m: Parameter directly related to the number of generated nodes for the quadrature
+    approximation used in the algorithm
+    k: Another parameter controlling the approximation
     """
 
     def __init__(self, x, y, z, m, k, constr_id=None) -> None:
