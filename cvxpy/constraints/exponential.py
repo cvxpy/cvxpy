@@ -144,6 +144,8 @@ class ExpCone(Constraint):
 
 
 class ExpConeQuad(Constraint):
+    """
+    """
 
     def __init__(self, x, y, z, m, k, constr_id=None) -> None:
         Expression = cvxtypes.expression()

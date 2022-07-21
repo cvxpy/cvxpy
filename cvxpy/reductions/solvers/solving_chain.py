@@ -10,10 +10,10 @@ from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
-                                                      Exotic2Common,)
 from cvxpy.reductions.cone2cone.common2common import (COMMON_CONES,
                                                       Common2Common,)
+from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
+                                                      Exotic2Common,)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
@@ -230,7 +230,6 @@ def construct_solving_chain(problem, candidates,
         constr_types.remove(co)
 
     for co in com_cos:
-        #TODO: Think about how to structure this better
         sim_cos = COMMON_CONES[co]  # get the set of required simple cones
         constr_types.update(sim_cos)
         constr_types.remove(co)
