@@ -1124,9 +1124,12 @@ class TestAtoms(BaseTest):
         x2 = cp.Variable((1, 5), value=x1)
 
         expr = cp.diff(x1, axis=1)
-        self.assertItemsAlmostEqual(expr.value, np.ones(5))
+        self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
         expr = cp.diff(x2, axis=1)
-        self.assertItemsAlmostEqual(expr.value, np.ones(5))
+        self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
+
+        with pytest.raises(ValueError, match="< k elements"):
+            cp.diff(x1, axis=0).value
 
     def test_log_normcdf(self) -> None:
         self.assertEqual(cp.log_normcdf(self.x).sign, s.NONPOS)
