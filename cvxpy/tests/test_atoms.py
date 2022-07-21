@@ -1118,6 +1118,16 @@ class TestAtoms(BaseTest):
         self.assertEqual(cp.diff(A, axis=1).shape,
                          np.diff(B, axis=1).shape)
 
+        # Issue #1834
+
+        x1 = np.array([[1, 2, 3, 4, 5]])
+        x2 = cp.Variable((1, 5), value=x1)
+
+        expr = cp.diff(x1, axis=1)
+        self.assertItemsAlmostEqual(expr.value, np.ones(5))
+        expr = cp.diff(x2, axis=1)
+        self.assertItemsAlmostEqual(expr.value, np.ones(5))
+
     def test_log_normcdf(self) -> None:
         self.assertEqual(cp.log_normcdf(self.x).sign, s.NONPOS)
         self.assertEqual(cp.log_normcdf(self.x).curvature, s.CONCAVE)
