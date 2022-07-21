@@ -173,7 +173,7 @@ class SCIPY(ConicSolver):
                               " used in this case.\n".format(meth))
 
             else:
-                meth = solver_opts['scipy_options'].pop("method")
+                meth = solver_opts["scipy_options"].pop("method")
 
                 # Check to see if scipy version larger than 1.6.1 is installed
                 # if method chosen is one of the highs methods.
@@ -214,6 +214,8 @@ class SCIPY(ConicSolver):
                                        A_eq=data[s.A], b_eq=data[s.B], method=meth,
                                        options=solver_opts['scipy_options'],
                                        bounds=bounds)
+
+            solver_opts["scipy_options"]["method"] = meth
         else:
 
             warnings.warn("It is best to specify the 'method' parameter "
