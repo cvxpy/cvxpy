@@ -1760,6 +1760,15 @@ class TestCOPT(unittest.TestCase):
         with pytest.raises(cp.error.SolverError, match="do not support"):
             StandardTestSOCPs.test_mi_socp_1(solver='COPT')
 
+    def test_copt_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='COPT')
+
+    def test_copt_sdp_1max(self) -> None:
+        StandardTestSDPs.test_sdp_1max(solver='COPT')
+
+    def test_copt_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver='COPT')
+
     def test_copt_params(self) -> None:
         n = 10
         m = 4
