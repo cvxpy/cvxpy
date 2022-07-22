@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+import os
 import time
 import warnings
 from collections import namedtuple
@@ -894,6 +894,7 @@ class Problem(u.Canonical):
                requires_grad: bool = False,
                enforce_dpp: bool = False,
                ignore_dpp: bool = False,
+               canon_backend: str = 'SCIPY',  # TODO change back
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -935,6 +936,9 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
+
+        os.environ['canon_backend'] = canon_backend
+
         if verbose:
             print(_HEADER)
 
