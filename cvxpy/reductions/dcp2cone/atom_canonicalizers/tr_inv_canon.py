@@ -14,9 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import numpy as np
+
 from cvxpy.atoms.affine.bmat import bmat
 from cvxpy.expressions.variable import Variable
-import numpy as np
+
 
 def tr_inv_canon(expr, args):
     """Reduces the atom to an affine expression and list of constraints.
@@ -47,17 +49,17 @@ def tr_inv_canon(expr, args):
     """
     A = args[0]
     n, _ = A.shape
-    su=None
-    constraints=[];
+    su = None
+    constraints = []
     for i in range(n):
-        ei = np.zeros((n,1))
-        ei[i]=1.0
-        ui = Variable((1,1))
+        ei = np.zeros((n, 1))
+        ei[i] = 1.0
+        ui = Variable((1, 1))
         R = bmat([[A, ei],
-                [ei.T, ui]])
+                  [ei.T, ui]])
         constraints += [R >> 0]
         if su is None:
-            su=ui;
+            su = ui
         else:
-            su+=ui;
+            su += ui
     return su, constraints

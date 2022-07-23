@@ -23,6 +23,7 @@ limitations under the License.
 #                       trace(X)==1
 
 import cvxpy as cp
+
 T = 5
 
 # Define and solve the CVXPY problem.

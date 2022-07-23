@@ -21,6 +21,7 @@ import pytest
 import scipy
 import scipy.sparse as sp
 import scipy.stats
+from numpy import linalg as LA
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -1382,7 +1383,6 @@ class TestAtoms(BaseTest):
         cp.Problem(cp.Minimize(0), [expr == A]).solve()
         self.assertItemsAlmostEqual(x.value, reshaped)
 
-
     def test_tr_inv(self) -> None:
         """Test tr_inv atom. """
         T = 5
@@ -1402,8 +1402,8 @@ class TestAtoms(BaseTest):
         ]
         prob = cp.Problem(cp.Minimize(cp.tr_inv(X)), constraints)
         prob.solve(verbose=True)
-        # Check result.
-        self.assertAlmostEqual(prob.value, T**2) # the best value is T^2
+        # Check result. The best value is T^2.
+        self.assertAlmostEqual(prob.value, T**2)
         X_actual = X.value
         X_expect = np.eye(T) / T
         self.assertItemsAlmostEqual(X_actual, X_expect, places=4)
@@ -1412,20 +1412,21 @@ class TestAtoms(BaseTest):
         #               s.t.    X is PSD
         #                       -1 <= X[i][j] <= 1 for all i,j
         constraints = [X >> 0]
-        n = 4 # n should not be greater than T, because the input should be positive definite.
+        # n should not be greater than T,
+        # because the input should be positive definite.
+        n = 4
         M = np.random.randn(n, T)
         constraints += [
-            X >= -1
-        ]
-        constraints += [
-            X <= 1
+            X >= -1,
+            X <= 1,
         ]
         prob = cp.Problem(cp.Minimize(cp.tr_inv(M @ X @ M.T)), constraints)
         MM = M @ M.T
-        from numpy import linalg as LA
         naiveRes = np.sum(LA.eigvalsh(MM) ** -1)
         prob.solve(verbose=True)
-        self.assertTrue(prob.value<naiveRes) # The optimized result should be smaller than the naive result, where X of the naive result is I.
+        # The optimized result should be smaller than the naive result,
+        # where X of the naive result is I.
+        self.assertTrue(prob.value < naiveRes)
 
 
 class TestDotsort(BaseTest):

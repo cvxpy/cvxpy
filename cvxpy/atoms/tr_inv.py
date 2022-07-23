@@ -24,6 +24,7 @@ import cvxpy.settings as s
 from cvxpy.atoms.atom import Atom
 from cvxpy.constraints.constraint import Constraint
 
+
 class tr_inv(Atom):
     """:math:`\\trace\\inv A, where A is positive definite`
 
@@ -38,13 +39,13 @@ class tr_inv(Atom):
         For positive definite matrix A, this is the trace of inverse of A.
         """
         # if values[0] isn't Hermitian then return np.inf
-        if (LA.norm(values[0] - values[0].T.conj())>=1e-8):
+        if (LA.norm(values[0] - values[0].T.conj()) >= 1e-8):
             return np.inf
         # take symmetric part of the input to enhance numerical stability
         symm = (values[0] + values[0].T)/2
-        eigVal=LA.eigvalsh(symm);
-        if min(eigVal)<=0:
-            return np.inf;
+        eigVal = LA.eigvalsh(symm)
+        if min(eigVal) <= 0:
+            return np.inf
         return np.sum(eigVal**-1)
 
     # The shape of argument must be square.
