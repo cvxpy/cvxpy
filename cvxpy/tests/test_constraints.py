@@ -209,6 +209,47 @@ class TestConstraints(BaseTest):
             SOC(Variable(1), Variable((1, 4)))
         self.assertEqual(str(cm.exception), error_str)
 
+        # Test residual.
+        # 1D
+        n = 5
+        x0 = np.arange(n)
+        t0 = 2
+        x = cp.Variable(n, value=x0)
+        t = cp.Variable(value=t0)
+        resid = SOC(t, x).residual
+        dist = cp.sum_squares(x - x0) + cp.square(t - t0)
+        prob = cp.Problem(cp.Minimize(dist), [SOC(t, x)])
+        prob.solve()
+        self.assertAlmostEqual(np.sqrt(dist.value), resid)
+
+        # 2D, axis = 0.
+        n = 5
+        k = 3
+        x0 = np.arange(n * k).reshape((n, k))
+        t0 = np.array([1, 2, 3])
+        x = cp.Variable((n, k), value=x0)
+        t = cp.Variable(k, value=t0)
+        resid = SOC(t, x, axis=0).residual
+        for i in range(k):
+            dist = cp.sum_squares(x[:, i] - x0[:, i]) + cp.sum_squares(t[i] - t0[i])
+            prob = cp.Problem(cp.Minimize(dist), [SOC(t[i], x[:, i])])
+            prob.solve()
+            self.assertAlmostEqual(np.sqrt(dist.value), resid[i])
+
+        # 2D, axis = 1.
+        n = 5
+        k = 3
+        x0 = np.arange(n * k).reshape((k, n))
+        t0 = np.array([1, 2, 3])
+        x = cp.Variable((k, n), value=x0)
+        t = cp.Variable(k, value=t0)
+        resid = SOC(t, x, axis=1).residual
+        for i in range(k):
+            dist = cp.sum_squares(x[i, :] - x0[i, :]) + cp.sum_squares(t[i] - t0[i])
+            prob = cp.Problem(cp.Minimize(dist), [SOC(t[i], x[i, :])])
+            prob.solve()
+            self.assertAlmostEqual(np.sqrt(dist.value), resid[i])
+
     def test_pow3d_constraint(self) -> None:
         n = 3
         np.random.seed(0)

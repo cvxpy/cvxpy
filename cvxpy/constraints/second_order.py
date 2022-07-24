@@ -57,25 +57,31 @@ class SOC(Constraint):
 
     @property
     def residual(self):
-        t = self.args[0].value
+        t = self.args[0].value[:, None]
         X = self.args[1].value
         if t is None or X is None:
             return None
+        # Promote 1D to 2D.
+        if X.ndim == 1:
+            X = X[:, None]
+            promoted = True
+        else:
+            promoted = False
+        # Reduce axis = 0 to axis = 1.
         if self.axis == 0:
             X = X.T
-        norms = np.linalg.norm(X, ord=2, axis=1)
-        zero_indices = np.where(X <= -t)[0]
-        averaged_indices = np.where(X >= np.abs(t))[0]
-        X_proj = np.array(X)
-        t_proj = np.array(t)
-        X_proj[zero_indices] = 0
-        t_proj[zero_indices] = 0
+        norms = np.linalg.norm(X, ord=2, axis=1)[:, None]
         avg_coeff = 0.5 * (1 + t/norms)
-        X_proj[averaged_indices] = avg_coeff * X[averaged_indices]
-        t_proj[averaged_indices] = avg_coeff * t[averaged_indices]
-        return np.linalg.norm(np.concatenate([X, t], axis=1) -
-                              np.concatenate([X_proj, t_proj], axis=1),
-                              ord=2, axis=1)
+        X_proj = avg_coeff * X
+        t_proj = avg_coeff * norms
+        resid = np.linalg.norm(np.concatenate([X, t], axis=1) -
+                               np.concatenate([X_proj, t_proj], axis=1),
+                               ord=2, axis=1)
+        # Demote back to 1D.
+        if promoted:
+            return resid[0]
+        else:
+            return resid
 
     def get_data(self):
         """Returns info needed to reconstruct the object besides the args.
