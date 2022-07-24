@@ -217,6 +217,7 @@ class TestConstraints(BaseTest):
         x = cp.Variable(n, value=x0)
         t = cp.Variable(value=t0)
         resid = SOC(t, x).residual
+        assert resid.ndim == 0
         dist = cp.sum_squares(x - x0) + cp.square(t - t0)
         prob = cp.Problem(cp.Minimize(dist), [SOC(t, x)])
         prob.solve()
@@ -230,6 +231,7 @@ class TestConstraints(BaseTest):
         x = cp.Variable((n, k), value=x0)
         t = cp.Variable(k, value=t0)
         resid = SOC(t, x, axis=0).residual
+        assert resid.shape == (k,)
         for i in range(k):
             dist = cp.sum_squares(x[:, i] - x0[:, i]) + cp.sum_squares(t[i] - t0[i])
             prob = cp.Problem(cp.Minimize(dist), [SOC(t[i], x[:, i])])
@@ -244,6 +246,7 @@ class TestConstraints(BaseTest):
         x = cp.Variable((k, n), value=x0)
         t = cp.Variable(k, value=t0)
         resid = SOC(t, x, axis=1).residual
+        assert resid.shape == (k,)
         for i in range(k):
             dist = cp.sum_squares(x[i, :] - x0[i, :]) + cp.sum_squares(t[i] - t0[i])
             prob = cp.Problem(cp.Minimize(dist), [SOC(t[i], x[i, :])])
