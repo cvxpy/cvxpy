@@ -22,7 +22,6 @@ import numpy as np
 
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
-# from cvxpy.expressions.constants.constant import Constant
 from cvxpy.utilities import scopes
 
 

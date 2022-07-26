@@ -1,5 +1,5 @@
 """
-Copyright 2021 the CVXPY developers
+Copyright 2022 the CVXPY developers
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
+import cvxpy as cp
 
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.constraint import Constraint
@@ -48,6 +49,31 @@ def gauss_legendre(n):
     w = w/2
     return w, x
 
+def rotated_quad_cone(X : cp.Expression, y: cp.Expression, z: cp.Expression):
+    """
+    For each i, enforce a constraint that
+        (X[i, :], y[i], z[i])
+    belongs to the rotated quadratic cone
+        { (x, y, z) : || x ||^2 <= y z, 0 <= (y, z) }
+    This implementation doesn't enforce (x, y) >= 0! That should be imposed by the calling function.
+    """
+    m = y.size
+    assert z.size == m
+    assert X.shape[0] == m
+    if len(X.shape) < 2:
+        X = cp.reshape(X, (m, 1))
+    #####################################
+    # Comments from quad_over_lin_canon:
+    #   quad_over_lin := sum_{i} x^2_{i} / y
+    #   t = Variable(1,) is the epigraph variable.
+    #   Becomes a constraint
+    #   SOC(t=y + t, X=[y - t, 2*x])
+    ####################################
+    soc_X_col0 = cp.reshape(y - z, (m, 1))
+    soc_X = cp.hstack((soc_X_col0, 2*X))
+    soc_t = y + z
+    con = cp.SOC(t=soc_t, X=soc_X, axis=1)
+    return con
 
 def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
     """
@@ -79,9 +105,17 @@ def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constrai
         # The following matrix needs to be PSD.
         #     [Z[i]  , Z[i+1]]
         #     [Z[i+1], x     ]
-        expr = quad_over_lin(Z[i+1], x)
-        epi, cons = quad_over_lin_canon(expr, expr.args)
-        constrs.extend(cons)
+        # epi, cons = rotated_quad_cone(epi, x/2, Z[i+1].flatten())
+        epi = Z[i] * np.ones((x.shape[0],))
+        stackedZ = Z[i+1] * np.ones((x.shape[0],))
+        # tmp = cp.reshape(Z[i+1], (1,1))
+        # stackedZ = tmp
+        # for idx in range(x.shape[0]-1):
+        #     stackedZ = cp.vstack((stackedZ, tmp))
+        cons = rotated_quad_cone(stackedZ, epi, x)
+        # expr = quad_over_lin(Z[i+1], x)
+        # epi, cons = quad_over_lin_canon(expr, expr.args)
+        constrs.append(cons)
         constrs.append(NonPos(epi-Z[i]))
 
     for i in range(m):
@@ -89,9 +123,16 @@ def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constrai
         # The following matrix needs to be PSD.
         #     [ Z[k] - x - T[i] , off_diag      ]
         #     [ off_diag        , x - t[i]*T[i] ]
-        expr = quad_over_lin(off_diag, x - t[i]*T[i])
-        epi, cons = quad_over_lin_canon(expr, expr.args)
-        constrs.extend(cons)
+        epi = (Z[k]-x-T[i]) #* np.ones((x.shape[0],))
+        stacked_off_diag = off_diag * np.ones((x.shape[0],))
+        # tmp = cp.reshape(off_diag, (1,1))
+        # stacked_off_diag = tmp
+        # for idx in range(x.shape[0]-1):
+        #     stacked_off_diag = cp.vstack((stacked_off_diag, tmp))
+        cons = rotated_quad_cone(stacked_off_diag, epi, x-t[i]*T[i])
+        # expr = quad_over_lin(off_diag, x - t[i]*T[i])
+        # epi, cons = quad_over_lin_canon(expr, expr.args)
+        constrs.append(cons)
         constrs.append(NonPos(epi - (Z[k] - x - T[i])))
 
     return lead_con, constrs
