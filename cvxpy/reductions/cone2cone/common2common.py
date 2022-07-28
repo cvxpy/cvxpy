@@ -17,8 +17,8 @@ limitations under the License.
 from typing import List, Tuple
 
 import numpy as np
-import cvxpy as cp
 
+import cvxpy as cp
 from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import ExpConeQuad
