@@ -35,6 +35,14 @@ huber
 
 .. autoclass:: cvxpy.huber
     :show-inheritance:
+    
+.. _huber_pers:
+
+huber_pers
+---------------------------------------
+
+.. autoclass:: cvxpy.huber_pers
+    :show-inheritance:
 
 .. _inv-pos:
 

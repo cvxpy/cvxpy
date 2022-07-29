@@ -529,6 +529,17 @@ scalars, which are promoted.
 
        |decr| for :math:`x \leq 0`
 
+   * - :ref:`huber_pers(x, M=1, t=1) <huber_pers>`
+
+       :math:`M \geq 0`
+       :math:`t > 0`
+     - :math:`\begin{cases}t|x/t|^2 &|x/t| \leq M  \\2tM|x/t| - M^2t&|x/t| >M\end{cases}`
+     - :math:`x \in \mathbf{R}`
+     - |positive| positive
+     - |convex| convex
+     - |incr| for :math:`x \geq 0`
+
+       |decr| for :math:`x \leq 0`
 
    * - :ref:`imag(x) <imag-atom>`
 

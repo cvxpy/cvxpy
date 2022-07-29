@@ -19,6 +19,7 @@ from cvxpy.atoms.affine.index import special_index
 from cvxpy.reductions.dcp2cone.atom_canonicalizers import (
     CANON_METHODS as CONE_METHODS,)
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers.huber_canon import *
+from cvxpy.reductions.qp2quad_form.atom_canonicalizers.huber_pers_canon import *
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers.power_canon import *
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers.quad_form_canon import *
 from cvxpy.reductions.qp2quad_form.atom_canonicalizers.quad_over_lin_canon import *
@@ -45,4 +46,5 @@ CANON_METHODS[special_index] = CONE_METHODS[special_index]
 CANON_METHODS[quad_over_lin] = quad_over_lin_canon
 CANON_METHODS[power] = power_canon
 CANON_METHODS[huber] = huber_canon
+CANON_METHODS[huber_pers] = huber_pers_canon
 CANON_METHODS[QuadForm] = quad_form_canon

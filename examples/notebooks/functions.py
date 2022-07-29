@@ -79,8 +79,23 @@ ATOM_DEFINITIONS = [
                  "The parameter must be a positive number. "
                  "The default value for the parameter is 1."),
    "meaning":
-        ("$ \\begin{cases} 2|x|-1 & |x| \ge 1 \\\\ "
-         " |x|^{2} & |x| < 1 \end{cases} \\\\ $"),
+        ("$ \\begin{cases} 2|x|- M^2 & |x| \ge M \\\\ "
+         " |x|^{2} & |x| < M \end{cases} \\\\ $"),
+   "domain": "$ x \in \mathbf{R} $",
+   "curvature": "Convex",
+   "sign": "Positive",
+   "monotonicity": ["Increasing for $ x \geq 0 $",
+                    "Decreasing for $ x \leq 0 $"],
+   "cvx_equivalent": "huber, huber_pos, huber_circ",
+  },
+  {"name":"huber_pers",
+   "usage": "huber_pers(x)",
+   "arguments": ("Takes a single expression followed by two parameter as arguments M and t. "
+                 "The parameter t must be a positive number and M must be a nonnegative number. "
+                 "The default value for the parameters is 1."),
+   "meaning":
+        ("$ \\begin{cases} 2Mt|x/t|-M^2 & |x| \ge M \\\\ "
+         " |x/t|^{2} & |x| < M \end{cases} \\\\ $"),
    "domain": "$ x \in \mathbf{R} $",
    "curvature": "Convex",
    "sign": "Positive",

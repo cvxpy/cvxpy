@@ -549,6 +549,47 @@ class TestGrad(BaseTest):
         val = np.zeros((4, 4)) + np.diag([2, 4, 6, 6])
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
 
+    def test_huber_pers(self) -> None:
+        """Test domain for huber perspective transform.
+        """
+        expr = cp.huber_pers(self.a)
+        self.a.value = 2
+        self.assertAlmostEqual(expr.grad[self.a], 2)
+
+        expr = cp.huber_pers(self.a, M=2)
+        self.a.value = 3
+        self.assertAlmostEqual(expr.grad[self.a], 4)
+
+        self.a.value = -1
+        self.assertAlmostEqual(expr.grad[self.a], -2)
+
+        expr = cp.huber_pers(self.a, M=2, t=2)
+        self.a.value = 2.5
+        self.assertAlmostEqual(expr.grad[self.a], 2.5)
+
+        self.a.value = -3
+        self.assertAlmostEqual(expr.grad[self.a], -3)
+
+        expr = cp.huber_pers(self.x)
+        self.x.value = [3, 4]
+        val = np.zeros((2, 2)) + np.diag([2, 2])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+
+        expr = cp.huber_pers(self.x)
+        self.x.value = [-1e-9, 4]
+        val = np.zeros((2, 2)) + np.diag([0, 2])
+        self.assertItemsAlmostEqual(expr.grad[self.x].toarray(), val)
+
+        expr = cp.huber_pers(self.A, M=3)
+        self.A.value = [[1, 2], [3, 4]]
+        val = np.zeros((4, 4)) + np.diag([2, 4, 6, 6])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
+
+        expr = cp.huber_pers(self.A, M=3, t=2)
+        self.A.value = [[1, 2], [3, 4]]
+        val = np.zeros((4, 4)) + np.diag([1, 2, 3, 4])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), val)
+
     def test_kl_div(self) -> None:
         """Test domain for kl_div.
         """

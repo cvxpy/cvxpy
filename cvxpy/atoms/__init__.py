@@ -45,6 +45,7 @@ from cvxpy.atoms.elementwise.ceil import ceil, floor
 from cvxpy.atoms.elementwise.entr import entr
 from cvxpy.atoms.elementwise.exp import exp
 from cvxpy.atoms.elementwise.huber import huber
+from cvxpy.atoms.elementwise.huber_pers import huber_pers
 from cvxpy.atoms.elementwise.inv_pos import inv_pos
 from cvxpy.atoms.elementwise.kl_div import kl_div
 from cvxpy.atoms.elementwise.log import log

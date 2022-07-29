@@ -533,7 +533,7 @@ class TestComplex(BaseTest):
 
         x = Variable(2, complex=True)
         for atom in [cp.geo_mean, cp.log_sum_exp, cp.max,
-                     cp.entr, cp.exp, cp.huber,
+                     cp.entr, cp.exp, cp.huber, cp.huber_pers,
                      cp.log, cp.log1p, cp.logistic]:
             name = atom.__name__
             with self.assertRaises(Exception) as cm:
