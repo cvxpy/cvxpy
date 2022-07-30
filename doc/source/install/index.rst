@@ -13,7 +13,7 @@ pip
 
 (Windows only) Download the Visual Studio build tools for Python 3
 (`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
-`install instructions <https://docs.google.com/presentation/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/edit?usp=sharing&ouid=117107708911390632479&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&rtpof=true&sd=true>`_).
+`install instructions <https://docs.google.com/presentation/d/e/2PACX-1vT-p04simYhorAdKstO9F1RK-k6npuyrKWliJ8Wy9uuQoQq_TiFdJA-DK3Kz0irkCEUlmNEH4JScbkwUflXv9c/pub?start=false&loop=false&delayms=3000&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&slide=id.p1>`_).
 
 (macOS only) Install the Xcode command line tools.
 
