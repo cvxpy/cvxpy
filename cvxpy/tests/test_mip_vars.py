@@ -95,10 +95,7 @@ class TestMIPVariable(BaseTest):
         obj = cp.Minimize(t)
         p = cp.Problem(obj, [self.y_int == 0.5, t >= 0])
         result = p.solve(solver=solver)
-
-        if solver != cp.SCIPY:
-            # TODO: Uncomment the conditional statement once SciPy is updated.
-            self.assertEqual(p.status in s.INF_OR_UNB, True)
+        self.assertEqual(p.status in s.INF_OR_UNB, True)
 
     def int_socp(self, solver) -> None:
         # Int in objective.

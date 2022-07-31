@@ -59,20 +59,6 @@ class SCIPY(ConicSolver):
         """
         return s.SCIPY
 
-    def accepts(self, problem) -> bool:
-        """Can HiGHS solve the problem?
-        """
-        # TODO check if is matrix stuffed.
-        if not problem.objective.args[0].is_affine():
-            return False
-        for constr in problem.constraints:
-            if type(constr) not in self.SUPPORTED_CONSTRAINTS:
-                return False
-            for arg in constr.args:
-                if not arg.is_affine():
-                    return False
-        return True
-
     def apply(self, problem):
         """Returns a new problem and data for inverting the new solution.
 
@@ -120,18 +106,14 @@ class SCIPY(ConicSolver):
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
         from scipy import optimize as opt
 
-        # Check if the problem is a MIP and for SciPy version support.
-        problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
-        scipy_supports_mip = not (Version(scipy.__version__) < Version('1.9.0'))
-
-        if problem_is_a_mip and not scipy_supports_mip:
-            raise ValueError("Solving MIPs requires SciPy version >= 1.9")
-
         # Set default method which can be overriden by user inputs
         if (Version(scipy.__version__) < Version('1.6.1')):
             meth = "interior-point"
         else:
             meth = "highs"
+
+        # Check if the problem is a MIP.
+        problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
 
         # Track variable integrality options. An entry of zero implies that
         # the variable is continuous. An entry of one implies that the
@@ -162,17 +144,12 @@ class SCIPY(ConicSolver):
                                  "prob.solve(solver='SCIPY', verbose=True,"
                                  " scipy_options={'method':'highs-ds', 'maxiter':10000})")
 
-            # Raise warning if the 'method' parameter is not specified
-            if "method" not in solver_opts['scipy_options']:
-                warnings.warn("It is best to specify the 'method' parameter "
-                              "within scipy_options. The main advantage "
-                              "of this solver, is its ability to use the "
-                              "HiGHS LP solvers via scipy.optimize.linprog() "
-                              "which require a SciPy version >= 1.6.1 ."
-                              "\n\nThe default method '{}' will be"
-                              " used in this case.\n".format(meth))
+            if Version(scipy.__version__) < Version('1.9.0'):
+                # Raise warning if the 'method' parameter is not specified
+                if "method" not in solver_opts['scipy_options']:
+                    self._log_scipy_method_warning(meth)
 
-            else:
+            elif "method" in solver_opts["scipy_options"]:
                 meth = solver_opts["scipy_options"].pop("method")
 
                 # Check to see if scipy version larger than 1.6.1 is installed
@@ -195,7 +172,7 @@ class SCIPY(ConicSolver):
                                  "through CVXPY.")
 
             # Check for SciPy method support (i.e., only 'highs' supports MIP models).
-            method_supports_mip = scipy_supports_mip & (meth == 'highs')
+            method_supports_mip = meth == 'highs'
 
             if problem_is_a_mip and not method_supports_mip:
                 raise ValueError("Only the 'highs' SciPy method can solve MIP models.")
@@ -203,42 +180,40 @@ class SCIPY(ConicSolver):
             # Not supported by HiGHS solvers:
             # callback = solver_opts['scipy_options'].pop("callback", None)
             # x0 = solver_opts['scipy_options'].pop("x0", None)
-
-            if problem_is_a_mip:
-                solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                       A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                       options=solver_opts['scipy_options'],
-                                       integrality=integrality, bounds=bounds)
-            else:
-                solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                       A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                       options=solver_opts['scipy_options'],
-                                       bounds=bounds)
-
-            solver_opts["scipy_options"]["method"] = meth
         else:
+            # Instantiate an empty `scipy_options` entry.
+            solver_opts['scipy_options'] = {}
 
-            warnings.warn("It is best to specify the 'method' parameter "
-                          "within scipy_options. The main advantage "
-                          "of this solver is its ability to use the "
-                          "HiGHS LP solvers via scipy.optimize.linprog() "
-                          "which require a SciPy version >= 1.6.1 ."
-                          "\n\nThe default method '{}' will be"
-                          " used in this case.\n".format(meth))
+            if Version(scipy.__version__) < Version('1.9.0'):
+                self._log_scipy_method_warning(meth)
 
-            if problem_is_a_mip:
-                solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                       A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                       integrality=integrality, bounds=bounds)
-            else:
-                solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                       A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                       bounds=bounds)
+        if problem_is_a_mip:
+            solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
+                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                    options=solver_opts['scipy_options'],
+                                    integrality=integrality, bounds=bounds)
+        else:
+            solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
+                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                    options=solver_opts['scipy_options'],
+                                    bounds=bounds)
+
+        # Replace `scipy_options` method to avoid future warnings.
+        solver_opts["scipy_options"]["method"] = meth
 
         if verbose is True:
             print("Solver terminated with message: " + solution.message)
 
         return solution
+
+    def _log_scipy_method_warning(self, meth):
+        warnings.warn("It is best to specify the 'method' parameter "
+                    "within scipy_options. The main advantage "
+                    "of this solver is its ability to use the "
+                    "HiGHS LP solvers via scipy.optimize.linprog(), "
+                    "which requires a SciPy version >= 1.6.1."
+                    "\n\nThe default method '{}' will be"
+                    " used in this case.\n".format(meth))
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.

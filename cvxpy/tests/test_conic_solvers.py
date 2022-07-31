@@ -1723,8 +1723,7 @@ class TestSCIPY(unittest.TestCase):
     def test_scipy_mi_lp_4(self) -> None:
         StandardTestLPs.test_mi_lp_4(solver='SCIPY')
 
-    # TODO: Remove the below "skip" once SciPy HiGHS is updated.
-    @pytest.mark.skip(reason="Known bug in SCIPY")
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
     def test_scipy_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='SCIPY')
 
