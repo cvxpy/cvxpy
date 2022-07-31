@@ -189,14 +189,14 @@ class SCIPY(ConicSolver):
 
         if problem_is_a_mip:
             solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                    options=solver_opts['scipy_options'],
-                                    integrality=integrality, bounds=bounds)
+                                   A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                   options=solver_opts['scipy_options'],
+                                   integrality=integrality, bounds=bounds)
         else:
             solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                    options=solver_opts['scipy_options'],
-                                    bounds=bounds)
+                                   A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                   options=solver_opts['scipy_options'],
+                                   bounds=bounds)
 
         # Replace `scipy_options` method to avoid future warnings.
         solver_opts["scipy_options"]["method"] = meth
@@ -208,12 +208,12 @@ class SCIPY(ConicSolver):
 
     def _log_scipy_method_warning(self, meth):
         warnings.warn("It is best to specify the 'method' parameter "
-                    "within scipy_options. The main advantage "
-                    "of this solver is its ability to use the "
-                    "HiGHS LP solvers via scipy.optimize.linprog(), "
-                    "which requires a SciPy version >= 1.6.1."
-                    "\n\nThe default method '{}' will be"
-                    " used in this case.\n".format(meth))
+                      "within scipy_options. The main advantage "
+                      "of this solver is its ability to use the "
+                      "HiGHS LP solvers via scipy.optimize.linprog(), "
+                      "which requires a SciPy version >= 1.6.1."
+                      "\n\nThe default method '{}' will be"
+                      " used in this case.\n".format(meth))
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
