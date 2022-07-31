@@ -461,7 +461,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `XPRESS`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `SCIPY`_       | X  |    |      |     |     |     | X   |
+| `SCIPY`_       | X  |    |      |     |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
 
 (*) Mixed-integer LP only.
