@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 
 from cvxpy.utilities import performance_utils as pu
-from cvxpy.utilities.deterministic import unique_list
+from cvxpy.utilities.deterministic import unique_expressions, unique_list
 
 
 class Canonical:
@@ -47,13 +47,13 @@ class Canonical:
     def variables(self):
         """Returns all the variables present in the arguments.
         """
-        return unique_list(
+        return unique_expressions(
             [var for arg in self.args for var in arg.variables()])
 
     def parameters(self):
         """Returns all the parameters present in the arguments.
         """
-        return unique_list(
+        return unique_expressions(
             [param for arg in self.args for param in arg.parameters()])
 
     def constants(self):

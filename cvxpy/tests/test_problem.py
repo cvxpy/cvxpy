@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import builtins
+import copy
 import pickle
 import sys
 import warnings
@@ -2059,3 +2060,22 @@ class TestProblem(BaseTest):
             c = cp.sum(a)
             cp.Problem(cp.Maximize(0), [c >= 0])
             assert len(w) == 0
+
+
+def test_deepcopy_constraints():
+    x = cp.Variable()
+    y = cp.Variable()
+
+    constraints = [
+        x + y == 1,
+        x - y >= 1
+    ]
+    constraints[0].atoms()
+    constraints = copy.deepcopy(constraints)
+
+    obj = cp.Minimize((x - y) ** 2)
+    prob = cp.Problem(obj, constraints)
+    prob.solve()
+    assert prob.status == cp.OPTIMAL
+    assert np.allclose(x.value, 1)
+    assert np.allclose(y.value, 0)
