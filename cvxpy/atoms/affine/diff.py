@@ -39,7 +39,8 @@ def diff(x, k: int = 1, axis: int = 0):
     elif axis == 1:
         x = x.T
 
-    if k < 0 or k >= x.shape[axis]:
+    # Always test shape[0] because if axis == 1 x is transposed.
+    if k < 0 or k >= x.shape[0]:
         raise ValueError("Must have k >= 0 and X must have < k elements along "
                          "axis")
     for i in range(k):
