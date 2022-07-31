@@ -149,7 +149,7 @@ class SCIPY(ConicSolver):
                 if "method" not in solver_opts['scipy_options']:
                     self._log_scipy_method_warning(meth)
 
-            elif "method" in solver_opts["scipy_options"]:
+            if "method" in solver_opts["scipy_options"]:
                 meth = solver_opts["scipy_options"].pop("method")
 
                 # Check to see if scipy version larger than 1.6.1 is installed
