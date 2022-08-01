@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List
+from typing import List, Optional
 
 import numpy as np
 
@@ -56,27 +56,54 @@ class SOC(Constraint):
         return "SOC(%s, %s)" % (self.args[0], self.args[1])
 
     @property
-    def residual(self):
-        t = self.args[0].value[:, None]
+    def residual(self) -> Optional[np.ndarray]:
+        """
+        For each cone, returns:
+
+        ||(t,X) - proj(t,X)||
+        with
+        proj(t,X) = (t,X)                       if t >= ||x||
+                    0.5*(t/||x|| + 1)(||x||,x)  if -||x|| < t < ||x||
+                    0                           if t <= -||x||
+
+        References:
+             https://docs.mosek.com/modeling-cookbook/practical.html#distance-to-a-cone
+             https://math.stackexchange.com/questions/2509986/projection-onto-the-second-order-cone
+        """
+
+        t = self.args[0].value
         X = self.args[1].value
         if t is None or X is None:
             return None
-        # Promote 1D to 2D.
-        if X.ndim == 1:
-            X = X[:, None]
-            promoted = True
-        else:
-            promoted = False
+
         # Reduce axis = 0 to axis = 1.
         if self.axis == 0:
             X = X.T
-        norms = np.linalg.norm(X, ord=2, axis=1)[:, None]
+
+        promoted = X.ndim == 1
+        X = np.atleast_2d(X)
+
+        # Initializing with zeros makes "0 if t <= -||x||" the default case for the projection
+        t_proj = np.zeros(t.shape)
+        X_proj = np.zeros(X.shape)
+
+        norms = np.linalg.norm(X, ord=2, axis=1)
+
+        # 1. proj(t,X) = (t,X) if t >= ||x||
+        t_geq_x_norm = t >= norms
+        t_proj[t_geq_x_norm] = t[t_geq_x_norm]
+        X_proj[t_geq_x_norm] = X[t_geq_x_norm]
+
+        # 2. proj(t,X) = 0.5*(t/||x|| + 1)(||x||,x)  if -||x|| < t < ||x||
+        abs_t_less_x_norm = np.abs(t) < norms
         avg_coeff = 0.5 * (1 + t/norms)
-        X_proj = avg_coeff * X
-        t_proj = avg_coeff * norms
-        resid = np.linalg.norm(np.concatenate([X, t], axis=1) -
-                               np.concatenate([X_proj, t_proj], axis=1),
-                               ord=2, axis=1)
+        X_proj[abs_t_less_x_norm] = avg_coeff[abs_t_less_x_norm, None] * X[abs_t_less_x_norm]
+        t_proj[abs_t_less_x_norm] = avg_coeff[abs_t_less_x_norm] * norms[abs_t_less_x_norm]
+
+        Xt = np.concatenate([X, t[:, None]], axis=1)
+        Xt_proj = np.concatenate([X_proj, t_proj[:, None]], axis=1)
+        resid = np.linalg.norm(Xt - Xt_proj, ord=2, axis=1)
+
         # Demote back to 1D.
         if promoted:
             return resid[0]
