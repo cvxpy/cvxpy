@@ -10,8 +10,7 @@ from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cone2cone.approximations import (APPROX_CONES,
-                                                       QuadApprox,)
+from cvxpy.reductions.cone2cone.approximations import APPROX_CONES, QuadApprox
 from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
                                                       Exotic2Common,)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
