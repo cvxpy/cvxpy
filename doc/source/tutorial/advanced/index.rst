@@ -461,7 +461,7 @@ The table below shows the types of problems the supported solvers can handle.
 +----------------+----+----+------+-----+-----+-----+-----+
 | `XPRESS`_      | X  | X  | X    |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
-| `SCIPY`_       | X  |    |      |     |     |     |     |
+| `SCIPY`_       | X  |    |      |     |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
 
 (*) Mixed-integer LP only.
@@ -990,11 +990,11 @@ SCIP_ options:
 ``'scip_params'`` a dictionary of SCIP optional parameters, a full list of parameters with defaults is listed `here <https://www.scipopt.org/doc-5.0.1/html/PARAMETERS.php>`_.
 
 `SCIPY`_ options:
-``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_. 
+``'scipy_options'`` a dictionary of SciPy optional parameters, a full list of parameters with defaults is listed `here <https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog>`_.
 
-* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary and there should not be a nested dictionary called options. Some of the methods have different parameters so please check the parameters for the method you wish to use e.g. for method = 'highs-ipm'.
+* **Please note**: All options should be listed as key-value pairs within the ``'scipy_options'`` dictionary, and there should not be a nested dictionary called options. Some of the methods have different parameters, so please check the parameters for the method you wish to use, e.g., for method = 'highs-ipm'. Also, note that the 'integrality' option should never be specified.
 
-* The main advantage of this solver is its ability to use the `HiGHS`_ LP solvers which are coded in C++, however these require a version of SciPy larger than 1.6.1. To use the `HiGHS`_ solvers simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). 
+* The main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers, which are coded in C++. However, these require versions of SciPy larger than 1.6.1 and 1.9.0, respectively. To use the `HiGHS`_ LP solvers, simply set the method parameter to 'highs-ds' (for dual-simplex), 'highs-ipm' (for interior-point method) or 'highs' (which will choose either 'highs-ds' or 'highs-ipm' for you). To use the `HiGHS`_ MIP solver, leave the method parameter unspecified or set it explicitly to 'highs'.
 
 `PDLP`_ options:
 
