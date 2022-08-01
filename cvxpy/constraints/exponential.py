@@ -99,8 +99,8 @@ class ExpCone(Constraint):
         """
         return self.x.size
 
-    def as_expconequad(self, m: int, k: int) -> ExpConeQuad:
-        return ExpConeQuad(self.y, self.z, -self.x, m, k)
+    def as_quad_approx(self, m: int, k: int) -> RelEntrQuad:
+        return RelEntrQuad(self.y, self.z, -self.x, m, k)
 
     def cone_sizes(self) -> List[int]:
         """The dimensions of the exponential cones.
@@ -142,7 +142,7 @@ class ExpCone(Constraint):
         self.dual_variables[2].save_value(dv2)
 
 
-class ExpConeQuad(Constraint):
+class RelEntrQuad(Constraint):
     """An approximate construction of the scalar relative entropy cone
 
     Definition:
@@ -157,12 +157,12 @@ class ExpConeQuad(Constraint):
 
     Parameters
     ----------
-    x : Variable
-        x in the exponential cone.
-    y : Variable
-        y in the exponential cone.
-    $\\tau$ : Variable
-        $\\tau$ in the exponential cone.
+    x : Expression
+        x in the (approximate) scalar relative entropy cone
+    y : Expression
+        y in the (approximate) scalar relative entropy cone
+    $\\tau$ : Expression
+        $\\tau$ in the (approximate) scalar relative entropy cone
     m: Parameter directly related to the number of generated nodes for the quadrature
     approximation used in the algorithm
     k: Another parameter controlling the approximation
@@ -180,14 +180,14 @@ class ExpConeQuad(Constraint):
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str((xs, ys, zs)))
             raise ValueError(msg)
-        super(ExpConeQuad, self).__init__([self.x, self.y, self.z], constr_id)
+        super(RelEntrQuad, self).__init__([self.x, self.y, self.z], constr_id)
 
     def get_data(self):
         return [self.m, self.k]
 
     def __str__(self) -> str:
         tup = (self.x, self.y, self.z, self.m, self.k)
-        return "ExpConeQuad(%s, %s, %s, %s, %s)" % tup
+        return "RelEntrQuad(%s, %s, %s, %s, %s)" % tup
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -202,7 +202,7 @@ class ExpConeQuad(Constraint):
         x = Variable(self.x.shape)
         y = Variable(self.y.shape)
         z = Variable(self.z.shape)
-        constr = [ExpConeQuad(x, y, z, self.m, self.k)]
+        constr = [RelEntrQuad(x, y, z, self.m, self.k)]
         obj = Minimize(norm2(hstack([x, y, z]) -
                              hstack([self.x.value, self.y.value, self.z.value])))
         problem = Problem(obj, constr)

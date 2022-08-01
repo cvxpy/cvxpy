@@ -10,8 +10,8 @@ from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cone2cone.common2common import (COMMON_CONES,
-                                                      Common2Common,)
+from cvxpy.reductions.cone2cone.approximations import (APPROX_CONES,
+                                                       QuadApprox,)
 from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
                                                       Exotic2Common,)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
@@ -221,7 +221,7 @@ def construct_solving_chain(problem, candidates,
     for c in problem.constraints:
         constr_types.add(type(c))
     ex_cos = [ct for ct in constr_types if ct in EXOTIC_CONES]
-    com_cos = [ct for ct in constr_types if ct in COMMON_CONES]
+    approx_cos = [ct for ct in constr_types if ct in APPROX_CONES]
     # ^ The way we populate "ex_cos" will need to change if and when
     # we have atoms that require exotic cones.
     for co in ex_cos:
@@ -229,9 +229,9 @@ def construct_solving_chain(problem, candidates,
         constr_types.update(sim_cos)
         constr_types.remove(co)
 
-    for co in com_cos:
-        sim_cos = COMMON_CONES[co]  # get the set of required simple cones
-        constr_types.update(sim_cos)
+    for co in approx_cos:
+        app_cos = APPROX_CONES[co]
+        constr_types.update(app_cos)
         constr_types.remove(co)
     # We now go over individual elementary cones support by CVXPY (
     # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
@@ -273,8 +273,8 @@ def construct_solving_chain(problem, candidates,
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())
-            if com_cos:
-                reductions.append(Common2Common())
+            if approx_cos:
+                reductions.append(QuadApprox())
             reductions += [ConeMatrixStuffing(), solver_instance]
             return SolvingChain(reductions=reductions)
 

@@ -485,7 +485,7 @@ class TestPowND(BaseTest):
         pass
 
 
-class TestExpConeQuad(BaseTest):
+class TestRelEntrQuad(BaseTest):
 
     def expcone_1(self) -> STH.SolverTestHelper:
         """
@@ -500,7 +500,7 @@ class TestExpConeQuad(BaseTest):
                 x[1] log(x[1] / x[0]) <= -x[2]
         """
         x = cp.Variable(shape=(3, 1))
-        cone_con = ExpCone(x[2], x[1], x[0]).as_expconequad(5, 5)
+        cone_con = ExpCone(x[2], x[1], x[0]).as_quad_approx(5, 5)
         constraints = [cp.sum(x) <= 1.0,
                        cp.sum(x) >= 0.1,
                        x >= 0,
@@ -538,9 +538,7 @@ class TestExpConeQuad(BaseTest):
         e = cp.Constant(np.ones(3, ))
         objective = cp.Minimize(t - c * e @ s)
         con1 = cp.norm(L.T @ x, p=2) <= t
-        con2 = ExpCone(s[0], e[0], x[0]).as_expconequad(5, 5)
-        con3 = ExpCone(s[1], e[1], x[1]).as_expconequad(5, 5)
-        con4 = ExpCone(s[2], e[2], x[2]).as_expconequad(5, 5)
+        con2 = ExpCone(s, e, x)
         # SolverTestHelper data
         obj_pair = (objective, 4.0751197)
         var_pairs = [
@@ -549,9 +547,10 @@ class TestExpConeQuad(BaseTest):
         ]
         con_pairs = [
             (con1, 1.0),
-            (con2, np.array([-0.75, -0.75, -0.75])),
-            (con3, np.array([-1.16363, -1.20777, -1.70371])),
-            (con4, np.array([1.30190, 1.38082, 2.67496]))
+            (con2, [np.array([-0.75, -0.75, -0.75]),
+                    np.array([-1.16363, -1.20777, -1.70371]),
+                    np.array([1.30190, 1.38082, 2.67496])]
+             )
         ]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth

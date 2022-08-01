@@ -19,15 +19,14 @@ from typing import List, Tuple
 import numpy as np
 
 import cvxpy as cp
-from cvxpy.atoms.quad_over_lin import quad_over_lin
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.exponential import ExpConeQuad
+from cvxpy.constraints.exponential import RelEntrQuad
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 
-COMMON_CONES = {
-    ExpConeQuad: {quad_over_lin}
+APPROX_CONES = {
+    RelEntrQuad: {cp.SOC}
 }
 
 
@@ -74,7 +73,7 @@ def rotated_quad_cone(X: cp.Expression, y: cp.Expression, z: cp.Expression):
     return con
 
 
-def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
+def RelEntrQuad_canon(con: RelEntrQuad, args) -> Tuple[Constraint, List[Constraint]]:
     """
     Use linear and SOC constraints to approximately enforce
         con.x * log(con.x / con.y) <= con.z.
@@ -129,12 +128,12 @@ def ExpConeQuad_canon(con: ExpConeQuad, args) -> Tuple[Constraint, List[Constrai
     return lead_con, constrs
 
 
-class Common2Common(Canonicalization):
+class QuadApprox(Canonicalization):
 
     CANON_METHODS = {
-        ExpConeQuad: ExpConeQuad_canon
+        RelEntrQuad: RelEntrQuad_canon
     }
 
     def __init__(self, problem=None) -> None:
-        super(Common2Common, self).__init__(
-            problem=problem, canon_methods=Common2Common.CANON_METHODS)
+        super(QuadApprox, self).__init__(
+            problem=problem, canon_methods=QuadApprox.CANON_METHODS)
