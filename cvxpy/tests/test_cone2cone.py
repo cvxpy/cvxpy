@@ -538,7 +538,7 @@ class TestRelEntrQuad(BaseTest):
         e = cp.Constant(np.ones(3, ))
         objective = cp.Minimize(t - c * e @ s)
         con1 = cp.norm(L.T @ x, p=2) <= t
-        con2 = ExpCone(s, e, x)
+        con2 = ExpCone(s, e, x).as_quad_approx(5, 5)
         # SolverTestHelper data
         obj_pair = (objective, 4.0751197)
         var_pairs = [
@@ -547,9 +547,9 @@ class TestRelEntrQuad(BaseTest):
         ]
         con_pairs = [
             (con1, 1.0),
-            (con2, [np.array([-0.75, -0.75, -0.75]),
-                    np.array([-1.16363, -1.20777, -1.70371]),
-                    np.array([1.30190, 1.38082, 2.67496])]
+            (con2, [None,
+                    None,
+                    None]
              )
         ]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
