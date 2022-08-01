@@ -56,8 +56,9 @@ class dotsort(Atom):
         super(dotsort, self).validate_arguments()
 
     def numeric(self, values):
-        """Returns the inner product of the sorted values of vec(X) and the sorted (and potentially padded)
-        values of vec(W).
+        """
+        Returns the inner product of the sorted values of vec(X) and the sorted
+        (and potentially padded) values of vec(W).
         """
         x, w_padded = self._get_args_from_values(values)
         return np.sort(x) @ np.sort(w_padded)

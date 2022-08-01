@@ -809,7 +809,7 @@ class Problem(u.Canonical):
         """
         if custom_solver.name() in SOLVERS:
             message = "Custom solvers must have a different name than the officially supported ones"
-            raise(error.SolverError(message))
+            raise error.SolverError(message)
 
         candidates = {'qp_solvers': [], 'conic_solvers': []}
         if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:
