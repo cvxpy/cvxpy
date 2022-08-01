@@ -14,14 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.atoms import (abs, cummax, cumsum, max, maximum, min, minimum,
-                         norm1, norm_inf, sum_largest,)
+from cvxpy.atoms import (abs, cummax, cumsum, dotsort, max, maximum, min,
+                         minimum, norm1, norm_inf, sum_largest,)
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import (
     abs_canon,)
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.cummax_canon import (
     cummax_canon,)
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.cumsum_canon import (
     cumsum_canon,)
+from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.dotsort_canon import (
+    dotsort_canon,)
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.max_canon import (
     max_canon,)
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.maximum_canon import (
@@ -47,5 +49,6 @@ CANON_METHODS = {
     min: min_canon,
     norm1: norm1_canon,
     norm_inf: norm_inf_canon,
-    sum_largest: sum_largest_canon
+    sum_largest: sum_largest_canon,
+    dotsort: dotsort_canon
 }

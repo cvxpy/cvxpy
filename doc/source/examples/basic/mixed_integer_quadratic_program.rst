@@ -41,6 +41,11 @@ Example
 
 In the following code, we solve a mixed-integer least-squares problem
 with CVXPY.
+You need to install a mixed-integer nonlinear solver to run this
+example.
+CVXPY's preferred open-source mixed-integer nonlinear solver is SCIP.
+It can be installed with ``pip install pyscipopt`` or
+``conda install -c conda-forge pyscipopt``.
 
 .. code:: python
 

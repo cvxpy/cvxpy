@@ -273,7 +273,8 @@ class TestProblem(BaseTest):
             for verbose in [True, False]:
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC, cp.SCIPY]:
+                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC,
+                              cp.SCIPY, cp.SDPA, cp.COPT]:
                     continue
                 sys.stdout = StringIO()  # capture output
 
@@ -2031,3 +2032,30 @@ class TestProblem(BaseTest):
         prob2.solve()
         expect = np.ones((n, 1))
         self.assertItemsAlmostEqual(expr2.value, expect)
+
+    def test_cp_node_count_warn(self) -> None:
+        """Test that a warning is raised for high node count."""
+        # Warning raised for constraint.
+        with warnings.catch_warnings(record=True) as w:
+            a = cp.Variable(shape=(100, 100))
+            b = sum(sum(x) for x in a)
+            cp.Problem(cp.Maximize(0), [b >= 0])
+            assert len(w) == 1
+            assert "vectorizing" in str(w[-1].message)
+            assert "Constraint #0" in str(w[-1].message)
+
+        # Warning raised for objective.
+        with warnings.catch_warnings(record=True) as w:
+            a = cp.Variable(shape=(100, 100))
+            b = sum(sum(x) for x in a)
+            cp.Problem(cp.Maximize(b))
+            assert len(w) == 1
+            assert "vectorizing" in str(w[-1].message)
+            assert "Objective" in str(w[-1].message)
+
+        # No warning.
+        with warnings.catch_warnings(record=True) as w:
+            a = cp.Variable(shape=(100, 100))
+            c = cp.sum(a)
+            cp.Problem(cp.Maximize(0), [c >= 0])
+            assert len(w) == 0

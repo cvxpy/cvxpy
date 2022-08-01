@@ -26,7 +26,7 @@ Constraints and atoms
    which are important linear operators in quantum information
  * 1.2.0: updated ``kron`` so that either argument in ``kron(A, B)`` can be a non-constant affine Expression,
    provided the other argument is constant. We previously required that ``A`` was constant.
- * 1.2.0: added ``xexp``: an atom that implements :math:`\\texttt{xexp}(x) = x e^{x}`.
+ * 1.2.0: added ``xexp``: an atom that implements :math:`\texttt{xexp}(x) = x e^{x}`.
  * 1.1.14: added ``loggamma``: an atom which approximates the log of the gamma function
  * 1.1.14: added ``rel_entr``: an atom with the same semantics as the SciPy's "rel_entr"
  * 1.1.8: added ``log_normcdf``: an atom that approximates the log of the Gaussian distribution's CDF
@@ -172,7 +172,7 @@ Overview
 
 * Disciplined geometric programming (DGP): Starting with version 1.0.11, CVXPY lets you formulate and solve log-log convex programs, which generalize both traditional geometric programs and generalized geometric programs. To get started with DGP, check out :ref:`the tutorial <dgp>` and consult the `accompanying paper <https://web.stanford.edu/~boyd/papers/dgp.html>`_.
 
-* Reductions: CVXPY 1.0 uses a modular system of *reductions* to convert problems input by the user into the format required by the solver, which makes it easy to support new standard forms, such as quadratic programs, and more advanced user inputs, such as problems with complex variables. See :ref:`reductions-api` and the `accompanying paper <http://stanford.edu/~boyd/papers/cvxpy_rewriting.html>`_ for further details.
+* Reductions: CVXPY 1.0 uses a modular system of *reductions* to convert problems input by the user into the format required by the solver, which makes it easy to support new standard forms, such as quadratic programs, and more advanced user inputs, such as problems with complex variables. See :ref:`reductions-api` and the `accompanying paper <https://stanford.edu/~boyd/papers/cvxpy_rewriting.html>`_ for further details.
 
 * Attributes: Variables and parameters now support a variety of attributes that describe their symbolic properties, such as nonnegative or symmetric. This unifies the treatment of symbolic properties for variables and parameters and replaces specialized variable classes such as ``Bool`` and ``Semidef``.
 

@@ -23,6 +23,7 @@ import numpy as np
 import scipy.sparse as sp
 from scipy import linalg as LA
 
+from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
@@ -36,6 +37,7 @@ class QuadForm(Atom):
     _allow_complex = True
 
     def __init__(self, x, P) -> None:
+        """Atom representing :math:`x^T P x`."""
         super(QuadForm, self).__init__(x, P)
 
     def numeric(self, values):
@@ -215,9 +217,14 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     return scale, M1, M2
 
 
-def quad_form(x, P):
+def quad_form(x, P, assume_PSD: bool = False):
     """ Alias for :math:`x^T P x`.
 
+    Parameters
+    ----------
+    x : vector argument.
+    P : matrix argument.
+    assume_PSD : P is assumed to be PSD without checking.
     """
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
@@ -226,6 +233,8 @@ def quad_form(x, P):
     if x.is_constant():
         return x.H @ P @ x
     elif P.is_constant():
+        if assume_PSD:
+            P = psd_wrap(P)
         return QuadForm(x, P)
     else:
         raise Exception(

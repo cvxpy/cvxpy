@@ -15,6 +15,13 @@ from cvxpy.expressions.variable import Variable
 
 DCP = 'DCP'
 DGP = 'DGP'
+# Max number of nodes a reasonable expression should have.
+MAX_NODES = 10_000
+
+
+def node_count(expr) -> int:
+    """Return node count for the expression/constraint."""
+    return 1 + sum(node_count(arg) for arg in getattr(expr, 'args', []))
 
 
 def build_non_disciplined_error_msg(problem, discipline_type) -> str:

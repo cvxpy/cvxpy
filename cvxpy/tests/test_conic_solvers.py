@@ -435,6 +435,9 @@ class TestMosek(unittest.TestCase):
     def test_mosek_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='MOSEK')
 
+    def test_mosek_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='MOSEK')
+
     def test_mosek_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='MOSEK')
 
@@ -570,6 +573,40 @@ class TestCVXOPT(BaseTest):
         StandardTestSDPs.test_sdp_2(solver='CVXOPT')
 
 
+@unittest.skipUnless('SDPA' in INSTALLED_SOLVERS, 'SDPA is not installed.')
+class TestSDPA(BaseTest):
+
+    def test_sdpa_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='SDPA')
+
+    def test_sdpa_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='SDPA')
+
+    def test_sdpa_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='SDPA')
+
+    def test_sdpa_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='SDPA')
+
+    def test_sdpa_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='SDPA')
+
+    @unittest.skip('Known limitation of SDPA for degenerate LPs.')
+    def test_sdpa_lp_5(self) -> None:
+        # this also tests the ability to pass solver options
+        StandardTestLPs.test_lp_5(solver='SDPA',
+                                  gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
+
+    def test_sdpa_sdp_1(self) -> None:
+        # minimization
+        StandardTestSDPs.test_sdp_1min(solver='SDPA')
+        # maximization
+        StandardTestSDPs.test_sdp_1max(solver='SDPA')
+
+    def test_sdpa_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver='SDPA')
+
+
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 class TestCBC(BaseTest):
 
@@ -585,6 +622,14 @@ class TestCBC(BaseTest):
         self.A = cp.Variable((2, 2), name='A')
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
+
+    def _cylp_checks_isProvenInfeasible():
+        try:
+            # https://github.com/coin-or/CyLP/pull/150
+            from cylp.cy.CyCbcModel import problemStatus
+            return problemStatus[0] == 'search completed'
+        except ImportError:
+            return False
 
     def test_options(self) -> None:
         """Test that all the cvx.CBC solver options work.
@@ -637,6 +682,11 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
+    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(),
+                         'CyLP <= 0.91.4 has no working integer infeasibility detection')
+    def test_cbc_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CBC')
+
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
@@ -676,6 +726,9 @@ class TestGLPK(unittest.TestCase):
 
     def test_glpk_mi_lp_4(self) -> None:
         StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
+
+    def test_glpk_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='GLPK_MI')
 
     def test_glpk_options(self) -> None:
         sth = sths.lp_1()
@@ -980,6 +1033,9 @@ class TestCPLEX(BaseTest):
     def test_cplex_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CPLEX')
 
+    def test_cplex_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CPLEX')
+
     def test_cplex_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='CPLEX', places=3)
 
@@ -1198,6 +1254,9 @@ class TestGUROBI(BaseTest):
     def test_gurobi_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='GUROBI')
 
+    def test_gurobi_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='GUROBI')
+
     def test_gurobi_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='GUROBI', places=2)
 
@@ -1345,6 +1404,9 @@ class TestXPRESS(BaseTest):
     def test_xpress_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='XPRESS')
 
+    def test_xpress_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='XPRESS')
+
     def test_xpress_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='XPRESS')
 
@@ -1433,6 +1495,9 @@ class TestSCIP(unittest.TestCase):
 
     def test_scip_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver="SCIP")
+
+    def test_scip_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver="SCIP")
 
     def get_simple_problem(self):
         """Example problem that can be used within additional tests."""
@@ -1606,6 +1671,9 @@ class TestECOS_BB(unittest.TestCase):
     def test_ecos_bb_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='ECOS_BB')
 
+    def test_ecos_bb_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='ECOS_BB')
+
     @pytest.mark.skip(reason="Known bug in ECOS BB")
     def test_ecos_bb_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='ECOS_BB')
@@ -1634,3 +1702,89 @@ class TestSCIPY(unittest.TestCase):
 
     def test_scipy_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
+
+
+@unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
+class TestCOPT(unittest.TestCase):
+
+    def test_copt_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='COPT')
+
+    def test_copt_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='COPT')
+
+    def test_copt_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='COPT')
+
+    def test_copt_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='COPT')
+
+    def test_copt_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='COPT')
+
+    def test_copt_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='COPT')
+
+    def test_copt_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='COPT')
+
+    def test_copt_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='COPT')
+
+    def test_copt_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='COPT')
+
+    def test_copt_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='COPT')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='COPT')
+
+    def test_copt_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='COPT')
+
+    def test_copt_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='COPT')
+
+    def test_copt_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='COPT')
+
+    def test_copt_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver='COPT')
+
+    def test_copt_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='COPT')
+
+    def test_copt_mi_socp_1(self) -> None:
+        # COPT does not support MISOCP.
+        with pytest.raises(cp.error.SolverError, match="do not support"):
+            StandardTestSOCPs.test_mi_socp_1(solver='COPT')
+
+    def test_copt_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='COPT')
+
+    def test_copt_sdp_1max(self) -> None:
+        StandardTestSDPs.test_sdp_1max(solver='COPT')
+
+    def test_copt_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver='COPT')
+
+    def test_copt_params(self) -> None:
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
+
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
+
+        with self.assertRaises(AttributeError):
+            problem.solve(solver=cp.COPT, invalid_kwarg=None)
+
+        # Valid arg.
+        problem.solve(solver=cp.COPT, feastol=1e-9)

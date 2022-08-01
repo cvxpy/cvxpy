@@ -29,10 +29,13 @@ class CBC(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Map of CBC status to CVXPY status.
     STATUS_MAP_MIP = {'solution': s.OPTIMAL,
                       'relaxation infeasible': s.INFEASIBLE,
+                      'problem proven infeasible': s.INFEASIBLE,
+                      'relaxation abandoned': s.SOLVER_ERROR,
                       'stopped on user event': s.SOLVER_ERROR,
                       'stopped on nodes': s.OPTIMAL_INACCURATE,
                       'stopped on gap': s.OPTIMAL_INACCURATE,

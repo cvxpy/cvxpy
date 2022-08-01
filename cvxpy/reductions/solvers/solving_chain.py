@@ -4,8 +4,8 @@ from typing import Any, List
 import numpy as np
 
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
-from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonNeg,
-                               NonPos, PowCone3D, Zero,)
+from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, FiniteSet,
+                               Inequality, NonNeg, NonPos, PowCone3D, Zero,)
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
@@ -16,6 +16,8 @@ from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
+from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
+    Valinvec2mixedint,)
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
@@ -117,6 +119,11 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
                               "(%s)." % candidates)
         else:
             reductions += [Dcp2Cone(), CvxAttr2Constr()]
+
+    constr_types = {type(c) for c in problem.constraints}
+    if FiniteSet in constr_types:
+        reductions += [Valinvec2mixedint()]
+
     return reductions
 
 
@@ -249,7 +256,12 @@ def construct_solving_chain(problem, candidates,
 
     for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
-        if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
+        # Cones supported for MI problems may differ from non MI.
+        if problem.is_mixed_integer():
+            supported_constraints = solver_instance.MI_SUPPORTED_CONSTRAINTS
+        else:
+            supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
+        if (all(c in supported_constraints for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())

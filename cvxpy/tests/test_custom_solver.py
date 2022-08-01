@@ -18,7 +18,7 @@ class CustomQPSolver(OSQP):
         return "CUSTOM_QP_SOLVER"
 
     def solve_via_data(self, *args, **kwargs):
-        raise(CustomQPSolverCalled())
+        raise CustomQPSolverCalled()
 
 
 class CustomConicSolver(SCS):
@@ -26,7 +26,7 @@ class CustomConicSolver(SCS):
         return "CUSTOM_CONIC_SOLVER"
 
     def solve_via_data(self, *args, **kwargs):
-        raise(CustomConicSolverCalled())
+        raise CustomConicSolverCalled()
 
 
 class ConflictingCustomSolver(OSQP):
@@ -63,6 +63,8 @@ class TestCustomSolvers(unittest.TestCase):
 
     def test_custom_mip_conic_solver_can_solve_mip_socp(self) -> None:
         self.custom_conic_solver.MIP_CAPABLE = True
+        supported_constraints = self.custom_conic_solver.SUPPORTED_CONSTRAINTS
+        self.custom_conic_solver.MI_SUPPORTED_CONSTRAINTS = supported_constraints
         with self.assertRaises(CustomConicSolverCalled):
             self.solve_example_mixed_integer_socp(solver=self.custom_conic_solver)
 

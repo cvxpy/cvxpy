@@ -12,22 +12,23 @@ conda config --set remote_read_timeout_secs 120.0
 
 if [[ "$PYTHON_VERSION" == "3.6" ]]; then
   conda install scipy=1.3 numpy=1.16 mkl pip=21.3.1 pytest pytest-cov lapack ecos scs osqp cvxopt
-  python -m pip install cplex  # CPLEX is not available yet on 3.10
+  python -m pip install cplex sdpa-python  # CPLEX is not available yet on 3.10
 elif [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
   conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt
-  python -m pip install cplex  # CPLEX is not available yet on 3.10
+  python -m pip install cplex sdpa-python  # CPLEX is not available yet on 3.10
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
   # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
   conda install scipy=1.5 numpy=1.19 mkl pip pytest lapack ecos scs osqp cvxopt
-  python -m pip install cplex  # CPLEX is not available yet on 3.10
+  python -m pip install cplex sdpa-python  # CPLEX is not available yet on 3.10
 elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     # The earliest version of numpy that works is 1.21.
     # Given numpy 1.21, the earliest version of scipy we can use is 1.7.
     conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt
+    python -m pip install sdpa-python
 fi
 
-python -m pip install ortools
+python -m pip install ortools coptpy
 
 # CBC comes with wheels for windows and needs coin-or-cbc to compile otherwise
 # conda-forge in progress: https://github.com/conda-forge/staged-recipes/pull/14950

@@ -76,7 +76,7 @@ class PDLP(ConicSolver):
         # TODO: Switch to a vectorized model-building interface when one is
         # available in OR-Tools.
         model = linear_solver_pb2.MPModelProto()
-        model.objective_offset = d
+        model.objective_offset = d.item() if isinstance(d, np.ndarray) else d
         for var_index, obj_coef in enumerate(c):
             var = linear_solver_pb2.MPVariableProto(
                 objective_coefficient=obj_coef,

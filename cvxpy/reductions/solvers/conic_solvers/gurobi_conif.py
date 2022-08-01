@@ -33,6 +33,7 @@ class GUROBI(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = True
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
+    MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Map of Gurobi status to CVXPY status.
     STATUS_MAP = {2: s.OPTIMAL,
@@ -211,6 +212,10 @@ class GUROBI(ConicSolver):
             new_leq_constrs += new_leq
             variables += new_vars
             soc_start += constr_len
+
+        # Save file (*.mst, *.sol, ect.)
+        if 'save_file' in solver_opts:
+            model.write(solver_opts['save_file'])
 
         # Set parameters
         # TODO user option to not compute duals.

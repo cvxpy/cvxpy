@@ -49,6 +49,7 @@ from cvxpy.reductions.solvers.solver import Solver
 from cvxpy.reductions.solvers.solving_chain import (SolvingChain,
                                                     construct_solving_chain,)
 from cvxpy.settings import SOLVERS
+from cvxpy.utilities import debug_tools
 from cvxpy.utilities.deterministic import unique_list
 
 SolveResult = namedtuple(
@@ -148,7 +149,17 @@ class Problem(u.Canonical):
             raise error.DCPError("Problem objective must be Minimize or Maximize.")
         # Constraints and objective are immutable.
         self._objective = objective
+        # Raise warning if objective has too many subexpressions.
+        if debug_tools.node_count(self._objective) >= debug_tools.MAX_NODES:
+            warnings.warn("Objective contains too many subexpressions. "
+                          "Consider vectorizing your CVXPY code to speed up compilation.")
         self._constraints = [_validate_constraint(c) for c in constraints]
+        # Raise warning if constraint has too many subexpressions.
+        for i, constraint in enumerate(self._constraints):
+            if debug_tools.node_count(constraint) >= debug_tools.MAX_NODES:
+                warnings.warn(f"Constraint #{i} contains too many subexpressions. "
+                              "Consider vectorizing your CVXPY code to speed up compilation.")
+
         self._value = None
         self._status: Optional[str] = None
         self._solution = None
@@ -750,12 +761,16 @@ class Problem(u.Canonical):
                     for discussion on this topic.
 
                     Quick fix 1: if you install the python package CVXOPT (pip install cvxopt),
-                    then CVXPY can use the open-source mixed-integer solver `GLPK`.
+                    then CVXPY can use the open-source mixed-integer linear programming
+                    solver `GLPK`. If your problem is nonlinear then you can install SCIP
+                    (pip install pyscipopt).
 
                     Quick fix 2: you can explicitly specify solver='ECOS_BB'. This may result
                     in incorrect solutions and is not recommended.
                 """
                 raise error.SolverError(msg)
+            # TODO: provide a useful error message when the problem is nonlinear but
+            #  the only installed mixed-integer solvers are MILP solvers (e.g., GLPK_MI).
             candidates['qp_solvers'] = [
                 s for s in candidates['qp_solvers']
                 if slv_def.SOLVER_MAP_QP[s].MIP_CAPABLE]
@@ -794,7 +809,7 @@ class Problem(u.Canonical):
         """
         if custom_solver.name() in SOLVERS:
             message = "Custom solvers must have a different name than the officially supported ones"
-            raise(error.SolverError(message))
+            raise error.SolverError(message)
 
         candidates = {'qp_solvers': [], 'conic_solvers': []}
         if not self.is_mixed_integer() or custom_solver.MIP_CAPABLE:

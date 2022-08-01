@@ -12,8 +12,8 @@ pip
 ---
 
 (Windows only) Download the Visual Studio build tools for Python 3
-(`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
-`install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
+(`download <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
+`install instructions <https://docs.google.com/presentation/d/e/2PACX-1vT-p04simYhorAdKstO9F1RK-k6npuyrKWliJ8Wy9uuQoQq_TiFdJA-DK3Kz0irkCEUlmNEH4JScbkwUflXv9c/pub?start=false&loop=false&delayms=3000&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&slide=id.p1>`_).
 
 (macOS only) Install the Xcode command line tools.
 
@@ -24,6 +24,14 @@ Install CVXPY using `pip`_:
   ::
 
       pip install cvxpy
+
+You can add solver names as "extras"; `pip` will then install the necessary
+additional Python packages.
+
+  ::
+
+      pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]
+
 
 .. _conda-installation:
 
@@ -166,12 +174,26 @@ Install with Cbc (Clp, Cgl) support
 CVXPY supports the `Cbc <https://github.com/coin-or/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
 Simply install cylp and the corresponding prerequisites according to the `instructions <https://github.com/coin-or/CyLP#cylp>`_, such you can import this library in Python.
 
+Install with COPT support
+--------------------------
+
+CVXPY supports the COPT solver.
+Simply install COPT such that you can ``import coptpy`` in Python.
+See the `COPT <https://github.com/COPT-Public/COPT-Release>`_ release page for installation instructions.
+
 Install with CPLEX support
 --------------------------
 
 CVXPY supports the CPLEX solver.
 Simply install CPLEX such that you can ``import cplex`` in Python.
 See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
+
+Install with SDPA support
+--------------------------
+
+CVXPY supports the SDPA solver.
+Simply install SDPA for Python such that you can ``import sdpap`` in Python.
+See the `SDPA for Python <https://sdpa-python.github.io/docs/installation>`_ website for installation instructions.
 
 Install with SDPT3 support
 --------------------------
@@ -196,8 +218,9 @@ version 9.3 or greater is required.
 Install with SCIP support
 -------------------------
 
-CVXPY supports the SCIP solver.
-Simply install SCIP such that you can ``from pyscipopt.scip import Model`` in Python.
+CVXPY supports the SCIP solver through the ``pyscipopt`` Python package;
+we do not support pyscipopt version 4.0.0 or higher; you need to use pyscipopt version 3.x.y
+for some (x,y).
 See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_ github for installation instructions.
 
 CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.

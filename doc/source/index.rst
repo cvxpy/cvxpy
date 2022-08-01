@@ -3,8 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to CVXPY
-================
+Welcome to CVXPY 1.3
+====================
 
 .. meta::
    :description: An open source Python-embedded modeling language for convex optimization problems.
@@ -56,7 +56,7 @@ For a guided tour of CVXPY, check out the :doc:`tutorial
 </tutorial/index>`. For applications to machine learning, control, finance, and
 more, browse the :doc:`library of examples </examples/index>`. For
 background on convex optimization, see the book `Convex Optimization
-<http://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
+<https://www.stanford.edu/~boyd/cvxbook/>`_ by Boyd and Vandenberghe.
 
 CVXPY relies on the open source solvers `OSQP`_, `SCS`_, and `ECOS`_.
 Additional solvers are supported, but must be installed separately.
@@ -92,15 +92,11 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-* In early 2022 we started moving CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
-  assign version numbers following the specification at `semver.org <https://semver.org/>`_.
-  This will result in us incrementing CVXPY's minor version number (the "x" in "CVXPY 1.x.y")
-  much more often than before. Moving forward we will also make it a priority to differentiate
-  between what is and is-not part of CVXPY's public API.
-* CVXPY v1.1.0 has been released. This version makes
-  repeatedly canonicalizing :ref:`parametrized problems <dpp>` much faster than before,
-  allows :ref:`differentiating the map <derivatives>` from parameters to optimal solutions, and introduces
-  some new atoms. See :ref:`updates` for more information.
+In early 2022 we started moving CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
+assign version numbers following the specification at `semver.org <https://semver.org/>`_.
+This will result in us incrementing CVXPY's minor version number (the "x" in "CVXPY 1.x.y")
+much more often than before. Moving forward we will also make it a priority to differentiate
+between what is and is-not part of CVXPY's public API.
 
 
 .. _OSQP: https://osqp.org/
