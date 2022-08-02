@@ -267,6 +267,21 @@ class TestGrad(BaseTest):
         # access quad_form.expr.grad without error
         prob.constraints[1].expr.grad
 
+        # define the optimization problem with a two-dimensional decision variable
+        x = cp.Variable((n, 1))
+        prob = cp.Problem(
+            cp.Maximize(q.T @ x - (1 / 2) * cp.quad_form(x, P)),
+            [
+                cp.norm(x, 1) <= 1.0,
+                cp.quad_form(x, P) <= 10,  # quad form constraint
+                cp.abs(x) <= 0.01,
+            ],
+        )
+        prob.solve(solver=cp.SCS)
+
+        # access quad_form.expr.grad without error
+        prob.constraints[1].expr.grad
+
     def test_max(self) -> None:
         """Test gradient for max
         """
