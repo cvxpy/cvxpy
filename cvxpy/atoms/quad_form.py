@@ -113,8 +113,8 @@ class QuadForm(Atom):
     def _grad(self, values):
         x = np.array(values[0])
         P = np.array(values[1])
-        return [sp.csc_matrix(D.ravel(order='F')).T]
         D = (P + np.conj(P.T)) @ x
+        return [sp.csc_matrix(D.ravel(order="F")).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple() if self.args[0].ndim == 0 else (1, 1)
