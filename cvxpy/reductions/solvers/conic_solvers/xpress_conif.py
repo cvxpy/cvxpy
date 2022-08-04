@@ -44,10 +44,11 @@ class XPRESS(ConicSolver):
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS + [SOC]
     MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
-    def __init__(self) -> None:
+    def __init__(self, quad_obj: bool = False) -> None:
         # Main member of this class: an Xpress problem. Marked with a
         # trailing "_" to denote a member
         self.prob_ = None
+        super(XPRESS, self).__init__(quad_obj)
 
     def name(self):
         """The name of the solver.
