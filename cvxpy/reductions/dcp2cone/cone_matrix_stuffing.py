@@ -26,9 +26,9 @@ from cvxpy.problems.objective import Minimize
 from cvxpy.problems.param_prob import ParamProb
 from cvxpy.reductions import InverseData, Solution, cvx_attr2constr
 from cvxpy.reductions.matrix_stuffing import MatrixStuffing, extract_mip_idx
-from cvxpy.reductions.utilities import (are_args_affine, group_constraints,
-                                        lower_equality, lower_ineq_to_nonneg,
-                                        nonpos2nonneg,)
+from cvxpy.reductions.utilities import (ReducedMat, are_args_affine,
+                                        group_constraints, lower_equality,
+                                        lower_ineq_to_nonneg, nonpos2nonneg,)
 from cvxpy.utilities.coeff_extractor import CoeffExtractor
 
 
@@ -130,9 +130,7 @@ class ParamConeProg(ParamProb):
 
         # The variable
         self.x = x
-        self.reduced_A = None
-        self.problem_data_tensor = None
-        self._A_mapping_nonzero = None
+        self.reduced_A = ReducedMat(self.A, self.x.size)
 
         self.constraints = constraints
         self.constr_size = sum([c.size for c in constraints])
@@ -168,18 +166,7 @@ class ParamConeProg(ParamProb):
           keep_zeros: (optional) if True, store explicit zeros in A where
                         parameters are affected
         """
-        if self.reduced_A is None:
-            # Form a reduced representation of A, for faster application of
-            # parameters.
-            if np.prod(self.A.shape) != 0:
-                reduced_A, indices, indptr, shape = (
-                    canonInterface.reduce_problem_data_tensor(
-                        self.A, self.x.size))
-                self.reduced_A = reduced_A
-                self.problem_data_index = (indices, indptr, shape)
-            else:
-                self.reduced_A = self.A
-                self.problem_data_index = None
+        self.reduced_A.cache()
 
         def param_value(idx):
             return (np.array(self.id_to_param[idx].value) if id_to_param_value
@@ -194,13 +181,7 @@ class ParamConeProg(ParamProb):
         c, d = canonInterface.get_matrix_from_tensor(
             self.c, param_vec, self.x.size, with_offset=True)
         c = c.toarray().flatten()
-        if keep_zeros and self._A_mapping_nonzero is None:
-            self._A_mapping_nonzero = canonInterface.A_mapping_nonzero_rows(
-                self.A, self.x.size)
-        A, b = canonInterface.get_matrix_from_tensor(
-            self.reduced_A, param_vec, self.x.size,
-            nonzero_rows=self._A_mapping_nonzero, with_offset=True,
-            problem_data_index=self.problem_data_index)
+        A, b = self.reduced_A.get_matrix_from_tensor(param_vec, with_offset=True)
         return c, d, A, np.atleast_1d(b)
 
     def apply_param_jac(self, delc, delA, delb, active_params=None):
