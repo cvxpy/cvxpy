@@ -105,10 +105,6 @@ class ConicSolver(Solver):
     # Supports quadratic objective.
     SUPPORTS_QUAD_OBJ = False
 
-    def __init__(self, quad_obj: bool = False):
-        # Assume a quadratic objective?
-        self.quad_obj = quad_obj
-
     def accepts(self, problem):
         return (isinstance(problem, ParamConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
@@ -340,11 +336,11 @@ class ConicSolver(Solver):
 
         # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
-        if self.quad_obj:
+        if problem.P is None:
+            c, d, A, b = problem.apply_parameters()
+        else:
             P, c, d, A, b = problem.apply_parameters(quad_obj=True)
             data[s.P] = P
-        else:
-            c, d, A, b = problem.apply_parameters()
         data[s.C] = c
         inv_data[s.OFFSET] = d
         data[s.A] = -A
