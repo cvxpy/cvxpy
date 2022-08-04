@@ -111,12 +111,9 @@ class ParamQuadProg(ParamProb):
         self.x = x
         self.A = A
 
-        # Form a reduced representation of A, for faster application of
-        # parameters.
+        # Form a reduced representation of A and P, for faster application
+        # of parameters.
         self.reduced_A = ReducedMat(self.A, self.x.size)
-
-        # Form a reduced representation of P, for faster application of
-        # parameters.
         self.reduced_P = ReducedMat(self.P, self.x.size, quad_form=True)
 
         self.constraints = constraints

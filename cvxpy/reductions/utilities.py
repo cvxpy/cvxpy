@@ -113,6 +113,10 @@ class ReducedMat:
             keep_zeros: (optional) if True, store explicit zeros in A where
                         parameters are affected.
         """
+        # Short circuit null case.
+        if self.matrix_data is None:
+            return
+
         if self.reduced_mat is None:
             # Form a reduced representation of the mapping,
             # for faster application of parameters.
