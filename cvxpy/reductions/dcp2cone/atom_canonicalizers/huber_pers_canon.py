@@ -1,5 +1,5 @@
 """
-Copyright 2013 Steven Diamond
+Copyright 2022, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,22 +25,23 @@ from cvxpy.reductions.eliminate_pwl.atom_canonicalizers.abs_canon import (
 
 def huber_pers_canon(expr, args):
     M = expr.M
-    t = expr.t
+    t = args[1]
     x = args[0]
     shape = expr.shape
     n = Variable(shape)
     s = Variable(shape)
 
-    # t(n**2 + 2*M*|s|)
+    # (n**2/t + 2*M*|s|)
     # TODO(akshayka): Make use of recursion inherent to canonicalization
     # process and just return a power / abs expressions for readability sake
     power_expr = power(n, 2)
     n2, constr_sq = power_canon(power_expr, power_expr.args)
     abs_expr = abs(s)
     abs_s, constr_abs = abs_canon(abs_expr, abs_expr.args)
-    obj = (n2 + 2 * M * abs_s)*t
+    obj = n2/t + 2 * M * abs_s
 
-    # x == t(s + n)
     constraints = constr_sq + constr_abs
-    constraints.append(x == t*(s + n))
+    constraints.append(x == (s + n))
+    constraints.append(n <= t*M)
+
     return obj, constraints

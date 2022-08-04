@@ -537,9 +537,9 @@ scalars, which are promoted.
      - :math:`x \in \mathbf{R}`
      - |positive| positive
      - |convex| convex
-     - |incr| for :math:`x \geq 0`
+     - |incr| in x for :math:`x \geq 0`
 
-       |decr| for :math:`x \leq 0`
+       |decr| in x for :math:`x \leq 0`
 
    * - :ref:`imag(x) <imag-atom>`
 

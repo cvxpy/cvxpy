@@ -90,7 +90,7 @@ ATOM_DEFINITIONS = [
   },
   {"name":"huber_pers",
    "usage": "huber_pers(x)",
-   "arguments": ("Takes a single expression followed by two parameter as arguments M and t. "
+   "arguments": ("Takes a expression followed by constant parameter argument M and an epxression argument t."
                  "The parameter t must be a positive number and M must be a nonnegative number. "
                  "The default value for the parameters is 1."),
    "meaning":
@@ -99,8 +99,8 @@ ATOM_DEFINITIONS = [
    "domain": "$ x \in \mathbf{R} $",
    "curvature": "Convex",
    "sign": "Positive",
-   "monotonicity": ["Increasing for $ x \geq 0 $",
-                    "Decreasing for $ x \leq 0 $"],
+   "monotonicity": ["Increasing in x for $ x \geq 0 $",
+                    "Decreasing in x for $ x \leq 0 $"],
    "cvx_equivalent": "huber, huber_pos, huber_circ",
   },
   {"name":"inv_pos",

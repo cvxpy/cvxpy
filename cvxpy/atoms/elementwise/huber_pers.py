@@ -1,5 +1,5 @@
 """
-Copyright
+Copyright 2022, the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import numpy as np
 import scipy.special
 
 from cvxpy.atoms.elementwise.elementwise import Elementwise
+from cvxpy.atoms.elementwise.abs import abs
 
 
 class huber_pers(Elementwise):
@@ -41,21 +42,21 @@ class huber_pers(Elementwise):
     x : Expression
         The expression to which the huber function will be applied.
     M : Constant
-        A scalar constant.
-    t : Constant
-        A scalar constant.
+        A scalar nonnegative constant.
+    t : Expression
+        Postive perspective to be applied to the function.
+        Absolute value of negative expressions will be taken.
     """
 
     def __init__(self, x, M: int = 1, t: int = 1) -> None:
         self.M = self.cast_to_const(M)
-        self.t = self.cast_to_const(t)
-        super(huber_pers, self).__init__(x)
+        super(huber_pers, self).__init__(x, abs(t))
 
     @Elementwise.numpy_numeric
     def numeric(self, values) -> float:
         """Returns the perspective transform of the huber function applied elementwise to x.
         """
-        return 2*self.t.value*scipy.special.huber(self.M.value, values[0]/self.t.value)
+        return 2*values[1]*scipy.special.huber(self.M.value, values[0]/values[1])
 
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Returns sign (is positive, is negative) of the expression.
@@ -84,14 +85,14 @@ class huber_pers(Elementwise):
         return self.args[idx].is_nonpos()
 
     def is_quadratic(self) -> bool:
-        """Quadratic if x is affine.
+        """Quadratic if x is affine and t is constant.
         """
-        return self.args[0].is_affine()
+        return self.args[0].is_affine() and self.args[1].is_constant()
 
     def get_data(self):
-        """Returns an array with the parameters (M,t).
+        """Returns the parameter M.
         """
-        return [self.M, self.t]
+        return [self.M]
 
     def validate_arguments(self) -> None:
         """Checks that M >= 0 and is constant.
@@ -100,10 +101,6 @@ class huber_pers(Elementwise):
                 self.M.is_scalar() and
                 self.M.is_constant()):
             raise ValueError("M must be a non-negative scalar constant.")
-        if not (self.t.is_pos() and
-                self.t.is_scalar() and
-                self.t.is_constant()):
-            raise ValueError("t must be a positive scalar constant.")
         super(huber_pers, self).validate_arguments()
 
     def _grad(self, values):
@@ -117,8 +114,14 @@ class huber_pers(Elementwise):
         Returns:
             A list of SciPy CSC sparse matrices or None.
         """
-        rows = self.args[0].size
-        cols = self.size
-        min_val = np.minimum(np.abs(values[0])/self.t.value, self.M.value)
-        grad_vals = 2*np.multiply(np.sign(values[0]), min_val)
-        return [huber_pers.elemwise_grad_to_diag(grad_vals, rows, cols)]
+
+        min_val = np.minimum(np.abs(values[0])/values[1], self.M.value)
+        sqr = min_val**2
+        grad_vals = [2*np.multiply(np.sign(values[0]), min_val), np.multiply(np.sign(-1), sqr)]
+        grad_list = []
+        for idx in range(len(values)):
+            rows = self.args[idx].size
+            cols = self.size
+            grad_list += [huber_pers.elemwise_grad_to_diag(grad_vals[idx], rows, cols)]
+
+        return grad_list

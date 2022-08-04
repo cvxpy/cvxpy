@@ -699,14 +699,9 @@ class TestAtoms(BaseTest):
                          "M must be a non-negative scalar constant.")
 
         with self.assertRaises(Exception) as cm:
-            cp.huber_pers(self.x, 1, 0)
+            cp.huber_pers(self.x, 1, self.A)
         self.assertEqual(str(cm.exception),
-                         "t must be a positive scalar constant.")
-
-        with self.assertRaises(Exception) as cm:
-            cp.huber_pers(self.x, 1, [1, 1])
-        self.assertEqual(str(cm.exception),
-                         "t must be a positive scalar constant.")
+                         "Cannot broadcast dimensions  (2,) (2, 2)")
 
         # parameters.
         M = Parameter(nonneg=True)
@@ -717,32 +712,11 @@ class TestAtoms(BaseTest):
         t.value = 1
         self.assertAlmostEqual(cp.huber_pers(2, M, t).value, 3)
         # Invalid.
-        t = Parameter(neg=True)
-        with self.assertRaises(Exception) as cm:
-            cp.huber_pers(self.x, M, t)
-        self.assertEqual(str(cm.exception),
-                         "t must be a positive scalar constant.")
         M = Parameter(nonpos=True)
         with self.assertRaises(Exception) as cm:
             cp.huber_pers(self.x, M)
         self.assertEqual(str(cm.exception),
                          "M must be a non-negative scalar constant.")
-
-        # Test copy with args=None
-        atom = cp.huber_pers(self.x, 2, 3)
-        copy = atom.copy()
-        self.assertTrue(type(copy) is type(atom))
-        # A new object is constructed, so copy.args == atom.args but copy.args
-        # is not atom.args.
-        self.assertEqual(copy.args, atom.args)
-        self.assertFalse(copy.args is atom.args)
-        # As get_data() returns a Constant, we have to check the value
-        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
-        # Test copy with new args
-        copy = atom.copy(args=[self.y])
-        self.assertTrue(type(copy) is type(atom))
-        self.assertTrue(copy.args[0] is self.y)
-        self.assertEqual(copy.get_data()[0].value, atom.get_data()[0].value)
 
     def test_huber(self) -> None:
         # Valid.
