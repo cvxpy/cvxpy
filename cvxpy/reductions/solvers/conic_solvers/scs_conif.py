@@ -312,7 +312,7 @@ class SCS(ConicSolver):
         import scs
         scs_version = Version(scs.__version__)
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
-        if self.quad_obj:
+        if s.P in data:
             args["P"] = data[s.P]
         if warm_start and solver_cache is not None and \
                 self.name() in solver_cache:
