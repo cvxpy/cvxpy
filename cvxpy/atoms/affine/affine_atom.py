@@ -74,6 +74,11 @@ class AffAtom(Atom):
     def is_quadratic(self) -> bool:
         return all(arg.is_quadratic() for arg in self.args)
 
+    def has_quadratic_term(self) -> bool:
+        """Does the affine head of the expression contain a quadratic term?
+        """
+        return any(arg.has_quadratic_term() for arg in self.args)
+
     def is_qpwa(self) -> bool:
         return all(arg.is_qpwa() for arg in self.args)
 

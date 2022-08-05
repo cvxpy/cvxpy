@@ -335,6 +335,12 @@ class Expression(u.Canonical):
         # Defaults to is constant.
         return self.is_constant()
 
+    def has_quadratic_term(self) -> bool:
+        """Does the affine head of the expression contain a quadratic term?
+        """
+        # Defaults to constant.
+        return self.is_constant()
+
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """

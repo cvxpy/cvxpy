@@ -305,6 +305,22 @@ class power(Elementwise):
         else:
             return self.args[0].is_constant()
 
+    def has_quadratic_term(self) -> bool:
+        """Does the affine head of the expression contain a quadratic term?
+        """
+        if not _is_const(self.p):
+            return False
+
+        p = self.p_rational
+        if p == 0:
+            return True
+        elif p == 1:
+            return self.args[0].has_quadratic_term()
+        elif p == 2:
+            return self.args[0].has_quadratic_term()
+        else:
+            return self.args[0].is_constant()
+
     def is_qpwa(self) -> bool:
         if not _is_const(self.p):
             # disallow parameters
