@@ -63,7 +63,7 @@ class Dcp2Cone(Canonicalization):
             # generated while canonicalizing the arguments of the original
             # constraint
             canon_constr, aux_constr = self.canonicalize_tree(
-                constraint, True)
+                constraint, False)
             canon_constraints += aux_constr + [canon_constr]
             inverse_data.cons_id_map.update({constraint.id: canon_constr.id})
 
