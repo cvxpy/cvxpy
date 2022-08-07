@@ -925,6 +925,9 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 ``'use_indirect'``
     whether to use indirect solver for KKT sytem (instead of direct) (default: True).
 
+``'use_quad_obj'``
+    whether to use a quadratic objective or reduce it to SOC constraints (default: True).
+
 `CBC`_ options:
 
 Cut-generation through `CGL`_

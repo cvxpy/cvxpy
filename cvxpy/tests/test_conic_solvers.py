@@ -320,6 +320,26 @@ class TestSCS(BaseTest):
         eigs = np.linalg.eig(s + s.T)[0]
         self.assertEqual(np.all(eigs >= 0), True)
 
+    def test_quad_obj(self) -> None:
+        """Test SCS canonicalization with a quadratic objective.
+        """
+        x = cp.Variable(2)
+        expr = cp.sum_squares(x)
+        constr = [x >= 1]
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver=cp.SCS)
+        self.assertItemsAlmostEqual(data[0]["P"].A, 2*np.eye(2))
+        solution1 = prob.solve(solver=cp.SCS)
+
+        # When use_quad_obj = False, the quadratic objective is
+        # canonicalized to a SOC constraint.
+        prob = cp.Problem(cp.Minimize(expr), constr)
+        data = prob.get_problem_data(solver=cp.SCS, use_quad_obj=False)
+        assert "P" not in data[0]
+        solution2 = prob.solve(solver=cp.SCS, use_quad_obj=False)
+
+        assert np.isclose(solution1, solution2)
+
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
 

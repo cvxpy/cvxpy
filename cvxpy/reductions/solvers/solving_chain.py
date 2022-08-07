@@ -129,7 +129,8 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
 def construct_solving_chain(problem, candidates,
                             gp: bool = False,
                             enforce_dpp: bool = False,
-                            ignore_dpp: bool = False) -> "SolvingChain":
+                            ignore_dpp: bool = False,
+                            solver_args: dict = None) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -151,6 +152,8 @@ def construct_solving_chain(problem, candidates,
     ignore_dpp : bool, optional
         When True, DPP problems will be treated as non-DPP,
         which may speed up compilation. Defaults to False.
+    solve_args : dict, optional
+        Additional arguments to pass to the solver.
 
     Returns
     -------
@@ -272,7 +275,12 @@ def construct_solving_chain(problem, candidates,
                 reductions.append(Exotic2Common())
             if approx_cos:
                 reductions.append(QuadApprox())
-            quad_obj = solver_instance.SUPPORTS_QUAD_OBJ and \
+            # Should the objective be canonicalized to a quadratic?
+            if solver_args is None:
+                use_quad_obj = True
+            else:
+                use_quad_obj = solver_args.get("use_quad_obj", True)
+            quad_obj = use_quad_obj and solver_instance.SUPPORTS_QUAD_OBJ and \
                 problem.objective.expr.has_quadratic_term()
             reductions += [
                 Dcp2Cone(quad_obj=quad_obj),

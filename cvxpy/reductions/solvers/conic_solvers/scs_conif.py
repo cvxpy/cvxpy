@@ -289,6 +289,9 @@ class SCS(ConicSolver):
             else:
                 solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
                 solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+        # use_quad_obj is only for canonicalization.
+        if "use_quad_obj" in solver_opts:
+            del solver_opts["use_quad_obj"]
         return solver_opts
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
