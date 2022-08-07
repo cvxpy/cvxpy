@@ -102,8 +102,10 @@ class ConicSolver(Solver):
     # Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
     EXP_CONE_ORDER = None
 
-    # Supports quadratic objective.
-    SUPPORTS_QUAD_OBJ = False
+    def supports_quad_obj(self) -> bool:
+        """By default does not support a quadratic objective.
+        """
+        return False
 
     def accepts(self, problem):
         return (isinstance(problem, ParamConeProg)

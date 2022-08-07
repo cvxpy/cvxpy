@@ -147,9 +147,6 @@ class SCS(ConicSolver):
     https://www.cvxgrp.org/scs/api/settings.html
     """
 
-    # Supports quadratic objective.
-    SUPPORTS_QUAD_OBJ = True
-
     def name(self):
         """The name of the solver.
         """
@@ -160,6 +157,12 @@ class SCS(ConicSolver):
         """
         import scs
         scs  # For flake8
+
+    def supports_quad_obj(self) -> bool:
+        """SCS >= 3.0.0 supports a quadratic objective.
+        """
+        import scs
+        return Version(scs.__version__) >= Version('3.0.0')
 
     @staticmethod
     def psd_format_mat(constr):

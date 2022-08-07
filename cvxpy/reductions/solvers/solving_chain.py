@@ -280,7 +280,7 @@ def construct_solving_chain(problem, candidates,
                 use_quad_obj = True
             else:
                 use_quad_obj = solver_args.get("use_quad_obj", True)
-            quad_obj = use_quad_obj and solver_instance.SUPPORTS_QUAD_OBJ and \
+            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
                 problem.objective.expr.has_quadratic_term()
             reductions += [
                 Dcp2Cone(quad_obj=quad_obj),
