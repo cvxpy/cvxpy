@@ -747,6 +747,12 @@ class TestGLOP(unittest.TestCase):
         with self.assertRaises(cp.error.SolverError):
             prob.solve(solver='GLOP', parameters_proto="not a proto")
 
+    def test_glop_time_limit(self) -> None:
+        sth = sths.lp_1()
+        # Checks that the option doesn't error. A better test would be to solve
+        # a large instance and check that the time limit is hit.
+        sth.solve(solver='GLOP', time_limit_sec=1.0)
+
 
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
 class TestPDLP(unittest.TestCase):
@@ -805,6 +811,12 @@ class TestPDLP(unittest.TestCase):
         prob = cp.Problem(cp.Maximize(x), [x <= 1])
         with self.assertRaises(cp.error.SolverError):
             prob.solve(solver='PDLP', parameters_proto="not a proto")
+
+    def test_pdlp_time_limit(self) -> None:
+        sth = sths.lp_1()
+        # Checks that the option doesn't error. A better test would be to solve
+        # a large instance and check that the time limit is hit.
+        sth.solve(solver='PDLP', time_limit_sec=1.0)
 
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
