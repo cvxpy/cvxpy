@@ -27,6 +27,8 @@ from cvxpy.utilities.versioning import Version
 class DIFFCP(scs_conif.SCS):
     """An interface for the DIFFCP solver, a differentiable wrapper of SCS and ECOS.
     """
+    SUPPORTS_QUAD_OBJ = False
+
     # Map of DIFFCP status to CVXPY status.
     STATUS_MAP = {"Solved": s.OPTIMAL,
                   "Solved/Inaccurate": s.OPTIMAL_INACCURATE,
