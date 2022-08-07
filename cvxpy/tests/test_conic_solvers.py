@@ -343,6 +343,12 @@ class TestSCS(BaseTest):
 
             assert np.isclose(solution1, solution2)
 
+            # Check that there is no P for non-quadratic objectives.
+            expr = cp.norm(x, 1)
+            prob = cp.Problem(cp.Minimize(expr), constr)
+            data = prob.get_problem_data(solver=cp.SCS)
+            assert "P" not in data[0]
+
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
 

@@ -183,8 +183,8 @@ class TestExpressions(BaseTest):
     def test_has_quadratic(self) -> None:
         """Test the has_quadratic_term function."""
         x = Variable()
-        assert x.has_quadratic_term()
-        assert (3 + 3*x).has_quadratic_term()
+        assert not x.has_quadratic_term()
+        assert not (3 + 3*x).has_quadratic_term()
         assert (x**2).has_quadratic_term()
         assert (x**2/2).has_quadratic_term()
         assert (x**2 + x**3).has_quadratic_term()

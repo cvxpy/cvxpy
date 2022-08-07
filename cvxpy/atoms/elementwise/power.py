@@ -312,14 +312,12 @@ class power(Elementwise):
             return False
 
         p = self.p_rational
-        if p == 0:
-            return True
-        elif p == 1:
+        if p == 1:
             return self.args[0].has_quadratic_term()
         elif p == 2:
-            return self.args[0].has_quadratic_term()
+            return True
         else:
-            return self.args[0].is_constant()
+            return False
 
     def is_qpwa(self) -> bool:
         if not _is_const(self.p):
