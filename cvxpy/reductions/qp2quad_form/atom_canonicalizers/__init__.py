@@ -25,6 +25,7 @@ from cvxpy.reductions.qp2quad_form.atom_canonicalizers.quad_over_lin_canon impor
 from cvxpy.transforms.indicator import indicator
 
 CANON_METHODS = {}
+QUAD_CANON_METHODS = {}
 
 # TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 
@@ -42,7 +43,9 @@ CANON_METHODS[indicator] = CONE_METHODS[indicator]
 CANON_METHODS[special_index] = CONE_METHODS[special_index]
 
 # canonicalizations that are different for QPs
-CANON_METHODS[quad_over_lin] = quad_over_lin_canon
-CANON_METHODS[power] = power_canon
-CANON_METHODS[huber] = huber_canon
-CANON_METHODS[QuadForm] = quad_form_canon
+QUAD_CANON_METHODS[quad_over_lin] = quad_over_lin_canon
+QUAD_CANON_METHODS[power] = power_canon
+QUAD_CANON_METHODS[huber] = huber_canon
+QUAD_CANON_METHODS[QuadForm] = quad_form_canon
+
+CANON_METHODS.update(QUAD_CANON_METHODS)
