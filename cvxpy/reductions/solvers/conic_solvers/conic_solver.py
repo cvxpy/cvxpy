@@ -269,6 +269,7 @@ class ConicSolver(Solver):
                                             problem.constraints,
                                             problem.parameters,
                                             problem.param_id_to_col,
+                                            P=problem.P,
                                             formatted=True)
         return new_param_cone_prog
 

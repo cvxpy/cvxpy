@@ -118,8 +118,6 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
             raise SolverError("Problem could not be reduced to a QP, and no "
                               "conic solvers exist among candidate solvers "
                               "(%s)." % candidates)
-        else:
-            reductions += [Dcp2Cone(), CvxAttr2Constr()]
 
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
@@ -274,7 +272,14 @@ def construct_solving_chain(problem, candidates,
                 reductions.append(Exotic2Common())
             if approx_cos:
                 reductions.append(QuadApprox())
-            reductions += [ConeMatrixStuffing(), solver_instance]
+            quad_obj = solver_instance.SUPPORTS_QUAD_OBJ and \
+                problem.objective.expr.has_quadratic_term()
+            reductions += [
+                Dcp2Cone(quad_obj=quad_obj),
+                CvxAttr2Constr(),
+                ConeMatrixStuffing(quad_obj=quad_obj),
+                solver_instance
+            ]
             return SolvingChain(reductions=reductions)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "
