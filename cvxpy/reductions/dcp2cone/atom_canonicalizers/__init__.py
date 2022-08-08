@@ -33,6 +33,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_sum_exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.logistic_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.matrix_frac_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.normNuc_canon import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.perspective_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.pnorm_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.power_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.quad_form_canon import *
@@ -48,6 +49,9 @@ from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
     minimum_canon, norm1_canon, norm_inf_canon, sum_largest_canon, dotsort_canon,)
 from cvxpy.reductions.utilities import special_index_canon
 from cvxpy.transforms.indicator import indicator
+
+#TODO: figure out this import
+from cvxpy.atoms.perspective import perspective
 
 # TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 CANON_METHODS = {
@@ -79,6 +83,7 @@ CANON_METHODS = {
     logistic : logistic_canon,
     maximum : maximum_canon,
     minimum : minimum_canon,
+    perspective : perspective_canon,
     power : power_canon,
     rel_entr : rel_entr_canon,
     indicator : indicator_canon,

@@ -49,7 +49,8 @@ def _solve_as_qp(problem, candidates):
         # GUROBI and CPLEX QP/LP interfaces are more efficient
         #   -> Use them instead of conic if applicable.
         return False
-    return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
+    # return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
+    return False # TODO remove patch
 
 
 def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List[Any]:
