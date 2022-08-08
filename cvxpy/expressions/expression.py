@@ -337,6 +337,10 @@ class Expression(u.Canonical):
 
     def has_quadratic_term(self) -> bool:
         """Does the affine head of the expression contain a quadratic term?
+
+        The affine head is all nodes with a path to the root node
+        that does not pass through any non-affine atom. If the root node
+        is non-affine, then the affine head is the root alone.
         """
         # Defaults to constant.
         return self.is_constant()

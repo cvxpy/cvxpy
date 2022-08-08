@@ -32,8 +32,8 @@ class Dcp2Cone(Canonicalization):
     """Reduce DCP problems to a conic form.
 
     This reduction takes as input (minimization) DCP problems and converts
-    them into problems with affine objectives and conic constraints whose
-    arguments are affine.
+    them into problems with affine or quadratic objectives and conic
+    constraints whose arguments are affine.
     """
     def __init__(self, problem=None, quad_obj: bool = False) -> None:
         super(Canonicalization, self).__init__(problem=problem)

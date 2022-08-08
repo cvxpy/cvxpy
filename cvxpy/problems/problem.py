@@ -511,7 +511,7 @@ class Problem(u.Canonical):
         enforce_dpp: bool = False,
         ignore_dpp: bool = False,
         verbose: bool = False,
-        **kwargs
+        solver_opts: Optional[dict] = None
     ):
         """Returns the problem data used in the call to the solver.
 
@@ -591,7 +591,7 @@ class Problem(u.Canonical):
             which may speed up compilation. Defaults to False.
         verbose : bool, optional
             If True, print verbose output related to problem compilation.
-        kwargs : dict, optional
+        solver_opts : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
             imposed by cvxpy.
@@ -624,7 +624,7 @@ class Problem(u.Canonical):
                 solver=solver, gp=gp,
                 enforce_dpp=enforce_dpp,
                 ignore_dpp=ignore_dpp,
-                solver_args=kwargs)
+                solver_opts=solver_opts)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
             self._solver_cache = {}
@@ -830,7 +830,7 @@ class Problem(u.Canonical):
     def _construct_chain(
         self, solver: Optional[str] = None, gp: bool = False,
         enforce_dpp: bool = False, ignore_dpp: bool = False,
-        solver_args: dict = None
+        solver_opts: Optional[dict] = None
     ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
@@ -853,7 +853,7 @@ class Problem(u.Canonical):
         ignore_dpp : bool, optional
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
-        solver_args: dict, optional
+        solver_opts: dict, optional
             Additional arguments to pass to the solver.
 
         Returns
@@ -865,7 +865,7 @@ class Problem(u.Canonical):
         return construct_solving_chain(self, candidate_solvers, gp=gp,
                                        enforce_dpp=enforce_dpp,
                                        ignore_dpp=ignore_dpp,
-                                       solver_args=solver_args)
+                                       solver_opts=solver_opts)
 
     @staticmethod
     def _sort_candidate_solvers(solvers) -> None:
@@ -1026,7 +1026,7 @@ class Problem(u.Canonical):
                 return self.value
 
         data, solving_chain, inverse_data = self.get_problem_data(
-            solver, gp, enforce_dpp, ignore_dpp, verbose, **kwargs)
+            solver, gp, enforce_dpp, ignore_dpp, verbose, kwargs)
 
         if verbose:
             print(_NUM_SOLVER_STR)

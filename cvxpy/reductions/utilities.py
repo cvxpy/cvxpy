@@ -87,6 +87,14 @@ def group_constraints(constraints):
 class ReducedMat:
     """Utility class for condensing the mapping from parameters to problem data.
 
+    For maximum efficiency of representation and application, the mapping from
+    parameters to problem data must be condensed. It begins as a CSC sparse matrix,
+    such that multiplying by a parameter vector gives the problem data. The row index
+    array and column pointer array are saved, and a dense matrix that when multiplied
+    by a parameter vector gives the values array. The ReducedMat class caches the
+    condensed representation and provides a method for multiplying by a parameter
+    vector.
+
     Attributes
     ----------
     matrix_data : SciPy sparse matrix

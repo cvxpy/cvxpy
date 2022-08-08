@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, List
+from typing import Any, List, Optional
 
 import numpy as np
 
@@ -130,7 +130,7 @@ def construct_solving_chain(problem, candidates,
                             gp: bool = False,
                             enforce_dpp: bool = False,
                             ignore_dpp: bool = False,
-                            solver_args: dict = None) -> "SolvingChain":
+                            solver_opts: Optional[dict] = None) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -276,10 +276,10 @@ def construct_solving_chain(problem, candidates,
             if approx_cos:
                 reductions.append(QuadApprox())
             # Should the objective be canonicalized to a quadratic?
-            if solver_args is None:
+            if solver_opts is None:
                 use_quad_obj = True
             else:
-                use_quad_obj = solver_args.get("use_quad_obj", True)
+                use_quad_obj = solver_opts.get("use_quad_obj", True)
             quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
                 problem.objective.expr.has_quadratic_term()
             reductions += [

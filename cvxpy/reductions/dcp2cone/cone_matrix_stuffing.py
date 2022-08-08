@@ -203,6 +203,9 @@ class ParamConeProg(ParamProb):
         Returns:
             A dictionary param.id -> dparam
         """
+        if self.P is not None:
+            raise ValueError("Can't apply Jacobian with a quadratic objective.")
+
         if active_params is None:
             active_params = {p.id for p in self.parameters}
 
