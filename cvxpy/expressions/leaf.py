@@ -92,7 +92,7 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
 
     def __init__(
-        self, shape: int | tuple[int, ...]], value=None, nonneg: bool = False,
+        self, shape: int | tuple[int, ...], value=None, nonneg: bool = False,
         nonpos: bool = False, complex: bool = False, imag: bool = False,
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
