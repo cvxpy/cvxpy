@@ -100,6 +100,11 @@ class QuadForm(Atom):
         """
         return True
 
+    def has_quadratic_term(self) -> bool:
+        """Always a quadratic term.
+        """
+        return True
+
     def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """

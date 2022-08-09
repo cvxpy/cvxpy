@@ -158,6 +158,12 @@ class SCS(ConicSolver):
         import scs
         scs  # For flake8
 
+    def supports_quad_obj(self) -> bool:
+        """SCS >= 3.0.0 supports a quadratic objective.
+        """
+        import scs
+        return Version(scs.__version__) >= Version('3.0.0')
+
     @staticmethod
     def psd_format_mat(constr):
         """Return a linear operator to multiply by PSD constraint coefficients.
@@ -286,6 +292,9 @@ class SCS(ConicSolver):
             else:
                 solver_opts['eps_abs'] = solver_opts.get('eps_abs', 1e-5)
                 solver_opts['eps_rel'] = solver_opts.get('eps_rel', 1e-5)
+        # use_quad_obj is only for canonicalization.
+        if "use_quad_obj" in solver_opts:
+            del solver_opts["use_quad_obj"]
         return solver_opts
 
     def solve_via_data(self, data, warm_start: bool, verbose: bool, solver_opts, solver_cache=None):
@@ -309,6 +318,8 @@ class SCS(ConicSolver):
         import scs
         scs_version = Version(scs.__version__)
         args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
+        if s.P in data:
+            args["P"] = data[s.P]
         if warm_start and solver_cache is not None and \
                 self.name() in solver_cache:
             args["x"] = solver_cache[self.name()]["x"]

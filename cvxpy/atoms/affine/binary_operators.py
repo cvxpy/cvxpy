@@ -344,6 +344,10 @@ class DivExpression(BinaryOperator):
     def is_quadratic(self) -> bool:
         return self.args[0].is_quadratic() and self.args[1].is_constant()
 
+    def has_quadratic_term(self) -> bool:
+        """Can be a quadratic term if divisor is constant."""
+        return self.args[0].has_quadratic_term() and self.args[1].is_constant()
+
     def is_qpwa(self) -> bool:
         return self.args[0].is_qpwa() and self.args[1].is_constant()
 

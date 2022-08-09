@@ -454,6 +454,11 @@ class Leaf(expression.Expression):
         """
         return True
 
+    def has_quadratic_term(self) -> bool:
+        """Leaf nodes are not quadratic terms.
+        """
+        return False
+
     def is_pwl(self) -> bool:
         """Leaf nodes are always piecewise linear.
         """
