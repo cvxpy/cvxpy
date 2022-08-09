@@ -13,7 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Optional, Tuple
+from __future__ import annotations
 
 import cvxpy.lin_ops.lin_utils as lu
 from cvxpy import settings as s
@@ -44,7 +44,7 @@ class Parameter(Leaf):
     PARAM_COUNT = 0
 
     def __init__(
-        self, shape: Tuple[int, ...] = (), name: Optional[str] = None, value=None, id=None, **kwargs
+        self, shape: int | tuple[int, ...] = (), name: str | None = None, value=None, id=None, **kwargs
     ) -> None:
         if id is None:
             self.id = lu.get_id()
@@ -96,7 +96,7 @@ class Parameter(Leaf):
         """
         return {}
 
-    def parameters(self) -> List["Parameter"]:
+    def parameters(self) -> list[Parameter]:
         """Returns itself as a parameter.
         """
         return [self]
