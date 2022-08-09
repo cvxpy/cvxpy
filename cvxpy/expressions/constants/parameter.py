@@ -44,7 +44,8 @@ class Parameter(Leaf):
     PARAM_COUNT = 0
 
     def __init__(
-        self, shape: int | tuple[int, ...] = (), name: str | None = None, value=None, id=None, **kwargs
+        self, shape: int | tuple[int, ...] = (), name: str | None = None, value=None,
+        id=None, **kwargs
     ) -> None:
         if id is None:
             self.id = lu.get_id()
