@@ -88,16 +88,18 @@ class ReducedMat:
     """Utility class for condensing the mapping from parameters to problem data.
 
     For maximum efficiency of representation and application, the mapping from
-    parameters to problem data must be condensed. It begins as a CSC sparse matrix,
-    such that multiplying by a parameter vector gives the problem data. The row index
-    array and column pointer array are saved, and a dense matrix that when multiplied
-    by a parameter vector gives the values array. The ReducedMat class caches the
-    condensed representation and provides a method for multiplying by a parameter
-    vector.
+    parameters to problem data must be condensed. It begins as a CSC sparse matrix
+    matrix_data, such that multiplying by a parameter vector gives the problem data.
+    The row index array and column pointer array are saved as problem_data_index,
+    and a CSR matrix reduced_mat that when multiplied by a parameter vector gives
+    the values array. The ReducedMat class caches the condensed representation
+    and provides a method for multiplying by a parameter vector.
+
+    This class consolidates code from ParamConeProg and ParamQuadProg.
 
     Attributes
     ----------
-    matrix_data : SciPy sparse matrix
+    matrix_data : SciPy CSC sparse matrix
        A matrix representing the mapping from parameter to problem data.
     var_len : int
        The length of the problem variable.
@@ -108,9 +110,15 @@ class ReducedMat:
         self.matrix_data = matrix_data
         self.var_len = var_len
         self.quad_form = quad_form
-        # Computed attributes.
+        # A CSR sparse matrix with redundant rows removed
+        # such that reduced_mat @ param = problem_data values array.
         self.reduced_mat = None
+        # A tuple containing the following:
+        # CSC indices for the problem data matrix
+        # CSC indptr for the problem data matrix
         self.problem_data_index = None
+        # The rows in the map from parameters to problem data that
+        # have any nonzeros.
         self.mapping_nonzero = None
 
     def cache(self, keep_zeros: bool = False) -> None:
