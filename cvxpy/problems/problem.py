@@ -50,7 +50,7 @@ from cvxpy.reductions.solvers.solving_chain import (SolvingChain,
                                                     construct_solving_chain,)
 from cvxpy.settings import SOLVERS
 from cvxpy.utilities import debug_tools
-from cvxpy.utilities.deterministic import unique_expressions, unique_list
+from cvxpy.utilities.deterministic import unique_list
 
 SolveResult = namedtuple(
     'SolveResult',
@@ -343,7 +343,7 @@ class Problem(u.Canonical):
         vars_ = self.objective.variables()
         for constr in self.constraints:
             vars_ += constr.variables()
-        return unique_expressions(vars_)
+        return unique_list(vars_)
 
     @perf.compute_once
     def parameters(self):
@@ -357,7 +357,7 @@ class Problem(u.Canonical):
         params = self.objective.parameters()
         for constr in self.constraints:
             params += constr.parameters()
-        return unique_expressions(params)
+        return unique_list(params)
 
     @perf.compute_once
     def constants(self) -> List[Constant]:

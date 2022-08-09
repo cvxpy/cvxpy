@@ -17,7 +17,7 @@ limitations under the License.
 import abc
 
 from cvxpy.utilities import performance_utils as pu
-from cvxpy.utilities.deterministic import unique_expressions, unique_list
+from cvxpy.utilities.deterministic import unique_list
 
 
 class Canonical:
@@ -47,13 +47,13 @@ class Canonical:
     def variables(self):
         """Returns all the variables present in the arguments.
         """
-        return unique_expressions(
+        return unique_list(
             [var for arg in self.args for var in arg.variables()])
 
     def parameters(self):
         """Returns all the parameters present in the arguments.
         """
-        return unique_expressions(
+        return unique_list(
             [param for arg in self.args for param in arg.parameters()])
 
     def constants(self):
@@ -97,6 +97,19 @@ class Canonical:
             return type(self)(*(args + data))
         else:
             return type(self)(*args)
+
+    def __copy__(self):
+        """
+        Called by copy.copy()
+        """
+        return self.copy()
+
+    def __deepcopy__(self, memo):
+        """
+        Called by copy.deepcopy()
+        """
+        raise NotImplementedError('Creating a deepcopy of a CVXPY expression is not supported. '
+                                  'Use .copy() instead.')
 
     def get_data(self) -> None:
         """Returns info needed to reconstruct the object besides the args.
