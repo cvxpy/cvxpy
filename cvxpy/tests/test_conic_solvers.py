@@ -320,6 +320,36 @@ class TestSCS(BaseTest):
         eigs = np.linalg.eig(s + s.T)[0]
         self.assertEqual(np.all(eigs >= 0), True)
 
+    def test_quad_obj(self) -> None:
+        """Test SCS canonicalization with a quadratic objective.
+        """
+        # Only relevant for SCS >= 3.0.0.
+        import scs
+        if Version(scs.__version__) >= Version('3.0.0'):
+            x = cp.Variable(2)
+            expr = cp.sum_squares(x)
+            constr = [x >= 1]
+            prob = cp.Problem(cp.Minimize(expr), constr)
+            data = prob.get_problem_data(solver=cp.SCS)
+            self.assertItemsAlmostEqual(data[0]["P"].A, 2*np.eye(2))
+            solution1 = prob.solve(solver=cp.SCS)
+
+            # When use_quad_obj = False, the quadratic objective is
+            # canonicalized to a SOC constraint.
+            prob = cp.Problem(cp.Minimize(expr), constr)
+            solver_opts = {"use_quad_obj": False}
+            data = prob.get_problem_data(solver=cp.SCS, solver_opts=solver_opts)
+            assert "P" not in data[0]
+            solution2 = prob.solve(solver=cp.SCS, **solver_opts)
+
+            assert np.isclose(solution1, solution2)
+
+            # Check that there is no P for non-quadratic objectives.
+            expr = cp.norm(x, 1)
+            prob = cp.Problem(cp.Minimize(expr), constr)
+            data = prob.get_problem_data(solver=cp.SCS)
+            assert "P" not in data[0]
+
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
 
@@ -800,6 +830,12 @@ class TestGLOP(unittest.TestCase):
         with self.assertRaises(cp.error.SolverError):
             prob.solve(solver='GLOP', parameters_proto="not a proto")
 
+    def test_glop_time_limit(self) -> None:
+        sth = sths.lp_1()
+        # Checks that the option doesn't error. A better test would be to solve
+        # a large instance and check that the time limit is hit.
+        sth.solve(solver='GLOP', time_limit_sec=1.0)
+
 
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
 class TestPDLP(unittest.TestCase):
@@ -858,6 +894,12 @@ class TestPDLP(unittest.TestCase):
         prob = cp.Problem(cp.Maximize(x), [x <= 1])
         with self.assertRaises(cp.error.SolverError):
             prob.solve(solver='PDLP', parameters_proto="not a proto")
+
+    def test_pdlp_time_limit(self) -> None:
+        sth = sths.lp_1()
+        # Checks that the option doesn't error. A better test would be to solve
+        # a large instance and check that the time limit is hit.
+        sth.solve(solver='PDLP', time_limit_sec=1.0)
 
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
@@ -1702,6 +1744,30 @@ class TestSCIPY(unittest.TestCase):
 
     def test_scipy_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_4(self) -> None:
+        StandardTestLPs.test_mi_lp_4(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='SCIPY')
 
 
 @unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')

@@ -133,6 +133,11 @@ class MatrixFrac(Atom):
         """
         return self.args[0].is_affine() and self.args[1].is_constant()
 
+    def has_quadratic_term(self) -> bool:
+        """Quadratic term if P is constant.
+        """
+        return self.args[1].is_constant()
+
     def is_qpwa(self) -> bool:
         """Quadratic of piecewise affine if x is PWL and P is constant.
         """

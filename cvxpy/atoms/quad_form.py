@@ -100,6 +100,11 @@ class QuadForm(Atom):
         """
         return True
 
+    def has_quadratic_term(self) -> bool:
+        """Always a quadratic term.
+        """
+        return True
+
     def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
@@ -113,8 +118,8 @@ class QuadForm(Atom):
     def _grad(self, values):
         x = np.array(values[0])
         P = np.array(values[1])
-        D = (P + np.conj(P.T)) @ x.T
-        return [sp.csc_matrix(D.ravel(order='F')).T]
+        D = (P + np.conj(P.T)) @ x
+        return [sp.csc_matrix(D.ravel(order="F")).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple() if self.args[0].ndim == 0 else (1, 1)

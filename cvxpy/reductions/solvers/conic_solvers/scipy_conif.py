@@ -31,10 +31,14 @@ class SCIPY(ConicSolver):
     """An interface for the SciPy linprog function.
     Note: This requires a version of SciPy which is >= 1.6.1
     """
+    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
 
     # Solver capabilities.
-    MIP_CAPABLE = False
-    SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS
+    if (Version(scipy.__version__) < Version('1.9.0')):
+        MIP_CAPABLE = False
+    else:
+        MIP_CAPABLE = True
+        MI_SUPPORTED_CONSTRAINTS = SUPPORTED_CONSTRAINTS
 
     # Map of SciPy linprog status
     STATUS_MAP = {0: s.OPTIMAL,  # Optimal
@@ -72,6 +76,11 @@ class SCIPY(ConicSolver):
         data[self.DIMS] = problem.cone_dims
         inv_data[self.DIMS] = problem.cone_dims
 
+        variables = problem.x
+        data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
+        data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
+        inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+
         constr_map = problem.constr_map
         inv_data[self.EQ_CONSTR] = constr_map[Zero]
         inv_data[self.NEQ_CONSTR] = constr_map[NonNeg]
@@ -103,6 +112,26 @@ class SCIPY(ConicSolver):
         else:
             meth = "highs"
 
+        # Check if the problem is a MIP.
+        problem_is_a_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
+
+        # Track variable integrality options. An entry of zero implies that
+        # the variable is continuous. An entry of one implies that the
+        # variable is either binary or an integer with bounds.
+        if problem_is_a_mip:
+            integrality = [0] * data[s.C].shape[0]
+
+            for index in data[s.BOOL_IDX] + data[s.INT_IDX]:
+                integrality[index] = 1
+
+            bounds = [(None, None)] * data[s.C].shape[0]
+
+            for index in data[s.BOOL_IDX]:
+                bounds[index] = (0, 1)
+        else:
+            integrality = None
+            bounds = (None, None)
+
         # Extract solver options which are not part of the options dictionary
         if solver_opts:
 
@@ -110,23 +139,18 @@ class SCIPY(ConicSolver):
             # a dictionary called 'scipy_options'.
             if "scipy_options" not in solver_opts:
                 raise ValueError("All parameters for the SCIPY solver should "
-                                 "be incased within a dictionary called "
+                                 "be encased within a dictionary called "
                                  "scipy_options e.g. \n"
                                  "prob.solve(solver='SCIPY', verbose=True,"
                                  " scipy_options={'method':'highs-ds', 'maxiter':10000})")
 
-            # Raise warning if the 'method' parameter is not specified
-            if "method" not in solver_opts['scipy_options']:
-                warnings.warn("It is best to specify the 'method' parameter "
-                              "within scipy_options. The main advantage "
-                              "of this solver, is its ability to use the "
-                              "HiGHS LP solvers via scipy.optimize.linprog() "
-                              "which require a SciPy version >= 1.6.1 ."
-                              "\n\nThe default method '{}' will be"
-                              " used in this case.\n".format(meth))
+            if Version(scipy.__version__) < Version('1.9.0'):
+                # Raise warning if the 'method' parameter is not specified
+                if "method" not in solver_opts['scipy_options']:
+                    self._log_scipy_method_warning(meth)
 
-            else:
-                meth = solver_opts['scipy_options'].pop("method")
+            if "method" in solver_opts["scipy_options"]:
+                meth = solver_opts["scipy_options"].pop("method")
 
                 # Check to see if scipy version larger than 1.6.1 is installed
                 # if method chosen is one of the highs methods.
@@ -141,33 +165,55 @@ class SCIPY(ConicSolver):
                                  "scipy_options. Please specify bounds "
                                  "through CVXPY.")
 
+            # Check that the 'integrality' parameter isn't specified.
+            if "integrality" in solver_opts['scipy_options']:
+                raise ValueError("Please do not specify variable integrality through "
+                                 "scipy_options. Please specify variable types "
+                                 "through CVXPY.")
+
+            # Check for SciPy method support (i.e., only 'highs' supports MIP models).
+            method_supports_mip = meth == 'highs'
+
+            if problem_is_a_mip and not method_supports_mip:
+                raise ValueError("Only the 'highs' SciPy method can solve MIP models.")
+
             # Not supported by HiGHS solvers:
             # callback = solver_opts['scipy_options'].pop("callback", None)
             # x0 = solver_opts['scipy_options'].pop("x0", None)
-
-            # Run the optimisation using scipy.optimize.linprog
-            solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
-                                   A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                   bounds=(None, None), options=solver_opts['scipy_options'])
         else:
+            # Instantiate an empty `scipy_options` entry.
+            solver_opts['scipy_options'] = {}
 
-            warnings.warn("It is best to specify the 'method' parameter "
-                          "within scipy_options. The main advantage "
-                          "of this solver, is its ability to use the "
-                          "HiGHS LP solvers via scipy.optimize.linprog() "
-                          "which require a SciPy version >= 1.6.1 ."
-                          "\n\nThe default method '{}' will be"
-                          " used in this case.\n".format(meth))
+            if Version(scipy.__version__) < Version('1.9.0'):
+                self._log_scipy_method_warning(meth)
 
-            # Run the optimisation using scipy.optimize.linprog
+        if problem_is_a_mip:
             solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
                                    A_eq=data[s.A], b_eq=data[s.B], method=meth,
-                                   bounds=(None, None))
+                                   options=solver_opts['scipy_options'],
+                                   integrality=integrality, bounds=bounds)
+        else:
+            solution = opt.linprog(data[s.C], A_ub=data[s.G], b_ub=data[s.H],
+                                   A_eq=data[s.A], b_eq=data[s.B], method=meth,
+                                   options=solver_opts['scipy_options'],
+                                   bounds=bounds)
+
+        # Replace `scipy_options` method to avoid future warnings.
+        solver_opts["scipy_options"]["method"] = meth
 
         if verbose is True:
             print("Solver terminated with message: " + solution.message)
 
         return solution
+
+    def _log_scipy_method_warning(self, meth):
+        warnings.warn("It is best to specify the 'method' parameter "
+                      "within scipy_options. The main advantage "
+                      "of this solver is its ability to use the "
+                      "HiGHS LP solvers via scipy.optimize.linprog(), "
+                      "which requires a SciPy version >= 1.6.1."
+                      "\n\nThe default method '{}' will be"
+                      " used in this case.\n".format(meth))
 
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
@@ -183,7 +229,8 @@ class SCIPY(ConicSolver):
 
             # SciPy linprog only returns duals for version >= 1.7.0
             # and method is one of 'highs', 'highs-ds' or 'highs-ipm'
-            if ('ineqlin' in solution.keys()):
+            # MIP problems don't have duals and thus are not updated.
+            if 'ineqlin' in solution and not inverse_data['is_mip']:
                 eq_dual = utilities.get_dual_values(
                     -solution['eqlin']['marginals'],
                     utilities.extract_dual_value,
