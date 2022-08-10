@@ -13,8 +13,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
-from typing import Any, List, Optional
+from typing import Any
 
 import scipy.sparse as sp
 
@@ -23,7 +24,7 @@ from cvxpy import settings as s
 from cvxpy.expressions.leaf import Leaf
 
 
-def upper_tri_to_full(n):
+def upper_tri_to_full(n: int) -> sp.csc_matrix:
     """Returns a coefficient matrix to create a symmetric matrix.
 
     Parameters
@@ -66,8 +67,9 @@ class Variable(Leaf):
     """
 
     def __init__(
-        self, shape=(), name: Optional[str] = None, var_id: Optional[int] = None, **kwargs: Any
-    ) -> None:
+        self, shape: int | tuple[int, ...] = (), name: str | None = None,
+        var_id: int | None = None, **kwargs: Any
+    ):
         if var_id is None:
             self.id = lu.get_id()
         else:
@@ -79,7 +81,7 @@ class Variable(Leaf):
         else:
             raise TypeError("Variable name %s must be a string." % name)
 
-        self._variable_with_attributes: Optional["Variable"] = None
+        self._variable_with_attributes: Variable | None = None
         self._value = None
         self.delta = None
         self.gradient = None
@@ -93,7 +95,7 @@ class Variable(Leaf):
         return False
 
     @property
-    def grad(self):
+    def grad(self) -> dict[Variable, sp.csc_matrix]:
         """Gives the (sub/super)gradient of the expression w.r.t. each variable.
 
         Matrix expressions are vectorized, so the gradient is a matrix.
@@ -104,7 +106,7 @@ class Variable(Leaf):
         # TODO(akshayka): Do not assume shape is 2D.
         return {self: sp.eye(self.size).tocsc()}
 
-    def variables(self) -> List["Variable"]:
+    def variables(self) -> list[Variable]:
         """Returns itself as a variable.
         """
         return [self]
@@ -123,11 +125,11 @@ class Variable(Leaf):
         """
         return self._variable_with_attributes is not None
 
-    def set_variable_of_provenance(self, variable: "Variable"):
+    def set_variable_of_provenance(self, variable: Variable) -> None:
         assert variable.attributes
         self._variable_with_attributes = variable
 
-    def variable_of_provenance(self):
+    def variable_of_provenance(self) -> Variable | None:
         """Returns a variable with attributes from which this variable was generated."""
         return self._variable_with_attributes
 

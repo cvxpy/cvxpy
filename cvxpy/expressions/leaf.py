@@ -13,12 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING, List, Tuple, Union
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from cvxpy import Constant, Variable
+    from cvxpy import Constant, Parameter, Variable
     from cvxpy.atoms.atom import Atom
 
 import numbers
@@ -91,7 +92,7 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
 
     def __init__(
-        self, shape: Union[int, Tuple[int, ...]], value=None, nonneg: bool = False,
+        self, shape: int | tuple[int, ...], value=None, nonneg: bool = False,
         nonpos: bool = False, complex: bool = False, imag: bool = False,
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
@@ -181,22 +182,22 @@ class Leaf(expression.Expression):
         """
 
     @property
-    def shape(self) -> Tuple[int, ...]:
+    def shape(self) -> tuple[int, ...]:
         """ tuple : The dimensions of the expression.
         """
         return self._shape
 
-    def variables(self) -> List['Variable']:
+    def variables(self) -> list[Variable]:
         """Default is empty list of Variables.
         """
         return []
 
-    def parameters(self):
+    def parameters(self) -> list[Parameter]:
         """Default is empty list of Parameters.
         """
         return []
 
-    def constants(self) -> List['Constant']:
+    def constants(self) -> list[Constant]:
         """Default is empty list of Constants.
         """
         return []
@@ -265,7 +266,7 @@ class Leaf(expression.Expression):
         return self.attributes['complex'] or self.is_imag() or self.attributes['hermitian']
 
     @property
-    def domain(self) -> List[Constraint]:
+    def domain(self) -> list[Constraint]:
         """A list of constraints describing the closure of the region
            where the expression is finite.
         """
@@ -471,5 +472,5 @@ class Leaf(expression.Expression):
         """
         return True
 
-    def atoms(self) -> List['Atom']:
+    def atoms(self) -> list[Atom]:
         return []
