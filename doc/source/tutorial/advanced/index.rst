@@ -137,6 +137,9 @@ For example, creating a variable ``x`` via ``x = Variable(nonpos=True)`` informs
 Creating the variable ``x`` via ``x = Variable()`` and adding the constraint ``x >= 0`` separately does not provide any information
 about the sign of ``x`` to the DCP analyzer.
 
+One downside of using attributes over explicit constraints is that dual variables will not be recorded. Dual variable values
+are only recorded for explicit constraints.
+
 .. _semidefinite:
 
 Semidefinite matrices
