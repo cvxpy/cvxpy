@@ -611,6 +611,7 @@ class TensorView(ABC):
         """
         Returns [A b]
         """
+        pass
 
     @abstractmethod
     def select_rows(self, rows: np.ndarray) -> None:
