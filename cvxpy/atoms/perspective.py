@@ -19,20 +19,24 @@ import cvxpy as cp
 from typing import Tuple
 import numpy as np
 
+
 class perspective(Atom):
     """TODO.
     """
 
-    def __init__(self, f: cp.Expression, x: cp.Expression , s: cp.Expression) -> None:
-        super(perspective, self).__init__(f,x,s)
+    def __init__(self, f: cp.Expression, x: cp.Expression, s: cp.Expression) -> None:
+        self.f = f
+        super(perspective, self).__init__(x, s)
 
     def validate_arguments(self) -> None:
-        assert self.args[0].size == 1 # dealing only with scalars, for now
+        assert self.f.size == 1  # dealing only with scalars, for now
+        # assert self.args[0].size == 1
         assert self.args[1].size == 1
-        assert self.args[2].size == 1
+
+        # assert self.f.variables() == [self.args[0]]
+
         return super().validate_arguments()
 
-    @Atom.numpy_numeric
     def numeric(self, values):
         """
         Compute the perspective sf(x/s) numerically.
@@ -42,10 +46,28 @@ class perspective(Atom):
 
         x_val = np.array(values[0])
         s_val = np.array(values[1])
-        f = self.args[0]
-        
-        rat = np.array([x_val/s_val])
-        return np.array([f.numeric(rat)*s_val])
+        f = self.f
+
+        rat = np.array([x_val/s_val]).reshape(self.args[0].shape)
+
+        # TODO: fix this silly overwriting
+        old_x_val = self.args[0].value
+
+        def set_vals(vals, s_val=1):
+            # vals could be scalar, could be an array
+            n = len(f.variables())
+            vals = vals.reshape((n, -1))
+            for var, val in zip(f.variables(), vals):
+                new_val = np.array(val/s_val).reshape(var.shape)
+                var.value = new_val
+
+        set_vals(values[0], s_val=values[1])
+
+        ret_val = np.array([f.value*s_val])
+
+        set_vals(old_x_val, s_val=1)
+
+        return ret_val
 
     def _grad(self, values):
         """
@@ -56,10 +78,10 @@ class perspective(Atom):
         pass
 
     def sign_from_args(self) -> Tuple[bool, bool]:
-        f_pos = self.args[0].is_nonneg()
-        f_neg = self.args[0].is_nonpos()
-        s_pos = self.args[2].is_nonneg()
-        
+        f_pos = self.f.is_nonneg()
+        f_neg = self.f.is_nonpos()
+        s_pos = self.args[1].is_nonneg()
+
         assert s_pos
 
         is_positive = (f_pos and s_pos)
@@ -70,34 +92,33 @@ class perspective(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return self.args[0].is_convex() and self.args[2].is_nonneg()
+        return self.f.is_convex() and self.args[1].is_nonneg()
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
-        return self.args[0].is_concave() and self.args[2].is_nonneg()
+        return self.f.is_concave() and self.args[1].is_nonneg()
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        assert idx in [1,2] "can't handle increasing in 'f'"
+        assert idx in [1, 2], "can't handle increasing in 'f'"
         if idx == 1:
-            return self.args[0].is_incr(0) # assuming scalar for now
+            return self.f.is_incr(0)  # assuming scalar for now
         elif idx == 2:
             return False
 
     def is_decr(self, idx) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        assert idx in [1,2]
-        if idx == 1:
-            return self.args[0].is_decr(0) # assuming scalar for now
-        elif idx == 2:
+        assert idx in [0, 1]
+        if idx == 0:
+            return self.f.is_decr(0)  # assuming scalar for now
+        elif idx == 1:
             return True
         pass
-    
-    def shape_from_args(self) -> Tuple[int, ...]:
-            """Returns the (row, col) shape of the expression.
-            """
-            return self.args[0].shape
 
+    def shape_from_args(self) -> Tuple[int, ...]:
+        """Returns the (row, col) shape of the expression.
+        """
+        return self.f.shape

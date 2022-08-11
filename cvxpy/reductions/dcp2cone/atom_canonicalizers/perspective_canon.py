@@ -19,13 +19,10 @@ from cvxpy.perspective.perspective_utils import form_perspective_from_f_exp
 
 
 def perspective_canon(expr, args):
-    x = args[0]
-    s = args[1]
-
     # TODO: make sure expr is canonical form before solver, and then use instead
     # of re-canonicalizing in form_perspective_from_f_exp, also move bulk of the
     # former to here. 
 
-    persp = form_perspective_from_f_exp(x)
-    a = 1 # temp
+    persp = form_perspective_from_f_exp(expr.f,args)
+    
     return persp.t, persp.constraints

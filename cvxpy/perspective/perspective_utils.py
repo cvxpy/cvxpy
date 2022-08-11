@@ -21,6 +21,8 @@ from cvxpy.constraints.second_order import SOC
 from cvxpy.constraints.nonpos import NonNeg
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import ExpCone
+from cvxpy.constraints.zero import Zero
+from cvxpy.constraints.power import PowCone3D
 from dataclasses import dataclass
 from typing import List
 
@@ -49,11 +51,19 @@ def form_cone_constraint(z: Variable ,constraint: Constraint)-> PerspectiveRepre
         assert n % 3 == 0 # we think this is how the exponential cone works
         step = n//3
         return ExpCone(z[:step],z[step:-step],z[-step:])
+    elif isinstance(constraint,Zero):
+        return Zero(z)
+    elif isinstance(constraint,PowCone3D):
+        raise NotImplementedError
     else:
         raise NotImplementedError
 
-def form_perspective_from_f_exp(f_exp: cp.Expression):
+def form_perspective_from_f_exp(f_exp: cp.Expression,args: List[cp.Expression]):
+    # Only working for minimization right now. 
+
     aux_prob = cp.Problem(cp.Minimize(f_exp))
+    # Does numerical solution value of epigraph t coincisde with f_exp numerical
+    # value at opt?
 
     chain = aux_prob._construct_chain()
     chain.reductions = chain.reductions[:-1] #skip solver reduction
@@ -80,7 +90,7 @@ def form_perspective_from_f_exp(f_exp: cp.Expression):
     # Actually, all we need is Ax + 0*t + sb \in K, -c^Tx + t - ds >= 0
 
     t = cp.Variable()
-    s = cp.Variable()
+    s = args[1]
     x_canon = prob_canon.x
     constraints = []
 
@@ -93,7 +103,7 @@ def form_perspective_from_f_exp(f_exp: cp.Expression):
         pers_constraint = form_cone_constraint(guy,con)
         constraints.append(pers_constraint)
         i += sz
-    constraints.append(s >= 0)
+    # constraints.append(s >= 0) # from construction s should be nonneg
     constraints.append(-c@x_canon + t - s*d >= 0)
 
     # recover initial variables
