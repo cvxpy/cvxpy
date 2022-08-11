@@ -26,6 +26,7 @@ class perspective(Atom):
 
     def __init__(self, f: cp.Expression, x: cp.Expression, s: cp.Expression) -> None:
         self.f = f
+        # f's variables: f.variables()
         super(perspective, self).__init__(x, s)
 
     def validate_arguments(self) -> None:
@@ -48,18 +49,25 @@ class perspective(Atom):
         s_val = np.array(values[1])
         f = self.f
 
-        rat = np.array([x_val/s_val]).reshape(self.args[0].shape)
-
         # TODO: fix this silly overwriting
         old_x_val = self.args[0].value
 
         def set_vals(vals, s_val=1):
             # vals could be scalar, could be an array
-            n = len(f.variables())
-            vals = vals.reshape((n, -1))
-            for var, val in zip(f.variables(), vals):
-                new_val = np.array(val/s_val).reshape(var.shape)
+
+            vals = np.atleast_1d(vals)
+            i = 0
+            for var in f.variables():
+                d = int(np.prod(var.shape))
+                new_val = (vals[i:i+d]/s_val).reshape(var.shape)
                 var.value = new_val
+                i += d
+
+            # n = len(f.variables())
+            # vals = vals.reshape((n, -1))
+            # for var, val in zip(f.variables(), vals):
+            #     new_val = np.array(val/s_val).reshape(var.shape)
+            #     var.value = new_val
 
         set_vals(values[0], s_val=values[1])
 

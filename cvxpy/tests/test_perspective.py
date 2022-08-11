@@ -313,3 +313,32 @@ def test_power(n):
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
     assert np.isclose(s.value, ref_s.value)
+
+
+def test_psd_persp():
+    # reference problem
+    ref_x = cp.Variable(2)
+    ref_P = cp.Variable((2, 2), PSD=True)
+
+    # matrix_frac is homogenous of degree 1 so its perspective is itself.
+    obj = cp.matrix_frac(ref_x, ref_P)
+    constraints = [ref_x >= 5, cp.trace(ref_P) == 1]
+    ref_prob = cp.Problem(cp.Minimize(obj), constraints)
+
+    ref_prob.solve()
+
+    # perspective problem
+    x = cp.Variable(2)
+    P = cp.Variable((2, 2), PSD=True)
+    s = cp.Variable(nonneg=True)
+
+    # matrix_frac is homogenous of degree 1 so its perspective is itself.
+    f = cp.matrix_frac(x, P)
+
+    obj = perspective(f, cp.hstack([x, cp.vec(P)]), s)
+    constraints = [x >= 5, cp.trace(P) == 1, s==1]
+    prob = cp.Problem(cp.Minimize(obj), constraints)
+    prob.solve()
+
+    assert np.isclose(prob.value, ref_prob.value)
+    assert np.isclose(x.value, ref_x.value)

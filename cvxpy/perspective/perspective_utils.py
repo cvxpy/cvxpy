@@ -23,6 +23,7 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.constraints.zero import Zero
 from cvxpy.constraints.power import PowCone3D
+from cvxpy.constraints.psd import PSD
 from dataclasses import dataclass
 from typing import List
 
@@ -53,6 +54,13 @@ def form_cone_constraint(z: Variable ,constraint: Constraint)-> PerspectiveRepre
         return ExpCone(z[:step],z[step:-step],z[-step:])
     elif isinstance(constraint,Zero):
         return Zero(z)
+    elif isinstance(constraint,PSD):
+        assert len(z.shape) == 1 
+        N = z.shape[0]
+        n = int(N**.5)
+        assert N == n**2, "argument is not a vectorized square matrix"
+        z_mat = cp.reshape(z,(n,n))
+        return PSD(z_mat) # do we need constraint_id?
     elif isinstance(constraint,PowCone3D):
         raise NotImplementedError
     else:
