@@ -329,7 +329,7 @@ class ScipyBackend(Backend):
     def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
         rows = (tensor.col * total_rows + tensor.row).astype(int)
         cols = tensor.parameter_offset.astype(int)
-        shape = (np.int64(total_rows * (self.var_length + 1)), self.param_size_plus_one)
+        shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
         return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
     def get_empty_view(self) -> TensorView:

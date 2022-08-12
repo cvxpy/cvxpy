@@ -296,7 +296,7 @@ def get_problem_matrix(linOps,
         param_size + 1 columns (where param_size is the length of the
         parameter vector).
     """
-    backend_val = os.environ.get("canon_backend", "SCIPY")
+    backend_val = os.environ['canon_backend']
 
     if backend_val == "CPP":
         lin_vec = cvxcore.ConstLinOpVector()
