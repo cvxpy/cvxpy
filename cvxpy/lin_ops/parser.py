@@ -362,7 +362,9 @@ class ScipyBackend(Backend):
         num_entries = int(np.prod(lin.shape))
 
         def func(x):
-            return x[np.zeros(num_entries), :]
+            # Fast way of repeating sparse matrix along axis 0
+            # See comment in https://stackoverflow.com/a/50759652
+            return x[np.zeros(num_entries, dtype=int), :]
         view.apply_all(func)
         return view
 
@@ -627,7 +629,7 @@ class TensorView(ABC):
         """
         Returns [A b]
         """
-        pass
+        pass # noqa
 
     @abstractmethod
     def select_rows(self, rows: np.ndarray) -> None:
