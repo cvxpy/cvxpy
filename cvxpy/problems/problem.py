@@ -904,7 +904,7 @@ class Problem(u.Canonical):
                requires_grad: bool = False,
                enforce_dpp: bool = False,
                ignore_dpp: bool = False,
-               canon_backend: str = 'SCIPY',  # TODO change back
+               canon_backend: str = None,
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -947,6 +947,7 @@ class Problem(u.Canonical):
             why the problem could not be solved.
         """
 
+        canon_backend = 'CPP' if self.parameters() else 'SCIPY'
         os.environ['canon_backend'] = canon_backend
 
         if verbose:
