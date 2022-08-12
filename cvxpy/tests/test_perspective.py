@@ -14,16 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from pickle import OBJ
-import re
-from tabnanny import verbose
-from weakref import ref
 import numpy as np
 import cvxpy as cp
-from cvxpy.constraints import constraint
-from cvxpy.constraints.psd import PSD
-from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
-from cvxpy.perspective.perspective_utils import form_cone_constraint
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.atoms.perspective import perspective
 import pytest

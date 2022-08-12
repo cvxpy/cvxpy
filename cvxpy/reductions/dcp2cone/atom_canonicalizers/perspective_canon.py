@@ -14,13 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
-import cvxpy as cp
+from cvxpy.problems.problem import Problem
+from cvxpy.problems.objective import Minimize
+from cvxpy.expressions.variable import Variable
+from cvxpy.atoms.affine import vec
 from cvxpy.perspective.perspective_utils import form_cone_constraint
 
 def perspective_canon(expr, args):
     # Only working for minimization right now. 
 
-    aux_prob = cp.Problem(cp.Minimize(expr.f))
+    aux_prob = Problem(Minimize(expr.f))
     # Does numerical solution value of epigraph t coincisde with expr.f numerical
     # value at opt?
 
@@ -48,7 +51,7 @@ def perspective_canon(expr, args):
 
     # Actually, all we need is Ax + 0*t + sb \in K, -c^Tx + t - ds >= 0
 
-    t = cp.Variable()
+    t = Variable()
     s = args[0]
     x_canon = prob_canon.x
     constraints = []
@@ -82,6 +85,6 @@ def perspective_canon(expr, args):
             constraints += [var[inds] == x_canon[start_ind:end_ind]]
 
         else:    
-            constraints.append(cp.vec(var) == x_canon[start_ind:end_ind])
+            constraints.append(vec(var) == x_canon[start_ind:end_ind])
     
     return t, constraints

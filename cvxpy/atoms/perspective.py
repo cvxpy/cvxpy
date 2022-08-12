@@ -24,7 +24,7 @@ class perspective(Atom):
     """TODO.
     """
 
-    def __init__(self, f: cp.Expression, s: cp.Expression) -> None:
+    def __init__(self, f: "cp.Expression", s: "cp.Expression") -> None:
         self.f = f
         super(perspective, self).__init__(s, *f.variables())
 
