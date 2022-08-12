@@ -17,7 +17,6 @@ limitations under the License.
 import numpy as np
 import cvxpy as cp
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.atoms.perspective import perspective
 import pytest
 
 
@@ -42,7 +41,7 @@ def test_p_norms(p):
     x = cp.Variable(3)
     s = cp.Variable(nonneg=True)
     f = cp.norm(x, p)
-    obj = perspective(f, s)
+    obj = cp.perspective(f, s)
     constraints = [1 == s, x >= [1, 2, 3]]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve()
@@ -67,7 +66,7 @@ def test_rel_entr():
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     f= -cp.log(x)
-    obj = perspective(f,s)
+    obj = cp.perspective(f,s)
     constraints = [1 <= s, s <= 2, 1 <= x, x <= 2]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
@@ -90,7 +89,7 @@ def test_exp():
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     f = cp.exp(x)
-    obj = perspective(f, s)
+    obj = cp.perspective(f, s)
     constraints = [s >= 1, 1 <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
@@ -136,7 +135,7 @@ def test_lse(lse_example):
     s = cp.Variable(nonneg=True)
     f = cp.log_sum_exp(x)
 
-    obj = perspective(f, s)
+    obj = cp.perspective(f, s)
     constraints = [1 <= s, s <= 2, [1, 2, 3] <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
@@ -153,7 +152,7 @@ def test_lse_atom(lse_example):
     s = cp.Variable(nonneg=True)
     f_exp = cp.log_sum_exp(x)
 
-    obj = perspective(f_exp, s)
+    obj = cp.perspective(f_exp, s)
     constraints = [1 <= s, s <= 2, [1, 2, 3] <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
@@ -171,7 +170,7 @@ def test_evaluate_persp(x_val, s_val):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     f_exp = cp.square(x)+3*x-5
-    obj = perspective(f_exp, s)
+    obj = cp.perspective(f_exp, s)
 
     l = np.array([s_val, x_val])
 
@@ -194,7 +193,7 @@ def test_quad_atom(quad_example):
 
     f_exp = cp.square(x) + r*x - 4
 
-    obj = perspective(f_exp, s)
+    obj = cp.perspective(f_exp, s)
 
     constraints = [s <= .5, x >= 2]
     prob = cp.Problem(cp.Minimize(obj), constraints)
@@ -214,9 +213,9 @@ def test_quad_persp_persp(quad_example):
     t = cp.Variable(nonneg=True)
 
     f_exp = cp.square(x) + r*x - 4
-    obj_inner = perspective(f_exp, s)
+    obj_inner = cp.perspective(f_exp, s)
 
-    obj = perspective(obj_inner, t)
+    obj = cp.perspective(obj_inner, t)
     # f(x) -> sf(x/s) -> t(s/t)f(xt/ts) -> sf(x/s)
 
     constraints = [.1 <= s, s <= .5, x >= 2, .1 <= t, t <= .5]
@@ -244,7 +243,7 @@ def test_quad_quad():
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     f = cp.power(x, 4)
-    obj = perspective(f, s)
+    obj = cp.perspective(f, s)
 
     constraints = [x >= 5, s <= 3]
 
@@ -273,7 +272,7 @@ def test_power(n):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     f = cp.power(x, n)
-    obj = perspective(f, s)
+    obj = cp.perspective(f, s)
 
     constraints = [x >= 1, s <= .5]
 
@@ -301,7 +300,7 @@ def test_psd_tr_persp():
 
     f = cp.trace(P)
 
-    obj = perspective(f, s)
+    obj = cp.perspective(f, s)
     constraints = [P == np.eye(2), s == 1]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve()
@@ -327,7 +326,7 @@ def test_psd_mf_persp(n):
     s = cp.Variable(nonneg=True)
 
     f = cp.matrix_frac(x, P)
-    obj = perspective(f, s)
+    obj = cp.perspective(f, s)
     constraints = [x == 5, P == np.eye(n), s==1,]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve()

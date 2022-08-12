@@ -15,7 +15,6 @@ limitations under the License.
 """
 
 from cvxpy.atoms.atom import Atom
-import cvxpy as cp
 from typing import Tuple
 import numpy as np
 
