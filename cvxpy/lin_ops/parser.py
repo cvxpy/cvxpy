@@ -13,11 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Set, Tuple
+from typing import Callable
 
 import numpy as np
 import scipy.sparse as sp
@@ -37,7 +38,7 @@ class TensorRepresentation:
     data: np.ndarray
 
     @classmethod
-    def combine(cls, tensors: List["TensorRepresentation"]):
+    def combine(cls, tensors: list[TensorRepresentation]):
         parameter_offset, row, col, data = np.array([]), np.array([]), np.array([]), np.array([])
         for t in tensors:
             parameter_offset = np.append(parameter_offset, t.parameter_offset)
@@ -48,8 +49,8 @@ class TensorRepresentation:
 
 
 class Backend(ABC):
-    def __init__(self, id_to_col: Dict[int, int], param_to_size: Dict[int, int], param_to_col:
-                 Dict[int, int], param_size_plus_one: Dict[int, int], var_length: int):
+    def __init__(self, id_to_col: dict[int, int], param_to_size: dict[int, int], param_to_col:
+                 dict[int, int], param_size_plus_one: dict[int, int], var_length: int):
         self.param_size_plus_one = param_size_plus_one
         self.id_to_col = id_to_col
         self.param_to_size = param_to_size
@@ -63,7 +64,7 @@ class Backend(ABC):
         }
         return backends[backend_name](*args)
 
-    def build_matrix(self, linOps: List[LinOp]) -> sp.coo_matrix:
+    def build_matrix(self, linOps: list[LinOp]) -> sp.coo_matrix:
         constraint_res = []
         offset = 0
         for lin_op in linOps:
@@ -75,7 +76,7 @@ class Backend(ABC):
         tensor_res = self.concatenate_tensors(constraint_res)
         return self.reshape_tensors(tensor_res, offset)
 
-    def process_constraint(self, lin_op: LinOp, empty_view: "TensorView") -> "TensorView":
+    def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
         # Leaf nodes
         if lin_op.type == "variable":
             assert isinstance(lin_op.data, int)
@@ -109,8 +110,8 @@ class Backend(ABC):
             assert res is not None
             return res
 
-    def get_constant_data(self, lin_op: LinOp, view: "TensorView", column: bool) \
-            -> Tuple[np.ndarray, bool]:
+    def get_constant_data(self, lin_op: LinOp, view: TensorView, column: bool) \
+            -> tuple[np.ndarray, bool]:
         constant_view = self.process_constraint(lin_op, view)
         assert constant_view.variable_ids == {Constant.ID.value}
         constant_data = constant_view.constant_data
@@ -125,23 +126,23 @@ class Backend(ABC):
 
     @staticmethod
     @abstractmethod
-    def reshape_constant_data(constant_data, new_shape: Tuple[int]):
+    def reshape_constant_data(constant_data, new_shape: tuple[int]):
         pass
 
     @abstractmethod
-    def concatenate_tensors(self, tensors: List[Tuple["TensorView", int]]) -> "TensorView":
+    def concatenate_tensors(self, tensors: list[tuple[TensorView, int]]) -> TensorView:
         """
         Takes list of tensors and stacks them "row-wise"
         """
 
     @abstractmethod
-    def reshape_tensors(self, tensor: "TensorView", total_rows: int) -> sp.coo_matrix:
+    def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.coo_matrix:
         """
         Reshape into 2D scipy coo-matrix in column-major order and transpose
         """
 
     @abstractmethod
-    def get_empty_view(self) -> "TensorView":
+    def get_empty_view(self) -> TensorView:
         pass
 
     def get_func(self, func_name: str) -> Callable:
@@ -170,45 +171,46 @@ class Backend(ABC):
         return mapping[func_name]
 
     @staticmethod
-    def sum_op(_lin: LinOp, view: "TensorView") -> "TensorView":
+    def sum_op(_lin: LinOp, view: TensorView) -> TensorView:
         return view
 
     @staticmethod
-    def reshape(_lin: LinOp, view: "TensorView") -> "TensorView":
+    def reshape(_lin: LinOp, view: TensorView) -> TensorView:
         return view
 
     @abstractmethod
-    def mul(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def mul(self, lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @staticmethod
     @abstractmethod
-    def promote(lin: LinOp, view: "TensorView") -> "TensorView":
+    def promote(lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @staticmethod
-    def neg(_lin: LinOp, view: "TensorView") -> "TensorView":
+    def neg(_lin: LinOp, view: TensorView) -> TensorView:
 
         def func(x):
             return -x
+
         view.apply_all(func)
         return view
 
     @abstractmethod
-    def mul_elem(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def mul_elem(self, lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @staticmethod
     @abstractmethod
-    def sum_entries(_lin: LinOp, view: "TensorView") -> "TensorView":
+    def sum_entries(_lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @abstractmethod
-    def div(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def div(self, lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @staticmethod
-    def index(lin: LinOp, view: "TensorView") -> "TensorView":
+    def index(lin: LinOp, view: TensorView) -> TensorView:
         indices = [np.arange(s.start, s.stop, s.step) for s in lin.data]
         if len(indices) == 1:
             rows = indices[0]
@@ -221,7 +223,7 @@ class Backend(ABC):
 
     @staticmethod
     @abstractmethod
-    def diag_vec(lin: LinOp, view: "TensorView") -> "TensorView":
+    def diag_vec(lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @staticmethod
@@ -229,7 +231,7 @@ class Backend(ABC):
     def get_stack_func(total_rows: int, offset: int) -> Callable:
         pass
 
-    def hstack(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def hstack(self, lin: LinOp, view: TensorView) -> TensorView:
         offset = 0
         total_rows = sum(np.prod(arg.shape) for arg in lin.args)
         res = None
@@ -245,7 +247,7 @@ class Backend(ABC):
         assert res is not None
         return res
 
-    def vstack(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def vstack(self, lin: LinOp, view: TensorView) -> TensorView:
         view = self.hstack(lin, view)
         offset = 0
         indices = []
@@ -258,20 +260,20 @@ class Backend(ABC):
         return view
 
     @staticmethod
-    def transpose(lin: LinOp, view: "TensorView") -> "TensorView":
+    def transpose(lin: LinOp, view: TensorView) -> TensorView:
         rows = np.arange(np.prod(lin.shape)).reshape(lin.shape).flatten(order="F")
         view.select_rows(rows)
         return view
 
     @staticmethod
-    def upper_tri(lin: LinOp, view: "TensorView") -> "TensorView":
+    def upper_tri(lin: LinOp, view: TensorView) -> TensorView:
         indices = np.arange(np.prod(lin.args[0].shape)).reshape(lin.args[0].shape, order="F")
         triu_indices = indices[np.triu_indices_from(indices, k=1)]
         view.select_rows(triu_indices)
         return view
 
     @staticmethod
-    def diag_mat(lin: LinOp, view: "TensorView") -> "TensorView":
+    def diag_mat(lin: LinOp, view: TensorView) -> TensorView:
         # diagonal matrix to vector
         rows = lin.shape[0]
         diag_indices = np.arange(rows) * rows + np.arange(rows)
@@ -279,28 +281,28 @@ class Backend(ABC):
         return view
 
     @abstractmethod
-    def rmul(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def rmul(self, lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @staticmethod
     @abstractmethod
-    def trace(lin: LinOp, view: "TensorView") -> "TensorView":
+    def trace(lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @abstractmethod
-    def conv(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def conv(self, lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @abstractmethod
-    def kron_r(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def kron_r(self, lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @abstractmethod
-    def kron_l(self, lin: LinOp, view: "TensorView") -> "TensorView":
+    def kron_l(self, lin: LinOp, view: TensorView) -> TensorView:
         pass
 
     @abstractmethod
-    def get_variable_tensor(self, shape: Tuple[int], variable_id: int):
+    def get_variable_tensor(self, shape: tuple[int], variable_id: int):
         pass
 
     @abstractmethod
@@ -315,11 +317,11 @@ class Backend(ABC):
 class ScipyBackend(Backend):
 
     @staticmethod
-    def reshape_constant_data(constant_data: Dict[int, sp.csr_matrix], new_shape: Tuple[int]):
+    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int]):
         return {k: [v_i.reshape(new_shape[1:], order="F")
                     for v_i in v] for k, v in constant_data.items()}
 
-    def concatenate_tensors(self, tensors: List[Tuple[TensorRepresentation, int]]):
+    def concatenate_tensors(self, tensors: list[tuple[TensorRepresentation, int]]):
         for tensor, row_offset in tensors:
             tensor.row += row_offset
         return TensorRepresentation.combine([t[0] for t in tensors])
@@ -330,12 +332,12 @@ class ScipyBackend(Backend):
         shape = (int(total_rows * (self.var_length + 1)), self.param_size_plus_one)
         return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
-    def get_empty_view(self) -> "TensorView":
+    def get_empty_view(self) -> TensorView:
         return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
                                               self.param_to_size, self.param_to_col,
                                               self.var_length)
 
-    def mul(self, lin: LinOp, view: "ScipyTensorView") -> "TensorView":
+    def mul(self, lin: LinOp, view: TensorView) -> TensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
         if isinstance(lhs, dict):
@@ -346,6 +348,7 @@ class ScipyBackend(Backend):
             def parametrized_mul(x):
                 assert len(x) == 1
                 return {k: [(v_i @ x[0]).tocsr() for v_i in v] for k, v in stacked_lhs.items()}
+
             func = parametrized_mul
         else:
             assert len(lhs) == 1
@@ -358,22 +361,24 @@ class ScipyBackend(Backend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def promote(lin: LinOp, view: "TensorView") -> "TensorView":
+    def promote(lin: LinOp, view: TensorView) -> TensorView:
         num_entries = int(np.prod(lin.shape))
 
         def func(x):
             # Fast way of repeating sparse matrix along axis 0
             # See comment in https://stackoverflow.com/a/50759652
             return x[np.zeros(num_entries, dtype=int), :]
+
         view.apply_all(func)
         return view
 
-    def mul_elem(self, lin: LinOp, view: "ScipyTensorView") -> "ScipyTensorView":
+    def mul_elem(self, lin: LinOp, view: TensorView) -> TensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         if isinstance(lhs, dict):
             def parametrized_mul(x):
                 assert len(x) == 1
                 return {k: [v_i.multiply(x[0]).tocsr() for v_i in v] for k, v in lhs.items()}
+
             func = parametrized_mul
         else:
             def func(x):
@@ -381,13 +386,14 @@ class ScipyBackend(Backend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def sum_entries(_lin: LinOp, view: "ScipyTensorView") -> "ScipyTensorView":
+    def sum_entries(_lin: LinOp, view: TensorView) -> TensorView:
         def func(x):
             return sp.csr_matrix(x.sum(axis=0))
+
         view.apply_all(func)
         return view
 
-    def div(self, lin: LinOp, view: "ScipyTensorView") -> "ScipyTensorView":
+    def div(self, lin: LinOp, view: TensorView) -> TensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -396,10 +402,11 @@ class ScipyBackend(Backend):
 
         def div_func(x):
             return lhs.multiply(x)
+
         return view.accumulate_over_variables(div_func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def diag_vec(lin: LinOp, view: "TensorView") -> "TensorView":
+    def diag_vec(lin: LinOp, view: TensorView) -> TensorView:
         # vector to diagonal matrix
         assert lin.shape[0] == lin.shape[1]
         rows = lin.shape[0]
@@ -422,9 +429,10 @@ class ScipyBackend(Backend):
             new_rows = (coo_repr.row + offset).astype(int)
             return sp.csr_matrix((coo_repr.data, (new_rows, coo_repr.col)),
                                  shape=(int(total_rows), tensor.shape[1]))
+
         return stack_func
 
-    def rmul(self, lin: LinOp, view: "ScipyTensorView") -> "ScipyTensorView":
+    def rmul(self, lin: LinOp, view: TensorView) -> TensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
@@ -445,6 +453,7 @@ class ScipyBackend(Backend):
             def parametrized_mul(x):
                 assert len(x) == 1
                 return {k: [(v_i @ x[0]).tocsr() for v_i in v] for k, v in stacked_lhs.items()}
+
             func = parametrized_mul
         else:
             assert len(lhs) == 1
@@ -459,7 +468,7 @@ class ScipyBackend(Backend):
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
     @staticmethod
-    def trace(lin: LinOp, view: "ScipyTensorView") -> "ScipyTensorView":
+    def trace(lin: LinOp, view: TensorView) -> TensorView:
         shape = lin.args[0].shape
         indices = np.arange(shape[0]) * shape[0] + np.arange(shape[0])
 
@@ -469,9 +478,10 @@ class ScipyBackend(Backend):
 
         def func(x):
             return lhs @ x
+
         return view.accumulate_over_variables(func, is_param_free_function=True)
 
-    def conv(self, lin: LinOp, view: "ScipyTensorView") -> "ScipyTensorView":
+    def conv(self, lin: LinOp, view: TensorView) -> TensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -494,9 +504,10 @@ class ScipyBackend(Backend):
 
         def func(x):
             return lhs @ x
+
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def kron_r(self, lin: LinOp, view: "ScipyTensorView") -> "ScipyTensorView":
+    def kron_r(self, lin: LinOp, view: TensorView) -> TensorView:
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_lhs
         assert len(lhs) == 1
@@ -513,7 +524,7 @@ class ScipyBackend(Backend):
         rhs_arange = np.arange(np.prod(rhs_shape)).reshape(rhs_shape, order="F")
 
         row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape)))\
+                       np.kron(lhs_arange, rhs_ones * np.prod(rhs_shape))) \
             .flatten(order="F").astype(int)
 
         def func(x: np.ndarray) -> np.ndarray:
@@ -524,7 +535,7 @@ class ScipyBackend(Backend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_lhs)
 
-    def kron_l(self, lin: LinOp, view: "ScipyTensorView") -> "ScipyTensorView":
+    def kron_l(self, lin: LinOp, view: TensorView) -> TensorView:
         rhs, is_param_free_rhs = self.get_constant_data(lin.data, view, column=True)
         assert is_param_free_rhs
         assert len(rhs) == 1
@@ -541,7 +552,7 @@ class ScipyBackend(Backend):
         lhs_arange = np.arange(np.prod(lhs_shape)).reshape(lhs_shape, order="F")
 
         row_indices = (np.kron(lhs_ones, rhs_arange) +
-                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape)))\
+                       np.kron(lhs_arange, rhs_ones * np.prod(lin.data.shape))) \
             .flatten(order="F").astype(int)
 
         def func(x: np.ndarray) -> np.ndarray:
@@ -552,7 +563,7 @@ class ScipyBackend(Backend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
-    def get_variable_tensor(self, shape: Tuple[int], variable_id: int):
+    def get_variable_tensor(self, shape: tuple[int], variable_id: int):
         shape = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: [sp.eye(shape, format="csr")]}}
 
@@ -575,8 +586,9 @@ class ScipyBackend(Backend):
 
 
 class TensorView(ABC):
-    def __init__(self, variable_ids: Optional[Set[int]], tensor, is_parameter_free: bool,
-                 param_size_plus_one, id_to_col, param_to_size, param_to_col, var_length):
+    def __init__(self, variable_ids: set[int] | None, tensor, is_parameter_free: bool,
+                 param_size_plus_one: int, id_to_col: dict[int, int], param_to_size: dict[int, int],
+                 param_to_col: dict[int, int], var_length):
         self.variable_ids = variable_ids if variable_ids is not None else None
         self._variable_tensor = None if self.is_b(variable_ids) else tensor
         self.constant_data = tensor if self.is_b(variable_ids) else None
@@ -589,7 +601,7 @@ class TensorView(ABC):
         self.param_to_col = param_to_col
         self.var_length = var_length
 
-    def __iadd__(self, other: "TensorView") -> "TensorView":
+    def __iadd__(self, other: TensorView) -> TensorView:
         assert isinstance(other, self.__class__)
         self.variable_ids = self.variable_ids | other.variable_ids
         self._variable_tensor = self.combine_potentially_none(self._variable_tensor,
@@ -610,8 +622,8 @@ class TensorView(ABC):
             return a + b
 
     @classmethod
-    def get_empty_view(cls, param_size_plus_one, id_to_col, param_to_size, param_to_col,
-                       var_length) -> "TensorView":
+    def get_empty_view(cls, param_size_plus_one, id_to_col, param_to_size,
+                       param_to_col: dict[int, int], var_length: int) -> TensorView:
         return cls(None, None, True, param_size_plus_one, id_to_col, param_to_size, param_to_col,
                    var_length)
 
@@ -629,7 +641,7 @@ class TensorView(ABC):
         """
         Returns [A b]
         """
-        pass # noqa
+        pass  # noqa
 
     @abstractmethod
     def select_rows(self, rows: np.ndarray) -> None:
@@ -664,6 +676,7 @@ class ScipyTensorView(TensorView):
 
         def func(x):
             return x[rows, :]
+
         self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
@@ -703,7 +716,7 @@ class ScipyTensorView(TensorView):
                     for offset, matrix in enumerate(parameter_tensor):
                         coo_repr = matrix.tocoo(copy=False)
                         tensor_representations.append(TensorRepresentation(
-                            np.ones(coo_repr.nnz) * self.param_to_col[parameter_id]+offset,
+                            np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
                             coo_repr.row,
                             coo_repr.col + self.id_to_col[variable_id],
                             coo_repr.data
@@ -752,7 +765,7 @@ class ScipyTensorView(TensorView):
                 res[key] = ScipyTensorView.add_dicts(a[key], b[key])
             elif isinstance(a[key], list) and isinstance(b[key], list):
                 assert len(a[key]) == len(b[key])
-                res[key] = [a+b for a, b in zip(a[key], b[key])]
+                res[key] = [a + b for a, b in zip(a[key], b[key])]
             else:
                 raise ValueError
         for key in keys_a - intersect:
