@@ -12,8 +12,8 @@ pip
 ---
 
 (Windows only) Download the Visual Studio build tools for Python 3
-(`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
-`install instructions <https://docs.google.com/presentation/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/edit?usp=sharing&ouid=117107708911390632479&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&rtpof=true&sd=true>`_).
+(`download <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
+`install instructions <https://docs.google.com/presentation/d/e/2PACX-1vT-p04simYhorAdKstO9F1RK-k6npuyrKWliJ8Wy9uuQoQq_TiFdJA-DK3Kz0irkCEUlmNEH4JScbkwUflXv9c/pub?start=false&loop=false&delayms=3000&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&slide=id.p1>`_).
 
 (macOS only) Install the Xcode command line tools.
 
@@ -228,8 +228,12 @@ CVXPY's SCIP interface does not reliably recover dual variables for constraints.
 Install with SCIPY support
 -------------------------
 
-CVXPY supports the SCIPY solver for LPs.
-This requires the `SciPy`_ package in Python which should already be installed as it is a requirement for CVXPY. `SciPy`_'s "interior-point" and "revised-simplex" implementations are written in python and are always available however the main advantage of this solver, is its ability to use the `HiGHS`_ LP solvers (which are written in C++) that comes bundled with `SciPy`_ version 1.6.1 and higher.
+CVXPY supports the SCIPY solver for LPs and MIPs.
+This requires the `SciPy`_ package in Python, which should already be installed, as it is a requirement for CVXPY.
+`SciPy`_'s "interior-point" and "revised-simplex" implementations are written in Python and are always available.
+However, the main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers (which are written in C++).
+`HiGHS`_ LP solvers come bundled with `SciPy`_ version 1.6.1 and higher.
+The `HiGHS`_ MIP solver comes bundled with version 1.9.0 and higher.
 
 Install without default solvers
 -------------------------

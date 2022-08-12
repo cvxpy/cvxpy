@@ -130,6 +130,11 @@ class quad_over_lin(Atom):
         """
         return self.args[0].is_affine() and self.args[1].is_constant()
 
+    def has_quadratic_term(self) -> bool:
+        """A quadratic term if y is constant.
+        """
+        return self.args[1].is_constant()
+
     def is_qpwa(self) -> bool:
         """Quadratic of piecewise affine if x is PWL and y is constant.
         """

@@ -21,6 +21,7 @@ import pytest
 import scipy
 import scipy.sparse as sp
 import scipy.stats
+from numpy import linalg as LA
 
 import cvxpy as cp
 import cvxpy.settings as s
@@ -1381,6 +1382,51 @@ class TestAtoms(BaseTest):
         expr = cp.Constant(A).flatten()
         cp.Problem(cp.Minimize(0), [expr == A]).solve()
         self.assertItemsAlmostEqual(x.value, reshaped)
+
+    def test_tr_inv(self) -> None:
+        """Test tr_inv atom. """
+        T = 5
+        # Solves the following SDP problem:
+        #           minimize    trace(inv(X))
+        #               s.t.    X is PSD
+        #                       trace(X)==1
+
+        # Create a symmetric matrix variable.
+        X = cp.Variable((T, T), symmetric=True)
+
+        # Define and solve the CVXPY problem.
+        # X should be a PSD
+        constraints = [X >> 0]
+        constraints += [
+            cp.trace(X) == 1
+        ]
+        prob = cp.Problem(cp.Minimize(cp.tr_inv(X)), constraints)
+        prob.solve(verbose=True)
+        # Check result. The best value is T^2.
+        self.assertAlmostEqual(prob.value, T**2)
+        X_actual = X.value
+        X_expect = np.eye(T) / T
+        self.assertItemsAlmostEqual(X_actual, X_expect, places=4)
+        # Second SDP problem, given a row full-rank matrix M:
+        #           minimize    trace(inv(M * X * M.T))
+        #               s.t.    X is PSD
+        #                       -1 <= X[i][j] <= 1 for all i,j
+        constraints = [X >> 0]
+        # n should not be greater than T,
+        # because the input should be positive definite.
+        n = 4
+        M = np.random.randn(n, T)
+        constraints += [
+            X >= -1,
+            X <= 1,
+        ]
+        prob = cp.Problem(cp.Minimize(cp.tr_inv(M @ X @ M.T)), constraints)
+        MM = M @ M.T
+        naiveRes = np.sum(LA.eigvalsh(MM) ** -1)
+        prob.solve(verbose=True)
+        # The optimized result should be smaller than the naive result,
+        # where X of the naive result is I.
+        self.assertTrue(prob.value < naiveRes)
 
 
 class TestDotsort(BaseTest):
