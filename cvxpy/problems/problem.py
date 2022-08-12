@@ -610,6 +610,11 @@ class Problem(u.Canonical):
         cvxpy.error.DPPError
             Raised if DPP settings are invalid.
         """
+
+        # TODO: remove
+        canon_backend = 'CPP' if self.parameters() else 'SCIPY'
+        os.environ['canon_backend'] = canon_backend
+
         # Invalid DPP setting.
         # Must be checked here to avoid cache issues.
         if enforce_dpp and ignore_dpp:

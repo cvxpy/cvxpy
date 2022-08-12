@@ -327,7 +327,8 @@ class ScipyBackend(Backend):
         return TensorRepresentation.combine([t[0] for t in tensors])
 
     def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
-        rows = (tensor.col * total_rows + tensor.row).astype(int)
+        # Windows uses int32 by default at time of writing, so we need to enforce int64 here
+        rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
         cols = tensor.parameter_offset.astype(int)
         shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
         return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
