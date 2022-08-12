@@ -24,15 +24,14 @@ class perspective(Atom):
     """TODO.
     """
 
-    def __init__(self, f: cp.Expression, x: cp.Expression, s: cp.Expression) -> None:
+    def __init__(self, f: cp.Expression, s: cp.Expression) -> None:
         self.f = f
-        # f's variables: f.variables()
-        super(perspective, self).__init__(x, s)
+        super(perspective, self).__init__(s, *f.variables())
 
     def validate_arguments(self) -> None:
         assert self.f.size == 1  # dealing only with scalars, for now
         # assert self.args[0].size == 1
-        assert self.args[1].size == 1
+        assert self.args[0].size == 1
 
         # assert self.f.variables() == [self.args[0]]
 
@@ -43,14 +42,18 @@ class perspective(Atom):
         Compute the perspective sf(x/s) numerically.
         """
 
-        assert values[1] >= 0
+        assert values[0] >= 0
 
-        x_val = np.array(values[0])
-        s_val = np.array(values[1])
+        s_val = np.array(values[0])
         f = self.f
 
         # TODO: fix this silly overwriting
-        old_x_val = self.args[0].value
+        # old_x_val = self.args[0].value
+        old_x_vals = [var.value for var in f.variables()]
+
+        def new_set_vals(vals, s_val):
+            for var, val in zip(f.variables(), vals):
+                var.value = val/s_val 
 
         def set_vals(vals, s_val=1):
             # vals could be scalar, could be an array
@@ -69,11 +72,11 @@ class perspective(Atom):
             #     new_val = np.array(val/s_val).reshape(var.shape)
             #     var.value = new_val
 
-        set_vals(values[0], s_val=values[1])
+        new_set_vals(values[1:], s_val=values[0])
 
         ret_val = np.array([f.value*s_val])
 
-        set_vals(old_x_val, s_val=1)
+        new_set_vals(old_x_vals, s_val=1)
 
         return ret_val
 
@@ -88,7 +91,7 @@ class perspective(Atom):
     def sign_from_args(self) -> Tuple[bool, bool]:
         f_pos = self.f.is_nonneg()
         f_neg = self.f.is_nonpos()
-        s_pos = self.args[1].is_nonneg()
+        s_pos = self.args[0].is_nonneg()
 
         assert s_pos
 
@@ -100,12 +103,12 @@ class perspective(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return self.f.is_convex() and self.args[1].is_nonneg()
+        return self.f.is_convex() and self.args[0].is_nonneg()
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
-        return self.f.is_concave() and self.args[1].is_nonneg()
+        return self.f.is_concave() and self.args[0].is_nonneg()
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?

@@ -21,8 +21,9 @@ from weakref import ref
 import numpy as np
 import cvxpy as cp
 from cvxpy.constraints import constraint
+from cvxpy.constraints.psd import PSD
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
-from cvxpy.perspective.perspective_utils import form_cone_constraint, form_perspective_from_f_exp
+from cvxpy.perspective.perspective_utils import form_cone_constraint
 from cvxpy.constraints.exponential import ExpCone
 from cvxpy.atoms.perspective import perspective
 import pytest
@@ -44,45 +45,27 @@ def quad_example(request):
     return prob_ref.value, s.value, x.value, r
 
 
-def test_form_perspective(quad_example):
-    ref_val, ref_s, ref_x, r = quad_example
-
-    # form objective, introduce original variable
-    x = cp.Variable()
-    s = cp.Variable(nonneg=True)
-    f_exp = cp.square(x)+r*x-4
-
-    persp = form_perspective_from_f_exp(f_exp, [x, s])
-    constraints = persp.constraints + [s <= .5, x >= 2]
-    prob = cp.Problem(cp.Minimize(persp.t), constraints)
-    prob.solve()
-
-    assert np.isclose(prob.value, ref_val)
-    assert np.isclose(x.value, ref_x)
-    assert np.isclose(persp.s.value, ref_s)
-
-
-@pytest.mark.parametrize("p", [1])
+@pytest.mark.parametrize("p", [1, 2])
 def test_p_norms(p):
     x = cp.Variable(3)
     s = cp.Variable(nonneg=True)
-    f_exp = cp.norm(x, p)
-    persp = form_perspective_from_f_exp(f_exp, [x, s])
-    constraints = persp.constraints + [s <= 1, x >= [1, 2, 3]]
-    prob = cp.Problem(cp.Minimize(persp.t), constraints)
+    f = cp.norm(x, p)
+    obj = perspective(f, s)
+    constraints = [1 == s, x >= [1, 2, 3]]
+    prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve()
 
     # reference problem
-    ref_x = cp.Variable(3)
-    ref_s = cp.Variable()
+    ref_x = cp.Variable(3,pos=True)
+    ref_s = cp.Variable(pos=True)
 
-    obj = cp.power(cp.norm(ref_x, p), p) / cp.power(ref_s, p-1)
+    obj = cp.sum(cp.power(ref_x, p) / cp.power(ref_s, p-1))
 
-    ref_constraints = [ref_x >= [1, 2, 3], ref_s <= 1]
+    ref_constraints = [ref_x >= [1, 2, 3], ref_s == 1]
     ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
-    ref_prob.solve()
+    ref_prob.solve(gp=True)
 
-    assert np.isclose(prob.value, ref_prob.value)
+    assert np.isclose(prob.value**p, ref_prob.value)
     assert np.allclose(x.value, ref_x.value)
     if p != 1:  # s not used when denominator is s^0
         assert np.isclose(s.value, ref_s.value)
@@ -91,14 +74,10 @@ def test_p_norms(p):
 def test_rel_entr():
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    f_exp = -cp.log(x)
-
-    persp = form_perspective_from_f_exp(f_exp, [x, s])
-    constraints = persp.constraints + [1 <= s,
-                                       s <= 2,
-                                       1 <= x,
-                                       x <= 2]
-    prob = cp.Problem(cp.Minimize(persp.t), constraints)
+    f= -cp.log(x)
+    obj = perspective(f,s)
+    constraints = [1 <= s, s <= 2, 1 <= x, x <= 2]
+    prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
 
     # reference problem
@@ -118,11 +97,10 @@ def test_rel_entr():
 def test_exp():
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    f_exp = cp.exp(x)
-
-    persp = form_perspective_from_f_exp(f_exp, [x, s])
-    constraints = persp.constraints + [s >= 1, 1 <= x]
-    prob = cp.Problem(cp.Minimize(persp.t), constraints)
+    f = cp.exp(x)
+    obj = perspective(f, s)
+    constraints = [s >= 1, 1 <= x]
+    prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
 
     # reference problem
@@ -164,11 +142,11 @@ def lse_example():
 def test_lse(lse_example):
     x = cp.Variable(3)
     s = cp.Variable(nonneg=True)
-    f_exp = cp.log_sum_exp(x)
+    f = cp.log_sum_exp(x)
 
-    persp = form_perspective_from_f_exp(f_exp, [x, s])
-    constraints = persp.constraints + [1 <= s, s <= 2, [1, 2, 3] <= x]
-    prob = cp.Problem(cp.Minimize(persp.t), constraints)
+    obj = perspective(f, s)
+    constraints = [1 <= s, s <= 2, [1, 2, 3] <= x]
+    prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
 
     ref_prob, ref_x, ref_s = lse_example
@@ -183,7 +161,7 @@ def test_lse_atom(lse_example):
     s = cp.Variable(nonneg=True)
     f_exp = cp.log_sum_exp(x)
 
-    obj = perspective(f_exp, x, s)
+    obj = perspective(f_exp, s)
     constraints = [1 <= s, s <= 2, [1, 2, 3] <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
@@ -201,9 +179,9 @@ def test_evaluate_persp(x_val, s_val):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     f_exp = cp.square(x)+3*x-5
-    obj = perspective(f_exp, x, s)
+    obj = perspective(f_exp, s)
 
-    l = np.array([x_val, s_val])
+    l = np.array([s_val, x_val])
 
     x.value = np.array(x_val)
     s.value = np.array(s_val)  # currently assumes variables have values before querrying
@@ -224,7 +202,7 @@ def test_quad_atom(quad_example):
 
     f_exp = cp.square(x) + r*x - 4
 
-    obj = perspective(f_exp, x, s)
+    obj = perspective(f_exp, s)
 
     constraints = [s <= .5, x >= 2]
     prob = cp.Problem(cp.Minimize(obj), constraints)
@@ -244,9 +222,9 @@ def test_quad_persp_persp(quad_example):
     t = cp.Variable(nonneg=True)
 
     f_exp = cp.square(x) + r*x - 4
-    obj_inner = perspective(f_exp, x, s)
+    obj_inner = perspective(f_exp, s)
 
-    obj = perspective(obj_inner, cp.hstack([x, s]), t)
+    obj = perspective(obj_inner, t)
     # f(x) -> sf(x/s) -> t(s/t)f(xt/ts) -> sf(x/s)
 
     constraints = [.1 <= s, s <= .5, x >= 2, .1 <= t, t <= .5]
@@ -274,7 +252,7 @@ def test_quad_quad():
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     f = cp.power(x, 4)
-    obj = perspective(f, x, s)
+    obj = perspective(f, s)
 
     constraints = [x >= 5, s <= 3]
 
@@ -303,7 +281,7 @@ def test_power(n):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
     f = cp.power(x, n)
-    obj = perspective(f, x, s)
+    obj = perspective(f, s)
 
     constraints = [x >= 1, s <= .5]
 
@@ -315,30 +293,53 @@ def test_power(n):
     assert np.isclose(s.value, ref_s.value)
 
 
-def test_psd_persp():
+def test_psd_tr_persp():
     # reference problem
-    ref_x = cp.Variable(2)
     ref_P = cp.Variable((2, 2), PSD=True)
 
-    # matrix_frac is homogenous of degree 1 so its perspective is itself.
-    obj = cp.matrix_frac(ref_x, ref_P)
-    constraints = [ref_x >= 5, cp.trace(ref_P) == 1]
+    obj = cp.trace(ref_P)
+    constraints = [ref_P == np.eye(2)]
     ref_prob = cp.Problem(cp.Minimize(obj), constraints)
 
     ref_prob.solve()
 
     # perspective problem
-    x = cp.Variable(2)
     P = cp.Variable((2, 2), PSD=True)
     s = cp.Variable(nonneg=True)
 
-    # matrix_frac is homogenous of degree 1 so its perspective is itself.
-    f = cp.matrix_frac(x, P)
+    f = cp.trace(P)
 
-    obj = perspective(f, cp.hstack([x, cp.vec(P)]), s)
-    constraints = [x >= 5, cp.trace(P) == 1, s==1]
+    obj = perspective(f, s)
+    constraints = [P == np.eye(2), s == 1]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve()
 
+    assert prob.status == cp.OPTIMAL
     assert np.isclose(prob.value, ref_prob.value)
-    assert np.isclose(x.value, ref_x.value)
+
+@pytest.mark.parametrize("n", [2,3,11])
+def test_psd_mf_persp(n):
+    # reference problem
+    ref_x = cp.Variable(n)
+    ref_P = cp.Variable((n, n), PSD=True)
+
+    # matrix_frac is homogenous of degree 1 so its perspective is itself.
+    obj = cp.matrix_frac(ref_x, ref_P)
+    constraints = [ref_x == 5, ref_P == np.eye(n)]
+    ref_prob = cp.Problem(cp.Minimize(obj), constraints)
+    ref_prob.solve()
+
+    # perspective problem
+    x = cp.Variable(n)
+    P = cp.Variable((n, n), PSD=True)
+    s = cp.Variable(nonneg=True)
+
+    f = cp.matrix_frac(x, P)
+    obj = perspective(f, s)
+    constraints = [x == 5, P == np.eye(n), s==1,]
+    prob = cp.Problem(cp.Minimize(obj), constraints)
+    prob.solve()
+
+    assert prob.status == cp.OPTIMAL
+    assert np.isclose(prob.value, ref_prob.value)
+    assert np.allclose(x.value, ref_x.value)
