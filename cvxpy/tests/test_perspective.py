@@ -47,7 +47,7 @@ def test_p_norms(p):
     prob.solve()
 
     # reference problem
-    ref_x = cp.Variable(3,pos=True)
+    ref_x = cp.Variable(3, pos=True)
     ref_s = cp.Variable(pos=True)
 
     obj = cp.sum(cp.power(ref_x, p) / cp.power(ref_s, p-1))
@@ -65,8 +65,8 @@ def test_p_norms(p):
 def test_rel_entr():
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    f= -cp.log(x)
-    obj = cp.perspective(f,s)
+    f = -cp.log(x)
+    obj = cp.perspective(f, s)
     constraints = [1 <= s, s <= 2, 1 <= x, x <= 2]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve(solver=cp.MOSEK)
@@ -119,7 +119,6 @@ def lse_example():
     ref_z = cp.Variable(3)
     ref_t = cp.Variable()
 
-    obj = ref_z
     ref_constraints = [
         ref_s >= cp.sum(ref_z),
         [1, 2, 3] <= ref_x, 1 <= ref_s, ref_s <= 2]
@@ -172,11 +171,11 @@ def test_evaluate_persp(x_val, s_val):
     f_exp = cp.square(x)+3*x-5
     obj = cp.perspective(f_exp, s)
 
-    l = np.array([s_val, x_val])
+    val_array = np.array([s_val, x_val])
 
     x.value = np.array(x_val)
     s.value = np.array(s_val)  # currently assumes variables have values before querrying
-    val = obj.numeric(l)
+    val = obj.numeric(val_array)
 
     # true val
     ref_val = x_val**2/s_val + 3*x_val - 5*s_val
@@ -308,7 +307,8 @@ def test_psd_tr_persp():
     assert prob.status == cp.OPTIMAL
     assert np.isclose(prob.value, ref_prob.value)
 
-@pytest.mark.parametrize("n", [2,3,11])
+
+@pytest.mark.parametrize("n", [2, 3, 11])
 def test_psd_mf_persp(n):
     # reference problem
     ref_x = cp.Variable(n)
@@ -327,7 +327,7 @@ def test_psd_mf_persp(n):
 
     f = cp.matrix_frac(x, P)
     obj = cp.perspective(f, s)
-    constraints = [x == 5, P == np.eye(n), s==1,]
+    constraints = [x == 5, P == np.eye(n), s == 1, ]
     prob = cp.Problem(cp.Minimize(obj), constraints)
     prob.solve()
 

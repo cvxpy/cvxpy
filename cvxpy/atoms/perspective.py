@@ -17,13 +17,14 @@ limitations under the License.
 from cvxpy.atoms.atom import Atom
 from typing import Tuple
 import numpy as np
+from cvxpy.expressions.expression import Expression
 
 
 class perspective(Atom):
     """TODO.
     """
 
-    def __init__(self, f: "cp.Expression", s: "cp.Expression") -> None:
+    def __init__(self, f: Expression, s: Expression) -> None:
         self.f = f
         super(perspective, self).__init__(s, *f.variables())
 
@@ -52,7 +53,7 @@ class perspective(Atom):
 
         def new_set_vals(vals, s_val):
             for var, val in zip(f.variables(), vals):
-                var.value = val/s_val 
+                var.value = val/s_val
 
         def set_vals(vals, s_val=1):
             # vals could be scalar, could be an array
