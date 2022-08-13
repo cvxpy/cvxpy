@@ -52,7 +52,7 @@ def _solve_as_qp(problem, candidates):
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List[Any]:
+def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) -> List[Any]:
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
@@ -110,7 +110,7 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    if _solve_as_qp(problem, candidates):
+    if _solve_as_qp(problem, candidates) and solver_opts.get('use_quad_obj', True):
         reductions += [CvxAttr2Constr(), qp2symbolic_qp.Qp2SymbolicQp()]
     else:
         # Canonicalize it to conic problem.
@@ -168,7 +168,7 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, candidates, gp)
+    reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
@@ -201,7 +201,7 @@ def construct_solving_chain(problem, candidates,
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    if _solve_as_qp(problem, candidates):
+    if _solve_as_qp(problem, candidates) and solver_opts.get('use_quad_obj', True):
         # Canonicalize as a QP
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
