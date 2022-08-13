@@ -137,6 +137,9 @@ For example, creating a variable ``x`` via ``x = Variable(nonpos=True)`` informs
 Creating the variable ``x`` via ``x = Variable()`` and adding the constraint ``x >= 0`` separately does not provide any information
 about the sign of ``x`` to the DCP analyzer.
 
+One downside of using attributes over explicit constraints is that dual variables will not be recorded. Dual variable values
+are only recorded for explicit constraints.
+
 .. _semidefinite:
 
 Semidefinite matrices
@@ -924,6 +927,9 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 
 ``'use_indirect'``
     whether to use indirect solver for KKT sytem (instead of direct) (default: True).
+
+``'use_quad_obj'``
+    whether to use a quadratic objective or reduce it to SOC constraints (default: True).
 
 `CBC`_ options:
 

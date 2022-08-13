@@ -158,7 +158,7 @@ class PDLP(ConicSolver):
                 return {"status": s.SOLVER_ERROR}
             parameters.MergeFrom(proto)
         if "time_limit_sec" in solver_opts:
-            request.solver_time_limit_sec = float(solver_opts["time_limit_sec"])
+            request.solver_time_limit_seconds = float(solver_opts["time_limit_sec"])
 
         request.solver_specific_parameters = text_format.MessageToString(parameters)
         solver = model_builder_helper.ModelSolverHelper()
