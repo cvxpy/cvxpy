@@ -17,7 +17,7 @@ limitations under the License.
 from cvxpy.atoms import (MatrixFrac, Pnorm, QuadForm, abs, bmat, conj, conv,
                          cumsum, imag, kron, lambda_max, lambda_sum_largest,
                          log_det, norm1, norm_inf, quad_over_lin, real,
-                         reshape, sigma_max, trace, upper_tri, perspective,)
+                         reshape, sigma_max, trace, upper_tri,)
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import (DivExpression, MulExpression,
                                                  multiply,)
@@ -58,9 +58,6 @@ from cvxpy.reductions.complex2real.atom_canonicalizers.soc_canon import (
 from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import (
     variable_canon,)
     
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.perspective_canon import (
-    perspective_canon,)
-
 
 CANON_METHODS = {
     AddExpression: separable_canon,
@@ -104,8 +101,6 @@ CANON_METHODS = {
     norm1: pnorm_canon,
     norm_inf: pnorm_canon,
     Pnorm: pnorm_canon,
-
-    perspective: perspective_canon,
 
     lambda_max: hermitian_canon,
     log_det: norm_nuc_canon,

@@ -50,9 +50,6 @@ from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
 from cvxpy.reductions.utilities import special_index_canon
 from cvxpy.transforms.indicator import indicator
 
-#TODO: figure out this import
-from cvxpy.atoms.perspective import perspective
-
 # TODO: remove pwl canonicalize methods, use EliminatePwl reduction instead
 CANON_METHODS = {
     cummax : cummax_canon,

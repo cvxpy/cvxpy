@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import numpy as np
-from cvxpy.problems.problem import Problem
 from cvxpy.problems.objective import Minimize
 from cvxpy.expressions.variable import Variable
-from cvxpy.atoms.affine import vec
-from cvxpy.perspective.perspective_utils import form_cone_constraint
+from cvxpy.atoms.affine.vec import vec
+from cvxpy.utilities.perspective_utils import form_cone_constraint
 
 def perspective_canon(expr, args):
+
+    from cvxpy.problems.problem import Problem
     # Only working for minimization right now. 
 
     aux_prob = Problem(Minimize(expr.f))

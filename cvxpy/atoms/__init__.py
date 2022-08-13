@@ -84,7 +84,7 @@ from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.one_minus_pos import diff_pos, one_minus_pos
-from cvxpy.atoms.perspective import perspective
+from cvxpy.atoms.perspective_file import perspective
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import Pnorm, pnorm
 from cvxpy.atoms.prod import Prod, prod
