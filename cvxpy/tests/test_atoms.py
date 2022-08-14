@@ -647,6 +647,19 @@ class TestAtoms(BaseTest):
         self.assertEqual(str(cm.exception),
                          "Argument to trace must be a square matrix.")
 
+    def test_trace_sign_psd(self) -> None:
+        """Test sign of trace for psd/nsd inputs.
+        """
+        X_psd = cp.Variable((2,2),PSD=True)
+        X_nsd = cp.Variable((2,2),NSD=True)
+
+        psd_trace = cp.trace(X_psd)
+        nsd_trace = cp.trace(X_nsd)
+
+        assert psd_trace.is_nonneg() 
+        assert nsd_trace.is_nonpos() 
+
+
     def test_log1p(self) -> None:
         """Test the log1p atom.
         """
