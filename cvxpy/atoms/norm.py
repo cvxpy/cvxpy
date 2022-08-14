@@ -72,7 +72,7 @@ def norm(x, p: Union[int, str] = 2, axis=None):
         elif p == 'fro':
             return pnorm(vec(x), 2, axis)
         elif isinstance(p, str):
-            raise RuntimeError(f'Unsupported norm option {p} for non-matrix.')
+            raise RuntimeError(f'Unsupported norm option {p} for non-matrix .')
         else:
             return pnorm(x, p, axis)
 
