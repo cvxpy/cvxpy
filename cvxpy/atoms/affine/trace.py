@@ -35,7 +35,6 @@ class trace(AffAtom):
     def __init__(self, expr) -> None:
         super(trace, self).__init__(expr)
 
-    
     def sign_from_args(self) -> Tuple[bool, bool]:
         """Trace is nonneg (nonpos) if its argument is elementwise nonneg
         (nonpos) or psd (nsd).
@@ -44,7 +43,7 @@ class trace(AffAtom):
         is_nonpos = self.args[0].is_nonpos() or self.args[0].is_nsd()
 
         return is_nonneg, is_nonpos
-    
+
     @AffAtom.numpy_numeric
     def numeric(self, values):
         """Sums the diagonal entries.
