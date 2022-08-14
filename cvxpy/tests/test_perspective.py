@@ -18,7 +18,24 @@ import numpy as np
 import pytest
 
 import cvxpy as cp
+from ..atoms.perspective import perspective
 from cvxpy.constraints.exponential import ExpCone
+
+
+def test_monotonicity():
+    x = cp.Variable(nonneg=True)
+    f = cp.exp(x)
+    s = cp.Variable(nonneg=True)
+    p = perspective(f, s)
+
+    assert p.is_nonneg()
+    assert not p.is_nonpos()
+
+    assert not p.is_incr(0)
+    assert p.is_incr(1)
+
+    assert not p.is_decr(0)
+    assert not p.is_decr(1)
 
 
 @pytest.fixture(params=[2, 3, 4, -2, 0])

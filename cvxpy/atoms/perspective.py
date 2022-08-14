@@ -14,6 +14,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+
 from typing import Tuple
 
 import numpy as np
@@ -23,7 +25,11 @@ from cvxpy.expressions.expression import Expression
 
 
 class perspective(Atom):
-    """TODO.
+    """Implements the perspective transform of an convex or concave scalar
+    expression. Uses the fact that given a cone form for the epigraph of f via
+    f(x) <= t iff  Fx + gt + e in K, the epigraph of the perspective transform
+    of f can be given by sf(x/s) <= t iff Fx + gt + se in K
+    (see https://web.stanford.edu/~boyd/papers/pdf/sw_aff_ctrl.pdf).
     """
 
     def __init__(self, f: Expression, s: Expression) -> None:
@@ -39,7 +45,7 @@ class perspective(Atom):
 
         return super().validate_arguments()
 
-    def numeric(self, values):
+    def numeric(self, values: list[np.ndarray, np.ndarray]) -> np.ndarray:
         """
         Compute the perspective sf(x/s) numerically.
         """
@@ -53,32 +59,15 @@ class perspective(Atom):
         # old_x_val = self.args[0].value
         old_x_vals = [var.value for var in f.variables()]
 
-        def new_set_vals(vals, s_val):
+        def set_vals(vals, s_val):
             for var, val in zip(f.variables(), vals):
                 var.value = val/s_val
 
-        def set_vals(vals, s_val=1):
-            # vals could be scalar, could be an array
-
-            vals = np.atleast_1d(vals)
-            i = 0
-            for var in f.variables():
-                d = int(np.prod(var.shape))
-                new_val = (vals[i:i+d]/s_val).reshape(var.shape)
-                var.value = new_val
-                i += d
-
-            # n = len(f.variables())
-            # vals = vals.reshape((n, -1))
-            # for var, val in zip(f.variables(), vals):
-            #     new_val = np.array(val/s_val).reshape(var.shape)
-            #     var.value = new_val
-
-        new_set_vals(values[1:], s_val=values[0])
+        set_vals(values[1:], s_val=values[0])
 
         ret_val = np.array([f.value*s_val])
 
-        new_set_vals(old_x_vals, s_val=1)
+        set_vals(old_x_vals, s_val=1)
 
         return ret_val
 
@@ -87,10 +76,7 @@ class perspective(Atom):
         """
         pass
 
-    def _column_grad(self, value):
-        pass
-
-    def sign_from_args(self) -> Tuple[bool, bool]:
+    def sign_from_args(self) -> tuple[bool, bool]:
         f_pos = self.f.is_nonneg()
         f_neg = self.f.is_nonpos()
         s_pos = self.args[0].is_nonneg()
@@ -115,21 +101,18 @@ class perspective(Atom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        assert idx in [1, 2], "can't handle increasing in 'f'"
-        if idx == 1:
-            return self.f.is_incr(0)  # assuming scalar for now
-        elif idx == 2:
+        if idx == 0:
             return False
+        else:
+            return all(self.f.is_incr(i) for i in range(len(self.f.args)))
 
-    def is_decr(self, idx) -> bool:
+    def is_decr(self, idx: int) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        assert idx in [0, 1]
         if idx == 0:
-            return self.f.is_decr(0)  # assuming scalar for now
-        elif idx == 1:
-            return True
-        pass
+            return False
+        else:
+            return all(self.f.is_decr(i) for i in range(len(self.f.args)))
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
