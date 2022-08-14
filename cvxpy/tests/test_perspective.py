@@ -15,10 +15,10 @@ limitations under the License.
 """
 
 import numpy as np
-import cvxpy as cp
-from ..atoms.perspective import perspective
-from cvxpy.constraints.exponential import ExpCone
 import pytest
+
+import cvxpy as cp
+from cvxpy.constraints.exponential import ExpCone
 
 
 @pytest.fixture(params=[2, 3, 4, -2, 0])

@@ -16,13 +16,13 @@ limitations under the License.
 
 import cvxpy as cp
 from cvxpy import Variable
-from cvxpy.constraints.second_order import SOC
-from cvxpy.constraints.nonpos import NonNeg
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import ExpCone
-from cvxpy.constraints.zero import Zero
+from cvxpy.constraints.nonpos import NonNeg
 from cvxpy.constraints.power import PowCone3D
 from cvxpy.constraints.psd import PSD
+from cvxpy.constraints.second_order import SOC
+from cvxpy.constraints.zero import Zero
 
 
 def form_cone_constraint(z: Variable, constraint: Constraint) -> Constraint:

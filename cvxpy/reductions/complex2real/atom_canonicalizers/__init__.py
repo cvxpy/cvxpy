@@ -57,7 +57,6 @@ from cvxpy.reductions.complex2real.atom_canonicalizers.soc_canon import (
     soc_canon,)
 from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import (
     variable_canon,)
-    
 
 CANON_METHODS = {
     AddExpression: separable_canon,

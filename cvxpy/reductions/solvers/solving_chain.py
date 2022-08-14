@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import numpy as np
 
@@ -23,6 +23,7 @@ from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
+from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -52,7 +53,8 @@ def _solve_as_qp(problem, candidates):
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) -> List[Any]:
+def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) \
+        -> List[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
@@ -173,12 +175,12 @@ def construct_solving_chain(problem, candidates,
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
     dpp_error_msg = (
-            "You are solving a parameterized problem that is not DPP. "
-            "Because the problem is not DPP, subsequent solves will not be "
-            "faster than the first one. For more information, see the "
-            "documentation on Discplined Parametrized Programming, at\n"
-            "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
-            "disciplined-parametrized-programming")
+        "You are solving a parameterized problem that is not DPP. "
+        "Because the problem is not DPP, subsequent solves will not be "
+        "faster than the first one. For more information, see the "
+        "documentation on Discplined Parametrized Programming, at\n"
+        "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
+        "disciplined-parametrized-programming")
     if ignore_dpp or not problem.is_dpp(dpp_context):
         # No warning for ignore_dpp.
         if ignore_dpp:
