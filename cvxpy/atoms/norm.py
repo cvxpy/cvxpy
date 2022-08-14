@@ -69,10 +69,6 @@ def norm(x, p: Union[int, str] = 2, axis=None):
             return norm1(x, axis=axis)
         elif p in [np.inf, "inf", "Inf"]:
             return norm_inf(x, axis)
-        elif p == 'fro':
-            return pnorm(vec(x), 2, axis)
-        elif isinstance(p, str):
-            raise RuntimeError(f'Unsupported norm option {p} for non-matrix.')
         else:
             return pnorm(x, p, axis)
 
