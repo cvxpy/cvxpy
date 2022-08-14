@@ -39,10 +39,10 @@ class log_det(Atom):
         For PSD matrix A, this is the sum of logs of eigenvalues of A
         and is equivalent to the nuclear norm of the matrix logarithm of A.
         """
-        # take symmetric part of the input.
-        symm = (values[0] + values[0].T)/2
+        # take Hermitian part of the input.
+        symm = (values[0] + np.conj(values[0].T))/2
         sign, logdet = LA.slogdet(symm)
-        if sign == 1:
+        if np.real(sign) == 1:
             return logdet
         else:
             return -np.inf
