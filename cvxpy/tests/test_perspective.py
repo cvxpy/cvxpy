@@ -16,6 +16,7 @@ limitations under the License.
 
 import numpy as np
 import cvxpy as cp
+from ..atoms.perspective import perspective
 from cvxpy.constraints.exponential import ExpCone
 import pytest
 
@@ -334,3 +335,30 @@ def test_psd_mf_persp(n):
     assert prob.status == cp.OPTIMAL
     assert np.isclose(prob.value, ref_prob.value)
     assert np.allclose(x.value, ref_x.value)
+
+
+@pytest.mark.parametrize("n", [2, 3, 11])
+def test_psd_tr_square(n):
+    # reference problem
+    ref_s = cp.Variable(nonneg=True)
+    ref_P = cp.Variable((n, n), PSD=True)
+
+    # Tr(X)^2 perspective is quad over lin of Tr(X)
+    obj = cp.quad_over_lin(cp.trace(ref_P), ref_s)
+    constraints = [ref_s <= 5, ref_P >> np.eye(n)]
+    ref_prob = cp.Problem(cp.Minimize(obj), constraints)
+    ref_prob.solve()
+
+    # perspective problem
+    P = cp.Variable((n, n), PSD=True)
+    s = cp.Variable(nonneg=True)
+
+    f = cp.perspective(cp.square(cp.trace(P)), s)
+    obj = cp.perspective(f, s)
+    constraints = [s <= 5, P >> np.eye(n)]
+    prob = cp.Problem(cp.Minimize(obj), constraints)
+    prob.solve()
+
+    assert prob.status == cp.OPTIMAL
+    assert np.isclose(prob.value, ref_prob.value)
+    assert np.allclose(P.value, ref_P.value)
