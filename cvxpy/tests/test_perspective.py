@@ -49,7 +49,7 @@ def quad_example(request):
     obj = cp.quad_over_lin(x, s) + r*x - 4*s
     constraints = [x >= 2, s <= .5]
     prob_ref = cp.Problem(cp.Minimize(obj), constraints)
-    prob_ref.solve()
+    prob_ref.solve(solver=cp.ECOS)
 
     return prob_ref.value, s.value, x.value, r
 
@@ -62,7 +62,7 @@ def test_p_norms(p):
     obj = cp.perspective(f, s)
     constraints = [1 == s, x >= [1, 2, 3]]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve()
+    prob.solve(solver=cp.ECOS)
 
     # reference problem
     ref_x = cp.Variable(3, pos=True)
@@ -87,7 +87,7 @@ def test_rel_entr():
     obj = cp.perspective(f, s)
     constraints = [1 <= s, s <= 2, 1 <= x, x <= 2]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.MOSEK)
+    prob.solve(solver=cp.ECOS)
 
     # reference problem
     ref_x = cp.Variable()
@@ -96,7 +96,7 @@ def test_rel_entr():
 
     ref_constraints = [1 <= ref_x, ref_x <= 2, 1 <= ref_s, ref_s <= 2]
     ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
-    ref_prob.solve(solver=cp.MOSEK)
+    ref_prob.solve(solver=cp.ECOS)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.allclose(x.value, ref_x.value)
@@ -110,7 +110,7 @@ def test_exp():
     obj = cp.perspective(f, s)
     constraints = [s >= 1, 1 <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.MOSEK)
+    prob.solve(solver=cp.ECOS)
 
     # reference problem
     ref_x = cp.Variable()
@@ -122,7 +122,7 @@ def test_exp():
         ExpCone(ref_x, ref_s, ref_z),
         ref_x >= 1, ref_s >= 1]
     ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
-    ref_prob.solve(solver=cp.MOSEK)
+    ref_prob.solve(solver=cp.ECOS)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
@@ -142,7 +142,7 @@ def lse_example():
         [1, 2, 3] <= ref_x, 1 <= ref_s, ref_s <= 2]
     ref_constraints += [ExpCone(ref_x[i]-ref_t, ref_s, ref_z[i]) for i in range(3)]
     ref_prob = cp.Problem(cp.Minimize(ref_t), ref_constraints)
-    ref_prob.solve(solver=cp.MOSEK)
+    ref_prob.solve(solver=cp.ECOS)
 
     return ref_prob.value, ref_x.value, ref_s.value
 
@@ -155,7 +155,7 @@ def test_lse(lse_example):
     obj = cp.perspective(f, s)
     constraints = [1 <= s, s <= 2, [1, 2, 3] <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.MOSEK)
+    prob.solve(solver=cp.ECOS)
 
     ref_prob, ref_x, ref_s = lse_example
 
@@ -172,7 +172,7 @@ def test_lse_atom(lse_example):
     obj = cp.perspective(f_exp, s)
     constraints = [1 <= s, s <= 2, [1, 2, 3] <= x]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve(solver=cp.MOSEK)
+    prob.solve(solver=cp.ECOS)
 
     # reference problem
     ref_prob, ref_x, ref_s = lse_example
@@ -254,7 +254,7 @@ def test_quad_quad():
     constraints = [ref_x >= 5, ref_s <= 3]
     ref_prob = cp.Problem(cp.Minimize(obj), constraints)
 
-    ref_prob.solve()
+    ref_prob.solve(solver=cp.ECOS)
 
     # perspective problem
     x = cp.Variable()
@@ -265,7 +265,7 @@ def test_quad_quad():
     constraints = [x >= 5, s <= 3]
 
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve()
+    prob.solve(solver=cp.ECOS)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
@@ -294,7 +294,7 @@ def test_power(n):
     constraints = [x >= 1, s <= .5]
 
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve()
+    prob.solve(solver=cp.ECOS)
 
     assert np.isclose(prob.value, ref_prob.value)
     assert np.isclose(x.value, ref_x.value)
@@ -309,7 +309,7 @@ def test_psd_tr_persp():
     constraints = [ref_P == np.eye(2)]
     ref_prob = cp.Problem(cp.Minimize(obj), constraints)
 
-    ref_prob.solve()
+    ref_prob.solve(solver=cp.SCS)
 
     # perspective problem
     P = cp.Variable((2, 2), PSD=True)
@@ -320,7 +320,7 @@ def test_psd_tr_persp():
     obj = cp.perspective(f, s)
     constraints = [P == np.eye(2), s == 1]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve()
+    prob.solve(solver=cp.SCS)
 
     assert prob.status == cp.OPTIMAL
     assert np.isclose(prob.value, ref_prob.value)
@@ -336,7 +336,7 @@ def test_psd_mf_persp(n):
     obj = cp.matrix_frac(ref_x, ref_P)
     constraints = [ref_x == 5, ref_P == np.eye(n)]
     ref_prob = cp.Problem(cp.Minimize(obj), constraints)
-    ref_prob.solve()
+    ref_prob.solve(solver=cp.SCS)
 
     # perspective problem
     x = cp.Variable(n)
@@ -347,7 +347,7 @@ def test_psd_mf_persp(n):
     obj = cp.perspective(f, s)
     constraints = [x == 5, P == np.eye(n), s == 1, ]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve()
+    prob.solve(solver=cp.SCS)
 
     assert prob.status == cp.OPTIMAL
     assert np.isclose(prob.value, ref_prob.value)
@@ -364,7 +364,7 @@ def test_psd_tr_square(n):
     obj = cp.quad_over_lin(cp.trace(ref_P), ref_s)
     constraints = [ref_s <= 5, ref_P >> np.eye(n)]
     ref_prob = cp.Problem(cp.Minimize(obj), constraints)
-    ref_prob.solve()
+    ref_prob.solve(solver=cp.SCS)
 
     # perspective problem
     P = cp.Variable((n, n), PSD=True)
@@ -374,8 +374,8 @@ def test_psd_tr_square(n):
     obj = cp.perspective(f, s)
     constraints = [s <= 5, P >> np.eye(n)]
     prob = cp.Problem(cp.Minimize(obj), constraints)
-    prob.solve()
+    prob.solve(solver=cp.SCS)
 
     assert prob.status == cp.OPTIMAL
-    assert np.isclose(prob.value, ref_prob.value)
-    assert np.allclose(P.value, ref_P.value)
+    assert np.isclose(prob.value, ref_prob.value, atol=1e-3)
+    assert np.allclose(P.value, ref_P.value, atol=1e-4)
