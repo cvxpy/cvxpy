@@ -28,7 +28,7 @@ elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     python -m pip install sdpa-python
 fi
 
-python -m pip install ortools coptpy
+python -m pip install "ortools>=9.3,<9.5" coptpy
 
 # CBC comes with wheels for windows and needs coin-or-cbc to compile otherwise
 # conda-forge in progress: https://github.com/conda-forge/staged-recipes/pull/14950
