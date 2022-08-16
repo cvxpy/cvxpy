@@ -15,6 +15,7 @@ limitations under the License.
 """
 import numpy as np
 
+from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Minimize
@@ -58,15 +59,18 @@ def perspective_canon(expr, args):
     x_canon = prob_canon.x
     constraints = []
 
-    x_pers = A@x_canon + s*b
+    if A.shape[0] > 0:
+        # Rules out the case where f is affine and requires no additional
+        # constraints.
+        x_pers = A@x_canon + s*b
 
-    i = 0
-    for con in prob_canon.constraints:
-        sz = con.size
-        var_slice = x_pers[i:i+sz]
-        pers_constraint = form_cone_constraint(var_slice, con)
-        constraints.append(pers_constraint)
-        i += sz
+        i = 0
+        for con in prob_canon.constraints:
+            sz = con.size
+            var_slice = x_pers[i:i+sz]
+            pers_constraint = form_cone_constraint(var_slice, con)
+            constraints.append(pers_constraint)
+            i += sz
 
     constraints.append(-c@x_canon + t - s*d >= 0)
 
@@ -77,15 +81,12 @@ def perspective_canon(expr, args):
     for var in expr.f.variables():
         start_ind = prob_canon.var_id_to_col[var.id]
         end_ind = end_inds[end_inds.index(start_ind)+1]
-        if var.is_psd():
-            # Handling this separately now, maybe there is a better way. A
-            # symmetric n x n matrix only is represented in the canonicalized
-            # form via n(n-1)/2 variables.
-
+        if var.attributes["diag"]:  # checking for diagonal first because diagonal is also symmetric
+            constraints += [diag(var) == x_canon[start_ind:end_ind]]
+        elif var.is_symmetric() and var.size > 1:
             n = var.shape[0]
             inds = np.triu_indices(n, k=0)  # includes diagonal
             constraints += [var[inds] == x_canon[start_ind:end_ind]]
-
         else:
             constraints.append(vec(var) == x_canon[start_ind:end_ind])
 

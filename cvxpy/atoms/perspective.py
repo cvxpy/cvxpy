@@ -51,12 +51,12 @@ class perspective(Atom):
         """
 
         assert values[0] >= 0
+        assert not np.isclose(values[0], 0.0), \
+            "There are valid cases where s = 0, but we do not handle this yet, e.g., f(x) = x + 1."
 
         s_val = np.array(values[0])
         f = self.f
 
-        # TODO: fix this silly overwriting
-        # old_x_val = self.args[0].value
         old_x_vals = [var.value for var in f.variables()]
 
         def set_vals(vals, s_val):
@@ -74,7 +74,6 @@ class perspective(Atom):
     def _grad(self, values):
         """
         """
-        pass
 
     def sign_from_args(self) -> tuple[bool, bool]:
         f_pos = self.f.is_nonneg()

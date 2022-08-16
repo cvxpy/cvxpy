@@ -380,3 +380,43 @@ def test_psd_tr_square(n):
     assert prob.status == cp.OPTIMAL
     assert np.isclose(prob.value, ref_prob.value, atol=1e-3)
     assert np.allclose(P.value, ref_P.value, atol=1e-4)
+
+
+def test_diag():
+    X_ref = cp.Variable((2, 2), diag=True)
+    obj = cp.trace(X_ref)
+    constraints = [cp.diag(X_ref) >= [1, 2]]
+    ref_prob = cp.Problem(cp.Minimize(obj), constraints)
+    ref_prob.solve()
+
+    X = cp.Variable((2, 2), diag=True)
+    f = cp.trace(X)
+    s = cp.Variable(nonneg=True)
+    obj = cp.perspective(f, s)
+    constraints = [cp.diag(X) >= [1, 2], s == 1]
+    prob = cp.Problem(cp.Minimize(obj), constraints)
+    prob.solve()
+
+    assert prob.status == cp.OPTIMAL
+    assert np.isclose(prob.value, ref_prob.value, atol=1e-3)
+    assert np.allclose(X.value.toarray(), X_ref.value.toarray(), atol=1e-4)
+
+
+def test_scalar_x():
+    x = cp.Variable()
+    s = cp.Variable(nonneg=True)
+    obj = perspective(x-1, s)
+
+    prob = cp.Problem(cp.Minimize(obj), [x >= 3.14, s <= 1])
+    prob.solve()
+    assert np.isclose(prob.value, 3.14 - 1)
+
+
+def test_assert_s_nonzero():
+    x = cp.Variable()
+    s = cp.Variable(nonneg=True)
+    obj = perspective(x+1, s)
+
+    prob = cp.Problem(cp.Minimize(obj), [x >= 3.14])
+    with pytest.raises(AssertionError, match="There are valid cases"):
+        prob.solve()
