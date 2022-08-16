@@ -111,6 +111,15 @@ class TestAtoms(BaseTest):
             "The input must be a single CVXPY Expression, not a list. "
             "Combine Expressions using atoms such as bmat, hstack, and vstack."))
 
+    def test_norm_exceptions(self) -> None:
+        """Test that norm exceptions are raised as expected.
+        """
+        x = cp.Variable(2)
+        with self.assertRaises(Exception) as cm:
+            cp.norm(x, 'nuc')
+        self.assertTrue(str(cm.exception) in (
+            "Unsupported norm option nuc for non-matrix."))
+
     def test_quad_form(self) -> None:
         """Test quad_form atom.
         """
