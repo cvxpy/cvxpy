@@ -22,7 +22,7 @@ elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt
 fi
 
-python -m pip install ortools coptpy cplex sdpa-python diffcp gurobipy xpress cylp
+python -m pip install coptpy cplex sdpa-python diffcp gurobipy xpress cylp
 
 # SCIP only works with scipy >= 1.5 due to dependency conflicts when installing on Linux/macOS
 if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
