@@ -333,7 +333,6 @@ class TestComplex(BaseTest):
         prob = cp.Problem(objective=obj, constraints=cons)
         prob.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(obj.value, 3*np.log(3))
-        pass
 
     def test_eigval_atoms(self) -> None:
         """Test eigenvalue atoms.
