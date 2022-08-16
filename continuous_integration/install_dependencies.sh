@@ -27,6 +27,7 @@ python -m pip install "ortools>=9.3,<9.5" coptpy cplex sdpa-python diffcp gurobi
 # cylp has wheels for all versions 3.7 - 3.10, except for 3.7 on Windows
 if [[ "$PYTHON_VERSION" != "3.7" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   python -m pip install cylp
+fi
 
 # SCIP only works with scipy >= 1.5 due to dependency conflicts when installing on Linux/macOS
 if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
