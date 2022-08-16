@@ -560,3 +560,121 @@ class TestRelEntrQuad(BaseTest):
         sth.solve(solver='ECOS')
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)
+
+
+class TestOpRelCone(BaseTest):
+
+    def oprelcone_1(self) -> STH.SolverTestHelper:
+        n = 3
+        # generates `n` independent, orthonormal vectors
+        U = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
+        a_diag = cp.Variable(shape=(n,), pos=True)
+        b_diag = cp.Variable(shape=(n,), pos=True)
+        # the below constraint ensures that `A` and `B` are
+        # defined in terms of their eigendecomposition and have the same eigenvectors
+        A = U @ cp.diag(a_diag) @ U.T
+        B = U @ cp.diag(b_diag) @ U.T
+        T = cp.Variable(shape=(n, n))
+        # constrains A,B,T \in OpRelCone
+        con1 = cp.constraints.OpRelCone(A, B, T, 10, 10)
+        # imposing some non-trivial constraints to ensure feasibility
+        con2 = a_diag <= 5
+        con3 = a_diag >= 2.5
+        con4 = b_diag <= 1.5
+        con5 = b_diag >= 0.5
+        con_pairs = [(con1, None),
+                     (con2, None),
+                     (con3, None),
+                     (con4, None),
+                     (con5, None)]
+        # objective is increasing_func_lambda(T)
+        k = 2
+        obj = cp.Minimize(cp.atoms.lambda_sum_largest(T, k))
+        obj_pair = (obj, 2.5540726360202255)
+        expect_T = np.array([[1.27702809e+00, 2.45713885e-14, -5.34214759e-15],
+                             [2.45713919e-14, 1.27702809e+00, 1.09987017e-13],
+                             [-5.34214762e-15, 1.09987023e-13, 1.27702809e+00]])
+        var_pairs = [(T, expect_T)]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_oprelcone_1(self):
+        sth = self.oprelcone_1()
+        sth.solve(solver='SCS')
+        sth.verify_primal_values(places=2)
+        sth.verify_objective(places=2)
+
+    def oprelcone_2(self) -> STH.SolverTestHelper:
+        n = 4
+        U = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
+        a_diag = cp.Variable(shape=(n,), pos=True)
+        b_diag = cp.Variable(shape=(n,), pos=True)
+        A = U @ cp.diag(a_diag) @ U.T
+        B = U @ cp.diag(b_diag) @ U.T
+        T = cp.Variable(shape=(n, n))
+        con1 = cp.constraints.OpRelCone(A, B, T, 2, 2)
+        con2 = a_diag <= 5
+        con3 = b_diag <= 1.5
+        con_pairs = [(con1, None),
+                     (con2, None),
+                     (con3, None)]
+        k = 3
+        obj = cp.Minimize(cp.atoms.lambda_sum_largest(T, k))
+        obj_pair = (obj, -1.6554572363409088)
+        expect_T = np.array([[-5.51808473e-01, -3.22477062e-13, -1.53851070e-13, 9.32509529e-14],
+                             [-3.22476879e-13, -5.51808473e-01, 5.93445801e-15, 4.76722578e-13],
+                             [-1.53851100e-13, 5.93442592e-15, -5.51808473e-01, 4.09022045e-14],
+                             [9.32509585e-14, 4.76722648e-13, 4.09021549e-14, -5.51808473e-01]])
+        var_pairs = [(T, expect_T)]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_oprelcone_2(self):
+        sth = self.oprelcone_2()
+        sth.solve(solver='SCS')
+        sth.verify_primal_values(places=2)
+        sth.verify_objective(places=2)
+
+    def oprelcone_3(self) -> STH.SolverTestHelper:
+        n = 5
+        # This is where (A, B) do not commute --- generate two sets of
+        # orthogonal eigenvectors for each of them
+        U1 = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
+        U2 = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
+        a_diag = cp.Variable(shape=(n,), pos=True)
+        b_diag = cp.Variable(shape=(n,), pos=True)
+        A = U1 @ cp.diag(a_diag) @ U1.T
+        B = U2 @ cp.diag(b_diag) @ U2.T
+        T = cp.Variable(shape=(n, n))
+        con1 = cp.constraints.OpRelCone(A, B, T, 10, 10)
+        con2 = a_diag <= 5
+        con3 = a_diag >= 2.5
+        con4 = b_diag <= 1.5
+        con5 = b_diag >= 0.5
+        con_pairs = [(con1, None),
+                     (con2, None),
+                     (con3, None),
+                     (con4, None),
+                     (con5, None)]
+        k = 3
+        obj = cp.Minimize(cp.atoms.lambda_sum_largest(T, k))
+        obj_pair = (obj,  3.8311357528637906)
+        expect_T = np.array([[1.27702101e+00, 2.87104297e-11, 6.45992413e-12,
+                              1.30762826e-12, 2.02783512e-11],
+                             [2.87104297e-11, 1.27702101e+00, 6.13021465e-12,
+                              -7.90859723e-12, -6.72410679e-14],
+                             [6.45992413e-12, 6.13021464e-12, 1.27702101e+00,
+                              1.29246719e-11, -9.42691763e-12],
+                             [1.30762826e-12, -7.90859723e-12, 1.29246719e-11,
+                              1.27702101e+00, 2.42404676e-12],
+                             [2.02783512e-11, -6.72410705e-14, -9.42691763e-12,
+                              2.42404676e-12, 1.27702101e+00]])
+        var_pairs = [(T, expect_T)]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_oprelcone_3(self):
+        sth = self.oprelcone_3()
+        sth.solve(solver='SCS')
+        sth.verify_primal_values(places=2)
+        sth.verify_objective(places=2)

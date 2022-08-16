@@ -20,13 +20,14 @@ import numpy as np
 
 import cvxpy as cp
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.exponential import RelEntrQuad
+from cvxpy.constraints.exponential import OpRelCone, RelEntrQuad
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 
 APPROX_CONES = {
-    RelEntrQuad: {cp.SOC}
+    RelEntrQuad: {cp.SOC},
+    OpRelCone: {cp.PSD}
 }
 
 
@@ -128,8 +129,31 @@ def RelEntrQuad_canon(con: RelEntrQuad, args) -> Tuple[Constraint, List[Constrai
     return lead_con, constrs
 
 
-class QuadApprox(Canonicalization):
+def OpRelCone_canon(con: OpRelCone, args) -> Tuple[Constraint, List[Constraint]]:
+    k, m = con.k, con.m
+    X, Y = con.X, con.Y
+    Zs = {i: Variable(shape=X.shape) for i in range(k+1)}
+    Ts = {i: Variable(shape=X.shape) for i in range(m+1)}
+    constrs = [Zero(Zs[0] - Y)]
+    w, t = gauss_legendre(m)
+    lead_con = Zero(cp.sum([w[i] * Ts[i] for i in range(m)]) + con.Z/2**k)
 
+    for i in range(k):
+        #     [Z[i]  , Z[i+1]]
+        #     [Z[i+1], x     ]
+        constrs.append(cp.bmat([[Zs[i], Zs[i+1]], [Zs[i+1].T, X]]) >> 0)
+
+    for i in range(m):
+        off_diag = -(t[i]**0.5) * Ts[i]
+        # The following matrix needs to be PSD.
+        #     [ Z[k] - x - T[i] , off_diag      ]
+        #     [ off_diag        , x - t[i]*T[i] ]
+        constrs.append(cp.bmat([[Zs[k] - X - Ts[i], off_diag], [off_diag.T, X-t[i]*Ts[i]]]) >> 0)
+
+    return lead_con, constrs
+
+
+class QuadApprox(Canonicalization):
     CANON_METHODS = {
         RelEntrQuad: RelEntrQuad_canon
     }
@@ -137,3 +161,13 @@ class QuadApprox(Canonicalization):
     def __init__(self, problem=None) -> None:
         super(QuadApprox, self).__init__(
             problem=problem, canon_methods=QuadApprox.CANON_METHODS)
+
+
+class OpRelConeApprox(Canonicalization):
+    CANON_METHODS = {
+        OpRelCone: OpRelCone_canon
+    }
+
+    def __init__(self, problem=None) -> None:
+        super(OpRelConeApprox, self).__init__(
+            problem=problem, canon_methods=OpRelConeApprox.CANON_METHODS)

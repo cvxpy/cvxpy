@@ -251,3 +251,114 @@ class RelEntrQuad(Constraint):
     def save_dual_value(self, value) -> None:
         # TODO: implement me.
         return
+
+
+class OpRelCone(Constraint):
+    """An approximate construction of the scalar relative entropy cone
+
+    Definition:
+    .. math::
+        K_{re}=\text{cl}\\{(x,y,\\tau)\\in\\mathbb{R}_{++}\\times
+                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq\\tau\\}
+
+    Since the above definition is very similar to the ExpCone, we provide a conversion method
+
+    More details on the approximation can be found in Theorem-3 on page-10 in the paper:
+    Semidefinite Approximations of the Matrix Logarithm.
+
+    Parameters
+    ----------
+    x : Expression
+        x in the (approximate) scalar relative entropy cone
+    y : Expression
+        y in the (approximate) scalar relative entropy cone
+    $\\tau$ : Expression
+        $\\tau$ in the (approximate) scalar relative entropy cone
+    m: Parameter directly related to the number of generated nodes for the quadrature
+    approximation used in the algorithm
+    k: Another parameter controlling the approximation
+    """
+
+    def __init__(self, X, Y, Z, m, k, constr_id=None) -> None:
+        Expression = cvxtypes.expression()
+        self.X = Expression.cast_to_const(X)
+        self.Y = Expression.cast_to_const(Y)
+        self.Z = Expression.cast_to_const(Z)
+        self.m = m
+        self.k = k
+        Xs, Ys, Zs = self.X.shape, self.Y.shape, self.Z.shape
+        if Xs != Ys or Xs != Zs:
+            msg = ("All arguments must have the same shapes. Provided arguments have"
+                   "shapes %s" % str((Xs, Ys, Zs)))
+            raise ValueError(msg)
+        super(OpRelCone, self).__init__([self.X, self.Y, self.Z], constr_id)
+
+    def get_data(self):
+        return [self.m, self.k]
+
+    def __str__(self) -> str:
+        tup = (self.X, self.Y, self.Z, self.m, self.k)
+        return "OpRelCone(%s, %s, %s, %s, %s)" % tup
+
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    @property
+    def residual(self):
+        # TODO(akshayka): The projection should be implemented directly.
+        from cvxpy import Minimize, Problem, Variable, hstack, norm2
+        if self.X.value is None or self.Y.value is None or self.Z.value is None:
+            return None
+        cvxtypes.expression()
+        X = Variable(self.X.shape)
+        Y = Variable(self.Y.shape)
+        Z = Variable(self.Z.shape)
+        constr = [OpRelCone(X, Y, Z, self.m, self.k)]
+        obj = Minimize(norm2(hstack([X, Y, Z]) -
+                             hstack([self.X.value, self.Y.value, self.Z.value])))
+        problem = Problem(obj, constr)
+        return problem.solve()
+
+    @property
+    def size(self) -> int:
+        """The number of entries in the combined cones.
+        """
+        return 3 * self.num_cones()
+
+    def num_cones(self):
+        """The number of elementwise cones.
+        """
+        return self.x.size
+
+    def cone_sizes(self) -> List[int]:
+        """The dimensions of the exponential cones.
+
+        Returns
+        -------
+        list
+            A list of the sizes of the elementwise cones.
+        """
+        return [3]*self.num_cones()
+
+    def is_dcp(self, dpp: bool = False) -> bool:
+        """An exponential constraint is DCP if each argument is affine.
+        """
+        if dpp:
+            with scopes.dpp_scope():
+                return all(arg.is_affine() for arg in self.args)
+        return all(arg.is_affine() for arg in self.args)
+
+    def is_dgp(self, dpp: bool = False) -> bool:
+        return False
+
+    def is_dqcp(self) -> bool:
+        return self.is_dcp()
+
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        s = (3,) + self.X.shape
+        return s
+
+    def save_dual_value(self, value) -> None:
+        # TODO: implement me.
+        return
