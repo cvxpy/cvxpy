@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import builtins
+import copy
 import pickle
 import sys
 import warnings
@@ -24,6 +25,7 @@ from io import StringIO
 import ecos
 import numpy
 import numpy as np
+import pytest
 import scipy.sparse as sp
 # Solvers.
 import scs
@@ -2031,3 +2033,25 @@ class TestProblem(BaseTest):
         prob2.solve()
         expect = np.ones((n, 1))
         self.assertItemsAlmostEqual(expr2.value, expect)
+
+    def test_copy_constraints():
+        x = cp.Variable()
+        y = cp.Variable()
+
+        constraints = [
+            x + y == 1,
+            x - y >= 1
+        ]
+        constraints[0].atoms()
+        constraints = copy.copy(constraints)
+
+        obj = cp.Minimize((x - y) ** 2)
+        prob = cp.Problem(obj, constraints)
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x.value, 1)
+        assert np.allclose(y.value, 0)
+
+        error_msg = "Creating a deepcopy of a CVXPY expression is not supported"
+        with pytest.raises(NotImplementedError, match=error_msg):
+            copy.deepcopy(constraints)
