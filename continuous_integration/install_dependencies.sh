@@ -11,7 +11,7 @@ conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
 if [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt setuptools=64.0.2
+  conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt setuptools=63.4.2
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
   # The earliest version of numpy that works is 1.19.
   # Given numpy 1.19, the earliest version of scipy we can use is 1.5.
@@ -22,7 +22,12 @@ elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt setuptools=64.0.2
 fi
 
-python -m pip install coptpy cplex sdpa-python diffcp gurobipy xpress cylp
+python -m pip install coptpy cplex sdpa-python diffcp gurobipy xpress
+
+# cylp has wheels for all versions 3.7 - 3.10, except for 3.7 on Windows
+if [[ "$PYTHON_VERSION" != "3.7" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
+  python -m pip install cylp
+fi
 
 # SCIP only works with scipy >= 1.5 due to dependency conflicts when installing on Linux/macOS
 if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
