@@ -351,8 +351,8 @@ def test_psd_mf_persp(n):
     prob.solve(solver=cp.SCS)
 
     assert prob.status == cp.OPTIMAL
-    assert np.isclose(prob.value, ref_prob.value)
-    assert np.allclose(x.value, ref_x.value)
+    assert np.isclose(prob.value, ref_prob.value, atol=1e-2)
+    assert np.allclose(x.value, ref_x.value, atol=1e-2)
 
 
 @pytest.mark.parametrize("n", [2, 3, 11])
