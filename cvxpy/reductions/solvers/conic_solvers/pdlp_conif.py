@@ -51,6 +51,11 @@ class PDLP(ConicSolver):
         if Version(ortools.__version__) < Version('9.3.0'):
             raise RuntimeError(f'Version of ortools ({ortools.__version__}) '
                                f'is too old. Expected >= 9.3.0.')
+        if Version(ortools.__version__) >= Version('9.5.0'):
+            raise RuntimeError('Unrecognized new version of ortools '
+                               f'({ortools.__version__}). Expected < 9.5.0.'
+                               'Please open a feature request on cvxpy to '
+                               'enable support for this version.')
         ortools, google.protobuf  # For flake8
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
@@ -133,9 +138,9 @@ class PDLP(ConicSolver):
             solver_cache: Dict = None,
     ) -> Solution:
         """Returns the result of the call to the solver."""
+        import ortools
         from google.protobuf import text_format
         from ortools.linear_solver import linear_solver_pb2
-        from ortools.model_builder.python import model_builder_helper
         from ortools.pdlp import solvers_pb2
 
         # TODO: Switch to a direct numpy interface to PDLP when available.
@@ -158,11 +163,20 @@ class PDLP(ConicSolver):
                 return {"status": s.SOLVER_ERROR}
             parameters.MergeFrom(proto)
         if "time_limit_sec" in solver_opts:
-            request.solver_time_limit_sec = float(solver_opts["time_limit_sec"])
+            request.solver_time_limit_seconds = float(solver_opts["time_limit_sec"])
 
         request.solver_specific_parameters = text_format.MessageToString(parameters)
-        solver = model_builder_helper.ModelSolverHelper()
-        response = solver.Solve(request)
+        if Version(ortools.__version__) >= Version('9.4.0'):
+            from ortools.model_builder.python import (
+                pywrap_model_builder_helper,)
+            solver = pywrap_model_builder_helper.ModelSolverHelper("pdlp")
+            response_str = solver.solve_serialized_request(request.SerializeToString())
+            response = linear_solver_pb2.MPSolutionResponse.FromString(response_str)
+        else:
+            # Version 9.3
+            from ortools.model_builder.python import model_builder_helper
+            solver = model_builder_helper.ModelSolverHelper()
+            response = solver.Solve(request)
 
         solution = {}
         solution["value"] = response.objective_value

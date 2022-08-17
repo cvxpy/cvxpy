@@ -27,6 +27,7 @@ from cvxpy.utilities.versioning import Version
 class DIFFCP(scs_conif.SCS):
     """An interface for the DIFFCP solver, a differentiable wrapper of SCS and ECOS.
     """
+
     # Map of DIFFCP status to CVXPY status.
     STATUS_MAP = {"Solved": s.OPTIMAL,
                   "Solved/Inaccurate": s.OPTIMAL_INACCURATE,
@@ -50,6 +51,11 @@ class DIFFCP(scs_conif.SCS):
         patch_version = int(diffcp.__version__.split(".")[2])
         if patch_version < 15:
             raise ImportError("diffcp >= 1.0.15 is required")
+
+    def supports_quad_obj(self) -> bool:
+        """Does not support a quadratic objective.
+        """
+        return False
 
     def apply(self, problem):
         problem, data, inv_data = self._prepare_data_and_inv_data(problem)

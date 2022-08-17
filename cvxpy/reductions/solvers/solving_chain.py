@@ -1,5 +1,5 @@
 import warnings
-from typing import Any, List
+from typing import Any, List, Optional
 
 import numpy as np
 
@@ -121,8 +121,6 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
             raise SolverError("Problem could not be reduced to a QP, and no "
                               "conic solvers exist among candidate solvers "
                               "(%s)." % candidates)
-        else:
-            reductions += [Dcp2Cone(), CvxAttr2Constr()]
 
     constr_types = {type(c) for c in problem.constraints}
     if FiniteSet in constr_types:
@@ -134,7 +132,8 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
 def construct_solving_chain(problem, candidates,
                             gp: bool = False,
                             enforce_dpp: bool = False,
-                            ignore_dpp: bool = False) -> "SolvingChain":
+                            ignore_dpp: bool = False,
+                            solver_opts: Optional[dict] = None) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -156,6 +155,8 @@ def construct_solving_chain(problem, candidates,
     ignore_dpp : bool, optional
         When True, DPP problems will be treated as non-DPP,
         which may speed up compilation. Defaults to False.
+    solve_args : dict, optional
+        Additional arguments to pass to the solver.
 
     Returns
     -------
@@ -279,7 +280,20 @@ def construct_solving_chain(problem, candidates,
                 reductions.append(QuadApprox())
             if OpRelCone in approx_cos:
                 reductions.append(OpRelConeApprox())
-            reductions += [ConeMatrixStuffing(), solver_instance]
+
+            # Should the objective be canonicalized to a quadratic?
+            if solver_opts is None:
+                use_quad_obj = True
+            else:
+                use_quad_obj = solver_opts.get("use_quad_obj", True)
+            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
+                problem.objective.expr.has_quadratic_term()
+            reductions += [
+                Dcp2Cone(quad_obj=quad_obj),
+                CvxAttr2Constr(),
+                ConeMatrixStuffing(quad_obj=quad_obj),
+                solver_instance
+            ]
             return SolvingChain(reductions=reductions)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "
