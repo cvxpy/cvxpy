@@ -32,6 +32,10 @@ class Constant(Enum):
 
 @dataclass
 class TensorRepresentation:
+    """
+    Sparse representation of a 3D Tensor. Semantically similar to COO format, with one extra
+    dimension. Here, 'row' is axis 0, 'col' axis 1, and 'parameter_offset' axis 2.
+    """
     parameter_offset: np.ndarray
     row: np.ndarray
     col: np.ndarray
@@ -39,6 +43,10 @@ class TensorRepresentation:
 
     @classmethod
     def combine(cls, tensors: list[TensorRepresentation]):
+        """
+        Concatenates the row, col, parameter_offset, and data fields of a list of
+        TensorRepresentations
+        """
         parameter_offset, row, col, data = np.array([]), np.array([]), np.array([]), np.array([])
         for t in tensors:
             parameter_offset = np.append(parameter_offset, t.parameter_offset)
@@ -48,7 +56,7 @@ class TensorRepresentation:
         return cls(parameter_offset, row, col, data)
 
 
-class Backend(ABC):
+class CanonBackend(ABC):
     def __init__(self, id_to_col: dict[int, int], param_to_size: dict[int, int], param_to_col:
                  dict[int, int], param_size_plus_one: dict[int, int], var_length: int):
         self.param_size_plus_one = param_size_plus_one
@@ -60,7 +68,7 @@ class Backend(ABC):
     @classmethod
     def get_backend(cls, backend_name, *args):
         backends = {
-            "SCIPY": ScipyBackend,
+            "SCIPY": ScipyCanonicalizationBackend,
         }
         return backends[backend_name](*args)
 
@@ -132,7 +140,7 @@ class Backend(ABC):
     @abstractmethod
     def concatenate_tensors(self, tensors: list[tuple[TensorView, int]]) -> TensorView:
         """
-        Takes list of tensors and stacks them "row-wise"
+        Takes list of tensors and stacks them along axis 0
         """
 
     @abstractmethod
@@ -314,7 +322,7 @@ class Backend(ABC):
         pass
 
 
-class ScipyBackend(Backend):
+class ScipyCanonicalizationBackend(CanonBackend):
 
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int]):
@@ -329,7 +337,7 @@ class ScipyBackend(Backend):
     def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
         # Windows uses int32 by default at time of writing, so we need to enforce int64 here
         rows = (tensor.col.astype(np.int64) * np.int64(total_rows) + tensor.row.astype(np.int64))
-        cols = tensor.parameter_offset.astype(int)
+        cols = tensor.parameter_offset.astype(np.int64)
         shape = (np.int64(total_rows) * np.int64(self.var_length + 1), self.param_size_plus_one)
         return sp.csc_matrix((tensor.data, (rows, cols)), shape=shape)
 
@@ -635,7 +643,8 @@ class TensorView(ABC):
     @property
     @abstractmethod
     def rows(self) -> int:
-        pass
+        """ Number of rows of the TensorView
+        """
 
     @abstractmethod
     def get_A_b(self):
@@ -768,7 +777,7 @@ class ScipyTensorView(TensorView):
                 assert len(a[key]) == len(b[key])
                 res[key] = [a + b for a, b in zip(a[key], b[key])]
             else:
-                raise ValueError
+                raise ValueError('Values must either be dicts or lists.')
         for key in keys_a - intersect:
             res[key] = a[key]
         for key in keys_b - intersect:

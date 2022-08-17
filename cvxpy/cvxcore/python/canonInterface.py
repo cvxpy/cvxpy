@@ -22,7 +22,7 @@ import scipy.sparse as sp
 import cvxpy.cvxcore.python.cvxcore as cvxcore
 import cvxpy.settings as s
 from cvxpy.lin_ops import lin_op as lo
-from cvxpy.lin_ops.parser import Backend
+from cvxpy.lin_ops.canon_backend import CanonBackend
 
 
 def get_parameter_vector(param_size,
@@ -370,7 +370,9 @@ def get_problem_matrix(linOps,
         output_shape = (np.int64(constr_length)*np.int64(var_length+1),
                    param_size_plus_one)
         if len(linOps) > 0:
-            backend = Backend.get_backend(backend_val, id_to_col, param_to_size, param_to_col, param_size_plus_one, var_length)
+            backend = CanonBackend.get_backend(backend_val, id_to_col,
+                                                          param_to_size, param_to_col,
+                                                          param_size_plus_one, var_length)
             A_py = backend.build_matrix(linOps)
         else:
             A_py = sp.csc_matrix(((), ((), ())), output_shape)
