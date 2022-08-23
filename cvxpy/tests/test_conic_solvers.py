@@ -1165,6 +1165,13 @@ class TestGUROBI(BaseTest):
             self.assertEqual(result, 4)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
+            # Try creating a new problem and setting x.value.
+            self.x.value = np.array([1, 2])
+            prob = cp.Problem(objective, constraints)
+            result = prob.solve(solver=cp.GUROBI, warm_start=True)
+            self.assertEqual(result, 3)
+            self.assertItemsAlmostEqual(self.x.value, [1, 2])
+
         else:
             with self.assertRaises(Exception) as cm:
                 prob = cp.Problem(cp.Minimize(cp.norm(self.x, 1)), [self.x == 0])

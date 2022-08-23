@@ -19,6 +19,7 @@ import numpy as np
 import scipy.sparse as sp
 from scipy.linalg import lstsq
 
+import cvxpy as cp
 from cvxpy import Maximize, Minimize, Parameter, Problem
 from cvxpy.atoms import (QuadForm, abs, huber, matrix_frac, norm, power,
                          quad_over_lin, sum, sum_squares,)
@@ -431,21 +432,28 @@ class TestQp(BaseTest):
         n = 100
         np.random.seed(1)
         A = np.random.randn(m, n)
-        b = Parameter(m)
+        init_b = np.random.randn(m)
+        b = Parameter(m, value=init_b)
 
         # Construct the problem.
         x = Variable(n)
         prob = Problem(Minimize(sum_squares(A @ x - b)))
 
-        b.value = np.random.randn(m)
-        result = prob.solve(solver="OSQP", warm_start=False)
-        result2 = prob.solve(solver="OSQP", warm_start=True)
+        result = prob.solve(solver=cp.OSQP, warm_start=False)
+        x_sltn = x.value
+        result2 = prob.solve(solver=cp.OSQP, warm_start=True)
         self.assertAlmostEqual(result, result2)
         b.value = np.random.randn(m)
-        result = prob.solve(solver="OSQP", warm_start=True)
-        result2 = prob.solve(solver="OSQP", warm_start=False)
+        result = prob.solve(solver=cp.OSQP, warm_start=True)
+        result2 = prob.solve(solver=cp.OSQP, warm_start=False)
         self.assertAlmostEqual(result, result2)
-        pass
+
+        # Test Gurobi warm start with a user provided point.
+        if cp.GUROBI in INSTALLED_SOLVERS:
+            x = Variable(n, value=x_sltn)
+            b = Parameter(m, value=init_b)
+            prob = Problem(Minimize(sum_squares(A @ x - b)))
+            prob.solve(solver=cp.GUROBI, warm_start=True)
 
     def test_parametric(self) -> None:
         """Test solve parametric problem vs full problem"""
