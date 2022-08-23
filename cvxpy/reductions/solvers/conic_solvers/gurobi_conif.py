@@ -84,11 +84,15 @@ class GUROBI(ConicSolver):
         tuple
             (dict of arguments needed for the solver, inverse data)
         """
+        import gurobipy as grb
         data, inv_data = super(GUROBI, self).apply(problem)
         variables = problem.x
         data[s.BOOL_IDX] = [int(t[0]) for t in variables.boolean_idx]
         data[s.INT_IDX] = [int(t[0]) for t in variables.integer_idx]
         inv_data['is_mip'] = data[s.BOOL_IDX] or data[s.INT_IDX]
+
+        # Add initial guess.
+        data['init_value'] = utilities.stack_vals(problem.variables, grb.GRB.UNDEFINED)
 
         return data, inv_data
 
@@ -180,6 +184,13 @@ class GUROBI(ConicSolver):
                     ub=gurobipy.GRB.INFINITY)
             )
         model.update()
+
+
+        # Set the start value of Gurobi vars to user provided values.
+        if warm_start == True:
+            x = np.array(model.getVars(), copy=False)
+            for i in range(data['n_var']):
+                x[i].Start = data['init_value'][i]
 
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]

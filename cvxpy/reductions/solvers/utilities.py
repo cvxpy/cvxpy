@@ -21,6 +21,18 @@ import numpy as np
 import cvxpy.interface as intf
 
 
+def stack_vals(variables, default):
+    """Stacks the values of the given variables.
+    """
+    value = []
+    for variable in variables:
+        if variable.value is not None:
+            value.append(np.ravel(variable.value, 'C'))
+        else:  # unknown values.
+            value.append(np.full(variable.size, default))
+    return np.concatenate(value)
+
+
 def expcone_permutor(n_cones, exp_cone_order) -> np.ndarray:
     order = np.tile(np.array(exp_cone_order), n_cones)  # e.g. [1,0,2, 1,0,2, 1,0,2,...
     offsets = 3 * np.repeat(np.arange(n_cones), 3)  # [0,0,0, 3,3,3, 6,6,6, ...
