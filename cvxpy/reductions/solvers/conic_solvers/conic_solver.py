@@ -102,6 +102,11 @@ class ConicSolver(Solver):
     # Whenever a solver uses this convention, EXP_CONE_ORDER should be [0, 1, 2].
     EXP_CONE_ORDER = None
 
+    def supports_quad_obj(self) -> bool:
+        """By default does not support a quadratic objective.
+        """
+        return False
+
     def accepts(self, problem):
         return (isinstance(problem, ParamConeProg)
                 and (self.MIP_CAPABLE or not problem.is_mixed_integer())
@@ -266,6 +271,7 @@ class ConicSolver(Solver):
                                             problem.constraints,
                                             problem.parameters,
                                             problem.param_id_to_col,
+                                            P=problem.P,
                                             formatted=True)
         return new_param_cone_prog
 
@@ -333,7 +339,11 @@ class ConicSolver(Solver):
 
         # Apply parameter values.
         # Obtain A, b such that Ax + s = b, s \in cones.
-        c, d, A, b = problem.apply_parameters()
+        if problem.P is None:
+            c, d, A, b = problem.apply_parameters()
+        else:
+            P, c, d, A, b = problem.apply_parameters(quad_obj=True)
+            data[s.P] = P
         data[s.C] = c
         inv_data[s.OFFSET] = d
         data[s.A] = -A

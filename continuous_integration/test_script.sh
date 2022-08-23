@@ -13,6 +13,7 @@ if [ $USE_OPENMP == "True" ] && [ $RUNNER_OS == "Linux" ]; then
     CFLAGS="-fopenmp" LDFLAGS="-lgomp" python setup.py install
     export OMP_NUM_THREADS=4
 else
+    python -m pip list
     python -m pip install .
 fi
 
