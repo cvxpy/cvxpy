@@ -21,8 +21,17 @@ import numpy as np
 import cvxpy.interface as intf
 
 
-def stack_vals(variables, default):
+def stack_vals(variables: list, default: float) -> np.ndarray:
     """Stacks the values of the given variables.
+
+    Parameters
+    ----------
+    variables: list of cvxpy variables.
+    default: value to use when variable value is None.
+
+    Returns
+    -------
+    An initial guess for the solution.
     """
     value = []
     for variable in variables:
