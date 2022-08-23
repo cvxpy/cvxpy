@@ -187,8 +187,8 @@ class GUROBI(ConicSolver):
 
         # Set the start value of Gurobi vars to user provided values.
         if warm_start:
-            x = np.array(model.getVars(), copy=False)
-            for i in range(data['n_var']):
+            x = model.getVars()
+            for i in range(len(x)):
                 x[i].start = data['init_value'][i]
 
         leq_start = dims[s.EQ_DIM]
