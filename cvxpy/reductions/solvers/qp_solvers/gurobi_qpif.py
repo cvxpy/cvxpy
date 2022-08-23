@@ -21,6 +21,7 @@ def constrain_gurobi_infty(v) -> None:
         if v[i] <= -1e20:
             v[i] = -grb.GRB.INFINITY
 
+
 class GUROBI(QpSolver):
     """QP interface for the Gurobi solver"""
 
@@ -168,14 +169,13 @@ class GUROBI(QpSolver):
                 old_x_grb = old_model.getVars()
                 for idx in range(len(x_grb)):
                     x_grb[idx].start = old_x_grb[idx].X
+        elif warm_start:
+            # Set the start value of Gurobi vars to user provided values.
+            for idx in range(len(x_grb)):
+                x_grb[idx].start = data['init_value'][idx]
         model.update()
 
         x = np.array(model.getVars(), copy=False)
-
-        # Set the start value of Gurobi vars to user provided values.
-        if warm_start == True:
-            for i in range(data['n_var']):
-                x[i].Start = data['init_value'][i]
 
         if A.shape[0] > 0:
             if hasattr(model, 'addMConstrs'):

@@ -185,12 +185,11 @@ class GUROBI(ConicSolver):
             )
         model.update()
 
-
         # Set the start value of Gurobi vars to user provided values.
-        if warm_start == True:
+        if warm_start:
             x = np.array(model.getVars(), copy=False)
             for i in range(data['n_var']):
-                x[i].Start = data['init_value'][i]
+                x[i].start = data['init_value'][i]
 
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
