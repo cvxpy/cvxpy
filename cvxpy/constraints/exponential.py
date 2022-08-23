@@ -254,29 +254,28 @@ class RelEntrQuad(Constraint):
 
 
 class OpRelCone(Constraint):
-    """An approximate construction of the scalar relative entropy cone
+    """An approximate construction of the operator relative entropy cone
 
     Definition:
     .. math::
-        K_{re}=\text{cl}\\{(x,y,\\tau)\\in\\mathbb{R}_{++}\\times
-                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq\\tau\\}
-
-    Since the above definition is very similar to the ExpCone, we provide a conversion method
+        K_{re}^n=\text{cl}\\{(X,Y,T)\\in\\mathbb{H}^n_{++}\\times
+                \\mathbb{H}^n_{++}\\times\\mathbb{H}^n_{++}\\:D_{\\text{op}}\\succeq T\\}
 
     More details on the approximation can be found in Theorem-3 on page-10 in the paper:
     Semidefinite Approximations of the Matrix Logarithm.
 
     Parameters
     ----------
-    x : Expression
-        x in the (approximate) scalar relative entropy cone
-    y : Expression
-        y in the (approximate) scalar relative entropy cone
-    $\\tau$ : Expression
-        $\\tau$ in the (approximate) scalar relative entropy cone
+    X : Expression
+        x in the (approximate) operator relative entropy cone
+    Y : Expression
+        y in the (approximate) operator relative entropy cone
+    T : Expression
+        T in the (approximate) operator relative entropy cone
     m: Parameter directly related to the number of generated nodes for the quadrature
     approximation used in the algorithm
     k: Another parameter controlling the approximation
+    Number of semidefinite constraints used in constructing this approximation: $(m+k)$
     """
 
     def __init__(self, X, Y, Z, m, k, constr_id=None) -> None:
@@ -305,19 +304,8 @@ class OpRelCone(Constraint):
 
     @property
     def residual(self):
-        # TODO(akshayka): The projection should be implemented directly.
-        from cvxpy import Minimize, Problem, Variable, hstack, norm2
-        if self.X.value is None or self.Y.value is None or self.Z.value is None:
-            return None
-        cvxtypes.expression()
-        X = Variable(self.X.shape)
-        Y = Variable(self.Y.shape)
-        Z = Variable(self.Z.shape)
-        constr = [OpRelCone(X, Y, Z, self.m, self.k)]
-        obj = Minimize(norm2(hstack([X, Y, Z]) -
-                             hstack([self.X.value, self.Y.value, self.Z.value])))
-        problem = Problem(obj, constr)
-        return problem.solve()
+        # TODO: implement me
+        return
 
     @property
     def size(self) -> int:
@@ -328,7 +316,7 @@ class OpRelCone(Constraint):
     def num_cones(self):
         """The number of elementwise cones.
         """
-        return self.x.size
+        return self.X.size
 
     def cone_sizes(self) -> List[int]:
         """The dimensions of the exponential cones.
@@ -341,7 +329,7 @@ class OpRelCone(Constraint):
         return [3]*self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """An exponential constraint is DCP if each argument is affine.
+        """An operator relative conic constraint is DCP when (A, B, C)is affine
         """
         if dpp:
             with scopes.dpp_scope():
