@@ -1169,7 +1169,7 @@ class TestGUROBI(BaseTest):
             self.x.value = np.array([1, 2])
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
-            self.assertEqual(result, 3)
+            self.assertEqual(result, 4)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
         else:

@@ -432,27 +432,34 @@ class TestQp(BaseTest):
         n = 100
         np.random.seed(1)
         A = np.random.randn(m, n)
-        init_b = np.random.randn(m)
-        b = Parameter(m, value=init_b)
+        b = Parameter(m)
 
         # Construct the problem.
         x = Variable(n)
         prob = Problem(Minimize(sum_squares(A @ x - b)))
 
-        result = prob.solve(solver=cp.OSQP, warm_start=False)
-        x_sltn = x.value
-        result2 = prob.solve(solver=cp.OSQP, warm_start=True)
+        b.value = np.random.randn(m)
+        result = prob.solve(solver="OSQP", warm_start=False)
+        result2 = prob.solve(solver="OSQP", warm_start=True)
         self.assertAlmostEqual(result, result2)
         b.value = np.random.randn(m)
-        result = prob.solve(solver=cp.OSQP, warm_start=True)
-        result2 = prob.solve(solver=cp.OSQP, warm_start=False)
+        result = prob.solve(solver="OSQP", warm_start=True)
+        result2 = prob.solve(solver="OSQP", warm_start=False)
         self.assertAlmostEqual(result, result2)
 
-        # Test Gurobi warm start with a user provided point.
+    def test_gurobi_warmstart(self) -> None:
+        """Test Gurobi warm start with a user provided point.
+        """
         if cp.GUROBI in INSTALLED_SOLVERS:
-            x = Variable(n, value=x_sltn)
-            b = Parameter(m, value=init_b)
+            m = 20
+            n = 10
+            np.random.seed(1)
+            A = np.random.randn(m, n)
+            b = np.random.randn(m)
+
+            x = Variable(n, boolean=True)
             prob = Problem(Minimize(sum_squares(A @ x - b)))
+            x.value = np.ones(n)
             prob.solve(solver=cp.GUROBI, warm_start=True)
 
     def test_parametric(self) -> None:
