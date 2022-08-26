@@ -318,7 +318,7 @@ class TestComplex(BaseTest):
         X = Variable((3, 3), complex=True)
         objective = cp.log_det(X)
         prob = Problem(cp.Maximize(objective), [X == P])
-        result = prob.solve(solver=cp.SCS, eps=1e-6)
+        result = prob.solve(solver=cp.SCS, eps=1e-6, verbose=True)
         self.assertAlmostEqual(result, logdet_value, places=2)
         objective_value = objective.value
         s, ld = np.linalg.slogdet(P)
@@ -331,7 +331,7 @@ class TestComplex(BaseTest):
         cons = [X >> 0, cp.real(cp.trace(X)) <= 9]
         obj = cp.Maximize(cp.log_det(X))
         prob = cp.Problem(objective=obj, constraints=cons)
-        prob.solve(solver=cp.SCS, eps=1e-6)
+        prob.solve(solver=cp.SCS, eps=1e-6, verbose=True)
         self.assertAlmostEqual(obj.value, 3*np.log(3))
 
     def test_eigval_atoms(self) -> None:
