@@ -491,7 +491,7 @@ def pcp_1() -> SolverTestHelper:
                    x[0] + x[1] + 3 * x[2] >= 1.0,
                    y_square <= 25]
     obj = cp.Minimize(3 * x[0] + 2 * x[1] + x[2])
-    expect_x = np.array([-3.874621860638774, -2.129788233677883, 2.33480343377204])
+    expect_x = np.array([-3.87468642, -2.12968504, 2.33479049])
     expect_epis = expect_x ** 2
     expect_x = np.round(expect_x, decimals=5)
     expect_epis = np.round(expect_epis, decimals=5)
