@@ -274,6 +274,10 @@ class GUROBI(ConicSolver):
             solution["status"] = s.INFEASIBLE_INACCURATE
         solution["model"] = model
 
+        # Save model for warm start.
+        if solver_cache is not None:
+            solver_cache[self.name()] = model
+
         return solution
 
     def add_model_lin_constr(self, model, variables,
