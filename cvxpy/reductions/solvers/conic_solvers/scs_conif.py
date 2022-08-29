@@ -230,14 +230,14 @@ class SCS(ConicSolver):
         # SCS versions 1.*, SCS 2.*
         if Version(scs.__version__) < Version('3.0.0'):
             status = self.STATUS_MAP[solution["info"]["statusVal"]]
-            attr[s.SOLVE_TIME] = solution["info"]["solveTime"]
-            attr[s.SETUP_TIME] = solution["info"]["setupTime"]
+            attr[s.SOLVE_TIME] = solution["info"]["solveTime"] / 1000
+            attr[s.SETUP_TIME] = solution["info"]["setupTime"] / 1000
 
         # SCS version 3.*
         else:
             status = self.STATUS_MAP[solution["info"]["status_val"]]
-            attr[s.SOLVE_TIME] = solution["info"]["solve_time"]
-            attr[s.SETUP_TIME] = solution["info"]["setup_time"]
+            attr[s.SOLVE_TIME] = solution["info"]["solve_time"] / 1000
+            attr[s.SETUP_TIME] = solution["info"]["setup_time"] / 1000
 
         attr[s.NUM_ITERS] = solution["info"]["iter"]
         attr[s.EXTRA_STATS] = solution
