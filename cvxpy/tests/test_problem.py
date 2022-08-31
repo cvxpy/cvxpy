@@ -2034,7 +2034,9 @@ class TestProblem(BaseTest):
         expect = np.ones((n, 1))
         self.assertItemsAlmostEqual(expr2.value, expect)
 
-    def test_copy_constraints():
+    def test_copy_constraints(self) -> None:
+        """Test copy and deepcopy of constraints.
+        """
         x = cp.Variable()
         y = cp.Variable()
 
