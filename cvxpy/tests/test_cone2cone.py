@@ -566,13 +566,33 @@ class TestRelEntrQuad(BaseTest):
 class TestOpRelCone(BaseTest):
 
     @staticmethod
-    def Dop_eig(a, b):
+    def Dop_commute_eig(a, b):
         val = a.value * np.log(a.value/b.value)
         return np.sum(val)
 
     @staticmethod
-    def Dop(a, b, U):
+    def Dop_commute(a, b, U):
         return U @ np.diag(a.value * np.log(a.value/b.value)) @ np.linalg.inv(U)
+
+    @staticmethod
+    def Dop(a, U1, B):
+        """
+        Computes Operator relative entropy of matrices A and B, where A is specified
+        in terms of its eigendecomposition.
+        Dop is the non-commutative perspective of the negative logarithm, following is the defn.
+        of the noncommutative perspective of a function `g`:
+        $P_g(X,Y)=Y^{1/2}g(Y^{-1/2}XY^{-1/2})Y^{1/2}$
+        We reproduce the same for the negative logarithm below:
+        """
+        flank = U1 @ np.diag(a)**(0.5) @ U1.T
+        # ^ changed to be more efficient
+        in_flank = U1 @ np.diag(a**(-0.5)) @ U1.T
+        # ^ changed to be more efficient
+        return -(flank @ sp.linalg.logm(in_flank @ B @ in_flank) @ flank)
+
+    @staticmethod
+    def Dop_eig(a, U1, B):
+        return sum(sp.linalg.eigh(TestOpRelCone.Dop(a.value, U1, B.value))[0])
 
     def oprelcone_1(self) -> STH.SolverTestHelper:
         n = 3
@@ -608,10 +628,10 @@ class TestOpRelCone(BaseTest):
         prob.solve()
 
         # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelCone.Dop_eig(a_diag, b_diag)
+        obj_OPT = TestOpRelCone.Dop_commute_eig(a_diag, b_diag)
 
         # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
-        expect_T = TestOpRelCone.Dop(a_diag, b_diag, U)
+        expect_T = TestOpRelCone.Dop_commute(a_diag, b_diag, U)
 
         obj_pair = (obj, obj_OPT)
         var_pairs = [(T, expect_T)]
@@ -658,10 +678,10 @@ class TestOpRelCone(BaseTest):
         prob.solve()
 
         # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelCone.Dop_eig(a_diag, b_diag)
+        obj_OPT = TestOpRelCone.Dop_commute_eig(a_diag, b_diag)
 
         # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
-        expect_T = TestOpRelCone.Dop(a_diag, b_diag, U)
+        expect_T = TestOpRelCone.Dop_commute(a_diag, b_diag, U)
 
         obj_pair = (obj, obj_OPT)
         var_pairs = [(T, expect_T)]
@@ -674,4 +694,49 @@ class TestOpRelCone(BaseTest):
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)
 
-    # TODO: Add test cases for the non-commutative case when they work
+    def oprelcone_3(self) -> STH.SolverTestHelper:
+        n, m, k = 4, 3, 3
+        # generate two sets of linearly orthogonal vectors
+        # Each to be set as the eigenvectors of a particular input matrix to Dop
+        U1 = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
+        U2 = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
+        a_diag = cp.Variable(shape=(n,), pos=True)
+        b_diag = cp.Variable(shape=(n,), pos=True)
+        A = U1 @ cp.diag(a_diag) @ U1.T
+        B = U2 @ cp.diag(b_diag) @ U2.T
+        T = cp.Variable(shape=(n, n), symmetric=True)
+        a_lower = np.cumsum(np.random.rand(n))
+        a_upper = a_lower + 0.15*np.random.rand(n)
+        b_lower = np.cumsum(np.random.rand(n))
+        b_upper = b_lower + 0.1*np.random.rand(n)
+        con1 = cp.constraints.OpRelCone(A, B, T, m, k)
+        con2 = a_lower <= a_diag
+        con3 = a_diag <= a_upper
+        con4 = b_lower <= b_diag
+        con5 = b_diag <= b_upper
+        con_pairs = [(con1, None),
+                     (con2, None),
+                     (con3, None),
+                     (con4, None),
+                     (con5, None)]
+        # objective is increasing_func_lambda(T)
+        obj = cp.Minimize(trace(T))
+        prob = cp.Problem(obj, [con1, con2, con3, con4, con5])
+        prob.solve()
+
+        # Generating the objective value to be compared against:
+        obj_OPT = TestOpRelCone.Dop_eig(a_diag, U1, B)
+
+        # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
+        expect_T = TestOpRelCone.Dop(a_diag.value, U1, B.value)
+
+        obj_pair = (obj, obj_OPT)
+        var_pairs = [(T, expect_T)]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_oprelcone_3(self):
+        sth = self.oprelcone_3()
+        sth.solve(solver='SCS')
+        sth.verify_primal_values(places=2)
+        sth.verify_objective(places=2)

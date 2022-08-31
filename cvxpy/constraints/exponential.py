@@ -16,6 +16,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
+import warnings
 from typing import List, Tuple
 
 import numpy as np
@@ -283,6 +284,11 @@ class OpRelCone(Constraint):
         self.X = Expression.cast_to_const(X)
         self.Y = Expression.cast_to_const(Y)
         self.Z = Expression.cast_to_const(Z)
+        if (not X.is_symmetric()) or (not Y.is_symmetric()) or (not Z.is_symmetric()):
+            msg = ("One of the input matrices to the program has not explicitly been declared"
+                   " to be symmetric, we reccomend setting 'symmetric=True' for the same, or it"
+                   " will be done in a less efficient way internally")
+            warnings.warn(msg)
         self.m = m
         self.k = k
         Xs, Ys, Zs = self.X.shape, self.Y.shape, self.Z.shape

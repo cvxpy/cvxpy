@@ -19,6 +19,7 @@ from typing import List, Tuple
 import numpy as np
 
 import cvxpy as cp
+from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.constraints.exponential import OpRelCone, RelEntrQuad
 from cvxpy.constraints.zero import Zero
@@ -132,9 +133,17 @@ def RelEntrQuad_canon(con: RelEntrQuad, args) -> Tuple[Constraint, List[Constrai
 def OpRelCone_canon(con: OpRelCone, args) -> Tuple[Constraint, List[Constraint]]:
     k, m = con.k, con.m
     X, Y = con.X, con.Y
-    Zs = {i: Variable(shape=X.shape) for i in range(k+1)}
-    Ts = {i: Variable(shape=X.shape) for i in range(m+1)}
+    Zs = {i: Variable(shape=X.shape, symmetric=True) for i in range(k+1)}
+    Ts = {i: Variable(shape=X.shape, symmetric=True) for i in range(m+1)}
     constrs = [Zero(Zs[0] - Y)]
+    if not X.is_symmetric():
+        ut = upper_tri(X)
+        lt = upper_tri(X.T)
+        constrs.append(ut == lt)
+    if not Y.is_symmetric():
+        ut = upper_tri(Y)
+        lt = upper_tri(Y.T)
+        constrs.append(ut == lt)
     w, t = gauss_legendre(m)
     lead_con = Zero(cp.sum([w[i] * Ts[i] for i in range(m)]) + con.Z/2**k)
 
