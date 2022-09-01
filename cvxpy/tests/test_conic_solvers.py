@@ -445,7 +445,7 @@ class TestMosek(unittest.TestCase):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOSEK')
 
     def test_mosek_pcp_1(self) -> None:
-        StandardTestPCPs.test_pcp_1(solver='MOSEK')
+        StandardTestPCPs.test_pcp_1(solver='MOSEK', places=2)
 
     def test_mosek_pcp_2(self) -> None:
         StandardTestPCPs.test_pcp_2(solver='MOSEK')
