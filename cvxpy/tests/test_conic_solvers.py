@@ -469,7 +469,7 @@ class TestMosek(unittest.TestCase):
         StandardTestLPs.test_mi_lp_5(solver='MOSEK')
 
     def test_mosek_mi_socp_1(self) -> None:
-        StandardTestSOCPs.test_mi_socp_1(solver='MOSEK', places=3)
+        StandardTestSOCPs.test_mi_socp_1(solver='MOSEK')
 
     def test_mosek_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='MOSEK')
