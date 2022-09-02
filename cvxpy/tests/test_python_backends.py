@@ -1,7 +1,26 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+
 import numpy as np
 import pytest
+import scipy.sparse as sp
 
-from cvxpy.lin_ops.canon_backend import ScipyTensorView, TensorRepresentation
+from cvxpy.lin_ops.canon_backend import (CanonBackend, CanonBackendName,
+                                         ScipyCanonBackend, ScipyTensorView,
+                                         TensorRepresentation,)
+
+
+@dataclass
+class linOpHelper:
+    """
+    Helper class that allows to access properties of linOps without
+    needing to create a full linOps instance
+    """
+    shape: None | tuple[int, ...] = None
+    type: None | str = None
+    data: None | int = None
+    args: None | list[linOpHelper] = None
 
 
 def test_tensor_representation():
@@ -27,5 +46,287 @@ def test_scipy_tensor_view_add_dicts():
     assert ScipyTensorView.add_dicts({}, {}) == {}
     assert ScipyTensorView.add_dicts({"a": [1]}, {"a": [2]}) == {"a": [3]}
     assert ScipyTensorView.add_dicts({"a": [1]}, {"b": [2]}) == {"a": [1], "b": [2]}
+    assert ScipyTensorView.add_dicts({"a": {"c": [1]}}, {"a": {"c": [1]}}) == {'a': {'c': [2]}}
     with pytest.raises(ValueError, match="Values must either be dicts or lists"):
         ScipyTensorView.add_dicts({"a": 1}, {"a": 2})
+
+
+class TestBackend:
+
+    def test_get_backend(self):
+        args = ({1: 0, 2: 2}, {-1: 1, 3: 1}, {3: 0, -1: 1}, 2, 4)
+        backend = CanonBackend.get_backend(CanonBackendName.SCIPY, *args)
+        assert isinstance(backend, ScipyCanonBackend)
+
+        with pytest.raises(KeyError):
+            CanonBackend.get_backend('notabackend')
+
+
+class TestScipyBackend:
+    param_size_plus_one = 2
+    id_to_col = {1: 0, 2: 2}
+    param_to_size = {-1: 1, 3: 1}
+    param_to_col = {3: 0, -1: 1}
+    var_length = 4
+
+    @pytest.fixture
+    def backend(self):
+        return ScipyCanonBackend(self.id_to_col, self.param_to_size, self.param_to_col,
+                                 self.param_size_plus_one, self.var_length)
+
+    def test_get_variable_tensor(self, backend):
+        outer = backend.get_variable_tensor((2,), 1)
+        assert outer.keys() == {1}, "Should only be in variable with ID 1"
+        inner = outer[1]
+        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
+        tensors = inner[-1]
+        assert isinstance(tensors, list), "Should be list of tensors"
+        assert len(tensors) == 1, "Should be a single tensor"
+        assert (tensors[0] != sp.eye(2, format='csr')).nnz == 0, "Should be eye(2)"
+
+    @pytest.mark.parametrize('data', [np.array([[1, 2], [3, 4]]), sp.eye(2) * 4])
+    def test_get_data_tensor(self, backend, data):
+        inner = backend.get_data_tensor(data)
+        assert inner.keys() == {-1}, "Should only be in parameter slice -1, i.e. non parametrized."
+        tensors = inner[-1]
+        assert isinstance(tensors, list), "Should be list of tensors"
+        assert len(tensors) == 1, "Should be a single tensor"
+        expected = sp.csr_matrix(data.reshape((-1, 1), order="F"))
+        assert (tensors[0] != expected).nnz == 0
+
+    def test_get_param_tensor(self, backend):
+        shape = (2, 2)
+        size = np.prod(shape)
+        inner = backend.get_param_tensor(shape, 3)
+        assert inner.keys() == {3}, "Should only be the parameter slice of parameter with id 3."
+        tensors = inner[3]
+        assert isinstance(tensors, list), "Should be list of tensors"
+        assert len(tensors) == size, "Should be a tensor for each element of the parameter"
+        assert (sp.hstack(tensors) != sp.eye(size, format='csr')).nnz == 0, \
+            'Should be eye(4) along axes 1 and 2'
+
+    def test_transpose(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+
+        transpose(x) means we now have
+         [[x11, x21],
+         [x12, x22]]
+
+        which, when using the same columns as before, now maps to
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   0   1   0],
+         [0   1   0   0],
+         [0   0   0   1]]
+
+        -> It reduces to reordering the rows of A.
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        transpose_lin_op = linOpHelper((2, 2))
+        out_view = backend.transpose(transpose_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 0, 0],
+             [0, 0, 1, 0],
+             [0, 1, 0, 0],
+             [0, 0, 0, 1]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
+    def test_upper_tri(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+
+        upper_tri(x) means we select only x12 (the diagonal itself is not considered).
+
+        which, when using the same columns as before, now maps to
+
+         x11 x21 x12 x22
+        [[0   0   0   1]]
+
+        -> It reduces to selecting a subset of the rows of A.
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        upper_tri_lin_op = linOpHelper(args=[linOpHelper((2, 2))])
+        out_view = backend.upper_tri(upper_tri_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
+        expected = np.array(
+            [[0, 0, 1, 0]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
+    def test_diag_mat(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+
+        diag_mat(x) means we select only the diagonal, i.e., x11 and x22.
+
+        which, when using the same columns as before, now maps to
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   0   0   1]]
+
+        -> It reduces to selecting a subset of the rows of A.
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        diag_mat_lin_op = linOpHelper(shape=(2, 2))
+        out_view = backend.diag_mat(diag_mat_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 0, 0],
+             [0, 0, 0, 1]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
+    def test_diag_vec(self, backend):
+        """
+        define x = Variable((2,)) with
+        [x1, x2]
+
+        x is represented as eye(2) in the A matrix, i.e.,
+
+         x1  x2
+        [[1  0],
+         [0  1]]
+
+        diag_vec(x) means we introduce zero rows as if the vector was the diagonal
+        of an n x n matrix, with n the length of x.
+
+        Thus, when using the same columns as before, we now have
+
+         x1  x2
+        [[1  0],
+         [0  0],
+         [0  0],
+         [0  1]]
+
+        """
+
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
+        assert np.all(view_A == np.eye(2))
+
+        diag_vec_lin_op = linOpHelper(shape=(2, 2))
+        out_view = backend.diag_vec(diag_vec_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 2)).toarray()
+        expected = np.array(
+            [[1, 0],
+             [0, 0],
+             [0, 0],
+             [0, 1]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
+
+class TestScipyTensorView:
+    param_size_plus_one = 2
+    id_to_col = {1: 0, 2: 2}
+    param_to_size = {-1: 1, 3: 1}
+    param_to_col = {3: 0, -1: 1}
+    var_length = 4
+
+    @pytest.fixture
+    def empty_view(self):
+        return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                              self.param_to_size, self.param_to_col,
+                                              self.var_length)
+
+    # def test_create_variable_view(self, empty_view):
+    #     var_view = empty_view.create_new_tensor_view({1})

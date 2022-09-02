@@ -612,7 +612,7 @@ class Problem(u.Canonical):
         """
 
         # TODO: remove
-        canon_backend = 'CPP' if self.parameters() else 'SCIPY'
+        canon_backend = 'SCIPY'
         os.environ['canon_backend'] = canon_backend
 
         # Invalid DPP setting.
@@ -952,7 +952,7 @@ class Problem(u.Canonical):
             why the problem could not be solved.
         """
 
-        canon_backend = 'CPP' if self.parameters() else 'SCIPY'
+        canon_backend = 'SCIPY'
         os.environ['canon_backend'] = canon_backend
 
         if verbose:
