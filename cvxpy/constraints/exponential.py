@@ -286,8 +286,8 @@ class OpRelCone(Constraint):
         self.Z = Expression.cast_to_const(Z)
         if (not X.is_symmetric()) or (not Y.is_symmetric()) or (not Z.is_symmetric()):
             msg = ("One of the input matrices to the program has not explicitly been declared"
-                   " to be symmetric, we reccomend setting 'symmetric=True' for the same, or it"
-                   " will be done in a less efficient way internally")
+                   " to be symmetric, we recommend setting 'symmetric=True' for the same, or it"
+                   " will be done in a less efficient way internally.")
             warnings.warn(msg)
         self.m = m
         self.k = k
@@ -311,7 +311,7 @@ class OpRelCone(Constraint):
     @property
     def residual(self):
         # TODO: implement me
-        return
+        raise NotImplementedError()
 
     @property
     def size(self) -> int:

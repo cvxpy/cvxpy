@@ -566,9 +566,8 @@ class TestRelEntrQuad(BaseTest):
 class TestOpRelCone(BaseTest):
 
     @staticmethod
-    def Dop_commute_eig(a, b):
-        val = a.value * np.log(a.value/b.value)
-        return np.sum(val)
+    def Dop_commute_eig(a, b, U):
+        return trace(TestOpRelCone.Dop_commute(a, b, U)).value
 
     @staticmethod
     def Dop_commute(a, b, U):
@@ -578,23 +577,28 @@ class TestOpRelCone(BaseTest):
     def Dop(a, U1, B):
         """
         Computes Operator relative entropy of matrices A and B, where A is specified
-        in terms of its eigendecomposition.
+        in terms of its eigendecomposition, hence:
+        a: 1-D array of the eigenvalues of A
+        U1: column stacked eigenvectors of A
         Dop is the non-commutative perspective of the negative logarithm, following is the defn.
         of the noncommutative perspective of a function `g`:
         $P_g(X,Y)=Y^{1/2}g(Y^{-1/2}XY^{-1/2})Y^{1/2}$
         We reproduce the same for the negative logarithm below:
         """
         flank = U1 @ np.diag(a)**(0.5) @ U1.T
-        # ^ changed to be more efficient
         in_flank = U1 @ np.diag(a**(-0.5)) @ U1.T
-        # ^ changed to be more efficient
         return -(flank @ sp.linalg.logm(in_flank @ B @ in_flank) @ flank)
 
     @staticmethod
     def Dop_eig(a, U1, B):
-        return sum(sp.linalg.eigh(TestOpRelCone.Dop(a.value, U1, B.value))[0])
+        return trace(TestOpRelCone.Dop(a.value, U1, B.value)).value
 
     def oprelcone_1(self) -> STH.SolverTestHelper:
+        """
+        These tests construct two matrices that commute (imposing all eigenvectors equal)
+        and then use the fact that: T=Dop(A, B) for (A, B, T) in OpRelCone i.e. T >> Dop(A, B)
+        (for an objective that is an increasing function of the eigenvalues).
+        """
         n = 3
         # generates `n` independent, orthonormal vectors
         U = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
@@ -628,7 +632,7 @@ class TestOpRelCone(BaseTest):
         prob.solve()
 
         # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelCone.Dop_commute_eig(a_diag, b_diag)
+        obj_OPT = TestOpRelCone.Dop_commute_eig(a_diag, b_diag, U)
 
         # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
         expect_T = TestOpRelCone.Dop_commute(a_diag, b_diag, U)
@@ -678,7 +682,7 @@ class TestOpRelCone(BaseTest):
         prob.solve()
 
         # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelCone.Dop_commute_eig(a_diag, b_diag)
+        obj_OPT = TestOpRelCone.Dop_commute_eig(a_diag, b_diag, U)
 
         # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
         expect_T = TestOpRelCone.Dop_commute(a_diag, b_diag, U)
@@ -695,6 +699,15 @@ class TestOpRelCone(BaseTest):
         sth.verify_objective(places=2)
 
     def oprelcone_3(self) -> STH.SolverTestHelper:
+        """
+        This test uses the same idea from the tests with commutative
+        matrices, instead, here, we make the input matrices to Dop, non-commutative,
+        the same condition as before i.e. T=Dop(A, B) for (A, B, T) in OpRelCone
+        (for an objective that is an increasing function of the eigenvalues) holds,
+        the difference here then, is in how we compute Dop, which is done by
+        faithfully following it's definition as the non-commutative perspective of
+        the negative logarithm as implemented in the Dop_eig/Dop methods
+        """
         n, m, k = 4, 3, 3
         # generate two sets of linearly orthogonal vectors
         # Each to be set as the eigenvectors of a particular input matrix to Dop
