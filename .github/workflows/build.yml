@@ -37,13 +37,13 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, macos-11, windows-2019 ]
+        os: [ ubuntu-20.04, macos-11, windows-2019 ]
         python-version: [ 3.7, 3.9, "3.10" ]
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             python-version: 3.8
             openmp: "True"
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             python-version: 3.8
           - os: macos-11
             python-version: 3.8
@@ -93,10 +93,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, macos-11, windows-2019 ]
+        os: [ ubuntu-20.04, macos-11, windows-2019 ]
         python-version: [ 3.7, 3.9, "3.10" ]
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             python-version: 3.8
           - os: macos-11
             python-version: 3.8
@@ -159,10 +159,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-18.04, macos-11, windows-2019 ]
+        os: [ ubuntu-20.04, macos-11, windows-2019 ]
         python-version: [ 3.7, 3.9, "3.10" ]
         include:
-          - os: ubuntu-18.04
+          - os: ubuntu-20.04
             python-version: 3.8
             pip_intall: "True"
           - os: macos-11

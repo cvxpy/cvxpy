@@ -80,7 +80,7 @@ class OSQP(QpSolver):
                 P_triu = sp.triu(P).tocsc()
                 new_args['Px'] = P_triu.data
                 factorizing = True
-            if A.data.shape != old_data['Ax'].shape or any(
+            if A.data.shape != old_data['Ax'].data.shape or any(
                     A.data != old_data['Ax'].data):
                 new_args['Ax'] = A.data
                 factorizing = True
