@@ -243,6 +243,15 @@ CVXPY supports the CLARABEL solver.
 Simply install CLARABEL such that you can ``import clarabel`` in Python.
 See the `CLARABEL <https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/>`_ website for installation instructions.
 
+
+Install with PROXQP support
+-----------------------------
+
+CVXPY supports the PROXQP solver.
+Simply install PROXQP such that you can ``import proxsuite`` in Python.
+See the `proxsuite <https://github.com/simple-robotics/proxsuite#quick-install>`_ github for installation instructions.
+
+
 Install without default solvers
 -------------------------------
 
