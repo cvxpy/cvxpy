@@ -19,7 +19,7 @@ class linOpHelper:
     """
     shape: None | tuple[int, ...] = None
     type: None | str = None
-    data: None | int = None
+    data: None | int | np.ndarray = None
     args: None | list[linOpHelper] = None
 
 
@@ -121,7 +121,7 @@ class TestScipyBackend:
 
         transpose(x) means we now have
          [[x11, x21],
-         [x12, x22]]
+          [x12, x22]]
 
         which, when using the same columns as before, now maps to
 
@@ -283,7 +283,6 @@ class TestScipyBackend:
          [0  0],
          [0  0],
          [0  1]]
-
         """
 
         variable_lin_op = linOpHelper((2,), type='variable', data=1)
@@ -313,6 +312,210 @@ class TestScipyBackend:
 
         # Note: view is edited in-place:
         assert out_view.get_A() == view.get_A()
+
+    def test_sum_entries(self, backend):
+        """
+        define x = Variable((2,)) with
+        [x1, x2]
+
+        x is represented as eye(2) in the A matrix, i.e.,
+
+         x1  x2
+        [[1  0],
+         [0  1]]
+
+        sum_entries(x) means we consider the entries in all rows, i.e., we sum along axis 0.
+
+        Thus, when using the same columns as before, we now have
+
+         x1  x2
+        [[1  1]]
+        """
+
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
+        assert np.all(view_A == np.eye(2))
+
+        sum_entries_lin_op = linOpHelper()
+        out_view = backend.sum_entries(sum_entries_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 2)).toarray()
+        expected = np.array(
+            [[1, 1]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
+    def test_promote(self, backend):
+        """
+        define x = Variable((1,)) with
+        [x1,]
+
+        x is represented as eye(1) in the A matrix, i.e.,
+
+         x1
+        [[1]]
+
+        promote(x) means we repeat the row to match the required dimensionality of n rows.
+
+        Thus, when using the same columns as before and assuming n = 3, we now have
+
+         x1
+        [[1],
+         [1],
+         [1]]
+        """
+
+        variable_lin_op = linOpHelper((1,), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(1, 1)).toarray()
+        assert np.all(view_A == np.eye(1))
+
+        promote_lin_op = linOpHelper((3,))
+        out_view = backend.promote(promote_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(3, 1)).toarray()
+        expected = np.array(
+            [[1],
+             [1],
+             [1]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
+    def test_hstack(self, backend):
+        """
+        define x,y = Variable((1,)), Variable((1,))
+
+        hstack([x, y]) means the expression should be represented in the A matrix as if it
+        was a Variable of shape (2,), i.e.,
+
+          x  y
+        [[1  0],
+         [0  1]]
+        """
+
+        lin_op_x = linOpHelper((1,), type='variable', data=1)
+        lin_op_y = linOpHelper((1,), type='variable', data=2)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, {1: 0, 2: 1},
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        hstack_lin_op = linOpHelper(args=[lin_op_x, lin_op_y])
+        out_view = backend.hstack(hstack_lin_op, empty_view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 2)).toarray()
+        expected = np.eye(2)
+        assert np.all(A == expected)
+
+    def test_vstack(self, backend):
+        """
+        define x,y = Variable((1,2)), Variable((1,2)) with
+        [[x1, x2]]
+        and
+        [[y1, y2]]
+
+        vstack([x, y]) yields
+
+        [[x1, x2],
+         [y1, y2]]
+
+        which maps to
+
+         x1   x2  y1  y2
+        [[1   0   0   0],
+         [0   0   1   0],
+         [0   1   0   0],
+         [0   0   0   1]]
+        """
+
+        lin_op_x = linOpHelper((1, 2), type='variable', data=1)
+        lin_op_y = linOpHelper((1, 2), type='variable', data=2)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, {1: 0, 2: 2},
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        vstack_lin_op = linOpHelper(args=[lin_op_x, lin_op_y])
+        out_view = backend.vstack(vstack_lin_op, empty_view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 0, 0],
+             [0, 0, 1, 0],
+             [0, 1, 0, 0],
+             [0, 0, 0, 1]]
+        )
+        assert np.all(A == expected)
+
+    def test_mul_elementwise(self, backend):
+        """
+        define x = Variable((2,)) with
+        [x1, x2]
+
+        x is represented as eye(2) in the A matrix, i.e.,
+
+         x1  x2
+        [[1  0],
+         [0  1]]
+
+         mul_elementwise(x, a) means a is reshaped into a column vector and multiplied with A.
+         E.g. for a = (2,3), we obtain
+
+         x1  x2
+        [[2  0],
+         [0  3]]
+        """
+
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
+        assert np.all(view_A == np.eye(2))
+
+        lhs = linOpHelper((2,), type='dense_const', data=np.array([2, 3]))
+
+        mul_elementwise_lin_op = linOpHelper(data=lhs)
+        out_view = backend.mul_elem(mul_elementwise_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 2)).toarray()
+        expected = np.array(
+            [[2, 0],
+             [0, 3]]
+        )
+        assert np.all(A == expected)
 
 
 class TestScipyTensorView:
