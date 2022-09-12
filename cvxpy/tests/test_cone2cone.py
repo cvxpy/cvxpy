@@ -563,11 +563,11 @@ class TestRelEntrQuad(BaseTest):
         sth.verify_objective(places=2)
 
 
-class TestOpRelCone(BaseTest):
+class TestOpRelConeQuad(BaseTest):
 
     @staticmethod
-    def Dop_commute_eig(a, b, U):
-        return trace(TestOpRelCone.Dop_commute(a, b, U)).value
+    def tr_Dop_commute(a, b, U):
+        return np.trace(TestOpRelConeQuad.Dop_commute(a, b, U))
 
     @staticmethod
     def Dop_commute(a, b, U):
@@ -590,14 +590,19 @@ class TestOpRelCone(BaseTest):
         return -(flank @ sp.linalg.logm(in_flank @ B @ in_flank) @ flank)
 
     @staticmethod
-    def Dop_eig(a, U1, B):
-        return trace(TestOpRelCone.Dop(a.value, U1, B.value)).value
+    def tr_Dop(a, U1, B):
+        return np.trace(TestOpRelConeQuad.Dop(a.value, U1, B.value))
 
     def oprelcone_1(self) -> STH.SolverTestHelper:
         """
         These tests construct two matrices that commute (imposing all eigenvectors equal)
-        and then use the fact that: T=Dop(A, B) for (A, B, T) in OpRelCone i.e. T >> Dop(A, B)
-        (for an objective that is an increasing function of the eigenvalues).
+        and then use the fact that: T=Dop(A, B) for (A, B, T) in OpRelConeQuad i.e. T >> Dop(A, B)
+        for an objective that is an increasing function of the eigenvalues (which we here take
+        to be the trace), we compute the reference objective value as tr(Dop) whose correctness
+        can be seen by writing out tr(T)=tr(T-Dop)+tr(Dop), where tr(T-Dop)>=0 because of PSD-ness
+        of (T-Dop), and at optimality we have (T-Dop)=0 (the zero matrix of corresponding size)
+        For the case that the input matrices commute, Dop takes on a particularly simplified form,
+        i.e.: U @ diag(a * log(a/b)) @ U^{-1} (which is implemented in the Dop_commute method above)
         """
         n = 3
         # generates `n` independent, orthonormal vectors
@@ -610,8 +615,8 @@ class TestOpRelCone(BaseTest):
         A = U @ cp.diag(a_diag) @ U.T
         B = U @ cp.diag(b_diag) @ U.T
         T = cp.Variable(shape=(n, n))
-        # constrains A,B,T \in OpRelCone
-        con1 = cp.constraints.OpRelCone(A, B, T, 5, 5)
+        # constrains A,B,T \in OpRelConeQuad
+        con1 = cp.constraints.OpRelConeQuad(A, B, T, 5, 5)
         # imposing some non-trivial constraints to ensure feasibility
         a_lower = np.cumsum(np.random.rand(n))
         a_upper = a_lower + 0.05*np.random.rand(n)
@@ -632,10 +637,10 @@ class TestOpRelCone(BaseTest):
         prob.solve()
 
         # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelCone.Dop_commute_eig(a_diag, b_diag, U)
+        obj_OPT = TestOpRelConeQuad.tr_Dop_commute(a_diag, b_diag, U)
 
         # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
-        expect_T = TestOpRelCone.Dop_commute(a_diag, b_diag, U)
+        expect_T = TestOpRelConeQuad.Dop_commute(a_diag, b_diag, U)
 
         obj_pair = (obj, obj_OPT)
         var_pairs = [(T, expect_T)]
@@ -660,8 +665,8 @@ class TestOpRelCone(BaseTest):
         A = U @ cp.diag(a_diag) @ U.T
         B = U @ cp.diag(b_diag) @ U.T
         T = cp.Variable(shape=(n, n))
-        # constrains A,B,T \in OpRelCone
-        con1 = cp.constraints.OpRelCone(A, B, T, 8, 5)
+        # constrains A,B,T \in OpRelConeQuad
+        con1 = cp.constraints.OpRelConeQuad(A, B, T, 8, 5)
         # imposing some non-trivial constraints to ensure feasibility
         a_lower = np.cumsum(np.random.rand(n))
         a_upper = a_lower + 0.15*np.random.rand(n)
@@ -682,10 +687,10 @@ class TestOpRelCone(BaseTest):
         prob.solve()
 
         # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelCone.Dop_commute_eig(a_diag, b_diag, U)
+        obj_OPT = TestOpRelConeQuad.tr_Dop_commute(a_diag, b_diag, U)
 
         # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
-        expect_T = TestOpRelCone.Dop_commute(a_diag, b_diag, U)
+        expect_T = TestOpRelConeQuad.Dop_commute(a_diag, b_diag, U)
 
         obj_pair = (obj, obj_OPT)
         var_pairs = [(T, expect_T)]
@@ -700,29 +705,34 @@ class TestOpRelCone(BaseTest):
 
     def oprelcone_3(self) -> STH.SolverTestHelper:
         """
-        This test uses the same idea from the tests with commutative
-        matrices, instead, here, we make the input matrices to Dop, non-commutative,
-        the same condition as before i.e. T=Dop(A, B) for (A, B, T) in OpRelCone
+        This test uses the same idea from the tests with commutative matrices,
+        instead, here, we make the input matrices to Dop, non-commutative,
+        the same condition as before i.e. T=Dop(A, B) for (A, B, T) in OpRelConeQuad
         (for an objective that is an increasing function of the eigenvalues) holds,
-        the difference here then, is in how we compute Dop, which is done by
-        faithfully following it's definition as the non-commutative perspective of
-        the negative logarithm as implemented in the Dop_eig/Dop methods
+        the difference here then, is in how we compute the reference values, which
+        has been done by assuming correctness of the original CVXQUAD matlab implementation
         """
         n, m, k = 4, 3, 3
         # generate two sets of linearly orthogonal vectors
         # Each to be set as the eigenvectors of a particular input matrix to Dop
-        U1 = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
-        U2 = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
+        U1 = np.array([[-0.28939992, 0.21212227, -0.44639658, 0.81974503],
+                       [0.24187603, -0.61309179, -0.73560208, -0.15653761],
+                       [0.45421111, 0.74420191, -0.41586082, -0.25868042],
+                       [0.80711582, -0.15901609, 0.29441373, 0.48641392]])
+        U2 = np.array([[-0.01071273, 0.07791417, -0.88738179, 0.45427765],
+                       [0.32453698, -0.93181764, -0.00257848, 0.16243454],
+                       [0.9454041, 0.31603826, -0.02270362, -0.07625905],
+                       [0.02778609, 0.16051504, 0.46046874, 0.87260036]])
         a_diag = cp.Variable(shape=(n,), pos=True)
         b_diag = cp.Variable(shape=(n,), pos=True)
         A = U1 @ cp.diag(a_diag) @ U1.T
         B = U2 @ cp.diag(b_diag) @ U2.T
         T = cp.Variable(shape=(n, n), symmetric=True)
-        a_lower = np.cumsum(np.random.rand(n))
-        a_upper = a_lower + 0.15*np.random.rand(n)
-        b_lower = np.cumsum(np.random.rand(n))
-        b_upper = b_lower + 0.1*np.random.rand(n)
-        con1 = cp.constraints.OpRelCone(A, B, T, m, k)
+        a_lower = np.array([0.49964878, 1.11493702, 1.69806999, 2.39632391])
+        a_upper = np.array([0.50111539, 1.14133115, 1.69967363, 2.43768103])
+        b_lower = np.array([0.33998621, 1.18669717, 1.43276673, 2.01425798])
+        b_upper = np.array([0.38687005, 1.18908653, 1.43546562, 2.01528889])
+        con1 = cp.constraints.OpRelConeQuad(A, B, T, m, k)
         con2 = a_lower <= a_diag
         con3 = a_diag <= a_upper
         con4 = b_lower <= b_diag
@@ -737,11 +747,12 @@ class TestOpRelCone(BaseTest):
         prob = cp.Problem(obj, [con1, con2, con3, con4, con5])
         prob.solve()
 
-        # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelCone.Dop_eig(a_diag, U1, B)
+        obj_OPT = 2.16105
 
-        # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
-        expect_T = TestOpRelCone.Dop(a_diag.value, U1, B.value)
+        expect_T = np.array([[0.5792756, -0.04280273, -0.12591717, 0.33926563],
+                             [-0.04280273, 0.53388712, 0.75258005, -0.54961675],
+                             [-0.12591717, 0.75258005, 1.21545544, -0.66716298],
+                             [0.33926563, -0.54961675, -0.66716298, -0.16756522]])
 
         obj_pair = (obj, obj_OPT)
         var_pairs = [(T, expect_T)]

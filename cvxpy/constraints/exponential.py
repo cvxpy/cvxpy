@@ -254,7 +254,7 @@ class RelEntrQuad(Constraint):
         return
 
 
-class OpRelCone(Constraint):
+class OpRelConeQuad(Constraint):
     """An approximate construction of the operator relative entropy cone
 
     Definition:
@@ -296,14 +296,14 @@ class OpRelCone(Constraint):
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str((Xs, Ys, Zs)))
             raise ValueError(msg)
-        super(OpRelCone, self).__init__([self.X, self.Y, self.Z], constr_id)
+        super(OpRelConeQuad, self).__init__([self.X, self.Y, self.Z], constr_id)
 
     def get_data(self):
         return [self.m, self.k]
 
     def __str__(self) -> str:
         tup = (self.X, self.Y, self.Z, self.m, self.k)
-        return "OpRelCone(%s, %s, %s, %s, %s)" % tup
+        return "OpRelConeQuad(%s, %s, %s, %s, %s)" % tup
 
     def __repr__(self) -> str:
         return self.__str__()

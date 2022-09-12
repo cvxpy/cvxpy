@@ -21,14 +21,14 @@ import numpy as np
 import cvxpy as cp
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.exponential import OpRelCone, RelEntrQuad
+from cvxpy.constraints.exponential import OpRelConeQuad, RelEntrQuad
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
 
 APPROX_CONES = {
     RelEntrQuad: {cp.SOC},
-    OpRelCone: {cp.PSD}
+    OpRelConeQuad: {cp.PSD}
 }
 
 
@@ -130,7 +130,7 @@ def RelEntrQuad_canon(con: RelEntrQuad, args) -> Tuple[Constraint, List[Constrai
     return lead_con, constrs
 
 
-def OpRelCone_canon(con: OpRelCone, args) -> Tuple[Constraint, List[Constraint]]:
+def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
     k, m = con.k, con.m
     X, Y = con.X, con.Y
     Zs = {i: Variable(shape=X.shape, symmetric=True) for i in range(k+1)}
@@ -172,11 +172,11 @@ class QuadApprox(Canonicalization):
             problem=problem, canon_methods=QuadApprox.CANON_METHODS)
 
 
-class OpRelConeApprox(Canonicalization):
+class OpRelConeQuadApprox(Canonicalization):
     CANON_METHODS = {
-        OpRelCone: OpRelCone_canon
+        OpRelConeQuad: OpRelConeQuad_canon
     }
 
     def __init__(self, problem=None) -> None:
-        super(OpRelConeApprox, self).__init__(
-            problem=problem, canon_methods=OpRelConeApprox.CANON_METHODS)
+        super(OpRelConeQuadApprox, self).__init__(
+            problem=problem, canon_methods=OpRelConeQuadApprox.CANON_METHODS)

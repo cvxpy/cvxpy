@@ -6,13 +6,13 @@ import numpy as np
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, FiniteSet,
                                Inequality, NonNeg, NonPos, PowCone3D, Zero,)
-from cvxpy.constraints.exponential import OpRelCone, RelEntrQuad
+from cvxpy.constraints.exponential import OpRelConeQuad, RelEntrQuad
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
 from cvxpy.reductions.cone2cone.approximations import (APPROX_CONES,
-                                                       OpRelConeApprox,
+                                                       OpRelConeQuadApprox,
                                                        QuadApprox,)
 from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
                                                       Exotic2Common,)
@@ -278,8 +278,8 @@ def construct_solving_chain(problem, candidates,
                 reductions.append(Exotic2Common())
             if RelEntrQuad in approx_cos:
                 reductions.append(QuadApprox())
-            if OpRelCone in approx_cos:
-                reductions.append(OpRelConeApprox())
+            if OpRelConeQuad in approx_cos:
+                reductions.append(OpRelConeQuadApprox())
 
             # Should the objective be canonicalized to a quadratic?
             if solver_opts is None:
