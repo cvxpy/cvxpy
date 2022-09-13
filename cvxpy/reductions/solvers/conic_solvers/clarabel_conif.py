@@ -53,8 +53,8 @@ def dims_to_solver_cones(cone_dims):
     for _ in range(cone_dims.exp):
         cones.append(clarabel.ExponentialConeT())
 
-    #for pow in cone_dims.p3d:  #placeholder
-    #    PJG  : Placeholder for future 3d power cone support
+    for pow in cone_dims.p3d:  
+        cones.append(clarabel.PowerConeT(pow))
     return cones
     
 
@@ -101,17 +101,6 @@ class CLARABEL(ConicSolver):
         """Clarabel supports quadratic objective with any combination of conic constraints.
         """
         return True
-
-    #PJG : I don't understand what this does 
-    def apply(self,problem):
-        """Returns a new problem and data for inverting the new solution.
-
-        Returns
-        -------
-        tuple
-            (dict of arguments needed for the solver, inverse data)
-        """
-        return super(CLARABEL, self).apply(problem)
 
     @staticmethod
     def extract_dual_value(result_vec, offset, constraint):
@@ -214,7 +203,7 @@ class CLARABEL(ConicSolver):
         if s.P in data:
             P = data[s.P]
         else:
-            nvars = c.len();
+            nvars = c.size;
             P = sp.csc_matrix((nvars,nvars))
 
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
@@ -224,13 +213,12 @@ class CLARABEL(ConicSolver):
             _settings = CLARABEL.parse_solver_opts(verbose,_solver_opts)
             _solver   = clarabel.DefaultSolver(P,c,A,b,cones,_settings)
             _results  = _solver.solve()
-            _solver.print_timers()
 
             return _results, _results.status
 
         results, status = solve(solver_opts)
         
-        if solver_cache is not None and status == s.OPTIMAL:
+        if solver_cache is not None and self.STATUS_MAP[status]:
             solver_cache[self.name()] = results
 
         return results

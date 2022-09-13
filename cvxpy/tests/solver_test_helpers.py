@@ -255,6 +255,17 @@ def lp_6() -> SolverTestHelper:
     sth = SolverTestHelper(obj_pair, var_pairs, [])
     return sth
 
+def qp_0() -> SolverTestHelper:
+    # univariate feasible problem
+    x = cp.Variable(1)
+    objective = cp.Minimize(cp.square(x))
+    constraints = [x[0] >= 1]
+    con_pairs = [(constraints[0], 2)]
+    obj_pair = (objective, 1)
+    var_pairs = [(x, 1)]
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
+
 
 def socp_0() -> SolverTestHelper:
     x = cp.Variable(shape=(2,))
@@ -934,6 +945,19 @@ class StandardTestLPs:
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
+        return sth
+
+class StandardTestQPs:
+
+    @staticmethod
+    def test_qp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+        sth = qp_0()
+        sth.solve(solver, **kwargs)
+        sth.verify_primal_values(places)
+        sth.verify_objective(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.verify_dual_values(places)
         return sth
 
 
