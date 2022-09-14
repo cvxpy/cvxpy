@@ -19,6 +19,8 @@ import scipy  # For version checks
 
 import cvxpy.settings as s
 from cvxpy.reductions.solvers.conic_solvers.cbc_conif import CBC as CBC_con
+from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import (
+    CLARABEL as CLARABEL_con,)
 from cvxpy.reductions.solvers.conic_solvers.copt_conif import COPT as COPT_con
 from cvxpy.reductions.solvers.conic_solvers.cplex_conif import (
     CPLEX as CPLEX_con,)
@@ -43,7 +45,6 @@ from cvxpy.reductions.solvers.conic_solvers.pdlp_conif import PDLP as PDLP_con
 from cvxpy.reductions.solvers.conic_solvers.scip_conif import SCIP as SCIP_con
 from cvxpy.reductions.solvers.conic_solvers.scipy_conif import (
     SCIPY as SCIPY_con,)
-from cvxpy.reductions.solvers.conic_solvers.clarabel_conif import CLARABEL as CLARABEL_con
 from cvxpy.reductions.solvers.conic_solvers.scs_conif import SCS as SCS_con
 from cvxpy.reductions.solvers.conic_solvers.sdpa_conif import SDPA as SDPA_con
 from cvxpy.reductions.solvers.conic_solvers.xpress_conif import (

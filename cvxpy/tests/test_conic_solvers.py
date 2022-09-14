@@ -26,13 +26,11 @@ import cvxpy.tests.solver_test_helpers as sths
 from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
                                               INSTALLED_SOLVERS,)
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.tests.solver_test_helpers import (StandardTestECPs, 
-                                             StandardTestLPs,
+from cvxpy.tests.solver_test_helpers import (StandardTestECPs, StandardTestLPs,
                                              StandardTestMixedCPs,
-                                             StandardTestPCPs,
+                                             StandardTestPCPs, StandardTestQPs,
                                              StandardTestSDPs,
-                                             StandardTestSOCPs,
-                                             StandardTestQPs)
+                                             StandardTestSOCPs,)
 from cvxpy.utilities.versioning import Version
 
 
