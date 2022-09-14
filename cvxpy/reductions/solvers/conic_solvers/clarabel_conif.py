@@ -20,7 +20,7 @@ import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy.constraints import SOC, PSD, ExpCone, PowCone3D
+from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
