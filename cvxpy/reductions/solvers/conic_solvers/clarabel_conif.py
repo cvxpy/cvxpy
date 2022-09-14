@@ -56,7 +56,6 @@ def dims_to_solver_cones(cone_dims):
 class CLARABEL(ConicSolver):
     """An interface for the Clarabel solver.
     """
-    import clarabel
 
     # Solver capabilities.
     MIP_CAPABLE = False
@@ -65,16 +64,16 @@ class CLARABEL(ConicSolver):
     REQUIRES_CONSTR = True
 
     STATUS_MAP = {
-                    clarabel.SolverStatus.Solved: s.OPTIMAL,
-                    clarabel.SolverStatus.PrimalInfeasible: s.INFEASIBLE,
-                    clarabel.SolverStatus.DualInfeasible: s.UNBOUNDED,
-                    clarabel.SolverStatus.AlmostSolved: s.OPTIMAL_INACCURATE,
-                    clarabel.SolverStatus.AlmostPrimalInfeasible: s.INFEASIBLE_INACCURATE,
-                    clarabel.SolverStatus.AlmostDualInfeasible: s.UNBOUNDED_INACCURATE,
-                    clarabel.SolverStatus.MaxIterations: s.USER_LIMIT,
-                    clarabel.SolverStatus.MaxTime: s.USER_LIMIT,
-                    clarabel.SolverStatus.NumericalError: s.SOLVER_ERROR,
-                    clarabel.SolverStatus.InsufficientProgress: s.SOLVER_ERROR
+                    "Solved": s.OPTIMAL,
+                    "PrimalInfeasible": s.INFEASIBLE,
+                    "DualInfeasible": s.UNBOUNDED,
+                    "AlmostSolved": s.OPTIMAL_INACCURATE,
+                    "AlmostPrimalInfeasible": s.INFEASIBLE_INACCURATE,
+                    "AlmostDualInfeasible": s.UNBOUNDED_INACCURATE,
+                    "MaxIterations": s.USER_LIMIT,
+                    "MaxTime": s.USER_LIMIT,
+                    "NumericalError": s.SOLVER_ERROR,
+                    "InsufficientProgress": s.SOLVER_ERROR
                 }
 
     # Order of exponential cone arguments for solver.
@@ -117,7 +116,7 @@ class CLARABEL(ConicSolver):
         """
 
         attr = {}
-        status = self.STATUS_MAP[solution.status]
+        status = self.STATUS_MAP[str(solution.status)]
         attr[s.SOLVE_TIME] = solution.solve_time
         attr[s.NUM_ITERS] = solution.iterations
         # attr[s.EXTRA_STATS] = solution.extra.FOO #more detailed statistics here when available
@@ -204,7 +203,7 @@ class CLARABEL(ConicSolver):
 
         results, status = solve(solver_opts)
 
-        if solver_cache is not None and self.STATUS_MAP[status]:
+        if solver_cache is not None and self.STATUS_MAP[str(status)]:
             solver_cache[self.name()] = results
 
         return results
