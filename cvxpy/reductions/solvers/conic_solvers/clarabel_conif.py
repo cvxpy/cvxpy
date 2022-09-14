@@ -1,5 +1,5 @@
 """
-Copyright 2022 Paul Goulart 
+Copyright 2022 Paul Goulart
 
 Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -16,26 +16,21 @@ limitations under the License.
 
 This interface borrows heavily from the one in scs_conif.py
 """
-import numpy as np
 import scipy.sparse as sp
 
 import cvxpy.settings as s
+from cvxpy import utilities
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
-from cvxpy.expressions.expression import Expression
 from cvxpy.reductions.solution import Solution, failure_solution
-from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
-from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
-    dims_to_solver_dict as dims_to_solver_dict_default,)
-from cvxpy.utilities.versioning import Version
 
 
 def dims_to_solver_cones(cone_dims):
-    
+
     import clarabel
     cones = []
 
-    # assume that constraints are presented 
+    # assume that constraints are presented
     # in the preferred ordering of SCS.
 
     if cone_dims.zero > 0:
@@ -44,19 +39,18 @@ def dims_to_solver_cones(cone_dims):
     if cone_dims.nonneg > 0:
         cones.append(clarabel.NonnegativeConeT(cone_dims.nonneg))
 
-    for dim in cone_dims.soc :
+    for dim in cone_dims.soc:
         cones.append(clarabel.SecondOrderConeT(dim))
 
-    #for dim in cone_dims.psd :
+    # for dim in cone_dims.psd :
     #    PJG  : Placeholder for future PSD support
 
     for _ in range(cone_dims.exp):
         cones.append(clarabel.ExponentialConeT())
 
-    for pow in cone_dims.p3d:  
+    for pow in cone_dims.p3d:
         cones.append(clarabel.PowerConeT(pow))
     return cones
-    
 
 
 class CLARABEL(ConicSolver):
@@ -107,20 +101,13 @@ class CLARABEL(ConicSolver):
         """Extracts the dual value for constraint starting at offset.
         """
 
-        # PJG : I will leave PSD handling from SCS here 
-        # as a placeholder to remind me to implement something 
-        # appropriate once PSD cones are supported 
+        # PJG : I will leave PSD handling from SCS here
+        # as a placeholder to remind me to implement something
+        # appropriate once PSD cones are supported
 
         if isinstance(constraint, PSD):
-            raise RuntimeError("PSD cones are not yet supported.   This function should be unreachable.")
+            raise RuntimeError("PSD cones not yet supported. This function should be unreachable.")
 
-            # PJG: lines following are original SCS implementation 
-            dim = constraint.shape[0]
-            lower_tri_dim = dim * (dim + 1) // 2
-            new_offset = offset + lower_tri_dim
-            lower_tri = result_vec[offset:new_offset]
-            full = tri_to_full(lower_tri, dim)
-            return full, new_offset
         else:
             return utilities.extract_dual_value(result_vec, offset,
                                                 constraint)
@@ -128,7 +115,6 @@ class CLARABEL(ConicSolver):
     def invert(self, solution, inverse_data):
         """Returns the solution to the original problem given the inverse_data.
         """
-        import clarabel 
 
         attr = {}
         status = self.STATUS_MAP[solution.status]
@@ -161,13 +147,13 @@ class CLARABEL(ConicSolver):
 
     @staticmethod
     def parse_solver_opts(verbose, opts):
-        import clarabel 
+        import clarabel
 
-        settings = clarabel.DefaultSettings();
-        settings.verbose = verbose 
+        settings = clarabel.DefaultSettings()
+        settings.verbose = verbose
         for opt in opts.keys():
             try:
-                settings.__setattr__(opt,opts[opt])
+                settings.__setattr__(opt, opts[opt])
             except TypeError as e:
                 raise TypeError("Clarabel: Incorrect type for setting '" + opt + "'") from e
             except AttributeError as e:
@@ -183,7 +169,8 @@ class CLARABEL(ConicSolver):
         data : dict
             Data generated via an apply call.
         warm_start : Bool
-            Whether to warm_start Clarabel.  PJG: From SCS.   We don't support this, not sure if relevant
+            Whether to warm_start Clarabel.
+            PJG: From SCS.   We don't support this, not sure if relevant
         verbose : Bool
             Control the verbosity.
         solver_opts : dict
@@ -194,30 +181,29 @@ class CLARABEL(ConicSolver):
         The result returned by a call to clarabel.solve().
         """
         import clarabel
-        clarabel_version = Version(clarabel.__version__())
+
         A = data[s.A]
         b = data[s.B]
         c = data[s.C]
-        
-        args = {"A": data[s.A], "b": data[s.B], "c": data[s.C]}
+
         if s.P in data:
             P = data[s.P]
         else:
-            nvars = c.size;
-            P = sp.csc_matrix((nvars,nvars))
+            nvars = c.size
+            P = sp.csc_matrix((nvars, nvars))
 
         cones = dims_to_solver_cones(data[ConicSolver.DIMS])
 
         def solve(_solver_opts):
- 
-            _settings = CLARABEL.parse_solver_opts(verbose,_solver_opts)
-            _solver   = clarabel.DefaultSolver(P,c,A,b,cones,_settings)
-            _results  = _solver.solve()
+
+            _settings = CLARABEL.parse_solver_opts(verbose, _solver_opts)
+            _solver = clarabel.DefaultSolver(P, c, A, b, cones, _settings)
+            _results = _solver.solve()
 
             return _results, _results.status
 
         results, status = solve(solver_opts)
-        
+
         if solver_cache is not None and self.STATUS_MAP[status]:
             solver_cache[self.name()] = results
 

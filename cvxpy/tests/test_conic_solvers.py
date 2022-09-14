@@ -389,6 +389,7 @@ class TestSCS(BaseTest):
     def test_scs_pcp_3(self) -> None:
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
+
 class TestClarabel(BaseTest):
 
     """ Unit tests for Clarabel. """
