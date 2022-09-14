@@ -390,6 +390,7 @@ class TestSCS(BaseTest):
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
 
 
+@unittest.skipUnless('CLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
 class TestClarabel(BaseTest):
 
     """ Unit tests for Clarabel. """
