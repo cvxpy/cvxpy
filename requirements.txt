@@ -1,6 +1,5 @@
 osqp
 ecos
 scs
-clarabel
 numpy
 scipy
