@@ -419,7 +419,7 @@ class TestClarabel(BaseTest):
 
     def test_clarabel_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='CLARABEL')
-        
+
     def test_clarabel_qp_0(self) -> None:
         StandardTestQPs.test_qp_0(solver='CLARABEL')
 
