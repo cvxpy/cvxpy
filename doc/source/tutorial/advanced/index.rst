@@ -1041,7 +1041,7 @@ In addition to Gurobi's parameters, the following options are available:
 ``'time_limit'``
     time limit in seconds (default: 0.0, giving no limit).
 
-For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_jl/#api-settings>`_.
+For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
 
 Getting the standard form
 -------------------------
