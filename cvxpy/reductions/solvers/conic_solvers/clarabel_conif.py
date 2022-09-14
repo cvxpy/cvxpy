@@ -71,8 +71,8 @@ class CLARABEL(ConicSolver):
                     clarabel.SolverStatus.AlmostSolved: s.OPTIMAL_INACCURATE,
                     clarabel.SolverStatus.AlmostPrimalInfeasible: s.INFEASIBLE_INACCURATE,
                     clarabel.SolverStatus.AlmostDualInfeasible: s.UNBOUNDED_INACCURATE,
-                    clarabel.SolverStatus.MaxIterations: s.UNBOUNDED_INACCURATE,
-                    clarabel.SolverStatus.MaxTime: s.UNBOUNDED_INACCURATE,
+                    clarabel.SolverStatus.MaxIterations: s.USER_LIMIT,
+                    clarabel.SolverStatus.MaxTime: s.USER_LIMIT,
                     clarabel.SolverStatus.NumericalError: s.SOLVER_ERROR,
                     clarabel.SolverStatus.InsufficientProgress: s.SOLVER_ERROR
                 }
