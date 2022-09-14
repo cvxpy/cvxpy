@@ -19,9 +19,9 @@ This interface borrows heavily from the one in scs_conif.py
 import scipy.sparse as sp
 
 import cvxpy.settings as s
-from cvxpy import utilities
 from cvxpy.constraints import PSD, SOC, ExpCone, PowCone3D
 from cvxpy.reductions.solution import Solution, failure_solution
+from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import ConicSolver
 
 
@@ -61,7 +61,7 @@ class CLARABEL(ConicSolver):
     # Solver capabilities.
     MIP_CAPABLE = False
     SUPPORTED_CONSTRAINTS = ConicSolver.SUPPORTED_CONSTRAINTS \
-        + [SOC, ExpCone, PSD, PowCone3D]
+        + [SOC, ExpCone, PowCone3D]
     REQUIRES_CONSTR = True
 
     STATUS_MAP = {
