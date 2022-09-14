@@ -432,6 +432,8 @@ The table below shows the types of problems the supported solvers can handle.
 +================+====+====+======+=====+=====+=====+=====+
 | `CBC`_         | X  |    |      |     |     |     | X   |
 +----------------+----+----+------+-----+-----+-----+-----+
+| `CLARABEL`_    | X  | X  | X    |     |  X  |  X  |     |
++----------------+----+----+------+-----+-----+-----+-----+
 | `COPT`_        | X  | X  | X    |  X  |     |     | X*  |
 +----------------+----+----+------+-----+-----+-----+-----+
 | `GLOP`_        | X  |    |      |     |     |     |     |
@@ -538,6 +540,10 @@ You can change the solver called by CVXPY using the ``solver`` keyword argument.
     # Solve with GLPK_MI.
     prob.solve(solver=cp.GLPK_MI)
     print("optimal value with GLPK_MI:", prob.value)
+
+    # Solve with CLARABEL.
+    prob.solve(solver=cp.CLARABEL)
+    print("optimal value with CLARABEL:", prob.value)
 
     # Solve with GUROBI.
     prob.solve(solver=cp.GUROBI)
@@ -681,7 +687,7 @@ warm start would only be a good initial point.
 Setting solver options
 ----------------------
 
-The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, and `SCS`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
+The `OSQP`_, `ECOS`_, `GLOP`_, `MOSEK`_, `CBC`_, `CVXOPT`_, `NAG`_, `PDLP`_, `GUROBI`_, `SCS`_ and `CLARABEL`_ Python interfaces allow you to set solver options such as the maximum number of iterations. You can pass these options along through CVXPY as keyword arguments.
 
 For example, here we tell SCS to use an indirect method for solving linear equations rather than a direct method.
 
@@ -1026,6 +1032,16 @@ In addition to Gurobi's parameters, the following options are available:
     A boolean. This is only relevant for problems where GUROBI initially produces an "infeasible or unbounded" status.
     Its default value is False. If set to True, then if GUROBI produces an "infeasible or unbounded" status, its algorithm
     parameters are automatically changed and the problem is re-solved in order to determine its precise status.
+
+`CLARABEL`_ options:
+
+``'max_iter'``
+    maximum number of iterations (default: 50).
+
+``'time_limit'``
+    time limit in seconds (default: 0.0, giving no limit).
+
+For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_jl/#api-settings>`_.
 
 Getting the standard form
 -------------------------
@@ -1527,6 +1543,7 @@ on derivatives.
 .. _XPRESS: https://www.fico.com/en/products/fico-xpress-optimization
 .. _SCIPY: https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.linprog.html#scipy.optimize.linprog
 .. _HiGHS: https://www.maths.ed.ac.uk/hall/HiGHS/#guide
+.. _CLARABEL: https://oxfordcontrol.github.io/ClarabelDocs/
 
 Custom Solvers
 ------------------------------------
