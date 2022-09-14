@@ -255,6 +255,7 @@ def lp_6() -> SolverTestHelper:
     sth = SolverTestHelper(obj_pair, var_pairs, [])
     return sth
 
+
 def qp_0() -> SolverTestHelper:
     # univariate feasible problem
     x = cp.Variable(1)
@@ -946,6 +947,7 @@ class StandardTestLPs:
         sth.verify_objective(places)
         sth.verify_primal_values(places)
         return sth
+
 
 class StandardTestQPs:
 
