@@ -487,7 +487,9 @@ class ScipyCanonBackend(CanonBackend):
         assert is_param_free_lhs
         assert len(lhs) == 1
         lhs = lhs[0]
-        np.reciprocal(lhs.data, out=lhs.data)
+
+        # dtype is important here, will do integer division if data is of dtype int otherwise.
+        lhs.data = np.reciprocal(lhs.data, dtype=float)
 
         def div_func(x):
             return lhs.multiply(x)
@@ -522,6 +524,8 @@ class ScipyCanonBackend(CanonBackend):
         return stack_func
 
     def rmul(self, lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
+        # Note that even though this is rmul, we still use "lhs", as is implemented via a
+        # multiplication from the left in this function.
         lhs, is_param_free_lhs = self.get_constant_data(lin.data, view, column=False)
 
         arg_cols = lin.args[0].shape[0] if len(lin.args[0].shape) == 1 else lin.args[0].shape[1]
@@ -702,15 +706,9 @@ class TensorView(ABC):
         return self
 
     @staticmethod
+    @abstractmethod
     def combine_potentially_none(a, b):
-        if a is None and b is None:
-            return None
-        elif a is not None and b is None:
-            return a
-        elif a is None and b is not None:
-            return b
-        else:
-            return a + b
+        pass
 
     @classmethod
     def get_empty_view(cls, param_size_plus_one, id_to_col, param_to_size,

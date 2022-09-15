@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Callable
 
 import numpy as np
 import pytest
@@ -63,6 +64,8 @@ class TestBackend:
 
 
 class TestScipyBackend:
+    # Not used explicitly in most test cases.
+    # Some tests specify other values as needed within the test case.
     param_size_plus_one = 2
     id_to_col = {1: 0, 2: 2}
     param_to_size = {-1: 1, 3: 1}
@@ -73,6 +76,12 @@ class TestScipyBackend:
     def backend(self):
         return ScipyCanonBackend(self.id_to_col, self.param_to_size, self.param_to_col,
                                  self.param_size_plus_one, self.var_length)
+
+    def test_mapping(self, backend):
+        func = backend.get_func('sum')
+        assert isinstance(func, Callable)
+        with pytest.raises(KeyError):
+            backend.get_func('notafunc')
 
     def test_get_variable_tensor(self, backend):
         outer = backend.get_variable_tensor((2,), 1)
@@ -104,6 +113,55 @@ class TestScipyBackend:
         assert len(tensors) == size, "Should be a tensor for each element of the parameter"
         assert (sp.hstack(tensors) != sp.eye(size, format='csr')).nnz == 0, \
             'Should be eye(4) along axes 1 and 2'
+
+    def test_neg(self, backend):
+        """
+         define x = Variable((2,2)) with
+         [[x11, x12],
+          [x21, x22]]
+
+         x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+
+          x11 x21 x12 x22
+         [[1   0   0   0],
+          [0   1   0   0],
+          [0   0   1   0],
+          [0   0   0   1]]
+
+         neg(x) means we now have
+          [[-x11, -x21],
+           [-x12, -x22]],
+
+          i.e.,
+
+          x11 x21 x12 x22
+         [[-1  0   0   0],
+          [0  -1   0   0],
+          [0   0  -1   0],
+          [0   0   0  -1]]
+         """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        neg_lin_op = linOpHelper()
+        out_view = backend.neg(neg_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
+        assert np.all(A == -np.eye(4))
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
 
     def test_transpose(self, backend):
         """
@@ -472,6 +530,264 @@ class TestScipyBackend:
         )
         assert np.all(A == expected)
 
+    def test_mul(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+         Multiplying with the constant from the left
+        [[1, 2],
+         [3, 4]],
+
+         we expect the output to be
+        [[  x11 + 2 x21,   x12 + 2 x22],
+         [3 x11 + 4 x21, 3 x12 + 4 x22]]
+
+        i.e., when represented in the A matrix (again using column-major order):
+         x11 x21 x12 x22
+        [[1   2   0   0],
+         [3   4   0   0],
+         [0   0   1   2],
+         [0   0   3   4]]
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+
+        mul_lin_op = linOpHelper(data=lhs, args=[variable_lin_op])
+        out_view = backend.mul(mul_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
+        expected = np.array(
+            [[1, 2, 0, 0],
+             [3, 4, 0, 0],
+             [0, 0, 1, 2],
+             [0, 0, 3, 4]]
+        )
+        assert np.all(A == expected)
+
+    def test_parametrized_mul(self, backend):
+        """
+        Continuing the previous example when the lhs is a parameter, instead of multiplying with
+        known values, the matrix is split up into four slices, each representing an element of the
+        parameter, i.e. instead of
+         x11 x21 x12 x22
+        [[1   2   0   0],
+         [3   4   0   0],
+         [0   0   1   2],
+         [0   0   3   4]]
+
+         we obtain the list of length four, where we have ones at the entries where previously
+         we had the 1, 3, 2, and 4 (again flattened in column-major order):
+
+            x11  x21  x12  x22
+        [
+            [[1   0   0   0],
+             [0   0   0   0],
+             [0   0   1   0],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [1   0   0   0],
+             [0   0   0   0],
+             [0   0   1   0]],
+
+            [[0   1   0   0],
+             [0   0   0   0],
+             [0   0   0   1],
+             [0   0   0   0]],
+
+            [[0   0   0   0],
+             [0   1   0   0],
+             [0   0   0   0],
+             [0   0   0   1]]
+        ]
+        """
+
+        param_size_plus_one = 5
+        id_to_col = {1: 0}
+        param_to_size = {-1: 1, 2: 4}
+        param_to_col = {2: 0, -1: 4}
+        var_length = 4
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(param_size_plus_one, id_to_col,
+                                                    param_to_size, param_to_col,
+                                                    var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        lhs_parameter = linOpHelper((2, 2), type='param', data=2)
+
+        mul_lin_op = linOpHelper(data=lhs_parameter, args=[variable_lin_op])
+        out_view = backend.mul(mul_lin_op, view)
+
+        # indices are: variable 1, parameter 2, 0 index of the list
+        slice_idx_zero = out_view._variable_tensor[1][2][0].toarray()
+        expected_idx_zero = np.array(
+            [[1., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 1., 0.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        # indices are: variable 1, parameter 2, 1 index of the list
+        slice_idx_one = out_view._variable_tensor[1][2][1].toarray()
+        expected_idx_one = np.array(
+            [[0., 0., 0., 0.],
+             [1., 0., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 1., 0.]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+        # indices are: variable 1, parameter 2, 2 index of the list
+        slice_idx_two = out_view._variable_tensor[1][2][2].toarray()
+        expected_idx_two = np.array(
+            [[0., 1., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 1.],
+             [0., 0., 0., 0.]]
+        )
+        assert np.all(slice_idx_two == expected_idx_two)
+
+        # indices are: variable 1, parameter 2, 3 index of the list
+        slice_idx_three = out_view._variable_tensor[1][2][3].toarray()
+        expected_idx_three = np.array(
+            [[0., 0., 0., 0.],
+             [0., 1., 0., 0.],
+             [0., 0., 0., 0.],
+             [0., 0., 0., 1.]]
+        )
+        assert np.all(slice_idx_three == expected_idx_three)
+
+    def test_rmul(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+         Multiplying with the constant from the right
+        [[1],
+         [2]],
+
+         we expect the output to be
+         [[x11 + 2 x12],
+          [x21 + 2 x22]]
+
+        i.e., when represented in the A matrix:
+         x11 x21 x12 x22
+        [[1   0   2   0],
+         [0   1   0   2]]
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        rhs_parameter = linOpHelper((2, 1), type='dense_const', data=np.array([[1], [2]]))
+
+        rmul_lin_op = linOpHelper(data=rhs_parameter, args=[variable_lin_op])
+        out_view = backend.rmul(rmul_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 2, 0],
+             [0, 1, 0, 2]]
+        )
+        assert np.all(A == expected)
+
+    def test_parametrized_rmul(self, backend):
+        """
+        Continuing the previous example when the rhs is a parameter, instead of multiplying with
+        known values, the matrix is split up into two slices, each representing an element of the
+        parameter, i.e. instead of
+         x11 x21 x12 x22
+        [[1   0   2   0],
+         [0   1   0   2]]
+
+         we obtain the list of length two, where we have ones at the entries where previously
+         we had the 1 and 2:
+
+         x11  x21  x12  x22
+        [
+         [[1   0   0   0],
+          [0   1   0   0]]
+
+         [[0   0   1   0],
+          [0   0   0   1]]
+        ]
+        """
+
+        param_size_plus_one = 3
+        id_to_col = {1: 0}
+        param_to_size = {-1: 1, 2: 2}
+        param_to_col = {2: 0, -1: 2}
+        var_length = 4
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(param_size_plus_one, id_to_col,
+                                                    param_to_size, param_to_col,
+                                                    var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        rhs = linOpHelper((2, 1), type='param', data=2)
+
+        rmul_lin_op = linOpHelper(data=rhs, args=[variable_lin_op])
+        out_view = backend.rmul(rmul_lin_op, view)
+
+        # indices are: variable 1, parameter 2, 0 index of the list
+        slice_idx_zero = out_view._variable_tensor[1][2][0].toarray()
+        expected_idx_zero = np.array(
+            [[1, 0, 0, 0],
+             [0, 1, 0, 0]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        # indices are: variable 1, parameter 2, 1 index of the list
+        slice_idx_one = out_view._variable_tensor[1][2][1].toarray()
+        expected_idx_one = np.array(
+            [[0, 0, 1, 0],
+             [0, 0, 0, 1]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
     def test_mul_elementwise(self, backend):
         """
         define x = Variable((2,)) with
@@ -514,6 +830,112 @@ class TestScipyBackend:
         expected = np.array(
             [[2, 0],
              [0, 3]]
+        )
+        assert np.all(A == expected)
+
+    def test_mul_elementwise_parametrized(self, backend):
+        """
+        Continuing the previous example when a is a parameter, instead of multiplying with known
+        values, the matrix is split up into two slices, each representing an element of the
+        parameter, i.e. instead of
+         x1  x2
+        [[2  0],
+         [0  3]]
+
+         we obtain the list of length two:
+
+          x1  x2
+        [
+         [[1  0],
+          [0  0]],
+
+         [[0  0],
+          [0  1]]
+        ]
+        """
+
+        param_size_plus_one = 3
+        id_to_col = {1: 0}
+        param_to_size = {-1: 1, 2: 2}
+        param_to_col = {2: 0, -1: 2}
+        var_length = 2
+
+        variable_lin_op = linOpHelper((2,), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(param_size_plus_one, id_to_col,
+                                                    param_to_size, param_to_col,
+                                                    var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
+        assert np.all(view_A == np.eye(2))
+
+        lhs_parameter = linOpHelper((2,), type='param', data=2)
+
+        mul_elementwise_lin_op = linOpHelper(data=lhs_parameter)
+        out_view = backend.mul_elem(mul_elementwise_lin_op, view)
+
+        # indices are: variable 1, parameter 2, 0 index of the list
+        slice_idx_zero = out_view._variable_tensor[1][2][0].toarray()
+        expected_idx_zero = np.array(
+            [[1, 0],
+             [0, 0]]
+        )
+        assert np.all(slice_idx_zero == expected_idx_zero)
+
+        # indices are: variable 1, parameter 2, 1 index of the list
+        slice_idx_one = out_view._variable_tensor[1][2][1].toarray()
+        expected_idx_one = np.array(
+            [[0, 0],
+             [0, 1]]
+        )
+        assert np.all(slice_idx_one == expected_idx_one)
+
+    def test_div(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+         Dividing elementwise with
+        [[1, 2],
+         [3, 4]],
+
+        we obtain:
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1/3 0   0],
+         [0   0   1/2 0],
+         [0   0   0   1/4]]
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        lhs = linOpHelper((2, 2), type='dense_const', data=np.array([[1, 2], [3, 4]]))
+
+        div_lin_op = linOpHelper(data=lhs)
+        out_view = backend.div(div_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 0, 0],
+             [0, 1/3, 0, 0],
+             [0, 0, 1/2, 0],
+             [0, 0, 0, 1/4]]
         )
         assert np.all(A == expected)
 
