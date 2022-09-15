@@ -535,6 +535,8 @@ class ScipyCanonBackend(CanonBackend):
             lhs_shape = next(iter(lhs.values()))[0].shape
 
             if len(lin.data.shape) == 1 and arg_cols != lhs_shape[0]:
+                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
+                # but it is a row vector by default, so we need to transpose
                 lhs = {k: [v_i.T for v_i in v] for k, v in lhs.items()}
                 lhs_shape = next(iter(lhs.values()))[0].shape
 
@@ -552,6 +554,8 @@ class ScipyCanonBackend(CanonBackend):
             assert len(lhs) == 1
             lhs = lhs[0]
             if len(lin.data.shape) == 1 and arg_cols != lhs.shape[0]:
+                # Example: (n,n) @ (n,), we need to interpret the rhs as a column vector,
+                # but it is a row vector by default, so we need to transpose
                 lhs = lhs.T
             reps = view.rows // lhs.shape[0]
             stacked_lhs = sp.kron(lhs.T, sp.eye(reps, format="csr"))
@@ -567,7 +571,7 @@ class ScipyCanonBackend(CanonBackend):
 
         data = np.ones(len(indices))
         idx = (np.zeros(len(indices)), indices.astype(int))
-        lhs = sp.csr_matrix((data, idx), shape=((1, np.prod(shape))))
+        lhs = sp.csr_matrix((data, idx), shape=(1, np.prod(shape)))
 
         def func(x):
             return lhs @ x

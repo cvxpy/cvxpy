@@ -20,7 +20,7 @@ class linOpHelper:
     """
     shape: None | tuple[int, ...] = None
     type: None | str = None
-    data: None | int | np.ndarray = None
+    data: None | int | np.ndarray | list[slice] = None
     args: None | list[linOpHelper] = None
 
 
@@ -263,6 +263,71 @@ class TestScipyBackend:
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
         expected = np.array(
             [[0, 0, 1, 0]]
+        )
+        assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
+    def test_index(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+
+        index() returns the subset of rows corresponding to the slicing of variables.
+
+        e.g. x[0:2,0] yields
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0]]
+
+         Passing a single slice only returns the corresponding row of A.
+         Note: Passing a single slice does not happen when slicing e.g. x[0], which is expanded to
+         the 2d case.
+
+         -> It reduces to selecting a subset of the rows of A.
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        index_2d_lin_op = linOpHelper(data=[slice(0, 2, 1), slice(0, 1, 1)], args=[variable_lin_op])
+        out_view = backend.index(index_2d_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 0, 0],
+             [0, 1, 0, 0]]
+        )
+        assert np.all(A == expected)
+
+        index_1d_lin_op = linOpHelper(data=[slice(0, 1, 1)], args=[variable_lin_op])
+        out_view = backend.index(index_1d_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 0, 0]]
         )
         assert np.all(A == expected)
 
@@ -688,8 +753,8 @@ class TestScipyBackend:
          [x21, x22]]
 
          Multiplying with the constant from the right
-        [[1],
-         [2]],
+         (intentionally using 1D vector to cover edge case)
+        [1, 2]
 
          we expect the output to be
          [[x11 + 2 x12],
@@ -713,9 +778,9 @@ class TestScipyBackend:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        rhs_parameter = linOpHelper((2, 1), type='dense_const', data=np.array([[1], [2]]))
+        rhs = linOpHelper((2,), type='dense_const', data=np.array([1, 2]))
 
-        rmul_lin_op = linOpHelper(data=rhs_parameter, args=[variable_lin_op])
+        rmul_lin_op = linOpHelper(data=rhs, args=[variable_lin_op])
         out_view = backend.rmul(rmul_lin_op, view)
         A = out_view.get_A()
 
@@ -767,9 +832,9 @@ class TestScipyBackend:
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
-        rhs = linOpHelper((2, 1), type='param', data=2)
+        rhs_parameter = linOpHelper((2,), type='param', data=2)
 
-        rmul_lin_op = linOpHelper(data=rhs, args=[variable_lin_op])
+        rmul_lin_op = linOpHelper(data=rhs_parameter, args=[variable_lin_op])
         out_view = backend.rmul(rmul_lin_op, view)
 
         # indices are: variable 1, parameter 2, 0 index of the list
@@ -936,6 +1001,209 @@ class TestScipyBackend:
              [0, 1/3, 0, 0],
              [0, 0, 1/2, 0],
              [0, 0, 0, 1/4]]
+        )
+        assert np.all(A == expected)
+
+    def test_trace(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        x is represented as eye(4) in the A matrix (in column-major order), i.e.,
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1]]
+
+        trace(x) means we sum the diagonal entries of x, i.e.
+
+         x11 x21 x12 x22
+        [[1   0   0   1]]
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        trace_lin_op = linOpHelper(args=[variable_lin_op])
+        out_view = backend.trace(trace_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
+        expected = np.array(
+            [[1, 0, 0, 1]]
+        )
+        assert np.all(A == expected)
+
+    def test_conv(self, backend):
+        """
+        define x = Variable((3,)) with
+        [x1, x2, x3]
+
+        having f = [1,2,3], conv(f, x) means we repeat the column vector of f for each column in
+        the A matrix, shifting it down by one after each repetition, i.e.,
+          x1 x2 x3
+        [[1  0  0],
+         [2  1  0],
+         [3  2  1],
+         [0  3  2],
+         [0  0  3]]
+        """
+
+        variable_lin_op = linOpHelper((3,), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(3, 3)).toarray()
+        assert np.all(view_A == np.eye(3))
+
+        f = linOpHelper((3,), type='dense_const', data=np.array([1, 2, 3]))
+        conv_lin_op = linOpHelper(data=f, shape=(5, 1), args=[variable_lin_op])
+
+        out_view = backend.conv(conv_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(5, 3)).toarray()
+        expected = np.array(
+            [[1., 0., 0.],
+             [2., 1., 0.],
+             [3., 2., 1.],
+             [0., 3., 2.],
+             [0., 0., 3.]]
+        )
+        assert np.all(A == expected)
+
+    def test_kron_r(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        and
+        a = [[1, 2]],
+
+        kron(a, x) means we have
+        [[x11, x12, 2x11, 2x12],
+         [x21, x22, 2x21, 2x22]]
+
+        i.e. as represented in the A matrix (again in column-major order)
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [0   0   1   0],
+         [0   0   0   1],
+         [2   0   0   0],
+         [0   2   0   0],
+         [0   0   2   0],
+         [0   0   0   2]]
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        a = linOpHelper((1, 2), type='dense_const', data=np.array([[1, 2]]))
+        kron_r_lin_op = linOpHelper(data=a, args=[variable_lin_op])
+
+        out_view = backend.kron_r(kron_r_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(8, 4)).toarray()
+        expected = np.array(
+            [[1., 0., 0., 0.],
+             [0., 1., 0., 0.],
+             [0., 0., 1., 0.],
+             [0., 0., 0., 1.],
+             [2., 0., 0., 0.],
+             [0., 2., 0., 0.],
+             [0., 0., 2., 0.],
+             [0., 0., 0., 2.]]
+        )
+        assert np.all(A == expected)
+
+    def test_kron_l(self, backend):
+        """
+        define x = Variable((2,2)) with
+        [[x11, x12],
+         [x21, x22]]
+
+        and
+        a = [[1, 2]],
+
+        kron(x, a) means we have
+        [[x11, 2x11, x12, 2x12],
+         [x21, 2x21, x22, 2x22]]
+
+        i.e. as represented in the A matrix (again in column-major order)
+
+         x11 x21 x12 x22
+        [[1   0   0   0],
+         [0   1   0   0],
+         [2   0   0   0],
+         [0   2   0   0],
+         [0   0   1   0],
+         [0   0   0   1],
+         [0   0   2   0],
+         [0   0   0   2]]
+        """
+
+        variable_lin_op = linOpHelper((2, 2), type='variable', data=1)
+        empty_view = ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
+                                                    self.param_to_size, self.param_to_col,
+                                                    self.var_length)
+
+        view = backend.process_constraint(variable_lin_op, empty_view)
+
+        # cast to numpy
+        view_A = view.get_A()
+        view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
+        assert np.all(view_A == np.eye(4))
+
+        a = linOpHelper((1, 2), type='dense_const', data=np.array([[1, 2]]))
+        kron_l_lin_op = linOpHelper(data=a, args=[variable_lin_op])
+
+        out_view = backend.kron_l(kron_l_lin_op, view)
+        A = out_view.get_A()
+
+        # cast to numpy
+        A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(8, 4)).toarray()
+        expected = np.array(
+            [[1., 0., 0., 0.],
+             [0., 1., 0., 0.],
+             [2., 0., 0., 0.],
+             [0., 2., 0., 0.],
+             [0., 0., 1., 0.],
+             [0., 0., 0., 1.],
+             [0., 0., 2., 0.],
+             [0., 0., 0., 2.]]
         )
         assert np.all(A == expected)
 
