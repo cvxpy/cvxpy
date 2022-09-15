@@ -645,6 +645,9 @@ class TestScipyBackend:
         )
         assert np.all(A == expected)
 
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
     def test_parametrized_mul(self, backend):
         """
         Continuing the previous example when the lhs is a parameter, instead of multiplying with
@@ -746,6 +749,9 @@ class TestScipyBackend:
         )
         assert np.all(slice_idx_three == expected_idx_three)
 
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
     def test_rmul(self, backend):
         """
         define x = Variable((2,2)) with
@@ -791,6 +797,9 @@ class TestScipyBackend:
              [0, 1, 0, 2]]
         )
         assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
 
     def test_parametrized_rmul(self, backend):
         """
@@ -853,6 +862,9 @@ class TestScipyBackend:
         )
         assert np.all(slice_idx_one == expected_idx_one)
 
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
     def test_mul_elementwise(self, backend):
         """
         define x = Variable((2,)) with
@@ -864,7 +876,7 @@ class TestScipyBackend:
         [[1  0],
          [0  1]]
 
-         mul_elementwise(x, a) means a is reshaped into a column vector and multiplied with A.
+         mul_elementwise(x, a) means 'a' is reshaped into a column vector and multiplied with A.
          E.g. for a = (2,3), we obtain
 
          x1  x2
@@ -898,9 +910,12 @@ class TestScipyBackend:
         )
         assert np.all(A == expected)
 
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
     def test_mul_elementwise_parametrized(self, backend):
         """
-        Continuing the previous example when a is a parameter, instead of multiplying with known
+        Continuing the previous example when 'a' is a parameter, instead of multiplying with known
         values, the matrix is split up into two slices, each representing an element of the
         parameter, i.e. instead of
          x1  x2
@@ -958,6 +973,9 @@ class TestScipyBackend:
         )
         assert np.all(slice_idx_one == expected_idx_one)
 
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
     def test_div(self, backend):
         """
         define x = Variable((2,2)) with
@@ -1004,6 +1022,9 @@ class TestScipyBackend:
         )
         assert np.all(A == expected)
 
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
     def test_trace(self, backend):
         """
         define x = Variable((2,2)) with
@@ -1046,6 +1067,9 @@ class TestScipyBackend:
             [[1, 0, 0, 1]]
         )
         assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
 
     def test_conv(self, backend):
         """
@@ -1090,6 +1114,9 @@ class TestScipyBackend:
              [0., 0., 3.]]
         )
         assert np.all(A == expected)
+
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
 
     def test_kron_r(self, backend):
         """
@@ -1149,6 +1176,9 @@ class TestScipyBackend:
         )
         assert np.all(A == expected)
 
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
+
     def test_kron_l(self, backend):
         """
         define x = Variable((2,2)) with
@@ -1207,19 +1237,5 @@ class TestScipyBackend:
         )
         assert np.all(A == expected)
 
-
-class TestScipyTensorView:
-    param_size_plus_one = 2
-    id_to_col = {1: 0, 2: 2}
-    param_to_size = {-1: 1, 3: 1}
-    param_to_col = {3: 0, -1: 1}
-    var_length = 4
-
-    @pytest.fixture
-    def empty_view(self):
-        return ScipyTensorView.get_empty_view(self.param_size_plus_one, self.id_to_col,
-                                              self.param_to_size, self.param_to_col,
-                                              self.var_length)
-
-    # def test_create_variable_view(self, empty_view):
-    #     var_view = empty_view.create_new_tensor_view({1})
+        # Note: view is edited in-place:
+        assert out_view.get_A() == view.get_A()
