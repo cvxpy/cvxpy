@@ -276,7 +276,7 @@ class OpRelConeQuad(Constraint):
     m: Parameter directly related to the number of generated nodes for the quadrature
     approximation used in the algorithm
     k: Another parameter controlling the approximation
-    Number of semidefinite constraints used in constructing this approximation: $(m+k)$
+    Number of semidefinite constraints used in constructing this approximation: math: `m+k`
     """
 
     def __init__(self, X, Y, Z, m, k, constr_id=None) -> None:
