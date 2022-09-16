@@ -18,7 +18,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import Callable
+from typing import Any, Callable
 
 import numpy as np
 import scipy.sparse as sp
@@ -43,7 +43,7 @@ class TensorRepresentation:
     data: np.ndarray
 
     @classmethod
-    def combine(cls, tensors: list[TensorRepresentation]):
+    def combine(cls, tensors: list[TensorRepresentation]) -> TensorRepresentation:
         """
         Concatenates the row, col, parameter_offset, and data fields of a list of
         TensorRepresentations.
@@ -56,7 +56,7 @@ class TensorRepresentation:
             data = np.append(data, t.data)
         return cls(parameter_offset, row, col, data)
 
-    def __eq__(self, other):
+    def __eq__(self, other: TensorRepresentation) -> bool:
         return isinstance(other, TensorRepresentation) and \
                np.all(self.parameter_offset == other.parameter_offset) and \
                np.all(self.row == other.row) and \
@@ -65,8 +65,8 @@ class TensorRepresentation:
 
 
 class CanonBackend(ABC):
-    def __init__(self, id_to_col: dict[int, int], param_to_size: dict[int, int], param_to_col:
-                 dict[int, int], param_size_plus_one: int, var_length: int):
+    def __init__(self, id_to_col: dict[int, int], param_to_size: dict[int, int],
+                 param_to_col: dict[int, int], param_size_plus_one: int, var_length: int):
         """
         Parameters
         ----------
@@ -175,7 +175,7 @@ class CanonBackend(ABC):
             return res
 
     def get_constant_data(self, lin_op: LinOp, view: TensorView, column: bool) \
-            -> tuple[np.ndarray, bool]:
+            -> tuple[sp.csr_matrix, bool]:
         constant_view = self.process_constraint(lin_op, view)
         assert constant_view.variable_ids == {Constant.ID.value}
         constant_data = constant_view.constant_data
@@ -190,7 +190,7 @@ class CanonBackend(ABC):
 
     @staticmethod
     @abstractmethod
-    def reshape_constant_data(constant_data, new_shape: tuple[int, ...]):
+    def reshape_constant_data(constant_data: Any, new_shape: tuple[int, ...]) -> Any:
         pass
 
     @abstractmethod
@@ -390,22 +390,24 @@ class CanonBackend(ABC):
         pass
 
     @abstractmethod
-    def get_data_tensor(self, data):
+    def get_data_tensor(self, data: Any) -> Any:
         pass
 
     @abstractmethod
-    def get_param_tensor(self, shape, parameter_id):
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> Any:
         pass
 
 
 class ScipyCanonBackend(CanonBackend):
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...]):
-        return {k: [v_i.reshape(new_shape[1:], order="F")
+    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...])\
+            -> dict[int, sp.csr_matrix]:
+        return {k: [v_i.reshape(new_shape[1:], order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
 
-    def concatenate_tensors(self, tensors: list[tuple[TensorRepresentation, int]]):
+    def concatenate_tensors(self, tensors: list[tuple[TensorRepresentation, int]]) \
+            -> TensorRepresentation:
         for tensor, row_offset in tensors:
             tensor.row += row_offset
         return TensorRepresentation.combine([t[0] for t in tensors])
@@ -658,19 +660,19 @@ class ScipyCanonBackend(CanonBackend):
 
     def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int):
         assert variable_id != Constant.ID
-        shape = int(np.prod(shape))
-        return {variable_id: {Constant.ID.value: [sp.eye(shape, format="csr")]}}
+        n = int(np.prod(shape))
+        return {variable_id: {Constant.ID.value: [sp.eye(n, format="csr")]}}
 
-    def get_data_tensor(self, data):
-        # TODO: Can this be made faster?
+    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> dict[int, list[sp.csr_matrix]]:
         if isinstance(data, np.ndarray):
-            # Seems slightly faster
+            # Slightly faster compared to reshaping after casting
             tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
         else:
             tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
         return {Constant.ID.value: [tensor]}
 
-    def get_param_tensor(self, shape, parameter_id):
+    def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
+            -> dict[int, list[sp.csr_matrix]]:
         assert parameter_id != Constant.ID
         shape = int(np.prod(shape))
         slices = []
@@ -681,9 +683,9 @@ class ScipyCanonBackend(CanonBackend):
 
 
 class TensorView(ABC):
-    def __init__(self, variable_ids: set[int] | None, tensor, is_parameter_free: bool,
+    def __init__(self, variable_ids: set[int] | None, tensor: Any, is_parameter_free: bool,
                  param_size_plus_one: int, id_to_col: dict[int, int], param_to_size: dict[int, int],
-                 param_to_col: dict[int, int], var_length):
+                 param_to_col: dict[int, int], var_length: int):
         self.variable_ids = variable_ids if variable_ids is not None else None
         self._variable_tensor = None if self.is_b(variable_ids) else tensor
         self.constant_data = tensor if self.is_b(variable_ids) else None
@@ -707,17 +709,19 @@ class TensorView(ABC):
 
     @staticmethod
     @abstractmethod
-    def combine_potentially_none(a, b):
+    def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
         pass
 
     @classmethod
-    def get_empty_view(cls, param_size_plus_one, id_to_col, param_to_size,
-                       param_to_col: dict[int, int], var_length: int) -> TensorView:
+    def get_empty_view(cls, param_size_plus_one: int, id_to_col: dict[int, int],
+                       param_to_size: dict[int, int], param_to_col: dict[int, int],
+                       var_length: int) \
+            -> TensorView:
         return cls(None, None, True, param_size_plus_one, id_to_col, param_to_size, param_to_col,
                    var_length)
 
     @staticmethod
-    def is_b(variable_ids):
+    def is_b(variable_ids: set[int]) -> bool:
         return variable_ids == {Constant.ID.value}
 
     @property
@@ -743,7 +747,8 @@ class TensorView(ABC):
         pass
 
     @abstractmethod
-    def create_new_tensor_view(self, variable_ids, tensor, is_parameter_free: bool):
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool)\
+            -> TensorView:
         pass
 
 
@@ -759,7 +764,7 @@ class ScipyTensorView(TensorView):
         else:
             raise ValueError
 
-    def get_A_b(self):
+    def get_A_b(self) -> TensorRepresentation:
         return TensorRepresentation.combine([i for i in [self.get_A(), self.get_b()]
                                              if i is not None])
 
@@ -779,12 +784,14 @@ class ScipyTensorView(TensorView):
             self.constant_data = {k: [func(v_i).tocsr() for v_i in v]
                                   for k, v in self.constant_data.items()}
 
-    def create_new_tensor_view(self, variable_ids, tensor, is_parameter_free: bool):
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: dict, is_parameter_free: bool)\
+            -> ScipyTensorView:
         return ScipyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
 
-    def accumulate_over_variables(self, func, is_param_free_function: bool):
+    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool)\
+            -> ScipyTensorView:
         if self._variable_tensor is not None:
             for variable_id, tensor in self._variable_tensor.items():
                 self._variable_tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
@@ -796,10 +803,12 @@ class ScipyTensorView(TensorView):
         return self
 
     @staticmethod
-    def apply_to_parameters(func, parameter_representation):
+    def apply_to_parameters(func: Callable,
+                            parameter_representation: dict[int, list[sp.csr_matrix]]) \
+            -> dict[int, list[sp.csr_matrix]]:
         return {k: [func(v_i).tocsr() for v_i in v] for k, v in parameter_representation.items()}
 
-    def get_A(self):
+    def get_A(self) -> TensorRepresentation | None:
         if self._variable_tensor is not None:
             tensor_representations = []
             for variable_id, variable_tensor in self._variable_tensor.items():
@@ -817,7 +826,7 @@ class ScipyTensorView(TensorView):
             assert self.constant_data is not None
             return None
 
-    def get_b(self):
+    def get_b(self) -> TensorRepresentation | None:
         if self.constant_data is not None:
             tensor_representations = []
             for parameter_id, parameter_tensor in self.constant_data.items():
@@ -835,7 +844,7 @@ class ScipyTensorView(TensorView):
             return None
 
     @staticmethod
-    def combine_potentially_none(a, b):
+    def combine_potentially_none(a: dict | None, b: dict | None) -> dict | None:
         if a is None and b is None:
             return None
         elif a is not None and b is None:
@@ -846,7 +855,7 @@ class ScipyTensorView(TensorView):
             return ScipyTensorView.add_dicts(a, b)
 
     @staticmethod
-    def add_dicts(a, b):
+    def add_dicts(a: dict, b: dict) -> dict:
         res = {}
         keys_a = set(a.keys())
         keys_b = set(b.keys())
