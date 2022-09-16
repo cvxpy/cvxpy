@@ -13,6 +13,8 @@ Copyright 2017 Steven Diamond
    See the License for the specific language governing permissions and
    limitations under the License.
 """
+from __future__ import annotations
+
 import numbers
 import os
 
@@ -22,7 +24,7 @@ import scipy.sparse as sp
 import cvxpy.cvxcore.python.cvxcore as cvxcore
 import cvxpy.settings as s
 from cvxpy.lin_ops import lin_op as lo
-from cvxpy.lin_ops.canon_backend import CanonBackend, CanonBackendName
+from cvxpy.lin_ops.canon_backend import CanonBackend
 
 
 def get_parameter_vector(param_size,
@@ -277,7 +279,9 @@ def get_problem_matrix(linOps,
                        id_to_col,
                        param_to_size,
                        param_to_col,
-                       constr_length):
+                       constr_length,
+                       canon_backend: str | None = None
+                       ):
     """
     Builds a sparse representation of the problem data.
 
@@ -289,6 +293,8 @@ def get_problem_matrix(linOps,
         param_to_size: A map from parameter id to parameter size.
         param_to_col: A map from parameter id to column in tensor.
         constr_length: Summed sizes of constraints input.
+        canon_backend : specifies which backend to use for canonicalization, which can affect
+            performance. Defaults to None, i.e., selecting the default backend.
 
     Returns
     -------
@@ -296,9 +302,12 @@ def get_problem_matrix(linOps,
         param_size + 1 columns (where param_size is the length of the
         parameter vector).
     """
-    backend_val = CanonBackendName(os.environ['canon_backend'])
 
-    if backend_val == CanonBackendName.CPP:
+    # Allow to switch default backends through an environment variable for CI
+    default_canon_backend = os.environ.get('CVXPY_DEFAULT_CANON_BACKEND', s.DEFAULT_CANON_BACKEND)
+    canon_backend = default_canon_backend if not canon_backend else canon_backend
+
+    if canon_backend == s.CPP_CANON_BACKEND:
         lin_vec = cvxcore.ConstLinOpVector()
 
         id_to_col_C = cvxcore.IntIntMap()
@@ -365,12 +374,12 @@ def get_problem_matrix(linOps,
             shape=output_shape)
         return A
 
-    if backend_val in {CanonBackendName.SCIPY}:
+    if canon_backend in {s.SCIPY_CANON_BACKEND}:
         param_size_plus_one = sum(param_to_size.values())
         output_shape = (np.int64(constr_length)*np.int64(var_length+1),
                    param_size_plus_one)
         if len(linOps) > 0:
-            backend = CanonBackend.get_backend(backend_val, id_to_col,
+            backend = CanonBackend.get_backend(canon_backend, id_to_col,
                                                           param_to_size, param_to_col,
                                                           param_size_plus_one, var_length)
             A_py = backend.build_matrix(linOps)

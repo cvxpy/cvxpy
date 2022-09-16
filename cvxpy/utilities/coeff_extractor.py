@@ -15,7 +15,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import division
+from __future__ import annotations, division
 
 import operator
 
@@ -32,13 +32,14 @@ from cvxpy.utilities.replace_quad_forms import (replace_quad_forms,
 # TODO find best format for sparse matrices: csr, csc, dok, lil, ...
 class CoeffExtractor:
 
-    def __init__(self, inverse_data) -> None:
+    def __init__(self, inverse_data, canon_backend: str | None) -> None:
         self.id_map = inverse_data.var_offsets
         self.x_length = inverse_data.x_length
         self.var_shapes = inverse_data.var_shapes
         self.param_shapes = inverse_data.param_shapes
         self.param_to_size = inverse_data.param_to_size
         self.param_id_map = inverse_data.param_id_map
+        self.canon_backend = canon_backend
 
     def get_coeffs(self, expr):
         if expr.is_constant():
@@ -85,7 +86,8 @@ class CoeffExtractor:
                                                  self.id_map,
                                                  self.param_to_size,
                                                  self.param_id_map,
-                                                 num_rows)
+                                                 num_rows,
+                                                 self.canon_backend)
 
     def extract_quadratic_coeffs(self, affine_expr, quad_forms):
         """ Assumes quadratic forms all have variable arguments.
@@ -108,7 +110,8 @@ class CoeffExtractor:
                                                          affine_offsets,
                                                          self.param_to_size,
                                                          self.param_id_map,
-                                                         affine_expr.size)
+                                                         affine_expr.size,
+                                                         self.canon_backend)
 
         # Iterates over every entry of the parameters vector,
         # and obtains the Pi and qi for that entry i.

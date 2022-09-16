@@ -13,7 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import os
+from __future__ import annotations
+
 import time
 import warnings
 from collections import namedtuple
@@ -511,6 +512,7 @@ class Problem(u.Canonical):
         enforce_dpp: bool = False,
         ignore_dpp: bool = False,
         verbose: bool = False,
+        canon_backend: str | None = None,
         solver_opts: Optional[dict] = None
     ):
         """Returns the problem data used in the call to the solver.
@@ -589,6 +591,10 @@ class Problem(u.Canonical):
         ignore_dpp : bool, optional
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
+        canon_backend : str, optional
+            specifies which backend to use for canonicalization, which can affect
+            performance. Defaults to None, i.e., selecting the default
+            backend.
         verbose : bool, optional
             If True, print verbose output related to problem compilation.
         solver_opts : dict, optional
@@ -611,10 +617,6 @@ class Problem(u.Canonical):
             Raised if DPP settings are invalid.
         """
 
-        # TODO: remove
-        canon_backend = 'SCIPY'
-        os.environ['canon_backend'] = canon_backend
-
         # Invalid DPP setting.
         # Must be checked here to avoid cache issues.
         if enforce_dpp and ignore_dpp:
@@ -629,6 +631,7 @@ class Problem(u.Canonical):
                 solver=solver, gp=gp,
                 enforce_dpp=enforce_dpp,
                 ignore_dpp=ignore_dpp,
+                canon_backend=canon_backend,
                 solver_opts=solver_opts)
             self._cache.key = key
             self._cache.solving_chain = solving_chain
@@ -833,9 +836,13 @@ class Problem(u.Canonical):
         return candidates
 
     def _construct_chain(
-        self, solver: Optional[str] = None, gp: bool = False,
-        enforce_dpp: bool = False, ignore_dpp: bool = False,
-        solver_opts: Optional[dict] = None
+            self,
+            solver: Optional[str] = None,
+            gp: bool = False,
+            enforce_dpp: bool = False,
+            ignore_dpp: bool = False,
+            canon_backend: str | None = None,
+            solver_opts: Optional[dict] = None
     ) -> SolvingChain:
         """
         Construct the chains required to reformulate and solve the problem.
@@ -858,6 +865,10 @@ class Problem(u.Canonical):
         ignore_dpp : bool, optional
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
+        canon_backend : str, optional
+            specifies which backend to use for canonicalization, which can affect
+            performance. Defaults to None, i.e., selecting the default
+            backend.
         solver_opts: dict, optional
             Additional arguments to pass to the solver.
 
@@ -870,6 +881,7 @@ class Problem(u.Canonical):
         return construct_solving_chain(self, candidate_solvers, gp=gp,
                                        enforce_dpp=enforce_dpp,
                                        ignore_dpp=ignore_dpp,
+                                       canon_backend=canon_backend,
                                        solver_opts=solver_opts)
 
     @staticmethod
@@ -909,7 +921,7 @@ class Problem(u.Canonical):
                requires_grad: bool = False,
                enforce_dpp: bool = False,
                ignore_dpp: bool = False,
-               canon_backend: str = None,
+               canon_backend: str | None = None,
                **kwargs):
         """Solves a DCP compliant optimization problem.
 
@@ -940,6 +952,10 @@ class Problem(u.Canonical):
         ignore_dpp : bool, optional
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
+        canon_backend : str, optional
+            specifies which backend to use for canonicalization, which can affect
+            performance. Defaults to None, i.e., selecting the default
+            backend.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
             In general, these options will override any default settings
@@ -951,9 +967,6 @@ class Problem(u.Canonical):
             The optimal value for the problem, or a string indicating
             why the problem could not be solved.
         """
-
-        canon_backend = 'SCIPY'
-        os.environ['canon_backend'] = canon_backend
 
         if verbose:
             print(_HEADER)
@@ -1036,7 +1049,8 @@ class Problem(u.Canonical):
                 return self.value
 
         data, solving_chain, inverse_data = self.get_problem_data(
-            solver, gp, enforce_dpp, ignore_dpp, verbose, kwargs)
+            solver, gp, enforce_dpp, ignore_dpp, verbose, canon_backend, kwargs
+        )
 
         if verbose:
             print(_NUM_SOLVER_STR)

@@ -24,15 +24,11 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.lin_ops import LinOp
+from cvxpy.settings import SCIPY_CANON_BACKEND
 
 
 class Constant(Enum):
     ID = -1
-
-
-class CanonBackendName(Enum):
-    SCIPY = "SCIPY"
-    CPP = "CPP"
 
 
 @dataclass
@@ -88,13 +84,13 @@ class CanonBackend(ABC):
         self.var_length = var_length
 
     @classmethod
-    def get_backend(cls, backend_name, *args):
+    def get_backend(cls, backend_name: str, *args) -> CanonBackend:
         """
         Map the name of a subclass and its initializing arguments to an instance of the subclass.
 
         Parameters
         ----------
-        backend_name: CanonBackendName of the subclass.
+        backend_name: key pointing to the subclass.
         args: Arguments required to initialize the subclass.
 
         Returns
@@ -102,7 +98,7 @@ class CanonBackend(ABC):
         Initialized CanonBackend subclass.
         """
         backends = {
-            CanonBackendName.SCIPY: ScipyCanonBackend,
+            SCIPY_CANON_BACKEND: ScipyCanonBackend,
         }
         return backends[backend_name](*args)
 
