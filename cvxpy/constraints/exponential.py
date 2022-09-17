@@ -273,8 +273,8 @@ class OpRelConeQuad(Constraint):
         y in the (approximate) operator relative entropy cone
     T : Expression
         T in the (approximate) operator relative entropy cone
-    m: int  
-        Must be positive. Controls the number of quadrature nodes used in a local 
+    m: int
+        Must be positive. Controls the number of quadrature nodes used in a local
         approximation of the matrix logarithm. Increasing this value results in
         better local approximations, but does not significantly expand the region
         of inputs for which the approximation is effective.
@@ -282,7 +282,7 @@ class OpRelConeQuad(Constraint):
         Must be positive. Sets the number of scaling points about which the
         quadrature approximation is performed. Increasing this value will
         expand the region of inputs over which the approximation is effective.
-    
+
     This approximation uses :math:`m + k` semidefinte constraints.
     """
 
