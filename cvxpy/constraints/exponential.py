@@ -273,10 +273,17 @@ class OpRelConeQuad(Constraint):
         y in the (approximate) operator relative entropy cone
     T : Expression
         T in the (approximate) operator relative entropy cone
-    m: Parameter directly related to the number of generated nodes for the quadrature
-    approximation used in the algorithm
-    k: Another parameter controlling the approximation
-    Number of semidefinite constraints used in constructing this approximation: math: `m+k`
+    m: int  
+        Must be positive. Controls the number of quadrature nodes used in a local 
+        approximation of the matrix logarithm. Increasing this value results in
+        better local approximations, but does not significantly expand the region
+        of inputs for which the approximation is effective.
+    k: int
+        Must be positive. Sets the number of scaling points about which the
+        quadrature approximation is performed. Increasing this value will
+        expand the region of inputs over which the approximation is effective.
+    
+    This approximation uses :math:`m + k` semidefinte constraints.
     """
 
     def __init__(self, X, Y, Z, m, k, constr_id=None) -> None:
