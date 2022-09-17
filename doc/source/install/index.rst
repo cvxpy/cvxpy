@@ -226,7 +226,7 @@ See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_
 CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
 
 Install with SCIPY support
--------------------------
+--------------------------
 
 CVXPY supports the SCIPY solver for LPs and MIPs.
 This requires the `SciPy`_ package in Python, which should already be installed, as it is a requirement for CVXPY.
@@ -235,8 +235,16 @@ However, the main advantage of this solver is its ability to use the `HiGHS`_ LP
 `HiGHS`_ LP solvers come bundled with `SciPy`_ version 1.6.1 and higher.
 The `HiGHS`_ MIP solver comes bundled with version 1.9.0 and higher.
 
+
+Install with CLARABEL support
+-----------------------------
+
+CVXPY supports the CLARABEL solver.
+Simply install CLARABEL such that you can ``import clarabel`` in Python.
+See the `CLARABEL <https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/>`_ website for installation instructions.
+
 Install without default solvers
--------------------------
+-------------------------------
 
 CVXPY can also be installed without the default solver dependencies.
 This can be useful if the intention is to only use non-default solvers.
