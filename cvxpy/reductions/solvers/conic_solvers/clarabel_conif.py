@@ -1,5 +1,5 @@
 """
-Copyright 2022 Paul Goulart
+Copyright 2022, the CVXPY Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 
@@ -105,7 +105,7 @@ class CLARABEL(ConicSolver):
         # appropriate once PSD cones are supported
 
         if isinstance(constraint, PSD):
-            raise RuntimeError("PSD cones not yet supported. This function should be unreachable.")
+            raise RuntimeError("PSD cones not yet supported. This line should be unreachable.")
 
         else:
             return utilities.extract_dual_value(result_vec, offset,
@@ -154,9 +154,9 @@ class CLARABEL(ConicSolver):
             try:
                 settings.__setattr__(opt, opts[opt])
             except TypeError as e:
-                raise TypeError("Clarabel: Incorrect type for setting '" + opt + "'") from e
+                raise TypeError(f"Clarabel: Incorrect type for setting '{opt}'.") from e
             except AttributeError as e:
-                raise TypeError("Clarabel: unrecognized solver setting '" + opt + "'") from e
+                raise TypeError(f"Clarabel: unrecognized solver setting '{opt}'.") from e
 
         return settings
 
