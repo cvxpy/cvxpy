@@ -1582,10 +1582,13 @@ and a conic solver (as opposed to a QP solver), you should set the class variabl
 to the list of cones supported when solving mixed integer problems. Usually ``MI_SUPPORTED_CONSTRAINTS`` 
 will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
 
+.. _canonicalization-backends:
+
 Canonicalization backends
 ------------------------------------
 Users can select from multiple canonicalization backends by adding the ``canon_backend``
-keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend="SCIPY")`` (Introduced in CVXPY 1.3).
+keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend=cp.SCIPY_CANON_BACKEND)``
+(Introduced in CVXPY 1.3).
 This can speed up the canonicalization time significantly for some problems.
 Currently, the following canonicalization backends are supported:
 
