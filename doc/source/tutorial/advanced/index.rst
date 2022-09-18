@@ -1564,3 +1564,14 @@ you should set the class variable ``MIP_CAPABLE`` to ``True``. If your solver is
 and a conic solver (as opposed to a QP solver), you should set the class variable ``MI_SUPPORTED_CONSTRAINTS`` 
 to the list of cones supported when solving mixed integer problems. Usually ``MI_SUPPORTED_CONSTRAINTS`` 
 will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
+
+Canonicalization backends
+------------------------------------
+Users can select from multiple canonicalization backends by adding the ``canon_backend``
+keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend="SCIPY")`` (Introduced in CVXPY 1.3).
+This can speed up the canonicalization time significantly for some problems.
+Currently, the following canonicalization backends are supported:
+
+*  CPP (default): The original C++ implementation, also referred to as CVXCORE.
+*  | SCIPY: A pure Python implementation based on the SciPy sparse module.
+   | Generally fast for problems with few CVXPY ``Parameter`` s, especially when the problem is already vectorized.

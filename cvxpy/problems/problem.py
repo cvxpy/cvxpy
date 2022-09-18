@@ -592,7 +592,8 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            specifies which backend to use for canonicalization, which can affect
+            'CPP' (default) | 'SCIPY'
+            Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
             backend.
         verbose : bool, optional
@@ -866,7 +867,8 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            specifies which backend to use for canonicalization, which can affect
+            'CPP' (default) | 'SCIPY'
+            Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
             backend.
         solver_opts: dict, optional
@@ -953,7 +955,8 @@ class Problem(u.Canonical):
             When True, DPP problems will be treated as non-DPP,
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
-            specifies which backend to use for canonicalization, which can affect
+            'CPP' (default) | 'SCIPY'
+            Specifies which backend to use for canonicalization, which can affect
             compilation time. Defaults to None, i.e., selecting the default
             backend.
         kwargs : dict, optional
