@@ -274,7 +274,7 @@ def construct_solving_chain(problem, candidates,
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())
-            if RelEntrQuad or OpRelConeQuad in approx_cos:
+            if RelEntrQuad in approx_cos or OpRelConeQuad in approx_cos:
                 reductions.append(QuadApprox())
 
             # Should the objective be canonicalized to a quadratic?
