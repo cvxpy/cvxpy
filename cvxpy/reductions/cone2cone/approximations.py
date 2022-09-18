@@ -164,19 +164,10 @@ def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Cons
 
 class QuadApprox(Canonicalization):
     CANON_METHODS = {
-        RelEntrQuad: RelEntrQuad_canon
+        RelEntrQuad: RelEntrQuad_canon,
+        OpRelConeQuad: OpRelConeQuad_canon
     }
 
     def __init__(self, problem=None) -> None:
         super(QuadApprox, self).__init__(
             problem=problem, canon_methods=QuadApprox.CANON_METHODS)
-
-
-class OpRelConeQuadApprox(Canonicalization):
-    CANON_METHODS = {
-        OpRelConeQuad: OpRelConeQuad_canon
-    }
-
-    def __init__(self, problem=None) -> None:
-        super(OpRelConeQuadApprox, self).__init__(
-            problem=problem, canon_methods=OpRelConeQuadApprox.CANON_METHODS)

@@ -11,9 +11,7 @@ from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
-from cvxpy.reductions.cone2cone.approximations import (APPROX_CONES,
-                                                       OpRelConeQuadApprox,
-                                                       QuadApprox,)
+from cvxpy.reductions.cone2cone.approximations import APPROX_CONES, QuadApprox
 from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
                                                       Exotic2Common,)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
@@ -276,10 +274,8 @@ def construct_solving_chain(problem, candidates,
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())
-            if RelEntrQuad in approx_cos:
+            if RelEntrQuad or OpRelConeQuad in approx_cos:
                 reductions.append(QuadApprox())
-            if OpRelConeQuad in approx_cos:
-                reductions.append(OpRelConeQuadApprox())
 
             # Should the objective be canonicalized to a quadratic?
             if solver_opts is None:

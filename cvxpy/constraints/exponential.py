@@ -251,7 +251,7 @@ class RelEntrQuad(Constraint):
 
     def save_dual_value(self, value) -> None:
         # TODO: implement me.
-        return
+        pass
 
 
 class OpRelConeQuad(Constraint):
@@ -283,10 +283,11 @@ class OpRelConeQuad(Constraint):
         quadrature approximation is performed. Increasing this value will
         expand the region of inputs over which the approximation is effective.
 
-    This approximation uses :math:`m + k` semidefinte constraints.
+    This approximation uses :math:`m + k` semidefinite constraints.
     """
 
-    def __init__(self, X, Y, Z, m, k, constr_id=None) -> None:
+    def __init__(self, X: cvxtypes.expression(), Y: cvxtypes.expression(), Z: cvxtypes.expression(),
+                 m: int, k: int, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         self.X = Expression.cast_to_const(X)
         self.Y = Expression.cast_to_const(Y)
@@ -342,7 +343,7 @@ class OpRelConeQuad(Constraint):
         return [3]*self.num_cones()
 
     def is_dcp(self, dpp: bool = False) -> bool:
-        """An operator relative conic constraint is DCP when (A, B, C)is affine
+        """An operator relative conic constraint is DCP when (A, b, C) is affine
         """
         if dpp:
             with scopes.dpp_scope():
@@ -362,4 +363,4 @@ class OpRelConeQuad(Constraint):
 
     def save_dual_value(self, value) -> None:
         # TODO: implement me.
-        return
+        pass
