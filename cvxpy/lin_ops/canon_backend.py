@@ -227,7 +227,8 @@ class CanonBackend(ABC):
     @abstractmethod
     def get_empty_view(self) -> TensorView:
         """
-        Returns an empty view of the corresponding TensorView subclass.
+        Returns an empty view of the corresponding TensorView subclass, coupling the CanonBackend
+        subclass with the TensorView subclass.
         """
         pass  # noqa
 
@@ -786,9 +787,21 @@ class ScipyCanonBackend(CanonBackend):
 
 
 class TensorView(ABC):
-    def __init__(self, variable_ids: set[int] | None, tensor: Any, is_parameter_free: bool,
-                 param_size_plus_one: int, id_to_col: dict[int, int], param_to_size: dict[int, int],
-                 param_to_col: dict[int, int], var_length: int):
+    """
+    A TensorView represents the tensors for A and b, which are of shape
+    rows x var_length x param_size_plus_one and rows x 1 x param_size_plus_one, respectively.
+    The class facilitates the application of the CanonBackend functions.
+    """
+
+    def __init__(self,
+                 variable_ids: set[int] | None,
+                 tensor: Any, is_parameter_free: bool,
+                 param_size_plus_one: int,
+                 id_to_col: dict[int, int],
+                 param_to_size: dict[int, int],
+                 param_to_col: dict[int, int],
+                 var_length: int
+                 ):
         self.variable_ids = variable_ids if variable_ids is not None else None
         self._variable_tensor = None if self.is_b(variable_ids) else tensor
         self.constant_data = tensor if self.is_b(variable_ids) else None
@@ -813,18 +826,29 @@ class TensorView(ABC):
     @staticmethod
     @abstractmethod
     def combine_potentially_none(a: Any | None, b: Any | None) -> Any | None:
-        pass
+        """
+        Adds the tensor a to b if they are both not none.
+        If a (b) is not None but b (a) is None, returns a (b).
+        Returns None if both a and b are None.
+        """
+        pass  # noqa
 
     @classmethod
     def get_empty_view(cls, param_size_plus_one: int, id_to_col: dict[int, int],
                        param_to_size: dict[int, int], param_to_col: dict[int, int],
                        var_length: int) \
             -> TensorView:
+        """
+        Return a TensorView that has shape information, but no data.
+        """
         return cls(None, None, True, param_size_plus_one, id_to_col, param_to_size, param_to_col,
                    var_length)
 
     @staticmethod
     def is_b(variable_ids: set[int]) -> bool:
+        """
+        Does the TensorView only contain constant data?
+        """
         return variable_ids == {Constant.ID.value}
 
     @property
@@ -833,6 +857,7 @@ class TensorView(ABC):
         """
         Number of rows of the TensorView.
         """
+        pass   # noqa
 
     @abstractmethod
     def get_A_b(self):
@@ -843,16 +868,25 @@ class TensorView(ABC):
 
     @abstractmethod
     def select_rows(self, rows: np.ndarray) -> None:
-        pass
+        """
+        Select 'rows' from A and b.
+        """
+        pass  # noqa
 
     @abstractmethod
     def apply_all(self, func: Callable) -> None:
-        pass
+        """
+        Apply 'func' across all variables and parameter slices.
+        """
+        pass  # noqa
 
     @abstractmethod
     def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool)\
             -> TensorView:
-        pass
+        """
+        Create new TensorView with same shape information as self, but new data.
+        """
+        pass  # noqa
 
 
 class ScipyTensorView(TensorView):
@@ -863,7 +897,6 @@ class ScipyTensorView(TensorView):
             return next(iter(next(iter(self._variable_tensor.values())).values()))[0].shape[0]
         elif self.constant_data is not None:
             return next(iter(self.constant_data.values()))[0].shape[0]
-
         else:
             raise ValueError
 
@@ -895,6 +928,13 @@ class ScipyTensorView(TensorView):
 
     def accumulate_over_variables(self, func: Callable, is_param_free_function: bool)\
             -> ScipyTensorView:
+        """
+        Apply 'func' to A and b.
+        If 'func' is a parameter free function, then we can apply it to all parameter slices
+        (including the slice that contains non-parameter constants).
+        If 'func' is not a parameter free function, we only need to consider the parameter slice
+        that contains the non-parameter constants, due to DPP rules.
+        """
         if self._variable_tensor is not None:
             for variable_id, tensor in self._variable_tensor.items():
                 self._variable_tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
@@ -909,9 +949,15 @@ class ScipyTensorView(TensorView):
     def apply_to_parameters(func: Callable,
                             parameter_representation: dict[int, list[sp.csr_matrix]]) \
             -> dict[int, list[sp.csr_matrix]]:
+        """
+        Apply 'func' to each slice of the parameter representation.
+        """
         return {k: [func(v_i).tocsr() for v_i in v] for k, v in parameter_representation.items()}
 
     def get_A(self) -> TensorRepresentation | None:
+        """
+        Returns a TensorRepresentation of the A tensor, if it is not None.
+        """
         if self._variable_tensor is not None:
             tensor_representations = []
             for variable_id, variable_tensor in self._variable_tensor.items():
@@ -930,6 +976,9 @@ class ScipyTensorView(TensorView):
             return None
 
     def get_b(self) -> TensorRepresentation | None:
+        """
+        Returns a TensorRepresentation of the b tensor, if it is not None.
+        """
         if self.constant_data is not None:
             tensor_representations = []
             for parameter_id, parameter_tensor in self.constant_data.items():
@@ -959,6 +1008,9 @@ class ScipyTensorView(TensorView):
 
     @staticmethod
     def add_dicts(a: dict, b: dict) -> dict:
+        """
+        Addition for dict-based tensors.
+        """
         res = {}
         keys_a = set(a.keys())
         keys_b = set(b.keys())
