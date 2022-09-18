@@ -795,7 +795,8 @@ class TensorView(ABC):
 
     def __init__(self,
                  variable_ids: set[int] | None,
-                 tensor: Any, is_parameter_free: bool,
+                 tensor: Any,
+                 is_parameter_free: bool,
                  param_size_plus_one: int,
                  id_to_col: dict[int, int],
                  param_to_size: dict[int, int],
