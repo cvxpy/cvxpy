@@ -37,10 +37,10 @@ class TensorRepresentation:
     Sparse representation of a 3D Tensor. Semantically similar to COO format, with one extra
     dimension. Here, 'row' is axis 0, 'col' axis 1, and 'parameter_offset' axis 2.
     """
-    parameter_offset: np.ndarray
+    data: np.ndarray
     row: np.ndarray
     col: np.ndarray
-    data: np.ndarray
+    parameter_offset: np.ndarray
 
     @classmethod
     def combine(cls, tensors: list[TensorRepresentation]) -> TensorRepresentation:
@@ -48,26 +48,31 @@ class TensorRepresentation:
         Concatenates the row, col, parameter_offset, and data fields of a list of
         TensorRepresentations.
         """
-        parameter_offset, row, col, data = np.array([]), np.array([]), np.array([]), np.array([])
+        data, row, col,  parameter_offset = np.array([]), np.array([]), np.array([]), np.array([])
+        # Appending to numpy arrays vs. appending to lists and casting to array at the end was
+        # faster for relevant dimensions in our testing.
         for t in tensors:
-            parameter_offset = np.append(parameter_offset, t.parameter_offset)
+            data = np.append(data, t.data)
             row = np.append(row, t.row)
             col = np.append(col, t.col)
-            data = np.append(data, t.data)
-        return cls(parameter_offset, row, col, data)
+            parameter_offset = np.append(parameter_offset, t.parameter_offset)
+        return cls(data, row, col, parameter_offset)
 
     def __eq__(self, other: TensorRepresentation) -> bool:
         return isinstance(other, TensorRepresentation) and \
-               np.all(self.parameter_offset == other.parameter_offset) and \
+               np.all(self.data == other.data) and \
                np.all(self.row == other.row) and \
                np.all(self.col == other.col) and \
-               np.all(self.data == other.data)
+               np.all(self.parameter_offset == other.parameter_offset)
 
 
 class CanonBackend(ABC):
     def __init__(self, id_to_col: dict[int, int], param_to_size: dict[int, int],
                  param_to_col: dict[int, int], param_size_plus_one: int, var_length: int):
         """
+        CanonBackend handles the compilation from LinOp trees to a final sparse tensor through its
+        subclasses.
+
         Parameters
         ----------
         id_to_col: mapping of variable id to column offset in A.
@@ -102,15 +107,16 @@ class CanonBackend(ABC):
         }
         return backends[backend_name](*args)
 
-    def build_matrix(self, linOps: list[LinOp]) -> sp.coo_matrix:
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
         """
-        Given a list of linOp trees, each representing a constraint (or the objective), get the
+        Main function called from canonInterface.
+        Given a list of LinOp trees, each representing a constraint (or the objective), get the
         [A b] Tensor for each, stack them and return the result reshaped as a 2D sp.coo_matrix
-        Tensor.
+        of shape (total_rows * (var_length + 1)), param_size_plus_one)
 
         Parameters
         ----------
-        linOps: list of linOp trees.
+        lin_ops: list of linOp trees.
 
         Returns
         -------
@@ -118,7 +124,7 @@ class CanonBackend(ABC):
         """
         constraint_res = []
         offset = 0
-        for lin_op in linOps:
+        for lin_op in lin_ops:
             lin_op_rows = np.prod(lin_op.shape)
             empty_view = self.get_empty_view()
             lin_op_tensor = self.process_constraint(lin_op, empty_view)
@@ -138,7 +144,7 @@ class CanonBackend(ABC):
 
         Returns
         -------
-        The processed constraint as a TensorView.
+        The processed node as a TensorView.
         """
 
         # Leaf nodes
@@ -176,12 +182,19 @@ class CanonBackend(ABC):
 
     def get_constant_data(self, lin_op: LinOp, view: TensorView, column: bool) \
             -> tuple[sp.csr_matrix, bool]:
+        """
+        Extract the constant data from a LinOp node. In most cases, lin_op will be of
+        type "*_const" or "param", but can handle arbitrary types.
+        """
         constant_view = self.process_constraint(lin_op, view)
         assert constant_view.variable_ids == {Constant.ID.value}
         constant_data = constant_view.constant_data
         if not column and len(lin_op.shape) >= 1:
+            # constant_view has the data stored in column format.
+            # Some operations (like mul) do not require column format, so we need to reshape
+            # according to lin_op.shape.
             lin_op_shape = lin_op.shape if len(lin_op.shape) == 2 else [1, lin_op.shape[0]]
-            new_shape = (self.param_size_plus_one, *lin_op_shape[-2:])
+            new_shape = (*lin_op_shape[-2:], self.param_size_plus_one)
             constant_data = self.reshape_constant_data(constant_data, new_shape)
 
         data_to_return = constant_data[Constant.ID.value] if constant_view.is_parameter_free \
@@ -191,23 +204,32 @@ class CanonBackend(ABC):
     @staticmethod
     @abstractmethod
     def reshape_constant_data(constant_data: Any, new_shape: tuple[int, ...]) -> Any:
-        pass
+        """
+        Reshape constant data from column format to the required shape for operations that
+        do not require column format
+        """
+        pass  # noqa
 
     @abstractmethod
     def concatenate_tensors(self, tensors: list[tuple[TensorView, int]]) -> TensorView:
         """
-        Takes list of tensors and stacks them along axis 0.
+        Takes list of tensors and stacks them along axis 0 (rows).
         """
+        pass  # noqa
 
     @abstractmethod
     def reshape_tensors(self, tensor: TensorView, total_rows: int) -> sp.coo_matrix:
         """
         Reshape into 2D scipy coo-matrix in column-major order and transpose.
         """
+        pass  # noqa
 
     @abstractmethod
     def get_empty_view(self) -> TensorView:
-        pass
+        """
+        Returns an empty view of the corresponding TensorView subclass.
+        """
+        pass  # noqa
 
     def get_func(self, func_name: str) -> Callable:
         """
@@ -261,19 +283,24 @@ class CanonBackend(ABC):
 
     @abstractmethod
     def mul(self, lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Multiply view with constant data from the left
+        """
+        pass  # noqa
 
     @staticmethod
     @abstractmethod
     def promote(lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Promote view by repeating along axis 0 (rows)
+        """
+        pass  # noqa
 
     @staticmethod
     def neg(_lin: LinOp, view: TensorView) -> TensorView:
         """
-        Given (A, b), return (-A, -b).
+        Given (A, b) in view, return (-A, -b).
         """
-
         def func(x):
             return -x
 
@@ -282,19 +309,34 @@ class CanonBackend(ABC):
 
     @abstractmethod
     def mul_elem(self, lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Given (A, b) in view and constant data d, return (A*d, b*d).
+        d is broadcasted along dimension 1 (columns)
+        """
+        pass  # noqa
 
     @staticmethod
     @abstractmethod
     def sum_entries(_lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Given (A, b) in view, return (sum(A,axis=0), sum(b, axis=0))
+        """
+        pass  # noqa
 
     @abstractmethod
     def div(self, lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Given (A, b) in view and constant data d, return (A*(1/d), b*(1/d)).
+        d is broadcasted along dimension 1 (columns)
+        """
+        pass  # noqa
 
     @staticmethod
     def index(lin: LinOp, view: TensorView) -> TensorView:
+        """
+        Given (A, b) in view, select the rows corresponding to the elements of the expression being
+        indexed.
+        """
         indices = [np.arange(s.start, s.stop, s.step) for s in lin.data]
         if len(indices) == 1:
             rows = indices[0]
@@ -308,14 +350,30 @@ class CanonBackend(ABC):
     @staticmethod
     @abstractmethod
     def diag_vec(lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Diagonal vector to matrix. Given (A, b) in with n rows in view, add rows of zeros such that
+        the original rows now correspond to the diagonal entries of the n x n expression
+        """
+        pass  # noqa
 
     @staticmethod
     @abstractmethod
     def get_stack_func(total_rows: int, offset: int) -> Callable:
-        pass
+        """
+        Returns a function that takes in a tensor, modifies the shape of the tensor by extending
+        it to total_rows, and then shifts the entries by offset along axis 0.
+        """
+        pass  # noqa
 
     def hstack(self, lin: LinOp, view: TensorView) -> TensorView:
+        """
+        Given views (A0,b0), (A1,b1),..., (An,bn), stack all tensors along axis 0,
+        i.e., return
+        (A0, b0)
+         A1, b1
+         ...
+         An, bn.
+        """
         offset = 0
         total_rows = sum(np.prod(arg.shape) for arg in lin.args)
         res = None
@@ -332,6 +390,11 @@ class CanonBackend(ABC):
         return res
 
     def vstack(self, lin: LinOp, view: TensorView) -> TensorView:
+        """
+        Given views (A0,b0), (A1,b1),..., (An,bn), first, stack them along axis 0 via hstack.
+        Then, permute the rows of the resulting tensor to be consistent with stacking the arguments
+        vertically instead of horizontally.
+        """
         view = self.hstack(lin, view)
         offset = 0
         indices = []
@@ -345,12 +408,21 @@ class CanonBackend(ABC):
 
     @staticmethod
     def transpose(lin: LinOp, view: TensorView) -> TensorView:
+        """
+        Given (A, b) in view, permute the rows such that they correspond to the transposed
+        expression.
+        """
         rows = np.arange(np.prod(lin.shape)).reshape(lin.shape).flatten(order="F")
         view.select_rows(rows)
         return view
 
     @staticmethod
     def upper_tri(lin: LinOp, view: TensorView) -> TensorView:
+        """
+        Given (A, b) in view, select the rows corresponding to the elements above the diagonal
+        in the original expression.
+        Note: The diagonal itself is not included.
+        """
         indices = np.arange(np.prod(lin.args[0].shape)).reshape(lin.args[0].shape, order="F")
         triu_indices = indices[np.triu_indices_from(indices, k=1)]
         view.select_rows(triu_indices)
@@ -358,7 +430,10 @@ class CanonBackend(ABC):
 
     @staticmethod
     def diag_mat(lin: LinOp, view: TensorView) -> TensorView:
-        # diagonal matrix to vector
+        """
+        Diagonal matrix to vector. Given (A, b) in view, select the rows corresponding to the
+        elements above the diagonal in the original expression.
+        """
         rows = lin.shape[0]
         diag_indices = np.arange(rows) * rows + np.arange(rows)
         view.select_rows(diag_indices)
@@ -366,36 +441,65 @@ class CanonBackend(ABC):
 
     @abstractmethod
     def rmul(self, lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Multiply view with constant data from the right
+        """
+        pass  # noqa
 
     @staticmethod
     @abstractmethod
     def trace(lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Select the rows corresponding to the diagonal entries in the expression and sum along
+        axis 0.
+        """
+        pass  # noqa
 
     @abstractmethod
     def conv(self, lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Returns view corresponding to a discrete convolution with data 'a', i.e., multiplying from
+        the left a repetition of the column vector of 'a' for each column in A, shifted down one row
+        after each column.
+        """
+        pass  # noqa
 
     @abstractmethod
     def kron_r(self, lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Returns view corresponding to Kronecker product of data 'a' with view x, i.e., kron(a,x).
+        """
+        pass  # noqa
 
     @abstractmethod
     def kron_l(self, lin: LinOp, view: TensorView) -> TensorView:
-        pass
+        """
+        Returns view corresponding to Kronecker product of view x with data 'a', i.e., kron(x,a).
+        """
+        pass  # noqa
 
     @abstractmethod
-    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int):
-        pass
+    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> Any:
+        """
+        Returns tensor of a variable node, i.e., eye(n) across axes 0 and 1, where n i the number of
+        entries of the variable.
+        """
+        pass  # noqa
 
     @abstractmethod
     def get_data_tensor(self, data: Any) -> Any:
-        pass
+        """
+        Returns tensor of constant node as a column vector.
+        """
+        pass  # noqa
 
     @abstractmethod
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) -> Any:
-        pass
+        """
+        Returns tensor of a parameter node, i.e., eye(n) across axes 0 and 2, where n i the number
+        of entries of the parameter.
+        """
+        pass  # noqa
 
 
 class ScipyCanonBackend(CanonBackend):
@@ -403,7 +507,7 @@ class ScipyCanonBackend(CanonBackend):
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...])\
             -> dict[int, sp.csr_matrix]:
-        return {k: [v_i.reshape(new_shape[1:], order="F").tocsr()
+        return {k: [v_i.reshape(new_shape[:-1], order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
 
     def concatenate_tensors(self, tensors: list[tuple[TensorRepresentation, int]]) \
@@ -486,7 +590,7 @@ class ScipyCanonBackend(CanonBackend):
         assert len(lhs) == 1
         lhs = lhs[0]
 
-        # dtype is important here, will do integer division if data is of dtype int otherwise.
+        # dtype is important here, will do integer division if data is of dtype "int" otherwise.
         lhs.data = np.reciprocal(lhs.data, dtype=float)
 
         def div_func(x):
@@ -496,7 +600,6 @@ class ScipyCanonBackend(CanonBackend):
 
     @staticmethod
     def diag_vec(lin: LinOp, view: ScipyTensorView) -> ScipyTensorView:
-        # vector to diagonal matrix
         assert lin.shape[0] == lin.shape[1]
         rows = lin.shape[0]
         total_rows = int(np.prod(lin.shape))
@@ -816,10 +919,10 @@ class ScipyTensorView(TensorView):
                     for offset, matrix in enumerate(parameter_tensor):
                         coo_repr = matrix.tocoo(copy=False)
                         tensor_representations.append(TensorRepresentation(
-                            np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
+                            coo_repr.data,
                             coo_repr.row,
                             coo_repr.col + self.id_to_col[variable_id],
-                            coo_repr.data
+                            np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
                         ))
             return TensorRepresentation.combine(tensor_representations)
         else:
@@ -833,10 +936,10 @@ class ScipyTensorView(TensorView):
                 for offset, matrix in enumerate(parameter_tensor):
                     coo_repr = matrix.tocoo(copy=False)
                     tensor_representations.append(TensorRepresentation(
-                        np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
+                        coo_repr.data,
                         coo_repr.row,
                         np.zeros(coo_repr.nnz) + self.var_length,
-                        coo_repr.data
+                        np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
                     ))
             return TensorRepresentation.combine(tensor_representations)
         else:

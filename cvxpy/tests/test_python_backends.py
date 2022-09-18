@@ -25,8 +25,8 @@ class linOpHelper:
 
 
 def test_tensor_representation():
-    A = TensorRepresentation(np.array([0]), np.array([0]), np.array([1]), np.array([10]))
-    B = TensorRepresentation(np.array([1]), np.array([1]), np.array([1]), np.array([20]))
+    A = TensorRepresentation(np.array([10]), np.array([0]), np.array([1]), np.array([0]))
+    B = TensorRepresentation(np.array([20]), np.array([1]), np.array([1]), np.array([1]))
     combined = TensorRepresentation.combine([A, B])
     assert np.all(combined.data == np.array([10, 20]))
     assert np.all(combined.row == np.array([0, 1]))
