@@ -294,7 +294,7 @@ def get_problem_matrix(linOps,
         param_to_col: A map from parameter id to column in tensor.
         constr_length: Summed sizes of constraints input.
         canon_backend : specifies which backend to use for canonicalization, which can affect
-            performance. Defaults to None, i.e., selecting the default backend.
+            compilation time. Defaults to None, i.e., selecting the default backend.
 
     Returns
     -------

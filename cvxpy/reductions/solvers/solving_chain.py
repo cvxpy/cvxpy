@@ -158,7 +158,7 @@ def construct_solving_chain(problem, candidates,
         which may speed up compilation. Defaults to False.
     canon_backend : str, optional
         specifies which backend to use for canonicalization, which can affect
-        performance. Defaults to None, i.e., selecting the default
+        compilation time. Defaults to None, i.e., selecting the default
         backend.
     solver_opts : dict, optional
         Additional arguments to pass to the solver.

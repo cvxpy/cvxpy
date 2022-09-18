@@ -593,7 +593,7 @@ class Problem(u.Canonical):
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
             specifies which backend to use for canonicalization, which can affect
-            performance. Defaults to None, i.e., selecting the default
+            compilation time. Defaults to None, i.e., selecting the default
             backend.
         verbose : bool, optional
             If True, print verbose output related to problem compilation.
@@ -867,7 +867,7 @@ class Problem(u.Canonical):
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
             specifies which backend to use for canonicalization, which can affect
-            performance. Defaults to None, i.e., selecting the default
+            compilation time. Defaults to None, i.e., selecting the default
             backend.
         solver_opts: dict, optional
             Additional arguments to pass to the solver.
@@ -954,7 +954,7 @@ class Problem(u.Canonical):
             which may speed up compilation. Defaults to False.
         canon_backend : str, optional
             specifies which backend to use for canonicalization, which can affect
-            performance. Defaults to None, i.e., selecting the default
+            compilation time. Defaults to None, i.e., selecting the default
             backend.
         kwargs : dict, optional
             A dict of options that will be passed to the specific solver.
