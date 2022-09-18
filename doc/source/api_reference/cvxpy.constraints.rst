@@ -93,3 +93,11 @@ FiniteSet
     :members: is_dcp, size, shape, ineq_form, violation
     :undoc-members:
     :show-inheritance:
+
+OpRelConeQuad
+--------------------------------------
+
+.. autoclass:: cvxpy.constraints.exponential.OpRelConeQuad
+    :members: value, is_dcp
+    :undoc-members:
+    :show-inheritance:
