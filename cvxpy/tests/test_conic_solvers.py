@@ -404,7 +404,7 @@ class TestClarabel(BaseTest):
         self.C = cp.Variable((3, 2), name='C')
 
     def test_clarabel_lp_0(self) -> None:
-        StandardTestLPs.test_lp_0(solver='CLARABEL')
+        StandardTestLPs.test_lp_0(solver=cp.CLARABEL)
 
     def test_clarabel_lp_1(self) -> None:
         StandardTestLPs.test_lp_1(solver='CLARABEL')
