@@ -39,7 +39,7 @@ class PROXQP(QpSolver):
                "A": "A",
                "b": "b",
                "F": "C",
-               "lb": "lb",
+               "l": "lb",
                "G": "ub"}
 
     def name(self):
