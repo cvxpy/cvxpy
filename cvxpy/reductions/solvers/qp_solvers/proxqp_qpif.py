@@ -30,9 +30,9 @@ class PROXQP(QpSolver):
 
     # Map of Proxqp status to CVXPY status.
     STATUS_MAP = {"PROXQP_SOLVED": s.OPTIMAL,
-                  "PROXQP_MAX_ITER_REACHED": s.SOLVER_ERROR,
-                  "PROXQP_PRIMAL_INFEASIBLE": s.SOLVER_ERROR,
-                  "PROXQP_DUAL_INFEASIBLE": s.SOLVER_ERROR}
+                  "PROXQP_MAX_ITER_REACHED": s.USER_LIMIT,
+                  "PROXQP_PRIMAL_INFEASIBLE": s.INFEASIBLE,
+                  "PROXQP_DUAL_INFEASIBLE": s.UNBOUNDED}
 
     VAR_MAP = {"P": "H",
                "q": "g",
