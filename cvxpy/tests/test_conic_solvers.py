@@ -1109,6 +1109,7 @@ class TestGUROBI(BaseTest):
         """
         if cp.GUROBI in INSTALLED_SOLVERS:
             import numpy as np
+            import gurobipy
 
             A = cp.Parameter((2, 2))
             b = cp.Parameter(2)
@@ -1166,11 +1167,42 @@ class TestGUROBI(BaseTest):
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
             # Try creating a new problem and setting x.value.
-            self.x.value = np.array([1, 2])
+            init_value = np.array([2, 3])
+            self.x.value = init_value
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
             self.assertEqual(result, 4)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
+            # Check that "start" value was set appropriately.
+            model = prob.solver_stats.extra_stats
+            model_x = model.getVars()
+            for i in range(self.x.size):
+                assert init_value[i] == model_x[i].start
+                assert np.isclose(self.x.value[i], model_x[i].x)
+
+            # Test with matrix variable.
+            z = cp.Variable()
+            Y = cp.Variable((3, 2))
+            Y_val = np.reshape(np.arange(6), (3, 2))
+            Y.value = Y_val + 1
+            objective = cp.Maximize(z + cp.sum(Y))
+            constraints = [Y <= Y_val,
+                           z <= 2]
+            prob = cp.Problem(objective, constraints)
+            result = prob.solve(solver=cp.GUROBI, warm_start=True)
+            self.assertEqual(result, Y_val.sum() + 2)
+            self.assertAlmostEqual(z.value, 2)
+            self.assertItemsAlmostEqual(Y.value, Y_val)
+            # Check that "start" value was set appropriately.
+            model = prob.solver_stats.extra_stats
+            model_x = model.getVars()
+            assert gurobipy.GRB.UNDEFINED == model_x[0].start
+            assert np.isclose(2, model_x[0].x)
+            for i in range(1, Y.size + 1):
+                row = (i - 1) % Y.shape[0]
+                col = (i - 1) // Y.shape[0]
+                assert Y_val[row, col] + 1 == model_x[i].start
+                assert np.isclose(Y.value[row, col], model_x[i].x)
 
         else:
             with self.assertRaises(Exception) as cm:

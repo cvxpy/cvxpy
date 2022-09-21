@@ -451,16 +451,26 @@ class TestQp(BaseTest):
         """Test Gurobi warm start with a user provided point.
         """
         if cp.GUROBI in INSTALLED_SOLVERS:
-            m = 20
-            n = 10
-            np.random.seed(1)
-            A = np.random.randn(m, n)
-            b = np.random.randn(m)
+            import gurobipy
+            m = 4
+            n = 3
 
-            x = Variable(n, boolean=True)
-            prob = Problem(Minimize(sum_squares(A @ x - b)))
-            x.value = np.ones(n)
+            y = Variable(nonneg=True)
+            X = Variable((m, n))
+            X_vals = np.reshape(np.arange(m*n), (m, n))
+            prob = Problem(Minimize(y**2 + cp.sum(X)), [X == X_vals])
+            X.value = X_vals + 1
             prob.solve(solver=cp.GUROBI, warm_start=True)
+            # Check that "start" value was set appropriately.
+            model = prob.solver_stats.extra_stats
+            model_x = model.getVars()
+            assert gurobipy.GRB.UNDEFINED == model_x[0].start
+            assert np.isclose(0, model_x[0].x)
+            for i in range(1, X.size + 1):
+                row = (i - 1) % X.shape[0]
+                col = (i - 1) // X.shape[0]
+                assert X_vals[row, col] + 1 == model_x[i].start
+                assert np.isclose(X.value[row, col], model_x[i].x)
 
     def test_parametric(self) -> None:
         """Test solve parametric problem vs full problem"""

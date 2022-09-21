@@ -21,7 +21,7 @@ import numpy as np
 import cvxpy.interface as intf
 
 
-def stack_vals(variables: list, default: float, order: str = "C") -> np.ndarray:
+def stack_vals(variables: list, default: float, order: str = "F") -> np.ndarray:
     """Stacks the values of the given variables.
 
     Parameters
