@@ -1108,8 +1108,8 @@ class TestGUROBI(BaseTest):
            Note: This only checks output, not whether or not Gurobi is warm starting internally
         """
         if cp.GUROBI in INSTALLED_SOLVERS:
-            import numpy as np
             import gurobipy
+            import numpy as np
 
             A = cp.Parameter((2, 2))
             b = cp.Parameter(2)
