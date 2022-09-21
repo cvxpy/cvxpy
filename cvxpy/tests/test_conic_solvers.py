@@ -1122,12 +1122,12 @@ class TestGUROBI(BaseTest):
             c.value = np.array([1, 1])
 
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
-            constraints = [self.x[0] <= h[0],
+            constraints = [self.x[0]**2 <= h[0]**2,
                            self.x[1] <= h[1],
                            A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
-            self.assertEqual(result, 3)
+            self.assertAlmostEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
             # Change A and b from the original values
@@ -1139,7 +1139,7 @@ class TestGUROBI(BaseTest):
             # Without setting update_eq_constrs = False,
             # the results should change to the correct answer
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
-            self.assertEqual(result, 3)
+            self.assertAlmostEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [2, 1])
 
             # Change h from the original values
@@ -1151,7 +1151,7 @@ class TestGUROBI(BaseTest):
             # Without setting update_ineq_constrs = False,
             # the results should change to the correct answer
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
-            self.assertEqual(result, 2)
+            self.assertAlmostEqual(result, 2)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
             # Change c from the original values
