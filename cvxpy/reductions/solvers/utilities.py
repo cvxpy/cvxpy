@@ -21,13 +21,14 @@ import numpy as np
 import cvxpy.interface as intf
 
 
-def stack_vals(variables: list, default: float) -> np.ndarray:
+def stack_vals(variables: list, default: float, order: str = "C") -> np.ndarray:
     """Stacks the values of the given variables.
 
     Parameters
     ----------
     variables: list of cvxpy variables.
     default: value to use when variable value is None.
+    order: unravel values in C or Fortran ("F") order
 
     Returns
     -------
@@ -36,7 +37,7 @@ def stack_vals(variables: list, default: float) -> np.ndarray:
     value = []
     for variable in variables:
         if variable.value is not None:
-            value.append(np.ravel(variable.value, 'C'))
+            value.append(np.ravel(variable.value, order))
         else:  # unknown values.
             value.append(np.full(variable.size, default))
     return np.concatenate(value)
