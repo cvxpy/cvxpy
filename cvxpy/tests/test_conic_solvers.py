@@ -424,6 +424,9 @@ class TestClarabel(BaseTest):
     def test_clarabel_qp_0(self) -> None:
         StandardTestQPs.test_qp_0(solver='CLARABEL')
 
+    def test_clarabel_qp_0_linear_obj(self) -> None:
+        StandardTestQPs.test_qp_0(solver='CLARABEL', use_quad_obj=False)
+
     def test_clarabel_socp_0(self) -> None:
         StandardTestSOCPs.test_socp_0(solver='CLARABEL')
 
