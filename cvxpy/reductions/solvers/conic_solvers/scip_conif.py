@@ -28,7 +28,6 @@ from cvxpy.reductions.solution import Solution, failure_solution
 from cvxpy.reductions.solvers import utilities
 from cvxpy.reductions.solvers.conic_solvers.conic_solver import (
     ConicSolver, dims_to_solver_dict,)
-from cvxpy.utilities.versioning import Version
 
 log = logging.getLogger(__name__)
 
@@ -90,11 +89,7 @@ class SCIP(ConicSolver):
     def import_solver(self) -> None:
         """Imports the solver."""
         import pyscipopt
-        v = pyscipopt.__version__
-        if Version(v) >= Version('4.0.0'):
-            msg = 'PySCIPOpt (SCIP\'s Python wrapper) is installed and its ' \
-                  'version is %s. CVXPY only supports PySCIPOpt < 4.0.0.' % v
-            raise ModuleNotFoundError(msg)
+        pyscipopt
 
     def apply(self, problem: ParamConeProg) -> Tuple[Dict, Dict]:
         """Returns a new problem and data for inverting the new solution."""
@@ -178,7 +173,7 @@ class SCIP(ConicSolver):
         A, b, c, dims = self._define_data(data)
         variables = self._create_variables(model, data, c)
         constraints = self._add_constraints(model, variables, A, b, dims)
-        self._set_params(model, verbose, solver_opts)
+        self._set_params(model, verbose, solver_opts, data, dims)
         solution = self._solve(model, variables, constraints, data, dims)
 
         return solution
@@ -265,16 +260,20 @@ class SCIP(ConicSolver):
             self,
             model: ScipModel,
             verbose: bool,
-            solver_opts: Optional[Dict] = None,
+            solver_opts: Optional[Dict],
+            data: Dict[str, Any],
+            dims: Dict[str, Union[int, List]],
     ) -> None:
         """Set model solve parameters."""
         from pyscipopt import SCIP_PARAMSETTING
 
-        # Default parameters:
-        # These settings are needed  to allow the dual to be calculated
-        model.setPresolve(SCIP_PARAMSETTING.OFF)
-        model.setHeuristics(SCIP_PARAMSETTING.OFF)
-        model.disablePropagation()
+        is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
+        has_soc_constr = len(dims[s.SOC_DIM]) > 1
+        if not (is_mip or has_soc_constr):
+            # These settings are needed  to allow the dual to be calculated
+            model.setPresolve(SCIP_PARAMSETTING.OFF)
+            model.setHeuristics(SCIP_PARAMSETTING.OFF)
+            model.disablePropagation()
 
         # Set model verbosity
         hide_output = not verbose
@@ -316,6 +315,7 @@ class SCIP(ConicSolver):
         """Solve and return a solution if one exists."""
 
         try:
+            model.writeProblem("test.cip")
             model.optimize()
         except Exception as e:
             log.warning("Error encountered when optimising %s: %s", model, e)
@@ -327,7 +327,9 @@ class SCIP(ConicSolver):
             sol = model.getBestSol()
             solution["primal"] = array([sol[v] for v in variables])
 
-            if not (data[s.BOOL_IDX] or data[s.INT_IDX]):
+            is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
+            has_soc_constr = len(dims[s.SOC_DIM]) > 1
+            if not (is_mip or has_soc_constr):
                 # Not the following code calculating the dual values does not
                 # always return the correct values, see tests `test_scip_lp_2`
                 # and `test_scip_socp_1`.
@@ -339,17 +341,12 @@ class SCIP(ConicSolver):
                         dual = model.getDualsolLinear(lc)
                         vals.append(dual)
 
-                # Get non-linear duals.
-                if len(dims[s.SOC_DIM]) > 1:
-                    for row in model.getNlRows():
-                        vals.append(row.getDualsol())
-
                 solution["y"] = -array(vals)
                 solution[s.EQ_DUAL] = solution["y"][0:dims[s.EQ_DIM]]
                 solution[s.INEQ_DUAL] = solution["y"][dims[s.EQ_DIM]:]
 
         solution[s.SOLVE_TIME] = model.getSolvingTime()
-        solution['status'] = STATUS_MAP[model.getStatus()]
+        solution["status"] = STATUS_MAP[model.getStatus()]
         if solution["status"] == s.SOLVER_ERROR and model.getNCountedSols() > 0:
             solution["status"] = s.OPTIMAL_INACCURATE
 
