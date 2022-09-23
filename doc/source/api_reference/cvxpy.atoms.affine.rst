@@ -30,17 +30,24 @@ DivExpression
 
 .. _bmat:
 
-Bmat
+bmat
 ---------------------------------
 
-.. autofunction:: cvxpy.atoms.affine.bmat.bmat
+.. autofunction:: cvxpy.bmat
+
+.. _conj:
+
+conj
+----
+
+.. autoclass:: cvxpy.conj
 
 .. _conv:
 
 conv
 ---------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.conv.conv
+.. autoclass:: cvxpy.conv
     :show-inheritance:
 
 .. _cumsum:
@@ -48,7 +55,7 @@ conv
 cumsum
 -----------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.cumsum.cumsum
+.. autoclass:: cvxpy.cumsum
     :show-inheritance:
 
 .. _diag:
@@ -56,21 +63,28 @@ cumsum
 diag
 ---------------------------------
 
-.. autofunction:: cvxpy.atoms.affine.diag.diag
+.. autofunction:: cvxpy.diag
 
 .. _diff:
 
 diff
 ---------------------------------
 
-.. autofunction:: cvxpy.atoms.affine.diff.diff
+.. autofunction:: cvxpy.diff
 
 .. _hstack:
 
 hstack
 -----------------------------------
 
-.. autofunction:: cvxpy.atoms.affine.hstack.hstack
+.. autofunction:: cvxpy.hstack
+
+.. _imag-atom:
+
+imag
+----
+
+.. autoclass:: cvxpy.imag
 
 .. _index:
 
@@ -85,7 +99,7 @@ index
 kron
 ---------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.kron.kron
+.. autoclass:: cvxpy.kron
     :show-inheritance:
 
 .. _matmul:
@@ -93,15 +107,29 @@ kron
 matmul
 --------------------------------
 
-.. autofunction:: cvxpy.atoms.affine.binary_operators.matmul
+.. autofunction:: cvxpy.matmul
 
 .. _multiply:
 
 multiply
 -------------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.binary_operators.multiply
+.. autoclass:: cvxpy.multiply
     :show-inheritance:
+
+.. _ptrace:
+
+partial_trace
+--------------------------------
+
+.. autofunction:: cvxpy.partial_trace
+
+.. _ptrans:
+
+partial_transpose
+--------------------------------
+
+.. autofunction:: cvxpy.partial_transpose
 
 .. _promote:
 
@@ -110,27 +138,50 @@ promote
 
 .. autofunction:: cvxpy.atoms.affine.promote.promote
 
+.. _psd_wrap:
+
+psd_wrap
+--------
+
+.. autoclass:: cvxpy.atoms.affine.wraps.psd_wrap
+
+.. _real-atom:
+
+real
+----
+
+.. autofunction:: cvxpy.real
+
 .. _reshape:
 
 reshape
 ------------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.reshape.reshape
+.. autoclass:: cvxpy.reshape
     :show-inheritance:
+
+.. _scalar_product:
+
+scalar_product
+--------------
+
+.. autoclass:: cvxpy.scalar_product
+    :show-inheritance:
+
 
 .. _sum:
 
 sum
 --------------------------------
 
-.. autofunction:: cvxpy.atoms.affine.sum.sum
+.. autofunction:: cvxpy.sum
 
 .. _trace:
 
 trace
 ----------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.trace.trace
+.. autoclass:: cvxpy.trace
     :show-inheritance:
 
 .. _transpose:
@@ -138,7 +189,7 @@ trace
 transpose
 --------------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.transpose.transpose
+.. autoclass:: cvxpy.transpose
     :show-inheritance:
 
 .. _negexpression:
@@ -154,7 +205,7 @@ NegExpression
 upper_tri
 ---------------------------------------
 
-.. autoclass:: cvxpy.atoms.affine.upper_tri.upper_tri
+.. autoclass:: cvxpy.upper_tri
     :show-inheritance:
 
 .. _vec:
@@ -162,11 +213,11 @@ upper_tri
 vec
 --------------------------------
 
-.. autofunction:: cvxpy.atoms.affine.vec.vec
+.. autofunction:: cvxpy.vec
 
 .. _vstack:
 
 vstack
 -----------------------------------
 
-.. autofunction:: cvxpy.atoms.affine.vstack.vstack
+.. autofunction:: cvxpy.vstack

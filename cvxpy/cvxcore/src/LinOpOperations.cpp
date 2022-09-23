@@ -41,7 +41,8 @@ Tensor get_upper_tri_mat(const LinOp &lin, int arg_idx);
 Tensor get_conv_mat(const LinOp &lin, int arg_idx);
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx);
 Tensor get_vstack_mat(const LinOp &lin, int arg_idx);
-Tensor get_kron_mat(const LinOp &lin, int arg_idx);
+Tensor get_kronr_mat(const LinOp &lin, int arg_idx);
+Tensor get_kronl_mat(const LinOp &lin, int arg_idx);
 Tensor get_variable_coeffs(const LinOp &lin, int arg_idx);
 Tensor get_const_coeffs(const LinOp &lin, int arg_idx);
 Tensor get_param_coeffs(const LinOp &lin, int arg_idx);
@@ -133,8 +134,15 @@ Tensor get_node_coeffs(const LinOp &lin, int arg_idx) {
   case VSTACK:
     coeffs = get_vstack_mat(lin, arg_idx);
     break;
+  case KRON_R:
+    coeffs = get_kronr_mat(lin, arg_idx);
+    break;
+  case KRON_L:
+    coeffs = get_kronl_mat(lin, arg_idx);
+    break;
   case KRON:
-    coeffs = get_kron_mat(lin, arg_idx);
+    // here for backwards compatibility
+    coeffs = get_kronr_mat(lin, arg_idx);
     break;
   default:
     std::cerr << "Error: linOp type invalid." << std::endl;
@@ -302,43 +310,112 @@ int get_id_data(const LinOp &lin, int arg_idx) {
  * LinOP -> Matrix FUNCTIONS
  *****************************/
 /**
- * Return the coefficients for KRON.
+ * Return the coefficients for KRON_R.
  *
- * Parameters: linOp LIN with type KRON
+ * Parameters: linOp LIN with type KRON_R
  * Returns: vector containing the coefficient matrix for the Kronecker
-                                                product.
+            product with a Variable in the right operand
  */
-Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
-  assert(lin.get_type() == KRON);
-  Matrix constant = get_constant_data(*lin.get_linOp_data(), false);
-  int lh_rows = constant.rows();
-  int lh_cols = constant.cols();
+Tensor get_kronr_mat(const LinOp &lin, int arg_idx) {
+  // This function doesn't properly canonicalize LinOp objects derived from CVXPY Parameters.
+  // See get_mul_elemwise_mat (or other multiplication functions other than kronr)
+  // for examples of correct parameter handling.
+  assert(lin.get_type() == KRON_R);
+  Matrix lh = get_constant_data(*lin.get_linOp_data(), false);
+  int lh_rows = lh.rows();
   int rh_rows = lin.get_args()[0]->get_shape()[0];
   int rh_cols = lin.get_args()[0]->get_shape()[1];
+  int rh_size = rh_rows * rh_cols;
 
-  int rows = rh_rows * rh_cols * lh_rows * lh_cols;
-  int cols = rh_rows * rh_cols;
-  Matrix coeffs(rows, cols);
+  Matrix mat(lh_rows * lh.cols() * rh_size, rh_size);
 
   std::vector<Triplet> tripletList;
-  tripletList.reserve(rh_rows * rh_cols * constant.nonZeros());
-  for (int k = 0; k < constant.outerSize(); ++k) {
-    for (Matrix::InnerIterator it(constant, k); it; ++it) {
-      int row =
-          (rh_rows * rh_cols * (lh_rows * it.col())) + (it.row() * rh_rows);
-      int col = 0;
+  tripletList.reserve(rh_size * lh.nonZeros());
+  int kron_rows = lh_rows * rh_rows;
+  int row_offset, col;
+  double val;
+  for (int k = 0; k < lh.outerSize(); ++k) {
+    for (Matrix::InnerIterator it(lh, k); it; ++it) {
+      row_offset = (kron_rows * rh_cols) * it.col() + rh_rows * it.row();
+      val = it.value();
+      col = 0;
       for (int j = 0; j < rh_cols; ++j) {
         for (int i = 0; i < rh_rows; ++i) {
-          tripletList.push_back(Triplet(row + i, col, it.value()));
+          tripletList.push_back(Triplet(row_offset + i, col, val));
           col++;
         }
-        row += lh_rows * rh_rows;
+        row_offset += kron_rows;  // hit this rh_cols many times.
       }
     }
   }
-  coeffs.setFromTriplets(tripletList.begin(), tripletList.end());
-  coeffs.makeCompressed();
-  return build_tensor(coeffs);
+  mat.setFromTriplets(tripletList.begin(), tripletList.end());
+  mat.makeCompressed();
+  return build_tensor(mat);
+}
+
+/**
+ * Return the coefficients for KRON_L.
+ *
+ * Parameters: linOp LIN with type KRON_L
+ * Returns: vector containing the coefficient matrix for the Kronecker
+            product with a Variable in left operand
+ */
+Tensor get_kronl_mat(const LinOp &lin, int arg_idx) {
+  // This function doesn't properly canonicalize LinOp objects derived from CVXPY Parameters.
+  // See get_mul_elemwise_mat (or other multiplication functions other than kronr)
+  // for examples of correct parameter handling.
+  assert(lin.get_type() == KRON_L);
+  Matrix rh = get_constant_data(*lin.get_linOp_data(), false);
+  int rh_rows = rh.rows();
+  int rh_cols = rh.cols();
+  int lh_rows = lin.get_args()[0]->get_shape()[0];
+  int lh_cols = lin.get_args()[0]->get_shape()[1];
+
+  // Construct row indices for the first column of mat.
+  //   We rely on the fact that rh is an Eigen sparse matrix,
+  //   and assume its storage order is CSC. Note that Eigen's
+  //   default order is CSC-like, and when "compressed" the storage
+  //   is actually CSC.
+  assert(!rh.IsRowMajor());
+  int row_offset = 0;
+  int kron_rows = lh_rows * rh_rows;
+  int rh_nnz = rh.nonZeros();
+  std::vector<int> base_row_indices;
+  std::vector<double> vec_rh;
+  base_row_indices.reserve(rh_nnz);
+  vec_rh.reserve(rh_nnz);
+  for (int k = 0; k < rh.outerSize(); ++k) {  // loop over columns
+  	for (Matrix::InnerIterator it(rh, k); it; ++it) { // loop over nonzeros in this column
+  	  int cur_row = it.row() + row_offset;
+  	  base_row_indices.push_back(cur_row);
+  	  vec_rh.push_back(it.value());
+  	}
+  	row_offset += kron_rows;
+  }
+
+  int lh_size = lh_rows * lh_cols;
+  int rh_size = rh_rows * rh_cols;
+  Matrix mat(lh_size * rh_size, lh_size);
+  std::vector<Triplet> tripletList;
+  tripletList.reserve(lh_size * rh_nnz);
+
+  int row, col;
+  int outer_row_offset = 0;
+  for (int j = 0; j < lh_cols; ++j) {
+  	row_offset = outer_row_offset;
+  	for (int i = 0; i < lh_rows; ++i) {
+  	  col = i + j * lh_rows;
+  	  for (int ell = 0; ell < rh_nnz; ++ell) {
+  	  	row = base_row_indices[ell] + row_offset;
+  	  	tripletList.push_back(Triplet(row , col, vec_rh[ell]));
+  	  }
+  	  row_offset += rh_rows;
+  	}
+  	outer_row_offset += lh_rows * rh_size;
+  }
+  mat.setFromTriplets(tripletList.begin(), tripletList.end());
+  mat.makeCompressed();
+  return build_tensor(mat);
 }
 
 /**
@@ -350,7 +427,7 @@ Tensor get_kron_mat(const LinOp &lin, int arg_idx) {
 Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == VSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().size());
+  assert(static_cast<size_t>(arg_idx) <= lin.get_args().size());
   std::vector<Triplet> tripletList;
   const LinOp &arg = *lin.get_args()[arg_idx];
   tripletList.reserve(vecprod(arg.get_shape()));
@@ -390,7 +467,7 @@ Tensor get_vstack_mat(const LinOp &lin, int arg_idx) {
 Tensor get_hstack_mat(const LinOp &lin, int arg_idx) {
   assert(lin.get_type() == HSTACK);
   int row_offset = 0;
-  assert(arg_idx <= lin.get_args().size());
+  assert(static_cast<size_t>(arg_idx) <= lin.get_args().size());
   std::vector<Triplet> tripletList;
   tripletList.reserve(vecprod(lin.get_shape()));
   const LinOp &arg = *lin.get_args()[arg_idx];

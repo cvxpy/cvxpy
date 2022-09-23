@@ -1,19 +1,25 @@
 import warnings
-from typing import Any, List
+from typing import Any, List, Optional
+
+import numpy as np
 
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
-from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonNeg,
-                               NonPos, PowCone3D, Zero,)
+from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, FiniteSet,
+                               Inequality, NonNeg, NonPos, PowCone3D, Zero,)
+from cvxpy.constraints.exponential import OpRelConeQuad, RelEntrQuad
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
 from cvxpy.reductions.complex2real import complex2real
+from cvxpy.reductions.cone2cone.approximations import APPROX_CONES, QuadApprox
 from cvxpy.reductions.cone2cone.exotic2common import (EXOTIC_CONES,
                                                       Exotic2Common,)
 from cvxpy.reductions.cvx_attr2constr import CvxAttr2Constr
 from cvxpy.reductions.dcp2cone.cone_matrix_stuffing import ConeMatrixStuffing
 from cvxpy.reductions.dcp2cone.dcp2cone import Dcp2Cone
 from cvxpy.reductions.dgp2dcp.dgp2dcp import Dgp2Dcp
+from cvxpy.reductions.discrete2mixedint.valinvec2mixedint import (
+    Valinvec2mixedint,)
 from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
@@ -21,6 +27,7 @@ from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
+from cvxpy.settings import PARAM_THRESHOLD
 from cvxpy.utilities.debug_tools import build_non_disciplined_error_msg
 
 
@@ -112,14 +119,19 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
             raise SolverError("Problem could not be reduced to a QP, and no "
                               "conic solvers exist among candidate solvers "
                               "(%s)." % candidates)
-        else:
-            reductions += [Dcp2Cone(), CvxAttr2Constr()]
+
+    constr_types = {type(c) for c in problem.constraints}
+    if FiniteSet in constr_types:
+        reductions += [Valinvec2mixedint()]
+
     return reductions
 
 
 def construct_solving_chain(problem, candidates,
                             gp: bool = False,
-                            enforce_dpp: bool = False) -> "SolvingChain":
+                            enforce_dpp: bool = False,
+                            ignore_dpp: bool = False,
+                            solver_opts: Optional[dict] = None) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -138,6 +150,11 @@ def construct_solving_chain(problem, candidates,
     enforce_dpp : bool, optional
         When True, a DPPError will be thrown when trying to parse a non-DPP
         problem (instead of just a warning). Defaults to False.
+    ignore_dpp : bool, optional
+        When True, DPP problems will be treated as non-DPP,
+        which may speed up compilation. Defaults to False.
+    solve_args : dict, optional
+        Additional arguments to pass to the solver.
 
     Returns
     -------
@@ -154,6 +171,7 @@ def construct_solving_chain(problem, candidates,
         return SolvingChain(reductions=[ConstantSolver()])
     reductions = _reductions_for_problem_class(problem, candidates, gp)
 
+    # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
     dpp_error_msg = (
             "You are solving a parameterized problem that is not DPP. "
@@ -162,14 +180,24 @@ def construct_solving_chain(problem, candidates,
             "documentation on Discplined Parametrized Programming, at\n"
             "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
             "disciplined-parametrized-programming")
-    if not problem.is_dpp(dpp_context):
-        if not enforce_dpp:
+    if ignore_dpp or not problem.is_dpp(dpp_context):
+        # No warning for ignore_dpp.
+        if ignore_dpp:
+            reductions = [EvalParams()] + reductions
+        elif not enforce_dpp:
             warnings.warn(dpp_error_msg)
             reductions = [EvalParams()] + reductions
         else:
             raise DPPError(dpp_error_msg)
     elif any(param.is_complex() for param in problem.parameters()):
         reductions = [EvalParams()] + reductions
+    else:  # Compilation with DPP.
+        n_parameters = sum(np.prod(param.shape) for param in problem.parameters())
+        if n_parameters >= PARAM_THRESHOLD:
+            warnings.warn(
+                "Your problem has too many parameters for efficient DPP "
+                "compilation. We suggest setting 'ignore_dpp = True'."
+            )
 
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
@@ -194,11 +222,17 @@ def construct_solving_chain(problem, candidates,
     for c in problem.constraints:
         constr_types.add(type(c))
     ex_cos = [ct for ct in constr_types if ct in EXOTIC_CONES]
+    approx_cos = [ct for ct in constr_types if ct in APPROX_CONES]
     # ^ The way we populate "ex_cos" will need to change if and when
     # we have atoms that require exotic cones.
     for co in ex_cos:
         sim_cos = EXOTIC_CONES[co]  # get the set of required simple cones
         constr_types.update(sim_cos)
+        constr_types.remove(co)
+
+    for co in approx_cos:
+        app_cos = APPROX_CONES[co]
+        constr_types.update(app_cos)
         constr_types.remove(co)
     # We now go over individual elementary cones support by CVXPY (
     # SOC, ExpCone, NonNeg, Zero, PSD, PowCone3D) and check if
@@ -231,11 +265,31 @@ def construct_solving_chain(problem, candidates,
 
     for solver in candidates['conic_solvers']:
         solver_instance = slv_def.SOLVER_MAP_CONIC[solver]
-        if (all(c in solver_instance.SUPPORTED_CONSTRAINTS for c in cones)
+        # Cones supported for MI problems may differ from non MI.
+        if problem.is_mixed_integer():
+            supported_constraints = solver_instance.MI_SUPPORTED_CONSTRAINTS
+        else:
+            supported_constraints = solver_instance.SUPPORTED_CONSTRAINTS
+        if (all(c in supported_constraints for c in cones)
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())
-            reductions += [ConeMatrixStuffing(), solver_instance]
+            if RelEntrQuad in approx_cos or OpRelConeQuad in approx_cos:
+                reductions.append(QuadApprox())
+
+            # Should the objective be canonicalized to a quadratic?
+            if solver_opts is None:
+                use_quad_obj = True
+            else:
+                use_quad_obj = solver_opts.get("use_quad_obj", True)
+            quad_obj = use_quad_obj and solver_instance.supports_quad_obj() and \
+                problem.objective.expr.has_quadratic_term()
+            reductions += [
+                Dcp2Cone(quad_obj=quad_obj),
+                CvxAttr2Constr(),
+                ConeMatrixStuffing(quad_obj=quad_obj),
+                solver_instance
+            ]
             return SolvingChain(reductions=reductions)
 
     raise SolverError("Either candidate conic solvers (%s) do not support the "

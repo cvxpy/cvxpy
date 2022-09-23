@@ -98,6 +98,19 @@ class Canonical:
         else:
             return type(self)(*args)
 
+    def __copy__(self):
+        """
+        Called by copy.copy()
+        """
+        return self.copy()
+
+    def __deepcopy__(self, memo):
+        """
+        Called by copy.deepcopy()
+        """
+        raise NotImplementedError('Creating a deepcopy of a CVXPY expression is not supported. '
+                                  'Use .copy() instead.')
+
     def get_data(self) -> None:
         """Returns info needed to reconstruct the object besides the args.
 

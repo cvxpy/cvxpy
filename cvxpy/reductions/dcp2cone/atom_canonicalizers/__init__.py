@@ -28,6 +28,7 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_sum_largest_canon impo
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log1p_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_det_canon import *
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.tr_inv_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.log_sum_exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.logistic_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.matrix_frac_canon import *
@@ -40,9 +41,11 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.rel_entr_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.sigma_max_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.suppfunc_canon import (
     suppfunc_canon,)
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.von_neumann_entr_canon import von_neumann_entr_canon
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.xexp_canon import *
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
     abs_canon, cummax_canon, cumsum_canon, max_canon, maximum_canon, min_canon,
-    minimum_canon, norm1_canon, norm_inf_canon, sum_largest_canon,)
+    minimum_canon, norm1_canon, norm_inf_canon, sum_largest_canon, dotsort_canon,)
 from cvxpy.reductions.utilities import special_index_canon
 from cvxpy.transforms.indicator import indicator
 
@@ -80,5 +83,9 @@ CANON_METHODS = {
     rel_entr : rel_entr_canon,
     indicator : indicator_canon,
     special_index : special_index_canon,
-    SuppFuncAtom : suppfunc_canon
+    SuppFuncAtom : suppfunc_canon,
+    xexp : xexp_canon,
+    dotsort : dotsort_canon,
+    von_neumann_entr : von_neumann_entr_canon,
+    tr_inv : tr_inv_canon,
 }

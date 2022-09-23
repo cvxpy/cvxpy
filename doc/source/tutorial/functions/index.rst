@@ -29,7 +29,7 @@ Elementwise multiplication can be applied with the :ref:`multiply` function.
 Indexing and slicing
 ^^^^^^^^^^^^^^^^^^^^
 
-Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <http://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
+Indexing in CVXPY follows exactly the same semantics as `NumPy ndarrays <https://docs.scipy.org/doc/numpy/reference/arrays.indexing.html>`_.
 For example, if ``expr`` has shape ``(5,)`` then ``expr[1]`` gives the second entry.
 More generally, ``expr[i:j:k]`` selects every kth
 element of ``expr``, starting at ``i`` and ending at ``j-1``.
@@ -80,6 +80,17 @@ and returns a scalar.
      - Sign
      - Curvature |_|
      - Monotonicity
+
+   * - :ref:`dotsort(X,W) <dotsort>`
+
+       constant :math:`W \in \mathbf{R}^{o \times p}`
+     - :math:`\langle sort\left(vec(X)\right), sort\left(vec(W)\right) \rangle`
+     - :math:`X \in \mathbf{R}^{m \times n}`
+     - depends on :math:`X`, :math:`W`
+     - |convex| convex
+     - |incr| for :math:`\min(W) \geq 0`
+
+       |decr| for :math:`\max(W) \leq 0`
 
    * - :ref:`geo_mean(x) <geo-mean>`
 
@@ -402,15 +413,22 @@ and returns a scalar.
      - |convex| convex
      - None
 
-Clarifications
-^^^^^^^^^^^^^^
+   * - :ref:`von_neumann_entr(X) <von-neumann-entr>`
+     - :math:`-\operatorname{tr}(X\operatorname{logm}(X))`
+     - :math:`X \in \mathbf{S}^{n}_+`
+     - |unknown| unknown
+     - |concave| concave
+     - None
+
+Clarifications for scalar functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The domain :math:`\mathbf{S}^n` refers to the set of symmetric matrices. The domains :math:`\mathbf{S}^n_+` and :math:`\mathbf{S}^n_-` refer to the set of positive semi-definite and negative semi-definite matrices, respectively. Similarly, :math:`\mathbf{S}^n_{++}` and :math:`\mathbf{S}^n_{--}` refer to the set of positive definite and negative definite matrices, respectively.
 
 For a vector expression ``x``, ``norm(x)`` and ``norm(x, 2)`` give the Euclidean norm. For a matrix expression ``X``, however, ``norm(X)`` and ``norm(X, 2)`` give the spectral norm.
 
-The function ``norm(X, "fro")`` is called the `Frobenius norm <http://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm>`__
-and ``norm(X, "nuc")`` the `nuclear norm <http://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms>`__. The nuclear norm can also be defined as the sum of ``X``'s singular values.
+The function ``norm(X, "fro")`` is called the `Frobenius norm <https://en.wikipedia.org/wiki/Matrix_norm#Frobenius_norm>`__
+and ``norm(X, "nuc")`` the `nuclear norm <https://en.wikipedia.org/wiki/Matrix_norm#Schatten_norms>`__. The nuclear norm can also be defined as the sum of ``X``'s singular values.
 
 The functions ``max`` and ``min`` give the largest and smallest entry, respectively, in a single expression. These functions should not be confused with ``maximum`` and ``minimum`` (see :ref:`elementwise`). Use ``maximum`` and ``minimum`` to find the max or min of a list of scalar expressions.
 
@@ -469,12 +487,20 @@ scalars, which are promoted.
    * - :ref:`abs(x) <abs>`
 
      - :math:`\lvert x \rvert`
-     - :math:`x \in \mathbf{R}`
+     - :math:`x \in \mathbf{C}`
      - |positive| positive
      - |convex| convex
      - |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
+
+   * - :ref:`conj(x) <conj>`
+
+     - complex conjugate
+     - :math:`x \in \mathbf{C}`
+     - |unknown| unknown
+     - |affine| affine
+     - None
 
    * - :ref:`entr(x) <entr>`
 
@@ -503,6 +529,15 @@ scalars, which are promoted.
 
        |decr| for :math:`x \leq 0`
 
+
+   * - :ref:`imag(x) <imag-atom>`
+
+     - imaginary part of a complex number
+     - :math:`x \in \mathbf{C}`
+     - |unknown| unknown
+     - |affine| affine
+     - none
+
    * - :ref:`inv_pos(x) <inv-pos>`
 
      - :math:`1/x`
@@ -529,6 +564,14 @@ scalars, which are promoted.
      - |concave| concave
      - |incr| incr.
 
+   * - :ref:`log_normcdf(x) <log-normcdf>`
+
+     - :ref:`approximate <clarifyelementwise>` log of the standard normal CDF
+     - :math:`x \in \mathbf{R}`
+     - |negative| negative
+     - |concave| concave
+     - |incr| incr.
+
    * - :ref:`log1p(x) <log1p>`
 
      - :math:`\log(x+1)`
@@ -536,6 +579,14 @@ scalars, which are promoted.
      - same as x
      - |concave| concave
      - |incr| incr.
+
+   * - :ref:`loggamma(x) <loggamma>`
+
+     - :ref:`approximate <clarifyelementwise>` `log of the Gamma function <https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.loggamma.html>`_
+     - :math:`x > 0`
+     - |unknown| unknown
+     - |convex| convex
+     - None
 
    * - :ref:`logistic(x) <logistic>`
 
@@ -636,6 +687,14 @@ scalars, which are promoted.
      - |convex| convex
      - |incr| incr.
 
+   * - :ref:`real(x) <real-atom>`
+
+     - real part of a complex number
+     - :math:`x \in \mathbf{C}`
+     - |unknown| unknown
+     - |affine| affine
+     - |incr| incr.
+
    * - :ref:`rel_entr(x, y) <rel-entr>`
 
      - :math:`x \log(x/y)`
@@ -678,7 +737,25 @@ scalars, which are promoted.
      - |incr| for :math:`x \geq 0`
 
        |decr| for :math:`x \leq 0`
+    
+   * - :ref:`xexp(x) <xexp>`
 
+     - :math:`x e^x`
+     - :math:`x \geq 0`
+     - |positive| positive
+     - |convex| convex
+     - |incr| incr.
+
+.. _clarifyelementwise:
+
+Clarifications on elementwise functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The functions ``log_normcdf`` and ``loggamma`` are defined via approximations. ``log_normcdf`` has highest accuracy
+over the range -4 to 4, while ``loggamma`` has similar accuracy over all positive reals.
+See `CVXPY GitHub PR #1224 <https://github.com/cvxpy/cvxpy/pull/1224#issue-793221374>`_
+and `CVXPY GitHub Issue #228 <https://github.com/cvxpy/cvxpy/issues/228#issuecomment-544281906>`_
+for details on the approximations.
 
 Vector/matrix functions
 -----------------------
@@ -686,13 +763,19 @@ Vector/matrix functions
 A vector/matrix function takes one or more scalars, vectors, or matrices as arguments
 and returns a vector or matrix.
 
+CVXPY is conservative when it determines the sign of an Expression returned by one of these functions.
+If any argument to one of these functions
+has unknown sign, then the returned Expression will also have unknown sign.
+If all arguments have known sign but CVXPY can determine that the returned Expression
+would have different signs in different entries (for example, when stacking a positive
+Expression and a negative Expression) then the returned Expression will have unknown sign.
+
 .. list-table::
    :header-rows: 1
 
    * - Function
      - Meaning
      - Domain
-     - Sign
      - Curvature |_|
      - Monotonicity
 
@@ -702,7 +785,6 @@ and returns a vector or matrix.
 
      - :math:`\left[\begin{matrix} X^{(1,1)} &  \cdots &  X^{(1,q)} \\ \vdots &   & \vdots \\ X^{(p,1)} & \cdots &   X^{(p,q)} \end{matrix}\right]`
      - :math:`X^{(i,j)} \in\mathbf{R}^{m_i \times n_j}`
-     - :math:`\mathrm{sign}\left(\sum_{ij} X^{(i,j)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
 
@@ -711,7 +793,6 @@ and returns a vector or matrix.
        :math:`c\in\mathbf{R}^m`
      - :math:`c*x`
      - :math:`x\in \mathbf{R}^n`
-     - :math:`\mathrm{sign}\left(c_{1}x_{1}\right)`
      - |affine| affine
      - depends |_| on |_| c
 
@@ -719,7 +800,6 @@ and returns a vector or matrix.
 
      - cumulative sum along given axis.
      - :math:`X \in \mathbf{R}^{m \times n}`
-     - same as X
      - |affine| affine
      - |incr| incr.
 
@@ -727,14 +807,12 @@ and returns a vector or matrix.
 
      - :math:`\left[\begin{matrix}x_1  & &  \\& \ddots & \\& & x_n\end{matrix}\right]`
      - :math:`x \in\mathbf{R}^{n}`
-     - same as x
      - |affine| affine
      - |incr| incr.
 
    * - :ref:`diag(X) <diag>`
      - :math:`\left[\begin{matrix}X_{11}  \\\vdots \\X_{nn}\end{matrix}\right]`
      - :math:`X \in\mathbf{R}^{n \times n}`
-     - same as X
      - |affine| affine
      - |incr| incr.
 
@@ -743,7 +821,6 @@ and returns a vector or matrix.
        :math:`k \in 0,1,2,\ldots`
      - kth order differences along given axis
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - same as X
      - |affine| affine
      - |incr| incr.
 
@@ -751,42 +828,52 @@ and returns a vector or matrix.
 
      - :math:`\left[\begin{matrix}X^{(1)}  \cdots    X^{(k)}\end{matrix}\right]`
      - :math:`X^{(i)} \in\mathbf{R}^{m \times n_i}`
-     - :math:`\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`kron(C, X) <kron>`
+   * - :ref:`kron(X, Y) <kron>`
 
-       :math:`C\in\mathbf{R}^{p \times q}`
-     - :math:`\left[\begin{matrix}C_{11}X & \cdots & C_{1q}X \\ \vdots  &        & \vdots \\ C_{p1}X &  \cdots      & C_{pq}X     \end{matrix}\right]`
-     - :math:`X \in\mathbf{R}^{m \times n}`
-     - :math:`\mathrm{sign}\left(C_{11}X_{11}\right)`
+       constant :math:`X\in\mathbf{R}^{p \times q}`
+     - :math:`\left[\begin{matrix}X_{11}Y & \cdots & X_{1q}Y \\ \vdots  &        & \vdots \\ X_{p1}Y &  \cdots      & X_{pq}Y     \end{matrix}\right]`
+     - :math:`Y \in \mathbf{R}^{m \times n}`
      - |affine| affine
-     - depends |_| on C
+     - depends on :math:`X`
 
-   * - :ref:`partial_trace(X, dims, axis=0) <partial-trace>`
+   * - :ref:`kron(X, Y) <kron>`
+
+       constant :math:`Y\in\mathbf{R}^{m \times n}`
+     - :math:`\left[\begin{matrix}X_{11}Y & \cdots & X_{1q}Y \\ \vdots  &        & \vdots \\ X_{p1}Y &  \cdots      & X_{pq}Y     \end{matrix}\right]`
+     - :math:`X \in \mathbf{R}^{p \times q}`
+     - |affine| affine
+     - depends on :math:`Y`
+
+   * - :ref:`partial_trace(X, dims, axis=0) <ptrace>`
 
      - partial trace
      - :math:`X \in\mathbf{R}^{n \times n}`
-     - same as X
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`partial_transpose(X, dims, axis=0) <partial-transpose>`
+   * - :ref:`partial_transpose(X, dims, axis=0) <ptrans>`
 
      - partial transpose
      - :math:`X \in\mathbf{R}^{n \times n}`
-     - same as X
      - |affine| affine
      - |incr| incr.
 
-   * - :ref:`reshape(X, (m', n')) <reshape>`
+   * - :ref:`reshape(X, (m', n'), order='F') <reshape>`
 
      - :math:`X' \in\mathbf{R}^{m' \times n'}`
      - :math:`X \in\mathbf{R}^{m \times n}`
 
        :math:`m'n' = mn`
-     - same as X
+     - |affine| affine
+     - |incr| incr.
+
+   * - :ref:`upper_tri(X) <upper_tri>`
+
+     - flatten the strictly upper-triangular part of :math:`X`
+     - :math:`X \in \mathbf{R}^{n \times n}`
      - |affine| affine
      - |incr| incr.
 
@@ -794,7 +881,6 @@ and returns a vector or matrix.
 
      - :math:`x' \in\mathbf{R}^{mn}`
      - :math:`X \in\mathbf{R}^{m \times n}`
-     - same as X
      - |affine| affine
      - |incr| incr.
 
@@ -802,26 +888,29 @@ and returns a vector or matrix.
 
      - :math:`\left[\begin{matrix}X^{(1)}  \\ \vdots  \\X^{(k)}\end{matrix}\right]`
      - :math:`X^{(i)} \in\mathbf{R}^{m_i \times n}`
-     - :math:`\mathrm{sign}\left(\sum_i X^{(i)}_{11}\right)`
      - |affine| affine
      - |incr| incr.
 
 
-Clarifications
-^^^^^^^^^^^^^^
-The input to ``bmat`` is a list of lists of CVXPY expressions.
+Clarifications on vector and matrix functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The input to :math:`\texttt{bmat}` is a list of lists of CVXPY expressions.
 It constructs a block matrix.
 The elements of each inner list are stacked horizontally and then the resulting block matrices are stacked vertically.
 
-The output :math:`y` of ``conv(c, x)`` has size :math:`n+m-1` and is defined as
-:math:`y[k]=\sum_{j=0}^k c[j]x[k-j]`.
+The output :math:`y = \mathbf{conv}(c, x)` has size :math:`n+m-1` and is defined as
+:math:`y_k =\sum_{j=0}^{k} c[j]x[k-j]`.
 
-The output :math:`x'` of ``vec(X)`` is the matrix :math:`X` flattened in column-major order into a vector.
-Formally, :math:`x'_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
+The output :math:`y = \mathbf{vec}(X)` is the matrix :math:`X` flattened in column-major order into a vector.
+Formally, :math:`y_i = X_{i \bmod{m}, \left \lfloor{i/m}\right \rfloor }`.
 
-The output :math:`X'` of ``reshape(X, (m', n'))`` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
-The entries are taken from :math:`X` in column-major order and stored in :math:`X'` in column-major order.
-Formally, :math:`X'_{ij} = \mathbf{vec}(X)_{m'j + i}`.
+The output :math:`Y = \mathbf{reshape}(X, (m', n'), \text{order='F'})` is the matrix :math:`X` cast into an :math:`m' \times n'` matrix.
+The entries are taken from :math:`X` in column-major order and stored in :math:`Y` in column-major order.
+Formally, :math:`Y_{ij} = \mathbf{vec}(X)_{m'j + i}`.
+If order='C' then :math:`X` will be read in row-major order and :math:`Y` will be written to in row-major order.
+
+The output :math:`y = \mathbf{upper\_tri}(X)` is formed by concatenating partial rows of :math:`X`.
+I.e., :math:`y = (X[0,1{:}],\, X[1, 2{:}],\, \ldots, X[n-1, n])`.
 
 .. |positive| image:: functions_files/positive.svg
               :width: 15px

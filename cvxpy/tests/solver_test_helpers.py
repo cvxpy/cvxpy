@@ -256,6 +256,18 @@ def lp_6() -> SolverTestHelper:
     return sth
 
 
+def qp_0() -> SolverTestHelper:
+    # univariate feasible problem
+    x = cp.Variable(1)
+    objective = cp.Minimize(cp.square(x))
+    constraints = [x[0] >= 1]
+    con_pairs = [(constraints[0], 2)]
+    obj_pair = (objective, 1)
+    var_pairs = [(x, 1)]
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
+
+
 def socp_0() -> SolverTestHelper:
     x = cp.Variable(shape=(2,))
     obj_pair = (cp.Minimize(cp.norm(x, 2) + 1), 1)
@@ -715,6 +727,32 @@ def mi_lp_4() -> SolverTestHelper:
     return sth
 
 
+def mi_lp_5() -> SolverTestHelper:
+    # infeasible boolean problem - https://trac.sagemath.org/ticket/31962#comment:48
+    z = cp.Variable(11, boolean=True)
+    constraints = [z[2] + z[1] == 1,
+                   z[4] + z[3] == 1,
+                   z[6] + z[5] == 1,
+                   z[8] + z[7] == 1,
+                   z[10] + z[9] == 1,
+                   z[4] + z[1] <= 1,
+                   z[2] + z[3] <= 1,
+                   z[6] + z[2] <= 1,
+                   z[1] + z[5] <= 1,
+                   z[8] + z[6] <= 1,
+                   z[5] + z[7] <= 1,
+                   z[10] + z[8] <= 1,
+                   z[7] + z[9] <= 1,
+                   z[9] + z[4] <= 1,
+                   z[3] + z[10] <= 1]
+    obj = cp.Minimize(0)
+    obj_pair = (obj, np.inf)
+    con_pairs = [(c, None) for c in constraints]
+    var_pairs = [(z, None)]
+    sth = SolverTestHelper(obj_pair, var_pairs, con_pairs)
+    return sth
+
+
 def mi_socp_1() -> SolverTestHelper:
     """
     Formulate the following mixed-integer SOCP with cvxpy
@@ -900,6 +938,28 @@ class StandardTestLPs:
         sth.solve(solver, **kwargs)
         sth.verify_objective(places)
         sth.verify_primal_values(places)
+        return sth
+
+    @staticmethod
+    def test_mi_lp_5(solver, places: int = 4, **kwargs) -> SolverTestHelper:
+        sth = mi_lp_5()
+        sth.solve(solver, **kwargs)
+        sth.verify_objective(places)
+        sth.verify_primal_values(places)
+        return sth
+
+
+class StandardTestQPs:
+
+    @staticmethod
+    def test_qp_0(solver, places: int = 4, duals: bool = True, **kwargs) -> SolverTestHelper:
+        sth = qp_0()
+        sth.solve(solver, **kwargs)
+        sth.verify_primal_values(places)
+        sth.verify_objective(places)
+        if duals:
+            sth.check_complementarity(places)
+            sth.verify_dual_values(places)
         return sth
 
 

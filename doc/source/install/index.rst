@@ -12,8 +12,8 @@ pip
 ---
 
 (Windows only) Download the Visual Studio build tools for Python 3
-(`download <https://visualstudio.microsoft .com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
-`install instructions <https://drive.google.com/file/d/0B4GsMXCRaSSIOWpYQkstajlYZ0tPVkNQSElmTWh1dXFaYkJr/view?usp=sharing>`_).
+(`download <https://visualstudio.microsoft.com/thank-you-downloading-visual-studio/?sku=BuildTools&rel=16>`_,
+`install instructions <https://docs.google.com/presentation/d/e/2PACX-1vT-p04simYhorAdKstO9F1RK-k6npuyrKWliJ8Wy9uuQoQq_TiFdJA-DK3Kz0irkCEUlmNEH4JScbkwUflXv9c/pub?start=false&loop=false&delayms=3000&resourcekey=0-HEezB2NFstz1GjKDkroJSQ&slide=id.p1>`_).
 
 (macOS only) Install the Xcode command line tools.
 
@@ -24,6 +24,14 @@ Install CVXPY using `pip`_:
   ::
 
       pip install cvxpy
+
+You can add solver names as "extras"; `pip` will then install the necessary
+additional Python packages.
+
+  ::
+
+      pip install cvxpy[CBC,CVXOPT,GLOP,GLPK,GUROBI,MOSEK,PDLP,SCIP,XPRESS]
+
 
 .. _conda-installation:
 
@@ -58,7 +66,7 @@ We strongly recommend using a fresh virtual environment (virtualenv or conda) wh
 
 CVXPY has the following dependencies:
 
- * Python >= 3.6
+ * Python >= 3.7
  * `OSQP`_ >= 0.4.1
  * `ECOS`_ >= 2
  * `SCS`_ >= 1.1.6
@@ -80,6 +88,21 @@ Perform the following steps to install CVXPY from source:
     ::
 
         pip install .
+
+Apple M1 users
+~~~~~~~~~~~~~~
+Apple M1 users have had trouble installing CVXPY using the commands above.
+That trouble stemmed partly from a configuration error in CVXPY's
+``pyproject.toml``, which has been fixed in CVXPY 1.1.19 and 1.2.0.
+If you have those versions (or newer) then the above commands should
+work *provided* (1) you have ``cmake`` installed via Homebrew and (2)
+you have an ECOS 2.0.5 wheel. The cmake requirement stems from OSQP
+and there appear to be problems building more recent versions of ECOS on M1 machines.
+See `this comment <https://github.com/cvxpy/cvxpy/issues/1190#issuecomment-994613793>`_
+on the CVXPY repo and
+`this issue <https://github.com/embotech/ecos-python/issues/33>`_ on the ECOS repo
+for more information.
+
 
 Running the test suite
 ------------------------------------
@@ -151,12 +174,26 @@ Install with Cbc (Clp, Cgl) support
 CVXPY supports the `Cbc <https://github.com/coin-or/Cbc>`_ solver (which includes Clp and Cgl) with the help of `cylp <https://github.com/coin-or/CyLP>`_.
 Simply install cylp and the corresponding prerequisites according to the `instructions <https://github.com/coin-or/CyLP#cylp>`_, such you can import this library in Python.
 
+Install with COPT support
+--------------------------
+
+CVXPY supports the COPT solver.
+Simply install COPT such that you can ``import coptpy`` in Python.
+See the `COPT <https://github.com/COPT-Public/COPT-Release>`_ release page for installation instructions.
+
 Install with CPLEX support
 --------------------------
 
 CVXPY supports the CPLEX solver.
 Simply install CPLEX such that you can ``import cplex`` in Python.
 See the `CPLEX <https://www.ibm.com/support/knowledgecenter/SSSA5P>`_ website for installation instructions.
+
+Install with SDPA support
+--------------------------
+
+CVXPY supports the SDPA solver.
+Simply install SDPA for Python such that you can ``import sdpap`` in Python.
+See the `SDPA for Python <https://sdpa-python.github.io/docs/installation>`_ website for installation instructions.
 
 Install with SDPT3 support
 --------------------------
@@ -170,23 +207,44 @@ CVXPY supports the NAG solver.
 Simply install NAG such that you can ``import naginterfaces`` in Python.
 See the `NAG <https://www.nag.co.uk/nag-library-python>`_ website for installation instructions.
 
+Install with GLOP and PDLP support
+----------------------------------
+
+CVXPY supports the GLOP and PDLP solvers. Both solvers are provided by
+the open source `OR-Tools <https://github.com/google/or-tools>`_ package.
+Install OR-Tools such that you can run ``import ortools`` in Python. OR-Tools
+version 9.3 or greater is required.
+
 Install with SCIP support
 -------------------------
 
-CVXPY supports the SCIP solver.
-Simply install SCIP such that you can ``from pyscipopt.scip import Model`` in Python.
+CVXPY supports the SCIP solver through the ``pyscipopt`` Python package;
+we do not support pyscipopt version 4.0.0 or higher; you need to use pyscipopt version 3.x.y
+for some (x,y).
 See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_ github for installation instructions.
 
 CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
 
 Install with SCIPY support
--------------------------
+--------------------------
 
-CVXPY supports the SCIPY solver for LPs.
-This requires the `SciPy`_ package in Python which should already be installed as it is a requirement for CVXPY. `SciPy`_'s "interior-point" and "revised-simplex" implementations are written in python and are always available however the main advantage of this solver, is its ability to use the `HiGHS`_ LP solvers (which are written in C++) that comes bundled with `SciPy`_ version 1.6.1 and higher.
+CVXPY supports the SCIPY solver for LPs and MIPs.
+This requires the `SciPy`_ package in Python, which should already be installed, as it is a requirement for CVXPY.
+`SciPy`_'s "interior-point" and "revised-simplex" implementations are written in Python and are always available.
+However, the main advantage of this solver is its ability to use the `HiGHS`_ LP and MIP solvers (which are written in C++).
+`HiGHS`_ LP solvers come bundled with `SciPy`_ version 1.6.1 and higher.
+The `HiGHS`_ MIP solver comes bundled with version 1.9.0 and higher.
+
+
+Install with CLARABEL support
+-----------------------------
+
+CVXPY supports the CLARABEL solver.
+Simply install CLARABEL such that you can ``import clarabel`` in Python.
+See the `CLARABEL <https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/>`_ website for installation instructions.
 
 Install without default solvers
--------------------------
+-------------------------------
 
 CVXPY can also be installed without the default solver dependencies.
 This can be useful if the intention is to only use non-default solvers.

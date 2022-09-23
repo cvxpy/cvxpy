@@ -24,6 +24,7 @@ from cvxpy.atoms.affine.affine_atom import AffAtom
 from cvxpy.atoms.affine.hstack import hstack
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions.expression import Expression
+from cvxpy.utilities.shape import size_from_shape
 
 
 class reshape(AffAtom):
@@ -73,7 +74,7 @@ class reshape(AffAtom):
         """Checks that the new shape has the same number of entries as the old.
         """
         old_len = self.args[0].size
-        new_len = np.prod(self._shape, dtype=int)
+        new_len = size_from_shape(self._shape)
         if not old_len == new_len:
             raise ValueError(
                 "Invalid reshape dimensions %s." % (self._shape,)

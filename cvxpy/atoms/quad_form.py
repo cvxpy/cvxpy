@@ -23,6 +23,7 @@ import numpy as np
 import scipy.sparse as sp
 from scipy import linalg as LA
 
+from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
 from cvxpy.interface.matrix_utilities import is_sparse
@@ -36,6 +37,7 @@ class QuadForm(Atom):
     _allow_complex = True
 
     def __init__(self, x, P) -> None:
+        """Atom representing :math:`x^T P x`."""
         super(QuadForm, self).__init__(x, P)
 
     def numeric(self, values):
@@ -98,6 +100,11 @@ class QuadForm(Atom):
         """
         return True
 
+    def has_quadratic_term(self) -> bool:
+        """Always a quadratic term.
+        """
+        return True
+
     def is_pwl(self) -> bool:
         """Is the atom piecewise linear?
         """
@@ -111,8 +118,8 @@ class QuadForm(Atom):
     def _grad(self, values):
         x = np.array(values[0])
         P = np.array(values[1])
-        D = (P + np.conj(P.T)) @ x.T
-        return [sp.csc_matrix(D.ravel(order='F')).T]
+        D = (P + np.conj(P.T)) @ x
+        return [sp.csc_matrix(D.ravel(order="F")).T]
 
     def shape_from_args(self) -> Tuple[int, ...]:
         return tuple() if self.args[0].ndim == 0 else (1, 1)
@@ -215,9 +222,14 @@ def decomp_quad(P, cond=None, rcond=None, lower=True, check_finite: bool = True)
     return scale, M1, M2
 
 
-def quad_form(x, P):
+def quad_form(x, P, assume_PSD: bool = False):
     """ Alias for :math:`x^T P x`.
 
+    Parameters
+    ----------
+    x : vector argument.
+    P : matrix argument.
+    assume_PSD : P is assumed to be PSD without checking.
     """
     x, P = map(Expression.cast_to_const, (x, P))
     # Check dimensions.
@@ -226,6 +238,8 @@ def quad_form(x, P):
     if x.is_constant():
         return x.H @ P @ x
     elif P.is_constant():
+        if assume_PSD:
+            P = psd_wrap(P)
         return QuadForm(x, P)
     else:
         raise Exception(

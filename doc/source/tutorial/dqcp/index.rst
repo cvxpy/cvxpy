@@ -7,7 +7,7 @@ Disciplined quasiconvex programming (DQCP) is a generalization of DCP for
 quasiconvex functions. Quasiconvexity generalizes convexity: a function
 :math:`f` is quasiconvex if and only if its domain is a convex set and its
 sublevel sets :math:`\{x : f(x) \leq t\}` are convex, for all :math:`t`. For a
-thorough overview of quasiconvexity, see the paper `Disciplined quasiconvex programming <http://web.stanford.edu/~boyd/papers/dqcp.html>`_.
+thorough overview of quasiconvexity, see the paper `Disciplined quasiconvex programming <https://web.stanford.edu/~boyd/papers/dqcp.html>`_.
 
 
 While DCP is a ruleset for constructing convex programs, DQCP
@@ -258,6 +258,14 @@ generalized eigenvalue of ``A`` and ``B``, defined as the maximum
 :math:`\lambda \in \mathbf{R}` such that :math:`Ax = \lambda Bx` for some :math:`x`.
 This atom is quasiconvex, and it enforces the constraint that ``A`` is
 symmetric and ``B`` is positive definite.
+
+
+**Condition Number.**
+The atom ``cvxpy.condition_number(A)`` computes the condition number of ``A``, defined as the
+:math:`\lambda_{\max}(A) / \lambda_{\min}(A)`.
+This atom is quasiconvex, and it enforces the constraint that ``A`` is
+symmetric and positive definite.
+
 
 **Ceiling and floor.**
 The atoms ``cvxpy.ceil(x)`` and ``cvxpy.floor(x)`` are quasilinear, and

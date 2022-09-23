@@ -71,10 +71,13 @@ ERROR = [SOLVER_ERROR]
 CVXOPT = "CVXOPT"
 GLPK = "GLPK"
 GLPK_MI = "GLPK_MI"
+GLOP = "GLOP"
 CBC = "CBC"
+COPT = "COPT"
 ECOS = "ECOS"
 ECOS_BB = "ECOS_BB"
 SCS = "SCS"
+SDPA = "SDPA"
 DIFFCP = "DIFFCP"
 GUROBI = "GUROBI"
 OSQP = "OSQP"
@@ -82,11 +85,14 @@ CPLEX = "CPLEX"
 MOSEK = "MOSEK"
 XPRESS = "XPRESS"
 NAG = "NAG"
+PDLP = "PDLP"
 SCIP = "SCIP"
 SCIPY = "SCIPY"
-SOLVERS = [ECOS, CVXOPT, GLPK,
-           GLPK_MI, SCS, GUROBI, OSQP, CPLEX,
-           MOSEK, CBC, XPRESS, NAG, SCIP, SCIPY]
+CLARABEL = "CLARABEL"
+SOLVERS = [CLARABEL, ECOS, CVXOPT, GLOP, GLPK, GLPK_MI,
+           SCS, SDPA, GUROBI, OSQP, CPLEX,
+           MOSEK, CBC, COPT, XPRESS,
+           NAG, PDLP, SCIP, SCIPY]
 
 # Xpress-specific items
 XPRESS_IIS = "XPRESS_IIS"
@@ -171,6 +177,10 @@ PSD_NSD_PROJECTION_TOL = 1e-8
 GENERAL_PROJECTION_TOL = 1e-10
 SPARSE_PROJECTION_TOL = 1e-10
 ATOM_EVAL_TOL = 1e-4
+
+# DPP is slow when total size of parameters
+# exceed this threshold.
+PARAM_THRESHOLD = 1e4
 
 # threads to use during compilation
 # -1 defaults to system default (configurable via the OMP_NUM_THREADS

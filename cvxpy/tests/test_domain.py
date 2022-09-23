@@ -158,20 +158,21 @@ class TestDomain(BaseTest):
     def test_power(self) -> None:
         """Test domain for power.
         """
+        opts = {'eps': 1e-8, 'max_iters': 100000}
         dom = cp.sqrt(self.a).domain
-        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, eps=1e-6)
+        Problem(Minimize(self.a), dom).solve(solver=cp.SCS, **opts)
         self.assertAlmostEqual(self.a.value, 0)
 
         dom = cp.square(self.a).domain
-        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-6)
+        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, **opts)
         self.assertAlmostEqual(self.a.value, -100)
 
         dom = ((self.a)**-1).domain
-        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-6)
+        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, **opts)
         self.assertAlmostEqual(self.a.value, 0)
 
         dom = ((self.a)**3).domain
-        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, eps=1e-6)
+        Problem(Minimize(self.a), dom + [self.a >= -100]).solve(solver=cp.SCS, **opts)
         self.assertAlmostEqual(self.a.value, 0)
 
     def test_log_det(self) -> None:

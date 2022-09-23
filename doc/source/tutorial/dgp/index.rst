@@ -549,6 +549,13 @@ dimensions or be scalars, which are promoted.
      - |affine| log-log affine
      - |incr| incr.
 
+   * - :ref:`xexp(x) <xexp>`
+
+     - :math:`x e^x`
+     - :math:`x > 0`
+     - |convex| log-log convex
+     - |incr| incr.
+
 Vector/matrix functions
 ***********************
 

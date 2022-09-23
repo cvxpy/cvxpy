@@ -86,6 +86,11 @@ class huber(Elementwise):
         """
         return self.args[0].is_affine()
 
+    def has_quadratic_term(self) -> bool:
+        """Always generates a quadratic term.
+        """
+        return True
+
     def get_data(self):
         """Returns the parameter M.
         """

@@ -29,6 +29,7 @@ from cvxpy import error
 from cvxpy.constraints import PSD, Equality, Inequality
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+from cvxpy.utilities.shape import size_from_shape
 
 
 def _cast_other(binary_op):
@@ -60,6 +61,29 @@ Using ``*`` for matrix multiplication has been deprecated since CVXPY 1.1.
     Use ``multiply`` for elementwise multiplication.
 This code path has been hit %s times so far.
 """
+
+__NUMPY_UFUNC_ERROR__ = """
+You're calling a NumPy function on a CVXPY expression. This is prone to causing
+errors or code that doesn't behave as expected. Consider using one of the
+functions documented here: https://www.cvxpy.org/tutorial/functions/index.html
+"""
+__BINARY_EXPRESSION_UFUNCS__ = {
+        np.add: lambda self, a: self.__radd__(a),
+        np.subtract: lambda self, a: self.__rsub__(a),
+        np.multiply: lambda self, a: self.__rmul__(a),
+        np.divide: lambda self, a: self.__rdiv__(a),
+        np.matmul: lambda self, a: self.__rmatmul__(a),
+        np.power: lambda self, a: self.__rpow__(a),
+        np.left_shift: lambda self, a: self.__rlshift__(a),
+        np.right_shift: lambda self, a: self.__rrshift__(a),
+        np.equal: lambda self, a: self.__eq__(a),
+        # <= and >= are backwards because this is only called for code of the
+        # form ndarray <= Expression
+        np.less_equal: lambda self, a: self.__ge__(a),
+        np.greater_equal: lambda self, a: self.__le__(a),
+        np.less: lambda self, a: self.__gt__(a),
+        np.greater: lambda self, a: self.__lt__(a),
+}
 
 
 class Expression(u.Canonical):
@@ -311,6 +335,16 @@ class Expression(u.Canonical):
         # Defaults to is constant.
         return self.is_constant()
 
+    def has_quadratic_term(self) -> bool:
+        """Does the affine head of the expression contain a quadratic term?
+
+        The affine head is all nodes with a path to the root node
+        that does not pass through any non-affine atom. If the root node
+        is non-affine, then the affine head is the root alone.
+        """
+        # Defaults to constant.
+        return self.is_constant()
+
     def is_symmetric(self) -> bool:
         """Is the expression symmetric?
         """
@@ -389,7 +423,7 @@ class Expression(u.Canonical):
     def size(self) -> int:
         """int : The number of entries in the expression.
         """
-        return np.prod(self.shape, dtype=int)
+        return size_from_shape(self.shape)
 
     @property
     def ndim(self) -> int:
@@ -397,10 +431,13 @@ class Expression(u.Canonical):
         """
         return len(self.shape)
 
-    def flatten(self):
+    def flatten(self, order: str = 'F'):
         """Vectorizes the expression.
+
+        order: column-major ('F') or row-major ('C') order.
         """
-        return cvxtypes.vec()(self)
+        assert order in ['F', 'C']
+        return cvxtypes.vec()(self, order)
 
     def is_scalar(self) -> bool:
         """Is the expression a scalar?
@@ -462,6 +499,12 @@ class Expression(u.Canonical):
             The expression raised to ``power``.
         """
         return cvxtypes.power()(self, power)
+
+    def __rpow__(self, base: float) -> "Expression":
+        raise NotImplementedError("CVXPY currently does not support variables "
+                                  "on the right side of **. Consider using the"
+                                  " identity that a**x = cp.exp(cp.multiply(np"
+                                  ".log(a), x)).")
 
     # Arithmetic operators.
     @staticmethod
@@ -678,3 +721,15 @@ class Expression(u.Canonical):
         """Unsupported.
         """
         raise NotImplementedError("Strict inequalities are not allowed.")
+
+    def __array_ufunc__(self, ufunc, method, *args, **kwargs):
+        try:
+            ufunc_handler = __BINARY_EXPRESSION_UFUNCS__[ufunc]
+            if kwargs == {} and \
+                    len(args) == 2 and \
+                    args[1] is self:
+                return ufunc_handler(self, args[0])
+        except KeyError:
+            pass
+
+        raise RuntimeError(__NUMPY_UFUNC_ERROR__)

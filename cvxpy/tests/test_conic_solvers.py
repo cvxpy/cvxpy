@@ -16,7 +16,6 @@ limitations under the License.
 
 import math
 import unittest
-from distutils.version import StrictVersion
 
 import numpy as np
 import pytest
@@ -29,9 +28,10 @@ from cvxpy.reductions.solvers.defines import (INSTALLED_MI_SOLVERS,
 from cvxpy.tests.base_test import BaseTest
 from cvxpy.tests.solver_test_helpers import (StandardTestECPs, StandardTestLPs,
                                              StandardTestMixedCPs,
-                                             StandardTestPCPs,
+                                             StandardTestPCPs, StandardTestQPs,
                                              StandardTestSDPs,
                                              StandardTestSOCPs,)
+from cvxpy.utilities.versioning import Version
 
 
 class TestECOS(BaseTest):
@@ -153,7 +153,7 @@ class TestSCS(BaseTest):
         x = cp.Variable(2, name='x')
         prob = cp.Problem(cp.Minimize(cp.norm(x, 1) + 1.0), [x == 0])
         for i in range(2):
-            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=EPS,
+            prob.solve(solver=cp.SCS, max_iters=50, eps=EPS, alpha=1.2,
                        verbose=True, normalize=True, use_indirect=False)
         self.assertAlmostEqual(prob.value, 1.0, places=2)
         self.assertItemsAlmostEqual(x.value, [0, 0], places=2)
@@ -320,6 +320,36 @@ class TestSCS(BaseTest):
         eigs = np.linalg.eig(s + s.T)[0]
         self.assertEqual(np.all(eigs >= 0), True)
 
+    def test_quad_obj(self) -> None:
+        """Test SCS canonicalization with a quadratic objective.
+        """
+        # Only relevant for SCS >= 3.0.0.
+        import scs
+        if Version(scs.__version__) >= Version('3.0.0'):
+            x = cp.Variable(2)
+            expr = cp.sum_squares(x)
+            constr = [x >= 1]
+            prob = cp.Problem(cp.Minimize(expr), constr)
+            data = prob.get_problem_data(solver=cp.SCS)
+            self.assertItemsAlmostEqual(data[0]["P"].A, 2*np.eye(2))
+            solution1 = prob.solve(solver=cp.SCS)
+
+            # When use_quad_obj = False, the quadratic objective is
+            # canonicalized to a SOC constraint.
+            prob = cp.Problem(cp.Minimize(expr), constr)
+            solver_opts = {"use_quad_obj": False}
+            data = prob.get_problem_data(solver=cp.SCS, solver_opts=solver_opts)
+            assert "P" not in data[0]
+            solution2 = prob.solve(solver=cp.SCS, **solver_opts)
+
+            assert np.isclose(solution1, solution2)
+
+            # Check that there is no P for non-quadratic objectives.
+            expr = cp.norm(x, 1)
+            prob = cp.Problem(cp.Minimize(expr), constr)
+            data = prob.get_problem_data(solver=cp.SCS)
+            assert "P" not in data[0]
+
     def test_scs_lp_3(self) -> None:
         StandardTestLPs.test_lp_3(solver='SCS')
 
@@ -327,10 +357,10 @@ class TestSCS(BaseTest):
         StandardTestLPs.test_lp_4(solver='SCS')
 
     def test_scs_lp_5(self) -> None:
-        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-5)
+        StandardTestLPs.test_lp_5(solver='SCS', eps=1e-6)
 
     def test_scs_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-5)
+        StandardTestSOCPs.test_socp_1(solver='SCS', eps=1e-6)
 
     def test_scs_socp_3(self) -> None:
         # axis 0
@@ -358,6 +388,74 @@ class TestSCS(BaseTest):
 
     def test_scs_pcp_3(self) -> None:
         StandardTestPCPs.test_pcp_3(solver='SCS', eps=1e-12)
+
+
+@unittest.skipUnless('CLARABEL' in INSTALLED_SOLVERS, 'CLARABEL is not installed.')
+class TestClarabel(BaseTest):
+
+    """ Unit tests for Clarabel. """
+    def setUp(self) -> None:
+
+        self.x = cp.Variable(2, name='x')
+        self.y = cp.Variable(3, name='y')
+
+        self.A = cp.Variable((2, 2), name='A')
+        self.B = cp.Variable((2, 2), name='B')
+        self.C = cp.Variable((3, 2), name='C')
+
+    def test_clarabel_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver=cp.CLARABEL)
+
+    def test_clarabel_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='CLARABEL')
+
+    def test_clarabel_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='CLARABEL')
+
+    def test_clarabel_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='CLARABEL')
+
+    def test_clarabel_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='CLARABEL')
+
+    def test_clarabel_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='CLARABEL')
+
+    def test_clarabel_qp_0(self) -> None:
+        StandardTestQPs.test_qp_0(solver='CLARABEL')
+
+    def test_clarabel_qp_0_linear_obj(self) -> None:
+        StandardTestQPs.test_qp_0(solver='CLARABEL', use_quad_obj=False)
+
+    def test_clarabel_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='CLARABEL')
+
+    def test_clarabel_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='CLARABEL')
+
+    def test_clarabel_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='CLARABEL')
+
+    def test_clarabel_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='CLARABEL')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='CLARABEL')
+
+    def test_clarabel_expcone_1(self) -> None:
+        StandardTestECPs.test_expcone_1(solver='CLARABEL')
+
+    def test_clarabel_exp_soc_1(self) -> None:
+        StandardTestMixedCPs.test_exp_soc_1(solver='CLARABEL')
+
+    def test_clarabel_pcp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='CLARABEL')
+
+    def test_clarabel_pcp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='CLARABEL')
+
+    def test_clarabel_pcp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='CLARABEL')
 
 
 @unittest.skipUnless('MOSEK' in INSTALLED_SOLVERS, 'MOSEK is not installed.')
@@ -415,7 +513,7 @@ class TestMosek(unittest.TestCase):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOSEK')
 
     def test_mosek_pcp_1(self) -> None:
-        StandardTestPCPs.test_pcp_1(solver='MOSEK')
+        StandardTestPCPs.test_pcp_1(solver='MOSEK', places=2)
 
     def test_mosek_pcp_2(self) -> None:
         StandardTestPCPs.test_pcp_2(solver='MOSEK')
@@ -435,8 +533,11 @@ class TestMosek(unittest.TestCase):
     def test_mosek_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='MOSEK')
 
+    def test_mosek_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='MOSEK')
+
     def test_mosek_mi_socp_1(self) -> None:
-        StandardTestSOCPs.test_mi_socp_1(solver='MOSEK')
+        StandardTestSOCPs.test_mi_socp_1(solver='MOSEK', places=3)
 
     def test_mosek_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='MOSEK')
@@ -570,6 +671,40 @@ class TestCVXOPT(BaseTest):
         StandardTestSDPs.test_sdp_2(solver='CVXOPT')
 
 
+@unittest.skipUnless('SDPA' in INSTALLED_SOLVERS, 'SDPA is not installed.')
+class TestSDPA(BaseTest):
+
+    def test_sdpa_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='SDPA')
+
+    def test_sdpa_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='SDPA')
+
+    def test_sdpa_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='SDPA')
+
+    def test_sdpa_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='SDPA')
+
+    def test_sdpa_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='SDPA')
+
+    @unittest.skip('Known limitation of SDPA for degenerate LPs.')
+    def test_sdpa_lp_5(self) -> None:
+        # this also tests the ability to pass solver options
+        StandardTestLPs.test_lp_5(solver='SDPA',
+                                  gammaStar=0.86, epsilonDash=8.0E-6, betaStar=0.18, betaBar=0.15)
+
+    def test_sdpa_sdp_1(self) -> None:
+        # minimization
+        StandardTestSDPs.test_sdp_1min(solver='SDPA')
+        # maximization
+        StandardTestSDPs.test_sdp_1max(solver='SDPA')
+
+    def test_sdpa_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver='SDPA')
+
+
 @unittest.skipUnless('CBC' in INSTALLED_SOLVERS, 'CBC is not installed.')
 class TestCBC(BaseTest):
 
@@ -585,6 +720,14 @@ class TestCBC(BaseTest):
         self.A = cp.Variable((2, 2), name='A')
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
+
+    def _cylp_checks_isProvenInfeasible():
+        try:
+            # https://github.com/coin-or/CyLP/pull/150
+            from cylp.cy.CyCbcModel import problemStatus
+            return problemStatus[0] == 'search completed'
+        except ImportError:
+            return False
 
     def test_options(self) -> None:
         """Test that all the cvx.CBC solver options work.
@@ -637,6 +780,11 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
+    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(),
+                         'CyLP <= 0.91.4 has no working integer infeasibility detection')
+    def test_cbc_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CBC')
+
 
 @unittest.skipUnless('GLPK' in INSTALLED_SOLVERS, 'GLPK is not installed.')
 class TestGLPK(unittest.TestCase):
@@ -676,6 +824,150 @@ class TestGLPK(unittest.TestCase):
 
     def test_glpk_mi_lp_4(self) -> None:
         StandardTestLPs.test_mi_lp_4(solver='GLPK_MI')
+
+    def test_glpk_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='GLPK_MI')
+
+    def test_glpk_options(self) -> None:
+        sth = sths.lp_1()
+        import cvxopt
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.solve(solver='GLPK', tm_lim=100)
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.verify_objective(places=4)
+        sth.check_primal_feasibility(places=4)
+        sth.check_complementarity(places=4)
+        sth.check_dual_domains(places=4)
+
+    def test_glpk_mi_options(self) -> None:
+        sth = sths.mi_lp_1()
+        import cvxopt
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.solve(solver='GLPK_MI', tm_lim=100, verbose=True)
+        assert "tm_lim" not in cvxopt.glpk.options
+        sth.verify_objective(places=4)
+        sth.verify_primal_values(places=4)
+
+
+@unittest.skipUnless('GLOP' in INSTALLED_SOLVERS, 'GLOP is not installed.')
+class TestGLOP(unittest.TestCase):
+
+    def test_glop_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='GLOP')
+
+    def test_glop_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='GLOP')
+
+    def test_glop_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='GLOP')
+
+    def test_glop_lp_3_no_preprocessing(self) -> None:
+        from ortools.glop import parameters_pb2
+        params = parameters_pb2.GlopParameters()
+        params.use_preprocessing = False
+        StandardTestLPs.test_lp_3(solver='GLOP', parameters_proto=params)
+
+    # With preprocessing enabled, Glop internally detects
+    # INFEASIBLE_OR_UNBOUNDED. This status is translated to
+    # MPSOLVER_INFEASIBLE. See
+    # https://github.com/google/or-tools/blob/b37d9c786b69128f3505f15beca09e89bf078a89/ortools/linear_solver/glop_utils.cc#L25-L38.
+    @unittest.skip('Known limitation of the GLOP interface.')
+    def test_glop_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='GLOP')
+
+    def test_glop_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='GLOP')
+
+    def test_glop_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='GLOP')
+
+    def test_glop_lp_6_no_preprocessing(self) -> None:
+        from ortools.glop import parameters_pb2
+        params = parameters_pb2.GlopParameters()
+        params.use_preprocessing = False
+        StandardTestLPs.test_lp_6(solver='GLOP', parameters_proto=params)
+
+    # Same issue as with test_glop_lp_3.
+    @unittest.skip('Known limitation of the GLOP interface.')
+    def test_glop_lp_6(self) -> None:
+        StandardTestLPs.test_lp_6(solver='GLOP')
+
+    def test_glop_bad_parameters(self) -> None:
+        x = cp.Variable(1)
+        prob = cp.Problem(cp.Maximize(x), [x <= 1])
+        with self.assertRaises(cp.error.SolverError):
+            prob.solve(solver='GLOP', parameters_proto="not a proto")
+
+    def test_glop_time_limit(self) -> None:
+        sth = sths.lp_1()
+        # Checks that the option doesn't error. A better test would be to solve
+        # a large instance and check that the time limit is hit.
+        sth.solve(solver='GLOP', time_limit_sec=1.0)
+
+
+@unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
+class TestPDLP(unittest.TestCase):
+
+    def test_pdlp_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='PDLP')
+
+    def test_pdlp_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='PDLP')
+
+    def test_pdlp_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='PDLP')
+
+    def test_pdlp_lp_3(self) -> None:
+        sth = sths.lp_3()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    # We get the precise status when presolve is disabled.
+    def test_pdlp_lp_3_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_3(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_lp_4(self) -> None:
+        sth = sths.lp_4()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_pdlp_lp_4_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_4(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='PDLP')
+
+    def test_pdlp_lp_6(self) -> None:
+        sth = sths.lp_6()
+        with self.assertWarns(Warning):
+            sth.prob.solve(solver='PDLP')
+            self.assertEqual(sth.prob.status, cp.settings.INFEASIBLE_OR_UNBOUNDED)
+
+    def test_pdlp_lp_6_no_presolve(self) -> None:
+        from ortools.pdlp import solvers_pb2
+        params = solvers_pb2.PrimalDualHybridGradientParams()
+        params.presolve_options.use_glop = False
+        StandardTestLPs.test_lp_6(solver='PDLP', parameters_proto=params)
+
+    def test_pdlp_bad_parameters(self) -> None:
+        x = cp.Variable(1)
+        prob = cp.Problem(cp.Maximize(x), [x <= 1])
+        with self.assertRaises(cp.error.SolverError):
+            prob.solve(solver='PDLP', parameters_proto="not a proto")
+
+    def test_pdlp_time_limit(self) -> None:
+        sth = sths.lp_1()
+        # Checks that the option doesn't error. A better test would be to solve
+        # a large instance and check that the time limit is hit.
+        sth.solve(solver='PDLP', time_limit_sec=1.0)
 
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
@@ -850,6 +1142,9 @@ class TestCPLEX(BaseTest):
 
     def test_cplex_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CPLEX')
+
+    def test_cplex_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='CPLEX')
 
     def test_cplex_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='CPLEX', places=3)
@@ -1069,6 +1364,9 @@ class TestGUROBI(BaseTest):
     def test_gurobi_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='GUROBI')
 
+    def test_gurobi_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='GUROBI')
+
     def test_gurobi_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='GUROBI', places=2)
 
@@ -1216,6 +1514,9 @@ class TestXPRESS(BaseTest):
     def test_xpress_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='XPRESS')
 
+    def test_xpress_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='XPRESS')
+
     def test_xpress_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='XPRESS')
 
@@ -1304,6 +1605,9 @@ class TestSCIP(unittest.TestCase):
 
     def test_scip_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver="SCIP")
+
+    def test_scip_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver="SCIP")
 
     def get_simple_problem(self):
         """Example problem that can be used within additional tests."""
@@ -1477,6 +1781,9 @@ class TestECOS_BB(unittest.TestCase):
     def test_ecos_bb_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='ECOS_BB')
 
+    def test_ecos_bb_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='ECOS_BB')
+
     @pytest.mark.skip(reason="Known bug in ECOS BB")
     def test_ecos_bb_mi_socp_1(self) -> None:
         StandardTestSOCPs.test_mi_socp_1(solver='ECOS_BB')
@@ -1486,7 +1793,7 @@ class TestSCIPY(unittest.TestCase):
 
     def setUp(self):
         import scipy
-        self.d = StrictVersion(scipy.__version__) >= StrictVersion('1.7.0')
+        self.d = Version(scipy.__version__) >= Version('1.7.0')
 
     def test_scipy_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='SCIPY', duals=self.d)
@@ -1505,3 +1812,113 @@ class TestSCIPY(unittest.TestCase):
 
     def test_scipy_lp_5(self) -> None:
         StandardTestLPs.test_lp_5(solver='SCIPY', duals=self.d)
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_4(self) -> None:
+        StandardTestLPs.test_mi_lp_4(solver='SCIPY')
+
+    @unittest.skipUnless('SCIPY' in INSTALLED_MI_SOLVERS, 'SCIPY version cannot solve MILPs')
+    def test_scipy_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='SCIPY')
+
+
+@unittest.skipUnless('COPT' in INSTALLED_SOLVERS, 'COPT is not installed.')
+class TestCOPT(unittest.TestCase):
+
+    def test_copt_lp_0(self) -> None:
+        StandardTestLPs.test_lp_0(solver='COPT')
+
+    def test_copt_lp_1(self) -> None:
+        StandardTestLPs.test_lp_1(solver='COPT')
+
+    def test_copt_lp_2(self) -> None:
+        StandardTestLPs.test_lp_2(solver='COPT')
+
+    def test_copt_lp_3(self) -> None:
+        StandardTestLPs.test_lp_3(solver='COPT')
+
+    def test_copt_lp_4(self) -> None:
+        StandardTestLPs.test_lp_4(solver='COPT')
+
+    def test_copt_lp_5(self) -> None:
+        StandardTestLPs.test_lp_5(solver='COPT')
+
+    def test_copt_socp_0(self) -> None:
+        StandardTestSOCPs.test_socp_0(solver='COPT')
+
+    def test_copt_socp_1(self) -> None:
+        StandardTestSOCPs.test_socp_1(solver='COPT')
+
+    def test_copt_socp_2(self) -> None:
+        StandardTestSOCPs.test_socp_2(solver='COPT')
+
+    def test_copt_socp_3(self) -> None:
+        # axis 0
+        StandardTestSOCPs.test_socp_3ax0(solver='COPT')
+        # axis 1
+        StandardTestSOCPs.test_socp_3ax1(solver='COPT')
+
+    def test_copt_mi_lp_0(self) -> None:
+        StandardTestLPs.test_mi_lp_0(solver='COPT')
+
+    def test_copt_mi_lp_1(self) -> None:
+        StandardTestLPs.test_mi_lp_1(solver='COPT')
+
+    def test_copt_mi_lp_2(self) -> None:
+        StandardTestLPs.test_mi_lp_2(solver='COPT')
+
+    def test_copt_mi_lp_3(self) -> None:
+        StandardTestLPs.test_mi_lp_3(solver='COPT')
+
+    def test_copt_mi_lp_5(self) -> None:
+        StandardTestLPs.test_mi_lp_5(solver='COPT')
+
+    def test_copt_mi_socp_1(self) -> None:
+        # COPT does not support MISOCP.
+        with pytest.raises(cp.error.SolverError, match="do not support"):
+            StandardTestSOCPs.test_mi_socp_1(solver='COPT')
+
+    def test_copt_sdp_1min(self) -> None:
+        StandardTestSDPs.test_sdp_1min(solver='COPT')
+
+    def test_copt_sdp_1max(self) -> None:
+        StandardTestSDPs.test_sdp_1max(solver='COPT')
+
+    def test_copt_sdp_2(self) -> None:
+        StandardTestSDPs.test_sdp_2(solver='COPT')
+
+    def test_copt_params(self) -> None:
+        n = 10
+        m = 4
+        np.random.seed(0)
+        A = np.random.randn(m, n)
+        x = np.random.randn(n)
+        y = A.dot(x)
+
+        # Solve a simple basis pursuit problem for testing purposes.
+        z = cp.Variable(n)
+        objective = cp.Minimize(cp.norm1(z))
+        constraints = [A @ z == y]
+        problem = cp.Problem(objective, constraints)
+
+        with self.assertRaises(AttributeError):
+            problem.solve(solver=cp.COPT, invalid_kwarg=None)
+
+        # Valid arg.
+        problem.solve(solver=cp.COPT, feastol=1e-9)

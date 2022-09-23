@@ -15,6 +15,7 @@ limitations under the License.
 """
 
 import builtins
+import copy
 import pickle
 import sys
 import warnings
@@ -24,6 +25,7 @@ from io import StringIO
 import ecos
 import numpy
 import numpy as np
+import pytest
 import scipy.sparse as sp
 # Solvers.
 import scs
@@ -273,7 +275,8 @@ class TestProblem(BaseTest):
             for verbose in [True, False]:
                 # Don't test GLPK because there's a race
                 # condition in setting CVXOPT solver options.
-                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC, cp.SCIPY]:
+                if solver in [cp.GLPK, cp.GLPK_MI, cp.MOSEK, cp.CBC,
+                              cp.SCIPY, cp.SDPA, cp.COPT]:
                     continue
                 sys.stdout = StringIO()  # capture output
 
@@ -996,21 +999,21 @@ class TestProblem(BaseTest):
         c = numpy.ones((1, 4))
         p = Problem(cp.Minimize(c @ cp.vstack([x, x])),
                     [x == [[1, 2]]])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
         p = Problem(cp.Minimize(cp.sum(cp.vstack([self.A, self.C]))),
                     [self.A >= 2*c,
                      self.C == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, -4)
 
         c = numpy.ones((1, 2))
         p = Problem(cp.Minimize(cp.sum(cp.vstack([c @ self.A, c @ self.B]))),
                     [self.A >= 2,
                      self.B == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 0)
 
         c = numpy.array([[1, -1]]).T
@@ -1034,20 +1037,20 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(c @ cp.hstack([x.T, y.T]).T),
                     [x == [[1, 2]],
                      y == [[3, 4, 5]]])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 15)
 
         c = numpy.ones((1, 4))
         p = Problem(cp.Minimize(c @ cp.hstack([x.T, x.T]).T),
                     [x == [[1, 2]]])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 6)
 
         c = numpy.ones((2, 2))
         p = Problem(cp.Minimize(cp.sum(cp.hstack([self.A.T, self.C.T]))),
                     [self.A >= 2*c,
                      self.C == -2])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, -4)
 
         D = Variable((3, 3))
@@ -1055,7 +1058,7 @@ class TestProblem(BaseTest):
         p = Problem(cp.Minimize(expr[0, 1] + cp.sum(cp.hstack([expr, expr]))),
                     [self.C >= 0,
                      D >= 0, D[0, 0] == 2, self.C[0, 1] == 3])
-        result = p.solve(solver=cp.SCS, eps=1e-5)
+        result = p.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, 13)
 
         c = numpy.array([[1, -1]]).T
@@ -1385,7 +1388,7 @@ class TestProblem(BaseTest):
         tt = cp.Variable(5)
         prob = cp.Problem(cp.Minimize(cp.sum(tt)),
                           [cp.cumsum(tt, 0) >= -0.0001])
-        result = prob.solve(solver=cp.SCS, eps=1e-5)
+        result = prob.solve(solver=cp.SCS, eps=1e-8)
         self.assertAlmostEqual(result, -0.0001)
 
     def test_cummax(self) -> None:
@@ -1987,3 +1990,98 @@ class TestProblem(BaseTest):
         param.value = np.array([1])
         prob.solve()
         assert prob.value == -np.inf
+
+    def test_cumsum_axis(self) -> None:
+        """Test the cumsum axis bug with row or column matrix
+           See issue #1678
+        """
+        n = 5
+
+        # Solve for axis = 0
+        x1 = cp.Variable((1, n))
+        expr1 = cp.cumsum(x1, axis=0)
+        prob1 = cp.Problem(cp.Minimize(0), [expr1 == 1])
+        prob1.solve()
+        expect = np.ones((1, n))
+        self.assertItemsAlmostEqual(expr1.value, expect)
+
+        # Solve for axis = 1
+        x2 = cp.Variable((n, 1))
+        expr2 = cp.cumsum(x2, axis=1)
+        prob2 = cp.Problem(cp.Minimize(0), [expr2 == 1])
+        prob2.solve()
+        expect = np.ones((n, 1))
+        self.assertItemsAlmostEqual(expr2.value, expect)
+
+    def test_cummax_axis(self) -> None:
+        """Test the cumsum axis bug with row or column matrix
+           See issue #1678
+        """
+        n = 5
+
+        # Solve for axis = 0
+        x1 = cp.Variable((1, n))
+        expr1 = cp.cummax(x1, axis=0)
+        prob1 = cp.Problem(cp.Maximize(cp.sum(x1)), [expr1 <= 1])
+        prob1.solve()
+        expect = np.ones((1, n))
+        self.assertItemsAlmostEqual(expr1.value, expect)
+
+        # Solve for axis = 1
+        x2 = cp.Variable((n, 1))
+        expr2 = cp.cummax(x2, axis=1)
+        prob2 = cp.Problem(cp.Maximize(cp.sum(x2)), [expr2 <= 1])
+        prob2.solve()
+        expect = np.ones((n, 1))
+        self.assertItemsAlmostEqual(expr2.value, expect)
+
+    def test_cp_node_count_warn(self) -> None:
+        """Test that a warning is raised for high node count."""
+        # Warning raised for constraint.
+        with warnings.catch_warnings(record=True) as w:
+            a = cp.Variable(shape=(100, 100))
+            b = sum(sum(x) for x in a)
+            cp.Problem(cp.Maximize(0), [b >= 0])
+            assert len(w) == 1
+            assert "vectorizing" in str(w[-1].message)
+            assert "Constraint #0" in str(w[-1].message)
+
+        # Warning raised for objective.
+        with warnings.catch_warnings(record=True) as w:
+            a = cp.Variable(shape=(100, 100))
+            b = sum(sum(x) for x in a)
+            cp.Problem(cp.Maximize(b))
+            assert len(w) == 1
+            assert "vectorizing" in str(w[-1].message)
+            assert "Objective" in str(w[-1].message)
+
+        # No warning.
+        with warnings.catch_warnings(record=True) as w:
+            a = cp.Variable(shape=(100, 100))
+            c = cp.sum(a)
+            cp.Problem(cp.Maximize(0), [c >= 0])
+            assert len(w) == 0
+
+    def test_copy_constraints(self) -> None:
+        """Test copy and deepcopy of constraints.
+        """
+        x = cp.Variable()
+        y = cp.Variable()
+
+        constraints = [
+            x + y == 1,
+            x - y >= 1
+        ]
+        constraints[0].atoms()
+        constraints = copy.copy(constraints)
+
+        obj = cp.Minimize((x - y) ** 2)
+        prob = cp.Problem(obj, constraints)
+        prob.solve()
+        assert prob.status == cp.OPTIMAL
+        assert np.allclose(x.value, 1)
+        assert np.allclose(y.value, 0)
+
+        error_msg = "Creating a deepcopy of a CVXPY expression is not supported"
+        with pytest.raises(NotImplementedError, match=error_msg):
+            copy.deepcopy(constraints)

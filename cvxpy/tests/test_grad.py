@@ -98,6 +98,16 @@ class TestGrad(BaseTest):
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
                                     np.array([[0.6, 0], [0, 0.8], [-0.8, 0], [0, 0.6]]))
 
+        expr = cp.pnorm(self.A, 2, axis=1)
+        self.A.value = np.array([[0, 0], [10, 0]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
+                                    np.array([[0, 0], [0, 1], [0, 0], [0, 0]]))
+
+        expr = cp.pnorm(self.A, 1, axis=1)
+        self.A.value = np.array([[0, 0], [10, 0]])
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(),
+                                    np.array([[0, 0], [0, 1], [0, 0], [0, 0]]))
+
         expr = cp.pnorm(self.A, 0.5)
         self.A.value = np.array([[3, -4], [4, 3]])
         self.assertAlmostEqual(expr.grad[self.A], None)
@@ -257,6 +267,21 @@ class TestGrad(BaseTest):
         # access quad_form.expr.grad without error
         prob.constraints[1].expr.grad
 
+        # define the optimization problem with a two-dimensional decision variable
+        x = cp.Variable((n, 1))
+        prob = cp.Problem(
+            cp.Maximize(q.T @ x - (1 / 2) * cp.quad_form(x, P)),
+            [
+                cp.norm(x, 1) <= 1.0,
+                cp.quad_form(x, P) <= 10,  # quad form constraint
+                cp.abs(x) <= 0.01,
+            ],
+        )
+        prob.solve(solver=cp.SCS)
+
+        # access quad_form.expr.grad without error
+        prob.constraints[1].expr.grad
+
     def test_max(self) -> None:
         """Test gradient for max
         """
@@ -298,6 +323,31 @@ class TestGrad(BaseTest):
 
         self.A.value = [[1, 2], [3, 0.5]]
         self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 1, 0])
+
+    def test_dotsort(self) -> None:
+        """Test dotsort.
+        """
+        expr = cp.dotsort(self.A, [0.1, -2])
+
+        self.A.value = [[4, 3], [2, 1]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0.1, 0, 0, -2])
+
+        self.A.value = [[1, 2], [3, 0.5]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 0.1, 0, -2])
+
+        # sum_largest tests:
+        expr = cp.dotsort(self.A, [1, 1])
+        self.A.value = [[4, 3], [2, 1]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 1, 0])
+        self.A.value = [[1, 2], [3, 0.5]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 1, 0])
+
+        # sum_smallest tests:
+        expr = -cp.dotsort(self.A, [-1, -1])
+        self.A.value = [[4, 3], [2, 1]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [0, 1, 0, 1])
+        self.A.value = [[1, 2], [3, 0.5]]
+        self.assertItemsAlmostEqual(expr.grad[self.A].toarray(), [1, 0, 0, 1])
 
     def test_abs(self) -> None:
         """Test abs.

@@ -1,7 +1,7 @@
 .. _tutorial:
 
-Tutorial
-========
+User Guide
+==========
 
 .. toctree::
     :maxdepth: 2

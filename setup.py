@@ -25,7 +25,7 @@ from setuptools.command.build_ext import build_ext
 #
 
 MAJOR = 1
-MINOR = 2
+MINOR = 3
 MICRO = 0
 IS_RELEASED = False
 IS_RELEASE_BRANCH = False
@@ -188,7 +188,7 @@ canon = Extension(
     sources=['cvxpy/cvxcore/src/cvxcore.cpp',
              'cvxpy/cvxcore/src/LinOpOperations.cpp',
              'cvxpy/cvxcore/src/Utils.cpp',
-             'cvxpy/cvxcore/python/cvxcore_wrap.cpp'],
+             'cvxpy/cvxcore/python/cvxcore_wrap.cxx'],
     include_dirs=['cvxpy/cvxcore/src/',
                   'cvxpy/cvxcore/python/',
                   'cvxpy/cvxcore/include/'],
@@ -211,9 +211,9 @@ setup(
                  'echu508@stanford.edu, boyd@stanford.edu',
     cmdclass={'build_ext': build_ext_cvxpy},
     ext_modules=[canon],
-    packages=find_packages(exclude=["doc",
-                                    "examples",
-                                    "cvxpy.performance_tests"]),
+    packages=find_packages(exclude=["doc*",
+                                    "examples*",
+                                    "cvxpy.performance_tests*"]),
     url='https://github.com/cvxpy/cvxpy',
     license='Apache License, Version 2.0',
     zip_safe=False,
@@ -224,13 +224,13 @@ setup(
     },
     long_description=open('README.md').read(),
     long_description_content_type="text/markdown",
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=[
         "osqp >= 0.4.1",
         "ecos >= 2",
         "scs >= 1.1.6",
         "numpy >= 1.15",
-        "scipy >= 1.1.0"
+        "scipy >= 1.1.0",
     ],
     setup_requires=["numpy >= 1.15"],
 )
