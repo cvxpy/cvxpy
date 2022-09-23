@@ -315,7 +315,6 @@ class SCIP(ConicSolver):
         """Solve and return a solution if one exists."""
 
         try:
-            model.writeProblem("test.cip")
             model.optimize()
         except Exception as e:
             log.warning("Error encountered when optimising %s: %s", model, e)
