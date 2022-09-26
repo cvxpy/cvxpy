@@ -51,7 +51,7 @@ class PROXQP(QpSolver):
 
     def invert(self, solution, inverse_data):
         attr = {s.SOLVE_TIME: solution.info.run_time}
-        attr[s.EXTRA_STATS] = solution
+        attr[s.EXTRA_STATS] = {"solution": solution}
 
         # Map PROXQP statuses back to CVXPY statuses
         status = self.STATUS_MAP.get(solution.info.status.name, s.SOLVER_ERROR)

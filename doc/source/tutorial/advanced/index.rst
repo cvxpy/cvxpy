@@ -754,7 +754,7 @@ For others see `OSQP documentation <https://osqp.org/docs/interfaces/solver_sett
 `PROXQP`_ options:
 
 ``'backend'``
-    solver backend [dense, sparase] (default: dense).
+    solver backend [dense, sparse] (default: dense).
 
 ``'max_iter'``
     maximum number of iterations (default: 10,000).
