@@ -1176,6 +1176,7 @@ class TestGUROBI(BaseTest):
            Note: This only checks output, not whether or not Gurobi is warm starting internally
         """
         if cp.GUROBI in INSTALLED_SOLVERS:
+            import gurobipy
             import numpy as np
 
             A = cp.Parameter((2, 2))
@@ -1189,12 +1190,12 @@ class TestGUROBI(BaseTest):
             c.value = np.array([1, 1])
 
             objective = cp.Maximize(c[0] * self.x[0] + c[1] * self.x[1])
-            constraints = [self.x[0] <= h[0],
+            constraints = [self.x[0]**2 <= h[0]**2,
                            self.x[1] <= h[1],
                            A @ self.x == b]
             prob = cp.Problem(objective, constraints)
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
-            self.assertEqual(result, 3)
+            self.assertAlmostEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
 
             # Change A and b from the original values
@@ -1206,7 +1207,7 @@ class TestGUROBI(BaseTest):
             # Without setting update_eq_constrs = False,
             # the results should change to the correct answer
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
-            self.assertEqual(result, 3)
+            self.assertAlmostEqual(result, 3)
             self.assertItemsAlmostEqual(self.x.value, [2, 1])
 
             # Change h from the original values
@@ -1218,7 +1219,7 @@ class TestGUROBI(BaseTest):
             # Without setting update_ineq_constrs = False,
             # the results should change to the correct answer
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
-            self.assertEqual(result, 2)
+            self.assertAlmostEqual(result, 2)
             self.assertItemsAlmostEqual(self.x.value, [1, 1])
 
             # Change c from the original values
@@ -1232,6 +1233,44 @@ class TestGUROBI(BaseTest):
             result = prob.solve(solver=cp.GUROBI, warm_start=True)
             self.assertEqual(result, 4)
             self.assertItemsAlmostEqual(self.x.value, [1, 2])
+
+            # Try creating a new problem and setting x.value.
+            init_value = np.array([2, 3])
+            self.x.value = init_value
+            prob = cp.Problem(objective, constraints)
+            result = prob.solve(solver=cp.GUROBI, warm_start=True)
+            self.assertEqual(result, 4)
+            self.assertItemsAlmostEqual(self.x.value, [1, 2])
+            # Check that "start" value was set appropriately.
+            model = prob.solver_stats.extra_stats
+            model_x = model.getVars()
+            for i in range(self.x.size):
+                assert init_value[i] == model_x[i].start
+                assert np.isclose(self.x.value[i], model_x[i].x)
+
+            # Test with matrix variable.
+            z = cp.Variable()
+            Y = cp.Variable((3, 2))
+            Y_val = np.reshape(np.arange(6), (3, 2))
+            Y.value = Y_val + 1
+            objective = cp.Maximize(z + cp.sum(Y))
+            constraints = [Y <= Y_val,
+                           z <= 2]
+            prob = cp.Problem(objective, constraints)
+            result = prob.solve(solver=cp.GUROBI, warm_start=True)
+            self.assertEqual(result, Y_val.sum() + 2)
+            self.assertAlmostEqual(z.value, 2)
+            self.assertItemsAlmostEqual(Y.value, Y_val)
+            # Check that "start" value was set appropriately.
+            model = prob.solver_stats.extra_stats
+            model_x = model.getVars()
+            assert gurobipy.GRB.UNDEFINED == model_x[0].start
+            assert np.isclose(2, model_x[0].x)
+            for i in range(1, Y.size + 1):
+                row = (i - 1) % Y.shape[0]
+                col = (i - 1) // Y.shape[0]
+                assert Y_val[row, col] + 1 == model_x[i].start
+                assert np.isclose(Y.value[row, col], model_x[i].x)
 
         else:
             with self.assertRaises(Exception) as cm:
