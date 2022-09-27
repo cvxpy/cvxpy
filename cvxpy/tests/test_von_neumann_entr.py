@@ -203,3 +203,91 @@ class Test_von_neumann_entr:
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
         sth.check_primal_feasibility(places=3)
+
+    @staticmethod
+    def make_test_5():
+        """Test#1 for the approximate canonicalization"""
+        n = 3
+        N = cp.Variable(shape=(n, n), PSD=True)
+        expect_N = np.array([[0.14523781, 0.02381009, 0.10238067],
+                             [0.02381009, 0.28095125, 0.13809581],
+                             [0.10238067, 0.13809581, 0.37380924]])
+        v1 = np.array([[-0.26726124],
+                       [-0.53452248],
+                       [-0.80178373]])
+        v2 = np.array([[0.87287156],
+                       [0.21821789],
+                       [-0.43643578]])
+        lambda1 = 0.5
+        lambda2 = 0.1
+        trMax = 0.8
+        cons1 = N @ v1 == lambda1 * v1
+        cons2 = N @ v2 == lambda2 * v2
+        cons3 = trace(N) <= trMax
+        objective = cp.Maximize(von_neumann_entr(N, (5, 5)))
+        obj_pair = (objective, 0.8987186478352693)
+        con_pairs = [
+            (cons1, None),
+            (cons2, None),
+            (cons3, None)
+        ]
+        var_pairs = [
+            (N, expect_N)
+        ]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_5(self):
+        sth = Test_von_neumann_entr.make_test_5()
+        sth.solve(**self.SOLVE_ARGS)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+
+    @staticmethod
+    def make_test_6():
+        """Test#2 for the approximate canonicalization"""
+        A1 = np.array([[8.38972, 1.02671, 0.87991],
+                       [1.02671, 8.41455, 7.31307],
+                       [0.87991, 7.31307, 2.35915]])
+
+        A2 = np.array([[6.92907, 4.37713, 5.11915],
+                       [4.37713, 7.96725, 4.42217],
+                       [5.11915, 4.42217, 2.72919]])
+
+        b = np.array([19.16342, 17.62551])
+
+        N = cp.Variable(shape=(3, 3), PSD=True)
+
+        # The below problem generates the reference values:
+        ref_X = cp.Variable(shape=(3, 3), diag=True)
+        ref_objective = cp.Minimize(-cp.sum(cp.entr(cp.diag(ref_X))))
+        ref_cons1 = trace(A1 @ ref_X) == b[0]
+        ref_cons2 = trace(A2 @ ref_X) == b[1]
+        ref_cons3 = ref_X >> 0
+        ref_prob = cp.Problem(ref_objective, [ref_cons1, ref_cons2, ref_cons3])
+        ref_obj_val = ref_prob.solve()
+        ref_X_val = ref_X.value.A
+
+        expect_N = ref_X_val
+        objective = cp.Minimize(-von_neumann_entr(N, (8, 8)))
+        obj_pair = (objective, ref_obj_val)
+        cons1 = trace(A1 @ N) == b[0]
+        cons2 = trace(A2 @ N) == b[1]
+        cons3 = N - cp.diag(cp.diag(N)) == 0
+        con_pairs = [
+            (cons1, None),
+            (cons2, None),
+            (cons3, None),
+        ]
+        var_pairs = [
+            (N, expect_N)
+        ]
+        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
+        return sth
+
+    def test_6(self):
+        sth = Test_von_neumann_entr.make_test_6()
+        sth.solve(**self.SOLVE_ARGS)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_primal_feasibility(places=3)
