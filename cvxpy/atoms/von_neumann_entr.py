@@ -100,6 +100,9 @@ class von_neumann_entr(Atom):
         """
         return False
 
+    def get_data(self):
+        return self.quad_approx
+
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.
 
