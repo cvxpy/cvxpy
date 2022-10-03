@@ -150,6 +150,11 @@ class CLARABEL(ConicSolver):
 
         settings = clarabel.DefaultSettings()
         settings.verbose = verbose
+
+        # use_quad_obj is only for canonicalization.
+        if "use_quad_obj" in opts:
+            del opts["use_quad_obj"]
+
         for opt in opts.keys():
             try:
                 settings.__setattr__(opt, opts[opt])
