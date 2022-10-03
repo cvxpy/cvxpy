@@ -167,10 +167,11 @@ def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Cons
 def von_neumann_entr_QuadApprox(expr, args):
     N, m, k = args[0], expr.quad_approx[0], expr.quad_approx[1]
     n = N.shape[0]
-    t = Variable(shape=N.shape)
+    t = Variable(shape=N.shape, symmetric=True)
     con = OpRelConeQuad(N, cp.Constant(np.eye(n)), t, m, k)
     lead_con, cons = OpRelConeQuad_canon(con, con.args)
-    return -cp.trace(con.Z), ([lead_con] + cons)
+    cons.append(lead_con)
+    return -cp.trace(con.Z), cons
 
 
 def von_neumann_entr_canon_dispatch(expr, args):

@@ -269,7 +269,7 @@ class Test_von_neumann_entr:
         ref_X_val = ref_X.value.A
 
         expect_N = ref_X_val
-        objective = cp.Minimize(-von_neumann_entr(N, (8, 8)))
+        objective = cp.Minimize(-von_neumann_entr(N, (3, 2)))
         obj_pair = (objective, ref_obj_val)
         cons1 = trace(A1 @ N) == b[0]
         cons2 = trace(A2 @ N) == b[1]
