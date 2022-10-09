@@ -1583,7 +1583,7 @@ class TestSCIP(unittest.TestCase):
         StandardTestSOCPs.test_socp_0(solver="SCIP")
 
     def test_scip_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver="SCIP", places=3, duals=False)
+        StandardTestSOCPs.test_socp_1(solver="SCIP", places=2, duals=False)
 
     def test_scip_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver="SCIP", places=2, duals=False)
