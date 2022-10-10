@@ -267,14 +267,6 @@ class SCIP(ConicSolver):
         """Set model solve parameters."""
         from pyscipopt import SCIP_PARAMSETTING
 
-        is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
-        has_soc_constr = len(dims[s.SOC_DIM]) > 1
-        if not (is_mip or has_soc_constr):
-            # These settings are needed  to allow the dual to be calculated
-            model.setPresolve(SCIP_PARAMSETTING.OFF)
-            model.setHeuristics(SCIP_PARAMSETTING.OFF)
-            model.disablePropagation()
-
         # Set model verbosity
         hide_output = not verbose
         model.hideOutput(hide_output)
@@ -303,6 +295,14 @@ class SCIP(ConicSolver):
                         e,
                     )
                 )
+
+        is_mip = data[s.BOOL_IDX] or data[s.INT_IDX]
+        has_soc_constr = len(dims[s.SOC_DIM]) > 1
+        if not (is_mip or has_soc_constr):
+            # These settings are needed  to allow the dual to be calculated
+            model.setPresolve(SCIP_PARAMSETTING.OFF)
+            model.setHeuristics(SCIP_PARAMSETTING.OFF)
+            model.disablePropagation()
 
     def _solve(
             self,
