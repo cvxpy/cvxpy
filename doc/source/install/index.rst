@@ -248,6 +248,8 @@ Install with PROXQP support
 CVXPY supports the PROXQP solver.
 Simply install PROXQP such that you can ``import proxsuite`` in Python.
 See the `proxsuite <https://github.com/simple-robotics/proxsuite#quick-install>`_ github for installation instructions.
+Be aware that PROXQP by default uses dense matrices to represent problem data.
+You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
 
 
 Install without default solvers
