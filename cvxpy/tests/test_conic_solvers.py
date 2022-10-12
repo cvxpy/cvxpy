@@ -1411,7 +1411,7 @@ class TestSCIP(unittest.TestCase):
         StandardTestSOCPs.test_socp_0(solver="SCIP")
 
     def test_scip_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver="SCIP", places=3, duals=False)
+        StandardTestSOCPs.test_socp_1(solver="SCIP", places=2, duals=False)
 
     def test_scip_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver="SCIP", places=2, duals=False)
@@ -1433,6 +1433,12 @@ class TestSCIP(unittest.TestCase):
 
     def test_scip_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver="SCIP")
+
+    def test_scip_mi_socp_1(self) -> None:
+        StandardTestSOCPs.test_mi_socp_1(solver="SCIP", places=3)
+
+    def test_scip_mi_socp_2(self) -> None:
+        StandardTestSOCPs.test_mi_socp_2(solver="SCIP")
 
     def get_simple_problem(self):
         """Example problem that can be used within additional tests."""
