@@ -17,7 +17,9 @@ limitations under the License.
 from cvxpy.version import version as __version__  # cvxpy/version.py is auto-generated
 import cvxpy.interface.scipy_wrapper
 from cvxpy.atoms import *
-from cvxpy.constraints import *
+from cvxpy.constraints import (PSD, SOC, NonPos, NonNeg, Zero, 
+                               PowCone3D, PowConeND, ExpCone, 
+                               OpRelConeQuad, RelEntrQuad, FiniteSet,)
 from cvxpy.error import (DCPError, DGPError, DPPError, SolverError,
                          disable_warnings, enable_warnings, warnings_enabled,)
 from cvxpy.expressions.constants import CallbackParam, Constant, Parameter
