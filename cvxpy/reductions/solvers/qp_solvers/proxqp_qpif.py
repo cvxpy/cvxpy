@@ -75,11 +75,23 @@ class PROXQP(QpSolver):
                        solver_cache=None):
         import proxsuite
 
-        P = data[s.P]
+        solver_opts['backend'] = solver_opts.get('backend', 'dense')
+        backend = solver_opts['backend']
+
+        if backend == "dense":
+            # Convert sparse to dense matrices
+            P = data[s.P].toarray()
+            A = data[s.A].toarray()
+            F = data[s.F].toarray()
+        elif backend == "sparse":
+            P = data[s.P]
+            A = data[s.A]
+            F = data[s.F]
+        else:
+            raise ValueError("Wrong input, backend most be either dense or sparse")
+
         q = data[s.Q]
-        A = data[s.A]
         b = data[s.B]
-        F = data[s.F]
         g = data[s.G]
 
         lb = -np.inf*np.ones(data[s.G].shape)
@@ -96,8 +108,6 @@ class PROXQP(QpSolver):
         solver_opts['rho'] = solver_opts.get('rho', 1e-6)
         solver_opts['mu_eq'] = solver_opts.get('mu_eq', 1e-3)
         solver_opts['mu_in'] = solver_opts.get('mu_in', 1e-1)
-        solver_opts['backend'] = solver_opts.get('backend', 'dense')
-
         # Use cached data
         if warm_start and solver_cache is not None and self.name() in solver_cache:
             solver, old_data, results = solver_cache[self.name()]
@@ -125,21 +135,18 @@ class PROXQP(QpSolver):
             else:
                 solver.solve()
         else:
-            backend = solver_opts['backend']
             if backend == "dense":
                 solver = proxsuite.proxqp.dense.QP(n_var, n_eq, n_ineq)
             elif backend == "sparse":
                 solver = proxsuite.proxqp.sparse.QP(n_var, n_eq, n_ineq)
-            else:
-                raise ValueError("Wrong input, backend most be either dense or sparse")
 
             solver.init(H=P,
                         g=q,
                         A=A,
                         b=b,
                         C=F,
-                        u=g,
                         l=lb,
+                        u=g,
                         rho=solver_opts['rho'],
                         mu_eq=solver_opts['mu_eq'],
                         mu_in=solver_opts['mu_in'])
