@@ -140,11 +140,11 @@ def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Cons
     constrs = [Zero(Zs[0] - Y)]
     if not X.is_hermitian():
         ut = upper_tri(X)
-        lt = upper_tri(X.T)
+        lt = upper_tri(X.H)
         constrs.append(ut == lt)
     if not Y.is_hermitian():
         ut = upper_tri(Y)
-        lt = upper_tri(Y.T)
+        lt = upper_tri(Y.H)
         constrs.append(ut == lt)
     w, t = gauss_legendre(m)
     lead_con = Zero(cp.sum([w[i] * Ts[i] for i in range(m)]) + con.Z/2**k)
@@ -152,14 +152,14 @@ def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Cons
     for i in range(k):
         #     [Z[i]  , Z[i+1]]
         #     [Z[i+1], x     ]
-        constrs.append(cp.bmat([[Zs[i], Zs[i+1]], [Zs[i+1].T, X]]) >> 0)
+        constrs.append(cp.bmat([[Zs[i], Zs[i+1]], [Zs[i+1].H, X]]) >> 0)
 
     for i in range(m):
         off_diag = -(t[i]**0.5) * Ts[i]
         # The following matrix needs to be PSD.
         #     [ Z[k] - x - T[i] , off_diag      ]
         #     [ off_diag        , x - t[i]*T[i] ]
-        constrs.append(cp.bmat([[Zs[k] - X - Ts[i], off_diag], [off_diag.T, X-t[i]*Ts[i]]]) >> 0)
+        constrs.append(cp.bmat([[Zs[k] - X - Ts[i], off_diag], [off_diag.H, X-t[i]*Ts[i]]]) >> 0)
 
     return lead_con, constrs
 
