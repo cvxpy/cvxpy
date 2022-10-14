@@ -50,7 +50,7 @@ def norm_nuc_canon(expr, real_args, imag_args, real2imag):
 
 
 def lambda_sum_largest_canon(expr, real_args, imag_args, real2imag):
-    """Canonicalize nuclear norm with Hermitian matrix input.
+    """Canonicalize sum of k largest eigenvalues with Hermitian matrix input.
     """
     # Divide by two because each eigenvalue is repeated twice.
     real, imag = hermitian_canon(expr, real_args, imag_args, real2imag)
