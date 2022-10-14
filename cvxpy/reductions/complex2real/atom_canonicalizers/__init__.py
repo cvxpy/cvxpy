@@ -94,7 +94,7 @@ CANON_METHODS = {
     PSD: psd_canon,
     SOC: soc_canon,
     Equality: equality_canon,
-    Zero: equality_canon,
+    Zero: zero_canon,
 
     abs: abs_canon,
     norm1: pnorm_canon,
