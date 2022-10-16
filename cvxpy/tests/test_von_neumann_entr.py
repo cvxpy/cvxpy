@@ -108,7 +108,7 @@ class Test_von_neumann_entr:
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
-    def make_test_3(quad_approx=False):
+    def make_test_3(self, quad_approx=False):
         """Expect unspecified EV to be 0.35"""
         n = 4
         N = cp.Variable(shape=(n, n), PSD=True)
@@ -154,7 +154,7 @@ class Test_von_neumann_entr:
         return sth
 
     def test_3(self):
-        sth = Test_von_neumann_entr.make_test_3()
+        sth = self.make_test_3()
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
@@ -211,13 +211,13 @@ class Test_von_neumann_entr:
         sth.check_primal_feasibility(places=3)
 
     def test_5(self):
-        sth = Test_von_neumann_entr.make_test_3(quad_approx=True)
+        sth = self.make_test_3(quad_approx=True)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
     def test_6(self):
-        sth = Test_von_neumann_entr.make_test_4(quad_approx=True)
+        sth = self.make_test_4(quad_approx=True)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
