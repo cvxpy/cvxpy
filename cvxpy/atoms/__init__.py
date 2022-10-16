@@ -97,6 +97,7 @@ from cvxpy.atoms.sum_squares import sum_squares
 from cvxpy.atoms.total_variation import tv
 from cvxpy.atoms.tr_inv import tr_inv
 from cvxpy.atoms.von_neumann_entr import von_neumann_entr
+from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
 
 # TODO(akshayka): Perhaps couple this information with the atom classes
 # themselves.
@@ -119,6 +120,7 @@ EXP_ATOMS = [
     kl_div,
     rel_entr,
     von_neumann_entr,
+    quantum_rel_entr,
     log,
     log1p,
     logistic,
