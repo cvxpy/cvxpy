@@ -21,7 +21,7 @@ from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
 from cvxpy.expressions import cvxtypes
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
-from cvxpy.reductions.complex2real.atom_canonicalizers import (
+from cvxpy.reductions.complex2real.canonicalizers import (
     CANON_METHODS as elim_cplx_methods,)
 from cvxpy.reductions.reduction import Reduction
 

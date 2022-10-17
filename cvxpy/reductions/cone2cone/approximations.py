@@ -133,7 +133,7 @@ def RelEntrQuad_canon(con: RelEntrQuad, args) -> Tuple[Constraint, List[Constrai
 
 
 def QuantumRelEntr_canon(expr, args):
-    X ,Y, m, k = args[0], args[1], expr.quad_approx[0], expr.quad_approx[1]
+    X, Y, m, k = args[0], args[1], expr.quad_approx[0], expr.quad_approx[1]
     n = X.shape[0]
     matrix_epi = Variable(shape=(n**2, n**2), symmetric=True)
 
@@ -148,19 +148,27 @@ def QuantumRelEntr_canon(expr, args):
     scalar_epi = e @ matrix_epi @ e
     return scalar_epi, cons
 
+
 def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
     k, m = con.k, con.m
     X, Y = con.X, con.Y
-    Zs = {i: Variable(shape=X.shape, hermitian=True) for i in range(k+1)}
-    Ts = {i: Variable(shape=X.shape, hermitian=True) for i in range(m+1)}
+    assert X.is_real()
+    assert Y.is_real()
+    assert con.Z.is_real()
+    Zs = {i: Variable(shape=X.shape, symmetric=True) for i in range(k+1)}
+    Ts = {i: Variable(shape=X.shape, symmetric=True) for i in range(m+1)}
     constrs = [Zero(Zs[0] - Y)]
-    if not X.is_hermitian():
+    if not X.is_symmetric():
         ut = upper_tri(X)
-        lt = upper_tri(X.H)
+        lt = upper_tri(X.T)
         constrs.append(ut == lt)
-    if not Y.is_hermitian():
+    if not Y.is_symmetric():
         ut = upper_tri(Y)
-        lt = upper_tri(Y.H)
+        lt = upper_tri(Y.T)
+        constrs.append(ut == lt)
+    if not con.Z.is_symmetric():
+        ut = upper_tri(con.Z)
+        lt = upper_tri(con.Z.T)
         constrs.append(ut == lt)
     w, t = gauss_legendre(m)
     lead_con = Zero(cp.sum([w[i] * Ts[i] for i in range(m)]) + con.Z/2**k)

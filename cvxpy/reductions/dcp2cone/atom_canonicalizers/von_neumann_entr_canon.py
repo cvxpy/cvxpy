@@ -19,23 +19,17 @@ from cvxpy.constraints.nonpos import NonPos
 from cvxpy.constraints.zero import Zero
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import entr_canon
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_sum_largest_canon import \
-    lambda_sum_largest_canon as sym_lambda_sum_largest_canon
-from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import \
-    lambda_sum_largest_canon as herm_lambda_sum_largest_canon
+    lambda_sum_largest_canon
 
 
 def von_neumann_entr_canon(expr, args):
     N = args[0]
+    assert N.is_real()
     n = N.shape[0]
     x = Variable(shape=(n,))
     t = Variable()
 
     # START code that applies to all spectral functions #
-    if N.is_real():
-        lambda_sum_largest_canon = sym_lambda_sum_largest_canon
-    else:
-        lambda_sum_largest_canon = herm_lambda_sum_largest_canon
-
     constrs = []
     for r in range(1, n):
         # lambda_sum_largest(N, r) <= sum(x[:r])

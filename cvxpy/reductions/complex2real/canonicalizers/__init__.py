@@ -30,35 +30,37 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.vstack import Vstack
 from cvxpy.atoms.norm_nuc import normNuc
-from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
+# from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
+from cvxpy.atoms.von_neumann_entr import von_neumann_entr
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
-                               Zero,)
+                               Zero, OpRelConeQuad)
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.abs_canon import (
     abs_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.aff_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.aff_canon import (
     binary_canon, conj_canon, imag_canon, real_canon, separable_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.constant_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.constant_canon import (
     constant_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.equality_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.equality_canon import (
     equality_canon, zero_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.inequality_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.inequality_canon import (
     inequality_canon, nonneg_canon, nonpos_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.matrix_canon import (
     hermitian_canon, lambda_sum_largest_canon, matrix_frac_canon,
-    norm_nuc_canon, quad_canon, quad_over_lin_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.param_canon import (
+    norm_nuc_canon, quad_canon, quad_over_lin_canon,
+    von_neumann_entr_canon, quantum_rel_entr_canon, op_rel_cone_canon)
+from cvxpy.reductions.complex2real.canonicalizers.param_canon import (
     param_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.pnorm_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.pnorm_canon import (
     pnorm_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.psd_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.psd_canon import (
     psd_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.soc_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.soc_canon import (
     soc_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.variable_canon import (
     variable_canon,)
-from cvxpy.reductions.cone2cone.approximations import QuantumRelEntr_canon
+
 
 CANON_METHODS = {
     AddExpression: separable_canon,
@@ -77,7 +79,6 @@ CANON_METHODS = {
     NegExpression: separable_canon,
     upper_tri: separable_canon,
     Vstack: separable_canon,
-    quantum_rel_entr: QuantumRelEntr_canon,
 
     conv: binary_canon,
     DivExpression: binary_canon,
@@ -97,6 +98,7 @@ CANON_METHODS = {
     PSD: psd_canon,
     SOC: soc_canon,
     Equality: equality_canon,
+    OpRelConeQuad: op_rel_cone_canon,
     Zero: zero_canon,
 
     abs: abs_canon,
@@ -112,4 +114,6 @@ CANON_METHODS = {
     quad_over_lin: quad_over_lin_canon,
     MatrixFrac: matrix_frac_canon,
     lambda_sum_largest: lambda_sum_largest_canon,
+    von_neumann_entr: von_neumann_entr_canon,
+    # quantum_rel_entr: quantum_rel_entr_canon,
 }
