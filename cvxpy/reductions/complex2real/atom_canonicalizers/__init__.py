@@ -30,6 +30,7 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.vstack import Vstack
 from cvxpy.atoms.norm_nuc import normNuc
+from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
                                Zero,)
 from cvxpy.expressions.constants import Constant, Parameter
@@ -57,6 +58,7 @@ from cvxpy.reductions.complex2real.atom_canonicalizers.soc_canon import (
     soc_canon,)
 from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import (
     variable_canon,)
+from cvxpy.reductions.cone2cone.approximations import QuantumRelEntr_canon
 
 CANON_METHODS = {
     AddExpression: separable_canon,
@@ -75,6 +77,7 @@ CANON_METHODS = {
     NegExpression: separable_canon,
     upper_tri: separable_canon,
     Vstack: separable_canon,
+    quantum_rel_entr: QuantumRelEntr_canon,
 
     conv: binary_canon,
     DivExpression: binary_canon,
