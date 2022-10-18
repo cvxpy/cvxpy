@@ -276,11 +276,6 @@ def construct_solving_chain(problem, candidates,
                 reductions.append(Exotic2Common())
             if RelEntrQuad in approx_cos or OpRelConeQuad in approx_cos:
                 reductions.append(QuadApprox())
-                # from cvxpy.reductions.complex2real.complex2real import Complex2Real
-                # reductions_filter = [r for r in reductions if not isinstance(r, Complex2Real)]
-                # if len(reductions_filter) < len(reductions):
-                #    reductions = reductions_filter
-                #    reductions.append(Complex2Real())
 
             # Should the objective be canonicalized to a quadratic?
             if solver_opts is None:
