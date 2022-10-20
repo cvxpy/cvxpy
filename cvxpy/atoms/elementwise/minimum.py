@@ -35,7 +35,7 @@ class minimum(Elementwise):
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
-        """Returns the elementwise maximum.
+        """Returns the elementwise minimum.
         """
         return reduce(np.minimum, values)
 

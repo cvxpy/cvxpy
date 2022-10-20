@@ -18,7 +18,7 @@ from cvxpy.atoms.elementwise.power import power
 from cvxpy.atoms.geo_mean import geo_mean
 
 
-def inv_prod(value):
+def inv_prod(x):
     """The reciprocal of a product of the entries of a vector ``x``.
 
     Parameters
@@ -35,4 +35,4 @@ def inv_prod(value):
 
         where :math:`n` is the length of :math:`x`.
     """
-    return power(inv_pos(geo_mean(value)), int(sum(value.shape)))
+    return power(inv_pos(geo_mean(x)), int(sum(x.shape)))

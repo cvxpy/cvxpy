@@ -39,4 +39,7 @@ def harmonic_mean(x):
     # TODO(akshayka): Behavior of the below is incorrect when x has negative
     # entries. Either fail fast or provide a correct expression with
     # unknown curvature.
+    # check for non-negative and fail fast
+    if all(expr.is_nonneg() for expr in x) is False:
+        raise ValueError('Input must have positive entries')
     return x.size*pnorm(x, -1)
