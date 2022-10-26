@@ -63,6 +63,9 @@ class TestExpressions(BaseTest):
         self.assertEqual(repr(self.x), "Variable((2,))")
         self.assertEqual(repr(self.A), "Variable((2, 2))")
 
+        # Test shape provided as list instead of tuple
+        self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
+
         # # Scalar variable
         # coeff = self.a.coefficients()
         # self.assertEqual(coeff[self.a.id], [1])
