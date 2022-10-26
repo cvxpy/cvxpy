@@ -15,7 +15,7 @@ limitations under the License.
 """
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Iterable
 
 import scipy.sparse as sp
 
@@ -67,7 +67,7 @@ class Variable(Leaf):
     """
 
     def __init__(
-        self, shape: int | tuple[int, ...] = (), name: str | None = None,
+        self, shape: int | Iterable[int, ...] = (), name: str | None = None,
         var_id: int | None = None, **kwargs: Any
     ):
         if var_id is None:
