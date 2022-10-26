@@ -14,7 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Any, List, Optional
+from __future__ import annotations
+
+from typing import Any, Iterable, List, Optional
 
 import scipy.sparse as sp
 
@@ -66,7 +68,8 @@ class Variable(Leaf):
     """
 
     def __init__(
-        self, shape=(), name: Optional[str] = None, var_id: Optional[int] = None, **kwargs: Any
+        self, shape: int | Iterable[int, ...] = (), name: str | None = None,
+        var_id: int | None = None, **kwargs: Any
     ) -> None:
         if var_id is None:
             self.id = lu.get_id()
