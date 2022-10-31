@@ -376,7 +376,7 @@ def get_problem_matrix(linOps,
             shape=output_shape)
         return A
 
-    if canon_backend in {s.SCIPY_CANON_BACKEND}:
+    elif canon_backend in {s.SCIPY_CANON_BACKEND}:
         param_size_plus_one = sum(param_to_size.values())
         output_shape = (np.int64(constr_length)*np.int64(var_length+1),
                    param_size_plus_one)
@@ -389,6 +389,8 @@ def get_problem_matrix(linOps,
             A_py = sp.csc_matrix(((), ((), ())), output_shape)
         assert A_py.shape == output_shape
         return A_py
+    else:
+        raise ValueError(f'Unknown backend: {canon_backend=}')
 
 
 def format_matrix(matrix, shape=None, format='dense'):

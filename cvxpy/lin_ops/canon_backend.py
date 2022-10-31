@@ -48,7 +48,7 @@ class TensorRepresentation:
         Concatenates the row, col, parameter_offset, and data fields of a list of
         TensorRepresentations.
         """
-        data, row, col,  parameter_offset = np.array([]), np.array([]), np.array([]), np.array([])
+        data, row, col, parameter_offset = np.array([]), np.array([]), np.array([]), np.array([])
         # Appending to numpy arrays vs. appending to lists and casting to array at the end was
         # faster for relevant dimensions in our testing.
         for t in tensors:
@@ -122,15 +122,19 @@ class CanonBackend(ABC):
         -------
         2D sp.coo_matrix representing the constraints (or the objective).
         """
+        self.id_to_col[-1] = self.var_length
+
         constraint_res = []
         offset = 0
         for lin_op in lin_ops:
             lin_op_rows = np.prod(lin_op.shape)
             empty_view = self.get_empty_view()
             lin_op_tensor = self.process_constraint(lin_op, empty_view)
-            constraint_res.append((lin_op_tensor.get_A_b(), offset))
+            constraint_res.append((lin_op_tensor.get_tensor_representation, offset))
             offset += lin_op_rows
         tensor_res = self.concatenate_tensors(constraint_res)
+
+        self.id_to_col.pop(-1)
         return self.reshape_tensors(tensor_res, offset)
 
     def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
@@ -188,7 +192,7 @@ class CanonBackend(ABC):
         """
         constant_view = self.process_constraint(lin_op, view)
         assert constant_view.variable_ids == {Constant.ID.value}
-        constant_data = constant_view.constant_data
+        constant_data = constant_view.tensor[Constant.ID.value]
         if not column and len(lin_op.shape) >= 1:
             # constant_view has the data stored in column format.
             # Some operations (like mul) do not require column format, so we need to reshape
@@ -302,6 +306,7 @@ class CanonBackend(ABC):
         """
         Given (A, b) in view, return (-A, -b).
         """
+
         def func(x):
             return -x
 
@@ -506,7 +511,7 @@ class CanonBackend(ABC):
 class ScipyCanonBackend(CanonBackend):
 
     @staticmethod
-    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...])\
+    def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...]) \
             -> dict[int, sp.csr_matrix]:
         return {k: [v_i.reshape(new_shape[:-1], order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
@@ -762,28 +767,30 @@ class ScipyCanonBackend(CanonBackend):
 
         return view.accumulate_over_variables(func, is_param_free_function=is_param_free_rhs)
 
-    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int):
+    def get_variable_tensor(self, shape: tuple[int, ...], variable_id: int) -> \
+            dict[int, dict[int, list[sp.csr_matrix]]]:
         assert variable_id != Constant.ID
         n = int(np.prod(shape))
         return {variable_id: {Constant.ID.value: [sp.eye(n, format="csr")]}}
 
-    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> dict[int, list[sp.csr_matrix]]:
+    def get_data_tensor(self, data: np.ndarray | sp.spmatrix) -> \
+            dict[int, dict[int, list[sp.csr_matrix]]]:
         if isinstance(data, np.ndarray):
             # Slightly faster compared to reshaping after casting
             tensor = sp.csr_matrix(data.reshape((-1, 1), order="F"))
         else:
             tensor = sp.coo_matrix(data).reshape((-1, 1), order="F").tocsr()
-        return {Constant.ID.value: [tensor]}
+        return {Constant.ID.value: {Constant.ID.value: [tensor]}}
 
     def get_param_tensor(self, shape: tuple[int, ...], parameter_id: int) \
-            -> dict[int, list[sp.csr_matrix]]:
+            -> dict[int, dict[int, list[sp.csr_matrix]]]:
         assert parameter_id != Constant.ID
         shape = int(np.prod(shape))
         slices = []
         for idx in np.arange(shape):
             slices.append(sp.csr_matrix(((np.array([1.])), ((np.array([idx])),
                                                             (np.array([0])))), shape=(shape, 1)))
-        return {parameter_id: slices}
+        return {Constant.ID.value: {parameter_id: slices}}
 
 
 class TensorView(ABC):
@@ -804,8 +811,7 @@ class TensorView(ABC):
                  var_length: int
                  ):
         self.variable_ids = variable_ids if variable_ids is not None else None
-        self._variable_tensor = None if self.is_b(variable_ids) else tensor
-        self.constant_data = tensor if self.is_b(variable_ids) else None
+        self.tensor = tensor
         self.is_parameter_free = is_parameter_free
 
         # Constants
@@ -818,9 +824,7 @@ class TensorView(ABC):
     def __iadd__(self, other: TensorView) -> TensorView:
         assert isinstance(other, self.__class__)
         self.variable_ids = self.variable_ids | other.variable_ids
-        self._variable_tensor = self.combine_potentially_none(self._variable_tensor,
-                                                              other._variable_tensor)
-        self.constant_data = self.combine_potentially_none(self.constant_data, other.constant_data)
+        self.tensor = self.combine_potentially_none(self.tensor, other.tensor)
         self.is_parameter_free = self.is_parameter_free and other.is_parameter_free
         return self
 
@@ -846,7 +850,7 @@ class TensorView(ABC):
                    var_length)
 
     @staticmethod
-    def is_b(variable_ids: set[int]) -> bool:
+    def is_constant_data(variable_ids: set[int]) -> bool:
         """
         Does the TensorView only contain constant data?
         """
@@ -858,10 +862,10 @@ class TensorView(ABC):
         """
         Number of rows of the TensorView.
         """
-        pass   # noqa
+        pass  # noqa
 
     @abstractmethod
-    def get_A_b(self):
+    def get_tensor_representation(self):
         """
         Returns [A b].
         """
@@ -870,7 +874,7 @@ class TensorView(ABC):
     @abstractmethod
     def select_rows(self, rows: np.ndarray) -> None:
         """
-        Select 'rows' from A and b.
+        Select 'rows' from tensor.
         """
         pass  # noqa
 
@@ -882,7 +886,7 @@ class TensorView(ABC):
         pass  # noqa
 
     @abstractmethod
-    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool)\
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: Any, is_parameter_free: bool) \
             -> TensorView:
         """
         Create new TensorView with same shape information as self, but new data.
@@ -894,16 +898,28 @@ class ScipyTensorView(TensorView):
 
     @property
     def rows(self) -> int:
-        if self._variable_tensor is not None:
-            return next(iter(next(iter(self._variable_tensor.values())).values()))[0].shape[0]
-        elif self.constant_data is not None:
-            return next(iter(self.constant_data.values()))[0].shape[0]
+        if self.tensor is not None:
+            return next(iter(next(iter(self.tensor.values())).values()))[0].shape[0]
         else:
             raise ValueError
 
-    def get_A_b(self) -> TensorRepresentation:
-        return TensorRepresentation.combine([i for i in [self.get_A(), self.get_b()]
-                                             if i is not None])
+    def get_tensor_representation(self) -> TensorRepresentation:
+        """
+        Returns a TensorRepresentation of [A b] tensor.
+        """
+        assert self.tensor is not None
+        tensor_representations = []
+        for variable_id, variable_tensor in self.tensor.items():
+            for parameter_id, parameter_tensor in variable_tensor.items():
+                for offset, matrix in enumerate(parameter_tensor):
+                    coo_repr = matrix.tocoo(copy=False)
+                    tensor_representations.append(TensorRepresentation(
+                        coo_repr.data,
+                        coo_repr.row,
+                        coo_repr.col + self.id_to_col[variable_id],
+                        np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
+                    ))
+        return TensorRepresentation.combine(tensor_representations)
 
     def select_rows(self, rows: np.ndarray) -> None:
 
@@ -913,21 +929,17 @@ class ScipyTensorView(TensorView):
         self.apply_all(func)
 
     def apply_all(self, func: Callable) -> None:
-        if self._variable_tensor is not None:
-            self._variable_tensor = {var_id: {k: [func(v_i).tocsr() for v_i in v]
-                                              for k, v in parameter_repr.items()}
-                                     for var_id, parameter_repr in self._variable_tensor.items()}
-        if self.constant_data is not None:
-            self.constant_data = {k: [func(v_i).tocsr() for v_i in v]
-                                  for k, v in self.constant_data.items()}
+        self.tensor = {var_id: {k: [func(v_i).tocsr() for v_i in v]
+                                for k, v in parameter_repr.items()}
+                       for var_id, parameter_repr in self.tensor.items()}
 
-    def create_new_tensor_view(self, variable_ids: set[int], tensor: dict, is_parameter_free: bool)\
-            -> ScipyTensorView:
+    def create_new_tensor_view(self, variable_ids: set[int], tensor: dict,
+                               is_parameter_free: bool) -> ScipyTensorView:
         return ScipyTensorView(variable_ids, tensor, is_parameter_free, self.param_size_plus_one,
                                self.id_to_col, self.param_to_size, self.param_to_col,
                                self.var_length)
 
-    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool)\
+    def accumulate_over_variables(self, func: Callable, is_param_free_function: bool) \
             -> ScipyTensorView:
         """
         Apply 'func' to A and b.
@@ -936,13 +948,10 @@ class ScipyTensorView(TensorView):
         If 'func' is not a parameter free function, we only need to consider the parameter slice
         that contains the non-parameter constants, due to DPP rules.
         """
-        if self._variable_tensor is not None:
-            for variable_id, tensor in self._variable_tensor.items():
-                self._variable_tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
-                    is_param_free_function else func(tensor[Constant.ID.value])
-        if self.constant_data is not None:
-            self.constant_data = self.apply_to_parameters(func, self.constant_data) if \
-                is_param_free_function else func(self.constant_data[Constant.ID.value])
+        for variable_id, tensor in self.tensor.items():
+            self.tensor[variable_id] = self.apply_to_parameters(func, tensor) if \
+                is_param_free_function else func(tensor[Constant.ID.value])
+
         self.is_parameter_free = self.is_parameter_free and is_param_free_function
         return self
 
@@ -954,47 +963,6 @@ class ScipyTensorView(TensorView):
         Apply 'func' to each slice of the parameter representation.
         """
         return {k: [func(v_i).tocsr() for v_i in v] for k, v in parameter_representation.items()}
-
-    def get_A(self) -> TensorRepresentation | None:
-        """
-        Returns a TensorRepresentation of the A tensor, if it is not None.
-        """
-        if self._variable_tensor is not None:
-            tensor_representations = []
-            for variable_id, variable_tensor in self._variable_tensor.items():
-                for parameter_id, parameter_tensor in variable_tensor.items():
-                    for offset, matrix in enumerate(parameter_tensor):
-                        coo_repr = matrix.tocoo(copy=False)
-                        tensor_representations.append(TensorRepresentation(
-                            coo_repr.data,
-                            coo_repr.row,
-                            coo_repr.col + self.id_to_col[variable_id],
-                            np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
-                        ))
-            return TensorRepresentation.combine(tensor_representations)
-        else:
-            assert self.constant_data is not None
-            return None
-
-    def get_b(self) -> TensorRepresentation | None:
-        """
-        Returns a TensorRepresentation of the b tensor, if it is not None.
-        """
-        if self.constant_data is not None:
-            tensor_representations = []
-            for parameter_id, parameter_tensor in self.constant_data.items():
-                for offset, matrix in enumerate(parameter_tensor):
-                    coo_repr = matrix.tocoo(copy=False)
-                    tensor_representations.append(TensorRepresentation(
-                        coo_repr.data,
-                        coo_repr.row,
-                        np.zeros(coo_repr.nnz) + self.var_length,
-                        np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
-                    ))
-            return TensorRepresentation.combine(tensor_representations)
-        else:
-            assert self._variable_tensor is not None
-            return None
 
     @staticmethod
     def combine_potentially_none(a: dict | None, b: dict | None) -> dict | None:
