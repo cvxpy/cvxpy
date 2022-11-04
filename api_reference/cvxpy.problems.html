@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Transforms" href="cvxpy.transforms.html" />
@@ -865,11 +866,72 @@ This object may be a dict, or a custom Python object.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.constraints.html">Constraints</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Problems</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#minimize">Minimize</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#maximize">Maximize</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#problem">Problem</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#sizemetrics">SizeMetrics</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#solverstats">SolverStats</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#minimize">Minimize</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.Minimize"><code class="docutils literal notranslate"><span class="pre">Minimize</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Minimize.is_dcp"><code class="docutils literal notranslate"><span class="pre">Minimize.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Minimize.is_dgp"><code class="docutils literal notranslate"><span class="pre">Minimize.is_dgp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#maximize">Maximize</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.Maximize"><code class="docutils literal notranslate"><span class="pre">Maximize</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Maximize.is_dcp"><code class="docutils literal notranslate"><span class="pre">Maximize.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Maximize.is_dgp"><code class="docutils literal notranslate"><span class="pre">Maximize.is_dgp()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#problem">Problem</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.Problem"><code class="docutils literal notranslate"><span class="pre">Problem</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.atoms"><code class="docutils literal notranslate"><span class="pre">Problem.atoms()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.backward"><code class="docutils literal notranslate"><span class="pre">Problem.backward()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.constants"><code class="docutils literal notranslate"><span class="pre">Problem.constants()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.derivative"><code class="docutils literal notranslate"><span class="pre">Problem.derivative()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.get_problem_data"><code class="docutils literal notranslate"><span class="pre">Problem.get_problem_data()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.is_dcp"><code class="docutils literal notranslate"><span class="pre">Problem.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.is_dgp"><code class="docutils literal notranslate"><span class="pre">Problem.is_dgp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.is_dpp"><code class="docutils literal notranslate"><span class="pre">Problem.is_dpp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.is_dqcp"><code class="docutils literal notranslate"><span class="pre">Problem.is_dqcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.is_qp"><code class="docutils literal notranslate"><span class="pre">Problem.is_qp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.parameters"><code class="docutils literal notranslate"><span class="pre">Problem.parameters()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.register_solve"><code class="docutils literal notranslate"><span class="pre">Problem.register_solve()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.solve"><code class="docutils literal notranslate"><span class="pre">Problem.solve()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.unpack_results"><code class="docutils literal notranslate"><span class="pre">Problem.unpack_results()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.variables"><code class="docutils literal notranslate"><span class="pre">Problem.variables()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.constraints"><code class="docutils literal notranslate"><span class="pre">Problem.constraints</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.objective"><code class="docutils literal notranslate"><span class="pre">Problem.objective</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.size_metrics"><code class="docutils literal notranslate"><span class="pre">Problem.size_metrics</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.solver_stats"><code class="docutils literal notranslate"><span class="pre">Problem.solver_stats</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.status"><code class="docutils literal notranslate"><span class="pre">Problem.status</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.Problem.value"><code class="docutils literal notranslate"><span class="pre">Problem.value</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#sizemetrics">SizeMetrics</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics"><code class="docutils literal notranslate"><span class="pre">SizeMetrics</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_variables"><code class="docutils literal notranslate"><span class="pre">SizeMetrics.num_scalar_variables</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_data"><code class="docutils literal notranslate"><span class="pre">SizeMetrics.num_scalar_data</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_eq_constr"><code class="docutils literal notranslate"><span class="pre">SizeMetrics.num_scalar_eq_constr</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics.num_scalar_leq_constr"><code class="docutils literal notranslate"><span class="pre">SizeMetrics.num_scalar_leq_constr</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics.max_data_dimension"><code class="docutils literal notranslate"><span class="pre">SizeMetrics.max_data_dimension</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SizeMetrics.max_big_small_squared"><code class="docutils literal notranslate"><span class="pre">SizeMetrics.max_big_small_squared</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#solverstats">SolverStats</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.problems.problem.SolverStats"><code class="docutils literal notranslate"><span class="pre">SolverStats</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SolverStats.solver_name"><code class="docutils literal notranslate"><span class="pre">SolverStats.solver_name</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SolverStats.solve_time"><code class="docutils literal notranslate"><span class="pre">SolverStats.solve_time</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SolverStats.setup_time"><code class="docutils literal notranslate"><span class="pre">SolverStats.setup_time</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SolverStats.num_iters"><code class="docutils literal notranslate"><span class="pre">SolverStats.num_iters</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.problems.problem.SolverStats.extra_stats"><code class="docutils literal notranslate"><span class="pre">SolverStats.extra_stats</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.transforms.html">Transforms</a></li>
@@ -936,7 +998,7 @@ This object may be a dict, or a custom Python object.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

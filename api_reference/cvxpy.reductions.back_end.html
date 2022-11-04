@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -54,14 +55,14 @@ ready for to be solved.</p>
 Reductions API before using these directly in your code.</p>
 <nav class="contents local" id="contents">
 <ul class="simple">
-<li><p><a class="reference internal" href="#dcp2cone" id="id1">Dcp2Cone</a></p></li>
-<li><p><a class="reference internal" href="#qp2symbolicqp" id="id2">Qp2SymbolicQp</a></p></li>
-<li><p><a class="reference internal" href="#dualize" id="id3">Dualize</a></p></li>
-<li><p><a class="reference internal" href="#slacks" id="id4">Slacks</a></p></li>
+<li><p><a class="reference internal" href="#dcp2cone" id="id2">Dcp2Cone</a></p></li>
+<li><p><a class="reference internal" href="#qp2symbolicqp" id="id3">Qp2SymbolicQp</a></p></li>
+<li><p><a class="reference internal" href="#dualize" id="id4">Dualize</a></p></li>
+<li><p><a class="reference internal" href="#slacks" id="id5">Slacks</a></p></li>
 </ul>
 </nav>
 <section id="dcp2cone">
-<h2><a class="toc-backref" href="#id1" role="doc-backlink">Dcp2Cone</a><a class="headerlink" href="#dcp2cone" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id2" role="doc-backlink">Dcp2Cone</a><a class="headerlink" href="#dcp2cone" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.dcp2cone.dcp2cone.</span></span><span class="sig-name descname"><span class="pre">Dcp2Cone</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/dcp2cone/dcp2cone.html#Dcp2Cone"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone" title="Permalink to this definition">¶</a></dt>
@@ -86,7 +87,7 @@ arguments are affine.</p>
 
 </section>
 <section id="qp2symbolicqp">
-<h2><a class="toc-backref" href="#id2" role="doc-backlink">Qp2SymbolicQp</a><a class="headerlink" href="#qp2symbolicqp" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id3" role="doc-backlink">Qp2SymbolicQp</a><a class="headerlink" href="#qp2symbolicqp" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.qp2quad_form.qp2symbolic_qp.</span></span><span class="sig-name descname"><span class="pre">Qp2SymbolicQp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">problem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/cvxpy/reductions/qp2quad_form/qp2symbolic_qp.html#Qp2SymbolicQp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp" title="Permalink to this definition">¶</a></dt>
@@ -111,7 +112,7 @@ affine equality constraints are accepted.</p>
 
 </section>
 <section id="dualize">
-<h2><a class="toc-backref" href="#id3" role="doc-backlink">Dualize</a><a class="headerlink" href="#dualize" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id4" role="doc-backlink">Dualize</a><a class="headerlink" href="#dualize" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.cone2cone.affine2direct.Dualize">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.cone2cone.affine2direct.</span></span><span class="sig-name descname"><span class="pre">Dualize</span></span><a class="reference internal" href="../_modules/cvxpy/reductions/cone2cone/affine2direct.html#Dualize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.cone2cone.affine2direct.Dualize" title="Permalink to this definition">¶</a></dt>
@@ -127,6 +128,8 @@ affine equality constraints are accepted.</p>
 is to specify a problem of the form (P-Opt). The purpose of this reduction is to handle
 mapping between (P-Opt) and (D-Opt) so that a solver interface can pretend the original
 problem was stated in terms (D-Opt).</p>
+<section id="usage">
+<h3>Usage<a class="headerlink" href="#usage" title="Permalink to this heading">¶</a></h3>
 <p>Dualize applies to ParamConeProg problems. It accesses (P-Opt) data by calling
 <code class="docutils literal notranslate"><span class="pre">c,</span> <span class="pre">d,</span> <span class="pre">A,</span> <span class="pre">b</span> <span class="pre">=</span> <span class="pre">problem.apply_parameters()</span></code>. It assumes the solver interface
 has already executed its <code class="docutils literal notranslate"><span class="pre">format_constraints</span></code> function on the ParamConeProg problem.</p>
@@ -144,11 +147,17 @@ dual variable we use is that corresponding to the equality constraint <span clas
 No attempt should be made to map unbounded / infeasible status codes for (D-Opt) back
 to unbounded / infeasible status codes for (P-Opt); all such mappings are handled in
 Dualize.invert. Refer to Dualize.invert for detailed documentation.</p>
+</section>
+<section id="assumptions">
+<h3>Assumptions<a class="headerlink" href="#assumptions" title="Permalink to this heading">¶</a></h3>
 <p>The problem has no integer or boolean constraints. This is necessary because strong
 duality does not hold for problems with discrete constraints.</p>
 <p>Dualize.apply assumes “SOLVER.format_constraints()” has already been called. This
 assumption allows flexibility in how a solver interface chooses to vectorize a
 feasible set (e.g. how to order conic constraints, or how to vectorize the PSD cone).</p>
+</section>
+<section id="additional-notes">
+<h3>Additional notes<a class="headerlink" href="#additional-notes" title="Permalink to this heading">¶</a></h3>
 <p>Dualize.invert is written in a way which is agnostic to how a solver formats constraints,
 but it also imposes specific requirements on the input. Providing correct input to
 Dualize.invert requires consideration to the effect of <code class="docutils literal notranslate"><span class="pre">SOLVER.format_constraints</span></code> and
@@ -168,6 +177,8 @@ is to map such a solution back to the format</p>
 <p>This function handles mapping of primal and dual variables, and solver status codes.
 The variable “x” in (P-Opt) is trivially populated from the dual variables to the
 constraint “c = A.T &#64; y” in (D-Opt). Status codes also map back in a simple way.</p>
+<section id="details-on-required-formatting-of-solution-primal-vars">
+<h4>Details on required formatting of solution.primal_vars<a class="headerlink" href="#details-on-required-formatting-of-solution-primal-vars" title="Permalink to this heading">¶</a></h4>
 <p>We assume the dict solution.primal_vars is keyed by string-enums FREE (‘fr’), NONNEG (‘+’),
 SOC (‘s’), PSD (‘p’), and DUAL_EXP (‘de’). The corresponding values are described below.</p>
 <p>solution.primal_vars[FREE] should be a single vector. It corresponds to the (possibly
@@ -186,13 +197,15 @@ We assign these as dual variables to PSD constraints appearing in (P-Opt).</p>
 each constituent length-3 slice belongs to dual exponential cone as implied by the CVXPY
 standard of the primal exponential cone (see cvxpy/constraints/exponential.py:ExpCone).
 We map these back to dual variables for exponential cone constraints in (P-Opt).</p>
+</section>
 </dd></dl>
 
+</section>
 </dd></dl>
 
 </section>
 <section id="slacks">
-<h2><a class="toc-backref" href="#id4" role="doc-backlink">Slacks</a><a class="headerlink" href="#slacks" title="Permalink to this heading">¶</a></h2>
+<h2><a class="toc-backref" href="#id5" role="doc-backlink">Slacks</a><a class="headerlink" href="#slacks" title="Permalink to this heading">¶</a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="cvxpy.reductions.cone2cone.affine2direct.Slacks">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">cvxpy.reductions.cone2cone.affine2direct.</span></span><span class="sig-name descname"><span class="pre">Slacks</span></span><a class="reference internal" href="../_modules/cvxpy/reductions/cone2cone/affine2direct.html#Slacks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks" title="Permalink to this definition">¶</a></dt>
@@ -254,10 +267,13 @@ and data[s.INT_IDX] = ints. The rows of G are ordered according to ZERO, then
 then <code class="docutils literal notranslate"><span class="pre">y[:c.size]</span></code> should contain the optimal solution to (Aff). The columns of
 G correspond first to variables in cones FREE, then NONNEG, then SOC, then EXP.
 The length of the free cone is equal to <code class="docutils literal notranslate"><span class="pre">c.size</span></code>.</p>
+<section id="id1">
+<h3>Assumptions<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h3>
 <p>The function call <code class="docutils literal notranslate"><span class="pre">c,</span> <span class="pre">d,</span> <span class="pre">A,</span> <span class="pre">b</span> <span class="pre">=</span> <span class="pre">prob.apply_parameters()</span></code> returns (A,b) with
 rows formatted first for the zero cone, then for the nonnegative orthant, then
 second order cones, then the exponential cone. Removing this assumption will
 require adding additional data to ParamConeProg objects.</p>
+</section>
 </dd></dl>
 
 </dd></dl>
@@ -310,10 +326,36 @@ require adding additional data to ParamConeProg objects.</p>
 <li class="toctree-l3 current"><a class="reference internal" href="cvxpy.reductions.html#types-of-reductions">Types of Reductions</a><ul class="current">
 <li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html">Middle-End</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">Back-End</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="#dcp2cone">Dcp2Cone</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#qp2symbolicqp">Qp2SymbolicQp</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#dualize">Dualize</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#slacks">Slacks</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#dcp2cone">Dcp2Cone</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.accepts()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#qp2symbolicqp">Qp2SymbolicQp</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp.accepts()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#dualize">Dualize</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Dualize"><code class="docutils literal notranslate"><span class="pre">Dualize</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert"><code class="docutils literal notranslate"><span class="pre">Dualize.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#slacks">Slacks</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks"><code class="docutils literal notranslate"><span class="pre">Slacks</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply"><code class="docutils literal notranslate"><span class="pre">Slacks.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -383,7 +425,7 @@ require adding additional data to ParamConeProg objects.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

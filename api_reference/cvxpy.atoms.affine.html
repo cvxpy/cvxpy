@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -124,7 +125,7 @@ the Expression class.</p>
 The internal lists are stacked vertically.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>block_lists</strong> (<em>list of lists</em>) – The blocks of the block matrix.</p>
+<dd class="field-odd"><p><strong>block_lists</strong> (<em>list</em><em> of </em><em>lists</em>) – The blocks of the block matrix.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The CVXPY expression representing the block matrix.</p>
@@ -245,7 +246,7 @@ equivalently diff(diff(x))</p>
 <dd><p>Horizontal concatenation of an arbitrary number of Expressions.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>arg_list</strong> (<em>list of Expression</em>) – The Expressions to concatenate.</p>
+<dd class="field-odd"><p><strong>arg_list</strong> (<em>list</em><em> of </em><a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><em>Expression</em></a>) – The Expressions to concatenate.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -325,7 +326,7 @@ the <em>partial trace</em> of <span class="math notranslate nohighlight">\(\text
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a>) – The 2D expression to take the partial trace of.</p></li>
-<li><p><strong>dims</strong> (<em>tuple of ints.</em>) – A tuple of integers encoding the dimensions of each subsystem.</p></li>
+<li><p><strong>dims</strong> (<em>tuple</em><em> of </em><em>ints.</em>) – A tuple of integers encoding the dimensions of each subsystem.</p></li>
 <li><p><strong>axis</strong> (<em>int</em>) – The index of the subsystem to be traced out
 from the tensor product that defines expr.</p></li>
 </ul>
@@ -350,7 +351,7 @@ Letting <span class="math notranslate nohighlight">\(k = \texttt{axis}\)</span>,
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>expr</strong> (<a class="reference internal" href="cvxpy.expressions.html#cvxpy.expressions.expression.Expression" title="cvxpy.expressions.expression.Expression"><code class="xref py py-class docutils literal notranslate"><span class="pre">Expression</span></code></a>) – The 2D expression to take the partial transpose of.</p></li>
-<li><p><strong>dims</strong> (<em>tuple of ints.</em>) – A tuple of integers encoding the dimensions of each subsystem.</p></li>
+<li><p><strong>dims</strong> (<em>tuple</em><em> of </em><em>ints.</em>) – A tuple of integers encoding the dimensions of each subsystem.</p></li>
 <li><p><strong>axis</strong> (<em>int</em>) – The index of the subsystem to be transposed
 from the tensor product that defines expr.</p></li>
 </ul>
@@ -593,35 +594,126 @@ For example, if</p>
 <li class="toctree-l1 current"><a class="reference internal" href="cvxpy.html">API Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="cvxpy.atoms.html">Atoms</a><ul class="current">
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Affine Atoms</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#addexpression">AddExpression</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#mulexpression">MulExpression</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#divexpression">DivExpression</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#bmat">bmat</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#conj">conj</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#conv">conv</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#cumsum">cumsum</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#diag">diag</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#diff">diff</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#hstack">hstack</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#imag">imag</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#index">index</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#kron">kron</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#matmul">matmul</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#multiply">multiply</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#partial-trace">partial_trace</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#partial-transpose">partial_transpose</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#promote">promote</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#psd-wrap">psd_wrap</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#real">real</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#reshape">reshape</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scalar-product">scalar_product</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sum">sum</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#trace">trace</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#transpose">transpose</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#negexpression">NegExpression</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#upper-tri">upper_tri</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#vec">vec</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#vstack">vstack</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#addexpression">AddExpression</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.affine.add_expr.AddExpression"><code class="docutils literal notranslate"><span class="pre">AddExpression</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#mulexpression">MulExpression</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.affine.binary_operators.MulExpression"><code class="docutils literal notranslate"><span class="pre">MulExpression</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#divexpression">DivExpression</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.affine.binary_operators.DivExpression"><code class="docutils literal notranslate"><span class="pre">DivExpression</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#bmat">bmat</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.bmat"><code class="docutils literal notranslate"><span class="pre">bmat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#conj">conj</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.conj"><code class="docutils literal notranslate"><span class="pre">conj</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#conv">conv</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.conv"><code class="docutils literal notranslate"><span class="pre">conv</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#cumsum">cumsum</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.cumsum"><code class="docutils literal notranslate"><span class="pre">cumsum</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.cumsum.expr"><code class="docutils literal notranslate"><span class="pre">cumsum.expr</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.cumsum.axis"><code class="docutils literal notranslate"><span class="pre">cumsum.axis</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#diag">diag</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.diag"><code class="docutils literal notranslate"><span class="pre">diag()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#diff">diff</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.diff"><code class="docutils literal notranslate"><span class="pre">diff()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#hstack">hstack</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.hstack"><code class="docutils literal notranslate"><span class="pre">hstack()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#imag">imag</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.imag"><code class="docutils literal notranslate"><span class="pre">imag</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#index">index</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.affine.index.index"><code class="docutils literal notranslate"><span class="pre">index</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#kron">kron</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.kron"><code class="docutils literal notranslate"><span class="pre">kron</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#matmul">matmul</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.matmul"><code class="docutils literal notranslate"><span class="pre">matmul()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#multiply">multiply</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.multiply"><code class="docutils literal notranslate"><span class="pre">multiply</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#partial-trace">partial_trace</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.partial_trace"><code class="docutils literal notranslate"><span class="pre">partial_trace()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#partial-transpose">partial_transpose</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.partial_transpose"><code class="docutils literal notranslate"><span class="pre">partial_transpose()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#promote">promote</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.affine.promote.promote"><code class="docutils literal notranslate"><span class="pre">promote()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#psd-wrap">psd_wrap</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.affine.wraps.psd_wrap"><code class="docutils literal notranslate"><span class="pre">psd_wrap</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#real">real</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.real"><code class="docutils literal notranslate"><span class="pre">real()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#reshape">reshape</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reshape"><code class="docutils literal notranslate"><span class="pre">reshape</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#scalar-product">scalar_product</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.scalar_product"><code class="docutils literal notranslate"><span class="pre">scalar_product</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sum">sum</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.sum"><code class="docutils literal notranslate"><span class="pre">sum()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#trace">trace</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.trace"><code class="docutils literal notranslate"><span class="pre">trace</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#transpose">transpose</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.transpose"><code class="docutils literal notranslate"><span class="pre">transpose</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#negexpression">NegExpression</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.affine.unary_operators.NegExpression"><code class="docutils literal notranslate"><span class="pre">NegExpression</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#upper-tri">upper_tri</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.upper_tri"><code class="docutils literal notranslate"><span class="pre">upper_tri</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#vec">vec</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.vec"><code class="docutils literal notranslate"><span class="pre">vec()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#vstack">vstack</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.vstack"><code class="docutils literal notranslate"><span class="pre">vstack()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html">Elementwise Atoms</a></li>
@@ -697,7 +789,7 @@ For example, if</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
