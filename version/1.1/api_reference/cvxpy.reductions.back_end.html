@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Back-End Reductions &#8212; CVXPY 1.1.21.dev0+0.401c4cb documentation</title>
+    <title>Back-End Reductions &#8212; CVXPY 1.1.21 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Transforms" href="cvxpy.transforms.html" />
@@ -149,8 +150,22 @@ affine equality constraints are accepted.</p>
 <li class="toctree-l2 current"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html">Middle-End Reductions</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Back-End Reductions</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#dcp2cone">Dcp2Cone</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#qp2symbolicqp">Qp2SymbolicQp</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dcp2cone">Dcp2Cone</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.accepts()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#qp2symbolicqp">Qp2SymbolicQp</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp.accepts()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.html#solution">Solution</a></li>
@@ -222,7 +237,7 @@ affine equality constraints are accepted.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

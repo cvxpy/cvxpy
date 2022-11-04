@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>cvxpy.atoms.elementwise package &#8212; CVXPY 1.1.21.dev0+0.401c4cb documentation</title>
+    <title>cvxpy.atoms.elementwise package &#8212; CVXPY 1.1.21 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -346,24 +347,78 @@ of <code class="docutils literal notranslate"><span class="pre">p</span></code>;
 <li class="toctree-l2 current"><a class="reference internal" href="cvxpy.atoms.html">Atoms</a><ul class="current">
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html">Affine Atoms</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Elementwise Atoms</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#abs">abs</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#entr">entr</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#exp">exp</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#huber">huber</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#inv-pos">inv_pos</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#kl-div">kl_div</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#log">log</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#log1p">log1p</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#logistic">logistic</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#maximum">maximum</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#minimum">minimum</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#neg">neg</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#pos">pos</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#power">power</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#rel-entr">rel-entr</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#scalene">scalene</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sqrt">sqrt</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#square">square</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#abs">abs</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.abs.abs"><code class="docutils literal notranslate"><span class="pre">abs</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#entr">entr</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.entr.entr"><code class="docutils literal notranslate"><span class="pre">entr</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#exp">exp</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.exp.exp"><code class="docutils literal notranslate"><span class="pre">exp</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#huber">huber</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.huber.huber"><code class="docutils literal notranslate"><span class="pre">huber</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#inv-pos">inv_pos</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.inv_pos.inv_pos"><code class="docutils literal notranslate"><span class="pre">inv_pos()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#kl-div">kl_div</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.kl_div.kl_div"><code class="docutils literal notranslate"><span class="pre">kl_div</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#log">log</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.log.log"><code class="docutils literal notranslate"><span class="pre">log</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#log1p">log1p</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.log1p.log1p"><code class="docutils literal notranslate"><span class="pre">log1p</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#logistic">logistic</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.logistic.logistic"><code class="docutils literal notranslate"><span class="pre">logistic</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#maximum">maximum</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.maximum.maximum"><code class="docutils literal notranslate"><span class="pre">maximum</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#minimum">minimum</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.minimum.minimum"><code class="docutils literal notranslate"><span class="pre">minimum()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#neg">neg</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.neg.neg"><code class="docutils literal notranslate"><span class="pre">neg()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#pos">pos</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.pos.pos"><code class="docutils literal notranslate"><span class="pre">pos()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#power">power</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.power.power"><code class="docutils literal notranslate"><span class="pre">power</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#rel-entr">rel-entr</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.rel_entr.rel_entr"><code class="docutils literal notranslate"><span class="pre">rel_entr</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#scalene">scalene</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.scalene.scalene"><code class="docutils literal notranslate"><span class="pre">scalene()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sqrt">sqrt</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.sqrt.sqrt"><code class="docutils literal notranslate"><span class="pre">sqrt()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#square">square</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.elementwise.square.square"><code class="docutils literal notranslate"><span class="pre">square()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.other_atoms.html">Other Atoms</a></li>
@@ -437,7 +492,7 @@ of <code class="docutils literal notranslate"><span class="pre">p</span></code>;
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

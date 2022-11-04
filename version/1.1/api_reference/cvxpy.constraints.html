@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Constraints &#8212; CVXPY 1.1.21.dev0+0.401c4cb documentation</title>
+    <title>Constraints &#8212; CVXPY 1.1.21 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -763,14 +764,84 @@ constraint:</p>
 <li class="toctree-l1 current"><a class="reference internal" href="cvxpy.html">API Documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.atoms.html">Atoms</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Constraints</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#constraint">Constraint</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#nonpos">NonPos</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#zero">Zero</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#psd">PSD</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#soc">SOC</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#expcone">ExpCone</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#powcone3d">PowCone3D</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#powconend">PowConeND</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#constraint">Constraint</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.constraints.constraint.Constraint"><code class="docutils literal notranslate"><span class="pre">Constraint</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.constraint.Constraint.is_dcp"><code class="docutils literal notranslate"><span class="pre">Constraint.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.constraint.Constraint.value"><code class="docutils literal notranslate"><span class="pre">Constraint.value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.constraint.Constraint.violation"><code class="docutils literal notranslate"><span class="pre">Constraint.violation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#nonpos">NonPos</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.constraints.nonpos.NonPos"><code class="docutils literal notranslate"><span class="pre">NonPos</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.nonpos.NonPos.dual_value"><code class="docutils literal notranslate"><span class="pre">NonPos.dual_value</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.nonpos.NonPos.is_dcp"><code class="docutils literal notranslate"><span class="pre">NonPos.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.nonpos.NonPos.shape"><code class="docutils literal notranslate"><span class="pre">NonPos.shape</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.nonpos.NonPos.size"><code class="docutils literal notranslate"><span class="pre">NonPos.size</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.nonpos.NonPos.value"><code class="docutils literal notranslate"><span class="pre">NonPos.value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.nonpos.NonPos.violation"><code class="docutils literal notranslate"><span class="pre">NonPos.violation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#zero">Zero</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.constraints.zero.Zero"><code class="docutils literal notranslate"><span class="pre">Zero</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.zero.Zero.is_dcp"><code class="docutils literal notranslate"><span class="pre">Zero.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.zero.Zero.value"><code class="docutils literal notranslate"><span class="pre">Zero.value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.zero.Zero.violation"><code class="docutils literal notranslate"><span class="pre">Zero.violation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#psd">PSD</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.constraints.psd.PSD"><code class="docutils literal notranslate"><span class="pre">PSD</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.psd.PSD.is_dcp"><code class="docutils literal notranslate"><span class="pre">PSD.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.psd.PSD.value"><code class="docutils literal notranslate"><span class="pre">PSD.value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.psd.PSD.violation"><code class="docutils literal notranslate"><span class="pre">PSD.violation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#soc">SOC</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.constraints.second_order.SOC"><code class="docutils literal notranslate"><span class="pre">SOC</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.second_order.SOC.t"><code class="docutils literal notranslate"><span class="pre">SOC.t</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.second_order.SOC.X"><code class="docutils literal notranslate"><span class="pre">SOC.X</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.second_order.SOC.axis"><code class="docutils literal notranslate"><span class="pre">SOC.axis</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.second_order.SOC.is_dcp"><code class="docutils literal notranslate"><span class="pre">SOC.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.second_order.SOC.value"><code class="docutils literal notranslate"><span class="pre">SOC.value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.second_order.SOC.violation"><code class="docutils literal notranslate"><span class="pre">SOC.violation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#expcone">ExpCone</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.constraints.exponential.ExpCone"><code class="docutils literal notranslate"><span class="pre">ExpCone</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.exponential.ExpCone.is_dcp"><code class="docutils literal notranslate"><span class="pre">ExpCone.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.exponential.ExpCone.value"><code class="docutils literal notranslate"><span class="pre">ExpCone.value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.exponential.ExpCone.violation"><code class="docutils literal notranslate"><span class="pre">ExpCone.violation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#powcone3d">PowCone3D</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.constraints.power.PowCone3D"><code class="docutils literal notranslate"><span class="pre">PowCone3D</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.power.PowCone3D.is_dcp"><code class="docutils literal notranslate"><span class="pre">PowCone3D.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.power.PowCone3D.value"><code class="docutils literal notranslate"><span class="pre">PowCone3D.value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.power.PowCone3D.violation"><code class="docutils literal notranslate"><span class="pre">PowCone3D.violation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#powconend">PowConeND</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.constraints.power.PowConeND"><code class="docutils literal notranslate"><span class="pre">PowConeND</span></code></a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.power.PowConeND.is_dcp"><code class="docutils literal notranslate"><span class="pre">PowConeND.is_dcp()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.power.PowConeND.value"><code class="docutils literal notranslate"><span class="pre">PowConeND.value()</span></code></a></li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.constraints.power.PowConeND.violation"><code class="docutils literal notranslate"><span class="pre">PowConeND.violation()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.expressions.html">Expressions</a></li>
@@ -839,7 +910,7 @@ constraint:</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

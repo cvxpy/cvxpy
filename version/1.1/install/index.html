@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Install &#8212; CVXPY 1.1.21.dev0+0.401c4cb documentation</title>
+    <title>Install &#8212; CVXPY 1.1.21 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Tutorial" href="../tutorial/index.html" />
@@ -210,9 +211,7 @@ See the <a class="reference external" href="https://www.nag.co.uk/nag-library-py
 </section>
 <section id="install-with-scip-support">
 <h2>Install with SCIP support<a class="headerlink" href="#install-with-scip-support" title="Permalink to this heading">¶</a></h2>
-<p>CVXPY supports the SCIP solver through the <code class="docutils literal notranslate"><span class="pre">pyscipopt</span></code> Python package;
-we do not support pyscipopt version 4.0.0 or higher; you need to use pyscipopt version 3.x.y
-for some (x,y).
+<p>CVXPY supports the SCIP solver through the <code class="docutils literal notranslate"><span class="pre">pyscipopt</span></code> Python package.
 See the <a class="reference external" href="https://github.com/SCIP-Interfaces/PySCIPOpt#installation">PySCIPOpt</a> github for installation instructions.</p>
 <p>CVXPY’s SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.</p>
 </section>
@@ -356,7 +355,7 @@ This can be useful if the intention is to only use non-default solvers.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

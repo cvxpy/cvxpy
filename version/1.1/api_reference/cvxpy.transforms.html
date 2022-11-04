@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Transforms &#8212; CVXPY 1.1.21.dev0+0.401c4cb documentation</title>
+    <title>Transforms &#8212; CVXPY 1.1.21 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="FAQ" href="../faq/index.html" />
@@ -239,8 +240,19 @@ limitations under the License.</p>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.problems.html">Problems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.html">Reductions</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Transforms</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#scalarize">Scalarize</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#other">Other</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scalarize">Scalarize</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.transforms.scalarize.weighted_sum"><code class="docutils literal notranslate"><span class="pre">scalarize.weighted_sum()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.transforms.scalarize.max"><code class="docutils literal notranslate"><span class="pre">scalarize.max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.transforms.scalarize.log_sum_exp"><code class="docutils literal notranslate"><span class="pre">scalarize.log_sum_exp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.transforms.scalarize.targets_and_priorities"><code class="docutils literal notranslate"><span class="pre">scalarize.targets_and_priorities()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#other">Other</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.transforms.indicator"><code class="docutils literal notranslate"><span class="pre">indicator</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.transforms.linearize"><code class="docutils literal notranslate"><span class="pre">transforms.linearize()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cvxpy.transforms.partial_optimize"><code class="docutils literal notranslate"><span class="pre">transforms.partial_optimize()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -305,7 +317,7 @@ limitations under the License.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

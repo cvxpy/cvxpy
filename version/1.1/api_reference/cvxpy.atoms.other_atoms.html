@@ -6,7 +6,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>Other Atoms &#8212; CVXPY 1.1.21.dev0+0.401c4cb documentation</title>
+    <title>Other Atoms &#8212; CVXPY 1.1.21 documentation</title>
     <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../_static/cvxpy_alabaster.css" />
     <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -799,41 +800,144 @@ L2 norm of discrete gradients for matrices.</p>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.affine.html">Affine Atoms</a></li>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.elementwise.html">Elementwise Atoms</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Other Atoms</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#cummax">cummax</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#cummax">cummax</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.cummax.cummax"><code class="docutils literal notranslate"><span class="pre">cummax</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="#diff-pos">diff_pos</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#eye-minus-inv">eye_minus_inv</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#geo-mean">geo_mean</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#gmatmul">gmatmul</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#harmonic-mean">harmonic_mean</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#inv-prod">inv_prod</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#lambda-max">lambda_max</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#lambda-min">lambda_min</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#lambda-sum-largest">lambda_sum_largest</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#lambda-sum-smallest">lambda_sum_smallest</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#log-det">log_det</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#log-sum-exp">log_sum_exp</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#matrix-frac">matrix_frac</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#max">max</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#min">min</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#mixed-norm">mixed_norm</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#norm">norm</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#norm1">norm1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#eye-minus-inv">eye_minus_inv</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.eye_minus_inv.eye_minus_inv"><code class="docutils literal notranslate"><span class="pre">eye_minus_inv</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#geo-mean">geo_mean</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.geo_mean.geo_mean"><code class="docutils literal notranslate"><span class="pre">geo_mean</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.atoms.geo_mean.geo_mean.w"><code class="docutils literal notranslate"><span class="pre">geo_mean.w</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.atoms.geo_mean.geo_mean.approx_error"><code class="docutils literal notranslate"><span class="pre">geo_mean.approx_error</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#gmatmul">gmatmul</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.gmatmul.gmatmul"><code class="docutils literal notranslate"><span class="pre">gmatmul</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#harmonic-mean">harmonic_mean</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.harmonic_mean.harmonic_mean"><code class="docutils literal notranslate"><span class="pre">harmonic_mean()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#inv-prod">inv_prod</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.inv_prod.inv_prod"><code class="docutils literal notranslate"><span class="pre">inv_prod()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#lambda-max">lambda_max</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.lambda_max.lambda_max"><code class="docutils literal notranslate"><span class="pre">lambda_max</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#lambda-min">lambda_min</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.lambda_min.lambda_min"><code class="docutils literal notranslate"><span class="pre">lambda_min()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#lambda-sum-largest">lambda_sum_largest</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.lambda_sum_largest.lambda_sum_largest"><code class="docutils literal notranslate"><span class="pre">lambda_sum_largest()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#lambda-sum-smallest">lambda_sum_smallest</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.lambda_sum_smallest.lambda_sum_smallest"><code class="docutils literal notranslate"><span class="pre">lambda_sum_smallest()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#log-det">log_det</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.log_det.log_det"><code class="docutils literal notranslate"><span class="pre">log_det</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#log-sum-exp">log_sum_exp</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.log_sum_exp.log_sum_exp"><code class="docutils literal notranslate"><span class="pre">log_sum_exp</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#matrix-frac">matrix_frac</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.matrix_frac.matrix_frac"><code class="docutils literal notranslate"><span class="pre">matrix_frac()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#max">max</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.max.max"><code class="docutils literal notranslate"><span class="pre">max</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#min">min</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.min.min"><code class="docutils literal notranslate"><span class="pre">min()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#mixed-norm">mixed_norm</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.mixed_norm.mixed_norm"><code class="docutils literal notranslate"><span class="pre">mixed_norm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#norm">norm</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.norm.norm"><code class="docutils literal notranslate"><span class="pre">norm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#norm1">norm1</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.norm1.norm1"><code class="docutils literal notranslate"><span class="pre">norm1</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l4"><a class="reference internal" href="#norm2">norm2</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#norm-inf">norm_inf</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#normnuc">normNuc</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#one-minus-pos">one_minus_pos</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#pf-eigenvalue">pf_eigenvalue</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#pnorm">pnorm</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#id24">Pnorm</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#prod">prod</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#quad-form">quad_form</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#quad-over-lin">quad_over_lin</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#resolvent">resolvent</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sigma-max">sigma_max</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sum-largest">sum_largest</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sum-smallest">sum_smallest</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#sum-squares">sum_squares</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#tv">tv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#norm-inf">norm_inf</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.norm_inf"><code class="docutils literal notranslate"><span class="pre">norm_inf</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#normnuc">normNuc</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.norm_nuc.normNuc"><code class="docutils literal notranslate"><span class="pre">normNuc</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#one-minus-pos">one_minus_pos</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.one_minus_pos"><code class="docutils literal notranslate"><span class="pre">one_minus_pos</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#pf-eigenvalue">pf_eigenvalue</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.pf_eigenvalue.pf_eigenvalue"><code class="docutils literal notranslate"><span class="pre">pf_eigenvalue</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#pnorm">pnorm</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.pnorm.pnorm"><code class="docutils literal notranslate"><span class="pre">pnorm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#id24">Pnorm</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.pnorm.Pnorm"><code class="docutils literal notranslate"><span class="pre">Pnorm</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#prod">prod</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.prod.prod"><code class="docutils literal notranslate"><span class="pre">prod()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#quad-form">quad_form</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.quad_form.quad_form"><code class="docutils literal notranslate"><span class="pre">quad_form()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#quad-over-lin">quad_over_lin</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.quad_over_lin.quad_over_lin"><code class="docutils literal notranslate"><span class="pre">quad_over_lin</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#resolvent">resolvent</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.eye_minus_inv.resolvent"><code class="docutils literal notranslate"><span class="pre">resolvent()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sigma-max">sigma_max</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.sigma_max.sigma_max"><code class="docutils literal notranslate"><span class="pre">sigma_max</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sum-largest">sum_largest</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.sum_largest.sum_largest"><code class="docutils literal notranslate"><span class="pre">sum_largest</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sum-smallest">sum_smallest</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.sum_smallest.sum_smallest"><code class="docutils literal notranslate"><span class="pre">sum_smallest()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#sum-squares">sum_squares</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.sum_squares.sum_squares"><code class="docutils literal notranslate"><span class="pre">sum_squares()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#tv">tv</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.atoms.total_variation.tv"><code class="docutils literal notranslate"><span class="pre">tv()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.atoms.html#atom">Atom</a></li>
@@ -906,7 +1010,7 @@ L2 norm of discrete gradients for matrices.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
