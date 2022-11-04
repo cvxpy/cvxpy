@@ -27,7 +27,7 @@ elif [[ "$PYTHON_VERSION" == "3.10" ]]; then
     conda install scipy=1.7 numpy=1.21 mkl pip pytest lapack ecos scs osqp cvxopt
 fi
 
-python -m pip install ortools
+python -m pip install "ortools<9.4"
 
 # CBC comes with wheels for windows and needs coin-or-cbc to compile otherwise
 # conda-forge in progress: https://github.com/conda-forge/staged-recipes/pull/14950
@@ -40,7 +40,7 @@ fi
 
 # SCIP only works with scipy >= 1.5 due to dependency conflicts when installing on Linux/macOS
 if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
-  conda install pyscipopt"<4.0"  # TODO: update interface https://github.com/cvxpy/cvxpy/pull/1628
+  conda install pyscipopt
 fi
 
 if [[ "$PYTHON_VERSION" == "3.10" ]]; then

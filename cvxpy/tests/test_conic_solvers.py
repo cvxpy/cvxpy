@@ -415,7 +415,7 @@ class TestMosek(unittest.TestCase):
         StandardTestMixedCPs.test_exp_soc_1(solver='MOSEK')
 
     def test_mosek_pcp_1(self) -> None:
-        StandardTestPCPs.test_pcp_1(solver='MOSEK')
+        StandardTestPCPs.test_pcp_1(solver='MOSEK', places=2)
 
     def test_mosek_pcp_2(self) -> None:
         StandardTestPCPs.test_pcp_2(solver='MOSEK')
@@ -436,7 +436,7 @@ class TestMosek(unittest.TestCase):
         StandardTestLPs.test_mi_lp_3(solver='MOSEK')
 
     def test_mosek_mi_socp_1(self) -> None:
-        StandardTestSOCPs.test_mi_socp_1(solver='MOSEK')
+        StandardTestSOCPs.test_mi_socp_1(solver='MOSEK', places=3)
 
     def test_mosek_mi_socp_2(self) -> None:
         StandardTestSOCPs.test_mi_socp_2(solver='MOSEK')
@@ -747,6 +747,12 @@ class TestGLOP(unittest.TestCase):
         with self.assertRaises(cp.error.SolverError):
             prob.solve(solver='GLOP', parameters_proto="not a proto")
 
+    def test_glop_time_limit(self) -> None:
+        sth = sths.lp_1()
+        # Checks that the option doesn't error. A better test would be to solve
+        # a large instance and check that the time limit is hit.
+        sth.solve(solver='GLOP', time_limit_sec=1.0)
+
 
 @unittest.skipUnless('PDLP' in INSTALLED_SOLVERS, 'PDLP is not installed.')
 class TestPDLP(unittest.TestCase):
@@ -805,6 +811,12 @@ class TestPDLP(unittest.TestCase):
         prob = cp.Problem(cp.Maximize(x), [x <= 1])
         with self.assertRaises(cp.error.SolverError):
             prob.solve(solver='PDLP', parameters_proto="not a proto")
+
+    def test_pdlp_time_limit(self) -> None:
+        sth = sths.lp_1()
+        # Checks that the option doesn't error. A better test would be to solve
+        # a large instance and check that the time limit is hit.
+        sth.solve(solver='PDLP', time_limit_sec=1.0)
 
 
 @unittest.skipUnless('CPLEX' in INSTALLED_SOLVERS, 'CPLEX is not installed.')
@@ -1411,7 +1423,7 @@ class TestSCIP(unittest.TestCase):
         StandardTestSOCPs.test_socp_0(solver="SCIP")
 
     def test_scip_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver="SCIP", places=3, duals=False)
+        StandardTestSOCPs.test_socp_1(solver="SCIP", places=2, duals=False)
 
     def test_scip_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver="SCIP", places=2, duals=False)
@@ -1433,6 +1445,12 @@ class TestSCIP(unittest.TestCase):
 
     def test_scip_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver="SCIP")
+
+    def test_scip_mi_socp_1(self) -> None:
+        StandardTestSOCPs.test_mi_socp_1(solver="SCIP", places=3)
+
+    def test_scip_mi_socp_2(self) -> None:
+        StandardTestSOCPs.test_mi_socp_2(solver="SCIP")
 
     def get_simple_problem(self):
         """Example problem that can be used within additional tests."""
