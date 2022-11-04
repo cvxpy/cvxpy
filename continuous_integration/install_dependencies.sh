@@ -38,7 +38,7 @@ fi
 
 # SCIP only works with scipy >= 1.5 due to dependency conflicts when installing on Linux/macOS
 if [[ "$PYTHON_VERSION" == "3.9" ]] || [[ "$RUNNER_OS" == "Windows" ]]; then
-  conda install pyscipopt"<4.0" # TODO: update interface https://github.com/cvxpy/cvxpy/pull/1628
+  conda install pyscipopt
 fi
 
 if [[ "$PYTHON_VERSION" == "3.10" ]]; then

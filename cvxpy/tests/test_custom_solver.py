@@ -18,7 +18,7 @@ class CustomQPSolver(OSQP):
         return "CUSTOM_QP_SOLVER"
 
     def solve_via_data(self, *args, **kwargs):
-        raise(CustomQPSolverCalled())
+        raise CustomQPSolverCalled()
 
 
 class CustomConicSolver(SCS):
@@ -26,7 +26,7 @@ class CustomConicSolver(SCS):
         return "CUSTOM_CONIC_SOLVER"
 
     def solve_via_data(self, *args, **kwargs):
-        raise(CustomConicSolverCalled())
+        raise CustomConicSolverCalled()
 
 
 class ConflictingCustomSolver(OSQP):

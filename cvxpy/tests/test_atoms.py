@@ -110,6 +110,15 @@ class TestAtoms(BaseTest):
             "The input must be a single CVXPY Expression, not a list. "
             "Combine Expressions using atoms such as bmat, hstack, and vstack."))
 
+    def test_norm_exceptions(self) -> None:
+        """Test that norm exceptions are raised as expected.
+        """
+        x = cp.Variable(2)
+        with self.assertRaises(Exception) as cm:
+            cp.norm(x, 'nuc')
+        self.assertTrue(str(cm.exception) in (
+            "Unsupported norm option nuc for non-matrix."))
+
     def test_quad_form(self) -> None:
         """Test quad_form atom.
         """
@@ -1099,6 +1108,19 @@ class TestAtoms(BaseTest):
                          np.diff(B, axis=0).shape)
         self.assertEqual(cp.diff(A, axis=1).shape,
                          np.diff(B, axis=1).shape)
+
+        # Issue #1834
+
+        x1 = np.array([[1, 2, 3, 4, 5]])
+        x2 = cp.Variable((1, 5), value=x1)
+
+        expr = cp.diff(x1, axis=1)
+        self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
+        expr = cp.diff(x2, axis=1)
+        self.assertItemsAlmostEqual(expr.value, np.diff(x1, axis=1))
+
+        with pytest.raises(ValueError, match="< k elements"):
+            cp.diff(x1, axis=0).value
 
     def test_log_normcdf(self) -> None:
         self.assertEqual(cp.log_normcdf(self.x).sign, s.NONPOS)
