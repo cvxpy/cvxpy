@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -424,11 +425,52 @@ this reduction can be used to convert geometric programs into convex form.</p>
 <li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.html#disclaimer">Disclaimer</a></li>
 <li class="toctree-l3 current"><a class="reference internal" href="cvxpy.reductions.html#types-of-reductions">Types of Reductions</a><ul class="current">
 <li class="toctree-l4 current"><a class="current reference internal" href="#">Middle-End</a><ul>
-<li class="toctree-l5"><a class="reference internal" href="#complex2real">Complex2Real</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#cvxattr2constr">CvxAttr2Constr</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#dgp2dcp">Dgp2Dcp</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#evalparams">EvalParams</a></li>
-<li class="toctree-l5"><a class="reference internal" href="#flipobjective">FlipObjective</a></li>
+<li class="toctree-l5"><a class="reference internal" href="#complex2real">Complex2Real</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.complex2real.complex2real.Complex2Real"><code class="docutils literal notranslate"><span class="pre">Complex2Real</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts"><code class="docutils literal notranslate"><span class="pre">Complex2Real.accepts()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.complex2real.complex2real.Complex2Real.apply"><code class="docutils literal notranslate"><span class="pre">Complex2Real.apply()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert"><code class="docutils literal notranslate"><span class="pre">Complex2Real.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#cvxattr2constr">CvxAttr2Constr</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.accepts()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.apply()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#dgp2dcp">Dgp2Dcp</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.accepts"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.accepts()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.apply"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.apply()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.canonicalize_expr()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#evalparams">EvalParams</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.eval_params.EvalParams"><code class="docutils literal notranslate"><span class="pre">EvalParams</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.eval_params.EvalParams.accepts"><code class="docutils literal notranslate"><span class="pre">EvalParams.accepts()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.eval_params.EvalParams.apply"><code class="docutils literal notranslate"><span class="pre">EvalParams.apply()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.eval_params.EvalParams.invert"><code class="docutils literal notranslate"><span class="pre">EvalParams.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="#flipobjective">FlipObjective</a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.flip_objective.FlipObjective"><code class="docutils literal notranslate"><span class="pre">FlipObjective</span></code></a><ul>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.flip_objective.FlipObjective.accepts"><code class="docutils literal notranslate"><span class="pre">FlipObjective.accepts()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.flip_objective.FlipObjective.apply"><code class="docutils literal notranslate"><span class="pre">FlipObjective.apply()</span></code></a></li>
+<li class="toctree-l7"><a class="reference internal" href="#cvxpy.reductions.flip_objective.FlipObjective.invert"><code class="docutils literal notranslate"><span class="pre">FlipObjective.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End</a></li>
@@ -499,7 +541,7 @@ this reduction can be used to convert geometric programs into convex form.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

@@ -14,6 +14,7 @@
     <script src="../_static/underscore.js"></script>
     <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -74,18 +75,85 @@ or <em>target</em>.</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="cvxpy.reductions.middle_end.html">Middle-End</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#complex2real">Complex2Real</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxattr2constr">CvxAttr2Constr</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#dgp2dcp">Dgp2Dcp</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#evalparams">EvalParams</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#flipobjective">FlipObjective</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#complex2real">Complex2Real</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real"><code class="docutils literal notranslate"><span class="pre">Complex2Real</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.accepts"><code class="docutils literal notranslate"><span class="pre">Complex2Real.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.apply"><code class="docutils literal notranslate"><span class="pre">Complex2Real.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.complex2real.complex2real.Complex2Real.invert"><code class="docutils literal notranslate"><span class="pre">Complex2Real.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxattr2constr">CvxAttr2Constr</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.accepts"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.apply"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.cvx_attr2constr.CvxAttr2Constr.invert"><code class="docutils literal notranslate"><span class="pre">CvxAttr2Constr.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#dgp2dcp">Dgp2Dcp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.accepts"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.apply"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.canonicalize_expr"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.canonicalize_expr()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.dgp2dcp.dgp2dcp.Dgp2Dcp.invert"><code class="docutils literal notranslate"><span class="pre">Dgp2Dcp.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#evalparams">EvalParams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams"><code class="docutils literal notranslate"><span class="pre">EvalParams</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.accepts"><code class="docutils literal notranslate"><span class="pre">EvalParams.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.apply"><code class="docutils literal notranslate"><span class="pre">EvalParams.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.eval_params.EvalParams.invert"><code class="docutils literal notranslate"><span class="pre">EvalParams.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.middle_end.html#flipobjective">FlipObjective</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective"><code class="docutils literal notranslate"><span class="pre">FlipObjective</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.accepts"><code class="docutils literal notranslate"><span class="pre">FlipObjective.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.apply"><code class="docutils literal notranslate"><span class="pre">FlipObjective.apply()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.middle_end.html#cvxpy.reductions.flip_objective.FlipObjective.invert"><code class="docutils literal notranslate"><span class="pre">FlipObjective.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cvxpy.reductions.back_end.html">Back-End</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#dcp2cone">Dcp2Cone</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#qp2symbolicqp">Qp2SymbolicQp</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#dualize">Dualize</a></li>
-<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#slacks">Slacks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#dcp2cone">Dcp2Cone</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply"><code class="docutils literal notranslate"><span class="pre">Dcp2Cone.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#qp2symbolicqp">Qp2SymbolicQp</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.accepts"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp.accepts()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.qp2quad_form.qp2symbolic_qp.Qp2SymbolicQp.apply"><code class="docutils literal notranslate"><span class="pre">Qp2SymbolicQp.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#dualize">Dualize</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize"><code class="docutils literal notranslate"><span class="pre">Dualize</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert"><code class="docutils literal notranslate"><span class="pre">Dualize.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="cvxpy.reductions.back_end.html#slacks">Slacks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks"><code class="docutils literal notranslate"><span class="pre">Slacks</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply"><code class="docutils literal notranslate"><span class="pre">Slacks.apply()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -516,10 +584,50 @@ a Solution object.</p>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#core-classes">Core classes</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#solution">Solution</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#reduction">Reduction</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#chain">Chain</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#solvingchain">SolvingChain</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#solution">Solution</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.solution.Solution"><code class="docutils literal notranslate"><span class="pre">Solution</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.status"><code class="docutils literal notranslate"><span class="pre">Solution.status</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.opt_val"><code class="docutils literal notranslate"><span class="pre">Solution.opt_val</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.primal_vars"><code class="docutils literal notranslate"><span class="pre">Solution.primal_vars</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.dual_vars"><code class="docutils literal notranslate"><span class="pre">Solution.dual_vars</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solution.Solution.attr"><code class="docutils literal notranslate"><span class="pre">Solution.attr</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#reduction">Reduction</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction"><code class="docutils literal notranslate"><span class="pre">Reduction</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.__init__"><code class="docutils literal notranslate"><span class="pre">Reduction.__init__()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.accepts"><code class="docutils literal notranslate"><span class="pre">Reduction.accepts()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.apply"><code class="docutils literal notranslate"><span class="pre">Reduction.apply()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.invert"><code class="docutils literal notranslate"><span class="pre">Reduction.invert()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.reduce"><code class="docutils literal notranslate"><span class="pre">Reduction.reduce()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.reduction.Reduction.retrieve"><code class="docutils literal notranslate"><span class="pre">Reduction.retrieve()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#chain">Chain</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.chain.Chain"><code class="docutils literal notranslate"><span class="pre">Chain</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.chain.Chain.reductions"><code class="docutils literal notranslate"><span class="pre">Chain.reductions</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.chain.Chain.accepts"><code class="docutils literal notranslate"><span class="pre">Chain.accepts()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.chain.Chain.apply"><code class="docutils literal notranslate"><span class="pre">Chain.apply()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.chain.Chain.invert"><code class="docutils literal notranslate"><span class="pre">Chain.invert()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="#solvingchain">SolvingChain</a><ul>
+<li class="toctree-l5"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain"><code class="docutils literal notranslate"><span class="pre">SolvingChain</span></code></a><ul>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.reductions"><code class="docutils literal notranslate"><span class="pre">SolvingChain.reductions</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solver"><code class="docutils literal notranslate"><span class="pre">SolvingChain.solver</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.prepend"><code class="docutils literal notranslate"><span class="pre">SolvingChain.prepend()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve"><code class="docutils literal notranslate"><span class="pre">SolvingChain.solve()</span></code></a></li>
+<li class="toctree-l6"><a class="reference internal" href="#cvxpy.reductions.solvers.solving_chain.SolvingChain.solve_via_data"><code class="docutils literal notranslate"><span class="pre">SolvingChain.solve_via_data()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -586,7 +694,7 @@ a Solution object.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.1.1</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
