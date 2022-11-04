@@ -14,8 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from __future__ import annotations
+
 import abc
-from typing import TYPE_CHECKING, List, Tuple, Union
+from typing import TYPE_CHECKING, Iterable, List, Tuple
 
 if TYPE_CHECKING:
     from cvxpy import Constant, Variable
@@ -49,9 +51,9 @@ class Leaf(expression.Expression):
 
     Parameters
     ----------
-    shape : tuple or int
-        The leaf dimensions. Either an integer n for a 1D shape, or a
-        tuple where the semantics are the same as NumPy ndarray shapes.
+    shape : Iterable of ints or int
+        The leaf dimensions. Either an integer n for a 1D shape, or an
+        iterable where the semantics are the same as NumPy ndarray shapes.
         **Shapes cannot be more than 2D**.
     value : numeric type
         A value to assign to the leaf.
@@ -91,7 +93,7 @@ class Leaf(expression.Expression):
     __metaclass__ = abc.ABCMeta
 
     def __init__(
-        self, shape: Union[int, Tuple[int, ...]], value=None, nonneg: bool = False,
+        self, shape: int | Iterable[int, ...], value=None, nonneg: bool = False,
         nonpos: bool = False, complex: bool = False, imag: bool = False,
         symmetric: bool = False, diag: bool = False, PSD: bool = False,
         NSD: bool = False, hermitian: bool = False,
@@ -106,7 +108,8 @@ class Leaf(expression.Expression):
         for d in shape:
             if not isinstance(d, numbers.Integral) or d <= 0:
                 raise ValueError("Invalid dimensions %s." % (shape,))
-        self._shape = tuple(np.int32(d) for d in shape)
+        shape = tuple(np.int32(d) for d in shape)
+        self._shape = shape
 
         if (PSD or NSD or symmetric or diag or hermitian) and (len(shape) != 2
                                                                or shape[0] != shape[1]):
