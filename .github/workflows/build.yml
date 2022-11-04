@@ -38,7 +38,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2019 ]
-        python-version: [ 3.7, 3.9, "3.10" ]
+        python-version: [ 3.7, 3.9, "3.10", "3.11"]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -94,7 +94,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2019 ]
-        python-version: [ 3.7, 3.9, "3.10" ]
+        python-version: [ 3.7, 3.9, "3.10", "3.11" ]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
@@ -160,7 +160,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-20.04, macos-11, windows-2019 ]
-        python-version: [ 3.7, 3.9, "3.10" ]
+        python-version: [ 3.7, 3.9, "3.10", "3.11" ]
         include:
           - os: ubuntu-20.04
             python-version: 3.8
