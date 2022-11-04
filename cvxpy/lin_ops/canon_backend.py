@@ -24,7 +24,7 @@ import numpy as np
 import scipy.sparse as sp
 
 from cvxpy.lin_ops import LinOp
-from cvxpy.settings import SCIPY_CANON_BACKEND
+from cvxpy.settings import RUST_CANON_BACKEND, SCIPY_CANON_BACKEND
 
 
 class Constant(Enum):
@@ -104,9 +104,11 @@ class CanonBackend(ABC):
         """
         backends = {
             SCIPY_CANON_BACKEND: ScipyCanonBackend,
+            RUST_CANON_BACKEND: RustCanonBackend
         }
         return backends[backend_name](*args)
 
+    @abstractmethod
     def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
         """
         Main function called from canonInterface.
@@ -122,6 +124,12 @@ class CanonBackend(ABC):
         -------
         2D sp.coo_matrix representing the constraints (or the objective).
         """
+        pass  # noqa
+
+
+class PythonCanonBackend(CanonBackend):
+
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
         self.id_to_col[-1] = self.var_length
 
         constraint_res = []
@@ -508,7 +516,21 @@ class CanonBackend(ABC):
         pass  # noqa
 
 
-class ScipyCanonBackend(CanonBackend):
+class RustCanonBackend(CanonBackend):
+    def build_matrix(self, lin_ops: list[LinOp]) -> sp.coo_matrix:
+        import cvxpy_rust
+        self.id_to_col[-1] = self.var_length
+        (data, (row, col), shape) = cvxpy_rust.build_matrix(lin_ops,
+                                                            self.param_size_plus_one,
+                                                            self.id_to_col,
+                                                            self.param_to_size,
+                                                            self.param_to_col,
+                                                            self.var_length)
+        self.id_to_col.pop(-1)
+        return sp.coo_matrix((data, (row, col)), shape)
+
+
+class ScipyCanonBackend(PythonCanonBackend):
 
     @staticmethod
     def reshape_constant_data(constant_data: dict[int, sp.csr_matrix], new_shape: tuple[int, ...]) \
