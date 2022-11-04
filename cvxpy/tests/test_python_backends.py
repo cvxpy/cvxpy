@@ -152,20 +152,20 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         neg_lin_op = linOpHelper()
         out_view = backend.neg(neg_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
         assert np.all(A == -np.eye(4))
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_transpose(self, backend):
         """
@@ -203,13 +203,13 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         transpose_lin_op = linOpHelper((2, 2))
         out_view = backend.transpose(transpose_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
@@ -222,7 +222,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_upper_tri(self, backend):
         """
@@ -255,13 +255,13 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         upper_tri_lin_op = linOpHelper(args=[linOpHelper((2, 2))])
         out_view = backend.upper_tri(upper_tri_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
@@ -271,7 +271,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_index(self, backend):
         """
@@ -308,13 +308,13 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         index_2d_lin_op = linOpHelper(data=[slice(0, 2, 1), slice(0, 1, 1)], args=[variable_lin_op])
         out_view = backend.index(index_2d_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
@@ -326,7 +326,7 @@ class TestScipyBackend:
 
         index_1d_lin_op = linOpHelper(data=[slice(0, 1, 1)], args=[variable_lin_op])
         out_view = backend.index(index_1d_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
@@ -336,7 +336,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_diag_mat(self, backend):
         """
@@ -370,13 +370,13 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         diag_mat_lin_op = linOpHelper(shape=(2, 2))
         out_view = backend.diag_mat(diag_mat_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
@@ -387,7 +387,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_diag_vec(self, backend):
         """
@@ -419,13 +419,13 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
         diag_vec_lin_op = linOpHelper(shape=(2, 2))
         out_view = backend.diag_vec(diag_vec_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 2)).toarray()
@@ -438,7 +438,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_sum_entries(self, backend):
         """
@@ -466,13 +466,13 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
         sum_entries_lin_op = linOpHelper()
         out_view = backend.sum_entries(sum_entries_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 2)).toarray()
@@ -482,7 +482,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_promote(self, backend):
         """
@@ -511,13 +511,13 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(1, 1)).toarray()
         assert np.all(view_A == np.eye(1))
 
         promote_lin_op = linOpHelper((3,))
         out_view = backend.promote(promote_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(3, 1)).toarray()
@@ -529,7 +529,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_hstack(self, backend):
         """
@@ -551,7 +551,7 @@ class TestScipyBackend:
 
         hstack_lin_op = linOpHelper(args=[lin_op_x, lin_op_y])
         out_view = backend.hstack(hstack_lin_op, empty_view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 2)).toarray()
@@ -587,7 +587,7 @@ class TestScipyBackend:
 
         vstack_lin_op = linOpHelper(args=[lin_op_x, lin_op_y])
         out_view = backend.vstack(vstack_lin_op, empty_view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
@@ -629,7 +629,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
@@ -637,7 +637,7 @@ class TestScipyBackend:
 
         mul_lin_op = linOpHelper(data=lhs, args=[variable_lin_op])
         out_view = backend.mul(mul_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
@@ -650,7 +650,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_parametrized_mul(self, backend):
         """
@@ -704,7 +704,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
@@ -754,7 +754,7 @@ class TestScipyBackend:
         assert np.all(slice_idx_three == expected_idx_three)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_rmul(self, backend):
         """
@@ -784,7 +784,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
@@ -792,7 +792,7 @@ class TestScipyBackend:
 
         rmul_lin_op = linOpHelper(data=rhs, args=[variable_lin_op])
         out_view = backend.rmul(rmul_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 4)).toarray()
@@ -803,7 +803,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_parametrized_rmul(self, backend):
         """
@@ -841,7 +841,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
@@ -867,7 +867,7 @@ class TestScipyBackend:
         assert np.all(slice_idx_one == expected_idx_one)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_mul_elementwise(self, backend):
         """
@@ -896,7 +896,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
@@ -904,7 +904,7 @@ class TestScipyBackend:
 
         mul_elementwise_lin_op = linOpHelper(data=lhs)
         out_view = backend.mul_elem(mul_elementwise_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(2, 2)).toarray()
@@ -915,7 +915,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_mul_elementwise_parametrized(self, backend):
         """
@@ -952,7 +952,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(2, 2)).toarray()
         assert np.all(view_A == np.eye(2))
 
@@ -978,7 +978,7 @@ class TestScipyBackend:
         assert np.all(slice_idx_one == expected_idx_one)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_div(self, backend):
         """
@@ -1006,7 +1006,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
@@ -1014,7 +1014,7 @@ class TestScipyBackend:
 
         div_lin_op = linOpHelper(data=lhs)
         out_view = backend.div(div_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(4, 4)).toarray()
@@ -1027,7 +1027,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_trace(self, backend):
         """
@@ -1057,13 +1057,13 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
         trace_lin_op = linOpHelper(args=[variable_lin_op])
         out_view = backend.trace(trace_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(1, 4)).toarray()
@@ -1073,7 +1073,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_conv(self, backend):
         """
@@ -1098,7 +1098,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(3, 3)).toarray()
         assert np.all(view_A == np.eye(3))
 
@@ -1106,7 +1106,7 @@ class TestScipyBackend:
         conv_lin_op = linOpHelper(data=f, shape=(5, 1), args=[variable_lin_op])
 
         out_view = backend.conv(conv_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(5, 3)).toarray()
@@ -1120,7 +1120,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_kron_r(self, backend):
         """
@@ -1156,7 +1156,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
@@ -1164,7 +1164,7 @@ class TestScipyBackend:
         kron_r_lin_op = linOpHelper(data=a, args=[variable_lin_op])
 
         out_view = backend.kron_r(kron_r_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(8, 4)).toarray()
@@ -1181,7 +1181,7 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)
 
     def test_kron_l(self, backend):
         """
@@ -1217,7 +1217,7 @@ class TestScipyBackend:
         view = backend.process_constraint(variable_lin_op, empty_view)
 
         # cast to numpy
-        view_A = view.get_tensor_representation()
+        view_A = view.get_tensor_representation(0)
         view_A = sp.coo_matrix((view_A.data, (view_A.row, view_A.col)), shape=(4, 4)).toarray()
         assert np.all(view_A == np.eye(4))
 
@@ -1225,7 +1225,7 @@ class TestScipyBackend:
         kron_l_lin_op = linOpHelper(data=a, args=[variable_lin_op])
 
         out_view = backend.kron_l(kron_l_lin_op, view)
-        A = out_view.get_tensor_representation()
+        A = out_view.get_tensor_representation(0)
 
         # cast to numpy
         A = sp.coo_matrix((A.data, (A.row, A.col)), shape=(8, 4)).toarray()
@@ -1242,4 +1242,4 @@ class TestScipyBackend:
         assert np.all(A == expected)
 
         # Note: view is edited in-place:
-        assert out_view.get_tensor_representation() == view.get_tensor_representation()
+        assert out_view.get_tensor_representation(0) == view.get_tensor_representation(0)

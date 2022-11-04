@@ -125,17 +125,17 @@ class CanonBackend(ABC):
         self.id_to_col[-1] = self.var_length
 
         constraint_res = []
-        offset = 0
+        row_offset = 0
         for lin_op in lin_ops:
             lin_op_rows = np.prod(lin_op.shape)
             empty_view = self.get_empty_view()
             lin_op_tensor = self.process_constraint(lin_op, empty_view)
-            constraint_res.append((lin_op_tensor.get_tensor_representation, offset))
-            offset += lin_op_rows
+            constraint_res.append((lin_op_tensor.get_tensor_representation(row_offset)))
+            row_offset += lin_op_rows
         tensor_res = self.concatenate_tensors(constraint_res)
 
         self.id_to_col.pop(-1)
-        return self.reshape_tensors(tensor_res, offset)
+        return self.reshape_tensors(tensor_res, row_offset)
 
     def process_constraint(self, lin_op: LinOp, empty_view: TensorView) -> TensorView:
         """
@@ -215,7 +215,7 @@ class CanonBackend(ABC):
         pass  # noqa
 
     @abstractmethod
-    def concatenate_tensors(self, tensors: list[tuple[TensorView, int]]) -> TensorView:
+    def concatenate_tensors(self, tensors: list[TensorRepresentation]) -> TensorView:
         """
         Takes list of tensors and stacks them along axis 0 (rows).
         """
@@ -516,11 +516,9 @@ class ScipyCanonBackend(CanonBackend):
         return {k: [v_i.reshape(new_shape[:-1], order="F").tocsr()
                     for v_i in v] for k, v in constant_data.items()}
 
-    def concatenate_tensors(self, tensors: list[tuple[TensorRepresentation, int]]) \
+    def concatenate_tensors(self, tensors: list[TensorRepresentation]) \
             -> TensorRepresentation:
-        for tensor, row_offset in tensors:
-            tensor.row += row_offset
-        return TensorRepresentation.combine([t[0] for t in tensors])
+        return TensorRepresentation.combine(tensors)
 
     def reshape_tensors(self, tensor: TensorRepresentation, total_rows: int) -> sp.csc_matrix:
         # Windows uses int32 by default at time of writing, so we need to enforce int64 here
@@ -865,7 +863,7 @@ class TensorView(ABC):
         pass  # noqa
 
     @abstractmethod
-    def get_tensor_representation(self):
+    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
         Returns [A b].
         """
@@ -903,7 +901,7 @@ class ScipyTensorView(TensorView):
         else:
             raise ValueError
 
-    def get_tensor_representation(self) -> TensorRepresentation:
+    def get_tensor_representation(self, row_offset: int) -> TensorRepresentation:
         """
         Returns a TensorRepresentation of [A b] tensor.
         """
@@ -911,13 +909,14 @@ class ScipyTensorView(TensorView):
         tensor_representations = []
         for variable_id, variable_tensor in self.tensor.items():
             for parameter_id, parameter_tensor in variable_tensor.items():
-                for offset, matrix in enumerate(parameter_tensor):
+                for param_slice_offset, matrix in enumerate(parameter_tensor):
                     coo_repr = matrix.tocoo(copy=False)
                     tensor_representations.append(TensorRepresentation(
                         coo_repr.data,
-                        coo_repr.row,
+                        coo_repr.row + row_offset,
                         coo_repr.col + self.id_to_col[variable_id],
-                        np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] + offset,
+                        np.ones(coo_repr.nnz) * self.param_to_col[parameter_id] +
+                        param_slice_offset,
                     ))
         return TensorRepresentation.combine(tensor_representations)
 
