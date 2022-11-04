@@ -218,9 +218,7 @@ version 9.3 or greater is required.
 Install with SCIP support
 -------------------------
 
-CVXPY supports the SCIP solver through the ``pyscipopt`` Python package;
-we do not support pyscipopt version 4.0.0 or higher; you need to use pyscipopt version 3.x.y
-for some (x,y).
+CVXPY supports the SCIP solver through the ``pyscipopt`` Python package.
 See the `PySCIPOpt <https://github.com/SCIP-Interfaces/PySCIPOpt#installation>`_ github for installation instructions.
 
 CVXPY's SCIP interface does not reliably recover dual variables for constraints. If you require dual variables for a continuous problem, you will need to use another solver. We welcome additional contributions to the SCIP interface, to recover dual variables for constraints in continuous problems.
@@ -242,6 +240,17 @@ Install with CLARABEL support
 CVXPY supports the CLARABEL solver.
 Simply install CLARABEL such that you can ``import clarabel`` in Python.
 See the `CLARABEL <https://oxfordcontrol.github.io/ClarabelDocs/stable/python/installation_py/>`_ website for installation instructions.
+
+
+Install with PROXQP support
+-----------------------------
+
+CVXPY supports the PROXQP solver.
+Simply install PROXQP such that you can ``import proxsuite`` in Python.
+See the `proxsuite <https://github.com/simple-robotics/proxsuite#quick-install>`_ github for installation instructions.
+Be aware that PROXQP by default uses dense matrices to represent problem data.
+You may achieve better performance by setting ``backend = 'sparse'`` in your call to ``problem.solve``.
+
 
 Install without default solvers
 -------------------------------

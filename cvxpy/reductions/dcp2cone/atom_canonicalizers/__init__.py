@@ -17,6 +17,7 @@ limitations under the License.
 from cvxpy.atoms import *
 from cvxpy.atoms.affine.index import special_index
 from cvxpy.atoms.suppfunc import SuppFuncAtom
+from cvxpy.reductions.cone2cone.approximations import von_neumann_entr_canon_dispatch
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.entr_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.exp_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.geo_mean_canon import *
@@ -41,7 +42,6 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.rel_entr_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.sigma_max_canon import *
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.suppfunc_canon import (
     suppfunc_canon,)
-from cvxpy.reductions.dcp2cone.atom_canonicalizers.von_neumann_entr_canon import von_neumann_entr_canon
 from cvxpy.reductions.dcp2cone.atom_canonicalizers.xexp_canon import *
 from cvxpy.reductions.eliminate_pwl.atom_canonicalizers import (
     abs_canon, cummax_canon, cumsum_canon, max_canon, maximum_canon, min_canon,
@@ -86,6 +86,6 @@ CANON_METHODS = {
     SuppFuncAtom : suppfunc_canon,
     xexp : xexp_canon,
     dotsort : dotsort_canon,
-    von_neumann_entr : von_neumann_entr_canon,
+    von_neumann_entr : von_neumann_entr_canon_dispatch,
     tr_inv : tr_inv_canon,
 }

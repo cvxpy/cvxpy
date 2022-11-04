@@ -25,6 +25,8 @@ from cvxpy.constraints.exponential import OpRelConeQuad, RelEntrQuad
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
+from cvxpy.reductions.dcp2cone.atom_canonicalizers.von_neumann_entr_canon import (
+    von_neumann_entr_canon,)
 
 APPROX_CONES = {
     RelEntrQuad: {cp.SOC},
@@ -160,6 +162,23 @@ def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Cons
         constrs.append(cp.bmat([[Zs[k] - X - Ts[i], off_diag], [off_diag.T, X-t[i]*Ts[i]]]) >> 0)
 
     return lead_con, constrs
+
+
+def von_neumann_entr_QuadApprox(expr, args):
+    N, m, k = args[0], expr.quad_approx[0], expr.quad_approx[1]
+    n = N.shape[0]
+    t = Variable(shape=N.shape, symmetric=True)
+    con = OpRelConeQuad(N, cp.Constant(np.eye(n)), t, m, k)
+    lead_con, cons = OpRelConeQuad_canon(con, con.args)
+    cons.append(lead_con)
+    return -cp.trace(con.Z), cons
+
+
+def von_neumann_entr_canon_dispatch(expr, args):
+    if expr.quad_approx:
+        return von_neumann_entr_QuadApprox(expr, args)
+    else:
+        return von_neumann_entr_canon(expr, args)
 
 
 class QuadApprox(Canonicalization):

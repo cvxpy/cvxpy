@@ -108,7 +108,7 @@ class Test_von_neumann_entr:
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
-    def make_test_3():
+    def make_test_3(quad_approx=False):
         """Expect unspecified EV to be 0.35"""
         n = 4
         N = cp.Variable(shape=(n, n), PSD=True)
@@ -136,7 +136,10 @@ class Test_von_neumann_entr:
         cons2 = N @ v2 == lambda2 * v2
         cons3 = N @ v3 == lambda3 * v3
         cons4 = trace(N) <= trMax
-        objective = cp.Maximize(von_neumann_entr(N))
+        if quad_approx:
+            objective = cp.Maximize(von_neumann_entr(N, (5, 5)))
+        else:
+            objective = cp.Maximize(von_neumann_entr(N))
         obj_pair = (objective, 1.2041518326298097)
         con_pairs = [
             (cons1, None),
@@ -157,7 +160,7 @@ class Test_von_neumann_entr:
         sth.verify_primal_values(places=3)
 
     @staticmethod
-    def make_test_4():
+    def make_test_4(quad_approx=False):
         A1 = np.array([[8.38972, 1.02671, 0.87991],
                        [1.02671, 8.41455, 7.31307],
                        [0.87991, 7.31307, 2.35915]])
@@ -181,7 +184,10 @@ class Test_von_neumann_entr:
         ref_X_val = ref_X.value.A
 
         expect_N = ref_X_val
-        objective = cp.Minimize(-von_neumann_entr(N))
+        if quad_approx:
+            objective = cp.Minimize(-von_neumann_entr(N, (5, 5)))
+        else:
+            objective = cp.Minimize(-von_neumann_entr(N))
         obj_pair = (objective, ref_obj_val)
         cons1 = trace(A1 @ N) == b[0]
         cons2 = trace(A2 @ N) == b[1]
@@ -199,6 +205,19 @@ class Test_von_neumann_entr:
 
     def test_4(self):
         sth = Test_von_neumann_entr.make_test_4()
+        sth.solve(**self.SOLVE_ARGS)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_primal_feasibility(places=3)
+
+    def test_5(self):
+        sth = Test_von_neumann_entr.make_test_3(quad_approx=True)
+        sth.solve(**self.SOLVE_ARGS)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+
+    def test_6(self):
+        sth = Test_von_neumann_entr.make_test_4(quad_approx=True)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
