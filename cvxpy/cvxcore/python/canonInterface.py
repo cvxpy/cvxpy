@@ -390,7 +390,7 @@ def get_problem_matrix(linOps,
         assert A_py.shape == output_shape
         return A_py
     else:
-        raise ValueError(f'Unknown backend: {canon_backend=}')
+        raise ValueError(f'Unknown backend: {canon_backend}')
 
 
 def format_matrix(matrix, shape=None, format='dense'):
