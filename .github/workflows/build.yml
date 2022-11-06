@@ -7,7 +7,6 @@ on:
             - master
         tags:
           - '*'
-
 jobs:
   cleanup-runs:
     runs-on: ubuntu-latest
