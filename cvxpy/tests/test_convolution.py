@@ -66,9 +66,7 @@ class TestConvolution(BaseTest):
         constraints = constr_map[s.EQ] + constr_map[s.LEQ]
         constraints = prune_constants(constraints)
         Amul, ATmul = iterative.get_mul_funcs(
-            {constraints: constraints, dims: dims,
-            var_offsets: var_offsets, var_sizes: var_sizes,
-            x_length: x_length})
+            {constraints: constraints, dims: dims, var_offsets: var_offsets, var_sizes: var_sizes, x_length: x_length})
         vec = np.array(range(1, x_length+1))
         # A @ vec
         result = np.zeros(A.shape[0])
