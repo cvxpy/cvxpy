@@ -39,7 +39,8 @@ class TestMIPVariable(BaseTest):
     def test_all_solvers(self) -> None:
         for solver in self.solvers:
             self.bool_prob(solver)
-            self.int_prob(solver)
+            if solver != cp.SCIPY:
+                self.int_prob(solver)
             if solver in [cp.CPLEX, cp.GUROBI, cp.MOSEK, cp.XPRESS]:
                 if solver != cp.XPRESS:  # issue #1815
                     self.bool_socp(solver)
