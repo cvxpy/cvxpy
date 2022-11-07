@@ -721,7 +721,7 @@ class TestCBC(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
-    def _cylp_checks_isProvenInfeasible():
+    def _cylp_checks_isProvenInfeasible(self) -> None:
         try:
             # https://github.com/coin-or/CyLP/pull/150
             from cylp.cy.CyCbcModel import problemStatus
@@ -780,7 +780,7 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
-    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(),
+    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(None),
                          'CyLP <= 0.91.4 has no working integer infeasibility detection')
     def test_cbc_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CBC')
