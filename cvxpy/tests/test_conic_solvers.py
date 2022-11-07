@@ -780,7 +780,7 @@ class TestCBC(BaseTest):
     def test_cbc_mi_lp_3(self) -> None:
         StandardTestLPs.test_mi_lp_3(solver='CBC')
 
-    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(),
+    @unittest.skipUnless(_cylp_checks_isProvenInfeasible(None),
                          'CyLP <= 0.91.4 has no working integer infeasibility detection')
     def test_cbc_mi_lp_5(self) -> None:
         StandardTestLPs.test_mi_lp_5(solver='CBC')
