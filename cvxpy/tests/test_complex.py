@@ -321,8 +321,8 @@ class TestComplex(BaseTest):
         result = prob.solve(solver=cp.SCS, eps=1e-6, verbose=True)
         self.assertAlmostEqual(result, logdet_value, places=2)
         objective_value = objective.value
-        s, ld = np.linalg.slogdet(P)
-        self.assertAlmostEqual(objective_value, ld)
+        _, ld = np.linalg.slogdet(P)
+        self.assertAlmostEqual(objective_value, ld, places=3)
 
         # Test case for Issue 1816.
         #   The optimal solution is the identity matrix scaled by 3.
