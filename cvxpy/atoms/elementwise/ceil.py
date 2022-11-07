@@ -103,7 +103,7 @@ class floor(Elementwise):
     """Elementwise floor."""
 
     def __init__(self, x) -> None:
-        return super(floor, self).__init__(x)
+        super(floor, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):

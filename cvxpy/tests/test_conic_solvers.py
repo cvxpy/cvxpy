@@ -721,6 +721,7 @@ class TestCBC(BaseTest):
         self.B = cp.Variable((2, 2), name='B')
         self.C = cp.Variable((3, 2), name='C')
 
+    @staticmethod
     def _cylp_checks_isProvenInfeasible():
         try:
             # https://github.com/coin-or/CyLP/pull/150

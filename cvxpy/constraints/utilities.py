@@ -91,7 +91,7 @@ def format_elemwise(vars_):
     terms = []
     for i, var in enumerate(vars_):
         mat = get_spacing_matrix(mat_shape, spacing, i)
-        terms.append(lu.mul_expr(mat, var))
+        terms.append(lu.mul_expr(mat, var, None))
     return [lu.create_geq(lu.sum_expr(terms))]
 
 
