@@ -24,7 +24,7 @@ class Wrap(AffAtom):
     """A no-op wrapper to assert properties.
     """
     def __init__(self, arg) -> None:
-        super(Wrap, self).__init__(arg)
+        return super(Wrap, self).__init__(arg)
 
     def is_atom_log_log_convex(self) -> bool:
         return True
