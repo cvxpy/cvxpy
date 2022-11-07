@@ -26,7 +26,7 @@ class ceil(Elementwise):
     """Elementwise ceiling."""
 
     def __init__(self, x) -> None:
-        return super(ceil, self).__init__(x)
+        super(ceil, self).__init__(x)
 
     @Elementwise.numpy_numeric
     def numeric(self, values):
