@@ -42,7 +42,7 @@ class log_det(Atom):
         # take Hermitian part of the input.
         symm = (values[0] + np.conj(values[0].T))/2
         sign, logdet = LA.slogdet(symm)
-        if np.real(sign) == 1:
+        if np.isclose(np.real(sign), 1):
             return logdet
         else:
             return -np.inf
