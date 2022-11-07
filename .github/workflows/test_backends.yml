@@ -1,0 +1,23 @@
+name: benchmarks
+
+on:
+  push:
+      branches:
+          - master
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - uses: actions/checkout@v2
+      - name: Install cvxpy dependencies
+        run: |
+          pip install .
+      - name: Run tests for each non-default backend
+        run : |
+          export CVXPY_DEFAULT_CANON_BACKEND="SCIPY"
+          pytest
+
