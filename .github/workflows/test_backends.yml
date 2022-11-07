@@ -1,12 +1,15 @@
-name: benchmarks
+name: test_backends
 
 on:
-  push:
-      branches:
-          - master
+    pull_request:
+    push:
+        branches:
+            - master
+        tags:
+          - '*'
 
 jobs:
-  benchmark:
+  test_backends:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/setup-python@v2
