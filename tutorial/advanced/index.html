@@ -363,16 +363,10 @@ this argument is True), the problem must satisfy the DPP rules.</p>
 <li><p><strong>enforce_dpp</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, a <code class="docutils literal notranslate"><span class="pre">DPPError</span></code> will be thrown when trying to solve
 a non-DPP problem (instead of just a warning). Only relevant for
 problems involving Parameters. Defaults to <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
+<li><p><strong>ignore_dpp</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, DPP problems will be treated as non-DPP,
+which may speed up compilation. Defaults to False.</p></li>
+<li><p><strong>kwargs</strong> – Additional keyword arguments specifying solver specific options.</p></li>
 </ul>
-</dd>
-</dl>
-<dl class="simple">
-<dt>:param ignore_dpp<span class="classifier">When True, DPP problems will be treated as non-DPP,</span></dt><dd><p>which may speed up compilation. Defaults to False.</p>
-</dd>
-</dl>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>kwargs</strong> – Additional keyword arguments specifying solver specific options.</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
 <dd class="field-even"><p>The optimal value for the problem, or a string indicating why the problem could not be solved.</p>
