@@ -405,7 +405,7 @@ parses and solves the problem.
         a non-DPP problem (instead of just a warning). Only relevant for
         problems involving Parameters. Defaults to ``False``.
    :type enforce_dpp: bool, optional
-   :param ignore_dpp : When True, DPP problems will be treated as non-DPP,
+   :param ignore_dpp: When True, DPP problems will be treated as non-DPP,
         which may speed up compilation. Defaults to False.
    :type ignore_dpp: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
