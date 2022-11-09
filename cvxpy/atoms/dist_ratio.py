@@ -40,12 +40,12 @@ class dist_ratio(Atom):
         return np.linalg.norm(
             values[0] - self.a) / np.linalg.norm(values[0] - self.b)
 
-    shape_from_args = length.shape_from_args.__func__
-    sign_from_args = length.sign_from_args.__func__
-    is_atom_convex = length.is_atom_convex.__func__
-    is_atom_concave = length.is_atom_concave.__func__
-    is_atom_quasiconvex = length.is_atom_quasiconvex.__func__
-    is_atom_quasiconcave = length.is_atom_quasiconcave.__func__
-    is_incr = length.is_incr.__func__
-    is_decr = length.is_decr.__func__
-    _grad = length._grad.__func__
+    shape_from_args = length.shape_from_args
+    sign_from_args = length.sign_from_args
+    is_atom_convex = length.is_atom_convex
+    is_atom_concave = length.is_atom_concave
+    is_atom_quasiconvex = length.is_atom_quasiconvex
+    is_atom_quasiconcave = length.is_atom_quasiconcave
+    is_incr = length.is_incr
+    is_decr = length.is_decr
+    _grad = length._grad

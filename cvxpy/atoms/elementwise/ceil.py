@@ -109,13 +109,13 @@ class floor(Elementwise):
     def numeric(self, values):
         return np.floor(values[0])
 
-    sign_from_args = ceil.sign_from_args.__func__
-    is_atom_convex = ceil.is_atom_convex.__func__
-    is_atom_concave = ceil.is_atom_concave.__func__
-    is_atom_log_log_convex = ceil.is_atom_log_log_convex.__func__
-    is_atom_log_log_concave = ceil.is_atom_log_log_concave.__func__
-    is_atom_quasiconvex = ceil.is_atom_quasiconvex.__func__
-    is_atom_quasiconcave = ceil.is_atom_quasiconcave.__func__
-    is_incr = ceil.is_incr.__func__
-    is_decr = ceil.is_decr.__func__
-    _grad = ceil._grad.__func__
+    sign_from_args = ceil.sign_from_args
+    is_atom_convex = ceil.is_atom_convex
+    is_atom_concave = ceil.is_atom_concave
+    is_atom_log_log_convex = ceil.is_atom_log_log_convex
+    is_atom_log_log_concave = ceil.is_atom_log_log_concave
+    is_atom_quasiconvex = ceil.is_atom_quasiconvex
+    is_atom_quasiconcave = ceil.is_atom_quasiconcave
+    is_incr = ceil.is_incr
+    is_decr = ceil.is_decr
+    _grad = ceil._grad
