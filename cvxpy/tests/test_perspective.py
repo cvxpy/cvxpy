@@ -33,7 +33,7 @@ def test_monotonicity():
     assert not p.is_nonpos()
 
     assert not p.is_incr(0)
-    assert p.is_incr(1)
+    assert not p.is_incr(1)
 
     assert not p.is_decr(0)
     assert not p.is_decr(1)

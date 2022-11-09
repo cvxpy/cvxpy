@@ -277,6 +277,18 @@ and returns a scalar.
      - |convex| convex
      - None
 
+   * - :ref:`perspective(f(x),s) <perspective>`
+
+     - :math:`sf(x/s)`
+     - :math:`x \in \mathop{\bf dom} f`
+
+       :math:`s \geq 0`
+     - same as f
+     - |convex| / |concave|
+
+       same as :math:`f`
+     - None
+
    * - :ref:`pnorm(X, p) <pnorm_func>`
 
        :math:`p \geq 1`

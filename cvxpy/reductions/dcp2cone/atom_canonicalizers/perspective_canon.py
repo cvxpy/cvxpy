@@ -29,7 +29,7 @@ def perspective_canon(expr, args):
     # Only working for minimization right now.
 
     aux_prob = Problem((Minimize if expr.f.is_convex() else Maximize)(expr.f))
-    # Does numerical solution value of epigraph t coincisde with expr.f numerical
+    # Does numerical solution value of epigraph t coincide with expr.f numerical
     # value at opt?
     solver_opts = {"use_quad_obj": False}
     chain = aux_prob._construct_chain(solver_opts=solver_opts, ignore_dpp=True)
@@ -37,7 +37,7 @@ def perspective_canon(expr, args):
     prob_canon = chain.apply(aux_prob)[0]  # grab problem instance
     # get cone representation of c, A, and b for some problem.
 
-    c = prob_canon.c.toarray().flatten()[:-1]  # TODO: why
+    c = prob_canon.c.toarray().flatten()[:-1]
     d = prob_canon.c.toarray().flatten()[-1]
     Ab = prob_canon.A.toarray().reshape((-1, len(c)+1), order="F")
     A, b = Ab[:, :-1], Ab[:, -1]

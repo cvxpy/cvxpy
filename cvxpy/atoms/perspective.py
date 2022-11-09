@@ -25,10 +25,18 @@ from cvxpy.expressions.expression import Expression
 
 
 class perspective(Atom):
-    """Implements the perspective transform of an convex or concave scalar
-    expression. Uses the fact that given a cone form for the epigraph of f via
-    f(x) <= t iff  Fx + gt + e in K, the epigraph of the perspective transform
-    of f can be given by sf(x/s) <= t iff Fx + gt + se in K
+    """Implements the perspective transform of a convex or concave scalar
+    expression. Uses the fact that given a cone form for the epigraph of :math:`f` via
+
+    :math:`\{ (t, x) \in \mathbb{R}^{n+1} : t \geq f(x) \}`
+    :math:`= \{ (t,x) : Fx + gt + e \in K \},`
+
+    the epigraph of the perspective transform
+    of f can be given by
+
+    :math:`\{ (t, x, s) \in \mathbb{R}^{n+2} : t \geq sf(x/s) \}`
+    :math:`= \{ (t,x,s) : Fx + gt + se \in K \},`
+
     (see https://web.stanford.edu/~boyd/papers/pdf/sw_aff_ctrl.pdf).
     """
 
@@ -38,11 +46,7 @@ class perspective(Atom):
 
     def validate_arguments(self) -> None:
         assert self.f.size == 1  # dealing only with scalars, for now
-        # assert self.args[0].size == 1
         assert self.args[0].size == 1
-
-        # assert self.f.variables() == [self.args[0]]
-
         return super().validate_arguments()
 
     def numeric(self, values: list[np.ndarray, np.ndarray]) -> np.ndarray:
@@ -71,10 +75,6 @@ class perspective(Atom):
 
         return ret_val
 
-    def _grad(self, values):
-        """
-        """
-
     def sign_from_args(self) -> tuple[bool, bool]:
         f_pos = self.f.is_nonneg()
         f_neg = self.f.is_nonpos()
@@ -100,18 +100,12 @@ class perspective(Atom):
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?
         """
-        if idx == 0:
-            return False
-        else:
-            return all(self.f.is_incr(i) for i in range(len(self.f.args)))
+        return False
 
     def is_decr(self, idx: int) -> bool:
         """Is the composition non-increasing in argument idx?
         """
-        if idx == 0:
-            return False
-        else:
-            return all(self.f.is_decr(i) for i in range(len(self.f.args)))
+        return False
 
     def shape_from_args(self) -> Tuple[int, ...]:
         """Returns the (row, col) shape of the expression.
