@@ -111,7 +111,6 @@ class TestBackward(BaseTest):
     def setUp(self) -> None:
         try:
             import diffcp
-            diffcp  # for flake8
         except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
 
@@ -342,7 +341,6 @@ class TestBackwardDgp(BaseTest):
     def setUp(self) -> None:
         try:
             import diffcp
-            diffcp  # for flake8
         except ModuleNotFoundError:
             self.skipTest("diffcp not installed.")
 

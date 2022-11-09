@@ -74,7 +74,6 @@ class CVXOPT(ConicSolver):
         """Imports the solver.
         """
         import cvxopt
-        cvxopt  # For flake8
 
     def accepts(self, problem) -> bool:
         """Can CVXOPT solve the problem?

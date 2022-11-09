@@ -156,7 +156,6 @@ class SCS(ConicSolver):
         """Imports the solver.
         """
         import scs
-        scs  # For flake8
 
     def supports_quad_obj(self) -> bool:
         """SCS >= 3.0.0 supports a quadratic objective.

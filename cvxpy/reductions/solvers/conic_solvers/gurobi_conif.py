@@ -60,7 +60,6 @@ class GUROBI(ConicSolver):
         """Imports the solver.
         """
         import gurobipy
-        gurobipy  # For flake8
 
     def accepts(self, problem) -> bool:
         """Can Gurobi solve the problem?
