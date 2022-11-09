@@ -108,6 +108,8 @@ Finance
 
 - `Gini Mean Difference Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Gini%20Portfolio.ipynb>`_
 
+- `Kurtosis Portfolio Optimization <https://colab.research.google.com/github/cvxpy/cvxpy/blob/master/examples/notebooks/WWW/Kurtosis%20Portfolio.ipynb>`_
+
 .. _advanced-python:
 
 Advanced

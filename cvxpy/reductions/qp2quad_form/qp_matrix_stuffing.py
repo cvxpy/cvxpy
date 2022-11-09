@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 import numpy as np
 
@@ -198,6 +199,9 @@ class QpMatrixStuffing(MatrixStuffing):
        affine arguments.
     """
 
+    def __init__(self, canon_backend: str | None = None):
+        self.canon_backend = canon_backend
+
     @staticmethod
     def accepts(problem):
         return (type(problem.objective) == Minimize
@@ -226,7 +230,7 @@ class QpMatrixStuffing(MatrixStuffing):
         """See docstring for MatrixStuffing.apply"""
         inverse_data = InverseData(problem)
         # Form the constraints
-        extractor = CoeffExtractor(inverse_data)
+        extractor = CoeffExtractor(inverse_data, self.canon_backend)
         params_to_P, params_to_q, flattened_variable = self.stuffed_objective(
             problem, extractor)
         # Lower equality and inequality to Zero and NonPos.

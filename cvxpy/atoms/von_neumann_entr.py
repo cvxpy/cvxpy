@@ -49,8 +49,9 @@ class von_neumann_entr(Atom):
         A PSD matrix
     """
 
-    def __init__(self, X) -> None:
+    def __init__(self, X, quad_approx: Tuple[int, int] = ()) -> None:
         # TODO: add a check that N is symmetric/Hermitian.
+        self.quad_approx = quad_approx
         super(von_neumann_entr, self).__init__(X)
 
     def numeric(self, values):
@@ -98,6 +99,9 @@ class von_neumann_entr(Atom):
         """Is the composition non-increasing in argument idx?
         """
         return False
+
+    def get_data(self):
+        return [self.quad_approx]
 
     def _grad(self, values):
         """Gives the (sub/super)gradient of the atom w.r.t. each argument.

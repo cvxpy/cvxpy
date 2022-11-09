@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import warnings
 from typing import List, Optional
 
@@ -6,6 +8,7 @@ import numpy as np
 from cvxpy.atoms import EXP_ATOMS, NONPOS_ATOMS, PSD_ATOMS, SOC_ATOMS
 from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, FiniteSet,
                                Inequality, NonNeg, NonPos, PowCone3D, Zero,)
+from cvxpy.constraints.exponential import OpRelConeQuad, RelEntrQuad
 from cvxpy.error import DCPError, DGPError, DPPError, SolverError
 from cvxpy.problems.objective import Maximize
 from cvxpy.reductions.chain import Chain
@@ -133,7 +136,9 @@ def construct_solving_chain(problem, candidates,
                             gp: bool = False,
                             enforce_dpp: bool = False,
                             ignore_dpp: bool = False,
-                            solver_opts: Optional[dict] = None) -> "SolvingChain":
+                            canon_backend: str | None = None,
+                            solver_opts: Optional[dict] = None
+                            ) -> "SolvingChain":
     """Build a reduction chain from a problem to an installed solver.
 
     Note that if the supplied problem has 0 variables, then the solver
@@ -155,7 +160,12 @@ def construct_solving_chain(problem, candidates,
     ignore_dpp : bool, optional
         When True, DPP problems will be treated as non-DPP,
         which may speed up compilation. Defaults to False.
-    solve_args : dict, optional
+    canon_backend : str, optional
+        'CPP' (default) | 'SCIPY'
+        Specifies which backend to use for canonicalization, which can affect
+        compilation time. Defaults to None, i.e., selecting the default
+        backend.
+    solver_opts : dict, optional
         Additional arguments to pass to the solver.
 
     Returns
@@ -209,7 +219,7 @@ def construct_solving_chain(problem, candidates,
         # Canonicalize as a QP
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
-        reductions += [QpMatrixStuffing(),
+        reductions += [QpMatrixStuffing(canon_backend=canon_backend),
                        solver_instance]
         return SolvingChain(reductions=reductions)
 
@@ -277,8 +287,9 @@ def construct_solving_chain(problem, candidates,
                 and (has_constr or not solver_instance.REQUIRES_CONSTR)):
             if ex_cos:
                 reductions.append(Exotic2Common())
-            if approx_cos:
+            if RelEntrQuad in approx_cos or OpRelConeQuad in approx_cos:
                 reductions.append(QuadApprox())
+
             # Should the objective be canonicalized to a quadratic?
             if solver_opts is None:
                 use_quad_obj = True
@@ -289,7 +300,7 @@ def construct_solving_chain(problem, candidates,
             reductions += [
                 Dcp2Cone(quad_obj=quad_obj),
                 CvxAttr2Constr(),
-                ConeMatrixStuffing(quad_obj=quad_obj),
+                ConeMatrixStuffing(quad_obj=quad_obj, canon_backend=canon_backend),
                 solver_instance
             ]
             return SolvingChain(reductions=reductions)
