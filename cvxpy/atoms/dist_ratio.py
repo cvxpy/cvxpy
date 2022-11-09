@@ -13,11 +13,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Tuple
 
 import numpy as np
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.atoms.length import length
 
 
 class dist_ratio(Atom):
@@ -40,46 +40,12 @@ class dist_ratio(Atom):
         return np.linalg.norm(
             values[0] - self.a) / np.linalg.norm(values[0] - self.b)
 
-    def shape_from_args(self) -> Tuple[int, ...]:
-        """Returns the (row, col) shape of the expression.
-        """
-        return tuple()
-
-    def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
-        # Always nonnegative.
-        return (True, False)
-
-    def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
-        return False
-
-    def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
-        return False
-
-    def is_atom_quasiconvex(self) -> bool:
-        """Is the atom quasiconvex?
-        """
-        return True
-
-    def is_atom_quasiconcave(self) -> bool:
-        """Is the atom quasiconvex?
-        """
-        return False
-
-    def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
-        return False
-
-    def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
-        return False
-
-    def _grad(self, values) -> None:
-        return None
+    shape_from_args = length.shape_from_args
+    sign_from_args = length.sign_from_args
+    is_atom_convex = length.is_atom_convex
+    is_atom_concave = length.is_atom_concave
+    is_atom_quasiconvex = length.is_atom_quasiconvex
+    is_atom_quasiconcave = length.is_atom_quasiconcave
+    is_incr = length.is_incr
+    is_decr = length.is_decr
+    _grad = length._grad

@@ -109,67 +109,13 @@ class floor(Elementwise):
     def numeric(self, values):
         return np.floor(values[0])
 
-    def sign_from_args(self) -> Tuple[bool, bool]:
-        """Returns sign (is positive, is negative) of the expression.
-        """
-        if self.args[0].is_nonneg() and self.args[0].is_nonpos():
-            return (True, True)
-        elif self.args[0].is_nonneg():
-            return (True, False)
-        elif self.args[0].is_nonpos():
-            return (False, True)
-        else:
-            return (False, False)
-
-    def is_atom_convex(self) -> bool:
-        """Is the atom convex?
-        """
-        return False
-
-    def is_atom_concave(self) -> bool:
-        """Is the atom concave?
-        """
-        return False
-
-    def is_atom_log_log_convex(self) -> bool:
-        """Is the atom log-log convex?
-        """
-        return False
-
-    def is_atom_log_log_concave(self) -> bool:
-        """Is the atom log-log concave?
-        """
-        return False
-
-    def is_atom_quasiconvex(self) -> bool:
-        """Is the atom quasiconvex?
-        """
-        return True
-
-    def is_atom_quasiconcave(self) -> bool:
-        """Is the atom quasiconcave?
-        """
-        return True
-
-    def is_incr(self, idx) -> bool:
-        """Is the composition non-decreasing in argument idx?
-        """
-        return True
-
-    def is_decr(self, idx) -> bool:
-        """Is the composition non-increasing in argument idx?
-        """
-        return False
-
-    def _grad(self, values):
-        """Gives the (sub/super)gradient of the atom w.r.t. each argument.
-
-        Matrix expressions are vectorized, so the gradient is a matrix.
-
-        Args:
-            values: A list of numeric values for the arguments.
-
-        Returns:
-            A list of SciPy CSC sparse matrices or None.
-        """
-        return sp.csc_matrix(self.args[0].shape)
+    sign_from_args = ceil.sign_from_args
+    is_atom_convex = ceil.is_atom_convex
+    is_atom_concave = ceil.is_atom_concave
+    is_atom_log_log_convex = ceil.is_atom_log_log_convex
+    is_atom_log_log_concave = ceil.is_atom_log_log_concave
+    is_atom_quasiconvex = ceil.is_atom_quasiconvex
+    is_atom_quasiconcave = ceil.is_atom_quasiconcave
+    is_incr = ceil.is_incr
+    is_decr = ceil.is_decr
+    _grad = ceil._grad
