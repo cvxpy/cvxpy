@@ -25,7 +25,7 @@ from cvxpy.expressions.expression import Expression
 
 
 class perspective(Atom):
-    """Implements the perspective transform of a convex or concave scalar
+    r"""Implements the perspective transform of a convex or concave scalar
     expression. Uses the fact that given a cone form for the epigraph of :math:`f` via
 
     :math:`\{ (t, x) \in \mathbb{R}^{n+1} : t \geq f(x) \}`
