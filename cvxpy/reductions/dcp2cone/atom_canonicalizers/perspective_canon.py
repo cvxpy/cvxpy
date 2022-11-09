@@ -18,7 +18,7 @@ import numpy as np
 from cvxpy.atoms.affine.diag import diag
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.expressions.variable import Variable
-from cvxpy.problems.objective import Minimize
+from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.utilities.perspective_utils import form_cone_constraint
 
 
@@ -28,7 +28,7 @@ def perspective_canon(expr, args):
 
     # Only working for minimization right now.
 
-    aux_prob = Problem(Minimize(expr.f))
+    aux_prob = Problem((Minimize if expr.f.is_convex() else Maximize)(expr.f))
     # Does numerical solution value of epigraph t coincisde with expr.f numerical
     # value at opt?
     solver_opts = {"use_quad_obj": False}
@@ -90,4 +90,4 @@ def perspective_canon(expr, args):
         else:
             constraints.append(vec(var) == x_canon[start_ind:end_ind])
 
-    return t, constraints
+    return (1 if expr.f.is_convex() else -1)*t, constraints

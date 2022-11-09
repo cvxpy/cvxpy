@@ -81,22 +81,23 @@ def test_p_norms(p):
         assert np.isclose(s.value, ref_s.value)
 
 
-def test_rel_entr():
+@pytest.mark.parametrize("cvx", [True, False])
+def test_rel_entr(cvx):
     x = cp.Variable()
     s = cp.Variable(nonneg=True)
-    f = -cp.log(x)
+    f = cp.log(x)*(-1 if cvx else 1)
     obj = cp.perspective(f, s)
     constraints = [1 <= s, s <= 2, 1 <= x, x <= 2]
-    prob = cp.Problem(cp.Minimize(obj), constraints)
+    prob = cp.Problem(cp.Minimize(obj) if cvx else cp.Maximize(obj), constraints)
     prob.solve(solver=cp.ECOS)
 
     # reference problem
     ref_x = cp.Variable()
     ref_s = cp.Variable()
-    obj = cp.rel_entr(ref_s, ref_x)
+    obj = cp.rel_entr(ref_s, ref_x) * (1 if cvx else -1)
 
     ref_constraints = [1 <= ref_x, ref_x <= 2, 1 <= ref_s, ref_s <= 2]
-    ref_prob = cp.Problem(cp.Minimize(obj), ref_constraints)
+    ref_prob = cp.Problem(cp.Minimize(obj) if cvx else cp.Maximize(obj), ref_constraints)
     ref_prob.solve(solver=cp.ECOS)
 
     assert np.isclose(prob.value, ref_prob.value)
@@ -420,3 +421,18 @@ def test_assert_s_nonzero():
     prob = cp.Problem(cp.Minimize(obj), [x >= 3.14])
     with pytest.raises(AssertionError, match="There are valid cases"):
         prob.solve()
+
+
+def test_parameter():
+    p = cp.Parameter(nonneg=True)
+    x = cp.Variable()
+    s = cp.Variable(nonneg=True)
+    f = p*cp.square(x)
+
+    obj = cp.perspective(f, s)
+    prob = cp.Problem(cp.Minimize(obj), [s <= 1, x >= 2])
+    p.value = 99
+
+    prob.solve()
+
+    assert prob.value == 4*p.value
