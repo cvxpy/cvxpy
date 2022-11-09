@@ -435,4 +435,4 @@ def test_parameter():
 
     prob.solve()
 
-    assert prob.value == 4*p.value
+    assert np.isclose(prob.value, 4*p.value)
