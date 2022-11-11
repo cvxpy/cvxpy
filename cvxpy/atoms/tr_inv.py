@@ -26,17 +26,18 @@ from cvxpy.constraints.constraint import Constraint
 
 
 class tr_inv(Atom):
-    """:math:`\\trace\\inv A, where A is positive definite`
-
+    r"""
+    :math:`\mathrm{tr}\left(X^{-1} \right),`
+    where :math:`X` is positive definite.
     """
 
-    def __init__(self, A) -> None:
-        super(tr_inv, self).__init__(A)
+    def __init__(self, X) -> None:
+        super(tr_inv, self).__init__(X)
 
     def numeric(self, values):
-        """Returns the trinv of positive definite matrix A.
+        """Returns the trinv of positive definite matrix X.
 
-        For positive definite matrix A, this is the trace of inverse of A.
+        For positive definite matrix X, this is the trace of inverse of X.
         """
         # if values[0] isn't Hermitian then return np.inf
         if (LA.norm(values[0] - values[0].T.conj()) >= 1e-8):
