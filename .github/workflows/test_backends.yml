@@ -23,5 +23,7 @@ jobs:
       - name: Run tests for each non-default backend
         run : |
           export CVXPY_DEFAULT_CANON_BACKEND="SCIPY"
+          python -c "from cvxpy.cvxcore.python.canonInterface import get_default_canon_backend; print(get_default_canon_backend())"
+          python -c "from cvxpy.cvxcore.python.canonInterface import get_default_canon_backend; assert get_default_canon_backend() == 'CPP'"  # Intentionally wrong to see if it works
           pytest
 
