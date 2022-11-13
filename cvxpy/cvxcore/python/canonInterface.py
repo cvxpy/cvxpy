@@ -274,6 +274,14 @@ def get_matrix_and_offset_from_unparameterized_tensor(problem_data_tensor,
         problem_data_tensor, None, var_length)
 
 
+def get_default_canon_backend() -> str:
+    """
+    Returns the default canonicalization backend, which can be set globally using an
+    environment variable.
+    """
+    return os.environ.get('CVXPY_DEFAULT_CANON_BACKEND', s.DEFAULT_CANON_BACKEND)
+
+
 def get_problem_matrix(linOps,
                        var_length,
                        id_to_col,
@@ -306,7 +314,7 @@ def get_problem_matrix(linOps,
     """
 
     # Allow to switch default backends through an environment variable for CI
-    default_canon_backend = os.environ.get('CVXPY_DEFAULT_CANON_BACKEND', s.DEFAULT_CANON_BACKEND)
+    default_canon_backend = get_default_canon_backend()
     canon_backend = default_canon_backend if not canon_backend else canon_backend
 
     if canon_backend == s.CPP_CANON_BACKEND:
