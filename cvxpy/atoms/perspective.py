@@ -22,6 +22,7 @@ import numpy as np
 
 from cvxpy.atoms.atom import Atom
 from cvxpy.expressions.expression import Expression
+from cvxpy.expressions.variable import Variable
 
 
 class perspective(Atom):
@@ -38,15 +39,21 @@ class perspective(Atom):
     :math:`= \{ (t,x,s) : Fx + gt + se \in K \},`
 
     (see https://web.stanford.edu/~boyd/papers/pdf/sw_aff_ctrl.pdf).
+
+    Note that this is the perspective transform of a scalar expression viewed as
+    a function of its underlying variables. The perspective atom does not return
+    a `Callable`, so you cannot create compositions such as :math:`p(g(x),s)`, where
+    :math:`p(z,s) = sf(z/s)` is the perpective transform of :math:`f`.
     """
 
-    def __init__(self, f: Expression, s: Expression) -> None:
+    def __init__(self, f: Expression, s: Variable) -> None:
         self.f = f
         super(perspective, self).__init__(s, *f.variables())
 
     def validate_arguments(self) -> None:
         assert self.f.size == 1  # dealing only with scalars, for now
         assert self.args[0].size == 1
+        assert self.args[1].is_nonneg(), "s must be a nonnegative variable"
         return super().validate_arguments()
 
     def numeric(self, values: list[np.ndarray, np.ndarray]) -> np.ndarray:

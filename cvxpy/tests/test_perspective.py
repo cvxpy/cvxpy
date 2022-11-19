@@ -436,3 +436,10 @@ def test_parameter():
     prob.solve()
 
     assert np.isclose(prob.value, 4*p.value)
+
+
+def test_afine_s():
+    x = cp.Variable()
+    s = cp.Variable(2)
+    with pytest.raises(AssertionError, match="s must be"):
+        perspective(cp.square(x), cp.sum(s))
