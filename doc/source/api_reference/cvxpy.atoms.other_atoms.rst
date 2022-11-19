@@ -275,6 +275,13 @@ SuppFuncAtom
 
 .. autoclass:: cvxpy.atoms.suppfunc.SuppFuncAtom
 
+.. _tr_inv:
+
+tr_inv
+-------------------------------------
+
+.. autofunction:: cvxpy.atoms.tr_inv.tr_inv
+
 .. _tv:
 
 tv
