@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from __future__ import annotations
 
 import numpy as np
 import scipy.sparse as sp
@@ -283,9 +284,10 @@ class ConeMatrixStuffing(MatrixStuffing):
     """
     CONSTRAINTS = 'ordered_constraints'
 
-    def __init__(self, quad_obj: bool = False):
+    def __init__(self, quad_obj: bool = False, canon_backend: str | None = None):
         # Assume a quadratic objective?
         self.quad_obj = quad_obj
+        self.canon_backend = canon_backend
 
     def accepts(self, problem):
         valid_obj_curv = (self.quad_obj and problem.objective.expr.is_quadratic()) or \
@@ -315,7 +317,7 @@ class ConeMatrixStuffing(MatrixStuffing):
     def apply(self, problem):
         inverse_data = InverseData(problem)
         # Form the constraints
-        extractor = CoeffExtractor(inverse_data)
+        extractor = CoeffExtractor(inverse_data, self.canon_backend)
         params_to_P, params_to_c, flattened_variable = self.stuffed_objective(
             problem, extractor)
         # Lower equality and inequality to Zero and NonNeg.
