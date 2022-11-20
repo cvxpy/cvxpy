@@ -14,17 +14,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
+from cvxpy.atoms.affine.wraps import skew_symmetric_wrap
 from cvxpy.expressions.variable import Variable
+from cvxpy.expressions.constants.constant import Constant
 
 
 def variable_canon(expr, real_args, imag_args, real2imag):
     if expr.is_real():
+        # Purely real
         return expr, None
-
-    imag = Variable(expr.shape, var_id=real2imag[expr.id])
-    if expr.is_imag():
+    elif expr.is_imag():
+        # Purely imaginary
+        imag = Variable(expr.shape, var_id=real2imag[expr.id])
         return None, imag
     elif expr.is_complex() and expr.is_hermitian():
-        return Variable(expr.shape, var_id=expr.id, symmetric=True), (imag - imag.T)/2
-    else:  # Complex.
-        return Variable(expr.shape, var_id=expr.id), imag
+        n = expr.shape[0]
+        real = Variable((n, n), var_id=expr.id, symmetric=True)
+        if n > 1:
+            imag_var = Variable(shape=n*(n-1)//2, var_id=real2imag[expr.id])
+            imag_upper_tri = vec_to_upper_tri(imag_var, strict=True)
+            imag = skew_symmetric_wrap(imag_upper_tri - imag_upper_tri.T)
+        else:
+            imag = Constant([[0.0]])
+        return real, imag
+    else:
+        # General complex.
+        real = Variable(expr.shape, var_id=expr.id)
+        imag = Variable(expr.shape, var_id=real2imag[expr.id])
+        return real, imag

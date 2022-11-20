@@ -275,6 +275,12 @@ def is_hermitian(constant) -> bool:
     complex_type = np.iscomplexobj(constant)
     if complex_type:
         # TODO catch complex symmetric but not Hermitian?
+        #
+        #   Riley opinion: while that would be nice, it would introduce
+        #   tons of complications if we actually tried to support
+        #   complex-valued symmetric matrices. As the term is currently
+        #   used in CVXPY (v 1.2), the term "symmetric" always means
+        #   "real symmetric".
         is_symm = False
         if sp.issparse(constant):
             is_herm = is_sparse_symmetric(constant, complex=True)
@@ -287,6 +293,19 @@ def is_hermitian(constant) -> bool:
             is_symm = np.allclose(constant, constant.T)
         is_herm = is_symm
     return is_symm, is_herm
+
+
+def is_skew_symmetric(constant) -> bool:
+    """Is the """
+    complex_type = np.iscomplexobj(constant)
+    if complex_type:
+        return False
+    else:
+        if sp.issparse(constant):
+            is_skew_symm = is_sparse_skew_symmetric(constant, complex=False)
+        else:
+            is_skew_symm = np.allclose(constant + constant.T, 0.0)
+        return is_skew_symm
 
 
 def is_sparse_symmetric(m, complex: bool = False) -> bool:
@@ -334,4 +353,48 @@ def is_sparse_symmetric(m, complex: bool = False) -> bool:
     else:
         check = np.allclose(vl, vu)
 
+    return check
+
+
+def is_sparse_skew_symmetric(A) -> bool:
+    """Check if a real sparse matrix A satisfies A + A.T == 0.
+
+    Parameters
+    ----------
+    A : array or sparse matrix
+        A square matrix.
+
+    Returns
+    -------
+    check : bool
+        The check result.
+
+    """
+    # https://mail.scipy.org/pipermail/scipy-dev/2014-October/020101.html
+    if A.shape[0] != A.shape[1]:
+        raise ValueError('m must be a square matrix')
+
+    if not isinstance(A, sp.coo_matrix):
+        A = sp.coo_matrix(A)
+
+    r, c, v = A.row, A.col, A.data
+    tril = r >= c
+    triu = c >= r
+
+    if triu.sum() != tril.sum():
+        return False
+
+    rl = r[tril]
+    cl = c[tril]
+    vl = v[tril]
+    ru = r[triu]
+    cu = c[triu]
+    vu = v[triu]
+
+    sortl = np.lexsort((cl, rl))
+    sortu = np.lexsort((ru, cu))
+    vl = vl[sortl]
+    vu = vu[sortu]
+
+    check = np.allclose(vl + vu, 0)
     return check

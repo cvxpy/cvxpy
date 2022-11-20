@@ -70,6 +70,16 @@ ExpCone
     :undoc-members:
     :show-inheritance:
 
+.. _rel_entr_cone_quad
+
+RelEntrConeQuad
+--------------------------------------
+
+.. autoclass:: cvxpy.constraints.exponential.RelEntrConeQuad
+    :members: value, is_dcp
+    :undoc-members:
+    :show-inheritance:
+
 PowCone3D
 --------------------------------------
 
@@ -94,10 +104,10 @@ FiniteSet
     :undoc-members:
     :show-inheritance:
 
-OpRelConeQuad
+OpRelEntrConeQuad
 --------------------------------------
 
-.. autoclass:: cvxpy.constraints.exponential.OpRelConeQuad
+.. autoclass:: cvxpy.constraints.exponential.OpRelEntrConeQuad
     :members: value, is_dcp
     :undoc-members:
     :show-inheritance:

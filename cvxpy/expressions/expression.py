@@ -351,6 +351,11 @@ class Expression(u.Canonical):
         # Defaults to false unless scalar.
         return self.is_scalar()
 
+    def is_skew_symmetric(self) -> bool:
+        """Is this Expression, X, a real matrix that satisfies X + X.T == 0?
+        """
+        return False
+
     def is_pwl(self) -> bool:
         """Is the expression piecewise linear?
         """

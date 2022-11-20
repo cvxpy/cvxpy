@@ -36,6 +36,7 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.affine.wraps import psd_wrap, hermitian_wrap, symmetric_wrap, skew_symmetric_wrap
 from cvxpy.atoms.condition_number import condition_number
 from cvxpy.atoms.cummax import cummax
 from cvxpy.atoms.dist_ratio import dist_ratio

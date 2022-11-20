@@ -29,17 +29,19 @@ from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.vstack import Vstack
+from cvxpy.atoms.affine.wraps import hermitian_wrap
 from cvxpy.atoms.norm_nuc import normNuc
 # from cvxpy.atoms.quantum_rel_entr import quantum_rel_entr
 from cvxpy.atoms.von_neumann_entr import von_neumann_entr
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
-                               Zero, OpRelConeQuad)
+                               Zero, OpRelEntrConeQuad)
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.complex2real.canonicalizers.abs_canon import (
     abs_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.aff_canon import (
-    binary_canon, conj_canon, imag_canon, real_canon, separable_canon,)
+    binary_canon, conj_canon, imag_canon, real_canon, separable_canon,
+    hermitian_wrap_canon)
 from cvxpy.reductions.complex2real.canonicalizers.constant_canon import (
     constant_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.equality_canon import (
@@ -49,7 +51,7 @@ from cvxpy.reductions.complex2real.canonicalizers.inequality_canon import (
 from cvxpy.reductions.complex2real.canonicalizers.matrix_canon import (
     hermitian_canon, lambda_sum_largest_canon, matrix_frac_canon,
     norm_nuc_canon, quad_canon, quad_over_lin_canon,
-    von_neumann_entr_canon, quantum_rel_entr_canon, op_rel_cone_canon)
+    von_neumann_entr_canon, quantum_rel_entr_canon, op_rel_entr_cone_canon)
 from cvxpy.reductions.complex2real.canonicalizers.param_canon import (
     param_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.pnorm_canon import (
@@ -89,6 +91,7 @@ CANON_METHODS = {
     conj: conj_canon,
     imag: imag_canon,
     real: real_canon,
+    hermitian_wrap: hermitian_wrap_canon,
     Variable: variable_canon,
     Constant: constant_canon,
     Parameter: param_canon,
@@ -98,7 +101,7 @@ CANON_METHODS = {
     PSD: psd_canon,
     SOC: soc_canon,
     Equality: equality_canon,
-    OpRelConeQuad: op_rel_cone_canon,
+    OpRelEntrConeQuad: op_rel_entr_cone_canon,
     Zero: zero_canon,
 
     abs: abs_canon,

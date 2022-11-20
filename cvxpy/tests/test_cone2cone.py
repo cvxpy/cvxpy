@@ -596,7 +596,7 @@ class TestOpRelConeQuad(BaseTest):
     def oprelcone_1(self) -> STH.SolverTestHelper:
         """
         These tests construct two matrices that commute (imposing all eigenvectors equal)
-        and then use the fact that: T=Dop(A, B) for (A, B, T) in OpRelConeQuad i.e. T >> Dop(A, B)
+        and then use the fact that: T=Dop(A, B) for (A, B, T) in OpRelEntrConeQuad i.e. T >> Dop(A, B)
         for an objective that is an increasing function of the eigenvalues (which we here take
         to be the trace), we compute the reference objective value as tr(Dop) whose correctness
         can be seen by writing out tr(T)=tr(T-Dop)+tr(Dop), where tr(T-Dop)>=0 because of PSD-ness
@@ -615,8 +615,8 @@ class TestOpRelConeQuad(BaseTest):
         A = U @ cp.diag(a_diag) @ U.T
         B = U @ cp.diag(b_diag) @ U.T
         T = cp.Variable(shape=(n, n))
-        # constrains A,B,T \in OpRelConeQuad
-        con1 = cp.constraints.OpRelConeQuad(A, B, T, 5, 5)
+        # constrains A,B,T \in OpRelEntrConeQuad
+        con1 = cp.constraints.OpRelEntrConeQuad(A, B, T, 5, 5)
         # imposing some non-trivial constraints to ensure feasibility
         a_lower = np.cumsum(np.random.rand(n))
         a_upper = a_lower + 0.05*np.random.rand(n)
@@ -649,7 +649,7 @@ class TestOpRelConeQuad(BaseTest):
 
     def test_oprelcone_1(self):
         sth = self.oprelcone_1()
-        sth.solve(solver='SCS')
+        sth.solve(solver='CVXOPT')
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)
 
@@ -665,8 +665,8 @@ class TestOpRelConeQuad(BaseTest):
         A = U @ cp.diag(a_diag) @ U.T
         B = U @ cp.diag(b_diag) @ U.T
         T = cp.Variable(shape=(n, n))
-        # constrains A,B,T \in OpRelConeQuad
-        con1 = cp.constraints.OpRelConeQuad(A, B, T, 8, 5)
+        # constrains A,B,T \in OpRelEntrConeQuad
+        con1 = cp.constraints.OpRelEntrConeQuad(A, B, T, 8, 5)
         # imposing some non-trivial constraints to ensure feasibility
         a_lower = np.cumsum(np.random.rand(n))
         a_upper = a_lower + 0.15*np.random.rand(n)
@@ -699,7 +699,7 @@ class TestOpRelConeQuad(BaseTest):
 
     def test_oprelcone_2(self):
         sth = self.oprelcone_2()
-        sth.solve(solver='SCS')
+        sth.solve(solver='CVXOPT')
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)
 
@@ -707,7 +707,7 @@ class TestOpRelConeQuad(BaseTest):
         """
         This test uses the same idea from the tests with commutative matrices,
         instead, here, we make the input matrices to Dop, non-commutative,
-        the same condition as before i.e. T=Dop(A, B) for (A, B, T) in OpRelConeQuad
+        the same condition as before i.e. T=Dop(A, B) for (A, B, T) in OpRelEntrConeQuad
         (for an objective that is an increasing function of the eigenvalues) holds,
         the difference here then, is in how we compute the reference values, which
         has been done by assuming correctness of the original CVXQUAD matlab implementation
@@ -732,7 +732,7 @@ class TestOpRelConeQuad(BaseTest):
         a_upper = np.array([1.36158501, 1.61289351, 1.85065805, 3.06140939])
         b_lower = np.array([0.06858235, 0.36798274, 0.95956627, 1.16286541])
         b_upper = np.array([0.70446555, 1.16635299, 1.46126732, 1.81367755])
-        con1 = cp.constraints.OpRelConeQuad(A, B, T, m, k)
+        con1 = cp.constraints.OpRelEntrConeQuad(A, B, T, m, k)
         con2 = a_lower <= a_diag
         con3 = a_diag <= a_upper
         con4 = b_lower <= b_diag

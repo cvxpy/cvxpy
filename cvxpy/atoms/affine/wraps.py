@@ -65,8 +65,16 @@ class Wrap(AffAtom):
 
 
 class psd_wrap(Wrap):
-    """Asserts argument is PSD.
+    """Asserts that a square matrix is PSD.
     """
+
+    def validate_arguments(self) -> None:
+        arg = self.args[0]
+        ndim_test = len(arg.shape) == 2
+        if not ndim_test:
+            raise ValueError("The input must be a square matrix.")
+        elif arg.shape[0] != arg.shape[1]:
+            raise ValueError("The input must be a square matrix.")
 
     def is_psd(self) -> bool:
         return True
@@ -76,3 +84,54 @@ class psd_wrap(Wrap):
 
     def is_hermitian(self) -> bool:
         return True
+
+
+class symmetric_wrap(Wrap):
+    """Asserts that a real square matrix is symmetric
+    """
+
+    def validate_arguments(self) -> None:
+        validate_real_square(self.args[0])
+
+    def is_symmetric(self) -> bool:
+        return True
+
+    def is_hermitian(self) -> bool:
+        return True
+
+
+class hermitian_wrap(Wrap):
+    """Asserts that a square matrix is Hermitian.
+    """
+
+    def validate_arguments(self) -> None:
+        arg = self.args[0]
+        ndim_test = len(arg.shape) == 2
+        if not ndim_test:
+            raise ValueError("The input must be a square matrix.")
+        elif arg.shape[0] != arg.shape[1]:
+            raise ValueError("The input must be a square matrix.")
+
+    def is_hermitian(self) -> bool:
+        return True
+
+
+class skew_symmetric_wrap(Wrap):
+    """Asserts that X is a real square matrix, satisfying X + X.T == 0.
+    """
+
+    def validate_arguments(self) -> None:
+        validate_real_square(self.args[0])
+
+    def is_skew_symmetric(self) -> bool:
+        return True
+
+
+def validate_real_square(arg):
+    ndim_test = len(arg.shape) == 2
+    if not ndim_test:
+        raise ValueError("The input must be a square matrix.")
+    elif arg.shape[0] != arg.shape[1]:
+        raise ValueError("The input must be a square matrix.")
+    elif not arg.is_real():
+        raise ValueError("The input must be a real matrix.")
