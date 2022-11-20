@@ -58,7 +58,7 @@ def quad_example(request):
 @pytest.mark.parametrize("p", [1, 2])
 def test_p_norms(p):
     x = cp.Variable(3)
-    s = cp.Variable(nonneg=True)
+    s = cp.Variable(nonneg=True, name='s')
     f = cp.norm(x, p)
     obj = cp.perspective(f, s)
     constraints = [1 == s, x >= [1, 2, 3]]

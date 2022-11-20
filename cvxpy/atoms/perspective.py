@@ -53,7 +53,7 @@ class perspective(Atom):
     def validate_arguments(self) -> None:
         assert self.f.size == 1  # dealing only with scalars, for now
         assert self.args[0].size == 1
-        assert self.args[1].is_nonneg(), "s must be a nonnegative variable"
+        assert self.args[0].is_nonneg(), "s must be a nonnegative variable"
         return super().validate_arguments()
 
     def numeric(self, values: list[np.ndarray, np.ndarray]) -> np.ndarray:
