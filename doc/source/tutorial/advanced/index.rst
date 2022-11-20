@@ -410,7 +410,7 @@ parses and solves the problem.
         a non-DPP problem (instead of just a warning). Only relevant for
         problems involving Parameters. Defaults to ``False``.
    :type enforce_dpp: bool, optional
-   :param ignore_dpp : When True, DPP problems will be treated as non-DPP,
+   :param ignore_dpp: When True, DPP problems will be treated as non-DPP,
         which may speed up compilation. Defaults to False.
    :type ignore_dpp: bool, optional
    :param kwargs: Additional keyword arguments specifying solver specific options.
@@ -1616,3 +1616,17 @@ you should set the class variable ``MIP_CAPABLE`` to ``True``. If your solver is
 and a conic solver (as opposed to a QP solver), you should set the class variable ``MI_SUPPORTED_CONSTRAINTS`` 
 to the list of cones supported when solving mixed integer problems. Usually ``MI_SUPPORTED_CONSTRAINTS`` 
 will be the same as the class variable ``SUPPORTED_CONSTRAINTS``.
+
+.. _canonicalization-backends:
+
+Canonicalization backends
+------------------------------------
+Users can select from multiple canonicalization backends by adding the ``canon_backend``
+keyword argument to the ``.solve()`` call, e.g. ``problem.solve(canon_backend=cp.SCIPY_CANON_BACKEND)``
+(Introduced in CVXPY 1.3).
+This can speed up the canonicalization time significantly for some problems.
+Currently, the following canonicalization backends are supported:
+
+*  CPP (default): The original C++ implementation, also referred to as CVXCORE.
+*  | SCIPY: A pure Python implementation based on the SciPy sparse module.
+   | Generally fast for problems with few CVXPY ``Parameter`` s, especially when the problem is already vectorized.

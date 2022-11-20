@@ -391,6 +391,14 @@ and returns a scalar.
      - |affine| affine
      - |incr| incr.
 
+   * - :ref:`tr_inv(X) <tr_inv>`
+
+     - :math:`\mathrm{tr}\left(X^{-1} \right)`
+     - :math:`X \in\mathbf{S}^n_{++}`
+     - |positive| positive
+     - |convex| convex
+     - None
+
    * - :ref:`tv(x) <tv>`
 
      - :math:`\sum_{i}|x_{i+1} - x_i|`

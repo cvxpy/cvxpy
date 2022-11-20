@@ -26,7 +26,7 @@ def tr_inv_canon(expr, args):
     Creates the equivalent problem::
 
        maximize    sum(u[i])
-       subject to: [A ei; ei.T u[i]] is positive semidefinite
+       subject to: [X ei; ei.T u[i]] is positive semidefinite
 
        where ei is the n dimensional column vector whose i-th entry is 1 and other entries are 0
 
@@ -34,7 +34,7 @@ def tr_inv_canon(expr, args):
 
     .. math::
 
-       u[i] >= R[i][i] for all i, where R=A^-1
+       u[i] >= R[i][i] for all i, where R=X^-1
 
     Parameters
     ----------
@@ -47,15 +47,15 @@ def tr_inv_canon(expr, args):
     tuple
         (Variable for objective, list of constraints)
     """
-    A = args[0]
-    n, _ = A.shape
+    X = args[0]
+    n, _ = X.shape
     su = None
     constraints = []
     for i in range(n):
         ei = np.zeros((n, 1))
         ei[i] = 1.0
         ui = Variable((1, 1))
-        R = bmat([[A, ei],
+        R = bmat([[X, ei],
                   [ei.T, ui]])
         constraints += [R >> 0]
         if su is None:
