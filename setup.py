@@ -26,7 +26,7 @@ from setuptools.command.build_ext import build_ext
 
 MAJOR = 1
 MINOR = 2
-MICRO = 2
+MICRO = 3
 IS_RELEASED = False
 IS_RELEASE_BRANCH = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
