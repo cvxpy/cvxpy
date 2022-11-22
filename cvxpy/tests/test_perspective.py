@@ -439,6 +439,7 @@ def test_parameter():
 
 
 def test_afine_s():
+    # test requiring affine s nonneg
     x = cp.Variable()
     s = cp.Variable(2)
     with pytest.raises(AssertionError, match="s must be"):
