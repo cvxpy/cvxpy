@@ -442,5 +442,19 @@ def test_afine_s():
     # test requiring affine s nonneg
     x = cp.Variable()
     s = cp.Variable(2)
-    with pytest.raises(AssertionError, match="s must be"):
+    with pytest.raises(AssertionError, match="s must be a variable"):
         perspective(cp.square(x), cp.sum(s))
+
+
+def test_dpp():
+    x = cp.Variable()
+    s = cp.Variable(nonneg=True)
+    a = cp.Parameter()
+
+    obj = cp.perspective(cp.square(a+x), s)
+
+    assert not obj.is_dpp()
+
+    obj = cp.perspective(cp.log(a+x), s)
+
+    assert not obj.is_dpp()

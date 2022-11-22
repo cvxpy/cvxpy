@@ -21,8 +21,10 @@ from typing import Tuple
 import numpy as np
 
 from cvxpy.atoms.atom import Atom
+from cvxpy.expressions.constants.parameter import is_param_free
 from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
+from cvxpy.utilities import scopes
 
 
 class perspective(Atom):
@@ -53,6 +55,7 @@ class perspective(Atom):
     def validate_arguments(self) -> None:
         assert self.f.size == 1  # dealing only with scalars, for now
         assert self.args[0].size == 1
+        assert isinstance(self.args[0], Variable), "s must be a variable"
         assert self.args[0].is_nonneg(), "s must be a nonnegative variable"
         return super().validate_arguments()
 
@@ -97,12 +100,18 @@ class perspective(Atom):
     def is_atom_convex(self) -> bool:
         """Is the atom convex?
         """
-        return self.f.is_convex() and self.args[0].is_nonneg()
+        if scopes.dpp_scope_active() and not is_param_free(self.f):
+            return False
+        else:
+            return self.f.is_convex() and self.args[0].is_nonneg()
 
     def is_atom_concave(self) -> bool:
         """Is the atom concave?
         """
-        return self.f.is_concave() and self.args[0].is_nonneg()
+        if scopes.dpp_scope_active() and not is_param_free(self.f):
+            return False
+        else:
+            return self.f.is_concave() and self.args[0].is_nonneg()
 
     def is_incr(self, idx) -> bool:
         """Is the composition non-decreasing in argument idx?

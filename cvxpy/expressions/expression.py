@@ -240,7 +240,9 @@ class Expression(u.Canonical):
         """
         if dpp:
             with scopes.dpp_scope():
-                return self.is_convex() or self.is_concave()
+                cvx = self.is_convex()
+                ccv = self.is_concave()
+                return cvx or ccv
         return self.is_convex() or self.is_concave()
 
     def is_log_log_constant(self) -> bool:
