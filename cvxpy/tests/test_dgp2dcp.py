@@ -317,9 +317,7 @@ class TestDgp2Dcp(BaseTest):
 
     def test_solving_non_dgp_problem_raises_error(self) -> None:
         problem = cvxpy.Problem(cvxpy.Minimize(-1.0 * cvxpy.Variable()), [])
-        with self.assertRaisesRegex(error.DGPError,
-                                    r"Problem does not follow DGP "
-                                    "rules(?s)*.*However, the problem does follow DCP rules.*"):
+        with pytest.raises(error.DGPError, match='However, the problem does follow DCP rules'):
             problem.solve(SOLVER, gp=True)
         problem.solve(SOLVER)
         self.assertEqual(problem.status, "unbounded")
