@@ -331,7 +331,7 @@ class TestComplex(BaseTest):
         cons = [X >> 0, cp.real(cp.trace(X)) <= 9]
         obj = cp.Maximize(cp.log_det(X))
         prob = cp.Problem(objective=obj, constraints=cons)
-        prob.solve(solver=cp.SCS, eps=1e-6, verbose=True)
+        prob.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(obj.value, 3*np.log(3))
 
     def test_eigval_atoms(self) -> None:
