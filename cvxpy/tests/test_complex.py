@@ -314,11 +314,25 @@ class TestComplex(BaseTest):
         P = np.arange(9) - 2j*np.arange(9)
         P = np.reshape(P, (3, 3))
         P = np.conj(P.T).dot(P)/100 + np.eye(3)*.1
-        value = cp.log_det(P).value
+        logdet_value = cp.log_det(P).value
         X = Variable((3, 3), complex=True)
-        prob = Problem(cp.Maximize(cp.log_det(X)), [X == P])
+        objective = cp.log_det(X)
+        prob = Problem(cp.Maximize(objective), [X == P])
         result = prob.solve(solver=cp.SCS, eps=1e-6)
-        self.assertAlmostEqual(result, value, places=2)
+        self.assertAlmostEqual(result, logdet_value, places=2)
+        objective_value = objective.value
+        _, ld = np.linalg.slogdet(P)
+        self.assertAlmostEqual(objective_value, ld, places=3)
+
+        # Test case for Issue 1816.
+        #   The optimal solution is the identity matrix scaled by 3.
+        #   NumPy's slogdet function returns a sign "s" with a tiny complex
+        #   part which causes 1 == s to fail.
+        cons = [X >> 0, cp.real(cp.trace(X)) <= 9]
+        obj = cp.Maximize(cp.log_det(X))
+        prob = cp.Problem(objective=obj, constraints=cons)
+        prob.solve(solver=cp.SCS, eps=1e-6)
+        self.assertAlmostEqual(obj.value, 3*np.log(3))
 
     def test_eigval_atoms(self) -> None:
         """Test eigenvalue atoms.
