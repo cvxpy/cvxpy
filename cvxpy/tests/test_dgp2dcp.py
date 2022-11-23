@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 import cvxpy
 import cvxpy.error as error
@@ -328,9 +329,9 @@ class TestDgp2Dcp(BaseTest):
         problem = cvxpy.Problem(
           cvxpy.Minimize(cvxpy.Variable(pos=True) * cvxpy.Variable(pos=True)),
         )
-        with self.assertRaisesRegex(error.DCPError,
-                                    r"Problem does not follow DCP "
-                                    "rules(?s)*.*However, the problem does follow DGP rules.*"):
+        with pytest.raises(error.DCPError, match='However, the problem does follow DGP rules'):
+            problem.solve(SOLVER, gp=True)
+
             problem.solve(SOLVER)
         problem.solve(SOLVER, gp=True)
         self.assertEqual(problem.status, "unbounded")
