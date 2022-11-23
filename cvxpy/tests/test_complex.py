@@ -318,7 +318,7 @@ class TestComplex(BaseTest):
         X = Variable((3, 3), complex=True)
         objective = cp.log_det(X)
         prob = Problem(cp.Maximize(objective), [X == P])
-        result = prob.solve(solver=cp.SCS, eps=1e-6, verbose=True)
+        result = prob.solve(solver=cp.SCS, eps=1e-6)
         self.assertAlmostEqual(result, logdet_value, places=2)
         objective_value = objective.value
         _, ld = np.linalg.slogdet(P)
