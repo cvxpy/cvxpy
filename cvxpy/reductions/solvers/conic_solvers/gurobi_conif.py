@@ -202,7 +202,16 @@ class GUROBI(ConicSolver):
 
         leq_start = dims[s.EQ_DIM]
         leq_end = dims[s.EQ_DIM] + dims[s.LEQ_DIM]
-        if hasattr(model, 'addMConstrs'):
+        if hasattr(model, 'addMConstr'):
+            # Code path for Gurobi v10.0-
+            eq_constrs = model.addMConstr(
+                A[:leq_start, :], None, gurobipy.GRB.EQUAL, b[:leq_start]
+            ).tolist()
+            ineq_constrs = model.addMConstr(
+                A[leq_start:leq_end, :], None, gurobipy.GRB.LESS_EQUAL,
+                b[leq_start:leq_end]).tolist()
+        elif hasattr(model, 'addMConstrs'):
+            # Code path for Gurobi v9.0-v9.5
             eq_constrs = model.addMConstrs(
                 A[:leq_start, :], None, gurobipy.GRB.EQUAL, b[:leq_start])
             ineq_constrs = model.addMConstrs(
