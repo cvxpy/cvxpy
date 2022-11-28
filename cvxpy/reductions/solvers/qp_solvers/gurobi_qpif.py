@@ -157,16 +157,14 @@ class GUROBI(QpSolver):
         x = np.array(model.getVars(), copy=False)
 
         if A.shape[0] > 0:
-            if hasattr(model, 'addMConstrs'):
+            if hasattr(model, 'addMConstr'):
                 # We can pass all of A @ x == b at once, use stable API
-                # introduced with Gurobi v9
+                # introduced with Gurobi v9.5
+                model.addMConstr(A, None, grb.GRB.EQUAL, b)
+            elif hasattr(model, 'addMConstrs'):
+                # We can pass all of A @ x == b at once, use (now) deprecated
+                # API introduced with Gurobi v9.0
                 model.addMConstrs(A, None, grb.GRB.EQUAL, b)
-            elif hasattr(model, '_v811_addMConstrs'):
-                # We can pass all of A @ x == b at once, API only for Gurobi
-                # v811
-                A.eliminate_zeros()  # Work around bug in gurobipy v811
-                sense = np.repeat(grb.GRB.EQUAL, A.shape[0])
-                model._v811_addMConstrs(A, sense, b)
             else:
                 # Add equality constraints: iterate over the rows of A
                 # adding each row into the model
@@ -180,16 +178,14 @@ class GUROBI(QpSolver):
         model.update()
 
         if F.shape[0] > 0:
-            if hasattr(model, 'addMConstrs'):
-                # We can pass all of F @ x <= g at once, use stable API
-                # introduced with Gurobi v9
+            if hasattr(model, 'addMConstr'):
+                # We can pass all of A @ x == b at once, use stable API
+                # introduced with Gurobi v9.5
+                model.addMConstr(F, None, grb.GRB.LESS_EQUAL, g)
+            elif hasattr(model, 'addMConstrs'):
+                # We can pass all of A @ x == b at once, use (now) deprecated
+                # API introduced with Gurobi v9.0
                 model.addMConstrs(F, None, grb.GRB.LESS_EQUAL, g)
-            elif hasattr(model, '_v811_addMConstrs'):
-                # We can pass all of F @ x <= g at once, API only for Gurobi
-                # v811.
-                F.eliminate_zeros()  # Work around bug in gurobipy v811
-                sense = np.repeat(grb.GRB.LESS_EQUAL, F.shape[0])
-                model._v811_addMConstrs(F, sense, g)
             else:
                 # Add inequality constraints: iterate over the rows of F
                 # adding each row into the model
