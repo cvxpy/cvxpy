@@ -47,7 +47,7 @@ class Dgp2Dcp(Canonicalization):
     >>> dcp_problem = gp2dcp.reduce()
     >>>
     >>> assert dcp2cone.accepts(dcp_problem)
-    >>> dcp_probem.solve()
+    >>> dcp_problem.solve()
     >>>
     >>> dgp_problem.unpack(gp2dcp.retrieve(dcp_problem.solution))
     >>> print(dgp_problem.value)
