@@ -1513,7 +1513,7 @@ class TestXPRESS(BaseTest):
 
             params = {
                 "lpiterlimit": 1000,  # maximum number of simplex iterations
-                "maxtime": 1000.0     # time limit
+                "maxtime": 1000       # time limit
             }
             problem.solve(solver=cp.XPRESS, **params)
 
