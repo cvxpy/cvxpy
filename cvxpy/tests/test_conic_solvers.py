@@ -1515,6 +1515,34 @@ class TestXPRESS(BaseTest):
                 "lpiterlimit": 1000,  # maximum number of simplex iterations
                 "maxtime": 1000.0     # time limit
             }
+            problem.solve(solver=cp.XPRESS, **params)
+
+    def test_xpress_iis_none(self) -> None:
+        if cp.XPRESS in INSTALLED_SOLVERS:
+            A = np.array([[2, 1], [1, 2], [-3, -3]])
+            b = np.array([2, 2, -5])
+            c = np.array([1, 1])
+            x = cp.Variable(2)
+            objective = cp.Maximize(x[0] + x[1])
+            constraint = [A @ x <= b]
+            problem = cp.Problem(objective, constraint)
+
+            params = {'save_iis': 0}
+
+            problem.solve(solver=cp.XPRESS, solver_opts=params)
+
+    def test_xpress_iis_full(self) -> None:
+        if cp.XPRESS in INSTALLED_SOLVERS:
+            A = np.array([[2, 1], [1, 2], [-3, -3]])
+            b = np.array([2, 2, -5])
+            c = np.array([1, 1])
+            x = cp.Variable(2)
+            objective = cp.Maximize(x[0] + x[1])
+            constraint = [A @ x <= b]
+            problem = cp.Problem(objective, constraint)
+
+            params = {'save_iis': -1}
+
             problem.solve(solver=cp.XPRESS, solver_opts=params)
 
     def test_xpress_lp_0(self) -> None:
