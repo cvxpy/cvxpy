@@ -1077,6 +1077,26 @@ In addition to Gurobi's parameters, the following options are available:
 
 For others see `CLARABEL documentation <https://oxfordcontrol.github.io/ClarabelDocs/stable/api_settings/>`_.
 
+
+`XPRESS`_ options:
+
+``'save_iis'``
+    Whether (and how many) Irreduceable Infeasible Subsystems
+    (IISs) should be saved in the event a problem is found to be
+    infeasible. If 0 (default), no IIS is saved; if negative, all
+    IISs are stored; if a positive ``'k>0'``, at most ``'k'`` IISs
+    are saved.
+
+``'write_mps'``
+    Filename (with extension ``'.mps'``) in which Xpress will save
+    the quadratic or conic problem.
+
+``'maxtime'``
+    Time limit in seconds (must be integer).
+
+All controls of the Xpress Optimizer can be specified within the ``'solve'``
+command. For all controls see `FICO Xpress Optimizer manual https://www.fico.com/fico-xpress-optimization/docs/dms2019-03/solver/optimizer/HTML/chapter7.html`_.
+
 Getting the standard form
 -------------------------
 
