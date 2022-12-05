@@ -1545,7 +1545,7 @@ class TestXPRESS(BaseTest):
 
             problem.solve(solver=cp.XPRESS, **params)
 
-            assert('XPRESS_IIS' in problem.solution.attr)
+            assert 'XPRESS_IIS' in problem.solution.attr
 
             print("IIS list", problem.solution.attr['XPRESS_IIS'])
 
