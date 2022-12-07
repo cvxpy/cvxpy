@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import warnings
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import numpy as np
 
@@ -26,6 +26,7 @@ from cvxpy.reductions.eval_params import EvalParams
 from cvxpy.reductions.flip_objective import FlipObjective
 from cvxpy.reductions.qp2quad_form import qp2symbolic_qp
 from cvxpy.reductions.qp2quad_form.qp_matrix_stuffing import QpMatrixStuffing
+from cvxpy.reductions.reduction import Reduction
 from cvxpy.reductions.solvers import defines as slv_def
 from cvxpy.reductions.solvers.constant_solver import ConstantSolver
 from cvxpy.reductions.solvers.solver import Solver
@@ -55,7 +56,8 @@ def _solve_as_qp(problem, candidates):
     return candidates['qp_solvers'] and qp2symbolic_qp.accepts(problem)
 
 
-def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List[Any]:
+def _reductions_for_problem_class(problem, candidates, gp: bool = False, solver_opts=None) \
+        -> List[Reduction]:
     """
     Builds a chain that rewrites a problem into an intermediate
     representation suitable for numeric reductions.
@@ -113,7 +115,8 @@ def _reductions_for_problem_class(problem, candidates, gp: bool = False) -> List
     if type(problem.objective) == Maximize:
         reductions += [FlipObjective()]
 
-    if _solve_as_qp(problem, candidates):
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    if _solve_as_qp(problem, candidates) and use_quad:
         reductions += [CvxAttr2Constr(), qp2symbolic_qp.Qp2SymbolicQp()]
     else:
         # Canonicalize it to conic problem.
@@ -178,17 +181,17 @@ def construct_solving_chain(problem, candidates,
     """
     if len(problem.variables()) == 0:
         return SolvingChain(reductions=[ConstantSolver()])
-    reductions = _reductions_for_problem_class(problem, candidates, gp)
+    reductions = _reductions_for_problem_class(problem, candidates, gp, solver_opts)
 
     # Process DPP status of the problem.
     dpp_context = 'dcp' if not gp else 'dgp'
     dpp_error_msg = (
-            "You are solving a parameterized problem that is not DPP. "
-            "Because the problem is not DPP, subsequent solves will not be "
-            "faster than the first one. For more information, see the "
-            "documentation on Discplined Parametrized Programming, at\n"
-            "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
-            "disciplined-parametrized-programming")
+        "You are solving a parameterized problem that is not DPP. "
+        "Because the problem is not DPP, subsequent solves will not be "
+        "faster than the first one. For more information, see the "
+        "documentation on Discplined Parametrized Programming, at\n"
+        "\thttps://www.cvxpy.org/tutorial/advanced/index.html#"
+        "disciplined-parametrized-programming")
     if ignore_dpp or not problem.is_dpp(dpp_context):
         # No warning for ignore_dpp.
         if ignore_dpp:
@@ -211,7 +214,8 @@ def construct_solving_chain(problem, candidates,
     # Conclude with matrix stuffing; choose one of the following paths:
     #   (1) QpMatrixStuffing --> [a QpSolver],
     #   (2) ConeMatrixStuffing --> [a ConicSolver]
-    if _solve_as_qp(problem, candidates):
+    use_quad = True if solver_opts is None else solver_opts.get('use_quad_obj', True)
+    if _solve_as_qp(problem, candidates) and use_quad:
         # Canonicalize as a QP
         solver = candidates['qp_solvers'][0]
         solver_instance = slv_def.SOLVER_MAP_QP[solver]
