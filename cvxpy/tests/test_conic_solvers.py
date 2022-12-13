@@ -1547,7 +1547,6 @@ class TestXPRESS(BaseTest):
 
             assert 'XPRESS_IIS' in problem.solution.attr
 
-
     def test_xpress_lp_0(self) -> None:
         StandardTestLPs.test_lp_0(solver='XPRESS')
 
