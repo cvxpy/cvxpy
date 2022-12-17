@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.abs_canon import (
     abs_canon,)
 
 

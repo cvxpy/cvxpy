@@ -28,7 +28,7 @@ class TestSupportFunctions(BaseTest):
     Relevant source code includes:
         cvxpy.atoms.suppfunc
         cvxpy.transforms.suppfunc
-        cvxpy.reductions.dcp2cone.atom_canonicalizers.suppfunc_canon
+        cvxpy.reductions.dcp2cone.canonicalizers.suppfunc_canon
     """
 
     def test_Rn(self) -> None:
