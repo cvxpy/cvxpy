@@ -14,8 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from cvxpy.reductions.complex2real.canonicalizers.abs_canon import (
-    abs_canon,)
+from cvxpy.reductions.complex2real.canonicalizers.abs_canon import abs_canon
 
 
 def pnorm_canon(expr, real_args, imag_args, real2imag):

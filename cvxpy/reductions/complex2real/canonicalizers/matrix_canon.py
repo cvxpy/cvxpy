@@ -14,13 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from typing import List, Optional, Union
+
 import numpy as np
 
+from cvxpy.atoms import (bmat, lambda_sum_largest, normNuc, reshape,
+                         symmetric_wrap, vstack,)
+from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
-from cvxpy.atoms import bmat, reshape, vstack, symmetric_wrap, normNuc, lambda_sum_largest
-from cvxpy.atoms.affine.wraps import psd_wrap
-from typing import Optional, List, Union
 
 
 def expand_complex(real_part: Optional[Expression],
