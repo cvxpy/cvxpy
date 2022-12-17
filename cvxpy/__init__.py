@@ -13,7 +13,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
+from cvxpy.version import (
+    version as __version__,)  # cvxpy/version.py is auto-generated
 import cvxpy.interface.scipy_wrapper
 from cvxpy.atoms import *
 from cvxpy.constraints import PSD, SOC, NonPos, Zero
@@ -36,5 +37,3 @@ from cvxpy.settings import (CBC, CLARABEL, COPT, CPLEX, CPP_CANON_BACKEND,
                             USER_LIMIT, XPRESS, get_num_threads,
                             set_num_threads,)
 from cvxpy.transforms import linearize, partial_optimize, suppfunc
-from cvxpy.version import (
-    version as __version__,)  # cvxpy/version.py is auto-generated
