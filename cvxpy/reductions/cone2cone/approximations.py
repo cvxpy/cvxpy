@@ -21,7 +21,7 @@ import numpy as np
 import cvxpy as cp
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.exponential import OpRelConeQuad, RelEntrQuad
+from cvxpy.constraints.exponential import OpRelEntrConeQuad, RelEntrConeQuad
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
@@ -29,8 +29,8 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.von_neumann_entr_canon import
     von_neumann_entr_canon,)
 
 APPROX_CONES = {
-    RelEntrQuad: {cp.SOC},
-    OpRelConeQuad: {cp.PSD}
+    RelEntrConeQuad: {cp.SOC},
+    OpRelEntrConeQuad: {cp.PSD}
 }
 
 
@@ -77,7 +77,7 @@ def rotated_quad_cone(X: cp.Expression, y: cp.Expression, z: cp.Expression):
     return con
 
 
-def RelEntrQuad_canon(con: RelEntrQuad, args) -> Tuple[Constraint, List[Constraint]]:
+def RelEntrQuad_canon(con: RelEntrConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
     """
     Use linear and SOC constraints to approximately enforce
         con.x * log(con.x / con.y) <= con.z.
@@ -132,9 +132,29 @@ def RelEntrQuad_canon(con: RelEntrQuad, args) -> Tuple[Constraint, List[Constrai
     return lead_con, constrs
 
 
-def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
+def QuantumRelEntr_canon(expr, args):
+    X, Y, m, k = args[0], args[1], expr.quad_approx[0], expr.quad_approx[1]
+    n = X.shape[0]
+    matrix_epi = Variable(shape=(n**2, n**2), symmetric=True)
+
+    # Dop(X, Y) << matrix_epi
+    I = cp.Constant(np.eye(n))
+    con = OpRelEntrConeQuad(cp.kron(X, I), cp.kron(I, cp.conj(Y)), matrix_epi, m, k)
+    lead_con, cons = OpRelEntrConeQuad_canon(con, con.args)
+    cons.append(lead_con)
+    In = np.eye(n)
+    e = In.ravel()
+    # Next, use "e @ Dop(A, B) @ e <= e @ matrix_epi @ e"
+    scalar_epi = e @ matrix_epi @ e
+    return scalar_epi, cons
+
+
+def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
     k, m = con.k, con.m
     X, Y = con.X, con.Y
+    assert X.is_real()
+    assert Y.is_real()
+    assert con.Z.is_real()
     Zs = {i: Variable(shape=X.shape, symmetric=True) for i in range(k+1)}
     Ts = {i: Variable(shape=X.shape, symmetric=True) for i in range(m+1)}
     constrs = [Zero(Zs[0] - Y)]
@@ -145,6 +165,10 @@ def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Cons
     if not Y.is_symmetric():
         ut = upper_tri(Y)
         lt = upper_tri(Y.T)
+        constrs.append(ut == lt)
+    if not con.Z.is_symmetric():
+        ut = upper_tri(con.Z)
+        lt = upper_tri(con.Z.T)
         constrs.append(ut == lt)
     w, t = gauss_legendre(m)
     lead_con = Zero(cp.sum([w[i] * Ts[i] for i in range(m)]) + con.Z/2**k)
@@ -165,11 +189,14 @@ def OpRelConeQuad_canon(con: OpRelConeQuad, args) -> Tuple[Constraint, List[Cons
 
 
 def von_neumann_entr_QuadApprox(expr, args):
+    #TODO: use RelEntrConeQuad with the exponential cone representation.
+    # Much more efficient than approximating the operator relative entropy
+    # cone in full generality.
     N, m, k = args[0], expr.quad_approx[0], expr.quad_approx[1]
     n = N.shape[0]
     t = Variable(shape=N.shape, symmetric=True)
-    con = OpRelConeQuad(N, cp.Constant(np.eye(n)), t, m, k)
-    lead_con, cons = OpRelConeQuad_canon(con, con.args)
+    con = OpRelEntrConeQuad(N, cp.Constant(np.eye(n)), t, m, k)
+    lead_con, cons = OpRelEntrConeQuad_canon(con, con.args)
     cons.append(lead_con)
     return -cp.trace(con.Z), cons
 
@@ -183,8 +210,8 @@ def von_neumann_entr_canon_dispatch(expr, args):
 
 class QuadApprox(Canonicalization):
     CANON_METHODS = {
-        RelEntrQuad: RelEntrQuad_canon,
-        OpRelConeQuad: OpRelConeQuad_canon
+        RelEntrConeQuad: RelEntrQuad_canon,
+        OpRelEntrConeQuad: OpRelEntrConeQuad_canon
     }
 
     def __init__(self, problem=None) -> None:
