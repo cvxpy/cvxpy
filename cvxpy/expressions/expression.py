@@ -483,7 +483,7 @@ class Expression(u.Canonical):
 
     @property
     def H(self):
-        """Expression : The transpose of the expression.
+        """Expression : The conjugate-transpose of the expression.
         """
         if self.is_real():
             return self.T
