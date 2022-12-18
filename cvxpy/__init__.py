@@ -25,6 +25,7 @@ from cvxpy.expressions.expression import Expression
 from cvxpy.expressions.variable import Variable
 from cvxpy.problems.objective import Maximize, Minimize
 from cvxpy.problems.problem import Problem
+from cvxpy.transforms import linearize, partial_optimize, suppfunc
 from cvxpy.reductions import *
 from cvxpy.reductions.solvers.defines import installed_solvers
 from cvxpy.settings import (CBC, CLARABEL, COPT, CPLEX, CPP_CANON_BACKEND,
@@ -36,4 +37,3 @@ from cvxpy.settings import (CBC, CLARABEL, COPT, CPLEX, CPP_CANON_BACKEND,
                             SOLVER_ERROR, UNBOUNDED, UNBOUNDED_INACCURATE,
                             USER_LIMIT, XPRESS, get_num_threads,
                             set_num_threads,)
-from cvxpy.transforms import linearize, partial_optimize, suppfunc
