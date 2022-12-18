@@ -596,13 +596,15 @@ class TestOpRelConeQuad(BaseTest):
     def oprelcone_1(self) -> STH.SolverTestHelper:
         """
         These tests construct two matrices that commute (imposing all eigenvectors equal)
-        and then use the fact that: T=Dop(A, B) for (A, B, T) in OpRelEntrConeQuad i.e. T >> Dop(A, B)
-        for an objective that is an increasing function of the eigenvalues (which we here take
-        to be the trace), we compute the reference objective value as tr(Dop) whose correctness
-        can be seen by writing out tr(T)=tr(T-Dop)+tr(Dop), where tr(T-Dop)>=0 because of PSD-ness
-        of (T-Dop), and at optimality we have (T-Dop)=0 (the zero matrix of corresponding size)
-        For the case that the input matrices commute, Dop takes on a particularly simplified form,
-        i.e.: U @ diag(a * log(a/b)) @ U^{-1} (which is implemented in the Dop_commute method above)
+        and then use the fact that: T=Dop(A, B) for (A, B, T) in OpRelEntrConeQuad
+        i.e. T >> Dop(A, B) for an objective that is an increasing function of the
+        eigenvalues (which we here take to be the trace), we compute the reference
+        objective value as tr(Dop) whose correctness can be seen by writing out
+        tr(T)=tr(T-Dop)+tr(Dop), where tr(T-Dop)>=0 because of PSD-ness of (T-Dop),
+        and at optimality we have (T-Dop)=0 (the zero matrix of corresponding size)
+        For the case that the input matrices commute, Dop takes on a particularly
+        simplified form, i.e.: U @ diag(a * log(a/b)) @ U^{-1} (which is implemented
+        in the Dop_commute method above)
         """
         n = 3
         # generates `n` independent, orthonormal vectors

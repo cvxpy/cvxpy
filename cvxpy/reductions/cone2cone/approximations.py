@@ -172,9 +172,9 @@ def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, L
 
 
 def von_neumann_entr_QuadApprox(expr, args):
-    #TODO: use RelEntrConeQuad with the exponential cone representation.
-    # Much more efficient than approximating the operator relative entropy
-    # cone in full generality.
+    # TODO: use RelEntrConeQuad with the exponential cone representation.
+    #  Much more efficient than approximating the operator relative entropy
+    #  cone in full generality.
     N, m, k = args[0], expr.quad_approx[0], expr.quad_approx[1]
     n = N.shape[0]
     t = Variable(shape=N.shape, symmetric=True)

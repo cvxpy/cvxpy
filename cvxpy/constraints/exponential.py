@@ -297,11 +297,12 @@ class OpRelEntrConeQuad(Constraint):
         if (not X.is_hermitian()) or (not Y.is_hermitian()) or (not Z.is_hermitian()):
             msg = ("One of the input matrices has not explicitly been declared as symmetric or"
                    "Hermitian. If the inputs are Variable objects, try declaring them with the"
-                   "symmetric=True or Hermitian=True properties. If the inputs are general Expression"
-                   "objects that are known to be symmetric or Hermitian, then you can wrap them"
-                   "with the symmetric_wrap and hermitian_wrap atoms. Failure to do one of these"
-                   "things will cause this function to impose a symmetry or conjugate-symmetry"
-                   "constraint internally, in a way that is very inefficient.")
+                   "symmetric=True or Hermitian=True properties. If the inputs are general "
+                   "Expression objects that are known to be symmetric or Hermitian, then you"
+                   "can wrap them with the symmetric_wrap and hermitian_wrap atoms. Failure to"
+                   "do one of these things will cause this function to impose a symmetry or"
+                   "conjugate-symmetry constraint internally, in a way that is very"
+                   "inefficient.")
             warnings.warn(msg)
         self.m = m
         self.k = k
