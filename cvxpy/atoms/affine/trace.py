@@ -65,6 +65,9 @@ class trace(AffAtom):
     def is_real(self) -> bool:
         return self.args[0].is_real() or self.args[0].is_hermitian()
 
+    def is_complex(self) -> bool:
+        return not self.is_real()
+
     def is_atom_log_log_convex(self) -> bool:
         """Is the atom log-log convex?
         """

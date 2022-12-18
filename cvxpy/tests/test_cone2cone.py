@@ -705,7 +705,7 @@ class TestOpRelConeQuad(BaseTest):
         sth.verify_objective(places=3)
         pass
 
-    def oprelcone_3(self) -> STH.SolverTestHelper:
+    def oprelcone_2(self) -> STH.SolverTestHelper:
         """
         This test uses the same idea from the tests with commutative matrices,
         instead, here, we make the input matrices to Dop, non-commutative,
@@ -744,25 +744,21 @@ class TestOpRelConeQuad(BaseTest):
                      (con3, None),
                      (con4, None),
                      (con5, None)]
-        # objective is increasing_func_lambda(T)
         obj = cp.Minimize(trace(T))
-        prob = cp.Problem(obj, [con1, con2, con3, con4, con5])
-        prob.solve()
 
-        obj_OPT = 1.85476
-
+        expect_obj = 1.85476
         expect_T = np.array([[0.49316819, 0.20845265, 0.60474713, -0.5820242],
                              [0.20845265, 0.31084053, 0.2264112, -0.8442255],
                              [0.60474713, 0.2264112, 0.4687153, -0.85667283],
                              [-0.5820242, -0.8442255, -0.85667283, 0.58206723]])
 
-        obj_pair = (obj, obj_OPT)
+        obj_pair = (obj, expect_obj)
         var_pairs = [(T, expect_T)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
-    def test_oprelcone_3(self):
-        sth = self.oprelcone_3()
+    def test_oprelcone_2(self):
+        sth = self.oprelcone_2()
         sth.solve(self.solver)
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)

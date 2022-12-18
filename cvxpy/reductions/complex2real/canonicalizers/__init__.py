@@ -17,7 +17,8 @@ limitations under the License.
 from cvxpy.atoms import (MatrixFrac, Pnorm, QuadForm, abs, bmat, conj, conv,
                          cumsum, imag, kron, lambda_max, lambda_sum_largest,
                          log_det, norm1, norm_inf, quad_over_lin, real,
-                         reshape, sigma_max, trace, upper_tri,)
+                         reshape, sigma_max, trace, upper_tri,
+                         von_neumann_entr,)
 from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.atoms.affine.binary_operators import (DivExpression, MulExpression,
                                                  multiply,)
@@ -48,7 +49,7 @@ from cvxpy.reductions.complex2real.canonicalizers.inequality_canon import (
 from cvxpy.reductions.complex2real.canonicalizers.matrix_canon import (
     hermitian_canon, lambda_sum_largest_canon, matrix_frac_canon,
     norm_nuc_canon, op_rel_entr_cone_canon, quad_canon, quad_over_lin_canon,
-    trace_canon,)
+    trace_canon, von_neumann_entr_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.param_canon import (
     param_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.pnorm_canon import (
@@ -110,5 +111,6 @@ CANON_METHODS = {
     quad_over_lin: quad_over_lin_canon,
     MatrixFrac: matrix_frac_canon,
     lambda_sum_largest: lambda_sum_largest_canon,
-    OpRelEntrConeQuad: op_rel_entr_cone_canon
+    OpRelEntrConeQuad: op_rel_entr_cone_canon,
+    von_neumann_entr: von_neumann_entr_canon,
 }

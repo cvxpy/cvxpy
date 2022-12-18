@@ -1,5 +1,5 @@
 """
-Copyright, the CVXPY authors
+Copyright, 2022 - the CVXPY authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,11 +15,13 @@ limitations under the License.
 """
 
 import numpy as np
+import scipy as sp
 
 import cvxpy as cp
 from cvxpy import trace
 from cvxpy.atoms import von_neumann_entr
 from cvxpy.tests import solver_test_helpers as STH
+from cvxpy.utilities.linalg import onb_for_orthogonal_complement
 
 
 class Test_von_neumann_entr:
@@ -31,136 +33,95 @@ class Test_von_neumann_entr:
                       'verbose': True}
 
     @staticmethod
-    def make_test_1():
+    def make_test_1(complex):
         """Expect un-specified EV to be 0.2"""
         n = 3
-        N = cp.Variable(shape=(n, n), PSD=True)
-        expect_N = np.array([[0.14523781, 0.02381009, 0.10238067],
-                             [0.02381009, 0.28095125, 0.13809581],
-                             [0.10238067, 0.13809581, 0.37380924]])
-        v1 = np.array([[-0.26726124],
-                       [-0.53452248],
-                       [-0.80178373]])
-        v2 = np.array([[0.87287156],
-                       [0.21821789],
-                       [-0.43643578]])
-        lambda1 = 0.5
-        lambda2 = 0.1
-        trMax = 0.8
-        cons1 = N @ v1 == lambda1 * v1
-        cons2 = N @ v2 == lambda2 * v2
-        cons3 = trace(N) <= trMax
+        rng = np.random.default_rng(0)
+        if complex:
+            N = cp.Variable(shape=(n, n), hermitian=True)
+            V12 = rng.normal(size=(n, n)) + 1j * rng.normal(size=(n, n))
+        else:
+            N = cp.Variable(shape=(n, n), PSD=True)
+            V12 = rng.normal(size=(n, n))
+        V12 = sp.linalg.qr(V12)[0][:, :2]
+        mu12 = np.array([0.5, 0.1])
+        trace_bound = 0.8
+        cons1 = N @ V12 == V12 * mu12
+        cons2 = trace(N) <= trace_bound
         objective = cp.Maximize(von_neumann_entr(N))
-        obj_pair = (objective, 0.8987186478352693)
-        con_pairs = [
-            (cons1, None),
-            (cons2, None),
-            (cons3, None)
-        ]
-        var_pairs = [
-            (N, expect_N)
-        ]
+
+        V3 = onb_for_orthogonal_complement(V12).reshape((n, 1))
+        mu3 = trace_bound - np.sum(mu12)
+        expect_mu = np.concatenate([mu12, [mu3]])
+        expect_V = np.column_stack([V12, V3])
+        if complex:
+            expect_N = (expect_V * expect_mu) @ expect_V.conj().T
+        else:
+            expect_N = (expect_V * expect_mu) @ expect_V.T
+        expect_obj = cp.sum(cp.entr(expect_mu)).value
+
+        obj_pair = (objective, expect_obj)
+        con_pairs = [(cons1, None), (cons2, None)]
+        var_pairs = [(N, expect_N)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
-    def test_1(self):
-        sth = Test_von_neumann_entr.make_test_1()
+    def test_1_real(self):
+        sth = Test_von_neumann_entr.make_test_1(False)
+        sth.solve(**self.SOLVE_ARGS)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+
+    def test_1_complex(self):
+        sth = Test_von_neumann_entr.make_test_1(True)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
     @staticmethod
-    def make_test_2():
+    def make_test_2(quad_approx):
         """expect unspecified EV to be 0.4"""
         n = 3
         N = cp.Variable(shape=(n, n), PSD=True)
-        expect_N = np.array([[0.23484857, -0.06060623, 0.04393948],
-                             [-0.06060623, 0.3575761, -0.0242426],
-                             [0.04393948, -0.0242426, 0.30757584]])
-        v1 = np.array([[-0.12309149],
-                       [-0.49236596],
-                       [-0.86164044]])
-        v2 = np.array([[0.90453403],
-                       [0.30151134],
-                       [-0.30151134]])
-        lambda1 = 0.3
-        lambda2 = 0.2
+        V12 = np.array([[-0.12309149, 0.90453403],
+                        [-0.49236596, 0.30151134],
+                        [-0.86164044, -0.30151134]])
+        mu12 = np.array([0.3, 0.2])
         trMin = 0.9
-        cons1 = N @ v1 == lambda1 * v1
-        cons2 = N @ v2 == lambda2 * v2
-        cons3 = trace(N) >= trMin
-        objective = cp.Maximize(von_neumann_entr(N))
-        obj_pair = (objective, 1.049595673951)
-        con_pairs = [
-            (cons1, None),
-            (cons2, None),
-            (cons3, None)
-        ]
-        var_pairs = [
-            (N, expect_N)
-        ]
-        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
-        return sth
-
-    def test_2(self):
-        sth = Test_von_neumann_entr.make_test_2()
-        sth.solve(**self.SOLVE_ARGS)
-        sth.verify_objective(places=3)
-        sth.verify_primal_values(places=3)
-
-    def make_test_3(self, quad_approx=False):
-        """Expect unspecified EV to be 0.35"""
-        n = 4
-        N = cp.Variable(shape=(n, n), PSD=True)
-        expect_N = np.array([[0.15567716, -0.05194798, -0.04646885, 0.05940634],
-                             [-0.05194798, 0.18639235, 0.01639256, -0.01750361],
-                             [-0.04646885, 0.01639256, 0.25662141, -0.07654513],
-                             [0.05940634, -0.01750361, -0.07654513, 0.20130907]])
-        v1 = np.array([[-0.18257419],
-                       [-0.36514837],
-                       [-0.54772256],
-                       [-0.73029674]])
-        v2 = np.array([[-8.16496581e-01],
-                       [-4.08248290e-01],
-                       [2.22044605e-16],
-                       [4.08248290e-01]])
-        v3 = np.array([[-0.37407225],
-                       [0.79697056],
-                       [-0.47172438],
-                       [0.04882607]])
-        lambda1 = 0.15
-        lambda2 = 0.1
-        lambda3 = 0.2
-        trMax = 0.8
-        cons1 = N @ v1 == lambda1 * v1
-        cons2 = N @ v2 == lambda2 * v2
-        cons3 = N @ v3 == lambda3 * v3
-        cons4 = trace(N) <= trMax
+        cons1 = N @ V12 == V12 * mu12
+        cons2 = trace(N) >= trMin
         if quad_approx:
             objective = cp.Maximize(von_neumann_entr(N, (5, 5)))
         else:
             objective = cp.Maximize(von_neumann_entr(N))
-        obj_pair = (objective, 1.2041518326298097)
-        con_pairs = [
-            (cons1, None),
-            (cons2, None),
-            (cons3, None),
-            (cons4, None)
-        ]
-        var_pairs = [
-            (N, expect_N)
-        ]
+
+        V3 = onb_for_orthogonal_complement(V12).reshape((n, 1))
+        mu3 = trMin - np.sum(mu12)
+        expect_mu = np.concatenate([mu12, [mu3]])
+        expect_V = np.column_stack([V12, V3])
+        expect_N = (expect_V * expect_mu) @ expect_V.T
+        expect_obj = cp.sum(cp.entr(expect_mu)).value
+
+        obj_pair = (objective, expect_obj)
+        con_pairs = [(cons1, None), (cons2, None)]
+        var_pairs = [(N, expect_N)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
-    def test_3(self):
-        sth = self.make_test_3()
+    def test_2_exact(self):
+        sth = Test_von_neumann_entr.make_test_2(False)
+        sth.solve(**self.SOLVE_ARGS)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+
+    def test_2_approx(self):
+        sth = Test_von_neumann_entr.make_test_2(True)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
     @staticmethod
-    def make_test_4(quad_approx=False):
+    def make_test_3(quad_approx=False):
         A1 = np.array([[8.38972, 1.02671, 0.87991],
                        [1.02671, 8.41455, 7.31307],
                        [0.87991, 7.31307, 2.35915]])
@@ -203,21 +164,14 @@ class Test_von_neumann_entr:
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
-    def test_4(self):
-        sth = Test_von_neumann_entr.make_test_4()
+    def test_3_exact(self):
+        sth = self.make_test_3(quad_approx=False)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
-        sth.check_primal_feasibility(places=3)
 
-    def test_5(self):
+    def test_3_approx(self):
         sth = self.make_test_3(quad_approx=True)
-        sth.solve(**self.SOLVE_ARGS)
-        sth.verify_objective(places=3)
-        sth.verify_primal_values(places=3)
-
-    def test_6(self):
-        sth = self.make_test_4(quad_approx=True)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)

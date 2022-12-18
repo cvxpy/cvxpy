@@ -116,8 +116,7 @@ def von_neumann_entr_canon(expr: von_neumann_entr,
     The von Neumann entropy of X is sum(entr(eigvals(X)).
     Each eigenvalue of X appears twice as an eigenvalue of the Hermitian dilation of X.
     """
-    args = expr.args
-    canon_expr = expand_and_reapply(args[0], real_args[0], imag_args[0])
+    canon_expr = expand_and_reapply(expr, real_args[0], imag_args[0])
     if imag_args[0] is not None:
         canon_expr /= 2
     return canon_expr, None
