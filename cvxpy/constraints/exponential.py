@@ -1,6 +1,5 @@
 """
-Copyright 2013 Steven Diamond
-
+Copyright 2013 Steven Diamond, 2022 - the CVXPY Authors
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,13 +16,15 @@ limitations under the License.
 from __future__ import annotations
 
 import warnings
-from typing import List, Tuple
+from typing import List, Tuple, TypeVar
 
 import numpy as np
 
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
+
+Expression = TypeVar('Expression')
 
 
 class ExpCone(Constraint):
@@ -47,15 +48,15 @@ class ExpCone(Constraint):
 
     Parameters
     ----------
-    x : Variable
+    x : Expression
         x in the exponential cone.
-    y : Variable
+    y : Expression
         y in the exponential cone.
-    z : Variable
+    z : Expression
         z in the exponential cone.
     """
 
-    def __init__(self, x, y, z, constr_id=None) -> None:
+    def __init__(self, x: Expression, y: Expression, z: Expression, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
@@ -100,8 +101,8 @@ class ExpCone(Constraint):
         """
         return self.x.size
 
-    def as_quad_approx(self, m: int, k: int) -> RelEntrQuad:
-        return RelEntrQuad(self.y, self.z, -self.x, m, k)
+    def as_quad_approx(self, m: int, k: int) -> RelEntrConeQuad:
+        return RelEntrConeQuad(self.y, self.z, -self.x, m, k)
 
     def cone_sizes(self) -> List[int]:
         """The dimensions of the exponential cones.
@@ -143,7 +144,7 @@ class ExpCone(Constraint):
         self.dual_variables[2].save_value(dv2)
 
 
-class RelEntrQuad(Constraint):
+class RelEntrConeQuad(Constraint):
     """An approximate construction of the scalar relative entropy cone
 
     Definition:
@@ -169,7 +170,8 @@ class RelEntrQuad(Constraint):
     k: Another parameter controlling the approximation
     """
 
-    def __init__(self, x, y, z, m, k, constr_id=None) -> None:
+    def __init__(self, x: Expression, y: Expression, z: Expression,
+                 m: int, k: int, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         self.x = Expression.cast_to_const(x)
         self.y = Expression.cast_to_const(y)
@@ -181,14 +183,14 @@ class RelEntrQuad(Constraint):
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str((xs, ys, zs)))
             raise ValueError(msg)
-        super(RelEntrQuad, self).__init__([self.x, self.y, self.z], constr_id)
+        super(RelEntrConeQuad, self).__init__([self.x, self.y, self.z], constr_id)
 
     def get_data(self):
         return [self.m, self.k]
 
     def __str__(self) -> str:
         tup = (self.x, self.y, self.z, self.m, self.k)
-        return "RelEntrQuad(%s, %s, %s, %s, %s)" % tup
+        return "RelEntrConeQuad(%s, %s, %s, %s, %s)" % tup
 
     def __repr__(self) -> str:
         return self.__str__()
@@ -203,7 +205,7 @@ class RelEntrQuad(Constraint):
         x = Variable(self.x.shape)
         y = Variable(self.y.shape)
         z = Variable(self.z.shape)
-        constr = [RelEntrQuad(x, y, z, self.m, self.k)]
+        constr = [RelEntrConeQuad(x, y, z, self.m, self.k)]
         obj = Minimize(norm2(hstack([x, y, z]) -
                              hstack([self.x.value, self.y.value, self.z.value])))
         problem = Problem(obj, constr)
@@ -254,7 +256,7 @@ class RelEntrQuad(Constraint):
         pass
 
 
-class OpRelConeQuad(Constraint):
+class OpRelEntrConeQuad(Constraint):
     """An approximate construction of the operator relative entropy cone
 
     Definition:
@@ -286,16 +288,21 @@ class OpRelConeQuad(Constraint):
     This approximation uses :math:`m + k` semidefinite constraints.
     """
 
-    def __init__(self, X: cvxtypes.expression(), Y: cvxtypes.expression(), Z: cvxtypes.expression(),
+    def __init__(self, X: Expression, Y: Expression, Z: Expression,
                  m: int, k: int, constr_id=None) -> None:
         Expression = cvxtypes.expression()
         self.X = Expression.cast_to_const(X)
         self.Y = Expression.cast_to_const(Y)
         self.Z = Expression.cast_to_const(Z)
-        if (not X.is_symmetric()) or (not Y.is_symmetric()) or (not Z.is_symmetric()):
-            msg = ("One of the input matrices to the program has not explicitly been declared"
-                   " to be symmetric, we recommend setting 'symmetric=True' for the same, or it"
-                   " will be done in a less efficient way internally.")
+        if (not X.is_hermitian()) or (not Y.is_hermitian()) or (not Z.is_hermitian()):
+            msg = ("One of the input matrices has not explicitly been declared as symmetric or"
+                   "Hermitian. If the inputs are Variable objects, try declaring them with the"
+                   "symmetric=True or Hermitian=True properties. If the inputs are general "
+                   "Expression objects that are known to be symmetric or Hermitian, then you"
+                   "can wrap them with the symmetric_wrap and hermitian_wrap atoms. Failure to"
+                   "do one of these things will cause this function to impose a symmetry or"
+                   "conjugate-symmetry constraint internally, in a way that is very"
+                   "inefficient.")
             warnings.warn(msg)
         self.m = m
         self.k = k
@@ -304,14 +311,14 @@ class OpRelConeQuad(Constraint):
             msg = ("All arguments must have the same shapes. Provided arguments have"
                    "shapes %s" % str((Xs, Ys, Zs)))
             raise ValueError(msg)
-        super(OpRelConeQuad, self).__init__([self.X, self.Y, self.Z], constr_id)
+        super(OpRelEntrConeQuad, self).__init__([self.X, self.Y, self.Z], constr_id)
 
     def get_data(self):
         return [self.m, self.k]
 
     def __str__(self) -> str:
         tup = (self.X, self.Y, self.Z, self.m, self.k)
-        return "OpRelConeQuad(%s, %s, %s, %s, %s)" % tup
+        return "OpRelEntrConeQuad(%s, %s, %s, %s, %s)" % tup
 
     def __repr__(self) -> str:
         return self.__str__()
