@@ -1,5 +1,5 @@
 """
-Copyright 2017 Robin Verschueren
+Copyright 2017 Robin Verschueren, 2022 - the CVXPY Authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -29,33 +29,32 @@ from cvxpy.atoms.affine.sum import Sum
 from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.unary_operators import NegExpression
 from cvxpy.atoms.affine.vstack import Vstack
+from cvxpy.atoms.affine.wraps import hermitian_wrap
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
                                Zero,)
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
-from cvxpy.reductions.complex2real.atom_canonicalizers.abs_canon import (
-    abs_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.aff_canon import (
-    binary_canon, conj_canon, imag_canon, real_canon, separable_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.constant_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.abs_canon import abs_canon
+from cvxpy.reductions.complex2real.canonicalizers.aff_canon import (
+    binary_canon, conj_canon, hermitian_wrap_canon, imag_canon, real_canon,
+    separable_canon,)
+from cvxpy.reductions.complex2real.canonicalizers.constant_canon import (
     constant_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.equality_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.equality_canon import (
     equality_canon, zero_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.inequality_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.inequality_canon import (
     inequality_canon, nonneg_canon, nonpos_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.matrix_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.matrix_canon import (
     hermitian_canon, lambda_sum_largest_canon, matrix_frac_canon,
     norm_nuc_canon, quad_canon, quad_over_lin_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.param_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.param_canon import (
     param_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.pnorm_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.pnorm_canon import (
     pnorm_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.psd_canon import (
-    psd_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.soc_canon import (
-    soc_canon,)
-from cvxpy.reductions.complex2real.atom_canonicalizers.variable_canon import (
+from cvxpy.reductions.complex2real.canonicalizers.psd_canon import psd_canon
+from cvxpy.reductions.complex2real.canonicalizers.soc_canon import soc_canon
+from cvxpy.reductions.complex2real.canonicalizers.variable_canon import (
     variable_canon,)
 
 CANON_METHODS = {
@@ -85,6 +84,7 @@ CANON_METHODS = {
     conj: conj_canon,
     imag: imag_canon,
     real: real_canon,
+    hermitian_wrap: hermitian_wrap_canon,
     Variable: variable_canon,
     Constant: constant_canon,
     Parameter: param_canon,

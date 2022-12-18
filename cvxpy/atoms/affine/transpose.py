@@ -55,6 +55,11 @@ class transpose(AffAtom):
         """
         return self.args[0].is_symmetric()
 
+    def is_skew_symmetric(self) -> bool:
+        """Is the expression skew-symmetric?
+        """
+        return self.args[0].is_skew_symmetric()
+
     def is_hermitian(self) -> bool:
         """Is the expression Hermitian?
         """
