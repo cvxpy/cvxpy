@@ -18,7 +18,7 @@ from cvxpy import problems
 from cvxpy import settings as s
 from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
-                               Zero,)
+                               OpRelEntrConeQuad, Zero,)
 from cvxpy.expressions import cvxtypes
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
@@ -138,6 +138,9 @@ class Complex2Real(Reduction):
                         n = cons.args[0].shape[0]
                         dual = solution.dual_vars[cid]
                         dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
+                    elif isinstance(cons, OpRelEntrConeQuad):
+                        # TODO: implement dual variable recovery
+                        pass
                     else:
                         raise Exception("Unknown constraint type.")
 

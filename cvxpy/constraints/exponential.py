@@ -149,10 +149,10 @@ class RelEntrConeQuad(Constraint):
 
     Definition:
     .. math::
-        K_{re}=\text{cl}\\{(x,y,\\tau)\\in\\mathbb{R}_{++}\\times
-                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq\\tau\\}
+        K_{re}=\text{cl}\\{(x,y,z)\\in\\mathbb{R}_{++}\\times
+                \\mathbb{R}_{++}\\times\\mathbb{R}_{++}\\:x\\log(x/y)\\leq z\\}
 
-    Since the above definition is very similar to the ExpCone, we provide a conversion method
+    Since the above definition is very similar to the ExpCone, we provide a conversion method.
 
     More details on the approximation can be found in Theorem-3 on page-10 in the paper:
     Semidefinite Approximations of the Matrix Logarithm.
@@ -163,8 +163,8 @@ class RelEntrConeQuad(Constraint):
         x in the (approximate) scalar relative entropy cone
     y : Expression
         y in the (approximate) scalar relative entropy cone
-    $\\tau$ : Expression
-        $\\tau$ in the (approximate) scalar relative entropy cone
+    z : Expression
+        z in the (approximate) scalar relative entropy cone
     m: Parameter directly related to the number of generated nodes for the quadrature
     approximation used in the algorithm
     k: Another parameter controlling the approximation
@@ -273,8 +273,8 @@ class OpRelEntrConeQuad(Constraint):
         x in the (approximate) operator relative entropy cone
     Y : Expression
         y in the (approximate) operator relative entropy cone
-    T : Expression
-        T in the (approximate) operator relative entropy cone
+    Z : Expression
+        Z in the (approximate) operator relative entropy cone
     m: int
         Must be positive. Controls the number of quadrature nodes used in a local
         approximation of the matrix logarithm. Increasing this value results in

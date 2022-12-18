@@ -32,7 +32,7 @@ from cvxpy.atoms.affine.vstack import Vstack
 from cvxpy.atoms.affine.wraps import hermitian_wrap
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
-                               Zero,)
+                               OpRelEntrConeQuad, Zero,)
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.complex2real.canonicalizers.abs_canon import abs_canon
@@ -47,7 +47,8 @@ from cvxpy.reductions.complex2real.canonicalizers.inequality_canon import (
     inequality_canon, nonneg_canon, nonpos_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.matrix_canon import (
     hermitian_canon, lambda_sum_largest_canon, matrix_frac_canon,
-    norm_nuc_canon, quad_canon, quad_over_lin_canon,)
+    norm_nuc_canon, op_rel_entr_cone_canon, quad_canon, quad_over_lin_canon,
+    trace_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.param_canon import (
     param_canon,)
 from cvxpy.reductions.complex2real.canonicalizers.pnorm_canon import (
@@ -69,7 +70,7 @@ CANON_METHODS = {
     Promote: separable_canon,
     reshape: separable_canon,
     Sum: separable_canon,
-    trace: separable_canon,
+    trace: trace_canon,
     transpose: separable_canon,
     NegExpression: separable_canon,
     upper_tri: separable_canon,
@@ -109,4 +110,5 @@ CANON_METHODS = {
     quad_over_lin: quad_over_lin_canon,
     MatrixFrac: matrix_frac_canon,
     lambda_sum_largest: lambda_sum_largest_canon,
+    OpRelEntrConeQuad: op_rel_entr_cone_canon
 }

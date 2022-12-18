@@ -57,7 +57,9 @@ def log_sum_exp_axis_1(x): return cp.log_sum_exp(x, axis=1)  # noqa E371
 
 
 # Atom, solver pairs known to fail.
-KNOWN_SOLVER_ERRORS = []
+KNOWN_SOLVER_ERRORS = [
+    (cp.xexp, cp.MOSEK)  # really, cp.xexp(cp.pos(expr)).
+]
 
 atoms_minimize = [
     (cp.abs, (2, 2), [[[-5, 2], [-3, 1]]],

@@ -19,8 +19,9 @@ from typing import List, Optional, Union
 import numpy as np
 
 from cvxpy.atoms import (bmat, lambda_sum_largest, normNuc, reshape,
-                         symmetric_wrap, vstack,)
+                         symmetric_wrap, von_neumann_entr, vstack,)
 from cvxpy.atoms.affine.wraps import psd_wrap
+from cvxpy.constraints.exponential import OpRelEntrConeQuad
 from cvxpy.expressions.constants.constant import Constant
 from cvxpy.expressions.expression import Expression
 
@@ -28,7 +29,7 @@ from cvxpy.expressions.expression import Expression
 def expand_complex(real_part: Optional[Expression],
                    imag_part: Optional[Expression]):
     """
-    We expand_complex the matrix A to B = [[Re(A), -Im(A)], [Im(A), Re(A)]].
+    We expand the matrix A to B = [[Re(A), -Im(A)], [Im(A), Re(A)]].
 
     The resulting matrix has special structure if A is Hermitian.
     Specifically, if x is an eigenvector of A, then [Re(x), Im(x)]
@@ -69,6 +70,20 @@ def hermitian_canon(expr: Expression,
     return expr_canon, None
 
 
+def trace_canon(expr: Expression,
+                real_args: List[Union[Expression, None]],
+                imag_args: List[Union[Expression, None]], real2imag):
+    if real_args[0] is None:
+        real_part = None
+    else:
+        real_part = expr.copy([real_args[0]])
+    if (imag_args[0] is None) or expr.is_hermitian():
+        imag_part = None
+    else:
+        imag_part = expr.copy([imag_args[0]])
+    return real_part, imag_part
+
+
 def norm_nuc_canon(expr: normNuc,
                    real_args: List[Union[Expression, None]],
                    imag_args: List[Union[Expression, None]], real2imag):
@@ -92,6 +107,37 @@ def lambda_sum_largest_canon(expr: lambda_sum_largest,
     if imag_args[0] is not None:
         real /= 2
     return real, imag
+
+
+def von_neumann_entr_canon(expr: von_neumann_entr,
+                           real_args: List[Union[Expression, None]],
+                           imag_args: List[Union[Expression, None]], real2imag):
+    """
+    The von Neumann entropy of X is sum(entr(eigvals(X)).
+    Each eigenvalue of X appears twice as an eigenvalue of the Hermitian dilation of X.
+    """
+    args = expr.args
+    canon_expr = expand_and_reapply(args[0], real_args[0], imag_args[0])
+    if imag_args[0] is not None:
+        canon_expr /= 2
+    return canon_expr, None
+
+
+def op_rel_entr_cone_canon(expr: OpRelEntrConeQuad,
+                           real_args: List[Union[Expression, None]],
+                           imag_args: List[Union[Expression, None]], real2imag):
+    """Transform Hermitian input for OpRelEntrConeQuad into equivalent
+    symmetric input for OpRelEntrConeQuad
+    """
+    must_expand = any(a is not None for a in imag_args)
+    if must_expand:
+        X_dilation = expand_complex(real_args[0], imag_args[0])
+        Y_dilation = expand_complex(real_args[1], imag_args[1])
+        Z_dilation = expand_complex(real_args[2], imag_args[2])
+        canon_expr = expr.copy([X_dilation, Y_dilation, Z_dilation])
+    else:
+        canon_expr = expr.copy(real_args)
+    return [canon_expr], None
 
 
 def at_least_2D(expr: Expression):

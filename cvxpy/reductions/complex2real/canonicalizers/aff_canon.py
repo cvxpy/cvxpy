@@ -21,7 +21,7 @@ from cvxpy.expressions.constants import Constant
 
 
 def separable_canon(expr, real_args, imag_args, real2imag):
-    """Canonicalize linear functions that are seprable
+    """Canonicalize linear functions that are separable
        in real and imaginary parts.
     """
     if all(val is None for val in imag_args):
