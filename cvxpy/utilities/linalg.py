@@ -5,6 +5,7 @@ import scipy.sparse.linalg as sparla
 
 
 def orth(V, tol=1e-12):
+    """Return a matrix whose columns are an orthonormal basis for range(V)"""
     Q, R, p = la.qr(V, mode='economic', pivoting=True)
     # ^ V[:, p] == Q @ R.
     rank = np.count_nonzero(np.sum(np.abs(R) > tol, axis=1))
@@ -18,9 +19,6 @@ def onb_for_orthogonal_complement(V):
 
     This function returns an array Q whose columns are
     an orthonormal basis for U. It requires that dim(U) > 0.
-
-    If dim(U) == 1, then Q can be returned as a vector,
-    rather than a matrix with "columns" in a formal sense.
     """
     n = V.shape[0]
     Q1 = orth(V)
