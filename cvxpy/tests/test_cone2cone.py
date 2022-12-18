@@ -576,7 +576,10 @@ class TestOpRelConeQuad(BaseTest):
         self.n = n
         self.a = cp.Variable(shape=(n,), pos=True)
         self.b = cp.Variable(shape=(n,), pos=True)
-        self.rng = np.random.default_rng(0)
+        if hasattr(np.random, 'default_rng'):
+            self.rng = np.random.default_rng(0)
+        else:
+            self.rng = np.random.RandomState(0)
         self.a_lower = np.cumsum(self.rng.random(n))
         self.a_upper = self.a_lower + 0.05*self.rng.random(n)
         self.b_lower = np.cumsum(self.rng.random(n))

@@ -36,7 +36,10 @@ class Test_von_neumann_entr:
     def make_test_1(complex):
         """Expect un-specified EV to be 0.2"""
         n = 3
-        rng = np.random.default_rng(0)
+        if hasattr(np.random, 'default_rng'):
+            rng = np.random.default_rng(0)
+        else:
+            rng = np.random.RandomState(0)
         if complex:
             N = cp.Variable(shape=(n, n), hermitian=True)
             V12 = rng.normal(size=(n, n)) + 1j * rng.normal(size=(n, n))
