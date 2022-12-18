@@ -647,6 +647,8 @@ class TestOpRelConeQuad(BaseTest):
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
+    @unittest.skipUnless('CVXOPT' in cp.installed_solvers(),
+                         'SCS is too slow.')
     def test_oprelcone_1(self):
         sth = self.oprelcone_1()
         sth.solve(solver='CVXOPT')
@@ -697,6 +699,8 @@ class TestOpRelConeQuad(BaseTest):
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
+    @unittest.skipUnless('CVXOPT' in cp.installed_solvers(),
+                         'SCS is too slow.')
     def test_oprelcone_2(self):
         sth = self.oprelcone_2()
         sth.solve(solver='CVXOPT')

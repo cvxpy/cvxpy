@@ -132,23 +132,6 @@ def RelEntrQuad_canon(con: RelEntrConeQuad, args) -> Tuple[Constraint, List[Cons
     return lead_con, constrs
 
 
-def QuantumRelEntr_canon(expr, args):
-    X, Y, m, k = args[0], args[1], expr.quad_approx[0], expr.quad_approx[1]
-    n = X.shape[0]
-    matrix_epi = Variable(shape=(n**2, n**2), symmetric=True)
-
-    # Dop(X, Y) << matrix_epi
-    I = cp.Constant(np.eye(n))
-    con = OpRelEntrConeQuad(cp.kron(X, I), cp.kron(I, cp.conj(Y)), matrix_epi, m, k)
-    lead_con, cons = OpRelEntrConeQuad_canon(con, con.args)
-    cons.append(lead_con)
-    In = np.eye(n)
-    e = In.ravel()
-    # Next, use "e @ Dop(A, B) @ e <= e @ matrix_epi @ e"
-    scalar_epi = e @ matrix_epi @ e
-    return scalar_epi, cons
-
-
 def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
     k, m = con.k, con.m
     X, Y = con.X, con.Y
