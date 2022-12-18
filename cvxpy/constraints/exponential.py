@@ -24,7 +24,6 @@ from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.utilities import scopes
 
-
 Expression = TypeVar('Expression')
 
 
