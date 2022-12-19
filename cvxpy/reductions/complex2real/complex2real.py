@@ -19,6 +19,7 @@ from cvxpy import settings as s
 from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
                                OpRelEntrConeQuad, Zero,)
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
@@ -104,7 +105,8 @@ class Complex2Real(Reduction):
                 #
                 for cid, cons in inverse_data.id2cons.items():
                     if cons.is_real():
-                        dvars[cid] = solution.dual_vars[cid]
+                        if cons.REAL_DUALS_IMPLEMENTED:  # else, do nothing.
+                            dvars[cid] = solution.dual_vars[cid]
                     elif cons.is_imag():
                         imag_id = inverse_data.real2imag[cid]
                         dvars[cid] = 1j*solution.dual_vars[imag_id]
@@ -174,4 +176,13 @@ class Complex2Real(Reduction):
             return result
         else:
             assert all(v is None for v in imag_args)
-            return expr.copy(real_args), None
+            real_out = expr.copy(real_args)
+            if isinstance(expr, Constraint):
+                real_out = [real_out]
+            return real_out, None
+            # ^ The check above is mostly handled by having complex2real canonicalizers
+            # for atoms like PSD, SOC, Zero, etc.. in elim_cplx_methods
+            # which handle all real inputs. I think a change here is preferable to
+            # adding more functions in elim_cplx_methods. For one thing, I uncovered
+            # a bug that applies to ExpCone and PowCone canonicalization even though
+            # it only showed during testing with RelEntrConeQuad canonicalization.

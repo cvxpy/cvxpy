@@ -34,7 +34,8 @@ class Test_von_neumann_entr:
 
     @staticmethod
     def make_test_1(complex):
-        """Expect un-specified EV to be 0.2"""
+        """Enforce an upper bound of 0.8 on trace(N);
+        Expect N's unspecified eigenvalue to be 0.2"""
         n = 3
         if hasattr(np.random, 'default_rng'):
             rng = np.random.default_rng(0)
@@ -83,7 +84,8 @@ class Test_von_neumann_entr:
 
     @staticmethod
     def make_test_2(quad_approx):
-        """expect unspecified EV to be 0.4"""
+        """Enforce a lower bound of 0.9 on trace(N);
+        Expect N's unspecified eigenvalue to be 0.4"""
         n = 3
         N = cp.Variable(shape=(n, n), PSD=True)
         V12 = np.array([[-0.12309149, 0.90453403],
@@ -124,57 +126,120 @@ class Test_von_neumann_entr:
         sth.verify_primal_values(places=3)
 
     @staticmethod
-    def make_test_3(quad_approx=False):
-        A1 = np.array([[8.38972, 1.02671, 0.87991],
-                       [1.02671, 8.41455, 7.31307],
-                       [0.87991, 7.31307, 2.35915]])
+    def sum_entr_approx(a: cp.Expression, apx_m: int, apx_k: int):
+        n = a.size
+        epi_vec = cp.Variable(shape=n)
+        b = cp.Constant(np.ones(n))
+        con = cp.constraints.RelEntrConeQuad(a, b, epi_vec, apx_m, apx_k)
+        objective = cp.Minimize(cp.sum(epi_vec))
+        return objective, con
 
-        A2 = np.array([[6.92907, 4.37713, 5.11915],
-                       [4.37713, 7.96725, 4.42217],
-                       [5.11915, 4.42217, 2.72919]])
+    @staticmethod
+    def make_test_3(quad_approx=False, real=False):
+        np.random.seed(0)
+        ###################################################
+        #
+        #   Construct matrix/vector coefficient data
+        #
+        ###################################################
+        apx_m, apx_k = 2, 2
+        A1_real = np.array([[8.38972, 1.02671, 0.87991],
+                            [1.02671, 8.41455, 7.31307],
+                            [0.87991, 7.31307, 2.35915]])
 
+        A2_real = np.array([[6.92907, 4.37713, 5.11915],
+                            [4.37713, 7.96725, 4.42217],
+                            [5.11915, 4.42217, 2.72919]])
+        if real:
+            U = np.eye(3)
+            A1 = A1_real
+            A2 = A2_real
+        else:
+            randmat = 1j * np.random.normal(size=(3, 3))
+            randmat += np.random.normal(size=(3, 3))
+            U = sp.linalg.qr(randmat)[0]
+            A1 = U @ A1_real @ U.conj().T
+            A2 = U @ A2_real @ U.conj().T
         b = np.array([19.16342, 17.62551])
 
-        N = cp.Variable(shape=(3, 3), PSD=True)
-
-        # The below problem generates the reference values:
-        ref_X = cp.Variable(shape=(3, 3), diag=True)
-        ref_objective = cp.Minimize(-cp.sum(cp.entr(cp.diag(ref_X))))
-        ref_cons1 = trace(A1 @ ref_X) == b[0]
-        ref_cons2 = trace(A2 @ ref_X) == b[1]
-        ref_cons3 = ref_X >> 0
-        ref_prob = cp.Problem(ref_objective, [ref_cons1, ref_cons2, ref_cons3])
-        ref_obj_val = ref_prob.solve()
-        ref_X_val = ref_X.value.A
-
-        expect_N = ref_X_val
+        ###################################################
+        #
+        #   define and solve a reference problem
+        #
+        ###################################################
+        diag_X = cp.Variable(shape=(3,))
+        ref_X = cp.diag(diag_X)
+        if real:
+            ref_cons = [trace(A1 @ ref_X) == b[0],
+                        trace(A2 @ ref_X) == b[1]]
+        else:
+            conjugated_X = U @ ref_X @ U.conj().T
+            ref_cons = [trace(A1 @ conjugated_X) == b[0],
+                        trace(A2 @ conjugated_X) == b[1]]
         if quad_approx:
-            objective = cp.Minimize(-von_neumann_entr(N, (5, 5)))
+            ref_objective, con = Test_von_neumann_entr.sum_entr_approx(diag_X, apx_m, apx_k)
+            ref_cons.append(con)
+        else:
+            ref_objective = cp.Minimize(-cp.sum(cp.entr(diag_X)))
+        ref_prob = cp.Problem(ref_objective, ref_cons)
+        ref_obj_val = ref_prob.solve()
+
+        ###################################################
+        #
+        #   define a new problem that is equivalent to the
+        #   reference, but makes use of von_neumann_entr.
+        #
+        ###################################################
+        if real:
+            N = cp.Variable(shape=(3, 3), PSD=True)
+            cons = [trace(A1 @ N) == b[0],
+                    trace(A2 @ N) == b[1],
+                    N - cp.diag(cp.diag(N)) == 0]
+            expect_N = ref_X.value
+        else:
+            N = cp.Variable(shape=(3, 3), hermitian=True)
+            aconj_N = U.conj().T @ N @ U
+            cons = [trace(A1 @ N) == b[0],
+                    trace(A2 @ N) == b[1],
+                    aconj_N - cp.diag(cp.diag(aconj_N)) == 0]
+            expect_N = conjugated_X.value
+        if quad_approx:
+            objective = cp.Minimize(-von_neumann_entr(N, (apx_m, apx_k)))
         else:
             objective = cp.Minimize(-von_neumann_entr(N))
+
+        ###################################################
+        #
+        #   construct and return the SolverTestHelper
+        #
+        ###################################################
         obj_pair = (objective, ref_obj_val)
-        cons1 = trace(A1 @ N) == b[0]
-        cons2 = trace(A2 @ N) == b[1]
-        cons3 = N - cp.diag(cp.diag(N)) == 0
-        con_pairs = [
-            (cons1, None),
-            (cons2, None),
-            (cons3, None),
-        ]
-        var_pairs = [
-            (N, expect_N)
-        ]
+        var_pairs = [(N, expect_N)]
+        con_pairs = [(con, None) for con in cons]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
-    def test_3_exact(self):
-        sth = self.make_test_3(quad_approx=False)
+    def test_3_exact_real(self):
+        sth = self.make_test_3(quad_approx=False, real=True)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
 
-    def test_3_approx(self):
-        sth = self.make_test_3(quad_approx=True)
+    def test_3_approx_real(self):
+        sth = self.make_test_3(quad_approx=True, real=True)
+        sth.solve(**self.SOLVE_ARGS)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+        sth.check_primal_feasibility(places=3)
+
+    def test_3_exact_complex(self):
+        sth = self.make_test_3(quad_approx=False, real=False)
+        sth.solve(**self.SOLVE_ARGS)
+        sth.verify_objective(places=3)
+        sth.verify_primal_values(places=3)
+
+    def test_3_approx_complex(self):
+        sth = self.make_test_3(quad_approx=True, real=False)
         sth.solve(**self.SOLVE_ARGS)
         sth.verify_objective(places=3)
         sth.verify_primal_values(places=3)
