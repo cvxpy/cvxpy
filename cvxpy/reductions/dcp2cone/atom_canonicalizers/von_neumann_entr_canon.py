@@ -24,12 +24,12 @@ from cvxpy.reductions.dcp2cone.atom_canonicalizers.lambda_sum_largest_canon impo
 
 def von_neumann_entr_canon(expr, args):
     N = args[0]
+    assert N.is_real()
     n = N.shape[0]
     x = Variable(shape=(n,))
     t = Variable()
 
     # START code that applies to all spectral functions #
-
     constrs = []
     for r in range(1, n):
         # lambda_sum_largest(N, r) <= sum(x[:r])

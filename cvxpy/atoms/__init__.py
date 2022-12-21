@@ -36,6 +36,8 @@ from cvxpy.atoms.affine.transpose import transpose
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.atoms.affine.vec import vec
 from cvxpy.atoms.affine.vstack import vstack
+from cvxpy.atoms.affine.wraps import (hermitian_wrap, psd_wrap,
+                                      skew_symmetric_wrap, symmetric_wrap,)
 from cvxpy.atoms.condition_number import condition_number
 from cvxpy.atoms.cummax import cummax
 from cvxpy.atoms.dist_ratio import dist_ratio
@@ -84,6 +86,7 @@ from cvxpy.atoms.norm1 import norm1
 from cvxpy.atoms.norm_inf import norm_inf
 from cvxpy.atoms.norm_nuc import normNuc
 from cvxpy.atoms.one_minus_pos import diff_pos, one_minus_pos
+from cvxpy.atoms.perspective import perspective
 from cvxpy.atoms.pf_eigenvalue import pf_eigenvalue
 from cvxpy.atoms.pnorm import Pnorm, pnorm
 from cvxpy.atoms.prod import Prod, prod

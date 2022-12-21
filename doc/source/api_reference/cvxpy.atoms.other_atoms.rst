@@ -186,6 +186,14 @@ one_minus_pos
 .. autoclass:: cvxpy.atoms.one_minus_pos
     :show-inheritance:
 
+.. _perspective:
+
+perspective
+------------------------------
+
+.. autoclass:: cvxpy.atoms.perspective.perspective
+    :show-inheritance:
+
 .. _pf-eigenvalue:
 
 pf_eigenvalue
@@ -274,6 +282,13 @@ SuppFuncAtom
 ------------
 
 .. autoclass:: cvxpy.atoms.suppfunc.SuppFuncAtom
+
+.. _tr_inv:
+
+tr_inv
+-------------------------------------
+
+.. autofunction:: cvxpy.atoms.tr_inv.tr_inv
 
 .. _tv:
 

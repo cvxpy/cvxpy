@@ -1908,7 +1908,7 @@ class TestCOPT(unittest.TestCase):
         StandardTestSOCPs.test_socp_0(solver='COPT')
 
     def test_copt_socp_1(self) -> None:
-        StandardTestSOCPs.test_socp_1(solver='COPT')
+        StandardTestSOCPs.test_socp_1(solver='COPT', places=3)
 
     def test_copt_socp_2(self) -> None:
         StandardTestSOCPs.test_socp_2(solver='COPT')

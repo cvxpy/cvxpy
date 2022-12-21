@@ -63,6 +63,9 @@ class TestExpressions(BaseTest):
         self.assertEqual(repr(self.x), "Variable((2,))")
         self.assertEqual(repr(self.A), "Variable((2, 2))")
 
+        # Test shape provided as list instead of tuple
+        self.assertEqual(cp.Variable(shape=[2], integer=True).shape, (2,))
+
         # # Scalar variable
         # coeff = self.a.coefficients()
         # self.assertEqual(coeff[self.a.id], [1])
@@ -275,6 +278,59 @@ class TestExpressions(BaseTest):
         Q = -1.1*s.EIGVAL_TOL*P
         self.assertFalse(gershgorin_psd_check(Q.value, s.EIGVAL_TOL))
         self.assertFalse(Q.is_psd())
+
+    def test_constant_skew_symmetric(self) -> None:
+        # Define inputs
+        M1_false = np.eye(3)
+        M2_true = np.zeros((3, 3))
+        M3_true = np.array([[0, 1], [-1, 0]])
+        M4_true = np.array([[0, -1], [1, 0]])
+        M5_false = np.array([[0, 1], [1,  0]])
+        M6_false = np.array([[1, 1], [-1, 0]])
+        M7_false = np.array([[0, 1], [-1.1, 0]])
+
+        # Test dense constants
+        C = Constant(M1_false)
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(M2_true)
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(M3_true)
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(M4_true)
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(M5_false)
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(M6_false)
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(M7_false)
+        self.assertFalse(C.is_skew_symmetric())
+
+        # Test sparse constants
+        C = Constant(sp.csc_matrix(M1_false))
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M2_true))
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M4_true))
+        self.assertTrue(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M5_false))
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M6_false))
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(sp.csc_matrix(M7_false))
+        self.assertFalse(C.is_skew_symmetric())
+
+        # Test complex inputs: never recognized as skew-symmetric.
+        C = Constant(1j * M2_true)
+        self.assertFalse(C.is_skew_symmetric())
+        #   ^ From a mathematical standpoint one can argue that this should
+        #     be true, but I don't think there's precedent for CVXPY
+        #     automatically converting complex expressions with zero imaginary-part
+        #     into equivalent real expressions. -- Riley
+        C = Constant(1j * M3_true)
+        self.assertFalse(C.is_skew_symmetric())
+        C = Constant(1j * M4_true)
+        self.assertFalse(C.is_skew_symmetric())
+        pass
 
     def test_1D_array(self) -> None:
         """Test NumPy 1D arrays as constants.

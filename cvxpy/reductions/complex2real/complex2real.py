@@ -16,12 +16,13 @@ limitations under the License.
 
 from cvxpy import problems
 from cvxpy import settings as s
+from cvxpy.atoms.affine.upper_tri import vec_to_upper_tri
 from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
                                Zero,)
 from cvxpy.expressions import cvxtypes
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
-from cvxpy.reductions.complex2real.atom_canonicalizers import (
+from cvxpy.reductions.complex2real.canonicalizers import (
     CANON_METHODS as elim_cplx_methods,)
 from cvxpy.reductions.reduction import Reduction
 
@@ -70,30 +71,37 @@ class Complex2Real(Reduction):
         pvars = {}
         dvars = {}
         if solution.status in s.SOLUTION_PRESENT:
+            #
+            #   Primal variables
+            #
             for vid, var in inverse_data.id2var.items():
                 if var.is_real():
+                    # Purely real variables
                     pvars[vid] = solution.primal_vars[vid]
                 elif var.is_imag():
+                    # Purely imaginary variables
                     imag_id = inverse_data.real2imag[vid]
                     pvars[vid] = 1j*solution.primal_vars[imag_id]
                 elif var.is_complex() and var.is_hermitian():
+                    # Hermitian variables
+                    pvars[vid] = solution.primal_vars[vid]
                     imag_id = inverse_data.real2imag[vid]
-                    # Imaginary part may have been lost.
                     if imag_id in solution.primal_vars:
                         imag_val = solution.primal_vars[imag_id]
-                        pvars[vid] = solution.primal_vars[vid] + \
-                            1j*(imag_val - imag_val.T)/2
-                    else:
-                        pvars[vid] = solution.primal_vars[vid]
+                        imag_val = vec_to_upper_tri(imag_val, True).value
+                        imag_val -= imag_val.T
+                        pvars[vid] = pvars[vid] + 1j*imag_val
                 elif var.is_complex():
+                    # General complex variables
+                    pvars[vid] = solution.primal_vars[vid]
                     imag_id = inverse_data.real2imag[vid]
-                    # Imaginary part may have been lost.
                     if imag_id in solution.primal_vars:
-                        pvars[vid] = solution.primal_vars[vid] + \
-                            1j*solution.primal_vars[imag_id]
-                    else:
-                        pvars[vid] = solution.primal_vars[vid]
+                        imag_val = solution.primal_vars[imag_id]
+                        pvars[vid] = pvars[vid] + 1j*imag_val
             if solution.dual_vars:
+                #
+                #   Dual variables
+                #
                 for cid, cons in inverse_data.id2cons.items():
                     if cons.is_real():
                         dvars[cid] = solution.dual_vars[cid]
@@ -114,8 +122,19 @@ class Complex2Real(Reduction):
                     elif isinstance(cons, SOC) and cons.is_complex():
                         # TODO add dual variables for complex SOC.
                         pass
-                    # For PSD constraints.
                     elif isinstance(cons, PSD) and cons.is_complex():
+                        # Suppose we have a constraint con_x = X >> 0 where X is Hermitian.
+                        #
+                        # Define the matrix
+                        #     Y := [re(X) , im(X)]
+                        #          [-im(X), re(X)]
+                        # and the constraint con_y = Y >> 0.
+                        #
+                        # The real part the dual variable for con_x is the upper-left
+                        # block of the dual variable for con_y.
+                        #
+                        # The imaginary part of the dual variable for con_x is the
+                        # upper-right block of the dual variable for con_y.
                         n = cons.args[0].shape[0]
                         dual = solution.dual_vars[cid]
                         dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
