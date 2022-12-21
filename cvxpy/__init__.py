@@ -19,7 +19,7 @@ import cvxpy.interface.scipy_wrapper
 from cvxpy.atoms import *
 from cvxpy.constraints import (Constraint, PSD, SOC, NonPos, NonNeg, Zero, 
                                PowCone3D, PowConeND, ExpCone, 
-                               OpRelConeQuad, RelEntrQuad, FiniteSet,)
+                               OpRelEntrConeQuad, RelEntrConeQuad, FiniteSet,)
 from cvxpy.error import (DCPError, DGPError, DPPError, SolverError,
                          disable_warnings, enable_warnings, warnings_enabled,)
 from cvxpy.expressions.constants import CallbackParam, Constant, Parameter
