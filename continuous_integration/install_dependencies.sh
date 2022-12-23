@@ -27,7 +27,7 @@ elif [[ "$PYTHON_VERSION" == "3.11" ]]; then
 fi
 
 
-if [[ "$PYTHON_VERSION" == "3.11" ]]; then
+if [[ "$PYTHON_VERSION" == "3.11" ]] || [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
   python -m pip install gurobipy clarabel osqp
 else
   python -m pip install "ortools>=9.3,<9.5" coptpy cplex sdpa-python diffcp gurobipy xpress clarabel sdpa-python
