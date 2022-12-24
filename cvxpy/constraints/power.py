@@ -153,8 +153,6 @@ class PowConeND(Constraint):
     of constraint.
     """
 
-    REAL_DUALS_IMPLEMENTED = False
-
     _TOL_ = 1e-6
 
     def __init__(self, W, z, alpha, axis: int = 0, constr_id=None) -> None:

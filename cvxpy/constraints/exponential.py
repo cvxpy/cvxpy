@@ -170,8 +170,6 @@ class RelEntrConeQuad(Constraint):
     k: Another parameter controlling the approximation
     """
 
-    REAL_DUALS_IMPLEMENTED = False
-
     def __init__(self, x: Expression, y: Expression, z: Expression,
                  m: int, k: int, constr_id=None) -> None:
         Expression = cvxtypes.expression()
@@ -289,8 +287,6 @@ class OpRelEntrConeQuad(Constraint):
 
     This approximation uses :math:`m + k` semidefinite constraints.
     """
-
-    REAL_DUALS_IMPLEMENTED = False
 
     def __init__(self, X: Expression, Y: Expression, Z: Expression,
                  m: int, k: int, constr_id=None) -> None:

@@ -40,8 +40,6 @@ class Constraint(u.Canonical):
 
     __metaclass__ = abc.ABCMeta
 
-    REAL_DUALS_IMPLEMENTED = True
-
     def __init__(self, args, constr_id=None) -> None:
         # TODO cast constants.
         # self.args = [cvxtypes.expression().cast_to_const(arg) for arg in args]
