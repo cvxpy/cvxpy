@@ -45,7 +45,7 @@ if [[ "$PYTHON_VERSION" == "3.10" ]]; then
   python -m pip install diffcp gurobipy
 # Python 3.8 on Windows will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
 elif [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
-  python -m pip install xpress
+  :
 elif [[ "$PYTHON_VERSION" == "3.6" ]]; then
   python -m pip install xpress
 else
