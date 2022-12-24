@@ -16,8 +16,9 @@ limitations under the License.
 
 from cvxpy import problems
 from cvxpy import settings as s
-from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
-                               Zero,)
+from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonNeg,
+                               NonPos, PowCone3D, PowConeND, Zero,)
+from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.lin_ops import lin_utils as lu
 from cvxpy.reductions import InverseData, Solution
@@ -33,6 +34,9 @@ def accepts(problem) -> bool:
 
 class Complex2Real(Reduction):
     """Lifts complex numbers to a real representation."""
+
+    UNIMPLEMENTED_REAL_DUALS = (PowCone3D, PowConeND)
+    UNIMPLEMENTED_COMPLEX_DUALS = (SOC, ExpCone)
 
     def accepts(self, problem) -> None:
         accepts(problem)
@@ -57,10 +61,14 @@ class Complex2Real(Reduction):
             # created for the imaginary part.
             real_constrs, imag_constrs = self.canonicalize_tree(
                 constraint, inverse_data.real2imag, leaf_map)
-            if real_constrs is not None:
+            if isinstance(real_constrs, list):
                 constrs.extend(real_constrs)
-            if imag_constrs is not None:
+            elif isinstance(real_constrs, Constraint):
+                constrs.append(real_constrs)
+            if isinstance(imag_constrs, list):
                 constrs.extend(imag_constrs)
+            elif isinstance(imag_constrs, Constraint):
+                constrs.append(imag_constrs)
 
         new_problem = problems.problem.Problem(real_obj,
                                                constrs)
@@ -96,29 +104,32 @@ class Complex2Real(Reduction):
             if solution.dual_vars:
                 for cid, cons in inverse_data.id2cons.items():
                     if cons.is_real():
-                        dvars[cid] = solution.dual_vars[cid]
+                        if not isinstance(cons, self.UNIMPLEMENTED_REAL_DUALS):
+                            dvars[cid] = solution.dual_vars[cid]
                     elif cons.is_imag():
                         imag_id = inverse_data.real2imag[cid]
                         dvars[cid] = 1j*solution.dual_vars[imag_id]
                     # For equality and inequality constraints.
-                    elif isinstance(cons,
-                                    (Equality, Zero, Inequality,
-                                     NonNeg, NonPos)
-                                    ) and cons.is_complex():
+                    # All cases that follow are for complex-valued constraints:
+                    #   1. check inequality / equality constraints.
+                    #   2. check PSD constraints.
+                    #   3. check if a constraint is known to lack a complex dual implementation
+                    #   4. raise an error
+                    elif isinstance(cons, (Equality, Zero, Inequality, NonNeg, NonPos)):
                         imag_id = inverse_data.real2imag[cid]
                         if imag_id in solution.dual_vars:
                             dvars[cid] = solution.dual_vars[cid] + \
                                 1j*solution.dual_vars[imag_id]
                         else:
                             dvars[cid] = solution.dual_vars[cid]
-                    elif isinstance(cons, SOC) and cons.is_complex():
-                        # TODO add dual variables for complex SOC.
-                        pass
                     # For PSD constraints.
-                    elif isinstance(cons, PSD) and cons.is_complex():
+                    elif isinstance(cons, PSD):
                         n = cons.args[0].shape[0]
                         dual = solution.dual_vars[cid]
                         dvars[cid] = dual[:n, :n] + 1j*dual[n:, :n]
+                    elif isinstance(cons, self.UNIMPLEMENTED_COMPLEX_DUALS):
+                        # TODO: implement dual variable recovery
+                        pass
                     else:
                         raise Exception("Unknown constraint type.")
 
@@ -152,4 +163,5 @@ class Complex2Real(Reduction):
             return result
         else:
             assert all(v is None for v in imag_args)
-            return expr.copy(real_args), None
+            real_out = expr.copy(real_args)
+            return real_out, None
