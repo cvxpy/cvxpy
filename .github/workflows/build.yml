@@ -48,7 +48,7 @@ jobs:
           - os: macos-11
             python-version: 3.8
             single_action_config: "True"
-          - os: windows-2019
+          - os: windows-2022
             python-version: 3.8
 
     env:
@@ -93,7 +93,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macos-11, windows-2019 ]
+        os: [ ubuntu-20.04, macos-11, windows-2022 ]
         python-version: [ 3.7, 3.9, "3.10", "3.11" ]
         include:
           - os: ubuntu-20.04
@@ -101,7 +101,7 @@ jobs:
           - os: macos-11
             python-version: 3.8
             single_action_config: "True"
-          - os: windows-2019
+          - os: windows-2022
             python-version: 3.8
 
     env:
@@ -159,7 +159,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macos-11, windows-2019 ]
+        os: [ ubuntu-20.04, macos-11, windows-2022 ]
         python-version: [ 3.7, 3.9, "3.10", "3.11" ]
         include:
           - os: ubuntu-20.04
@@ -169,7 +169,7 @@ jobs:
             python-version: 3.8
             pip_install: "True"
             single_action_config: "True"
-          - os: windows-2019
+          - os: windows-2022
             python-version: 3.8
             pip_install: "True"
 

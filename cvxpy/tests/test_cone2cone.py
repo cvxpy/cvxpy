@@ -563,37 +563,69 @@ class TestRelEntrQuad(BaseTest):
         sth.verify_objective(places=2)
 
 
+def sdp_ipm_installed():
+    viable = {cp.CVXOPT, cp.MOSEK, cp.COPT}.intersection(cp.installed_solvers())
+    return len(viable) > 0
+
+
+@unittest.skipUnless(sdp_ipm_installed(),
+                     'First-order solvers are too slow for the accuracy we need.')
 class TestOpRelConeQuad(BaseTest):
 
-    @staticmethod
-    def tr_Dop_commute(a, b, U):
-        return np.trace(TestOpRelConeQuad.Dop_commute(a, b, U))
+    def setUp(self, n=3) -> None:
+        self.n = n
+        self.a = cp.Variable(shape=(n,), pos=True)
+        self.b = cp.Variable(shape=(n,), pos=True)
+        if hasattr(np.random, 'default_rng'):
+            self.rng = np.random.default_rng(0)
+        else:
+            self.rng = np.random.RandomState(0)
+        if hasattr(self.rng, 'random'):
+            rand_gen_func = self.rng.random
+        else:
+            rand_gen_func = self.rng.random_sample
+
+        self.a_lower = np.cumsum(rand_gen_func(n))
+        self.a_upper = self.a_lower + 0.05*rand_gen_func(n)
+        self.b_lower = np.cumsum(rand_gen_func(n))
+        self.b_upper = self.b_lower + 0.05*rand_gen_func(n)
+        self.base_cons = [
+            self.a_lower <= self.a,
+            self.a <= self.a_upper,
+            self.b_lower <= self.b,
+            self.b <= self.b_upper
+        ]
+        installed_solvers = cp.installed_solvers()
+        if cp.MOSEK in installed_solvers:
+            self.solver = cp.MOSEK
+        elif cp.CVXOPT in installed_solvers:
+            self.solver = cp.CVXOPT
+        elif cp.COPT in installed_solvers:
+            self.solver = cp.COPT
+        else:
+            raise RuntimeError('No viable solver installed.')
+        pass
 
     @staticmethod
-    def Dop_commute(a, b, U):
-        return U @ np.diag(a.value * np.log(a.value/b.value)) @ U.T
+    def Dop_commute(a: np.ndarray, b: np.ndarray, U: np.ndarray):
+        D = np.diag(a * np.log(a/b))
+        if np.iscomplexobj(U):
+            out = U @ D @ U.conj().T
+        else:
+            out = U @ D @ U.T
+        return out
 
     @staticmethod
-    def Dop(a, U1, B):
-        """
-        Computes Operator relative entropy of matrices A and B, where A is specified
-        in terms of its eigendecomposition, hence:
-        a: 1-D array of the eigenvalues of A
-        U1: column stacked eigenvectors of A
-        Dop is the non-commutative perspective of the negative logarithm, following is the defn.
-        of the noncommutative perspective of a function `g`:
-        $P_g(X,Y)=Y^{1/2}g(Y^{-1/2}XY^{-1/2})Y^{1/2}$
-        We reproduce the same for the negative logarithm below:
-        """
-        flank = U1 @ np.diag(a)**(0.5) @ U1.T
-        in_flank = U1 @ np.diag(a**(-0.5)) @ U1.T
-        return -(flank @ sp.linalg.logm(in_flank @ B @ in_flank) @ flank)
+    def sum_rel_entr_approx(a: cp.Expression, b: cp.Expression,
+                            apx_m: int, apx_k: int):
+        n = a.size
+        assert n == b.size
+        epi_vec = cp.Variable(shape=n)
+        con = cp.constraints.RelEntrConeQuad(a, b, epi_vec, apx_m, apx_k)
+        objective = cp.Minimize(cp.sum(epi_vec))
+        return objective, con
 
-    @staticmethod
-    def tr_Dop(a, U1, B):
-        return np.trace(TestOpRelConeQuad.Dop(a.value, U1, B.value))
-
-    def oprelcone_1(self) -> STH.SolverTestHelper:
+    def oprelcone_1(self, apx_m, apx_k, real) -> STH.SolverTestHelper:
         """
         These tests construct two matrices that commute (imposing all eigenvectors equal)
         and then use the fact that: T=Dop(A, B) for (A, B, T) in OpRelEntrConeQuad
@@ -606,110 +638,82 @@ class TestOpRelConeQuad(BaseTest):
         simplified form, i.e.: U @ diag(a * log(a/b)) @ U^{-1} (which is implemented
         in the Dop_commute method above)
         """
-        n = 3
-        # generates `n` independent, orthonormal vectors
-        U = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
-        a_diag = cp.Variable(shape=(n,), pos=True)
-        b_diag = cp.Variable(shape=(n,), pos=True)
-        # the below constraint ensures that `A` and `B` are
-        # defined in terms of their eigendecomposition and have the same eigenvectors
-        # i.e. they commute
-        A = U @ cp.diag(a_diag) @ U.T
-        B = U @ cp.diag(b_diag) @ U.T
-        T = cp.Variable(shape=(n, n))
-        # constrains A,B,T \in OpRelEntrConeQuad
-        con1 = cp.constraints.OpRelEntrConeQuad(A, B, T, 5, 5)
-        # imposing some non-trivial constraints to ensure feasibility
-        a_lower = np.cumsum(np.random.rand(n))
-        a_upper = a_lower + 0.05*np.random.rand(n)
-        b_lower = np.cumsum(np.random.rand(n))
-        b_upper = b_lower + 0.05*np.random.rand(n)
-        con2 = a_lower <= a_diag
-        con3 = a_diag <= a_upper
-        con4 = b_lower <= b_diag
-        con5 = b_diag <= b_upper
-        con_pairs = [(con1, None),
-                     (con2, None),
-                     (con3, None),
-                     (con4, None),
-                     (con5, None)]
-        # objective is increasing_func_lambda(T)
+        # Compute the expected optimal solution
+        temp_obj, temp_con = TestOpRelConeQuad.sum_rel_entr_approx(
+            self.a, self.b, apx_m, apx_k
+        )
+        temp_constraints = [con for con in self.base_cons]
+        temp_constraints.append(temp_con)
+        temp_prob = cp.Problem(temp_obj, temp_constraints)
+        temp_prob.solve()
+        expect_a = self.a.value
+        expect_b = self.b.value
+        expect_objective = temp_obj.value
+
+        # Next: create a matrix representation of the same problem,
+        # using operator relative entropy.
+        n = self.n
+        if real:
+            randmat = self.rng.normal(size=(n, n))
+            U = sp.linalg.qr(randmat)[0]
+            A = cp.symmetric_wrap(U @ cp.diag(self.a) @ U.T)
+            B = cp.symmetric_wrap(U @ cp.diag(self.b) @ U.T)
+            T = cp.Variable(shape=(n, n), symmetric=True)
+        else:
+            randmat = 1j * self.rng.normal(size=(n, n))
+            randmat += self.rng.normal(size=(n, n))
+            U = sp.linalg.qr(randmat)[0]
+            A = cp.hermitian_wrap(U @ cp.diag(self.a) @ U.conj().T)
+            B = cp.hermitian_wrap(U @ cp.diag(self.b) @ U.conj().T)
+            T = cp.Variable(shape=(n, n), hermitian=True)
+        main_con = cp.constraints.OpRelEntrConeQuad(A, B, T, apx_m, apx_k)
         obj = cp.Minimize(trace(T))
-        prob = cp.Problem(obj, [con1, con2, con3, con4, con5])
-        prob.solve()
+        expect_T = TestOpRelConeQuad.Dop_commute(expect_a, expect_b, U)
 
-        # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelConeQuad.tr_Dop_commute(a_diag, b_diag, U)
-
-        # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
-        expect_T = TestOpRelConeQuad.Dop_commute(a_diag, b_diag, U)
-
-        obj_pair = (obj, obj_OPT)
+        # Define the SolverTestHelper object
+        con_pairs = [(con, None) for con in self.base_cons]
+        con_pairs.append((main_con, None))
+        obj_pair = (obj, expect_objective)
         var_pairs = [(T, expect_T)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
-    @unittest.skipUnless('CVXOPT' in cp.installed_solvers(),
-                         'SCS is too slow.')
-    def test_oprelcone_1(self):
-        sth = self.oprelcone_1()
-        sth.solve(solver='CVXOPT')
-        sth.verify_primal_values(places=2)
-        sth.verify_objective(places=2)
+    def test_oprelcone_1_m1_k3_real(self):
+        sth = self.oprelcone_1(1, 3, True)
+        sth.solve(self.solver)
+        sth.verify_primal_values(places=3)
+        sth.verify_objective(places=3)
+        pass
+
+    def test_oprelcone_1_m3_k1_real(self):
+        sth = self.oprelcone_1(3, 1, True)
+        sth.solve(self.solver)
+        sth.verify_primal_values(places=3)
+        sth.verify_objective(places=3)
+        pass
+
+    def test_oprelcone_1_m4_k4_real(self):
+        sth = self.oprelcone_1(4, 4, True)
+        sth.solve(self.solver)
+        sth.verify_primal_values(places=3)
+        sth.verify_objective(places=3)
+        pass
+
+    def test_oprelcone_1_m1_k3_complex(self):
+        sth = self.oprelcone_1(1, 3, False)
+        sth.solve(self.solver)
+        sth.verify_primal_values(places=3)
+        sth.verify_objective(places=3)
+        pass
+
+    def test_oprelcone_1_m3_k1_complex(self):
+        sth = self.oprelcone_1(3, 1, False)
+        sth.solve(self.solver)
+        sth.verify_primal_values(places=3)
+        sth.verify_objective(places=3)
+        pass
 
     def oprelcone_2(self) -> STH.SolverTestHelper:
-        n = 6
-        # generates `n` independent, orthonormal vectors
-        U = sp.linalg.qr(np.random.randn(n, n), mode='economic')[0]
-        a_diag = cp.Variable(shape=(n,), pos=True)
-        b_diag = cp.Variable(shape=(n,), pos=True)
-        # the below constraint ensures that `A` and `B` are
-        # defined in terms of their eigendecomposition and have the same eigenvectors
-        # i.e. they commute
-        A = U @ cp.diag(a_diag) @ U.T
-        B = U @ cp.diag(b_diag) @ U.T
-        T = cp.Variable(shape=(n, n))
-        # constrains A,B,T \in OpRelEntrConeQuad
-        con1 = cp.constraints.OpRelEntrConeQuad(A, B, T, 8, 5)
-        # imposing some non-trivial constraints to ensure feasibility
-        a_lower = np.cumsum(np.random.rand(n))
-        a_upper = a_lower + 0.15*np.random.rand(n)
-        b_lower = np.cumsum(np.random.rand(n))
-        b_upper = b_lower + 0.2*np.random.rand(n)
-        con2 = a_lower <= a_diag
-        con3 = a_diag <= a_upper
-        con4 = b_lower <= b_diag
-        con5 = b_diag <= b_upper
-        con_pairs = [(con1, None),
-                     (con2, None),
-                     (con3, None),
-                     (con4, None),
-                     (con5, None)]
-        # objective is increasing_func_lambda(T)
-        obj = cp.Minimize(trace(T))
-        prob = cp.Problem(obj, [con1, con2, con3, con4, con5])
-        prob.solve()
-
-        # Generating the objective value to be compared against:
-        obj_OPT = TestOpRelConeQuad.tr_Dop_commute(a_diag, b_diag, U)
-
-        # Generating the optimal value of `T` by using the `T=Dop` at OPT condition
-        expect_T = TestOpRelConeQuad.Dop_commute(a_diag, b_diag, U)
-
-        obj_pair = (obj, obj_OPT)
-        var_pairs = [(T, expect_T)]
-        sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
-        return sth
-
-    @unittest.skipUnless('CVXOPT' in cp.installed_solvers(),
-                         'SCS is too slow.')
-    def test_oprelcone_2(self):
-        sth = self.oprelcone_2()
-        sth.solve(solver='CVXOPT')
-        sth.verify_primal_values(places=2)
-        sth.verify_objective(places=2)
-
-    def oprelcone_3(self) -> STH.SolverTestHelper:
         """
         This test uses the same idea from the tests with commutative matrices,
         instead, here, we make the input matrices to Dop, non-commutative,
@@ -748,25 +752,21 @@ class TestOpRelConeQuad(BaseTest):
                      (con3, None),
                      (con4, None),
                      (con5, None)]
-        # objective is increasing_func_lambda(T)
         obj = cp.Minimize(trace(T))
-        prob = cp.Problem(obj, [con1, con2, con3, con4, con5])
-        prob.solve()
 
-        obj_OPT = 1.85476
-
+        expect_obj = 1.85476
         expect_T = np.array([[0.49316819, 0.20845265, 0.60474713, -0.5820242],
                              [0.20845265, 0.31084053, 0.2264112, -0.8442255],
                              [0.60474713, 0.2264112, 0.4687153, -0.85667283],
                              [-0.5820242, -0.8442255, -0.85667283, 0.58206723]])
 
-        obj_pair = (obj, obj_OPT)
+        obj_pair = (obj, expect_obj)
         var_pairs = [(T, expect_T)]
         sth = STH.SolverTestHelper(obj_pair, var_pairs, con_pairs)
         return sth
 
-    def test_oprelcone_3(self):
-        sth = self.oprelcone_3()
-        sth.solve(solver='SCS')
+    def test_oprelcone_2(self):
+        sth = self.oprelcone_2()
+        sth.solve(self.solver)
         sth.verify_primal_values(places=2)
         sth.verify_objective(places=2)

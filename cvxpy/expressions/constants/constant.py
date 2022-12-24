@@ -21,7 +21,7 @@ import scipy.sparse as sp
 
 import cvxpy.interface as intf
 import cvxpy.lin_ops.lin_utils as lu
-import cvxpy.utilities.eigvals as eig_util
+import cvxpy.utilities.linalg as eig_util
 from cvxpy.expressions.leaf import Leaf
 from cvxpy.settings import EIGVAL_TOL
 from cvxpy.utilities import performance_utils as perf

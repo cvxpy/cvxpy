@@ -21,7 +21,8 @@ import numpy as np
 import cvxpy as cp
 from cvxpy.atoms.affine.upper_tri import upper_tri
 from cvxpy.constraints.constraint import Constraint
-from cvxpy.constraints.exponential import OpRelEntrConeQuad, RelEntrConeQuad
+from cvxpy.constraints.exponential import (ExpCone, OpRelEntrConeQuad,
+                                           RelEntrConeQuad,)
 from cvxpy.constraints.zero import Zero
 from cvxpy.expressions.variable import Variable
 from cvxpy.reductions.canonicalization import Canonicalization
@@ -77,7 +78,7 @@ def rotated_quad_cone(X: cp.Expression, y: cp.Expression, z: cp.Expression):
     return con
 
 
-def RelEntrQuad_canon(con: RelEntrConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
+def RelEntrConeQuad_canon(con: RelEntrConeQuad, args) -> Tuple[Constraint, List[Constraint]]:
     """
     Use linear and SOC constraints to approximately enforce
         con.x * log(con.x / con.y) <= con.z.
@@ -172,16 +173,19 @@ def OpRelEntrConeQuad_canon(con: OpRelEntrConeQuad, args) -> Tuple[Constraint, L
 
 
 def von_neumann_entr_QuadApprox(expr, args):
-    # TODO: use RelEntrConeQuad with the exponential cone representation.
-    #  Much more efficient than approximating the operator relative entropy
-    #  cone in full generality.
-    N, m, k = args[0], expr.quad_approx[0], expr.quad_approx[1]
-    n = N.shape[0]
-    t = Variable(shape=N.shape, symmetric=True)
-    con = OpRelEntrConeQuad(N, cp.Constant(np.eye(n)), t, m, k)
-    lead_con, cons = OpRelEntrConeQuad_canon(con, con.args)
-    cons.append(lead_con)
-    return -cp.trace(con.Z), cons
+    m, k = expr.quad_approx[0], expr.quad_approx[1]
+    epi, initial_cons = von_neumann_entr_canon(expr, args)
+    cons = []
+    for con in initial_cons:
+        if isinstance(con, ExpCone):  # should only hit this once.
+            qa_con = con.as_quad_approx(m, k)
+            qa_con_canon_lead, qa_con_canon = RelEntrConeQuad_canon(
+                qa_con, None)
+            cons.append(qa_con_canon_lead)
+            cons.extend(qa_con_canon)
+        else:
+            cons.append(con)
+    return epi, cons
 
 
 def von_neumann_entr_canon_dispatch(expr, args):
@@ -193,7 +197,7 @@ def von_neumann_entr_canon_dispatch(expr, args):
 
 class QuadApprox(Canonicalization):
     CANON_METHODS = {
-        RelEntrConeQuad: RelEntrQuad_canon,
+        RelEntrConeQuad: RelEntrConeQuad_canon,
         OpRelEntrConeQuad: OpRelEntrConeQuad_canon
     }
 

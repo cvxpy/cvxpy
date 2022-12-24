@@ -27,7 +27,7 @@ from cvxpy.atoms.affine.add_expr import AddExpression
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
-from cvxpy.utilities.eigvals import gershgorin_psd_check
+from cvxpy.utilities.linalg import gershgorin_psd_check
 
 
 class TestExpressions(BaseTest):
