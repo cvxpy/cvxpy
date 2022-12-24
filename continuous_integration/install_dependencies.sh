@@ -10,10 +10,7 @@ conda config --set remote_max_retries 10
 conda config --set remote_backoff_factor 2
 conda config --set remote_read_timeout_secs 120.0
 
-if [[ "$PYTHON_VERSION" == "3.6" ]]; then
-  conda install scipy=1.3 numpy=1.16 mkl pip=21.3.1 pytest pytest-cov lapack ecos scs osqp cvxopt
-  python -m pip install cplex  # CPLEX is not available yet on 3.10
-elif [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
+if [[ "$PYTHON_VERSION" == "3.7" ]] || [[ "$PYTHON_VERSION" == "3.8" ]]; then
   conda install scipy=1.3 numpy=1.16 mkl pip pytest pytest-cov lapack ecos scs osqp cvxopt
   python -m pip install cplex  # CPLEX is not available yet on 3.10
 elif [[ "$PYTHON_VERSION" == "3.9" ]]; then
@@ -34,7 +31,7 @@ python -m pip install "ortools<9.4"
 if [[ "$RUNNER_OS" != "Windows" ]]; then
   conda install coin-or-cbc
 fi
-if [[ "$PYTHON_VERSION" != "3.6" ]] && [[ "$PYTHON_VERSION" != "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
+if [[ "$PYTHON_VERSION" != "3.10" ]] && [[ "$RUNNER_OS" != "Windows" ]]; then
   python -m pip install cylp
 fi
 
@@ -45,8 +42,9 @@ fi
 
 if [[ "$PYTHON_VERSION" == "3.10" ]]; then
   python -m pip install diffcp gurobipy
-elif [[ "$PYTHON_VERSION" == "3.6" ]]; then
-  python -m pip install diffcp xpress
+# Python 3.8 on Windows will uninstall NumPy 1.16 and install NumPy 1.24 without the exception.
+elif [[ "$RUNNER_OS" == "Windows" ]] && [[ "$PYTHON_VERSION" == "3.8" ]]; then
+  :
 else
   python -m pip install diffcp gurobipy xpress
 fi
