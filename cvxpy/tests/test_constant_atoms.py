@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import collections
 import itertools
 import math
 
@@ -56,10 +57,9 @@ def log_sum_exp_axis_0(x): return cp.log_sum_exp(x, axis=0, keepdims=True)  # no
 def log_sum_exp_axis_1(x): return cp.log_sum_exp(x, axis=1)  # noqa E371
 
 
-# Atom, solver pairs known to fail.
-KNOWN_SOLVER_ERRORS = [
-    (cp.xexp, cp.MOSEK)  # really, cp.xexp(cp.pos(expr)).
-]
+# map from solver name to a list of strings for atoms that fail.
+KNOWN_SOLVER_ERRORS = collections.defaultdict(list)
+KNOWN_SOLVER_ERRORS[cp.MOSEK] = ['xexp']
 
 atoms_minimize = [
     (cp.abs, (2, 2), [[[-5, 2], [-3, 1]]],
@@ -305,6 +305,10 @@ atoms_maximize = [
 def check_solver(prob, solver_name) -> bool:
     """Can the solver solve the problem?
     """
+    atom_str = str(prob.objective.args[0])
+    for bad_atom_name in KNOWN_SOLVER_ERRORS[solver_name]:
+        if bad_atom_name in atom_str:
+            return False
     try:
         if solver_name == ROBUST_CVXOPT:
             solver_name = CVXOPT
@@ -326,8 +330,7 @@ def run_atom(atom, problem, obj_val, solver, verbose: bool = False) -> None:
         print(problem.objective)
         print(problem.constraints)
         print("solver", solver)
-    if check_solver(problem, solver) and \
-            not (atom, solver) in KNOWN_SOLVER_ERRORS:
+    if check_solver(problem, solver):
         tolerance = SOLVER_TO_TOL[solver]
 
         try:
