@@ -37,7 +37,6 @@ def accepts(problem) -> bool:
 class Complex2Real(Reduction):
     """Lifts complex numbers to a real representation."""
 
-    UNIMPLEMENTED_REAL_DUALS = (OpRelEntrConeQuad, RelEntrConeQuad, PowConeND)
     UNIMPLEMENTED_COMPLEX_DUALS = (SOC, OpRelEntrConeQuad)
 
     def accepts(self, problem) -> None:
@@ -113,8 +112,7 @@ class Complex2Real(Reduction):
                 #
                 for cid, cons in inverse_data.id2cons.items():
                     if cons.is_real():
-                        if not isinstance(cons, self.UNIMPLEMENTED_REAL_DUALS):
-                            dvars[cid] = solution.dual_vars[cid]
+                        dvars[cid] = solution.dual_vars[cid]
                     elif cons.is_imag():
                         imag_id = inverse_data.real2imag[cid]
                         dvars[cid] = 1j*solution.dual_vars[imag_id]
