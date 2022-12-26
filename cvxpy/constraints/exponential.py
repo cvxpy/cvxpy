@@ -186,7 +186,7 @@ class RelEntrConeQuad(Constraint):
         super(RelEntrConeQuad, self).__init__([self.x, self.y, self.z], constr_id)
 
     def get_data(self):
-        return [self.m, self.k]
+        return [self.m, self.k, self.id]
 
     def __str__(self) -> str:
         tup = (self.x, self.y, self.z, self.m, self.k)
@@ -314,7 +314,7 @@ class OpRelEntrConeQuad(Constraint):
         super(OpRelEntrConeQuad, self).__init__([self.X, self.Y, self.Z], constr_id)
 
     def get_data(self):
-        return [self.m, self.k]
+        return [self.m, self.k, self.id]
 
     def __str__(self) -> str:
         tup = (self.X, self.Y, self.Z, self.m, self.k)

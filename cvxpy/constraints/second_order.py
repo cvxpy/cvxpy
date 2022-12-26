@@ -117,7 +117,7 @@ class SOC(Constraint):
         -------
         list
         """
-        return [self.axis]
+        return [self.axis, self.id]
 
     def num_cones(self):
         """The number of elementwise cones.
