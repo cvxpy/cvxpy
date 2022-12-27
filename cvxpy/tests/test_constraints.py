@@ -78,7 +78,7 @@ class TestConstraints(BaseTest):
         self.assertEqual(copy.args, constr.args)
         self.assertFalse(copy.args is constr.args)
         # Test copy with new args
-        copy = constr.copy(args=[self.A])
+        copy = constr.copy(args=[self.A, self.B])
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
 
@@ -122,7 +122,7 @@ class TestConstraints(BaseTest):
         self.assertEqual(copy.args, constr.args)
         self.assertFalse(copy.args is constr.args)
         # Test copy with new args
-        copy = constr.copy(args=[self.A])
+        copy = constr.copy(args=[self.A, self.B])
         self.assertTrue(type(copy) is type(constr))
         self.assertTrue(copy.args[0] is self.A)
 
