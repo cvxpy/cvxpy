@@ -118,7 +118,7 @@ class TestNonOptimal(BaseTest):
         x = cp.Variable(2)
         with self.assertRaises(Exception) as cm:
             cp.quad_form(x, P)
-        self.assertTrue("P must be symmetric/Hermitian."
+        self.assertTrue("Quadratic form matrices must be symmetric/Hermitian."
                         in str(cm.exception))
 
     def test_non_psd(self) -> None:
