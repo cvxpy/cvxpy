@@ -41,7 +41,7 @@ def pow_nd_canon(con, args):
     args : tuple of length two
         W,z = args[0], args[1]
     """
-    alpha, axis = con.get_data()
+    alpha, axis, _ = con.get_data()
     alpha = alpha.value
     W, z = args
     if axis == 1:

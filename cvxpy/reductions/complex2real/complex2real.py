@@ -16,8 +16,8 @@ limitations under the License.
 
 from cvxpy import problems
 from cvxpy import settings as s
-from cvxpy.constraints import (PSD, SOC, Equality, ExpCone, Inequality, NonNeg,
-                               NonPos, PowCone3D, PowConeND, Zero,)
+from cvxpy.constraints import (PSD, SOC, Equality, Inequality, NonNeg, NonPos,
+                               Zero,)
 from cvxpy.constraints.constraint import Constraint
 from cvxpy.expressions import cvxtypes
 from cvxpy.lin_ops import lin_utils as lu
@@ -35,8 +35,7 @@ def accepts(problem) -> bool:
 class Complex2Real(Reduction):
     """Lifts complex numbers to a real representation."""
 
-    UNIMPLEMENTED_REAL_DUALS = (PowCone3D, PowConeND)
-    UNIMPLEMENTED_COMPLEX_DUALS = (SOC, ExpCone)
+    UNIMPLEMENTED_COMPLEX_DUALS = (SOC,)
 
     def accepts(self, problem) -> None:
         accepts(problem)
@@ -104,8 +103,7 @@ class Complex2Real(Reduction):
             if solution.dual_vars:
                 for cid, cons in inverse_data.id2cons.items():
                     if cons.is_real():
-                        if not isinstance(cons, self.UNIMPLEMENTED_REAL_DUALS):
-                            dvars[cid] = solution.dual_vars[cid]
+                        dvars[cid] = solution.dual_vars[cid]
                     elif cons.is_imag():
                         imag_id = inverse_data.real2imag[cid]
                         dvars[cid] = 1j*solution.dual_vars[imag_id]

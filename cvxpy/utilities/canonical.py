@@ -92,6 +92,8 @@ class Canonical:
             return id_objects[id(self)]
         if args is None:
             args = self.args
+        else:
+            assert len(args) == len(self.args)
         data = self.get_data()
         if data is not None:
             return type(self)(*(args + data))
