@@ -231,7 +231,8 @@ setup(
         "ecos >= 2",
         "scs >= 1.1.6",
         "numpy >= 1.15",
-        "scipy >= 1.1.0"
+        "scipy >= 1.1.0",
+        "setuptools <= 64.0.2",
     ],
     setup_requires=["numpy >= 1.15"],
 )
