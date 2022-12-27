@@ -769,3 +769,18 @@ class TestComplex(BaseTest):
         self.assertItemsAlmostEqual(actual_dual_c[0], expect_dual_c[0], places=2)
         self.assertItemsAlmostEqual(actual_dual_c[1], expect_dual_c[1], places=2)
         pass
+
+    def test_illegal_complex_args(self) -> None:
+        x = cp.Variable(shape=(3,), complex=True)
+        with self.assertRaises(ValueError):
+            cp.ExpCone(x[0], x[1], x[2])
+        with self.assertRaises(ValueError):
+            cp.PowCone3D(x[0], x[1], x[2], [0.5])
+        with self.assertRaises(ValueError):
+            cp.PowConeND(x[0], x[:2], [0.5, 0.5])
+        with self.assertRaises(ValueError):
+            cp.RelEntrConeQuad(x[0], x[1], x[2], 1, 1)
+        with self.assertRaises(ValueError):
+            cp.NonNeg(x)
+        with self.assertRaises(ValueError):
+            cp.NonPos(x)
