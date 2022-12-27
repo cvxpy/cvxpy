@@ -745,7 +745,6 @@ class TestComplex(BaseTest):
         #   Run tests
         #
         ####################################
-
         x = cp.Variable(shape=(3,), complex=True)
         actual_objective = cp.Minimize(cp.norm(x - u))
         coupling_con = cp.real(x) == y
@@ -753,7 +752,7 @@ class TestComplex(BaseTest):
         con_a_test = con_a.copy()
         prob_a = cp.Problem(actual_objective, [coupling_con, con_a_test])
         prob_a.solve()
-        actual_dual_a = con_a.dual_value
+        actual_dual_a = con_a_test.dual_value
         self.assertItemsAlmostEqual(actual_dual_a, expect_dual_a, places=2)
 
         con_b_test = con_b.copy()
@@ -768,7 +767,6 @@ class TestComplex(BaseTest):
         actual_dual_c = con_c_test.dual_value
         self.assertItemsAlmostEqual(actual_dual_c[0], expect_dual_c[0], places=2)
         self.assertItemsAlmostEqual(actual_dual_c[1], expect_dual_c[1], places=2)
-        pass
 
     def test_illegal_complex_args(self) -> None:
         x = cp.Variable(shape=(3,), complex=True)
