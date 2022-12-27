@@ -624,10 +624,8 @@ class Expression(u.Canonical):
         if isinstance(self, cvxtypes.matmul_expr()):
             # LHS is matrix multiplication expr, so candidate for QuadForm:
             # Specifically, iff the matrix multiplication is of the form x.T @ A @ y
-            # such that x == y, A is hermitian/symmetric constant matrix and x is a variable,
-            # then it is a QuadForm.
-            if self.args[0] is other and not other.is_constant() \
-                    and self.args[1].is_hermitian() and self.args[1].is_constant():
+            # such that x == y, A is constant matrix and x is a variable, then it is a QuadForm.
+            if self.args[0] is other and not other.is_constant() and self.args[1].is_constant():
                 from cvxpy.expressions.cvxtypes import quad_form
                 return quad_form()(other, self.args[1])
 

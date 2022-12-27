@@ -1401,11 +1401,16 @@ class TestExpressions(BaseTest):
         expr = x.T.__matmul__(A).__matmul__(x)
         assert isinstance(expr, cp.QuadForm)
 
-        # Not a quad_form because matrix is not symmetric
+        # Expect error for asymmetric/nonhermitian matrices
         x = Variable(shape=(2,))
-        A = Constant([[1, 0], [-1, -1]])
-        expr = x.T.__matmul__(A).__matmul__(x)
-        assert not isinstance(expr, cp.QuadForm)
+        A = Constant([[1, 0], [1, 1]])
+        with self.assertRaises(ValueError) as _:
+            x.T.__matmul__(A).__matmul__(x)
+
+        x = Variable(shape=(2,))
+        A = Constant([[1, 1j], [1j, 1]])
+        with self.assertRaises(ValueError) as _:
+            x.T.__matmul__(A).__matmul__(x)
 
         # Not a quad_form because x.T @ A @ y where x, y not necessarily equal
         x = Variable(shape=(2,))
