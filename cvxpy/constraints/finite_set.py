@@ -76,7 +76,7 @@ class FiniteSet(Constraint):
         return "FiniteSet(%s, %s)" % (self.args[0], self.args[1])
 
     def get_data(self):
-        return [self._ineq_form]
+        return [self._ineq_form, self.id]
 
     def is_dcp(self, dpp: bool = False) -> bool:
         """

@@ -710,3 +710,75 @@ class TestComplex(BaseTest):
 
         print(rho_ABC_val)
         assert np.allclose(rho_ABC.value, rho_ABC_val)
+
+    def test_duals(self) -> None:
+        np.random.seed(0)
+        u_real = np.random.rand(3)
+        u_imag = np.random.rand(3)
+        u = u_real + 1j * u_imag
+
+        y = cp.Variable(shape=(3,))
+        helper_objective = cp.Minimize(cp.norm(y - u_real))
+
+        ####################################
+        #
+        #   Compute reference values
+        #
+        ####################################
+        con_a = cp.PowCone3D(y[0], y[1], y[2], [0.25])
+        helper_prob_a = cp.Problem(helper_objective, [con_a])
+        helper_prob_a.solve()
+        expect_dual_a = con_a.dual_value
+
+        con_b = cp.ExpCone(y[0], y[1], y[2])
+        helper_prob_b = cp.Problem(helper_objective, [con_b])
+        helper_prob_b.solve()
+        expect_dual_b = con_b.dual_value
+
+        con_c = cp.SOC(y[2], y[:2])
+        helper_prob_c = cp.Problem(helper_objective, [con_c])
+        helper_prob_c.solve()
+        expect_dual_c = con_c.dual_value
+
+        ####################################
+        #
+        #   Run tests
+        #
+        ####################################
+        x = cp.Variable(shape=(3,), complex=True)
+        actual_objective = cp.Minimize(cp.norm(x - u))
+        coupling_con = cp.real(x) == y
+
+        con_a_test = con_a.copy()
+        prob_a = cp.Problem(actual_objective, [coupling_con, con_a_test])
+        prob_a.solve()
+        actual_dual_a = con_a_test.dual_value
+        self.assertItemsAlmostEqual(actual_dual_a, expect_dual_a, places=2)
+
+        con_b_test = con_b.copy()
+        prob_b = cp.Problem(actual_objective, [coupling_con, con_b_test])
+        prob_b.solve()
+        actual_dual_b = con_b_test.dual_value
+        self.assertItemsAlmostEqual(actual_dual_b, expect_dual_b, places=2)
+
+        con_c_test = con_c.copy()
+        prob_c = cp.Problem(actual_objective, [coupling_con, con_c_test])
+        prob_c.solve()
+        actual_dual_c = con_c_test.dual_value
+        self.assertItemsAlmostEqual(actual_dual_c[0], expect_dual_c[0], places=2)
+        self.assertItemsAlmostEqual(actual_dual_c[1], expect_dual_c[1], places=2)
+
+    def test_illegal_complex_args(self) -> None:
+        x = cp.Variable(shape=(3,), complex=True)
+        with self.assertRaises(ValueError):
+            cp.ExpCone(x[0], x[1], x[2])
+        with self.assertRaises(ValueError):
+            cp.PowCone3D(x[0], x[1], x[2], [0.5])
+        with self.assertRaises(ValueError):
+            cp.PowConeND(x[0], x[:2], [0.5, 0.5])
+        with self.assertRaises(ValueError):
+            cp.RelEntrConeQuad(x[0], x[1], x[2], 1, 1)
+        with self.assertRaises(ValueError):
+            cp.NonNeg(x)
+        with self.assertRaises(ValueError):
+            cp.NonPos(x)
