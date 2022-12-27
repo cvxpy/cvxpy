@@ -81,7 +81,7 @@ class PowCone3D(Constraint):
         return problem.solve(solver='SCS', eps=1e-8)
 
     def get_data(self):
-        return [self.alpha]
+        return [self.alpha, self.id]
 
     def is_imag(self) -> bool:
         return False
@@ -202,7 +202,7 @@ class PowConeND(Constraint):
         return False
 
     def get_data(self):
-        return [self.alpha, self.axis]
+        return [self.alpha, self.axis, self.id]
 
     @property
     def residual(self):
