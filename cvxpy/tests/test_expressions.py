@@ -24,6 +24,7 @@ import cvxpy.interface.matrix_utilities as intf
 import cvxpy.settings as s
 from cvxpy import Minimize, Problem
 from cvxpy.atoms.affine.add_expr import AddExpression
+from cvxpy.atoms.affine.wraps import psd_wrap
 from cvxpy.expressions.constants import Constant, Parameter
 from cvxpy.expressions.variable import Variable
 from cvxpy.tests.base_test import BaseTest
@@ -1338,3 +1339,93 @@ class TestExpressions(BaseTest):
 
         llcv = 1/(x*x*x + x)
         assert llcv.curvature == s.LOG_LOG_CONCAVE
+
+    def test_quad_form_matmul(self) -> None:
+        """Test conversion of native x.T @ A @ x into QuadForms.
+        """
+
+        # Trivial quad form
+        x = Variable(shape=(2,))
+        A = Constant([[1, 0], [0, -1]])
+        expr = x.T.__matmul__(A).__matmul__(x)
+        assert isinstance(expr, cp.QuadForm)
+
+        # QuadForm inside nested expr: 0.5 * (x.T @ A @ x) + x.T @ x
+        x = Variable(shape=(2,))
+        A = Constant([[1, 0], [0, -1]])
+        expr = (1 / 2) * (x.T.__matmul__(A).__matmul__(x)) + x.T.__matmul__(x)
+        assert isinstance(expr.args[0].args[1], cp.QuadForm)
+        assert expr.args[0].args[1].args[0] is x
+
+        # QuadForm inside nested expr: (0.5 * c.T @ c) * (x.T @ A @ x) + x.T @ x
+        x = Variable(shape=(2,))
+        A = Constant([[1, 0], [0, -1]])
+        c = Constant([2, -2])
+        expr = (1 / 2 * c.T.__matmul__(c)) * (x.T.__matmul__(A).__matmul__(x)) + x.T.__matmul__(x)
+        assert isinstance(expr.args[0].args[1], cp.QuadForm)
+        assert expr.args[0].args[1].args[0] is x
+
+        # QuadForm with sparse matrices
+        x = Variable(shape=(2,))
+        A = Constant(sp.eye(2))
+        expr = x.T.__matmul__(A).__matmul__(x)
+        assert isinstance(expr, cp.QuadForm)
+
+        # QuadForm with mismatched dimensions raises error
+        x = Variable(shape=(2,))
+        A = Constant(np.eye(3))
+        with self.assertRaises(Exception) as _:
+            x.T.__matmul__(A).__matmul__(x)
+
+        # QuadForm with PSD-wrapped matrix
+        x = cp.Variable(shape=(2,))
+        A = cp.Constant([[1, 0], [0, 1]])
+        expr = x.T.__matmul__(psd_wrap(A)).__matmul__(x)
+        assert isinstance(expr, cp.QuadForm)
+
+        # QuadForm with nested subexpr
+        x = cp.Variable(shape=(2,))
+        A = cp.Constant([[2, 0, 0], [0, 0, 1]])
+        M = cp.Constant([[2, 0, 0], [0, 2, 0], [0, 0, 2]])
+        b = cp.Constant([1, 2, 3])
+
+        y = A.__matmul__(x) - b
+        expr = y.T.__matmul__(M).__matmul__(y)
+        assert isinstance(expr, cp.QuadForm)
+        assert expr.args[0] is y
+        assert expr.args[1] is M
+
+        # QuadForm with parameters
+        x = Variable(shape=(2,))
+        A = Parameter(shape=(2, 2), symmetric=True)
+        expr = x.T.__matmul__(A).__matmul__(x)
+        assert isinstance(expr, cp.QuadForm)
+
+        # Expect error for asymmetric/nonhermitian matrices
+        x = Variable(shape=(2,))
+        A = Constant([[1, 0], [1, 1]])
+        with self.assertRaises(ValueError) as _:
+            x.T.__matmul__(A).__matmul__(x)
+
+        x = Variable(shape=(2,))
+        A = Constant([[1, 1j], [1j, 1]])
+        with self.assertRaises(ValueError) as _:
+            x.T.__matmul__(A).__matmul__(x)
+
+        # Not a quad_form because x.T @ A @ y where x, y not necessarily equal
+        x = Variable(shape=(2,))
+        y = Variable(shape=(2,))
+        A = Constant([[1, 0], [0, -1]])
+        expr = x.T.__matmul__(A).__matmul__(y)
+        assert not isinstance(expr, cp.QuadForm)
+
+        # Not a quad_form because M is variable
+        x = Variable(shape=(2,))
+        M = Variable(shape=(2, 2))
+        expr = x.T.__matmul__(M).__matmul__(x)
+        assert not isinstance(expr, cp.QuadForm)
+
+        x = Constant([1, 0])
+        M = Variable(shape=(2, 2))
+        expr = x.T.__matmul__(M).__matmul__(x)
+        assert not isinstance(expr, cp.QuadForm)
