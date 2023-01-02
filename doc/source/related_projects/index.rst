@@ -9,7 +9,7 @@ We list here the optimization packages most relevant to CVXPY users.
 Modeling frameworks
 -------------------
 
-- `CVXPYgen <https://github.com/cvxgrp/cvxpygen>`_ takes a convex optimization problem family modeled with CVXPY and generates a custom solver implementation in C.
+- `CVXPYgen <https://github.com/cvxgrp/cvxpygen>`_ is a library that takes a convex optimization problem family modeled with CVXPY and generates a custom solver implementation in C.
 
 - `cvxpylayers <https://github.com/cvxgrp/cvxpylayers/>`_ is a library that converts CVXPY problems into differentiable PyTorch and TensorFlow 2.0 layers.
 
