@@ -10,9 +10,6 @@
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -161,7 +158,7 @@ this problem instance below.</p>
     <span class="k">return</span> <span class="n">x</span> <span class="o">&lt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">w</span> <span class="ow">and</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;=</span> <span class="n">y</span> <span class="o">+</span> <span class="n">h</span>
 
 <span class="k">def</span> <span class="nf">remove_guards</span><span class="p">(</span><span class="n">guards</span><span class="p">,</span><span class="n">buildings</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Remove guards inside buildings and outside unit square.&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Remove guards inside buildings and outside unit square.&#39;&#39;&#39;</span>
     <span class="n">outside</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">guard</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">guards</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
         <span class="n">inside</span> <span class="o">=</span> <span class="kc">False</span>
@@ -178,7 +175,7 @@ this problem instance below.</p>
     <span class="k">return</span> <span class="n">guards</span><span class="p">[:,</span><span class="n">outside</span><span class="p">]</span>
 
 <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span><span class="n">p2</span><span class="p">,</span><span class="n">xmin</span><span class="p">,</span><span class="n">xmax</span><span class="p">,</span><span class="n">ymin</span><span class="p">,</span><span class="n">ymax</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;determine if a rectangle given by xy limits blocks the line of sight between p1 and p2&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;determine if a rectangle given by xy limits blocks the line of sight between p1 and p2&#39;&#39;&#39;</span>
 
     <span class="n">block</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -431,7 +428,7 @@ rectangles are buildings which obstruct the guards’ view.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |
