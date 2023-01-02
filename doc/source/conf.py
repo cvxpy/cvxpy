@@ -33,13 +33,16 @@ __version__ = cvxpy.__version__
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.doctest',
-              'sphinx.ext.todo',
-              'sphinx.ext.coverage',
-              'sphinx.ext.mathjax',
-              'sphinx.ext.viewcode',
-              'sphinx.ext.napoleon']
+extensions = [
+    'sphinx.ext.autodoc',
+    'sphinx.ext.doctest',
+    'sphinx.ext.todo',
+    'sphinx.ext.coverage',
+    'sphinx.ext.mathjax',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.napoleon',
+    'sphinxcontrib.jquery',
+]
 
 # To suppress autodoc/numpydoc warning.
 # http://stackoverflow.com/questions/12206334/sphinx-autosummary-toctree-contains-reference-to-nonexisting-document-warnings
