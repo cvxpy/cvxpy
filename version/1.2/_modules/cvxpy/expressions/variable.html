@@ -9,9 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -61,7 +58,7 @@
 
 
 <span class="k">def</span> <span class="nf">upper_tri_to_full</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Returns a coefficient matrix to create a symmetric matrix.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns a coefficient matrix to create a symmetric matrix.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -99,7 +96,7 @@
 
 
 <div class="viewcode-block" id="Variable"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable">[docs]</a><span class="k">class</span> <span class="nc">Variable</span><span class="p">(</span><span class="n">Leaf</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;The optimization variables in a problem.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;The optimization variables in a problem.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
@@ -124,7 +121,7 @@
         <span class="nb">super</span><span class="p">(</span><span class="n">Variable</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Variable.name"><a class="viewcode-back" href="../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.variable.Variable.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;str : The name of the variable.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;str : The name of the variable.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span></div>
 
     <span class="k">def</span> <span class="nf">is_constant</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
@@ -132,7 +129,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
 
 <span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
 
@@ -143,12 +140,12 @@
         <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="p">:</span> <span class="n">sp</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="p">)</span><span class="o">.</span><span class="n">tocsc</span><span class="p">()}</span>
 
     <span class="k">def</span> <span class="nf">variables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Variable&quot;</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Returns itself as a variable.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns itself as a variable.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the graph implementation of the object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the graph implementation of the object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A tuple of (affine expression, [constraints]).</span>
@@ -157,7 +154,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">[])</span>
 
     <span class="k">def</span> <span class="nf">attributes_were_lowered</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;True iff variable generated when lowering a variable with attributes.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;True iff variable generated when lowering a variable with attributes.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
@@ -166,11 +163,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span> <span class="o">=</span> <span class="n">variable</span>
 
     <span class="k">def</span> <span class="nf">variable_of_provenance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns a variable with attributes from which this variable was generated.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns a variable with attributes from which this variable was generated.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_variable_with_attributes</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;String to recreate the object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;String to recreate the object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">attr_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_attr_str</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attr_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -273,7 +270,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

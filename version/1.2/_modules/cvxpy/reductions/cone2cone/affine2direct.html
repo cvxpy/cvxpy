@@ -9,9 +9,6 @@
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-    <script src="../../../../_static/jquery.js"></script>
-    <script src="../../../../_static/underscore.js"></script>
-    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
     <script src="../../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
@@ -72,7 +69,7 @@
 
 
 <div class="viewcode-block" id="Dualize"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize">[docs]</a><span class="k">class</span> <span class="nc">Dualize</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CVXPY represents cone programs as</span>
 
 <span class="sd">        (P-Opt) min{ c.T @ x : A @ x + b in K } + d,</span>
@@ -156,7 +153,7 @@
 
 <div class="viewcode-block" id="Dualize.invert"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Dualize.invert">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="n">solution</span><span class="p">,</span> <span class="n">inv_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        ``solution`` is a CVXPY Solution object, formatted where</span>
 
 <span class="sd">            (D-Opt) max{ -b @ y : c = A.T @ y, y in K^* } + d</span>
@@ -256,7 +253,7 @@
 
 
 <div class="viewcode-block" id="Slacks"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks">[docs]</a><span class="k">class</span> <span class="nc">Slacks</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    CVXPY represents mixed-integer cone programs as</span>
 
 <span class="sd">        (Aff)   min{ c.T @ x : A @ x + b in K,</span>
@@ -288,7 +285,7 @@
 
 <div class="viewcode-block" id="Slacks.apply"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.back_end.html#cvxpy.reductions.cone2cone.affine2direct.Slacks.apply">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="n">prob</span><span class="p">,</span> <span class="n">affine</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        &quot;prob&quot; is a ParamConeProg which represents</span>
 
 <span class="sd">            (Aff)   min{ c.T @ x : A @ x + b in K,</span>
@@ -538,7 +535,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
