@@ -2,6 +2,7 @@ sphinx
 cloud_sptheme
 alabaster
 numpydoc
+sphinxcontrib-jquery
 scipy
 numpy
 ecos
