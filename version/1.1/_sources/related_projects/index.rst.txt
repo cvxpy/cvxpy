@@ -9,6 +9,10 @@ We list here the optimization packages most relevant to CVXPY users.
 Modeling frameworks
 -------------------
 
+- `CVXPYgen <https://github.com/cvxgrp/cvxpygen>`_ takes a convex optimization problem family modeled with CVXPY and generates a custom solver implementation in C.
+
+- `cvxpylayers <https://github.com/cvxgrp/cvxpylayers/>`_ is a library that converts CVXPY problems into differentiable PyTorch and TensorFlow 2.0 layers.
+
 - `DCCP <https://github.com/cvxgrp/dccp>`_ is a CVXPY extension for modeling and solving difference of convex problems.
 
 - `DMCP <https://github.com/cvxgrp/dmcp>`_ is a CVXPY extension for modeling and solving multi-convex problems.
@@ -16,8 +20,6 @@ Modeling frameworks
 - `NCVX <https://github.com/cvxgrp/ncvx>`_ is a CVXPY extension for modeling and solving problems with convex objectives and decision variables from a nonconvex set.
 
 - `osmm <https://github.com/cvxgrp/osmm>`_ is a Python package for optimization problems that arise in stochastic optimization, which is built on PyTorch and CVXPY.
-
-- `cvxpylayers <https://github.com/cvxgrp/cvxpylayers/>`_ is a library that converts CVXPY problems into differentiable PyTorch and TensorFlow 2.0 layers.
 
 - `SnapVX <http://snap.stanford.edu/snapvx/>`_ is a Python-based convex optimization solver for problems defined on graphs.
 

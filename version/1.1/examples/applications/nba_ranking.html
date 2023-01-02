@@ -6,13 +6,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>TODO &#8212; CVXPY 1.1.22 documentation</title>
+    <title>TODO &#8212; CVXPY 1.1.23.dev0+0.0c2eb2b documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -75,7 +72,7 @@ notebook.</p>
 
 
 <span class="k">def</span> <span class="nf">get_game_data</span><span class="p">():</span>
-    <span class="sd">&#39;&#39;&#39;Return a list of game objects from `gamestats` directory.&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return a list of game objects from `gamestats` directory.&#39;&#39;&#39;</span>
     <span class="n">games</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">for</span> <span class="n">fn</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="s1">&#39;gamestats&#39;</span><span class="p">):</span>
@@ -120,7 +117,7 @@ notebook.</p>
     <span class="k">return</span> <span class="n">games</span>
 
 <span class="k">def</span> <span class="nf">index_mappings</span><span class="p">(</span><span class="n">games</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Return mappings between player and game identifiers and an indexed ordering.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return mappings between player and game identifiers and an indexed ordering.</span>
 
 <span class="sd">    Puts teams and players appearing in `games` in an arbitrary order.</span>
 <span class="sd">    This is the ordering which will be used to determine the relationship between</span>
@@ -154,7 +151,7 @@ notebook.</p>
     <span class="k">return</span> <span class="n">teams</span><span class="p">,</span> <span class="n">players</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span> <span class="n">pid2idx</span>
 
 <span class="k">def</span> <span class="nf">split_games</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="n">p</span><span class="o">=</span><span class="mf">0.3</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Return games split into disjoint training and hold-out sets.&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return games split into disjoint training and hold-out sets.&#39;&#39;&#39;</span>
 
     <span class="n">games_holdout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">games</span><span class="p">),</span><span class="n">size</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">games</span><span class="p">)</span><span class="o">*</span><span class="n">p</span><span class="p">),</span><span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
@@ -167,7 +164,7 @@ notebook.</p>
     <span class="k">return</span> <span class="n">games_t</span><span class="p">,</span> <span class="n">games_h</span><span class="p">,</span>
 
 <span class="k">def</span> <span class="nf">data_mats</span><span class="p">(</span><span class="n">games</span><span class="p">,</span> <span class="n">team2idx</span><span class="p">,</span><span class="n">home</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">pid2idx</span><span class="o">=</span><span class="p">[]):</span>
-    <span class="sd">&#39;&#39;&#39;Stuff feature matrices for fitting model.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Stuff feature matrices for fitting model.</span>
 
 <span class="sd">    Features included in the matrices depend on the function inputs.</span>
 
@@ -210,7 +207,7 @@ notebook.</p>
     <span class="k">return</span> <span class="n">W</span><span class="p">,</span> <span class="n">L</span>
 
 <span class="k">def</span> <span class="nf">percent_correct</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">w</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Return percentage correctly predicted for games (W,L) and model parameters w.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return percentage correctly predicted for games (W,L) and model parameters w.</span>
 
 <span class="sd">    W and L can be from training or hold-out data.</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -218,7 +215,7 @@ notebook.</p>
     <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">sum</span><span class="p">((</span><span class="n">W</span><span class="o">-</span><span class="n">L</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">))</span><span class="o">/</span><span class="n">m</span>
 
 <span class="k">def</span> <span class="nf">reg_path</span><span class="p">(</span><span class="n">games</span><span class="p">,</span><span class="n">holdout</span><span class="p">,</span><span class="n">gammas</span><span class="p">,</span><span class="n">N</span><span class="p">,</span> <span class="n">home</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">playertime</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Plot a regularization path.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Plot a regularization path.</span>
 
 <span class="sd">    For each of N times, partition games into a training</span>
 <span class="sd">    and hold-out set, with `holdout` giving the hold-out proportion.</span>
@@ -331,7 +328,7 @@ optimization problem</p>
 row <span class="math notranslate nohighlight">\(i\)</span> of <span class="math notranslate nohighlight">\(W\)</span> (<span class="math notranslate nohighlight">\(L\)</span>) corresponding to <span class="math notranslate nohighlight">\(x^w_i\)</span>
 (<span class="math notranslate nohighlight">\(x^l_i\)</span>).</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="n">W</span><span class="p">,</span><span class="n">L</span><span class="p">,</span><span class="n">gamma</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Return model parameters w trained on data (W,L) with regularization gamma.&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;Return model parameters w trained on data (W,L) with regularization gamma.&#39;&#39;&#39;</span>
     <span class="n">m</span><span class="p">,</span><span class="n">n</span> <span class="o">=</span> <span class="n">W</span><span class="o">.</span><span class="n">shape</span>
     <span class="n">w</span> <span class="o">=</span> <span class="n">cvx</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
 
@@ -574,7 +571,7 @@ on the hold-out set with some added regularization.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

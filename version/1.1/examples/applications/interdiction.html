@@ -6,13 +6,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
-    <title>TODO &#8212; CVXPY 1.1.22 documentation</title>
+    <title>TODO &#8212; CVXPY 1.1.23.dev0+0.0c2eb2b documentation</title>
     <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/jquery.js"></script>
-    <script src="../../_static/underscore.js"></script>
-    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../_static/doctools.js"></script>
     <script src="../../_static/sphinx_highlight.js"></script>
     <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -146,7 +143,7 @@ optimization code later in the notebook.</p>
 <span class="n">rcParams</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;font.size&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">})</span>
 
 <span class="k">def</span> <span class="nf">formGraph</span><span class="p">(</span><span class="n">N</span><span class="p">,</span><span class="n">mu</span><span class="p">,</span><span class="n">eta</span><span class="p">,</span><span class="n">buildings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Form N by N grid of nodes, perturb by mu and connect nodes within eta.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Form N by N grid of nodes, perturb by mu and connect nodes within eta.</span>
 <span class="sd">        mu and eta are relative to 1/(N-1)</span>
 
 <span class="sd">        buildings is a list of tuples (x,y,w,h)</span>
@@ -205,7 +202,7 @@ optimization code later in the notebook.</p>
     <span class="k">return</span> <span class="n">G</span><span class="p">,</span> <span class="n">pos</span>
 
 <span class="k">def</span> <span class="nf">showPaths</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">edgeProbs</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span><span class="n">path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">visibleNodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">Gnodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">Rnodes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">guards</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Takes directed graph G, node positions pos, and edge probabilities.</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Takes directed graph G, node positions pos, and edge probabilities.</span>
 <span class="sd">        Optionally uses path (a list of edge indices) to plot the smuggler&#39;s path.</span>
 
 <span class="sd">        edgeProbd gives the probabilities for all the edges, including hidden ones.</span>
@@ -287,7 +284,7 @@ optimization code later in the notebook.</p>
     <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span>
 
 <span class="k">def</span> <span class="nf">optPath</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">p</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Find the optimal smuggler&#39;s path in directed graph G</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; Find the optimal smuggler&#39;s path in directed graph G</span>
 <span class="sd">        with edge evasion probabilities p and dictionary</span>
 <span class="sd">        edge2ind bringing node pairs to edge indices</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -310,7 +307,7 @@ optimization code later in the notebook.</p>
     <span class="k">return</span> <span class="n">x</span>
 
 <span class="k">def</span> <span class="nf">intersect</span><span class="p">(</span><span class="n">p1</span><span class="p">,</span><span class="n">p2</span><span class="p">,</span><span class="n">xmin</span><span class="p">,</span><span class="n">xmax</span><span class="p">,</span><span class="n">ymin</span><span class="p">,</span><span class="n">ymax</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;determine if a rectangle given by xy limits blocks the line of sight between p1 and p2&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;determine if a rectangle given by xy limits blocks the line of sight between p1 and p2&#39;&#39;&#39;</span>
 
     <span class="n">block</span> <span class="o">=</span> <span class="kc">False</span>
 
@@ -343,7 +340,7 @@ optimization code later in the notebook.</p>
     <span class="k">return</span> <span class="kc">False</span>
 
 <span class="k">def</span> <span class="nf">getGuardEffects</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">pos</span><span class="p">,</span><span class="n">guardIdxs</span><span class="p">,</span><span class="n">buildings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span><span class="n">dummyNodes</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; for n guards and m edges, return an m by n matrix giving the</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39; for n guards and m edges, return an m by n matrix giving the</span>
 <span class="sd">        effect of each guard on the evasion probabilities of each edge</span>
 <span class="sd">        in the graph.</span>
 
@@ -390,7 +387,7 @@ optimization code later in the notebook.</p>
     <span class="k">return</span> <span class="n">edgeVals</span>
 
 <span class="k">def</span> <span class="nf">get_a</span><span class="p">(</span><span class="n">G</span><span class="p">,</span><span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;</span>
+<span class="w">    </span><span class="sd">&#39;&#39;&#39;</span>
 <span class="sd">    Generate a random value in [0,1] for each edge in the graph.</span>
 <span class="sd">    For directed graphs, directed edges between the same nodes should have the same value</span>
 <span class="sd">    &#39;&#39;&#39;</span>
@@ -1096,7 +1093,7 @@ as well as possible.</p>
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
       |

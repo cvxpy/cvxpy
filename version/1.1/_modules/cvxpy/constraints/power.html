@@ -5,13 +5,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.constraints.power &#8212; CVXPY 1.1.22 documentation</title>
+    <title>cvxpy.constraints.power &#8212; CVXPY 1.1.23.dev0+0.0c2eb2b documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
-    <script src="../../../_static/jquery.js"></script>
-    <script src="../../../_static/underscore.js"></script>
-    <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../_static/doctools.js"></script>
     <script src="../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../genindex.html" />
@@ -59,7 +56,7 @@
 
 
 <div class="viewcode-block" id="PowCone3D"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.power.PowCone3D">[docs]</a><span class="k">class</span> <span class="nc">PowCone3D</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    An object representing a collection of 3D power cone constraints</span>
 
 <span class="sd">        x[i]**alpha[i] * y[i]**(1-alpha[i]) &gt;= |z[i]|  for all i</span>
@@ -167,7 +164,7 @@
 
 
 <div class="viewcode-block" id="PowConeND"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.power.PowConeND">[docs]</a><span class="k">class</span> <span class="nc">PowConeND</span><span class="p">(</span><span class="n">Constraint</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a collection of N-dimensional power cone constraints</span>
 <span class="sd">    that is *mathematically* equivalent to the following code</span>
 <span class="sd">    snippet (which makes incorrect use of numpy functions on cvxpy</span>
@@ -266,7 +263,7 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">cone_size</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_cones</span><span class="p">()</span>
 
 <div class="viewcode-block" id="PowConeND.is_dcp"><a class="viewcode-back" href="../../../api_reference/cvxpy.constraints.html#cvxpy.constraints.power.PowConeND.is_dcp">[docs]</a>    <span class="k">def</span> <span class="nf">is_dcp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dpp</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;A power cone constraint is DCP if each argument is affine.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A power cone constraint is DCP if each argument is affine.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dpp</span><span class="p">:</span>
             <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
@@ -380,7 +377,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

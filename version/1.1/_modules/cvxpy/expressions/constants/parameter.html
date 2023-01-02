@@ -5,13 +5,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.expressions.constants.parameter &#8212; CVXPY 1.1.22 documentation</title>
+    <title>cvxpy.expressions.constants.parameter &#8212; CVXPY 1.1.23.dev0+0.0c2eb2b documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-    <script src="../../../../_static/jquery.js"></script>
-    <script src="../../../../_static/underscore.js"></script>
-    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
     <script src="../../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
@@ -57,18 +54,18 @@
 
 
 <span class="k">def</span> <span class="nf">is_param_affine</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Returns true if expression is parameters-affine (and variable-free)&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns true if expression is parameters-affine (and variable-free)&quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">scopes</span><span class="o">.</span><span class="n">dpp_scope</span><span class="p">():</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="n">expr</span><span class="o">.</span><span class="n">variables</span><span class="p">()</span> <span class="ow">and</span> <span class="n">expr</span><span class="o">.</span><span class="n">is_affine</span><span class="p">()</span>
 
 
 <span class="k">def</span> <span class="nf">is_param_free</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Returns true if expression is not parametrized.&quot;&quot;&quot;</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns true if expression is not parametrized.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="ow">not</span> <span class="n">expr</span><span class="o">.</span><span class="n">parameters</span><span class="p">()</span>
 
 
 <div class="viewcode-block" id="Parameter"><a class="viewcode-back" href="../../../../api_reference/cvxpy.expressions.html#cvxpy.expressions.constants.parameter.Parameter">[docs]</a><span class="k">class</span> <span class="nc">Parameter</span><span class="p">(</span><span class="n">Leaf</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parameters in optimization problems.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parameters in optimization problems.</span>
 
 <span class="sd">    Parameters are constant expressions whose value may be specified</span>
 <span class="sd">    after problem creation. The only way to modify a problem after its</span>
@@ -97,7 +94,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_is_constant</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="k">def</span> <span class="nf">get_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns info needed to reconstruct the expression besides the args.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns info needed to reconstruct the expression besides the args.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">attributes</span><span class="p">]</span>
 
@@ -112,7 +109,7 @@
     <span class="c1"># Getter and setter for parameter value.</span>
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">value</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;NumPy.ndarray or None: The numeric value of the parameter.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;NumPy.ndarray or None: The numeric value of the parameter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_value</span>
 
@@ -122,7 +119,7 @@
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">grad</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gives the (sub/super)gradient of the expression w.r.t. each variable.</span>
 
 <span class="sd">        Matrix expressions are vectorized, so the gradient is a matrix.</span>
 
@@ -132,12 +129,12 @@
         <span class="k">return</span> <span class="p">{}</span>
 
     <span class="k">def</span> <span class="nf">parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;Parameter&quot;</span><span class="p">]:</span>
-        <span class="sd">&quot;&quot;&quot;Returns itself as a parameter.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns itself as a parameter.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">canonicalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the graph implementation of the object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns the graph implementation of the object.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A tuple of (affine expression, [constraints]).</span>
@@ -146,7 +143,7 @@
         <span class="k">return</span> <span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">[])</span>
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;String to recreate the object.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;String to recreate the object.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">attr_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_attr_str</span><span class="p">()</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attr_str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -249,7 +246,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -5,13 +5,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.dcp2cone.dcp2cone &#8212; CVXPY 1.1.22 documentation</title>
+    <title>cvxpy.reductions.dcp2cone.dcp2cone &#8212; CVXPY 1.1.23.dev0+0.0c2eb2b documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-    <script src="../../../../_static/jquery.js"></script>
-    <script src="../../../../_static/underscore.js"></script>
-    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
     <script src="../../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
@@ -55,7 +52,7 @@
 
 
 <div class="viewcode-block" id="Dcp2Cone"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone">[docs]</a><span class="k">class</span> <span class="nc">Dcp2Cone</span><span class="p">(</span><span class="n">Canonicalization</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Reduce DCP problems to a conic form.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Reduce DCP problems to a conic form.</span>
 
 <span class="sd">    This reduction takes as input (minimization) DCP problems and converts</span>
 <span class="sd">    them into problems with affine objectives and conic constraints whose</span>
@@ -66,12 +63,12 @@
           <span class="n">problem</span><span class="o">=</span><span class="n">problem</span><span class="p">,</span> <span class="n">canon_methods</span><span class="o">=</span><span class="n">cone_canon_methods</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Dcp2Cone.accepts"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.accepts">[docs]</a>    <span class="k">def</span> <span class="nf">accepts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;A problem is accepted if it is a minimization and is DCP.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;A problem is accepted if it is a minimization and is DCP.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">problem</span><span class="o">.</span><span class="n">objective</span><span class="p">)</span> <span class="o">==</span> <span class="n">Minimize</span> <span class="ow">and</span> <span class="n">problem</span><span class="o">.</span><span class="n">is_dcp</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="Dcp2Cone.apply"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.dcp2cone.html#cvxpy.reductions.dcp2cone.dcp2cone.Dcp2Cone.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Converts a DCP problem to a conic form.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a DCP problem to a conic form.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">accepts</span><span class="p">(</span><span class="n">problem</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot reduce problem to cone program&quot;</span><span class="p">)</span>
@@ -172,7 +169,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>

@@ -5,13 +5,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>cvxpy.reductions.qp2quad_form.qp_matrix_stuffing &#8212; CVXPY 1.1.22 documentation</title>
+    <title>cvxpy.reductions.qp2quad_form.qp_matrix_stuffing &#8212; CVXPY 1.1.23.dev0+0.0c2eb2b documentation</title>
     <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="../../../../_static/cvxpy_alabaster.css" />
     <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
-    <script src="../../../../_static/jquery.js"></script>
-    <script src="../../../../_static/underscore.js"></script>
-    <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
     <script src="../../../../_static/doctools.js"></script>
     <script src="../../../../_static/sphinx_highlight.js"></script>
     <link rel="index" title="Index" href="../../../../genindex.html" />
@@ -67,7 +64,7 @@
 
 
 <div class="viewcode-block" id="ConeDims"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ConeDims">[docs]</a><span class="k">class</span> <span class="nc">ConeDims</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;Summary of cone dimensions present in constraints.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Summary of cone dimensions present in constraints.</span>
 
 <span class="sd">    Constraints must be formatted as dictionary that maps from</span>
 <span class="sd">    constraint type to a list of constraints of that type.</span>
@@ -98,7 +95,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonpos</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">soc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">psd</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;String representation.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;String representation.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%i</span><span class="s2"> equalities, </span><span class="si">%i</span><span class="s2"> inequalities, </span><span class="si">%i</span><span class="s2"> exponential cones, </span><span class="se">\n</span><span class="s2">&quot;</span>
                 <span class="s2">&quot;SOC constraints: </span><span class="si">%s</span><span class="s2">, PSD constraints: </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zero</span><span class="p">,</span>
@@ -123,7 +120,7 @@
 
 
 <div class="viewcode-block" id="ParamQuadProg"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg">[docs]</a><span class="k">class</span> <span class="nc">ParamQuadProg</span><span class="p">(</span><span class="n">ParamProb</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Represents a parameterized quadratic program.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a parameterized quadratic program.</span>
 
 <span class="sd">    minimize   x&#39;Px  + q^Tx + d</span>
 <span class="sd">    subject to (in)equality_constr1(A_1*x + b_1, ...)</span>
@@ -186,13 +183,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">formatted</span> <span class="o">=</span> <span class="n">formatted</span>
 
 <div class="viewcode-block" id="ParamQuadProg.is_mixed_integer"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.is_mixed_integer">[docs]</a>    <span class="k">def</span> <span class="nf">is_mixed_integer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;Is the problem mixed-integer?&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Is the problem mixed-integer?&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;boolean&#39;</span><span class="p">]</span> <span class="ow">or</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">attributes</span><span class="p">[</span><span class="s1">&#39;integer&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="ParamQuadProg.apply_parameters"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">apply_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_to_param_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">zero_offset</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
                          <span class="n">keep_zeros</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns A, b after applying parameters (and reshaping).</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Returns A, b after applying parameters (and reshaping).</span>
 
 <span class="sd">        Args:</span>
 <span class="sd">          id_to_param_value: (optional) dict mapping parameter ids to values</span>
@@ -234,7 +231,7 @@
         <span class="k">return</span> <span class="n">P</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">A</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">b</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ParamQuadProg.apply_param_jac"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.apply_param_jac">[docs]</a>    <span class="k">def</span> <span class="nf">apply_param_jac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">delP</span><span class="p">,</span> <span class="n">delq</span><span class="p">,</span> <span class="n">delA</span><span class="p">,</span> <span class="n">delb</span><span class="p">,</span> <span class="n">active_params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Multiplies by Jacobian of parameter mapping.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Multiplies by Jacobian of parameter mapping.</span>
 
 <span class="sd">        Assumes delA is sparse.</span>
 
@@ -244,18 +241,18 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ParamQuadProg.split_solution"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_solution">[docs]</a>    <span class="k">def</span> <span class="nf">split_solution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sltn</span><span class="p">,</span> <span class="n">active_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Splits the solution into individual variables.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits the solution into individual variables.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
 
 <div class="viewcode-block" id="ParamQuadProg.split_adjoint"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.ParamQuadProg.split_adjoint">[docs]</a>    <span class="k">def</span> <span class="nf">split_adjoint</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">del_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Adjoint of split_solution.</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adjoint of split_solution.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
 
 <div class="viewcode-block" id="QpMatrixStuffing"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing">[docs]</a><span class="k">class</span> <span class="nc">QpMatrixStuffing</span><span class="p">(</span><span class="n">MatrixStuffing</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Fills in numeric values for this problem instance.</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fills in numeric values for this problem instance.</span>
 
 <span class="sd">       Outputs a DCP-compliant minimization problem with an objective</span>
 <span class="sd">       of the form</span>
@@ -289,7 +286,7 @@
         <span class="k">return</span> <span class="n">params_to_P</span><span class="p">,</span> <span class="n">params_to_q</span><span class="p">,</span> <span class="n">x</span></div>
 
 <div class="viewcode-block" id="QpMatrixStuffing.apply"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.apply">[docs]</a>    <span class="k">def</span> <span class="nf">apply</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;See docstring for MatrixStuffing.apply&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;See docstring for MatrixStuffing.apply&quot;&quot;&quot;</span>
         <span class="n">inverse_data</span> <span class="o">=</span> <span class="n">InverseData</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
         <span class="c1"># Form the constraints</span>
         <span class="n">extractor</span> <span class="o">=</span> <span class="n">CoeffExtractor</span><span class="p">(</span><span class="n">inverse_data</span><span class="p">)</span>
@@ -327,7 +324,7 @@
         <span class="k">return</span> <span class="n">new_prob</span><span class="p">,</span> <span class="n">inverse_data</span></div>
 
 <div class="viewcode-block" id="QpMatrixStuffing.invert"><a class="viewcode-back" href="../../../../api_reference/cvxpy.reductions.qp2quad_form.html#cvxpy.reductions.qp2quad_form.qp_matrix_stuffing.QpMatrixStuffing.invert">[docs]</a>    <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solution</span><span class="p">,</span> <span class="n">inverse_data</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieves the solution to the original problem.&quot;&quot;&quot;</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves the solution to the original problem.&quot;&quot;&quot;</span>
         <span class="n">var_map</span> <span class="o">=</span> <span class="n">inverse_data</span><span class="o">.</span><span class="n">var_offsets</span>
         <span class="c1"># Flip sign of opt val if maximize.</span>
         <span class="n">opt_val</span> <span class="o">=</span> <span class="n">solution</span><span class="o">.</span><span class="n">opt_val</span>
@@ -459,7 +456,7 @@
       &copy;The CVXPY authors.
       
       |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 5.3.0</a>
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 6.0.0</a>
       &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
       
     </div>
