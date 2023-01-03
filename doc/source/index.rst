@@ -92,9 +92,13 @@ guide </contributing/index>` and join us `on Discord <https://discord.gg/4urRQeG
 
 **News.**
 
-CVXPY 1.3 introduced the option for users to specify different canonicalization backends, which
-can drastically reduce the canonicalization time. Initially, a second backend based on the SciPy
-sparse module was added. Read more about the new backends here: :ref:`canonicalization-backends`.
+CVXPY 1.3 introduced the option for users to specify different canonicalization backends,
+which can drastically reduce the canonicalization time. Initially, a second backend based on
+the SciPy sparse module was added. Read more about the new backends here: 
+:ref:`canonicalization-backends`. See `CVXPYgen <https://github.com/cvxgrp/cvxpygen>`_ for a
+complementary code generation approach. Following the introduction of semantic versioning,
+since the CVXPY 1.3 release, everything that can be imported from the `cvxpy` namespace is
+considered to be part of the public API.
 
 In early 2022 we started moving CVXPY to semantic versioning. Starting with CVXPY v1.2.0, we will
 assign version numbers following the specification at `semver.org <https://semver.org/>`_.
