@@ -70,7 +70,7 @@ ExpCone
     :undoc-members:
     :show-inheritance:
 
-.. _rel_entr_cone_quad
+.. _rel_entr_cone_quad:
 
 RelEntrConeQuad
 --------------------------------------
@@ -96,6 +96,8 @@ PowConeND
     :undoc-members:
     :show-inheritance:
 
+.. _finite_set:
+
 FiniteSet
 ---------------------
 
@@ -103,6 +105,8 @@ FiniteSet
     :members: is_dcp, size, shape, ineq_form, violation
     :undoc-members:
     :show-inheritance:
+
+.. _op_rel_entr_cone_quad:
 
 OpRelEntrConeQuad
 --------------------------------------
